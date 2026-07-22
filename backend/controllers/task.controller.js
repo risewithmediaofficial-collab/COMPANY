@@ -646,6 +646,7 @@ export const createTask = async (req, res) => {
 
         const task = await Task.create({
           ...currentPayload,
+          dueDate: currentPayload.dueDate || currentPayload.deadline || new Date(),
           organizationId: req.user.organizationId,
           brandId: req.user.brandId,
           createdBy: req.user._id,
@@ -1295,7 +1296,26 @@ export const getCalendarTasks = async (req, res) => {
       filter.parent = null;
     }
 
-    applyDateFilter(filter, 'dueDate', startDate, endDate);
+    if (startDate || endDate) {
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+      if (start) start.setHours(0, 0, 0, 0);
+      if (end) end.setHours(23, 59, 59, 999);
+
+      const dateRange = {};
+      if (start) dateRange.$gte = start;
+      if (end) dateRange.$lte = end;
+
+      if (Object.keys(dateRange).length) {
+        filter.$or = [
+          ...(filter.$or || []),
+          { dueDate: dateRange },
+          { createdAt: dateRange },
+          { dueDate: null },
+          { dueDate: { $exists: false } },
+        ];
+      }
+    }
 
     if (search) {
       filter.$or = [
