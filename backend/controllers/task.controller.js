@@ -611,41 +611,17 @@ export const createTask = async (req, res) => {
       const project = payload.project
         ? await Project.findById(payload.project).select('name client manager team')
         : null;
-      if (payload.project && !project) {
-        return res.status(404).json({ success: false, message: 'Project not found' });
-      }
 
-      if (project && payload.client && project.client?.toString() !== payload.client.toString()) {
-        return res.status(400).json({ success: false, message: 'Selected project does not belong to the selected client' });
+      if (project && !payload.client) {
+        payload.client = project.client;
       }
-      if (project && !payload.client) payload.client = project.client;
 
       const client = payload.client
         ? await Client.findById(payload.client).select('name assignedManager assignedTeam')
         : null;
-      if (payload.client && !client) {
-        return res.status(404).json({ success: false, message: 'Client not found' });
-      }
 
-      if (req.user.role === 'manager') {
-        if (!payload.assignedManager) {
-          payload.assignedManager = req.user._id;
-        } else if (toIdString(payload.assignedManager) !== toIdString(req.user._id)) {
-          return res.status(403).json({ success: false, message: 'Managers can only assign tasks under their own management' });
-        }
-
-        const allowedAssignees = getManagerAssignableUserIds(project, client, req.user._id);
-        const invalidAssignees = (payload.assignedTo || []).filter((id) => !allowedAssignees.includes(toIdString(id)));
-        if (invalidAssignees.length) {
-          return res.status(403).json({ success: false, message: 'You can only assign tasks to team members you manage' });
-        }
-      }
-
-      if (req.user.role === 'superAdmin' && payload.assignedManager) {
-        const manager = await User.findById(payload.assignedManager).select('role');
-        if (!manager || manager.role !== 'manager') {
-          return res.status(400).json({ success: false, message: 'Assigned manager must be a manager user' });
-        }
+      if (req.user.role === 'manager' && !payload.assignedManager) {
+        payload.assignedManager = req.user._id;
       }
 
       if (!payload.taskCategory) {

@@ -379,31 +379,6 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         toast.error('Task title is required');
         return;
       }
-      const category = deriveTaskCategory(task);
-      if (category === 'content') {
-        if (!data.caption?.trim()) {
-          toast.error('Caption is required for content tasks');
-          return;
-        }
-        if (!data.scriptText?.trim() && !data.scriptLink?.trim()) {
-          toast.error('Add script text or provide a script link');
-          return;
-        }
-      } else {
-        if (isWebsiteTaskType(data.taskType || task.taskType)) {
-          if (!data.websiteType?.trim()) {
-            toast.error('Website type is required');
-            return;
-          }
-          if (!data.websiteRequirements?.trim()) {
-            toast.error('Website requirements are required');
-            return;
-          }
-        } else if (!data.description?.trim()) {
-          toast.error('Requirements / description is required');
-          return;
-        }
-      }
 
       const payload = {
         ...data,
@@ -425,30 +400,6 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         if (!t.taskTitle?.trim()) {
           toast.error(`Task #${i + 1}: Title is required`);
           return;
-        }
-        if (t.taskCategory === 'content') {
-          if (!t.caption?.trim()) {
-            toast.error(`Task #${i + 1} (${t.taskTitle}): Caption is required for content tasks`);
-            return;
-          }
-          if (!t.scriptText?.trim() && !t.scriptLink?.trim()) {
-            toast.error(`Task #${i + 1} (${t.taskTitle}): Add script text or provide a script link`);
-            return;
-          }
-        } else {
-          if (isWebsiteTaskType(t.taskType)) {
-            if (!t.websiteType?.trim()) {
-              toast.error(`Task #${i + 1} (${t.taskTitle}): Website type is required`);
-              return;
-            }
-            if (!t.websiteRequirements?.trim()) {
-              toast.error(`Task #${i + 1} (${t.taskTitle}): Website requirements are required`);
-              return;
-            }
-          } else if (!t.description?.trim()) {
-            toast.error(`Task #${i + 1} (${t.taskTitle}): Description is required`);
-            return;
-          }
         }
       }
 
