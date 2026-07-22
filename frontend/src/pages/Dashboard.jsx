@@ -20,7 +20,9 @@ import {
   Send,
   Copy,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { useEodReports } from '../hooks/useEodReports';
@@ -49,6 +51,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showEodModal, setShowEodModal] = useState(false);
   const [period, setPeriod] = useState('monthly');
+  const [showFinance, setShowFinance] = useState(false);
 
   const socket = useSocket();
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'manager';
@@ -199,9 +202,9 @@ const Dashboard = () => {
 
     const stats = !isManager ? [
       // Row 1 – Revenue & Financials
-      { label: 'Total Income', value: formatINR(data.stats.totalIncome || 0), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10', trend: 'All-time paid', up: true },
-      { label: getRevenueLabel(), value: formatINR(data.stats.monthRevenue || 0), icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10', trend: getRevenueTrend(), up: data.stats.revenueGrowth >= 0 },
-      { label: 'Total Expenses', value: formatINR(data.stats.totalExpenses || 0), icon: Wallet, color: 'text-rose-500', bg: 'bg-rose-500/10', trend: getExpensesTrend(), up: true },
+      { label: 'Total Income', value: formatINR(data.stats.totalIncome || 0), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10', trend: 'All-time paid', up: true, isFinance: true },
+      { label: getRevenueLabel(), value: formatINR(data.stats.monthRevenue || 0), icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10', trend: getRevenueTrend(), up: data.stats.revenueGrowth >= 0, isFinance: true },
+      { label: 'Total Expenses', value: formatINR(data.stats.totalExpenses || 0), icon: Wallet, color: 'text-rose-500', bg: 'bg-rose-500/10', trend: getExpensesTrend(), up: true, isFinance: true },
       // Row 2 – Clients & Projects
       { label: 'Total Clients', value: data.stats.totalClients, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: `${data.stats.activeClients} active`, up: true },
       { label: 'Active Projects', value: data.stats.activeProjects, icon: Briefcase, color: 'text-indigo-500', bg: 'bg-indigo-500/10', trend: `${data.stats.totalProjects} total`, up: true },
@@ -234,6 +237,21 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+          {/* Finance visibility toggle – only for superAdmin */}
+          {!isManager && (
+            <button
+              onClick={() => setShowFinance((v) => !v)}
+              title={showFinance ? 'Hide finance amounts' : 'Show finance amounts'}
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all shadow-sm ${
+                showFinance
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
+                  : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
+              {showFinance ? 'Hide Amounts' : 'Show Amounts'}
+            </button>
+          )}
           <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
             <Calendar size={16} />
             Content Calendar
@@ -286,7 +304,12 @@ const Dashboard = () => {
               </div>
               <div className="mt-3">
                 <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
-                <h3 className="text-xl font-bold mt-1 tracking-tight">{stat.value}</h3>
+                <h3 className="text-xl font-bold mt-1 tracking-tight">
+                  {stat.isFinance && !showFinance
+                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
+                    : stat.value
+                  }
+                </h3>
               </div>
             </motion.div>
           ))}

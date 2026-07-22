@@ -521,12 +521,28 @@ export default function PortalManager() {
                   className="modal-input">
                   {PLATFORMS.map(p => <option key={p}>{p}</option>)}
                 </select>
+                {contentForm.platform === 'Other' && (
+                  <input
+                    placeholder="Specify platform..."
+                    value={contentForm.customPlatform || ''}
+                    onChange={e => setContentForm(f => ({...f, customPlatform: e.target.value}))}
+                    className="modal-input mt-1"
+                  />
+                )}
               </FormField>
               <FormField label="Content Type">
                 <select value={contentForm.contentType} onChange={e => setContentForm(f => ({...f, contentType: e.target.value}))}
                   className="modal-input">
                   {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
                 </select>
+                {contentForm.contentType === 'Other' && (
+                  <input
+                    placeholder="Specify content type..."
+                    value={contentForm.customContentType || ''}
+                    onChange={e => setContentForm(f => ({...f, customContentType: e.target.value}))}
+                    className="modal-input mt-1"
+                  />
+                )}
               </FormField>
               <FormField label="Priority">
                 <select value={contentForm.priority} onChange={e => setContentForm(f => ({...f, priority: e.target.value}))}

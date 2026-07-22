@@ -739,6 +739,13 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                   ))}
                 </SelectContent>
               </Select>
+              {field.value === 'custom' && (
+                <Input
+                  placeholder="Describe custom content type..."
+                  className="mt-1"
+                  {...form.register('customContentType')}
+                />
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -761,6 +768,13 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                     ))}
                   </SelectContent>
                 </Select>
+                {field.value === 'custom' && (
+                  <Input
+                    placeholder="Describe custom video type..."
+                    className="mt-1"
+                    {...form.register('customVideoType')}
+                  />
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -783,6 +797,13 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                   ))}
                 </SelectContent>
               </Select>
+              {field.value === 'custom_content' && (
+                <Input
+                  placeholder="Describe custom task format..."
+                  className="mt-1"
+                  {...form.register('customTaskType')}
+                />
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -1262,6 +1283,13 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 ))}
               </SelectContent>
             </Select>
+            {field.value === 'custom_task' && (
+              <Input
+                placeholder="Describe the custom task type..."
+                className="mt-1"
+                {...form.register('customTaskType')}
+              />
+            )}
             <FormMessage />
           </FormItem>
         )}
@@ -1587,6 +1615,14 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                               ))}
                             </SelectContent>
                           </Select>
+                          {(taskItem.taskType === 'custom_content' || taskItem.taskType === 'custom_task') && (
+                            <Input
+                              placeholder="Describe the custom task format..."
+                              className="rounded-xl mt-1"
+                              value={taskItem.customTaskType || ''}
+                              onChange={(e) => updateTaskField(index, 'customTaskType', e.target.value)}
+                            />
+                          )}
                         </div>
 
                         {/* If Content, show Content Type */}
@@ -1608,6 +1644,14 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 ))}
                               </SelectContent>
                             </Select>
+                            {taskItem.contentType === 'custom' && (
+                              <Input
+                                placeholder="Describe custom content type..."
+                                className="rounded-xl mt-1"
+                                value={taskItem.customContentType || ''}
+                                onChange={(e) => updateTaskField(index, 'customContentType', e.target.value)}
+                              />
+                            )}
                           </div>
                         )}
 
@@ -1630,9 +1674,30 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 ))}
                               </SelectContent>
                             </Select>
+                            {taskItem.videoType === 'custom' && (
+                              <Input
+                                placeholder="Describe custom video type..."
+                                className="rounded-xl mt-1"
+                                value={taskItem.customVideoType || ''}
+                                onChange={(e) => updateTaskField(index, 'customVideoType', e.target.value)}
+                              />
+                            )}
                           </div>
                         )}
                       </div>
+
+                      {/* Caption – Always visible for content tasks */}
+                      {taskItem.taskCategory === 'content' && (
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-foreground">Caption * <span className="font-normal text-muted-foreground">(required)</span></label>
+                          <Textarea
+                            className="min-h-16 rounded-xl"
+                            placeholder="Caption / copy text for this post..."
+                            value={taskItem.caption || ''}
+                            onChange={(e) => updateTaskField(index, 'caption', e.target.value)}
+                          />
+                        </div>
+                      )}
 
                       {/* Collapsible Advanced Details */}
                       {isExpanded && (
@@ -1675,15 +1740,6 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                     className="rounded-xl"
                                     value={taskItem.scriptLink || ''}
                                     onChange={(e) => updateTaskField(index, 'scriptLink', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1 md:col-span-2">
-                                  <label className="text-xs font-bold text-foreground">Caption *</label>
-                                  <Textarea
-                                    className="min-h-16 rounded-xl"
-                                    placeholder="Caption / copy text..."
-                                    value={taskItem.caption || ''}
-                                    onChange={(e) => updateTaskField(index, 'caption', e.target.value)}
                                   />
                                 </div>
                                 <div className="space-y-1">

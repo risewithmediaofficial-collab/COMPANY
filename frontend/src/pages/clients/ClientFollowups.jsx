@@ -143,6 +143,15 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <option value="review">Review</option>
               <option value="other">Other</option>
             </select>
+            {form.type === 'other' && (
+              <input
+                type="text"
+                placeholder="Specify type..."
+                className="app-input mt-1"
+                value={form.customType || ''}
+                onChange={(e) => updateField('customType', e.target.value)}
+              />
+            )}
           </Field>
 
           <Field label="Status">

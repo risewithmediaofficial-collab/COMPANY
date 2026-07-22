@@ -104,7 +104,9 @@ const clientFormSchema = z.object({
     z.string().url('Invalid Drive URL').optional().or(z.literal(''))
   ),
   industry: z.string().optional(),
+  customIndustry: z.string().optional(),
   services: z.array(z.string()).default([]),
+  customService: z.string().optional(),
   status: z.enum(['Active', 'Inactive', 'Prospect', 'Churned', 'Renew']).default('Active'),
   referredByMode: z.enum(['none', 'dropdown', 'manual']).default('none'),
   referredBy: z.string().optional(),
@@ -132,7 +134,9 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
       website: '',
       driveLink: '',
       industry: undefined,
+      customIndustry: '',
       services: [],
+      customService: '',
       status: 'Active',
       referredByMode: 'none',
       referredBy: '',
@@ -157,7 +161,9 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
         website: client.website || '',
         driveLink: client.driveLink || '',
         industry: client.industry || undefined,
+        customIndustry: client.customIndustry || '',
         services: Array.isArray(client.services) ? client.services : [],
+        customService: client.customService || '',
         status: client.status || 'Active',
         referredByMode: client.referredByManual ? 'manual' : client.referredBy ? 'dropdown' : 'none',
         referredBy: client.referredBy?._id || client.referredBy || '',
@@ -180,7 +186,9 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
             website: '',
             driveLink: '',
             industry: undefined,
+            customIndustry: '',
             services: [],
+            customService: '',
             status: 'Active',
             referredByMode: 'none',
             referredBy: '',
@@ -190,14 +198,16 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
         }
       } else {
         form.reset({
-          name: '',
-          company: '',
-          email: '',
-          phone: '',
-          website: '',
-          driveLink: '',
-          industry: undefined,
+            name: '',
+            company: '',
+            email: '',
+            phone: '',
+            website: '',
+            driveLink: '',
+            industry: undefined,
+            customIndustry: '',
             services: [],
+            customService: '',
             status: 'Active',
             referredByMode: 'none',
             referredBy: '',
@@ -213,7 +223,9 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
       ...data,
       website: data.website || '',
       industry: data.industry || '',
+      customIndustry: data.industry === 'Other' ? (data.customIndustry?.trim() || '') : '',
       services: data.services || [],
+      customService: data.services?.includes('Other') ? (data.customService?.trim() || '') : '',
       referredBy: data.referredByMode === 'dropdown' ? (data.referredBy || null) : null,
       referredByManual: data.referredByMode === 'manual' ? data.referredByManual?.trim() || '' : '',
     };
@@ -362,6 +374,20 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
                         ))}
                       </SelectContent>
                     </Select>
+                    {field.value === 'Other' && (
+                      <FormField
+                        control={form.control}
+                        name="customIndustry"
+                        render={({ field: customField }) => (
+                          <FormItem className="mt-1">
+                            <FormControl>
+                              <Input placeholder="Specify your sector..." {...customField} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -494,6 +520,20 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
                         );
                       })}
                     </div>
+                    {selected.includes('Other') && (
+                      <FormField
+                        control={form.control}
+                        name="customService"
+                        render={({ field: customField }) => (
+                          <FormItem className="mt-2">
+                            <FormControl>
+                              <Input placeholder="Specify other requirement..." {...customField} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormMessage />
                   </FormItem>
                 );

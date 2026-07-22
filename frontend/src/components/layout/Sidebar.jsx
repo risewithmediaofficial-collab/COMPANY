@@ -167,12 +167,12 @@ const Sidebar = () => {
         className="fixed left-0 top-0 h-screen bg-card border-r border-border z-50 flex flex-col shadow-xl"
       >
         {/* Logo Section */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-border">
-          <div className="flex items-center min-w-0">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-background p-1.5 shadow-sm">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-border">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-background p-1 shadow-sm">
               <img
                 src="/branding/rise-with-media-logo.png"
-                alt="RISE WITH MEDIA logo"
+                alt="RWM logo"
                 className="h-full w-full object-contain"
               />
             </div>
@@ -180,10 +180,9 @@ const Sidebar = () => {
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="ml-3 flex min-w-0 flex-col leading-tight"
+                className="flex min-w-0 flex-col leading-tight"
               >
-                <span className="truncate text-[11px] font-black uppercase tracking-[0.22em] text-primary/80">Rise With</span>
-                <span className="truncate text-sm font-bold uppercase tracking-[0.18em] text-foreground">Media</span>
+                <span className="truncate text-base font-black uppercase tracking-[0.18em] text-black">RWM</span>
               </motion.div>
             )}
           </div>

@@ -589,6 +589,15 @@ export default function CallHistoryDashboard() {
                       onChange={(val) => setForm((prev) => ({ ...prev, callPurpose: val }))}
                       options={CALL_PURPOSES}
                     />
+                    {form.callPurpose === 'Other' && (
+                      <input
+                        type="text"
+                        placeholder="Specify call purpose..."
+                        value={form.customCallPurpose || ''}
+                        onChange={(e) => setForm((prev) => ({ ...prev, customCallPurpose: e.target.value }))}
+                        className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 mt-1"
+                      />
+                    )}
                   </div>
                 </div>
 

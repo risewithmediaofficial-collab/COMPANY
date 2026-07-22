@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Calendar,
@@ -6,12 +6,35 @@ import {
   ChevronRight,
   FileText,
   History,
+  Info,
+  MapPin,
   Timer,
   TrendingUp,
+  UserCheck,
 } from 'lucide-react';
 import { EODReportModal } from '../../components/modals/EODReportModal';
 import { useAttendance, useClockIn, useClockOut, useAssignHoliday, useSubmitLeave, useSubmitWFH } from '../../hooks/useAttendance';
 import { useUsers } from '../../hooks/useUsers';
+import { toast } from 'sonner';
+
+// ── Office Location Config ────────────────────────────────────────────────────
+const OFFICE_LOCATION = {
+  lat: 12.55157,   // 320/1 Thiruvannamalai Rd, Giddampatti, Tamil Nadu 635001
+  lng: 78.19759,
+};
+const ALLOWED_RADIUS_METERS = 300; // 300-metre radius
+
+/** Haversine formula – returns distance in metres between two lat/lng pairs */
+function getDistanceMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
@@ -25,6 +48,7 @@ const Attendance = () => {
   const [holidayForm, setHolidayForm] = useState({ date: '', notes: '' });
   const [leaveForm, setLeaveForm] = useState({ userId: '', date: '', notes: '' });
   const [wfhForm, setWfhForm] = useState({ date: '', notes: '' });
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
   const { data, isLoading } = useAttendance();
   const { data: users = [] } = useUsers({ enabled: isAdmin });
@@ -33,6 +57,52 @@ const Attendance = () => {
   const assignHolidayMutation = useAssignHoliday();
   const submitLeaveMutation = useSubmitLeave();
   const submitWFHMutation = useSubmitWFH();
+  // 'idle' | 'checking' | 'allowed' | 'denied' | 'out_of_range'
+  const [locationStatus, setLocationStatus] = useState('idle');
+  const [locationDistance, setLocationDistance] = useState(null);
+
+  /** Verify location then run a callback if within radius */
+  const verifyLocationThen = useCallback((onAllowed) => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+    setLocationStatus('checking');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const dist = getDistanceMeters(latitude, longitude, OFFICE_LOCATION.lat, OFFICE_LOCATION.lng);
+        setLocationDistance(Math.round(dist));
+        if (dist <= ALLOWED_RADIUS_METERS) {
+          setLocationStatus('allowed');
+          onAllowed();
+        } else {
+          setLocationStatus('out_of_range');
+          toast.error(
+            `You must be at the office to clock in/out. You are ${Math.round(dist)}m away (max ${ALLOWED_RADIUS_METERS}m allowed).`
+          );
+        }
+      },
+      (err) => {
+        setLocationStatus('denied');
+        const msgs = {
+          1: 'Location access denied. Please enable location permission and try again.',
+          2: 'Location unavailable. Check your GPS/network.',
+          3: 'Location request timed out. Try again.',
+        };
+        toast.error(msgs[err.code] || 'Failed to get your location.');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }, []);
+
+  const handleClockIn = useCallback(() => {
+    verifyLocationThen(() => clockIn.mutate());
+  }, [verifyLocationThen, clockIn]);
+
+  const handleClockOut = useCallback(() => {
+    verifyLocationThen(() => clockOut.mutate());
+  }, [verifyLocationThen, clockOut]);
 
   const handleAssignHoliday = async (e) => {
     e.preventDefault();
@@ -165,20 +235,36 @@ const Attendance = () => {
 
                 {isClockedIn ? (
                   <button
-                    onClick={() => clockOut.mutate()}
-                    disabled={clockOut.isPending}
+                    onClick={handleClockOut}
+                    disabled={clockOut.isPending || locationStatus === 'checking'}
                     className="w-full py-4 rounded-3xl bg-destructive text-white font-black text-lg shadow-xl shadow-destructive/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
                   >
-                    {clockOut.isPending ? 'Clocking Out...' : 'Clock Out'}
+                    {locationStatus === 'checking' ? '📍 Checking Location...' : clockOut.isPending ? 'Clocking Out...' : 'Clock Out'}
                   </button>
                 ) : (
                   <button
-                    onClick={() => clockIn.mutate()}
-                    disabled={clockIn.isPending || Boolean(todayRecord?.clockOut)}
+                    onClick={handleClockIn}
+                    disabled={clockIn.isPending || Boolean(todayRecord?.clockOut) || locationStatus === 'checking'}
                     className="w-full py-4 rounded-3xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                   >
-                    {todayRecord?.clockOut ? 'Shift Completed' : clockIn.isPending ? 'Clocking In...' : 'Clock In'}
+                    {todayRecord?.clockOut ? 'Shift Completed' : locationStatus === 'checking' ? '📍 Checking Location...' : clockIn.isPending ? 'Clocking In...' : 'Clock In'}
                   </button>
+                )}
+
+                {/* Location Status Badge */}
+                {locationStatus !== 'idle' && (
+                  <div className={`mt-3 flex items-center justify-center gap-2 text-xs font-semibold rounded-xl px-3 py-2 ${
+                    locationStatus === 'checking' ? 'bg-amber-500/10 text-amber-600' :
+                    locationStatus === 'allowed' ? 'bg-emerald-500/10 text-emerald-600' :
+                    locationStatus === 'denied' ? 'bg-destructive/10 text-destructive' :
+                    'bg-rose-500/10 text-rose-600'
+                  }`}>
+                    <MapPin size={13} />
+                    {locationStatus === 'checking' && 'Detecting your location...'}
+                    {locationStatus === 'allowed' && `✓ Office location verified (${locationDistance}m away)`}
+                    {locationStatus === 'denied' && 'Location access denied — enable GPS'}
+                    {locationStatus === 'out_of_range' && `Outside office range (${locationDistance}m away, max ${ALLOWED_RADIUS_METERS}m)`}
+                  </div>
                 )}
 
                 <div className="flex items-center justify-center space-x-6 pt-6 text-sm font-bold text-muted-foreground">
@@ -245,7 +331,11 @@ const Attendance = () => {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {records.map((record) => (
-                    <tr key={record._id} className="hover:bg-secondary/20 transition-colors">
+                    <tr
+                      key={record._id}
+                      onClick={() => setSelectedRecord(record)}
+                      className="hover:bg-secondary/30 transition-colors cursor-pointer"
+                    >
                       <td className="px-6 py-4">
                         <div className="font-bold">{new Date(record.date).toLocaleDateString([], { weekday: 'short', day: 'numeric' })}</div>
                         <div className="text-[10px] text-muted-foreground uppercase">{new Date(record.date).toLocaleDateString([], { month: 'long' })}</div>
@@ -268,9 +358,23 @@ const Attendance = () => {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusColors[record.status] || 'bg-secondary/40 text-muted-foreground'}`} title={record.notes}>
-                          {record.status}
-                        </span>
+                        <div className="flex flex-col items-start gap-1">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 ${statusColors[record.status] || 'bg-secondary/40 text-muted-foreground'}`}>
+                            {record.status?.replace(/_/g, ' ')}
+                            {(record.notes || record.approvedBy) && <Info size={11} className="ml-0.5 opacity-80" />}
+                          </span>
+                          {record.notes && (
+                            <span className="text-xs font-medium text-foreground/90 truncate max-w-[200px]" title={record.notes}>
+                              {record.notes}
+                            </span>
+                          )}
+                          {record.approvedBy && (
+                            <span className="text-[10px] font-semibold text-primary flex items-center gap-1">
+                              <UserCheck size={10} />
+                              By: {record.approvedBy.name} ({record.approvedBy.role === 'superAdmin' ? 'Super Admin' : 'Manager'})
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -489,6 +593,110 @@ const Attendance = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Attendance Detail Modal */}
+      {selectedRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
+          <div className="w-full max-w-lg rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <Calendar className="text-primary h-5 w-5" />
+                  Attendance Details
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {new Date(selectedRecord.date).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRecord(null)}
+                className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/30 border border-border">
+                <span className="text-xs font-medium text-muted-foreground">Status</span>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${statusColors[selectedRecord.status] || 'bg-secondary text-muted-foreground'}`}>
+                  {selectedRecord.status?.replace(/_/g, ' ')}
+                </span>
+              </div>
+
+              {/* Reason / Notes */}
+              <div className="p-4 rounded-2xl bg-secondary/20 border border-border space-y-1.5">
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reason / Description</div>
+                <div className="text-sm font-semibold text-foreground">
+                  {selectedRecord.notes || 'No notes or reason provided.'}
+                </div>
+              </div>
+
+              {/* Assigned / Approved By */}
+              <div className="p-4 rounded-2xl bg-secondary/20 border border-border space-y-1.5">
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned / Approved By</div>
+                <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-primary" />
+                  {selectedRecord.approvedBy ? (
+                    <span>
+                      {selectedRecord.approvedBy.name} ({selectedRecord.approvedBy.role === 'superAdmin' ? 'Super Admin' : 'Manager'})
+                    </span>
+                  ) : selectedRecord.isApproved ? (
+                    <span>Manager / Admin</span>
+                  ) : (
+                    <span>Self Clock-in / System Recorded</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Times */}
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="p-3 rounded-2xl border border-border bg-card">
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock In</div>
+                  <div className="text-sm font-bold text-emerald-600 mt-1">
+                    {selectedRecord.clockIn ? new Date(selectedRecord.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                  </div>
+                </div>
+                <div className="p-3 rounded-2xl border border-border bg-card">
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock Out</div>
+                  <div className="text-sm font-bold text-amber-600 mt-1">
+                    {selectedRecord.clockOut ? new Date(selectedRecord.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                  </div>
+                </div>
+                <div className="p-3 rounded-2xl border border-border bg-card">
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase">Total Time</div>
+                  <div className="text-sm font-bold text-foreground mt-1">
+                    {selectedRecord.totalHours?.toFixed(1) || '0.0'} hrs
+                  </div>
+                </div>
+              </div>
+
+              {/* EOD Report if exists */}
+              {selectedRecord.eodReport?.submittedAt && (
+                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-1">
+                  <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                    <FileText size={13} /> EOD Report Submitted
+                  </div>
+                  <p className="text-xs text-foreground/80 line-clamp-3">
+                    {selectedRecord.eodReport.summary || 'Summary submitted.'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedRecord(null)}
+                className="w-full py-3 rounded-2xl border border-border bg-secondary/50 text-foreground font-bold text-sm hover:bg-secondary transition-all"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

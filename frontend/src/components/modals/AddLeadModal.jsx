@@ -42,6 +42,7 @@ const leadFormSchema = z.object({
   serviceInterest: z.string().optional(),
   decisionMaker: z.string().optional(),
   source: z.enum(['Website', 'Referral', 'Cold Call', 'Email', 'Social Media', 'Event', 'Other']).default('Other'),
+  customSource: z.string().optional(),
   status: z.enum(['New', 'Contacted', 'Qualified', 'Meeting Booked', 'Proposal', 'Negotiation', 'Won', 'Lost', 'Refollow Later']).default('New'),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   budget: z.number().optional(),
@@ -66,6 +67,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
       serviceInterest: '',
       decisionMaker: '',
       source: 'Other',
+      customSource: '',
       status: 'New',
       priority: 'medium',
       currency: 'INR',
@@ -246,6 +248,20 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                    {field.value === 'Other' && (
+                      <FormField
+                        control={form.control}
+                        name="customSource"
+                        render={({ field: cf }) => (
+                          <FormItem className="mt-1">
+                            <FormControl>
+                              <Input placeholder="Specify lead source..." {...cf} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

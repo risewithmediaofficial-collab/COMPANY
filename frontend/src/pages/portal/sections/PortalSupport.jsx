@@ -96,6 +96,14 @@ export default function PortalSupport({ dark }) {
                     <option value="">Select topic…</option>
                     {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
+                  {form.topic === 'Other' && (
+                    <input
+                      value={form.customTopic || ''}
+                      onChange={e => setForm(f => ({ ...f, customTopic: e.target.value }))}
+                      placeholder="Specify your topic..."
+                      className={`w-full px-3 py-2 rounded-xl text-xs border outline-none mt-1 ${inp}`}
+                    />
+                  )}
                 </div>
                 <div>
                   <label className={`text-[10px] font-semibold ${sub} block mb-1`}>Priority</label>

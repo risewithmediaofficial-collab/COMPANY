@@ -336,6 +336,13 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                    {field.value === 'other' && (
+                      <Input
+                        className="mt-1"
+                        placeholder="Specify project type..."
+                        {...form.register('customCategory')}
+                      />
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

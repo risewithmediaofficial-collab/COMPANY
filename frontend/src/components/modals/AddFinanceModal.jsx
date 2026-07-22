@@ -217,6 +217,20 @@ export const AddFinanceModal = ({ open, onOpenChange, entry = null }) => {
                         ))}
                       </SelectContent>
                     </Select>
+                    {field.value === 'Other' && (
+                      <FormField
+                        control={form.control}
+                        name="customPaymentMode"
+                        render={({ field: cf }) => (
+                          <FormItem className="mt-1">
+                            <FormControl>
+                              <Input placeholder="Specify payment mode..." {...cf} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

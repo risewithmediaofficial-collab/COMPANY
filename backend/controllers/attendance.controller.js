@@ -1,8 +1,5 @@
-// =============================================
-// ATTENDANCE CONTROLLER
-// =============================================
-
 import Attendance from '../models/attendance.model.js';
+import { createNotification } from '../utils/notification.js';
 
 export const clockIn = async (req, res) => {
   try {
@@ -75,6 +72,7 @@ export const getAttendance = async (req, res) => {
 
     const records = await Attendance.find(filter)
       .populate('user', 'name avatar department')
+      .populate('approvedBy', 'name role')
       .sort({ date: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
@@ -99,7 +97,8 @@ export const getTeamAttendance = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     const records = await Attendance.find({ date: today })
-      .populate('user', 'name avatar department position');
+      .populate('user', 'name avatar department position')
+      .populate('approvedBy', 'name role');
 
     res.json({ success: true, records });
   } catch (error) {
@@ -119,6 +118,7 @@ export const getEodReports = async (req, res) => {
       'eodReport.submittedAt': { $exists: true },
     })
       .populate('user', 'name avatar department position')
+      .populate('approvedBy', 'name role')
       .sort({ date: -1 })
       .limit(100);
 
@@ -145,17 +145,35 @@ export const assignHoliday = async (req, res) => {
       isActive: true,
     });
 
+    const assignerRole = req.user.role === 'superAdmin' ? 'Super Admin' : 'Manager';
+    const reasonText = notes || 'Company Official Holiday';
+
     const promises = users.map(async (userObj) => {
-      return Attendance.findOneAndUpdate(
+      const att = await Attendance.findOneAndUpdate(
         { user: userObj._id, date: holidayDate },
         {
           status: 'holiday',
-          notes: notes || 'Company Official Holiday',
+          notes: reasonText,
           isApproved: true,
           approvedBy: req.user._id,
         },
         { upsert: true, new: true }
       );
+
+      // Send notification to employee
+      await createNotification(
+        {
+          recipient: userObj._id,
+          sender: req.user._id,
+          type: 'attendance',
+          title: 'Official Holiday Assigned 📅',
+          message: `${req.user.name} (${assignerRole}) assigned an official holiday on ${date}: "${reasonText}"`,
+          link: '/attendance',
+        },
+        req.app.get('io')
+      );
+
+      return att;
     });
 
     await Promise.all(promises);
@@ -179,15 +197,31 @@ export const submitLeave = async (req, res) => {
     const leaveDate = new Date(date);
     leaveDate.setHours(0, 0, 0, 0);
 
+    const assignerRole = req.user.role === 'superAdmin' ? 'Super Admin' : 'Manager';
+    const reasonText = notes || 'Assigned Leave';
+
     const attendance = await Attendance.findOneAndUpdate(
       { user: userId, date: leaveDate },
       {
         status: 'leave',
-        notes: notes || 'Assigned Leave',
+        notes: reasonText,
         isApproved: true,
         approvedBy: req.user._id,
       },
       { upsert: true, new: true }
+    );
+
+    // Send notification to employee
+    await createNotification(
+      {
+        recipient: userId,
+        sender: req.user._id,
+        type: 'attendance',
+        title: 'Leave Assigned 🏖️',
+        message: `${req.user.name} (${assignerRole}) assigned you leave on ${date}: "${reasonText}"`,
+        link: '/attendance',
+      },
+      req.app.get('io')
     );
 
     res.json({ success: true, message: 'Leave assigned successfully', attendance });
