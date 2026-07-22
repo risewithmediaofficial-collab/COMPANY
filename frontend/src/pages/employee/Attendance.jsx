@@ -60,14 +60,46 @@ const Attendance = () => {
   // 'idle' | 'checking' | 'allowed' | 'denied' | 'out_of_range'
   const [locationStatus, setLocationStatus] = useState('idle');
   const [locationDistance, setLocationDistance] = useState(null);
+  const [isIpFallback, setIsIpFallback] = useState(false);
+  const [isHttpInsecure, setIsHttpInsecure] = useState(false);
+
+  /** IP-based location fallback when browser GPS is blocked on HTTP */
+  const checkIpLocationFallback = useCallback((onAllowed) => {
+    setLocationStatus('checking');
+    fetch('https://ipapi.co/json/')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
+          const dist = getDistanceMeters(data.latitude, data.longitude, OFFICE_LOCATION.lat, OFFICE_LOCATION.lng);
+          const distanceM = Math.round(dist);
+          setLocationDistance(distanceM);
+          // IP fallback allows within 50km region check
+          if (dist <= 50000) {
+            setLocationStatus('allowed');
+            setIsIpFallback(true);
+            if (typeof onAllowed === 'function') onAllowed();
+          } else {
+            setLocationStatus('out_of_range');
+          }
+        } else {
+          setLocationStatus('denied');
+        }
+      })
+      .catch(() => {
+        setLocationStatus('denied');
+      });
+  }, []);
 
   /** Verify location then run a callback if within radius */
   const verifyLocationThen = useCallback((onAllowed) => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
-      setLocationStatus('denied');
+    const isSecure = window.isSecureContext || window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    setIsHttpInsecure(!isSecure);
+
+    if (!navigator.geolocation || !isSecure) {
+      checkIpLocationFallback(onAllowed);
       return;
     }
+
     setLocationStatus('checking');
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -75,6 +107,7 @@ const Attendance = () => {
         const dist = getDistanceMeters(latitude, longitude, OFFICE_LOCATION.lat, OFFICE_LOCATION.lng);
         const distanceM = Math.round(dist);
         setLocationDistance(distanceM);
+        setIsIpFallback(false);
         if (dist <= ALLOWED_RADIUS_METERS) {
           setLocationStatus('allowed');
           if (typeof onAllowed === 'function') onAllowed();
@@ -86,17 +119,12 @@ const Attendance = () => {
         }
       },
       (err) => {
-        setLocationStatus('denied');
-        const msgs = {
-          1: 'Location access denied. Please allow location access in browser settings and click retry.',
-          2: 'Location position unavailable. Ensure GPS is turned on.',
-          3: 'Location request timed out. Please try again.',
-        };
-        toast.error(msgs[err.code] || 'Failed to get your location.');
+        // If browser GPS is denied (e.g. on HTTP), attempt IP location check fallback
+        checkIpLocationFallback(onAllowed);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-  }, []);
+  }, [checkIpLocationFallback]);
 
   // Prompt for GPS location on mount if employee / manager
   useEffect(() => {
@@ -269,9 +297,14 @@ const Attendance = () => {
                 )}
 
                 {locationStatus === 'allowed' && (
-                  <div className="mt-3 flex items-center justify-center gap-2 text-xs font-bold rounded-xl px-3 py-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                    <MapPin size={14} />
-                    ✓ Office Location Verified ({locationDistance}m away)
+                  <div className="mt-3 flex flex-col items-center gap-1">
+                    <div className="flex items-center justify-center gap-2 text-xs font-bold rounded-xl px-3 py-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 w-full">
+                      <MapPin size={14} />
+                      ✓ Office Location Verified {locationDistance ? `(${locationDistance}m away)` : ''}
+                    </div>
+                    {isIpFallback && (
+                      <span className="text-[10px] text-muted-foreground italic">Verified via Network IP (HTTP Fallback)</span>
+                    )}
                   </div>
                 )}
 
