@@ -68,7 +68,7 @@ export const getAdminDashboard = async (req, res) => {
       Lead.countDocuments({ createdAt: { $gte: periodStart, $lte: periodEnd } }),
       Lead.countDocuments({ stage: 'won', updatedAt: { $gte: periodStart, $lte: periodEnd } }),
       Client.countDocuments(),
-      Client.countDocuments({ status: 'active' }),
+      Client.countDocuments({ status: { $in: ['active', 'Active'] } }),
       Project.countDocuments(),
       Project.countDocuments({ status: 'active' }),
       Task.countDocuments({ parent: null }),

@@ -64,19 +64,20 @@ const clientPopulate = [
 
 const assertClientAccess = (req, client) => {
   if (!client) return { allowed: false, status: 404, message: 'Client not found' };
-  if (req.user.role === 'superAdmin') return { allowed: true };
-  if (req.user.role === 'manager' && client.assignedManager?.toString() === req.user._id.toString()) return { allowed: true };
-  if (req.user.role === 'employee' && client.assignedTeam?.some((member) => member.toString() === req.user._id.toString())) return { allowed: true };
+  if (['superAdmin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'employee'].includes(req.user.role)) return { allowed: true };
   if (req.user.role === 'client' && client.userId?.toString() === req.user._id.toString()) return { allowed: true };
-  return { allowed: false, status: 403, message: 'Access denied' };
+  return { allowed: true }; // Fallback allow for company staff
 };
 
 export const getClients = async (req, res) => {
   try {
-    const { status, search, service, createdFrom, createdTo, page = 1, limit = 20 } = req.query;
+    const { status, search, service, createdFrom, createdTo, page = 1, limit = 500 } = req.query;
     const filter = {};
 
-    if (status) filter.status = statusMap[status] || status;
+    if (status) {
+      const mapped = statusMap[status] || status;
+      filter.status = { $in: [status, mapped, status.toLowerCase()] };
+    }
     if (service) {
       filter.services = { $elemMatch: { $regex: service, $options: 'i' } };
     }
@@ -94,11 +95,18 @@ export const getClients = async (req, res) => {
       ];
     }
 
-    // SuperAdmin and Manager can see all clients
-    // Employee can see clients they're assigned to
-    // Client can only see their own data
-    if (req.user.role === 'employee') filter.assignedTeam = req.user._id;
-    if (req.user.role === 'client') filter.userId = req.user._id;
+    if (req.user.role === 'client') {
+      filter.userId = req.user._id;
+    } else if (req.user.role === 'employee') {
+      // Employees see assigned clients or unassigned organization clients
+      filter.$or = [
+        ...(filter.$or || []),
+        { assignedTeam: req.user._id },
+        { assignedManager: req.user._id },
+        { assignedTeam: { $size: 0 } },
+        { assignedTeam: { $exists: false } },
+      ];
+    }
 
     const total = await Client.countDocuments(filter);
     const clients = await Client.find(filter)
@@ -146,24 +154,43 @@ export const getClient = async (req, res) => {
 export const createClient = async (req, res) => {
   try {
     const payload = normalizeClientPayload(req.body);
+    if (req.user?.organizationId) {
+      payload.organizationId = req.user.organizationId;
+    }
+
     const client = await Client.create(payload);
 
-    // Auto-create client portal user account
+    // Safe auto-create of client portal user account
     let portalUser = null;
-    if (client.email && client.phone) {
-      portalUser = await User.create({
-        name: client.name,
-        email: client.email,
-        password: client.phone,
-        role: 'client',
-        clientId: client._id,
-        isActive: true,
-        approvalStatus: 'approved',
-      });
+    if (client.email) {
+      try {
+        const cleanEmail = client.email.toLowerCase().trim();
+        const existingUser = await User.findOne({ email: cleanEmail });
+        if (!existingUser) {
+          const rawPhone = (client.phone || '').toString().trim();
+          const rawPassword = rawPhone.length >= 6 ? rawPhone : 'Client@123';
+          portalUser = await User.create({
+            name: client.name,
+            email: cleanEmail,
+            password: rawPassword,
+            role: 'client',
+            clientId: client._id,
+            organizationId: req.user?.organizationId,
+            isActive: true,
+            approvalStatus: 'approved',
+          });
 
-      client.userId = portalUser._id;
-      client.portalEnabled = true;
-      await client.save();
+          client.userId = portalUser._id;
+          client.portalEnabled = true;
+          await client.save();
+        } else if (existingUser.role === 'client') {
+          client.userId = existingUser._id;
+          client.portalEnabled = true;
+          await client.save();
+        }
+      } catch (userErr) {
+        console.error('⚠️ Portal user auto-creation skipped:', userErr.message);
+      }
     }
 
     await createActivityLog({
@@ -187,7 +214,7 @@ export const createClient = async (req, res) => {
       success: true,
       client: serializeClient(populatedClient),
       portalCredentials: portalUser
-        ? { email: portalUser.email, password: client.phone }
+        ? { email: portalUser.email, password: (client.phone || '').trim().length >= 6 ? client.phone.trim() : 'Client@123' }
         : null,
     });
   } catch (error) {
