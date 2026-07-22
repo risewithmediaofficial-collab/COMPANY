@@ -17,25 +17,6 @@ import { useAttendance, useClockIn, useClockOut, useAssignHoliday, useSubmitLeav
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
 
-// ── Office Location Config ────────────────────────────────────────────────────
-const OFFICE_LOCATION = {
-  lat: 12.55157,   // 320/1 Thiruvannamalai Rd, Giddampatti, Tamil Nadu 635001
-  lng: 78.19759,
-};
-const ALLOWED_RADIUS_METERS = 300; // 300-metre radius
-
-/** Haversine formula – returns distance in metres between two lat/lng pairs */
-function getDistanceMeters(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const toRad = (deg) => (deg * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
   const isAdmin = ['superAdmin', 'manager'].includes(user?.role);
@@ -57,89 +38,14 @@ const Attendance = () => {
   const assignHolidayMutation = useAssignHoliday();
   const submitLeaveMutation = useSubmitLeave();
   const submitWFHMutation = useSubmitWFH();
-  // 'idle' | 'checking' | 'allowed' | 'denied' | 'out_of_range'
-  const [locationStatus, setLocationStatus] = useState('idle');
-  const [locationDistance, setLocationDistance] = useState(null);
-  const [isIpFallback, setIsIpFallback] = useState(false);
-  const [isHttpInsecure, setIsHttpInsecure] = useState(false);
-
-  /** IP-based location fallback when browser GPS is blocked on HTTP */
-  const checkIpLocationFallback = useCallback((onAllowed) => {
-    setLocationStatus('checking');
-    fetch('https://ipapi.co/json/')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && typeof data.latitude === 'number' && typeof data.longitude === 'number') {
-          const dist = getDistanceMeters(data.latitude, data.longitude, OFFICE_LOCATION.lat, OFFICE_LOCATION.lng);
-          const distanceM = Math.round(dist);
-          setLocationDistance(distanceM);
-          // IP fallback allows within 50km region check
-          if (dist <= 50000) {
-            setLocationStatus('allowed');
-            setIsIpFallback(true);
-            if (typeof onAllowed === 'function') onAllowed();
-          } else {
-            setLocationStatus('out_of_range');
-          }
-        } else {
-          setLocationStatus('denied');
-        }
-      })
-      .catch(() => {
-        setLocationStatus('denied');
-      });
-  }, []);
-
-  /** Verify location then run a callback if within radius */
-  const verifyLocationThen = useCallback((onAllowed) => {
-    const isSecure = window.isSecureContext || window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    setIsHttpInsecure(!isSecure);
-
-    if (!navigator.geolocation || !isSecure) {
-      checkIpLocationFallback(onAllowed);
-      return;
-    }
-
-    setLocationStatus('checking');
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const dist = getDistanceMeters(latitude, longitude, OFFICE_LOCATION.lat, OFFICE_LOCATION.lng);
-        const distanceM = Math.round(dist);
-        setLocationDistance(distanceM);
-        setIsIpFallback(false);
-        if (dist <= ALLOWED_RADIUS_METERS) {
-          setLocationStatus('allowed');
-          if (typeof onAllowed === 'function') onAllowed();
-        } else {
-          setLocationStatus('out_of_range');
-          toast.error(
-            `Out of Coverage Area: You are ${distanceM}m away from the office (max ${ALLOWED_RADIUS_METERS}m allowed).`
-          );
-        }
-      },
-      (err) => {
-        // If browser GPS is denied (e.g. on HTTP), attempt IP location check fallback
-        checkIpLocationFallback(onAllowed);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  }, [checkIpLocationFallback]);
-
-  // Prompt for GPS location on mount if employee / manager
-  useEffect(() => {
-    if (!isSuperAdmin) {
-      verifyLocationThen();
-    }
-  }, [isSuperAdmin, verifyLocationThen]);
 
   const handleClockIn = useCallback(() => {
-    verifyLocationThen(() => clockIn.mutate());
-  }, [verifyLocationThen, clockIn]);
+    clockIn.mutate();
+  }, [clockIn]);
 
   const handleClockOut = useCallback(() => {
-    verifyLocationThen(() => clockOut.mutate());
-  }, [verifyLocationThen, clockOut]);
+    clockOut.mutate();
+  }, [clockOut]);
 
   const handleAssignHoliday = async (e) => {
     e.preventDefault();
@@ -273,75 +179,19 @@ const Attendance = () => {
                 {isClockedIn ? (
                   <button
                     onClick={handleClockOut}
-                    disabled={clockOut.isPending || locationStatus === 'checking'}
+                    disabled={clockOut.isPending}
                     className="w-full py-4 rounded-3xl bg-destructive text-white font-black text-lg shadow-xl shadow-destructive/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
                   >
-                    {locationStatus === 'checking' ? '📍 Checking Location...' : clockOut.isPending ? 'Clocking Out...' : 'Clock Out'}
+                    {clockOut.isPending ? 'Clocking Out...' : 'Clock Out'}
                   </button>
                 ) : (
                   <button
                     onClick={handleClockIn}
-                    disabled={clockIn.isPending || Boolean(todayRecord?.clockOut) || locationStatus === 'checking'}
+                    disabled={clockIn.isPending || Boolean(todayRecord?.clockOut)}
                     className="w-full py-4 rounded-3xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
                   >
-                    {todayRecord?.clockOut ? 'Shift Completed' : locationStatus === 'checking' ? '📍 Checking Location...' : clockIn.isPending ? 'Clocking In...' : 'Clock In'}
+                    {todayRecord?.clockOut ? 'Shift Completed' : clockIn.isPending ? 'Clocking In...' : 'Clock In'}
                   </button>
-                )}
-
-                {/* Location Status UI */}
-                {locationStatus === 'checking' && (
-                  <div className="mt-3 flex items-center justify-center gap-2 text-xs font-semibold rounded-xl px-3 py-2 bg-amber-500/10 text-amber-600 animate-pulse">
-                    <MapPin size={14} />
-                    Detecting your GPS location...
-                  </div>
-                )}
-
-                {locationStatus === 'allowed' && (
-                  <div className="mt-3 flex flex-col items-center gap-1">
-                    <div className="flex items-center justify-center gap-2 text-xs font-bold rounded-xl px-3 py-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 w-full">
-                      <MapPin size={14} />
-                      ✓ Office Location Verified {locationDistance ? `(${locationDistance}m away)` : ''}
-                    </div>
-                    {isIpFallback && (
-                      <span className="text-[10px] text-muted-foreground italic">Verified via Network IP (HTTP Fallback)</span>
-                    )}
-                  </div>
-                )}
-
-                {locationStatus === 'denied' && (
-                  <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-center text-xs text-destructive space-y-2">
-                    <div className="font-bold flex items-center justify-center gap-1 text-sm">
-                      <MapPin size={15} /> Location Access Denied
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-destructive/90">
-                      Browser location is blocked. Click the lock/settings icon near your address bar to allow location, then click below:
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => verifyLocationThen()}
-                      className="px-3.5 py-1.5 rounded-xl bg-destructive text-white font-bold text-xs shadow hover:bg-destructive/90 transition-all inline-flex items-center gap-1"
-                    >
-                      🔄 Request / Retry Location Access
-                    </button>
-                  </div>
-                )}
-
-                {locationStatus === 'out_of_range' && (
-                  <div className="mt-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-center text-xs text-rose-600 space-y-2">
-                    <div className="font-bold flex items-center justify-center gap-1 text-sm">
-                      <MapPin size={15} /> Out of Coverage Area
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-rose-700 dark:text-rose-400">
-                      Your location is <span className="font-bold">{locationDistance}m away</span> from the office (320/1 Thiruvannamalai Rd, Giddampatti). Max allowed radius is {ALLOWED_RADIUS_METERS}m.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => verifyLocationThen()}
-                      className="px-3.5 py-1.5 rounded-xl bg-rose-600 text-white font-bold text-xs shadow hover:bg-rose-700 transition-all inline-flex items-center gap-1"
-                    >
-                      🔄 Re-check My Location
-                    </button>
-                  </div>
                 )}
 
                 <div className="flex items-center justify-center space-x-6 pt-6 text-sm font-bold text-muted-foreground">
