@@ -152,7 +152,7 @@ export const getEmployeeDashboard = async (req, res) => {
 
     const weekStart = new Date(Date.now() - 7 * 24 * 3600000);
 
-    const [myTasks, overdueTasks, todayAttendance, completedThisWeek, weeklyLoggedUpdates, personalTasksThisWeek] = await Promise.all([
+    const [myTasks, overdueTasks, todayAttendance, completedThisWeek, weeklyLoggedUpdates, personalTasksThisWeek, recentEodReports] = await Promise.all([
       Task.find({ assignedTo: req.user._id, status: { $nin: ['done'] }, parent: null })
         .populate('project', 'name')
         .sort({ dueDate: 1 })
@@ -169,9 +169,24 @@ export const getEmployeeDashboard = async (req, res) => {
         isPersonalTask: true,
         dueDate: { $gte: weekStart },
       }),
+      Attendance.find({
+        user: req.user._id,
+        'eodReport.submittedAt': { $exists: true },
+      })
+        .sort({ date: -1 })
+        .limit(7),
     ]);
 
-    res.json({ success: true, myTasks, overdueTasks, todayAttendance, completedThisWeek, weeklyLoggedUpdates, personalTasksThisWeek });
+    res.json({
+      success: true,
+      myTasks,
+      overdueTasks,
+      todayAttendance,
+      completedThisWeek,
+      weeklyLoggedUpdates,
+      personalTasksThisWeek,
+      recentEodReports,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -182,12 +197,32 @@ export const getClientDashboard = async (req, res) => {
     const client = await Client.findOne({ userId: req.user._id });
     if (!client) return res.status(404).json({ success: false, message: 'Client profile not found' });
 
-    const [projects, invoices] = await Promise.all([
-      Project.find({ client: client._id }).select('name status progress dueDate'),
-      Invoice.find({ client: client._id }).select('invoiceNumber status total dueDate').sort({ createdAt: -1 }).limit(5),
-    ]);
+    const projects = await Project.find({ client: client._id }).select('name status progress dueDate manager team');
+    const invoices = await Invoice.find({ client: client._id }).select('invoiceNumber status total dueDate').sort({ createdAt: -1 }).limit(5);
 
-    res.json({ success: true, client, projects, invoices });
+    let teamUserIds = [];
+    if (client.assignedManager) teamUserIds.push(client.assignedManager);
+    if (client.assignedTeam && client.assignedTeam.length > 0) {
+      teamUserIds.push(...client.assignedTeam);
+    }
+    projects.forEach((p) => {
+      if (p.manager) teamUserIds.push(p.manager);
+      if (p.team && p.team.length > 0) teamUserIds.push(...p.team);
+    });
+
+    const uniqueTeamIds = [...new Set(teamUserIds.map((id) => id.toString()))];
+
+    const eodFilter = { 'eodReport.submittedAt': { $exists: true } };
+    if (uniqueTeamIds.length > 0) {
+      eodFilter.user = { $in: uniqueTeamIds };
+    }
+
+    const eodReports = await Attendance.find(eodFilter)
+      .populate('user', 'name avatar department position role email')
+      .sort({ date: -1 })
+      .limit(10);
+
+    res.json({ success: true, client, projects, invoices, eodReports });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

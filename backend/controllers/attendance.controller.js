@@ -48,9 +48,48 @@ export const submitEOD = async (req, res) => {
       { user: req.user._id, date: today },
       { eodReport: { ...req.body, submittedAt: new Date() } },
       { new: true, upsert: true }
-    );
+    )
+      .populate('user', 'name avatar department position role email')
+      .populate('approvedBy', 'name role');
 
-    res.json({ success: true, message: 'EOD report submitted', attendance });
+    // Realtime notification broadcast over WebSockets
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('eodSubmitted', {
+        attendance,
+        user: {
+          _id: req.user._id,
+          name: req.user.name,
+          avatar: req.user.avatar,
+          role: req.user.role,
+        },
+      });
+    }
+
+    // In-app notifications for managers & admins
+    try {
+      const User = (await import('../models/user.model.js')).default;
+      const managers = await User.find({
+        role: { $in: ['superAdmin', 'manager', 'organizationOwner', 'accountManager'] },
+        isActive: true,
+      }).select('_id');
+
+      for (const mgr of managers) {
+        if (mgr._id.toString() !== req.user._id.toString()) {
+          await createNotification({
+            recipient: mgr._id,
+            type: 'eod_submitted',
+            title: 'New EOD Report Submitted',
+            message: `${req.user.name} submitted an EOD report for today.`,
+            link: '/dashboard',
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.error('EOD Notification error:', notifErr);
+    }
+
+    res.json({ success: true, message: 'EOD report submitted successfully', attendance });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -108,16 +147,55 @@ export const getTeamAttendance = async (req, res) => {
 
 export const getEodReports = async (req, res) => {
   try {
-    const { days = 7 } = req.query;
+    const { days = 7, userId, mine } = req.query;
     const since = new Date();
     since.setDate(since.getDate() - Number(days));
     since.setHours(0, 0, 0, 0);
 
-    const records = await Attendance.find({
+    const query = {
       date: { $gte: since },
       'eodReport.submittedAt': { $exists: true },
-    })
-      .populate('user', 'name avatar department position')
+    };
+
+    if (req.user.role === 'employee' || mine === 'true') {
+      query.user = userId || req.user._id;
+    } else if (req.user.role === 'client') {
+      const Client = (await import('../models/client.model.js')).default;
+      const Project = (await import('../models/project.model.js')).default;
+      const User = (await import('../models/user.model.js')).default;
+
+      const client = await Client.findOne({ userId: req.user._id });
+      let teamUserIds = [];
+
+      if (client) {
+        if (client.assignedManager) teamUserIds.push(client.assignedManager);
+        if (client.assignedTeam && client.assignedTeam.length > 0) {
+          teamUserIds.push(...client.assignedTeam);
+        }
+        const clientProjects = await Project.find({ client: client._id }).select('manager team');
+        clientProjects.forEach((p) => {
+          if (p.manager) teamUserIds.push(p.manager);
+          if (p.team && p.team.length > 0) teamUserIds.push(...p.team);
+        });
+      }
+
+      const uniqueTeamIds = [...new Set(teamUserIds.map((id) => id.toString()))];
+
+      if (uniqueTeamIds.length > 0) {
+        query.user = { $in: uniqueTeamIds };
+      } else if (req.user.organizationId) {
+        const orgUsers = await User.find({
+          organizationId: req.user.organizationId,
+          role: { $nin: ['client', 'referral'] },
+        }).select('_id');
+        query.user = { $in: orgUsers.map((u) => u._id) };
+      }
+    } else if (userId) {
+      query.user = userId;
+    }
+
+    const records = await Attendance.find(query)
+      .populate('user', 'name avatar department position role email')
       .populate('approvedBy', 'name role')
       .sort({ date: -1 })
       .limit(100);

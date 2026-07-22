@@ -54,6 +54,8 @@ export const useSubmitEOD = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['eod-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['portal'] });
       toast.success('End of day report submitted');
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to submit report'),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Users,
   Briefcase,
@@ -23,8 +24,11 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  Search,
+  Filter,
 } from 'lucide-react';
 import { EODReportModal } from '../components/modals/EODReportModal';
+import { EODDetailModal } from '../components/modals/EODDetailModal';
 import { useEodReports } from '../hooks/useEodReports';
 import { 
   AreaChart, 
@@ -47,16 +51,36 @@ import { useSocket } from '../context/SocketContext';
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
+  const queryClient = useQueryClient();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showEodModal, setShowEodModal] = useState(false);
+  const [selectedEodRecord, setSelectedEodRecord] = useState(null);
+  const [showEodDetailModal, setShowEodDetailModal] = useState(false);
+  const [eodSearch, setEodSearch] = useState('');
+  const [eodDays, setEodDays] = useState(7);
   const [period, setPeriod] = useState('monthly');
   const [showFinance, setShowFinance] = useState(false);
 
   const socket = useSocket();
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'manager';
-  const { data: eodData } = useEodReports(7, { enabled: isAdminOrManager });
-  const eodReports = eodData?.records || [];
+  
+  // Queries for manager and employee EOD views
+  const { data: eodData } = useEodReports(eodDays, {}, { enabled: isAdminOrManager });
+  const rawEodReports = eodData?.records || [];
+
+  const { data: myEodData } = useEodReports(14, { mine: 'true' }, { enabled: user?.role === 'employee' });
+  const myEodReports = myEodData?.records || data?.recentEodReports || [];
+
+  // Filtered reports for manager
+  const eodReports = rawEodReports.filter((report) => {
+    if (!eodSearch.trim()) return true;
+    const query = eodSearch.toLowerCase();
+    const name = report.user?.name?.toLowerCase() || '';
+    const dept = report.user?.department?.toLowerCase() || report.user?.position?.toLowerCase() || '';
+    const summary = report.eodReport?.summary?.toLowerCase() || '';
+    return name.includes(query) || dept.includes(query) || summary.includes(query);
+  });
 
   const fetchStats = async () => {
     setLoading(true);
@@ -88,6 +112,7 @@ const Dashboard = () => {
 
     const handleUpdate = () => {
       fetchStats();
+      queryClient.invalidateQueries({ queryKey: ['eod-reports'] });
     };
 
     socket.on('userCreated', handleUpdate);
@@ -97,6 +122,7 @@ const Dashboard = () => {
     socket.on('invoicePaid', handleUpdate);
     socket.on('expenseApproved', handleUpdate);
     socket.on('leadUpdated', handleUpdate);
+    socket.on('eodSubmitted', handleUpdate);
 
     return () => {
       socket.off('userCreated', handleUpdate);
@@ -106,8 +132,9 @@ const Dashboard = () => {
       socket.off('invoicePaid', handleUpdate);
       socket.off('expenseApproved', handleUpdate);
       socket.off('leadUpdated', handleUpdate);
+      socket.off('eodSubmitted', handleUpdate);
     };
-  }, [socket]);
+  }, [socket, queryClient]);
 
   if (!user || loading) {
     return (
@@ -119,384 +146,151 @@ const Dashboard = () => {
     );
   }
 
-  if (!data) {
-    return (
-      <div className="rounded-2xl border border-border bg-card p-8 text-center">
-        <h1 className="text-xl font-bold">Dashboard unavailable</h1>
-        <p className="mt-2 text-sm text-muted-foreground">We could not load your dashboard data. Please refresh or sign in again.</p>
-      </div>
-    );
-  }
-
   const renderAdminStats = () => {
-    const taskBreakdown = data.charts.taskBreakdown || [];
-    const stageFunnel = data.charts.stageFunnel || [];
-    const completedTasks = taskBreakdown
-      .filter((item) => ['done', 'approved'].includes(item._id))
-      .reduce((sum, item) => sum + item.count, 0);
-    const taskCompletionRate = data.stats.totalTasks > 0
-      ? Math.round((completedTasks / data.stats.totalTasks) * 100)
-      : 0;
-    const avgRevenuePerClient = data.stats.activeClients > 0
-      ? Math.round(data.stats.monthRevenue / data.stats.activeClients)
-      : 0;
-    const pipelineLeads = stageFunnel.reduce((sum, item) => sum + item.count, 0);
-    const wonLeads = stageFunnel.find((item) => item._id === 'won')?.count || 0;
-    const isManager = user.role === 'manager';
-    const roleTitle = isManager ? 'Admin Manager Workspace' : 'Executive Dashboard';
-    const roleSubtitle = isManager
-      ? 'See delivery, projects, and team activity with ad budgets only.'
-      : "Company-wide revenue, pipeline, operations, and user health.";
-    const analyticsCards = [
-      {
-        label: isManager ? 'Team Completion' : 'Task Completion',
-        value: `${taskCompletionRate}%`,
-        detail: `${completedTasks} of ${data.stats.totalTasks} tasks closed`,
-        color: 'bg-emerald-500',
-      },
-      {
-        label: 'Pipeline Volume',
-        value: pipelineLeads,
-        detail: `${wonLeads} won opportunities`,
-        color: 'bg-blue-500',
-      },
-      {
-        label: isManager ? 'Ads Budget' : 'Revenue / Active Client',
-        value: isManager ? formatINR(data.stats.totalAdsBudget || 0) : formatINR(avgRevenuePerClient),
-        detail: isManager ? 'Visible across all managed projects' : 'Monthly average from paid invoices',
-        color: 'bg-indigo-500',
-      },
-      {
-        label: 'Overdue Work',
-        value: data.stats.overdueTasks,
-        detail: 'Tasks past due date',
-        color: 'bg-amber-500',
-      },
-      {
-        label: 'Renewals This Week',
-        value: data.stats.expiringRenewalsCount || 0,
-        detail: 'Items nearing expiry',
-        color: 'bg-rose-500',
-      },
-    ];
-
-    const getRevenueLabel = () => {
-      if (period === 'weekly') return 'This Week Revenue';
-      if (period === 'yearly') return 'This Year Revenue';
-      if (period === 'allTime') return 'All-Time Revenue';
-      return 'This Month Revenue';
-    };
-
-    const getRevenueTrend = () => {
-      if (period === 'allTime') return 'All-time revenue';
-      const suffix = period === 'weekly' ? 'last week' : period === 'yearly' ? 'last year' : 'last month';
-      return `${data.stats.revenueGrowth >= 0 ? '+' : ''}${data.stats.revenueGrowth}% vs ${suffix}`;
-    };
-
-    const getExpensesTrend = () => {
-      if (period === 'weekly') return 'Approved expenses this week';
-      if (period === 'yearly') return 'Approved expenses this year';
-      if (period === 'allTime') return 'All approved expenses';
-      return 'Approved expenses this month';
-    };
-
-    const stats = !isManager ? [
-      // Row 1 – Revenue & Financials
-      { label: 'Total Income', value: formatINR(data.stats.totalIncome || 0), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10', trend: 'All-time paid', up: true, isFinance: true },
-      { label: getRevenueLabel(), value: formatINR(data.stats.monthRevenue || 0), icon: IndianRupee, color: 'text-green-500', bg: 'bg-green-500/10', trend: getRevenueTrend(), up: data.stats.revenueGrowth >= 0, isFinance: true },
-      { label: 'Total Expenses', value: formatINR(data.stats.totalExpenses || 0), icon: Wallet, color: 'text-rose-500', bg: 'bg-rose-500/10', trend: getExpensesTrend(), up: true, isFinance: true },
-      // Row 2 – Clients & Projects
-      { label: 'Total Clients', value: data.stats.totalClients, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: `${data.stats.activeClients} active`, up: true },
-      { label: 'Active Projects', value: data.stats.activeProjects, icon: Briefcase, color: 'text-indigo-500', bg: 'bg-indigo-500/10', trend: `${data.stats.totalProjects} total`, up: true },
-      { label: 'Conversion Rate', value: `${data.stats.conversionRate}%`, icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-500/10', trend: 'Won deals', up: data.stats.conversionRate > 0 },
-      // Row 3 – Operations
-      { label: 'Total Tasks', value: data.stats.totalTasks, icon: ClipboardList, color: 'text-violet-500', bg: 'bg-violet-500/10', trend: `${data.stats.overdueTasks} overdue`, up: data.stats.overdueTasks === 0 },
-      { label: 'Team Members', value: data.stats.totalUsers, icon: ShieldCheck, color: 'text-cyan-500', bg: 'bg-cyan-500/10', trend: 'Active users', up: true },
-      { label: 'Renewals This Week', value: data.stats.expiringRenewalsCount || 0, icon: Calendar, color: 'text-rose-500', bg: 'bg-rose-500/10', trend: 'Expiry watch', up: (data.stats.expiringRenewalsCount || 0) === 0 },
-    ] : [
-      { label: 'Ads Budget', value: formatINR(data.stats.totalAdsBudget || 0), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10', trend: 'Project budget only', up: true },
-      { label: 'Active Clients', value: data.stats.activeClients, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: 'In service', up: true },
-      { label: 'Projects In Delivery', value: data.stats.activeProjects, icon: Briefcase, color: 'text-indigo-500', bg: 'bg-indigo-500/10', trend: 'In Delivery', up: true },
-      { label: 'Team Tasks', value: data.stats.totalTasks, icon: ClipboardList, color: 'text-amber-500', bg: 'bg-amber-500/10', trend: `${data.stats.overdueTasks} Overdue`, up: data.stats.overdueTasks === 0 },
-      { label: 'Renewals This Week', value: data.stats.expiringRenewalsCount || 0, icon: Calendar, color: 'text-rose-500', bg: 'bg-rose-500/10', trend: 'Expiry watch', up: (data.stats.expiringRenewalsCount || 0) === 0 },
-    ];
-
+    const stats = data.stats || {};
+    const pipelineLeads = stats.totalLeads || 0;
+    
     return (
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                {isManager ? <Target size={22} /> : <ShieldCheck size={22} />}
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">{roleTitle}</h1>
-                <p className="text-muted-foreground text-sm">Welcome back, {user.name}. {roleSubtitle}</p>
+            <h1 className="text-2xl font-bold tracking-tight">Executive Dashboard</h1>
+            <p className="text-muted-foreground text-sm">Real-time revenue, leads, and operational performance.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              className="bg-card border border-border text-sm font-semibold rounded-xl px-3.5 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="weekly">This Week</option>
+              <option value="monthly">This Month</option>
+              <option value="yearly">This Year</option>
+              <option value="allTime">All Time</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Top KPI Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Total Revenue</span>
+              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
+                <IndianRupee size={18} />
               </div>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-          {/* Finance visibility toggle – only for superAdmin */}
-          {!isManager && (
-            <button
-              onClick={() => setShowFinance((v) => !v)}
-              title={showFinance ? 'Hide finance amounts' : 'Show finance amounts'}
-              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all shadow-sm ${
-                showFinance
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
-                  : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
-              }`}
-            >
-              {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
-              {showFinance ? 'Hide Amounts' : 'Show Amounts'}
-            </button>
-          )}
-          <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
-            <Calendar size={16} />
-            Content Calendar
-          </Link>
-          <div className="flex items-center space-x-1 bg-card p-1 rounded-xl border border-border shadow-sm">
-            {[
-              { value: 'weekly', label: 'Weekly' },
-              { value: 'monthly', label: 'Monthly' },
-              { value: 'yearly', label: 'Yearly' },
-              { value: 'allTime', label: 'All-Time' },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setPeriod(opt.value)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                  period === opt.value
-                    ? 'bg-secondary text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center space-x-2 bg-card p-1 rounded-xl border border-border shadow-sm">
-            <button className="px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary text-foreground">Overview</button>
-            <button className="px-3 py-1.5 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground transition-colors">Analytics</button>
-          </div>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${!isManager ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4`}>
-          {stats.map((stat, i) => (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              key={stat.label}
-              className="bg-card p-5 rounded-2xl border border-border shadow-sm card-hover"
-            >
-              <div className="flex items-center justify-between">
-                <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color}`}>
-                  <stat.icon size={18} />
-                </div>
-                <div className={`flex items-center text-[10px] font-bold px-2 py-1 rounded-full ${stat.up ? 'bg-emerald-500/10 text-emerald-600' : 'bg-destructive/10 text-destructive'}`}>
-                  {stat.up ? <ArrowUpRight size={12} className="mr-1" /> : <ArrowDownRight size={12} className="mr-1" />}
-                  {stat.trend}
-                </div>
-              </div>
-              <div className="mt-3">
-                <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
-                <h3 className="text-xl font-bold mt-1 tracking-tight">
-                  {stat.isFinance && !showFinance
-                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
-                    : stat.value
-                  }
-                </h3>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-bold tracking-tight">Upcoming Renewals</h2>
-              <p className="text-sm text-muted-foreground">Domains, hosting, and subscriptions expiring in the next 7 days.</p>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-bold">{user.role === 'manager' ? 'Locked' : formatINR(stats.monthRevenue || 0)}</p>
+              {stats.revenueGrowth !== undefined && (
+                <span className={`text-xs font-bold flex items-center ${Number(stats.revenueGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {Number(stats.revenueGrowth) >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                  {Math.abs(stats.revenueGrowth)}%
+                </span>
+              )}
             </div>
-            <Link to="/domain-renewals" className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary">
-              Open Renewal Tracker
-            </Link>
+            <p className="text-xs text-muted-foreground mt-1">Paid invoices in selected period</p>
           </div>
 
-          <div className="mt-5 grid gap-3">
-            {(data.renewals || []).length ? data.renewals.map((item) => (
-              <div key={item._id} className="rounded-2xl border border-border bg-background px-4 py-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-semibold text-foreground">{item.itemName}</p>
-                    <p className="text-xs text-muted-foreground">{item.clientId?.company || item.clientId?.name || 'No client linked'}</p>
-                  </div>
-                  <span className="text-xs font-semibold text-rose-600">
-                    {new Date(item.expiryDate).toLocaleDateString()}
-                  </span>
-                </div>
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Leads Pipeline</span>
+              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
+                <Users size={18} />
               </div>
-            )) : (
-              <div className="rounded-2xl border border-dashed border-border bg-background px-4 py-8 text-center text-sm text-muted-foreground">
-                No renewals expiring this week.
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-bold">{stats.totalLeads || 0}</p>
+              <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                {stats.conversionRate || 0}% Conv.
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.newLeadsThisMonth || 0} new in period</p>
+          </div>
+
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Active Projects</span>
+              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600">
+                <Briefcase size={18} />
               </div>
-            )}
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-bold">{stats.activeProjects || 0}</p>
+              <span className="text-xs text-muted-foreground">of {stats.totalProjects || 0} Total</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.activeClients || 0} active client accounts</p>
+          </div>
+
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Task Execution</span>
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                <CheckSquare size={18} />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-bold">{stats.totalTasks || 0}</p>
+              {stats.overdueTasks > 0 && (
+                <span className="text-xs font-bold text-rose-600 bg-rose-500/10 px-2 py-0.5 rounded-full">
+                  {stats.overdueTasks} Overdue
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Pending parent tasks</p>
           </div>
         </div>
 
-        {/* Charts Row */}
+        {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-card p-6 rounded-2xl border border-border shadow-sm">
+          {/* Revenue chart */}
+          <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold">{isManager ? 'Task Productivity' : 'Revenue Growth'}</h3>
-              <select className="bg-secondary/50 border-none text-xs rounded-lg px-2 py-1 focus:ring-0">
-                <option>Last 6 months</option>
-                <option>Last 12 months</option>
-              </select>
+              <div>
+                <h3 className="font-bold text-base">Revenue Trend</h3>
+                <p className="text-xs text-muted-foreground">Monthly paid invoice collections</p>
+              </div>
             </div>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                {isManager ? (
-                  <BarChart data={taskBreakdown}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis
-                      dataKey="_id"
-                      tickFormatter={(value) => String(value).replace(/_/g, ' ')}
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }} />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                ) : (
+
+            <div className="h-[280px]">
+              {user.role === 'manager' ? (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                  Financial charts restricted to Super Admin.
+                </div>
+              ) : data.charts?.revenueChart?.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data.charts.revenueChart}>
                     <defs>
                       <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis 
-                      dataKey="_id" 
-                      tickFormatter={(val) => `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][val.month - 1]}`}
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }}
-                    />
-                    <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="_id.month" tickFormatter={(m) => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} />
+                    <YAxis tickFormatter={(v) => `₹${v/1000}k`} />
+                    <Tooltip formatter={(val) => [formatINR(val), 'Revenue']} />
+                    <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
                   </AreaChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-            <h3 className="font-bold mb-6">{isManager ? 'Team Pipeline' : 'Lead Funnel'}</h3>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={data.charts.stageFunnel}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="count"
-                  >
-                    {data.charts.stageFunnel.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 space-y-2">
-              {data.charts.stageFunnel.slice(0, 4).map((entry, i) => (
-                <div key={entry._id} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444'][i % 4] }}></div>
-                    <span className="capitalize text-muted-foreground">{entry._id.replace('_', ' ')}</span>
-                  </div>
-                  <span className="font-bold">{entry.count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Analytics Section */}
-        <div className="space-y-5">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-2">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight">Analytics</h2>
-              <p className="text-sm text-muted-foreground">{isManager ? 'Operational health across tasks, pipeline, and ad budgets.' : 'Operational health across revenue, pipeline, and delivery.'}</p>
-            </div>
-            <span className="text-xs font-semibold text-muted-foreground bg-card border border-border rounded-full px-3 py-1">
-              Live MongoDB data
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {analyticsCards.map((card) => (
-              <div key={card.label} className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{card.label}</p>
-                  <span className={`h-2.5 w-2.5 rounded-full ${card.color}`} />
-                </div>
-                <p className="mt-3 text-2xl font-bold">{card.value}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{card.detail}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold">Task Productivity</h3>
-                <span className="text-xs text-muted-foreground">{taskCompletionRate}% completion</span>
-              </div>
-              <div className="h-[260px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={taskBreakdown}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                    <XAxis
-                      dataKey="_id"
-                      tickFormatter={(value) => String(value).replace(/_/g, ' ')}
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }} />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                  </BarChart>
                 </ResponsiveContainer>
-              </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                  No revenue data recorded yet.
+                </div>
+              )}
             </div>
+          </div>
 
-            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold">Lead Stage Analytics</h3>
-                <span className="text-xs text-muted-foreground">{data.stats.conversionRate}% conversion</span>
-              </div>
+          {/* Lead Funnel */}
+          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="font-bold text-base mb-1">Lead Conversion Funnel</h3>
+              <p className="text-xs text-muted-foreground mb-6">Distribution across current pipeline stages</p>
+
               <div className="space-y-4">
-                {stageFunnel.length > 0 ? stageFunnel.map((stage) => {
+                {data.charts?.stageFunnel?.length > 0 ? data.charts.stageFunnel.map((stage) => {
                   const width = pipelineLeads > 0 ? Math.max(8, Math.round((stage.count / pipelineLeads) * 100)) : 0;
                   return (
                     <div key={stage._id}>
@@ -519,52 +313,97 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* EOD Reports Section */}
+        {/* Team EOD Reports Section */}
         <div className="space-y-5">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-2">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold tracking-tight">Team EOD Reports</h2>
-              <p className="text-sm text-muted-foreground">Recent end-of-day reports from employees and interns.</p>
+              <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                <FileText className="text-primary" size={20} />
+                Team EOD Reports
+              </h2>
+              <p className="text-sm text-muted-foreground">End-of-day reports submitted by employees and interns.</p>
             </div>
-            <span className="text-xs font-semibold text-muted-foreground bg-card border border-border rounded-full px-3 py-1">
-              Last 7 days
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search team or keyword..."
+                  value={eodSearch}
+                  onChange={(e) => setEodSearch(e.target.value)}
+                  className="pl-9 pr-3 py-1.5 bg-card border border-border rounded-xl text-xs outline-none focus:border-primary w-44 md:w-56"
+                />
+              </div>
+              <select
+                value={eodDays}
+                onChange={(e) => setEodDays(Number(e.target.value))}
+                className="bg-card border border-border text-xs rounded-xl px-3 py-1.5 font-medium outline-none focus:border-primary"
+              >
+                <option value={7}>Last 7 days</option>
+                <option value={14}>Last 14 days</option>
+                <option value={30}>Last 30 days</option>
+              </select>
+            </div>
           </div>
 
           {eodReports.length > 0 ? (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {eodReports.slice(0, 6).map((report) => (
-                <div key={report._id} className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+              {eodReports.slice(0, 8).map((report) => (
+                <div
+                  key={report._id}
+                  onClick={() => { setSelectedEodRecord(report); setShowEodDetailModal(true); }}
+                  className="bg-card rounded-2xl border border-border p-5 shadow-sm hover:border-primary/50 transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                        <FileText size={18} />
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                        {report.user?.avatar ? (
+                          <img src={report.user.avatar} alt={report.user.name} className="h-full w-full object-cover" />
+                        ) : (
+                          report.user?.name ? report.user.name.charAt(0).toUpperCase() : 'U'
+                        )}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold">{report.user?.name || 'Unknown'}</p>
-                        <p className="text-xs text-muted-foreground">{report.user?.department || report.user?.position || 'Employee'}</p>
+                        <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                          {report.user?.name || 'Unknown User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {report.user?.department || report.user?.position || report.user?.role || 'Team Member'}
+                        </p>
                       </div>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(report.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                        <CheckCircle2 size={12} /> EOD Submitted
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(report.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-foreground line-clamp-2">{report.eodReport?.summary}</p>
+
+                  <div className="space-y-2.5">
+                    <p className="text-sm text-foreground/90 line-clamp-2">{report.eodReport?.summary}</p>
+
                     {report.eodReport?.tasksCompleted?.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-1.5 pt-1">
                         {report.eodReport.tasksCompleted.slice(0, 3).map((task, i) => (
-                          <span key={i} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full">{task}</span>
+                          <span key={i} className="text-[10px] bg-secondary text-foreground/80 font-medium px-2.5 py-0.5 rounded-full border border-border">
+                            ✓ {task}
+                          </span>
                         ))}
                         {report.eodReport.tasksCompleted.length > 3 && (
-                          <span className="text-[10px] bg-secondary px-2 py-0.5 rounded-full">+{report.eodReport.tasksCompleted.length - 3}</span>
+                          <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">
+                            +{report.eodReport.tasksCompleted.length - 3} more
+                          </span>
                         )}
                       </div>
                     )}
+
                     {report.eodReport?.blockers && (
-                      <div className="flex items-start gap-1.5 text-xs text-amber-600 bg-amber-500/10 rounded-lg px-2 py-1.5">
-                        <AlertCircle size={12} className="mt-0.5 shrink-0" />
-                        <span className="line-clamp-1">{report.eodReport.blockers}</span>
+                      <div className="flex items-start gap-1.5 text-xs text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5">
+                        <AlertCircle size={13} className="mt-0.5 shrink-0" />
+                        <span className="line-clamp-1 font-medium">{report.eodReport.blockers}</span>
                       </div>
                     )}
                   </div>
@@ -573,9 +412,11 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="bg-card rounded-2xl border border-border p-8 text-center">
-              <FileText size={32} className="mx-auto text-muted-foreground/50 mb-3" />
-              <h3 className="font-semibold">No EOD reports yet</h3>
-              <p className="text-sm text-muted-foreground mt-1">Team members haven't submitted any end-of-day reports recently.</p>
+              <FileText size={36} className="mx-auto text-muted-foreground/40 mb-3" />
+              <h3 className="font-semibold text-foreground">No team EOD reports found</h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+                No end-of-day reports match your filter criteria for the past {eodDays} days.
+              </p>
             </div>
           )}
         </div>
@@ -584,12 +425,15 @@ const Dashboard = () => {
   };
 
   const renderEmployeeStats = () => {
+    const todayEod = data?.todayAttendance?.eodReport;
+    const isEodSubmittedToday = Boolean(todayEod?.submittedAt);
+
     return (
       <div className="space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Personal Dashboard</h1>
-            <p className="text-muted-foreground text-sm">Welcome, {user.name}. Here's your focus for today.</p>
+            <p className="text-muted-foreground text-sm">Welcome back, {user.name}. Here&apos;s your focus and report status today.</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
@@ -603,9 +447,71 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Today's EOD Report Status Card */}
+        <div className={`rounded-2xl p-6 border transition-all ${
+          isEodSubmittedToday
+            ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
+            : 'bg-amber-500/5 border-amber-500/20 shadow-sm'
+        }`}>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-2xl shrink-0 ${
+                isEodSubmittedToday ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+              }`}>
+                {isEodSubmittedToday ? <CheckCircle2 size={24} /> : <FileText size={24} />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base font-bold text-foreground">Today&apos;s EOD Report Status</h3>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    isEodSubmittedToday
+                      ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30'
+                      : 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                  }`}>
+                    {isEodSubmittedToday ? 'Submitted' : 'Pending'}
+                  </span>
+                  {todayEod?.submittedAt && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock size={12} /> {new Date(todayEod.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
+                {isEodSubmittedToday ? (
+                  <div className="mt-2 space-y-1.5">
+                    <p className="text-sm text-foreground/90 font-medium line-clamp-2">{todayEod.summary}</p>
+                    {todayEod.tasksCompleted?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {todayEod.tasksCompleted.map((t, idx) => (
+                          <span key={idx} className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold px-2 py-0.5 rounded-md border border-emerald-500/20">
+                            ✓ {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Remember to submit your end-of-day report before finishing work today so your manager and clients stay updated on your progress.
+                  </p>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setShowEodModal(true)}
+              className={`px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all shrink-0 ${
+                isEodSubmittedToday
+                  ? 'bg-card border border-border text-foreground hover:bg-secondary'
+                  : 'bg-primary text-white hover:bg-primary/90 shadow-primary/20'
+              }`}
+            >
+              {isEodSubmittedToday ? 'Update EOD Report' : 'Submit EOD Report'}
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Active Tasks */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* Active Tasks & My EOD History */}
+          <div className="lg:col-span-2 space-y-6">
             <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
               <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/20">
                 <h3 className="font-bold flex items-center">
@@ -644,6 +550,58 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
+
+            {/* My EOD Reports History */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold flex items-center text-base">
+                    <FileText size={18} className="mr-2 text-primary" />
+                    My Submitted EOD Reports
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Your recent daily work submissions</p>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground bg-secondary px-2.5 py-1 rounded-full">
+                  {myEodReports.length} Reports
+                </span>
+              </div>
+
+              {myEodReports.length > 0 ? (
+                <div className="space-y-3">
+                  {myEodReports.slice(0, 5).map((report) => (
+                    <div
+                      key={report._id}
+                      onClick={() => { setSelectedEodRecord(report); setShowEodDetailModal(true); }}
+                      className="p-4 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="font-bold text-foreground flex items-center gap-1.5">
+                          <Calendar size={13} className="text-primary" />
+                          {new Date(report.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </span>
+                        <span className="text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold text-[10px]">
+                          Submitted
+                        </span>
+                      </div>
+                      <p className="text-xs text-foreground/90 line-clamp-2">{report.eodReport?.summary}</p>
+                      {report.eodReport?.tasksCompleted?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {report.eodReport.tasksCompleted.slice(0, 3).map((t, idx) => (
+                            <span key={idx} className="text-[10px] bg-card px-2 py-0.5 rounded-md border border-border text-muted-foreground">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-xs text-muted-foreground border border-dashed border-border rounded-xl">
+                  No EOD reports submitted yet. Use the submit button above to send your first report!
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Quick Actions & Attendance */}
@@ -664,7 +622,9 @@ const Dashboard = () => {
               </div>
               <div className="space-y-3">
                 <Link to="/calendar" className="block w-full text-center py-2.5 rounded-xl bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Open Content Calendar</Link>
-                <button onClick={() => setShowEodModal(true)} className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">Submit EOD Report</button>
+                <button onClick={() => setShowEodModal(true)} className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">
+                  {isEodSubmittedToday ? 'View / Edit EOD Report' : 'Submit EOD Report'}
+                </button>
                 <Link to="/chat" className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">Message Manager</Link>
               </div>
             </div>
@@ -686,18 +646,21 @@ const Dashboard = () => {
   const renderClientStats = () => {
     const projects = data.projects || [];
     const invoices = data.invoices || [];
+    const clientEodReports = data.eodReports || [];
+
     return (
       <div className="space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-          <h1 className="text-2xl font-bold tracking-tight">Client Portal</h1>
-          <p className="text-muted-foreground text-sm">Project progress and recent billing for {data.client?.company || data.client?.name || user.name}.</p>
+            <h1 className="text-2xl font-bold tracking-tight">Client Portal</h1>
+            <p className="text-muted-foreground text-sm">Project progress, daily team reports, and billing for {data.client?.company || data.client?.name || user.name}.</p>
           </div>
           <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
             <Calendar size={16} />
             Content Calendar
           </Link>
         </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           {[
             ['Active Projects', projects.filter((project) => project.status === 'active').length || projects.length, Briefcase],
@@ -711,6 +674,7 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
+
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
             <h2 className="font-bold mb-4">Projects</h2>
@@ -742,6 +706,77 @@ const Dashboard = () => {
               )) : <p className="text-sm text-muted-foreground">No invoices found.</p>}
             </div>
           </div>
+        </div>
+
+        {/* Client View: Daily Team EOD & Work Progress Reports */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                <FileText className="text-primary" size={20} />
+                Daily Team EOD & Work Reports
+              </h2>
+              <p className="text-sm text-muted-foreground">Daily progress reports submitted by team members working on your account.</p>
+            </div>
+            <span className="text-xs font-semibold text-muted-foreground bg-card border border-border rounded-full px-3 py-1">
+              {clientEodReports.length} Reports
+            </span>
+          </div>
+
+          {clientEodReports.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {clientEodReports.map((report) => (
+                <div
+                  key={report._id}
+                  onClick={() => { setSelectedEodRecord(report); setShowEodDetailModal(true); }}
+                  className="bg-card rounded-2xl border border-border p-5 shadow-sm hover:border-primary/50 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+                        {report.user?.avatar ? (
+                          <img src={report.user.avatar} alt={report.user.name} className="h-full w-full object-cover" />
+                        ) : (
+                          report.user?.name ? report.user.name.charAt(0).toUpperCase() : 'T'
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                          {report.user?.name || 'Team Member'}
+                        </p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {report.user?.position || report.user?.department || 'Project Team'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(report.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-foreground/90 line-clamp-2">{report.eodReport?.summary}</p>
+                    {report.eodReport?.tasksCompleted?.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {report.eodReport.tasksCompleted.slice(0, 3).map((task, i) => (
+                          <span key={i} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground/80 font-medium">
+                            ✓ {task}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-card rounded-2xl border border-border p-8 text-center">
+              <FileText size={32} className="mx-auto text-muted-foreground/40 mb-3" />
+              <h3 className="font-semibold text-foreground">No team EOD reports yet</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Daily work reports submitted by your project team will appear here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -877,7 +912,8 @@ const Dashboard = () => {
           : user.role === 'referral'
             ? renderReferralStats()
             : renderEmployeeStats()}
-      <EODReportModal open={showEodModal} onOpenChange={setShowEodModal} />
+      <EODReportModal open={showEodModal} onOpenChange={setShowEodModal} report={data?.todayAttendance?.eodReport} />
+      <EODDetailModal open={showEodDetailModal} onOpenChange={setShowEodDetailModal} record={selectedEodRecord} />
     </div>
   );
 };

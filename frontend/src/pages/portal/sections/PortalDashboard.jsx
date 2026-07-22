@@ -5,11 +5,14 @@ import { motion } from 'framer-motion';
 import {
   FileCheck, BarChart3, CheckCircle2, Clock, FolderKanban,
   Receipt, TrendingUp, TrendingDown, AlertCircle, ArrowUpRight,
-  Layers, Star, Activity, Calendar
+  Layers, Star, Activity, Calendar, FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
 import { exportProposalToPDF } from '../../../utils/pdfExport';
+import { useEodReports } from '../../../hooks/useEodReports';
+import { EODDetailModal } from '../../../components/modals/EODDetailModal';
+import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
 
 const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
   <motion.div
@@ -32,13 +35,15 @@ const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
   </motion.div>
 );
 
-import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
-
 export default function PortalDashboard({ dark, user, setPendingCount }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedEod, setSelectedEod] = useState(null);
+  const [showEodDetail, setShowEodDetail] = useState(false);
 
   const socket = useSocket();
+  const { data: eodData, refetch: refetchEod } = useEodReports(7);
+  const eodReports = eodData?.records || [];
 
   const fetchData = () => {
     api.get('/portal/dashboard')
@@ -57,14 +62,21 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('clientUpdated', fetchData);
-    socket.on('portalUpdated', fetchData);
+    const handleUpdate = () => {
+      fetchData();
+      refetchEod();
+    };
+
+    socket.on('clientUpdated', handleUpdate);
+    socket.on('portalUpdated', handleUpdate);
+    socket.on('eodSubmitted', handleUpdate);
 
     return () => {
-      socket.off('clientUpdated', fetchData);
-      socket.off('portalUpdated', fetchData);
+      socket.off('clientUpdated', handleUpdate);
+      socket.off('portalUpdated', handleUpdate);
+      socket.off('eodSubmitted', handleUpdate);
     };
-  }, [socket]);
+  }, [socket, refetchEod]);
 
   const txt = dark ? 'text-white' : 'text-slate-800';
   const sub = dark ? 'text-slate-400' : 'text-slate-500';
@@ -114,7 +126,6 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-
       {/* Welcome Banner */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-2xl p-6"
@@ -166,32 +177,81 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
       {/* Body Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Recent Activity */}
-        <div className="lg:col-span-2 rounded-2xl p-5" style={{ background: card, border }}>
-          <div className="flex items-center gap-2 mb-4">
-            <Activity size={16} className="text-indigo-400" />
-            <h3 className={`text-sm font-bold ${txt}`}>Recent Content Activity</h3>
-          </div>
-          {(data?.recentContent || []).length === 0 ? (
-            <div className="text-center py-8">
-              <AlertCircle size={32} className="mx-auto text-slate-500 mb-2" />
-              <p className={`text-xs ${sub}`}>No recent content</p>
+        {/* Left Column: Recent Activity & EOD Reports */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="rounded-2xl p-5" style={{ background: card, border }}>
+            <div className="flex items-center gap-2 mb-4">
+              <Activity size={16} className="text-indigo-400" />
+              <h3 className={`text-sm font-bold ${txt}`}>Recent Content Activity</h3>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {(data?.recentContent || []).slice(0, 8).map(item => (
-                <div key={item._id} className="flex items-center gap-3 p-2.5 rounded-xl"
-                  style={{ background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
-                  <StatusDot status={item.status} />
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-semibold truncate ${txt}`}>{item.taskName}</p>
-                    <p className={`text-[10px] ${sub}`}>{item.platform} · {item.contentType}</p>
+            {(data?.recentContent || []).length === 0 ? (
+              <div className="text-center py-8">
+                <AlertCircle size={32} className="mx-auto text-slate-500 mb-2" />
+                <p className={`text-xs ${sub}`}>No recent content</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(data?.recentContent || []).slice(0, 6).map(item => (
+                  <div key={item._id} className="flex items-center gap-3 p-2.5 rounded-xl"
+                    style={{ background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
+                    <StatusDot status={item.status} />
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-semibold truncate ${txt}`}>{item.taskName}</p>
+                      <p className={`text-[10px] ${sub}`}>{item.platform} · {item.contentType}</p>
+                    </div>
+                    <StatusBadge status={item.status} dark={dark} />
                   </div>
-                  <StatusBadge status={item.status} dark={dark} />
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Daily Team EOD Reports Widget */}
+          <div className="rounded-2xl p-5" style={{ background: card, border }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <FileText size={16} className="text-indigo-400" />
+                <h3 className={`text-sm font-bold ${txt}`}>Daily Team Work & EOD Reports</h3>
+              </div>
+              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${dark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                {eodReports.length} Reports
+              </span>
             </div>
-          )}
+
+            {eodReports.length === 0 ? (
+              <div className="text-center py-6">
+                <FileText size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
+                <p className={`text-xs ${sub}`}>No daily team EOD reports yet for your projects</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {eodReports.slice(0, 4).map((item) => (
+                  <div
+                    key={item._id}
+                    onClick={() => { setSelectedEod(item); setShowEodDetail(true); }}
+                    className="p-3.5 rounded-xl cursor-pointer transition-all hover:scale-[1.01]"
+                    style={{
+                      background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                      border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold">
+                          {item.user?.name ? item.user.name.charAt(0).toUpperCase() : 'T'}
+                        </div>
+                        <span className={`text-xs font-bold truncate ${txt}`}>{item.user?.name || 'Team Member'}</span>
+                      </div>
+                      <span className={`text-[10px] ${sub}`}>
+                        {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    <p className={`text-xs line-clamp-2 ${sub}`}>{item.eodReport?.summary}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right column */}
@@ -250,6 +310,8 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
           </div>
         </div>
       </div>
+
+      <EODDetailModal open={showEodDetail} onOpenChange={setShowEodDetail} record={selectedEod} />
     </div>
   );
 }
