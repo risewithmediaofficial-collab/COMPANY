@@ -65,6 +65,7 @@ const Attendance = () => {
   const verifyLocationThen = useCallback((onAllowed) => {
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser');
+      setLocationStatus('denied');
       return;
     }
     setLocationStatus('checking');
@@ -72,29 +73,37 @@ const Attendance = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         const dist = getDistanceMeters(latitude, longitude, OFFICE_LOCATION.lat, OFFICE_LOCATION.lng);
-        setLocationDistance(Math.round(dist));
+        const distanceM = Math.round(dist);
+        setLocationDistance(distanceM);
         if (dist <= ALLOWED_RADIUS_METERS) {
           setLocationStatus('allowed');
-          onAllowed();
+          if (typeof onAllowed === 'function') onAllowed();
         } else {
           setLocationStatus('out_of_range');
           toast.error(
-            `You must be at the office to clock in/out. You are ${Math.round(dist)}m away (max ${ALLOWED_RADIUS_METERS}m allowed).`
+            `Out of Coverage Area: You are ${distanceM}m away from the office (max ${ALLOWED_RADIUS_METERS}m allowed).`
           );
         }
       },
       (err) => {
         setLocationStatus('denied');
         const msgs = {
-          1: 'Location access denied. Please enable location permission and try again.',
-          2: 'Location unavailable. Check your GPS/network.',
-          3: 'Location request timed out. Try again.',
+          1: 'Location access denied. Please allow location access in browser settings and click retry.',
+          2: 'Location position unavailable. Ensure GPS is turned on.',
+          3: 'Location request timed out. Please try again.',
         };
         toast.error(msgs[err.code] || 'Failed to get your location.');
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
+
+  // Prompt for GPS location on mount if employee / manager
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      verifyLocationThen();
+    }
+  }, [isSuperAdmin, verifyLocationThen]);
 
   const handleClockIn = useCallback(() => {
     verifyLocationThen(() => clockIn.mutate());
@@ -251,19 +260,54 @@ const Attendance = () => {
                   </button>
                 )}
 
-                {/* Location Status Badge */}
-                {locationStatus !== 'idle' && (
-                  <div className={`mt-3 flex items-center justify-center gap-2 text-xs font-semibold rounded-xl px-3 py-2 ${
-                    locationStatus === 'checking' ? 'bg-amber-500/10 text-amber-600' :
-                    locationStatus === 'allowed' ? 'bg-emerald-500/10 text-emerald-600' :
-                    locationStatus === 'denied' ? 'bg-destructive/10 text-destructive' :
-                    'bg-rose-500/10 text-rose-600'
-                  }`}>
-                    <MapPin size={13} />
-                    {locationStatus === 'checking' && 'Detecting your location...'}
-                    {locationStatus === 'allowed' && `✓ Office location verified (${locationDistance}m away)`}
-                    {locationStatus === 'denied' && 'Location access denied — enable GPS'}
-                    {locationStatus === 'out_of_range' && `Outside office range (${locationDistance}m away, max ${ALLOWED_RADIUS_METERS}m)`}
+                {/* Location Status UI */}
+                {locationStatus === 'checking' && (
+                  <div className="mt-3 flex items-center justify-center gap-2 text-xs font-semibold rounded-xl px-3 py-2 bg-amber-500/10 text-amber-600 animate-pulse">
+                    <MapPin size={14} />
+                    Detecting your GPS location...
+                  </div>
+                )}
+
+                {locationStatus === 'allowed' && (
+                  <div className="mt-3 flex items-center justify-center gap-2 text-xs font-bold rounded-xl px-3 py-2 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    <MapPin size={14} />
+                    ✓ Office Location Verified ({locationDistance}m away)
+                  </div>
+                )}
+
+                {locationStatus === 'denied' && (
+                  <div className="mt-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-center text-xs text-destructive space-y-2">
+                    <div className="font-bold flex items-center justify-center gap-1 text-sm">
+                      <MapPin size={15} /> Location Access Denied
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-destructive/90">
+                      Browser location is blocked. Click the lock/settings icon near your address bar to allow location, then click below:
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => verifyLocationThen()}
+                      className="px-3.5 py-1.5 rounded-xl bg-destructive text-white font-bold text-xs shadow hover:bg-destructive/90 transition-all inline-flex items-center gap-1"
+                    >
+                      🔄 Request / Retry Location Access
+                    </button>
+                  </div>
+                )}
+
+                {locationStatus === 'out_of_range' && (
+                  <div className="mt-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-center text-xs text-rose-600 space-y-2">
+                    <div className="font-bold flex items-center justify-center gap-1 text-sm">
+                      <MapPin size={15} /> Out of Coverage Area
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-rose-700 dark:text-rose-400">
+                      Your location is <span className="font-bold">{locationDistance}m away</span> from the office (320/1 Thiruvannamalai Rd, Giddampatti). Max allowed radius is {ALLOWED_RADIUS_METERS}m.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => verifyLocationThen()}
+                      className="px-3.5 py-1.5 rounded-xl bg-rose-600 text-white font-bold text-xs shadow hover:bg-rose-700 transition-all inline-flex items-center gap-1"
+                    >
+                      🔄 Re-check My Location
+                    </button>
                   </div>
                 )}
 
