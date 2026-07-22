@@ -82,3 +82,21 @@ export const useAdminChangeUserPassword = () => {
     },
   });
 };
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id) => {
+      const response = await api.delete(`/users/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('User account deleted');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete user');
+    },
+  });
+};

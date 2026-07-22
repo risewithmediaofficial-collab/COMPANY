@@ -1,10 +1,19 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { CheckCircle2, Clock, KeyRound, RefreshCw, Search, ShieldCheck, UserCog, XCircle } from 'lucide-react';
-import { useAdminChangeUserPassword, useUpdateUser, useUpdateUserApproval, useUsers } from '../../hooks/useUsers';
+import { CheckCircle2, Clock, KeyRound, RefreshCw, Search, ShieldCheck, Trash2, UserCog, XCircle } from 'lucide-react';
+import { useAdminChangeUserPassword, useDeleteUser, useUpdateUser, useUpdateUserApproval, useUsers } from '../../hooks/useUsers';
 import { Button } from '../../components/ui/button';
 import UserPermissionsModal from './UserPermissionsModal';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 const roles = [
@@ -32,10 +41,12 @@ const Users = () => {
   const { data: users = [], isLoading, isFetching, refetch } = useUsers();
   const updateUser = useUpdateUser();
   const updateApproval = useUpdateUserApproval();
+  const deleteUser = useDeleteUser();
   const adminChangeUserPassword = useAdminChangeUserPassword();
   const [searchTerm, setSearchTerm] = useState('');
   const [permissionsUser, setPermissionsUser] = useState(null);
   const [passwordUser, setPasswordUser] = useState(null);
+  const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
 
   const filteredUsers = useMemo(() => {
@@ -343,6 +354,17 @@ const Users = () => {
                               Access
                             </Button>
                           )}
+                          {!isSelf && (
+                            <Button
+                              variant="outline"
+                              onClick={() => setDeleteUserTarget(user)}
+                              disabled={deleteUser.isPending}
+                              className="h-9 px-3 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 size={14} className="mr-1.5" />
+                              Delete
+                            </Button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -402,6 +424,31 @@ const Users = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteUserTarget} onOpenChange={(open) => !open && setDeleteUserTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete account for <span className="font-bold text-foreground">{deleteUserTarget?.name}</span> ({deleteUserTarget?.email})? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3 pt-3">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (deleteUserTarget?._id) {
+                  await deleteUser.mutateAsync(deleteUserTarget._id);
+                  setDeleteUserTarget(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUser.isPending ? 'Deleting...' : 'Delete Account'}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
