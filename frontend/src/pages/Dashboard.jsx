@@ -26,6 +26,8 @@ import {
   EyeOff,
   Search,
   Filter,
+  Receipt,
+  Megaphone,
 } from 'lucide-react';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { EODDetailModal } from '../components/modals/EODDetailModal';
@@ -61,6 +63,8 @@ const Dashboard = () => {
   const [eodDays, setEodDays] = useState(7);
   const [period, setPeriod] = useState('monthly');
   const [showFinance, setShowFinance] = useState(true);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const socket = useSocket();
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'manager';
@@ -93,7 +97,13 @@ const Dashboard = () => {
             ? '/referrals'
             : '/reports/employee';
           
-      const res = await api.get(endpoint, { params: { period } });
+      const params = { period };
+      if (period === 'custom' && startDate && endDate) {
+        params.startDate = startDate;
+        params.endDate = endDate;
+      }
+
+      const res = await api.get(endpoint, { params });
       setData(res.data);
     } catch (err) {
       console.error(err);
@@ -104,8 +114,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!user?.role) return;
+    if (period === 'custom' && (!startDate || !endDate)) return;
     fetchStats();
-  }, [user?.role, period]);
+  }, [user?.role, period, startDate, endDate]);
 
   useEffect(() => {
     if (!socket) return;
@@ -156,14 +167,14 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Executive Dashboard</h1>
-            <p className="text-muted-foreground text-sm">Real-time revenue, leads, and operational performance.</p>
+            <p className="text-muted-foreground text-sm">Real-time revenue, expenses, ads budget, leads, and operational performance.</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {user.role !== 'manager' && (
               <button
                 onClick={() => setShowFinance((v) => !v)}
-                title={showFinance ? 'Hide revenue amounts' : 'Show revenue amounts'}
+                title={showFinance ? 'Hide revenue & financial amounts' : 'Show revenue & financial amounts'}
                 className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all shadow-sm ${
                   showFinance
                     ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
@@ -171,7 +182,7 @@ const Dashboard = () => {
                 }`}
               >
                 {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
-                {showFinance ? 'Hide Revenue' : 'Show Revenue'}
+                {showFinance ? 'Hide Financials' : 'Show Financials'}
               </button>
             )}
 
@@ -185,19 +196,95 @@ const Dashboard = () => {
 
             <select
               value={period}
-              onChange={(e) => setPeriod(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setPeriod(val);
+                if (val !== 'custom') {
+                  setStartDate('');
+                  setEndDate('');
+                }
+              }}
               className="bg-card border border-border text-sm font-semibold rounded-xl px-3.5 py-2 outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="weekly">This Week</option>
               <option value="monthly">This Month</option>
+              <option value="lastMonth">Last Month</option>
+              <option value="weekly">This Week</option>
               <option value="yearly">This Year</option>
               <option value="allTime">All Time</option>
+              <option value="custom">Custom Date Range 📅</option>
             </select>
           </div>
         </div>
 
+        {/* Custom Calendar Date Filter Row */}
+        {period === 'custom' && (
+          <div className="bg-card p-4 rounded-2xl border border-border shadow-sm flex flex-wrap items-center gap-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Calendar size={14} className="text-primary" /> Filter Past Date Range:
+            </span>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-muted-foreground font-semibold">From:</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-secondary/40 border border-border rounded-xl px-3 py-1.5 text-xs font-medium outline-none focus:border-primary"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-muted-foreground font-semibold">To:</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-secondary/40 border border-border rounded-xl px-3 py-1.5 text-xs font-medium outline-none focus:border-primary"
+              />
+            </div>
+            <div className="flex items-center gap-1.5 ml-auto">
+              <button
+                onClick={() => {
+                  const now = new Date();
+                  const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+                  const lastDay = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+                  setStartDate(firstDay);
+                  setEndDate(lastDay);
+                }}
+                className="text-[11px] font-semibold bg-secondary px-2.5 py-1 rounded-lg hover:bg-secondary/80 text-foreground"
+              >
+                Last Month
+              </button>
+              <button
+                onClick={() => {
+                  const now = new Date();
+                  const firstDay = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+                  const today = now.toISOString().split('T')[0];
+                  setStartDate(firstDay);
+                  setEndDate(today);
+                }}
+                className="text-[11px] font-semibold bg-secondary px-2.5 py-1 rounded-lg hover:bg-secondary/80 text-foreground"
+              >
+                This Year YTD
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Date Period Active Badge */}
+        {data?.periodStart && data?.periodEnd && (
+          <div className="flex items-center justify-between text-xs text-muted-foreground bg-primary/5 border border-primary/15 px-4 py-2 rounded-xl">
+            <span className="flex items-center gap-2 font-medium text-foreground">
+              <Calendar size={14} className="text-primary" />
+              Showing metrics for period: <strong className="text-primary">{new Date(data.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong> to <strong className="text-primary">{new Date(data.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+            </span>
+            <span className="hidden sm:inline font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+              Filtered Dashboard View
+            </span>
+          </div>
+        )}
+
         {/* Top KPI Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Revenue */}
           <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center justify-between text-muted-foreground mb-3">
               <span className="text-xs font-bold uppercase tracking-wider">Total Revenue</span>
@@ -220,9 +307,64 @@ const Dashboard = () => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Paid invoices in selected period</p>
+            <p className="text-xs text-muted-foreground mt-1">Paid invoices in period</p>
           </div>
 
+          {/* Expenses Budget */}
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Expenses Budget</span>
+              <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600">
+                <Receipt size={18} />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-bold">
+                {user.role === 'manager'
+                  ? 'Locked'
+                  : !showFinance
+                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
+                    : formatINR(stats.totalExpenses || 0)}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Approved business expenses</p>
+          </div>
+
+          {/* Ads Budget */}
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Ads Budget</span>
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
+                <Megaphone size={18} />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-bold">{formatINR(stats.totalAdsBudget || 0)}</p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Project marketing & campaign budget</p>
+          </div>
+
+          {/* Net Profit */}
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Net Profit</span>
+              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600">
+                <Wallet size={18} />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className={`text-2xl font-bold ${showFinance && user.role !== 'manager' && (stats.netProfit || 0) < 0 ? 'text-rose-600' : ''}`}>
+                {user.role === 'manager'
+                  ? 'Locked'
+                  : !showFinance
+                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
+                    : formatINR(stats.netProfit || 0)}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Revenue minus total expenses</p>
+          </div>
+
+          {/* Leads Pipeline */}
           <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center justify-between text-muted-foreground mb-3">
               <span className="text-xs font-bold uppercase tracking-wider">Leads Pipeline</span>
@@ -239,6 +381,7 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground mt-1">{stats.newLeadsThisMonth || 0} new in period</p>
           </div>
 
+          {/* Active Projects */}
           <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center justify-between text-muted-foreground mb-3">
               <span className="text-xs font-bold uppercase tracking-wider">Active Projects</span>
@@ -253,6 +396,7 @@ const Dashboard = () => {
             <p className="text-xs text-muted-foreground mt-1">{stats.activeClients || 0} active client accounts</p>
           </div>
 
+          {/* Task Execution */}
           <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
             <div className="flex items-center justify-between text-muted-foreground mb-3">
               <span className="text-xs font-bold uppercase tracking-wider">Task Execution</span>
@@ -269,6 +413,21 @@ const Dashboard = () => {
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Pending parent tasks</p>
+          </div>
+
+          {/* Team & Users */}
+          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
+            <div className="flex items-center justify-between text-muted-foreground mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider">Team & Users</span>
+              <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-600">
+                <ShieldCheck size={18} />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-2xl font-bold">{stats.totalUsers || 0}</p>
+              <span className="text-xs font-medium text-cyan-600 bg-cyan-500/10 px-2 py-0.5 rounded-full">Active</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Active team & partner accounts</p>
           </div>
         </div>
 

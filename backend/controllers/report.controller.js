@@ -18,10 +18,20 @@ export const getAdminDashboard = async (req, res) => {
     const isManager = req.user?.role === 'manager';
     const now = new Date();
     const period = req.query.period || 'monthly';
+    const { startDate: qStartDate, endDate: qEndDate } = req.query;
 
     let periodStart, periodEnd, priorPeriodStart, priorPeriodEnd;
 
-    if (period === 'weekly') {
+    if (qStartDate && qEndDate) {
+      periodStart = new Date(qStartDate);
+      periodStart.setHours(0, 0, 0, 0);
+      periodEnd = new Date(qEndDate);
+      periodEnd.setHours(23, 59, 59, 999);
+
+      const spanMs = Math.max(86400000, periodEnd.getTime() - periodStart.getTime());
+      priorPeriodStart = new Date(periodStart.getTime() - spanMs);
+      priorPeriodEnd = new Date(periodStart.getTime() - 1);
+    } else if (period === 'weekly') {
       const day = now.getDay();
       periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
       periodStart.setHours(0, 0, 0, 0);
@@ -31,6 +41,12 @@ export const getAdminDashboard = async (req, res) => {
       priorPeriodStart.setDate(priorPeriodStart.getDate() - 7);
       priorPeriodEnd = new Date(periodStart);
       priorPeriodEnd.setMilliseconds(-1);
+    } else if (period === 'lastMonth') {
+      periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      periodEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+      priorPeriodStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+      priorPeriodEnd = new Date(now.getFullYear(), now.getMonth() - 1, 0, 23, 59, 59, 999);
     } else if (period === 'yearly') {
       periodStart = new Date(now.getFullYear(), 0, 1);
       periodEnd = new Date(now);
@@ -101,9 +117,16 @@ export const getAdminDashboard = async (req, res) => {
       { $group: { _id: '$stage', count: { $sum: 1 } } },
     ]);
 
-    // Monthly revenue for chart (last 6 months)
+    // Monthly revenue for chart based on selected date period
+    let chartStartDate = periodStart;
+    if (period === 'monthly' || period === 'weekly') {
+      chartStartDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    } else if (period === 'allTime') {
+      chartStartDate = new Date(0);
+    }
+
     const revenueChart = await Invoice.aggregate([
-      { $match: { status: 'paid', paidDate: { $gte: new Date(now.getFullYear(), now.getMonth() - 5, 1) } } },
+      { $match: { status: 'paid', paidDate: { $gte: chartStartDate, $lte: periodEnd } } },
       { $group: { _id: { year: { $year: '$paidDate' }, month: { $month: '$paidDate' } }, revenue: { $sum: '$total' } } },
       { $sort: { '_id.year': 1, '_id.month': 1 } },
     ]);
@@ -120,9 +143,12 @@ export const getAdminDashboard = async (req, res) => {
     const totalAdsBudget = adBudgetTotals[0]?.totalAdsBudget || 0;
     const totalIncome = allTimeRevenue[0]?.total || 0;
     const totalExpenses = totalExpensesData[0]?.total || 0;
+    const netProfit = thisMonthRev - totalExpenses;
 
     res.json({
       success: true,
+      periodStart,
+      periodEnd,
       stats: {
         totalLeads, newLeadsThisMonth, wonLeads,
         conversionRate: totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : 0,
@@ -134,6 +160,7 @@ export const getAdminDashboard = async (req, res) => {
         totalIncome: isManager ? 0 : totalIncome,
         totalExpenses: isManager ? 0 : totalExpenses,
         totalAdsBudget,
+        netProfit: isManager ? 0 : netProfit,
         totalUsers,
         expiringRenewalsCount: expiringRenewals.length,
       },
