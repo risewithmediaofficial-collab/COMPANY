@@ -60,7 +60,7 @@ const Dashboard = () => {
   const [eodSearch, setEodSearch] = useState('');
   const [eodDays, setEodDays] = useState(7);
   const [period, setPeriod] = useState('monthly');
-  const [showFinance, setShowFinance] = useState(false);
+  const [showFinance, setShowFinance] = useState(true);
 
   const socket = useSocket();
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'manager';
@@ -159,7 +159,30 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-sm">Real-time revenue, leads, and operational performance.</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {user.role !== 'manager' && (
+              <button
+                onClick={() => setShowFinance((v) => !v)}
+                title={showFinance ? 'Hide revenue amounts' : 'Show revenue amounts'}
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all shadow-sm ${
+                  showFinance
+                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
+                    : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+              >
+                {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
+                {showFinance ? 'Hide Revenue' : 'Show Revenue'}
+              </button>
+            )}
+
+            <Link
+              to="/calendar"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
+            >
+              <Calendar size={16} />
+              Content Calendar
+            </Link>
+
             <select
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
@@ -183,8 +206,14 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">{user.role === 'manager' ? 'Locked' : formatINR(stats.monthRevenue || 0)}</p>
-              {stats.revenueGrowth !== undefined && (
+              <p className="text-2xl font-bold">
+                {user.role === 'manager'
+                  ? 'Locked'
+                  : !showFinance
+                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
+                    : formatINR(stats.monthRevenue || 0)}
+              </p>
+              {stats.revenueGrowth !== undefined && showFinance && user.role !== 'manager' && (
                 <span className={`text-xs font-bold flex items-center ${Number(stats.revenueGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {Number(stats.revenueGrowth) >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                   {Math.abs(stats.revenueGrowth)}%
@@ -258,6 +287,17 @@ const Dashboard = () => {
               {user.role === 'manager' ? (
                 <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
                   Financial charts restricted to Super Admin.
+                </div>
+              ) : !showFinance ? (
+                <div className="h-full flex flex-col items-center justify-center text-sm text-muted-foreground gap-2">
+                  <EyeOff size={32} className="text-muted-foreground/40" />
+                  <p>Revenue trend hidden.</p>
+                  <button
+                    onClick={() => setShowFinance(true)}
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Click &quot;Show Revenue&quot; to view charts
+                  </button>
                 </div>
               ) : data.charts?.revenueChart?.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
