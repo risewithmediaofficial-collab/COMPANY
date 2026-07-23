@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { BookOpen, Plus, Trash2, Edit2 } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Edit2, Eye, User, Clock, FileText, ListOrdered, Tag } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
@@ -53,6 +53,8 @@ const SOPDashboard = () => {
 
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [viewingSOP, setViewingSOP] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -65,6 +67,11 @@ const SOPDashboard = () => {
   const filtered = sops.filter((sop) =>
     !search.trim() || sop.title?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const openView = (sop) => {
+    setViewingSOP(sop);
+    setShowViewModal(true);
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -83,6 +90,7 @@ const SOPDashboard = () => {
       links: sop.links || [],
       status: sop.status || 'active',
     });
+    setShowViewModal(false);
     setShowForm(true);
   };
 
@@ -104,7 +112,10 @@ const SOPDashboard = () => {
       label: 'SOP Title',
       render: (row) => (
         <div>
-          <div className="font-semibold">{row.title}</div>
+          <div className="font-semibold flex items-center gap-1.5">
+            <BookOpen size={15} className="text-primary shrink-0" />
+            <span>{row.title}</span>
+          </div>
           <div className="mt-1 text-xs text-muted-foreground line-clamp-2">{row.content || 'No description'}</div>
         </div>
       ),
@@ -117,7 +128,7 @@ const SOPDashboard = () => {
     {
       key: 'role',
       label: 'Role',
-      render: (row) => row.role || '—',
+      render: (row) => row.role ? row.role.replace(/_/g, ' ') : '—',
     },
     {
       key: 'status',
@@ -136,7 +147,7 @@ const SOPDashboard = () => {
     {
       key: 'createdAt',
       label: 'Created',
-      render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleString() : '—',
+      render: (row) => row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '—',
     },
   ];
 
@@ -162,13 +173,121 @@ const SOPDashboard = () => {
         data={filtered}
         columns={columns}
         loading={isLoading}
-        onRowClick={openEdit}
+        onRowClick={openView}
+        onView={openView}
         onEdit={canAdd ? openEdit : null}
         onDelete={isAdmin ? (id) => setDeleteId(id) : null}
         emptyTitle="No SOPs yet"
         emptyDescription="Create your first standard operating procedure."
       />
 
+      {/* Read-Only View SOP Modal (Shown 1st on opening an SOP) */}
+      <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl">
+          <DialogHeader>
+            <div className="flex items-start justify-between gap-4 pr-6">
+              <div className="space-y-1">
+                <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                  <BookOpen size={22} className="text-primary" />
+                  {viewingSOP?.title}
+                </DialogTitle>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <span className="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
+                    {SOP_TYPES.find((t) => t.value === viewingSOP?.sopType)?.label || viewingSOP?.sopType}
+                  </span>
+                  {viewingSOP?.role && (
+                    <span className="text-xs font-semibold bg-secondary text-foreground px-2.5 py-0.5 rounded-full border border-border capitalize">
+                      Role: {viewingSOP.role.replace(/_/g, ' ')}
+                    </span>
+                  )}
+                  <StatusBadge tone={viewingSOP?.status === 'active' ? 'success' : 'neutral'}>
+                    {viewingSOP?.status}
+                  </StatusBadge>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {viewingSOP && (
+            <div className="space-y-6 pt-2">
+              {/* Metadata Info */}
+              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-secondary/30 p-3 rounded-xl border border-border">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <User size={14} className="text-primary" />
+                  Created by: <strong className="text-foreground">{viewingSOP.createdBy?.name || 'Admin'}</strong>
+                </span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Clock size={14} className="text-primary" />
+                  Date: <strong className="text-foreground">{viewingSOP.createdAt ? new Date(viewingSOP.createdAt).toLocaleString() : '—'}</strong>
+                </span>
+              </div>
+
+              {/* Overview / Description Content */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <FileText size={14} className="text-primary" /> Overview & Description
+                </h4>
+                <div className="whitespace-pre-wrap text-sm text-foreground/90 leading-relaxed bg-card p-4 rounded-xl border border-border">
+                  {viewingSOP.content || 'No detailed description provided for this SOP.'}
+                </div>
+              </div>
+
+              {/* Steps & Procedure Instructions */}
+              {viewingSOP.steps && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <ListOrdered size={14} className="text-primary" /> Steps & Operating Instructions
+                  </h4>
+                  <div className="whitespace-pre-wrap text-sm text-foreground/90 leading-relaxed bg-primary/5 p-4 rounded-xl border border-primary/10">
+                    {viewingSOP.steps}
+                  </div>
+                </div>
+              )}
+
+              {/* Reference Links & Attachments */}
+              {viewingSOP.links?.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Tag size={14} className="text-primary" /> Attached Links & Resources
+                  </h4>
+                  <div className="bg-card p-4 rounded-xl border border-border">
+                    <LinksList links={viewingSOP.links} />
+                  </div>
+                </div>
+              )}
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                {isAdmin ? (
+                  <Button
+                    variant="outline"
+                    className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                    onClick={() => {
+                      setShowViewModal(false);
+                      setDeleteId(viewingSOP._id);
+                    }}
+                  >
+                    <Trash2 size={16} className="mr-1.5" /> Delete
+                  </Button>
+                ) : <div />}
+
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={() => setShowViewModal(false)}>
+                    Close
+                  </Button>
+                  {canAdd && (
+                    <Button onClick={() => openEdit(viewingSOP)}>
+                      <Edit2 size={16} className="mr-1.5" /> Edit SOP
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit / Add SOP Form Modal */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
           <DialogHeader>
