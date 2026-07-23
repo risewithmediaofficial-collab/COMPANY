@@ -149,7 +149,7 @@ const Dashboard = () => {
     };
   }, [socket, queryClient]);
 
-  if (!user || loading) {
+  if (!user || loading || !data) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
         {[1, 2, 3, 4].map((i) => (
@@ -897,9 +897,9 @@ const Dashboard = () => {
             <div className="bg-card p-6 rounded-2xl border border-border shadow-sm bg-gradient-to-br from-indigo-600 to-primary text-white">
               <Award size={32} className="mb-4 opacity-50" />
               <h3 className="text-lg font-bold leading-tight">Weekly Progress</h3>
-              <p className="text-white/70 text-xs mt-1">You&apos;ve completed {data.completedThisWeek} tasks, logged {data.weeklyLoggedUpdates || 0} updates, and added {data.personalTasksThisWeek || 0} personal daily tasks this week.</p>
+              <p className="text-white/70 text-xs mt-1">You&apos;ve completed {data?.completedThisWeek || 0} tasks, logged {data?.weeklyLoggedUpdates || 0} updates, and added {data?.personalTasksThisWeek || 0} personal daily tasks this week.</p>
               <div className="mt-4 bg-white/20 h-2 rounded-full">
-                <div className="bg-white h-full rounded-full" style={{ width: `${Math.min(100, (data.completedThisWeek / 10) * 100)}%` }}></div>
+                <div className="bg-white h-full rounded-full" style={{ width: `${Math.min(100, ((data?.completedThisWeek || 0) / 10) * 100)}%` }}></div>
               </div>
             </div>
           </div>

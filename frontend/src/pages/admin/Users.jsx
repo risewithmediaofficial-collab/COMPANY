@@ -54,7 +54,7 @@ const Users = () => {
     if (!term) return users;
 
     return users.filter((user) => {
-      return [user.name, user.email, user.role, user.approvalStatus]
+      return [user.name, user.email, user.role, user.position, user.approvalStatus]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term));
     });
@@ -78,6 +78,10 @@ const Users = () => {
 
   const handleRoleChange = (targetUser, role) => {
     updateUser.mutate({ id: targetUser._id, data: { role } });
+  };
+
+  const handlePositionChange = (targetUser, position) => {
+    updateUser.mutate({ id: targetUser._id, data: { position } });
   };
 
   const handleActiveChange = (targetUser) => {
@@ -209,6 +213,17 @@ const Users = () => {
                       </option>
                     ))}
                   </select>
+                  <input
+                    type="text"
+                    placeholder="Position (e.g. Designer)"
+                    defaultValue={user.position || ''}
+                    onBlur={(e) => {
+                      const val = e.target.value.trim();
+                      if (val !== (user.position || '')) handlePositionChange(user, val);
+                    }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                    className="w-full sm:w-36 rounded-xl border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/50"
+                  />
                   <Button
                     onClick={() => handleApprovalChange(user, 'approved')}
                     disabled={updateApproval.isPending}
@@ -235,7 +250,7 @@ const Users = () => {
         <Search size={16} className="absolute left-5 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Search users by name, email, role, or status..."
+          placeholder="Search users by name, email, role, position, or status..."
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           className="w-full pl-10 pr-4 py-2 rounded-xl bg-background border border-border text-sm focus:ring-2 focus:ring-primary/20 transition-all"
@@ -249,6 +264,7 @@ const Users = () => {
               <tr>
                 <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">User</th>
                 <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Role</th>
+                <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Position</th>
                 <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Approval</th>
                 <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Access</th>
                 <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Joined</th>
@@ -258,13 +274,13 @@ const Users = () => {
             <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-16 text-center text-muted-foreground">
+                  <td colSpan="7" className="px-6 py-16 text-center text-muted-foreground">
                     Loading users...
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-16 text-center text-muted-foreground">
+                  <td colSpan="7" className="px-6 py-16 text-center text-muted-foreground">
                     No users found.
                   </td>
                 </tr>
@@ -285,7 +301,7 @@ const Users = () => {
                           value={user.role}
                           onChange={(event) => handleRoleChange(user, event.target.value)}
                           disabled={isSelf || updateUser.isPending}
-                          className="w-40 rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                          className="w-36 rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
                         >
                           {roles.map((role) => (
                             <option key={role.value} value={role.value}>
@@ -293,6 +309,21 @@ const Users = () => {
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="px-6 py-4">
+                        <input
+                          type="text"
+                          placeholder="e.g. Developer"
+                          defaultValue={user.position || ''}
+                          key={user._id + '_' + (user.position || '')}
+                          onBlur={(e) => {
+                            const val = e.target.value.trim();
+                            if (val !== (user.position || '')) handlePositionChange(user, val);
+                          }}
+                          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                          disabled={updateUser.isPending}
+                          className="w-36 rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-60 placeholder:text-muted-foreground/40"
+                        />
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold capitalize ${statusStyles[approvalStatus] || statusStyles.approved}`}>
