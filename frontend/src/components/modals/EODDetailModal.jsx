@@ -27,9 +27,9 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
+      <DialogContent className="max-w-xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
         {/* Header styling */}
-        <div className="bg-gradient-to-r from-primary/10 via-indigo-500/10 to-purple-500/10 p-6 border-b border-border">
+        <div className="shrink-0 bg-gradient-to-r from-primary/10 via-indigo-500/10 to-purple-500/10 p-5 sm:p-6 border-b border-border">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
@@ -52,7 +52,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
 
           {/* User profile row */}
           <div className="mt-4 flex items-center gap-3 pt-3 border-t border-border/50">
-            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
+            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-bold text-sm overflow-hidden shrink-0">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
               ) : (
@@ -68,8 +68,8 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
           </div>
         </div>
 
-        {/* Modal content */}
-        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+        {/* Scrollable Modal content */}
+        <div className="p-4 sm:p-6 space-y-5 flex-1 overflow-y-auto">
           {/* Summary */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
@@ -118,9 +118,9 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-4 bg-secondary/20 border-t border-border flex justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
+        {/* Fixed Footer */}
+        <div className="shrink-0 p-4 bg-secondary/20 border-t border-border flex justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl px-6 font-semibold">
             Close
           </Button>
         </div>
