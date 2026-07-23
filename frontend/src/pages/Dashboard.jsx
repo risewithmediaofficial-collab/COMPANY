@@ -30,6 +30,7 @@ import {
   Megaphone,
   BookOpen,
   StickyNote,
+  Plus,
 } from 'lucide-react';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { EODDetailModal } from '../components/modals/EODDetailModal';

@@ -5,6 +5,7 @@
 import express from 'express';
 import { protect } from '../middleware/auth.middleware.js';
 import SOP from '../models/sop.model.js';
+import User from '../models/user.model.js';
 
 const router = express.Router();
 
@@ -54,8 +55,8 @@ router.get('/', protect, async (req, res) => {
     }
 
     const sopList = await SOP.find(query)
-      .populate('createdBy', 'name email')
-      .populate('updatedBy', 'name email')
+      .populate('createdBy', 'name email role')
+      .populate('updatedBy', 'name email role')
       .sort({ createdAt: -1 });
 
     res.json({ success: true, sops: sopList });
@@ -67,8 +68,8 @@ router.get('/', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const sop = await SOP.findById(req.params.id)
-      .populate('createdBy', 'name email')
-      .populate('updatedBy', 'name email');
+      .populate('createdBy', 'name email role')
+      .populate('updatedBy', 'name email role');
 
     if (!sop) {
       return res.status(404).json({ success: false, message: 'SOP not found' });
@@ -111,7 +112,7 @@ router.post('/', protect, async (req, res) => {
       tags: tags || [],
     });
 
-    await sop.populate('createdBy', 'name email');
+    await sop.populate('createdBy', 'name email role');
 
     res.status(201).json({ success: true, message: 'SOP created successfully', sop });
   } catch (error) {
@@ -128,8 +129,17 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(404).json({ success: false, message: 'SOP not found' });
     }
 
-    if (!isAdmin(user) && sop.createdBy.toString() !== user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Not authorized to update SOP' });
+    const author = await User.findById(sop.createdBy).select('role');
+    const isAuthorAdminOrManager = author && ['superAdmin', 'manager'].includes(author.role);
+
+    if (isAuthorAdminOrManager) {
+      if (!['superAdmin', 'manager'].includes(user.role)) {
+        return res.status(403).json({ success: false, message: 'SOPs posted by Admin or Manager cannot be edited by employees' });
+      }
+    } else {
+      if (!isAdmin(user) && user.role !== 'manager' && sop.createdBy?.toString() !== user._id.toString()) {
+        return res.status(403).json({ success: false, message: 'Not authorized to update this SOP' });
+      }
     }
 
     const { title, description, sopType, role, department, project, content, steps, links, status, tags } = req.body;
@@ -150,7 +160,7 @@ router.put('/:id', protect, async (req, res) => {
     });
 
     await sop.save();
-    await sop.populate(['createdBy', 'updatedBy'], 'name email');
+    await sop.populate(['createdBy', 'updatedBy'], 'name email role');
 
     res.json({ success: true, message: 'SOP updated successfully', sop });
   } catch (error) {
@@ -167,8 +177,17 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(404).json({ success: false, message: 'SOP not found' });
     }
 
-    if (!isAdmin(user) && user.role !== 'manager' && sop.createdBy?.toString() !== user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Not authorized to delete this SOP' });
+    const author = await User.findById(sop.createdBy).select('role');
+    const isAuthorAdminOrManager = author && ['superAdmin', 'manager'].includes(author.role);
+
+    if (isAuthorAdminOrManager) {
+      if (!['superAdmin', 'manager'].includes(user.role)) {
+        return res.status(403).json({ success: false, message: 'SOPs posted by Admin or Manager cannot be deleted by employees' });
+      }
+    } else {
+      if (!isAdmin(user) && user.role !== 'manager' && sop.createdBy?.toString() !== user._id.toString()) {
+        return res.status(403).json({ success: false, message: 'Not authorized to delete this SOP' });
+      }
     }
 
     await SOP.findByIdAndDelete(req.params.id);

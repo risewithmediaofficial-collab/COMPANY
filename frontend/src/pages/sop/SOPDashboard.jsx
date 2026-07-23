@@ -68,6 +68,28 @@ const SOPDashboard = () => {
     !search.trim() || sop.title?.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const canEditSop = (sop) => {
+    if (!sop || !user) return false;
+    const authorRole = sop.createdBy?.role || sop.createdByRole;
+    const creatorId = sop.createdBy?._id || sop.createdBy;
+    const isAuthorSelf = String(creatorId) === String(user._id);
+
+    if (['superAdmin', 'manager'].includes(user?.role)) return true;
+    if (authorRole === 'superAdmin' || authorRole === 'manager') return false;
+    return isAuthorSelf;
+  };
+
+  const canDeleteSop = (sop) => {
+    if (!sop || !user) return false;
+    const authorRole = sop.createdBy?.role || sop.createdByRole;
+    const creatorId = sop.createdBy?._id || sop.createdBy;
+    const isAuthorSelf = String(creatorId) === String(user._id);
+
+    if (['superAdmin', 'manager'].includes(user?.role)) return true;
+    if (authorRole === 'superAdmin' || authorRole === 'manager') return false;
+    return isAuthorSelf;
+  };
+
   const openView = (sop) => {
     setViewingSOP(sop);
     setShowViewModal(true);
@@ -80,6 +102,9 @@ const SOPDashboard = () => {
   };
 
   const openEdit = (sop) => {
+    if (!canEditSop(sop)) {
+      return toast.error('SOPs created by Admin or Manager cannot be edited by employees');
+    }
     setEditing(sop);
     setForm({
       title: sop.title || '',
@@ -95,7 +120,7 @@ const SOPDashboard = () => {
   };
 
   const handleSave = async () => {
-    if (!form.title.trim()) return;
+    if (!form.title.trim()) return toast.error('Title is required');
     if (editing) {
       await updateSOP.mutateAsync({ id: editing._id, data: form });
     } else {
@@ -107,37 +132,20 @@ const SOPDashboard = () => {
   };
 
   const columns = [
-    {
-      key: 'title',
-      label: 'SOP Title',
-      render: (row) => (
-        <div>
-          <div className="font-semibold flex items-center gap-1.5">
-            <BookOpen size={15} className="text-primary shrink-0" />
-            <span>{row.title}</span>
-          </div>
-          <div className="mt-1 text-xs text-muted-foreground line-clamp-2">{row.content || 'No description'}</div>
-        </div>
-      ),
-    },
+    { key: 'title', label: 'Title', render: (row) => <span className="font-semibold text-foreground">{row.title}</span> },
     {
       key: 'sopType',
       label: 'Type',
-      render: (row) => SOP_TYPES.find((t) => t.value === row.sopType)?.label || row.sopType,
+      render: (row) => (
+        <span className="app-badge capitalize">
+          {SOP_TYPES.find((t) => t.value === row.sopType)?.label || row.sopType}
+        </span>
+      ),
     },
     {
       key: 'role',
       label: 'Role',
       render: (row) => row.role ? row.role.replace(/_/g, ' ') : '—',
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      render: (row) => (
-        <StatusBadge tone={row.status === 'active' ? 'success' : 'neutral'}>
-          {row.status}
-        </StatusBadge>
-      ),
     },
     {
       key: 'createdBy',
@@ -175,8 +183,8 @@ const SOPDashboard = () => {
         loading={isLoading}
         onRowClick={openView}
         onView={openView}
-        onEdit={canAdd ? openEdit : null}
-        onDelete={isAdmin ? (id) => setDeleteId(id) : null}
+        onEdit={(row) => canEditSop(row) ? openEdit(row) : null}
+        onDelete={(row) => canDeleteSop(row) ? (id) => setDeleteId(id) : null}
         emptyTitle="No SOPs yet"
         emptyDescription="Create your first standard operating procedure."
       />
@@ -258,7 +266,7 @@ const SOPDashboard = () => {
 
               {/* Footer Actions */}
               <div className="flex items-center justify-between pt-4 border-t border-border">
-                {isAdmin ? (
+                {canDeleteSop(viewingSOP) ? (
                   <Button
                     variant="outline"
                     className="text-destructive border-destructive/30 hover:bg-destructive/10"
@@ -275,7 +283,7 @@ const SOPDashboard = () => {
                   <Button variant="outline" onClick={() => setShowViewModal(false)}>
                     Close
                   </Button>
-                  {canAdd && (
+                  {canEditSop(viewingSOP) && (
                     <Button onClick={() => openEdit(viewingSOP)}>
                       <Edit2 size={16} className="mr-1.5" /> Edit SOP
                     </Button>
