@@ -28,6 +28,8 @@ import {
   Filter,
   Receipt,
   Megaphone,
+  BookOpen,
+  StickyNote,
 } from 'lucide-react';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { EODDetailModal } from '../components/modals/EODDetailModal';
@@ -635,6 +637,10 @@ const Dashboard = () => {
             <p className="text-muted-foreground text-sm">Welcome back, {user.name}. Here&apos;s your focus and report status today.</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
+            <Link to="/sop" className="inline-flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-secondary">
+              <BookOpen size={18} className="text-primary" />
+              SOP Dashboard
+            </Link>
             <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
               <Calendar size={18} />
               Content Calendar
@@ -709,7 +715,7 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Active Tasks & My EOD History */}
+          {/* Active Tasks & My EOD History & SOPs */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
               <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/20">
@@ -717,10 +723,10 @@ const Dashboard = () => {
                   <CheckCircle2 size={18} className="mr-2 text-primary" />
                   Priority Tasks
                 </h3>
-                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">{data.myTasks.length} Assigned</span>
+                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">{data.myTasks?.length || 0} Assigned</span>
               </div>
               <div className="divide-y divide-border">
-                {data.myTasks.length > 0 ? data.myTasks.map((task) => (
+                {data.myTasks?.length > 0 ? data.myTasks.map((task) => (
                   <Link key={task._id} to={`/tasks?open=${task._id}`} className="p-4 hover:bg-secondary/30 transition-colors flex items-center justify-between group">
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
@@ -748,6 +754,58 @@ const Dashboard = () => {
                   <div className="p-8 text-center text-muted-foreground">No tasks assigned today. Take a break!</div>
                 )}
               </div>
+            </div>
+
+            {/* Standard Operating Procedures (SOPs) */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold flex items-center text-base">
+                    <BookOpen size={18} className="mr-2 text-primary" />
+                    Standard Operating Procedures (SOPs)
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Company guidelines, role procedures, and your created SOPs</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link to="/sop" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                    <Plus size={14} /> Add SOP
+                  </Link>
+                  <Link to="/sop" className="text-xs bg-secondary text-muted-foreground px-2.5 py-1 rounded-full font-semibold">
+                    View All
+                  </Link>
+                </div>
+              </div>
+
+              {data.sops?.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {data.sops.slice(0, 4).map((sop) => (
+                    <Link
+                      key={sop._id}
+                      to="/sop"
+                      className="p-4 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors block group"
+                    >
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 line-clamp-1">
+                          <BookOpen size={13} className="text-primary shrink-0" />
+                          {sop.title}
+                        </span>
+                        <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full capitalize shrink-0">
+                          {sop.sopType?.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{sop.content || 'No description provided.'}</p>
+                      <div className="mt-2 text-[10px] text-muted-foreground flex items-center justify-between">
+                        <span>By {sop.createdBy?.name || 'Team'}</span>
+                        <span>{sop.createdAt ? new Date(sop.createdAt).toLocaleDateString() : ''}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-xs text-muted-foreground border border-dashed border-border rounded-xl">
+                  No SOPs added yet. Click &quot;Add SOP&quot; above to create your first standard operating procedure!
+                </div>
+              )}
             </div>
 
             {/* My EOD Reports History */}
@@ -806,7 +864,7 @@ const Dashboard = () => {
           {/* Quick Actions & Attendance */}
           <div className="space-y-6">
             <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-              <h3 className="font-bold mb-4">Daily Attendance</h3>
+              <h3 className="font-bold mb-4">Daily Attendance & Actions</h3>
               <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl mb-4 border border-border">
                 <div className="flex items-center">
                   <Clock size={20} className="text-primary mr-3" />
@@ -821,6 +879,14 @@ const Dashboard = () => {
               </div>
               <div className="space-y-3">
                 <Link to="/calendar" className="block w-full text-center py-2.5 rounded-xl bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Open Content Calendar</Link>
+                <Link to="/sop" className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  <BookOpen size={16} className="text-primary" />
+                  SOP Dashboard & My SOPs
+                </Link>
+                <Link to="/pending-notes" className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                  <StickyNote size={16} className="text-amber-500" />
+                  My Pending Task Notes
+                </Link>
                 <button onClick={() => setShowEodModal(true)} className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">
                   {isEodSubmittedToday ? 'View / Edit EOD Report' : 'Submit EOD Report'}
                 </button>

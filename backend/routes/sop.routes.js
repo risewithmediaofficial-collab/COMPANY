@@ -22,18 +22,35 @@ router.get('/', protect, async (req, res) => {
     const { status, sopType } = req.query;
     const query = {};
 
-    if (user.organizationId) query.organizationId = user.organizationId;
     if (status) query.status = status;
     if (sopType) query.sopType = sopType;
 
+    const orgFilter = user.organizationId
+      ? { $or: [{ organizationId: user.organizationId }, { organizationId: null }, { organizationId: { $exists: false } }] }
+      : null;
+
     if (!isAdmin(user)) {
       const sopRole = mapUserRoleToSopRole(user.role);
+      const userPos = user.position ? user.position.toLowerCase() : null;
+
       query.$or = [
         { sopType: 'company' },
         { sopType: 'department' },
-        { sopType: 'role_based', role: sopRole },
+        { sopType: 'role_based', role: { $in: [sopRole, userPos, 'employee', 'all'].filter(Boolean) } },
         { createdBy: user._id },
       ];
+    }
+
+    if (orgFilter) {
+      if (query.$or) {
+        query.$and = [
+          { $or: query.$or },
+          orgFilter,
+        ];
+        delete query.$or;
+      } else {
+        query.$or = orgFilter.$or;
+      }
     }
 
     const sopList = await SOP.find(query)
@@ -144,17 +161,17 @@ router.put('/:id', protect, async (req, res) => {
 router.delete('/:id', protect, async (req, res) => {
   try {
     const user = req.user;
-
-    if (!isAdmin(user)) {
-      return res.status(403).json({ success: false, message: 'Only admins can delete SOPs' });
-    }
-
-    const sop = await SOP.findByIdAndDelete(req.params.id);
+    const sop = await SOP.findById(req.params.id);
 
     if (!sop) {
       return res.status(404).json({ success: false, message: 'SOP not found' });
     }
 
+    if (!isAdmin(user) && user.role !== 'manager' && sop.createdBy?.toString() !== user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this SOP' });
+    }
+
+    await SOP.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'SOP deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

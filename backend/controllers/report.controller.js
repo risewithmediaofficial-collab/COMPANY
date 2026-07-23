@@ -12,6 +12,7 @@ import Attendance from '../models/attendance.model.js';
 import DomainRenewal from '../models/domainRenewal.model.js';
 import User from '../models/user.model.js';
 import CallHistory from '../models/callHistory.model.js';
+import SOP from '../models/sop.model.js';
 
 export const getAdminDashboard = async (req, res) => {
   try {
@@ -179,7 +180,9 @@ export const getEmployeeDashboard = async (req, res) => {
 
     const weekStart = new Date(Date.now() - 7 * 24 * 3600000);
 
-    const [myTasks, overdueTasks, todayAttendance, completedThisWeek, weeklyLoggedUpdates, personalTasksThisWeek, recentEodReports] = await Promise.all([
+    const userPos = req.user.position ? req.user.position.toLowerCase() : null;
+
+    const [myTasks, overdueTasks, todayAttendance, completedThisWeek, weeklyLoggedUpdates, personalTasksThisWeek, recentEodReports, sops] = await Promise.all([
       Task.find({ assignedTo: req.user._id, status: { $nin: ['done'] }, parent: null })
         .populate('project', 'name')
         .sort({ dueDate: 1 })
@@ -202,6 +205,18 @@ export const getEmployeeDashboard = async (req, res) => {
       })
         .sort({ date: -1 })
         .limit(7),
+      SOP.find({
+        status: 'active',
+        $or: [
+          { sopType: 'company' },
+          { sopType: 'department' },
+          { sopType: 'role_based', role: { $in: [req.user.role, userPos, 'employee', 'all'].filter(Boolean) } },
+          { createdBy: req.user._id },
+        ],
+      })
+        .populate('createdBy', 'name email')
+        .sort({ createdAt: -1 })
+        .limit(6),
     ]);
 
     res.json({
@@ -213,6 +228,7 @@ export const getEmployeeDashboard = async (req, res) => {
       weeklyLoggedUpdates,
       personalTasksThisWeek,
       recentEodReports,
+      sops,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
