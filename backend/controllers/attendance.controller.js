@@ -145,10 +145,14 @@ export const getAttendance = async (req, res) => {
 
 export const getTeamAttendance = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
 
-    const records = await Attendance.find({ date: today })
+    const records = await Attendance.find({
+      date: { $gte: startOfToday, $lte: endOfToday },
+    })
       .populate('user', 'name avatar department position role email')
       .populate('approvedBy', 'name role');
 

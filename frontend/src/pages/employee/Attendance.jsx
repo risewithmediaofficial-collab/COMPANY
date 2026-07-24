@@ -19,6 +19,9 @@ import {
   Filter,
   Download,
   FileSpreadsheet,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { EODReportModal } from '../../components/modals/EODReportModal';
 import {
@@ -178,6 +181,27 @@ const Attendance = () => {
   const isClockedIn = Boolean(todayRecord?.clockIn && !todayRecord?.clockOut);
   const eodSubmitted = Boolean(todayRecord?.eodReport?.submittedAt);
 
+  // Live today activity list for managers
+  const todayTeamActivity = useMemo(() => {
+    const employeeUsers = users.filter((u) => u.role !== 'client' && u.role !== 'referral');
+    
+    return employeeUsers.map((emp) => {
+      const att = teamTodayRecords.find(
+        (r) => (r.user?._id || r.user) === emp._id
+      );
+
+      return {
+        user: emp,
+        attendance: att || null,
+        status: att ? att.status : 'not_clocked_in',
+        clockIn: att?.clockIn ? formatTime(att.clockIn) : '--:--',
+        clockOut: att?.clockOut ? formatTime(att.clockOut) : '--:--',
+        totalHours: att?.totalHours || 0,
+        eodSubmitted: Boolean(att?.eodReport?.submittedAt),
+      };
+    });
+  }, [users, teamTodayRecords]);
+
   // Team live metrics for today
   const teamMetrics = useMemo(() => {
     const employeeUsers = users.filter((u) => u.role !== 'client' && u.role !== 'referral');
@@ -219,34 +243,139 @@ const Attendance = () => {
   const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' });
   const showEmployeeColumn = viewTab === 'team' || (isAdmin && selectedUser === 'all');
 
-  // CSV Report Generator for Monthly Attendance
+  // Enhanced CSV Export: Section 1 (Overall Employee Summary Matrix) + Section 2 (Daily Detailed Logs)
   const handleExportCSV = () => {
     if (!records || records.length === 0) {
       toast.error('No attendance records available for export in the selected filters');
       return;
     }
 
-    const headers = [
+    const csvRows = [];
+
+    // --- TITLE & METADATA ---
+    csvRows.push(`"EMPLOYEE ATTENDANCE & PERFORMANCE SUMMARY REPORT"`);
+    csvRows.push(`"Report Month: ${monthName} ${selectedYear}"`);
+    csvRows.push(`"Generated On: ${new Date().toLocaleString()}"`);
+    csvRows.push(`""`);
+
+    // --- SECTION 1: OVERALL EMPLOYEE SUMMARY MATRIX ---
+    csvRows.push(`"SECTION 1: OVERALL EMPLOYEE SUMMARY MATRIX"`);
+    const summaryHeaders = [
+      'Employee Name',
+      'Email',
+      'Department',
+      'Role',
+      'Days Present',
+      'Days Absent',
+      'Days On Leave',
+      'Days WFH',
+      'Holidays',
+      'Total Hours Worked',
+      'Avg Hours / Day Worked',
+      'EOD Reports Submitted',
+      'Attendance Rate (%)',
+    ];
+    csvRows.push(summaryHeaders.join(','));
+
+    // Compute summary statistics per employee
+    const employeeSummaryMap = {};
+
+    users
+      .filter((u) => u.role !== 'client' && u.role !== 'referral')
+      .forEach((u) => {
+        employeeSummaryMap[u._id] = {
+          name: u.name || u.email || 'Unknown Employee',
+          email: u.email || '',
+          department: u.department || 'General',
+          role: u.role || 'employee',
+          present: 0,
+          absent: 0,
+          leave: 0,
+          wfh: 0,
+          holiday: 0,
+          totalHours: 0,
+          eodCount: 0,
+        };
+      });
+
+    records.forEach((record) => {
+      const uId = record.user?._id || record.user;
+      if (uId) {
+        if (!employeeSummaryMap[uId]) {
+          employeeSummaryMap[uId] = {
+            name: record.user?.name || record.user?.email || 'Unknown Employee',
+            email: record.user?.email || '',
+            department: record.user?.department || 'General',
+            role: record.user?.role || 'employee',
+            present: 0,
+            absent: 0,
+            leave: 0,
+            wfh: 0,
+            holiday: 0,
+            totalHours: 0,
+            eodCount: 0,
+          };
+        }
+        const emp = employeeSummaryMap[uId];
+        if (record.status === 'present') emp.present += 1;
+        else if (record.status === 'absent') emp.absent += 1;
+        else if (record.status === 'leave') emp.leave += 1;
+        else if (record.status === 'work_from_home') emp.wfh += 1;
+        else if (record.status === 'holiday') emp.holiday += 1;
+
+        emp.totalHours += record.totalHours || 0;
+        if (record.eodReport?.submittedAt) emp.eodCount += 1;
+      }
+    });
+
+    Object.values(employeeSummaryMap).forEach((emp) => {
+      const workingDaysLogged = emp.present + emp.wfh + emp.leave + emp.absent;
+      const avgHours = (emp.present + emp.wfh) > 0 ? (emp.totalHours / (emp.present + emp.wfh)).toFixed(2) : '0.00';
+      const attRate = workingDaysLogged > 0 ? (((emp.present + emp.wfh) / workingDaysLogged) * 100).toFixed(1) : '0.0';
+
+      const row = [
+        `"${emp.name.replace(/"/g, '""')}"`,
+        `"${emp.email.replace(/"/g, '""')}"`,
+        `"${emp.department.replace(/"/g, '""')}"`,
+        `"${emp.role.replace(/"/g, '""')}"`,
+        emp.present,
+        emp.absent,
+        emp.leave,
+        emp.wfh,
+        emp.holiday,
+        emp.totalHours.toFixed(2),
+        avgHours,
+        emp.eodCount,
+        `"${attRate}%"`,
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    csvRows.push(`""`);
+    csvRows.push(`""`);
+
+    // --- SECTION 2: DETAILED DAILY ATTENDANCE LOGS ---
+    csvRows.push(`"SECTION 2: DETAILED DAILY ATTENDANCE LOGS"`);
+    const detailHeaders = [
       'Employee Name',
       'Email',
       'Department',
       'Position',
       'Role',
       'Date',
-      'Day',
-      'Clock In',
-      'Clock Out',
+      'Day of Week',
+      'Clock In Time (12-Hr)',
+      'Clock Out Time (12-Hr)',
       'Total Hours Logged',
       'Status',
       'EOD Report Status',
       'Notes / Reason',
       'Approved / Assigned By',
     ];
-
-    const csvRows = [headers.join(',')];
+    csvRows.push(detailHeaders.join(','));
 
     records.forEach((record) => {
-      const empName = `"${(record.user?.name || 'Unknown Employee').replace(/"/g, '""')}"`;
+      const empName = `"${(record.user?.name || record.user?.email || 'Unknown Employee').replace(/"/g, '""')}"`;
       const empEmail = `"${(record.user?.email || '').replace(/"/g, '""')}"`;
       const empDept = `"${(record.user?.department || '').replace(/"/g, '""')}"`;
       const empPos = `"${(record.user?.position || '').replace(/"/g, '""')}"`;
@@ -289,12 +418,12 @@ const Attendance = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Attendance_Report_${monthName}_${selectedYear}.csv`);
+    link.setAttribute('download', `Attendance_Report_Summary_${monthName}_${selectedYear}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    toast.success(`Exported ${records.length} attendance records for ${monthName} ${selectedYear}`);
+    toast.success(`Exported Monthly Overall Summary & Detailed Logs for ${monthName} ${selectedYear}`);
   };
 
   if (isLoading) {
@@ -313,7 +442,7 @@ const Attendance = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Daily Workspace & Attendance</h1>
           <p className="text-muted-foreground text-sm">
-            {isAdmin ? "Manage team attendance, monitor shift timings, and download monthly reports" : "Track attendance, hours, and daily reports"}
+            {isAdmin ? "Manage team attendance, monitor live clock-ins, and download monthly summary reports" : "Track attendance, hours, and daily reports"}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -321,7 +450,7 @@ const Attendance = () => {
             <button
               onClick={handleExportCSV}
               className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition-colors"
-              title="Download full monthly attendance report as CSV spreadsheet"
+              title="Download overall monthly summary & detailed logs as CSV spreadsheet"
             >
               <FileSpreadsheet size={18} className="mr-2" />
               Download Report (CSV)
@@ -413,6 +542,90 @@ const Attendance = () => {
               </div>
             </div>
           </div>
+
+          {/* Today's Live Clock-In List Panel for Manager/Admin */}
+          {viewTab === 'team' && (
+            <div className="bg-card p-6 rounded-3xl border border-border shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold flex items-center text-foreground">
+                  <Clock size={18} className="mr-2 text-emerald-500 animate-pulse" />
+                  Today's Live Employee Clock-In Activity ({todayTeamActivity.length} Team Members)
+                </h3>
+                <span className="text-xs text-muted-foreground font-semibold">
+                  {new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {todayTeamActivity.map((item) => (
+                  <div
+                    key={item.user._id}
+                    className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all ${
+                      item.attendance?.clockIn && !item.attendance?.clockOut
+                        ? 'bg-emerald-500/5 border-emerald-500/30'
+                        : item.attendance?.clockOut
+                        ? 'bg-amber-500/5 border-amber-500/30'
+                        : item.status === 'leave'
+                        ? 'bg-rose-500/5 border-rose-500/30'
+                        : item.status === 'work_from_home'
+                        ? 'bg-purple-500/5 border-purple-500/30'
+                        : 'bg-secondary/20 border-border'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                        {item.user.avatar ? (
+                          <img src={item.user.avatar} alt={item.user.name} className="h-full w-full object-cover" />
+                        ) : (
+                          (item.user.name || item.user.email || 'E').charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-bold text-foreground text-xs truncate">
+                          {item.user.name || item.user.email || 'Employee'}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground truncate">
+                          {item.user.department || item.user.position || item.user.role}
+                        </div>
+                        <div className="text-[10px] font-semibold text-emerald-600 mt-0.5 flex items-center gap-1">
+                          <span>In: {item.clockIn}</span>
+                          <span>•</span>
+                          <span className="text-amber-600">Out: {item.clockOut}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end shrink-0 ml-2">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                          item.attendance?.clockIn && !item.attendance?.clockOut
+                            ? 'bg-emerald-500/20 text-emerald-600'
+                            : item.attendance?.clockOut
+                            ? 'bg-amber-500/20 text-amber-600'
+                            : item.status === 'leave'
+                            ? 'bg-rose-500/20 text-rose-600'
+                            : item.status === 'work_from_home'
+                            ? 'bg-purple-500/20 text-purple-600'
+                            : 'bg-secondary text-muted-foreground'
+                        }`}
+                      >
+                        {item.attendance?.clockIn && !item.attendance?.clockOut
+                          ? 'Active Now'
+                          : item.attendance?.clockOut
+                          ? 'Completed'
+                          : item.status?.replace(/_/g, ' ')}
+                      </span>
+                      {item.totalHours > 0 && (
+                        <span className="text-[10px] font-bold text-foreground mt-1">
+                          {item.totalHours.toFixed(1)} hrs
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Filter Bar for Manager/Admin */}
           <div className="bg-card p-5 rounded-3xl border border-border shadow-sm flex flex-wrap items-center justify-between gap-4">
@@ -603,7 +816,7 @@ const Attendance = () => {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl transition-colors"
                 >
                   <Download size={14} />
-                  Export CSV
+                  Export CSV Report
                 </button>
               )}
 
