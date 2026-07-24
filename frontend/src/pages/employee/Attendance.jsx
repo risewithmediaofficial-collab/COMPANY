@@ -8,20 +8,45 @@ import {
   History,
   Info,
   MapPin,
+  Search,
   Timer,
   TrendingUp,
   UserCheck,
+  Users,
+  User,
+  Clock,
+  Briefcase,
+  Filter,
 } from 'lucide-react';
 import { EODReportModal } from '../../components/modals/EODReportModal';
-import { useAttendance, useClockIn, useClockOut, useAssignHoliday, useSubmitLeave, useSubmitWFH } from '../../hooks/useAttendance';
+import {
+  useAttendance,
+  useTeamTodayAttendance,
+  useClockIn,
+  useClockOut,
+  useAssignHoliday,
+  useSubmitLeave,
+  useSubmitWFH,
+} from '../../hooks/useAttendance';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
 
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
-  const isAdmin = ['superAdmin', 'manager'].includes(user?.role);
+  const isAdmin = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(user?.role);
   const isSuperAdmin = user?.role === 'superAdmin';
+
+  const currentDate = new Date();
   const [time, setTime] = useState(new Date());
+
+  // Manager View Controls vs Personal View
+  const [viewTab, setViewTab] = useState(isAdmin ? 'team' : 'personal'); // 'team' | 'personal'
+  const [selectedUser, setSelectedUser] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [showEOD, setShowEOD] = useState(false);
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -31,8 +56,29 @@ const Attendance = () => {
   const [wfhForm, setWfhForm] = useState({ date: '', notes: '' });
   const [selectedRecord, setSelectedRecord] = useState(null);
 
-  const { data, isLoading } = useAttendance();
+  // Build query filters for useAttendance
+  const attendanceFilters = useMemo(() => {
+    const filters = {
+      month: selectedMonth,
+      year: selectedYear,
+    };
+    if (selectedStatus !== 'all') {
+      filters.status = selectedStatus;
+    }
+    if (viewTab === 'personal') {
+      filters.userId = user?._id;
+    } else if (selectedUser !== 'all') {
+      filters.userId = selectedUser;
+    } else {
+      filters.userId = 'all';
+    }
+    return filters;
+  }, [viewTab, selectedUser, selectedStatus, selectedMonth, selectedYear, user?._id]);
+
+  const { data, isLoading } = useAttendance(attendanceFilters);
+  const { data: teamTodayRecords = [] } = useTeamTodayAttendance({ enabled: isAdmin });
   const { data: users = [] } = useUsers({ enabled: isAdmin });
+
   const clockIn = useClockIn();
   const clockOut = useClockOut();
   const assignHolidayMutation = useAssignHoliday();
@@ -81,12 +127,12 @@ const Attendance = () => {
   };
 
   const statusColors = {
-    present: 'bg-emerald-500/10 text-emerald-600',
-    absent: 'bg-destructive/10 text-destructive',
-    half_day: 'bg-amber-500/10 text-amber-600',
-    leave: 'bg-indigo-500/10 text-indigo-600',
-    holiday: 'bg-blue-500/10 text-blue-600',
-    work_from_home: 'bg-purple-500/10 text-purple-600',
+    present: 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
+    absent: 'bg-destructive/10 text-destructive border border-destructive/20',
+    half_day: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+    leave: 'bg-rose-500/10 text-rose-600 border border-rose-500/20',
+    holiday: 'bg-blue-500/10 text-blue-600 border border-blue-500/20',
+    work_from_home: 'bg-purple-500/10 text-purple-600 border border-purple-500/20',
   };
 
   useEffect(() => {
@@ -94,19 +140,78 @@ const Attendance = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const records = data?.records || [];
-  const summary = data?.summary || { present: 0, totalHours: '0.00', leave: 0, absent: 0 };
+  const rawRecords = data?.records || [];
+  const records = useMemo(() => {
+    if (!searchQuery.trim()) return rawRecords;
+    const query = searchQuery.toLowerCase();
+    return rawRecords.filter((r) => {
+      const nameMatch = r.user?.name?.toLowerCase().includes(query);
+      const emailMatch = r.user?.email?.toLowerCase().includes(query);
+      const deptMatch = r.user?.department?.toLowerCase().includes(query);
+      const notesMatch = r.notes?.toLowerCase().includes(query);
+      return nameMatch || emailMatch || deptMatch || notesMatch;
+    });
+  }, [rawRecords, searchQuery]);
+
+  const summary = data?.summary || { present: 0, totalHours: '0.00', leave: 0, absent: 0, wfh: 0, holiday: 0 };
+
   const todayRecord = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return records.find((record) => record.date?.split('T')[0] === today);
-  }, [records]);
+    const todayStr = new Date().toISOString().split('T')[0];
+    return rawRecords.find(
+      (record) =>
+        record.date?.split('T')[0] === todayStr &&
+        (record.user?._id === user?._id || record.user === user?._id)
+    );
+  }, [rawRecords, user?._id]);
+
   const isClockedIn = Boolean(todayRecord?.clockIn && !todayRecord?.clockOut);
   const eodSubmitted = Boolean(todayRecord?.eodReport?.submittedAt);
 
+  // Team live metrics for today
+  const teamMetrics = useMemo(() => {
+    const employeeUsers = users.filter((u) => u.role !== 'client' && u.role !== 'referral');
+    const totalEmployees = employeeUsers.length;
+    const clockedIn = teamTodayRecords.filter((r) => r.clockIn && !r.clockOut).length;
+    const completed = teamTodayRecords.filter((r) => r.clockOut).length;
+    const onLeave = teamTodayRecords.filter((r) => r.status === 'leave').length;
+    const wfh = teamTodayRecords.filter((r) => r.status === 'work_from_home').length;
+    const holiday = teamTodayRecords.filter((r) => r.status === 'holiday').length;
+
+    return {
+      totalEmployees,
+      clockedIn,
+      completed,
+      onLeave,
+      wfh,
+      holiday,
+    };
+  }, [users, teamTodayRecords]);
+
+  const handlePrevMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedMonth(12);
+      setSelectedYear((prev) => prev - 1);
+    } else {
+      setSelectedMonth((prev) => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (selectedMonth === 12) {
+      setSelectedMonth(1);
+      setSelectedYear((prev) => prev + 1);
+    } else {
+      setSelectedMonth((prev) => prev + 1);
+    }
+  };
+
+  const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' });
+  const showEmployeeColumn = viewTab === 'team' || (isAdmin && selectedUser === 'all');
+
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto animate-pulse space-y-6">
-        <div className="h-64 bg-card rounded-3xl" />
+      <div className="max-w-6xl mx-auto animate-pulse space-y-6">
+        <div className="h-48 bg-card rounded-3xl" />
         <div className="h-96 bg-card rounded-3xl" />
       </div>
     );
@@ -114,12 +219,15 @@ const Attendance = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      {/* Header & Quick Action Buttons */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Daily Workspace</h1>
-          <p className="text-muted-foreground text-sm">Track attendance, hours, and daily reports</p>
+          <h1 className="text-2xl font-bold tracking-tight">Daily Workspace & Attendance</h1>
+          <p className="text-muted-foreground text-sm">
+            {isAdmin ? "Manage team attendance, monitor shifts, and review daily EOD reports" : "Track attendance, hours, and daily reports"}
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           {isAdmin && (
             <button
               onClick={() => setShowHolidayModal(true)}
@@ -160,7 +268,132 @@ const Attendance = () => {
         </div>
       </div>
 
+      {/* Admin / Manager Navigation Tabs & Overview Cards */}
+      {isAdmin && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+            <div className="flex items-center space-x-2 bg-secondary/30 p-1.5 rounded-2xl border border-border">
+              <button
+                onClick={() => { setViewTab('team'); setSelectedUser('all'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  viewTab === 'team'
+                    ? 'bg-card text-foreground shadow-sm border border-border'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Users size={16} className={viewTab === 'team' ? 'text-primary' : ''} />
+                Team Attendance Records
+              </button>
+              <button
+                onClick={() => { setViewTab('personal'); setSelectedUser(user?._id); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  viewTab === 'personal'
+                    ? 'bg-card text-foreground shadow-sm border border-border'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <User size={16} className={viewTab === 'personal' ? 'text-primary' : ''} />
+                My Attendance
+              </button>
+            </div>
+
+            {/* Quick Status Pill Counters for Today */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs font-bold">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Clocked In Today: {teamMetrics.clockedIn}
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 text-xs font-bold">
+                Completed Shift: {teamMetrics.completed}
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-600 border border-rose-500/20 text-xs font-bold">
+                On Leave: {teamMetrics.onLeave}
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-600 border border-purple-500/20 text-xs font-bold">
+                WFH: {teamMetrics.wfh}
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Bar for Manager/Admin */}
+          <div className="bg-card p-5 rounded-3xl border border-border shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+              {/* Employee Selector */}
+              {viewTab === 'team' && (
+                <div className="flex items-center gap-2">
+                  <User size={16} className="text-muted-foreground" />
+                  <select
+                    value={selectedUser}
+                    onChange={(e) => setSelectedUser(e.target.value)}
+                    className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20"
+                  >
+                    <option value="all">All Employees ({users.length})</option>
+                    {users
+                      .filter((u) => ['employee', 'manager', 'superAdmin'].includes(u.role))
+                      .map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} ({u.role})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-2">
+                <Filter size={16} className="text-muted-foreground" />
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="present">Present</option>
+                  <option value="leave">On Leave</option>
+                  <option value="work_from_home">Work From Home</option>
+                  <option value="holiday">Holiday</option>
+                  <option value="absent">Absent</option>
+                </select>
+              </div>
+
+              {/* Search Box */}
+              <div className="relative flex-1 min-w-[180px] max-w-xs">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search employee or notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs font-semibold rounded-xl border border-border bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+
+            {/* Month & Year Navigation */}
+            <div className="flex items-center space-x-3 bg-secondary/20 px-3 py-1.5 rounded-2xl border border-border">
+              <button
+                onClick={handlePrevMonth}
+                className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-xs font-extrabold uppercase tracking-wider min-w-[110px] text-center">
+                {monthName} {selectedYear}
+              </span>
+              <button
+                onClick={handleNextMonth}
+                className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Clock In/Out & Monthly Summary */}
         {!isSuperAdmin && (
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-card p-8 rounded-3xl border border-border shadow-xl relative overflow-hidden text-center">
@@ -197,12 +430,20 @@ const Attendance = () => {
                 <div className="flex items-center justify-center space-x-6 pt-6 text-sm font-bold text-muted-foreground">
                   <div className="flex flex-col items-center">
                     <span className="text-xs uppercase tracking-tighter opacity-60">In</span>
-                    <span className="text-foreground">{todayRecord?.clockIn ? new Date(todayRecord.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
+                    <span className="text-foreground">
+                      {todayRecord?.clockIn
+                        ? new Date(todayRecord.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '--:--'}
+                    </span>
                   </div>
                   <div className="w-px h-8 bg-border" />
                   <div className="flex flex-col items-center">
                     <span className="text-xs uppercase tracking-tighter opacity-60">Out</span>
-                    <span className="text-foreground">{todayRecord?.clockOut ? new Date(todayRecord.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
+                    <span className="text-foreground">
+                      {todayRecord?.clockOut
+                        ? new Date(todayRecord.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '--:--'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -211,48 +452,79 @@ const Attendance = () => {
             <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
               <h3 className="font-bold flex items-center mb-6">
                 <TrendingUp size={18} className="mr-2 text-emerald-500" />
-                This Month Summary
+                {viewTab === 'team' ? 'Filtered Summary' : 'This Month Summary'}
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Days Present</span>
-                  <span className="font-bold text-emerald-600">{summary.present} Days</span>
+                  <span className="text-muted-foreground">Present Days / Logs</span>
+                  <span className="font-bold text-emerald-600">{summary.present} Records</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Total Hours</span>
                   <span className="font-bold">{summary.totalHours} hrs</span>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">EOD Submitted</span>
-                  <span className={`font-bold ${eodSubmitted ? 'text-emerald-600' : 'text-amber-600'}`}>{eodSubmitted ? 'Yes' : 'Pending'}</span>
-                </div>
+                {summary.leave > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Leaves</span>
+                    <span className="font-bold text-rose-600">{summary.leave} Days</span>
+                  </div>
+                )}
+                {summary.wfh > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Work From Home</span>
+                    <span className="font-bold text-purple-600">{summary.wfh} Days</span>
+                  </div>
+                )}
+                {viewTab === 'personal' && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">EOD Submitted</span>
+                    <span className={`font-bold ${eodSubmitted ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {eodSubmitted ? 'Yes' : 'Pending'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
+        {/* Right Column: Attendance Records Table */}
         <div className={`${isSuperAdmin ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-6`}>
           <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/10">
+            <div className="p-6 border-b border-border flex flex-wrap items-center justify-between gap-4 bg-secondary/10">
               <h3 className="font-bold flex items-center">
                 <History size={18} className="mr-2 text-primary" />
-                Shift History
+                {viewTab === 'team' ? 'Employee Shift & Attendance Records' : 'Shift History'}
+                <span className="ml-2 text-xs font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full">
+                  {records.length} records
+                </span>
               </h3>
-              <div className="flex items-center space-x-2">
-                <button className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors"><ChevronLeft size={16} /></button>
-                <span className="text-xs font-bold uppercase tracking-widest">{new Date().toLocaleString('default', { month: 'long' })}</span>
-                <button className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors"><ChevronRight size={16} /></button>
-              </div>
+              {!isAdmin && (
+                <div className="flex items-center space-x-2">
+                  <button onClick={handlePrevMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="text-xs font-bold uppercase tracking-widest">
+                    {monthName} {selectedYear}
+                  </span>
+                  <button onClick={handleNextMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="w-full overflow-x-auto overflow-y-auto max-h-[400px] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
+            <div className="w-full overflow-x-auto overflow-y-auto max-h-[520px] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
               <table className="w-full text-left text-sm">
                 <thead className="text-muted-foreground font-medium">
                   <tr>
+                    {showEmployeeColumn && (
+                      <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Employee</th>
+                    )}
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Date</th>
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">In / Out</th>
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Total Time</th>
-                    <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">EOD</th>
+                    <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">EOD Report</th>
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Status</th>
                   </tr>
                 </thead>
@@ -263,51 +535,103 @@ const Attendance = () => {
                       onClick={() => setSelectedRecord(record)}
                       className="hover:bg-secondary/30 transition-colors cursor-pointer"
                     >
+                      {/* Employee Details Column for Managers / Admins */}
+                      {showEmployeeColumn && (
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                              {record.user?.avatar ? (
+                                <img src={record.user.avatar} alt={record.user.name} className="h-full w-full object-cover" />
+                              ) : (
+                                record.user?.name?.charAt(0) || 'E'
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-foreground truncate max-w-[140px]">
+                                {record.user?.name || 'Unknown User'}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground truncate max-w-[140px]">
+                                {record.user?.department || record.user?.position || record.user?.role || ''}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      )}
+
                       <td className="px-6 py-4">
-                        <div className="font-bold">{new Date(record.date).toLocaleDateString([], { weekday: 'short', day: 'numeric' })}</div>
-                        <div className="text-[10px] text-muted-foreground uppercase">{new Date(record.date).toLocaleDateString([], { month: 'long' })}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 text-xs">
-                          <span className="text-emerald-600 font-bold">{record.clockIn ? new Date(record.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
-                          <span className="text-muted-foreground opacity-40">to</span>
-                          <span className="text-amber-600 font-bold">{record.clockOut ? new Date(record.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
+                        <div className="font-bold">
+                          {new Date(record.date).toLocaleDateString([], { weekday: 'short', day: 'numeric' })}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground uppercase">
+                          {new Date(record.date).toLocaleDateString([], { month: 'long', year: 'numeric' })}
                         </div>
                       </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2 text-xs">
+                          <span className="text-emerald-600 font-bold">
+                            {record.clockIn
+                              ? new Date(record.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              : '--:--'}
+                          </span>
+                          <span className="text-muted-foreground opacity-40">to</span>
+                          <span className="text-amber-600 font-bold">
+                            {record.clockOut
+                              ? new Date(record.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                              : '--:--'}
+                          </span>
+                        </div>
+                      </td>
+
                       <td className="px-6 py-4 font-bold">{record.totalHours?.toFixed(1) || '0.0'} hrs</td>
+
                       <td className="px-6 py-4">
                         {record.status === 'holiday' ? (
                           <span className="text-muted-foreground text-xs">—</span>
                         ) : (
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${record.eodReport?.submittedAt ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'}`}>
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                              record.eodReport?.submittedAt
+                                ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                            }`}
+                          >
                             {record.eodReport?.submittedAt ? 'Submitted' : 'Pending'}
                           </span>
                         )}
                       </td>
+
                       <td className="px-6 py-4">
                         <div className="flex flex-col items-start gap-1">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 ${statusColors[record.status] || 'bg-secondary/40 text-muted-foreground'}`}>
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 ${
+                              statusColors[record.status] || 'bg-secondary/40 text-muted-foreground'
+                            }`}
+                          >
                             {record.status?.replace(/_/g, ' ')}
                             {(record.notes || record.approvedBy) && <Info size={11} className="ml-0.5 opacity-80" />}
                           </span>
                           {record.notes && (
-                            <span className="text-xs font-medium text-foreground/90 truncate max-w-[200px]" title={record.notes}>
+                            <span className="text-xs font-medium text-foreground/90 truncate max-w-[180px]" title={record.notes}>
                               {record.notes}
                             </span>
                           )}
                           {record.approvedBy && (
                             <span className="text-[10px] font-semibold text-primary flex items-center gap-1">
                               <UserCheck size={10} />
-                              By: {record.approvedBy.name} ({record.approvedBy.role === 'superAdmin' ? 'Super Admin' : 'Manager'})
+                              By: {record.approvedBy.name}
                             </span>
                           )}
                         </div>
                       </td>
                     </tr>
                   ))}
+
                   {records.length === 0 && (
                     <tr>
-                      <td colSpan="5" className="px-6 py-12 text-center text-muted-foreground italic">No attendance records found.</td>
+                      <td colSpan={showEmployeeColumn ? 6 : 5} className="px-6 py-12 text-center text-muted-foreground italic">
+                        No attendance records found matching the current filters.
+                      </td>
                     </tr>
                   )}
                 </tbody>
@@ -319,8 +643,13 @@ const Attendance = () => {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-3xl text-white shadow-xl flex items-center justify-between mt-6">
               <div>
                 <h3 className="text-xl font-bold">Daily Closeout</h3>
-                <p className="text-white/75 text-sm mt-1 max-w-[420px]">Submit your EOD report after logging work so managers can review progress and blockers.</p>
-                <button onClick={() => setShowEOD(true)} className="mt-4 px-6 py-2.5 bg-white text-primary font-bold rounded-xl text-sm shadow-lg hover:bg-white/90 transition-all">
+                <p className="text-white/75 text-sm mt-1 max-w-[420px]">
+                  Submit your EOD report after logging work so managers can review progress and blockers.
+                </p>
+                <button
+                  onClick={() => setShowEOD(true)}
+                  className="mt-4 px-6 py-2.5 bg-white text-primary font-bold rounded-xl text-sm shadow-lg hover:bg-white/90 transition-all"
+                >
                   {eodSubmitted ? 'Review Report' : 'Submit Report'}
                 </button>
               </div>
@@ -330,8 +659,10 @@ const Attendance = () => {
         </div>
       </div>
 
+      {/* EOD Report Modal */}
       <EODReportModal open={showEOD} onOpenChange={setShowEOD} report={todayRecord?.eodReport} />
 
+      {/* Assign Holiday Modal */}
       {showHolidayModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
           <div className="w-full max-w-md rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -355,7 +686,7 @@ const Attendance = () => {
                   type="date"
                   required
                   value={holidayForm.date}
-                  onChange={(e) => setHolidayForm(prev => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) => setHolidayForm((prev) => ({ ...prev, date: e.target.value }))}
                   className="app-input"
                 />
               </div>
@@ -366,7 +697,7 @@ const Attendance = () => {
                   required
                   placeholder="e.g. Christmas, Independence Day"
                   value={holidayForm.notes}
-                  onChange={(e) => setHolidayForm(prev => ({ ...prev, notes: e.target.value }))}
+                  onChange={(e) => setHolidayForm((prev) => ({ ...prev, notes: e.target.value }))}
                   className="app-input"
                 />
               </div>
@@ -391,6 +722,7 @@ const Attendance = () => {
         </div>
       )}
 
+      {/* Assign Leave Modal */}
       {showLeaveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
           <div className="w-full max-w-md rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -413,13 +745,17 @@ const Attendance = () => {
                 <select
                   required
                   value={leaveForm.userId}
-                  onChange={(e) => setLeaveForm(prev => ({ ...prev, userId: e.target.value }))}
+                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, userId: e.target.value }))}
                   className="app-select"
                 >
                   <option value="">Choose an employee...</option>
-                  {users.filter(u => ['employee', 'manager'].includes(u.role)).map(u => (
-                    <option key={u._id} value={u._id}>{u.name} ({u.role})</option>
-                  ))}
+                  {users
+                    .filter((u) => ['employee', 'manager', 'superAdmin'].includes(u.role))
+                    .map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name} ({u.role})
+                      </option>
+                    ))}
                 </select>
               </div>
               <div className="space-y-1.5">
@@ -428,7 +764,7 @@ const Attendance = () => {
                   type="date"
                   required
                   value={leaveForm.date}
-                  onChange={(e) => setLeaveForm(prev => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, date: e.target.value }))}
                   className="app-input"
                 />
               </div>
@@ -439,7 +775,7 @@ const Attendance = () => {
                   required
                   placeholder="e.g. Doctor appointment, personal work"
                   value={leaveForm.notes}
-                  onChange={(e) => setLeaveForm(prev => ({ ...prev, notes: e.target.value }))}
+                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, notes: e.target.value }))}
                   className="app-input"
                 />
               </div>
@@ -464,6 +800,7 @@ const Attendance = () => {
         </div>
       )}
 
+      {/* Inform WFH Modal */}
       {showWFHModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
           <div className="w-full max-w-md rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -487,7 +824,7 @@ const Attendance = () => {
                   type="date"
                   required
                   value={wfhForm.date}
-                  onChange={(e) => setWfhForm(prev => ({ ...prev, date: e.target.value }))}
+                  onChange={(e) => setWfhForm((prev) => ({ ...prev, date: e.target.value }))}
                   className="app-input"
                 />
                 <span className="text-[10px] text-muted-foreground">Must be submitted at least one day in advance.</span>
@@ -499,7 +836,7 @@ const Attendance = () => {
                   required
                   placeholder="e.g. Internet issue, personal commitment"
                   value={wfhForm.notes}
-                  onChange={(e) => setWfhForm(prev => ({ ...prev, notes: e.target.value }))}
+                  onChange={(e) => setWfhForm((prev) => ({ ...prev, notes: e.target.value }))}
                   className="app-input"
                 />
               </div>
@@ -532,7 +869,7 @@ const Attendance = () => {
               <div>
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                   <Calendar className="text-primary h-5 w-5" />
-                  Attendance Details
+                  Attendance Record Details
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {new Date(selectedRecord.date).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -548,6 +885,25 @@ const Attendance = () => {
             </div>
 
             <div className="space-y-4">
+              {/* Employee Info if present */}
+              {selectedRecord.user && typeof selectedRecord.user === 'object' && (
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-secondary/30 border border-border">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-sm uppercase overflow-hidden border border-primary/20">
+                    {selectedRecord.user.avatar ? (
+                      <img src={selectedRecord.user.avatar} alt={selectedRecord.user.name} className="h-full w-full object-cover" />
+                    ) : (
+                      selectedRecord.user.name?.charAt(0) || 'E'
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-bold text-foreground text-sm">{selectedRecord.user.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {selectedRecord.user.email} • {selectedRecord.user.department || selectedRecord.user.position || selectedRecord.user.role}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/30 border border-border">
                 <span className="text-xs font-medium text-muted-foreground">Status</span>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${statusColors[selectedRecord.status] || 'bg-secondary text-muted-foreground'}`}>

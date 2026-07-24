@@ -12,6 +12,17 @@ export const useAttendance = (filters = {}) => {
   });
 };
 
+export const useTeamTodayAttendance = (options = {}) => {
+  return useQuery({
+    queryKey: ['team-attendance-today'],
+    queryFn: async () => {
+      const response = await api.get('/attendance/team/today');
+      return response.data.records || [];
+    },
+    ...options,
+  });
+};
+
 export const useClockIn = () => {
   const queryClient = useQueryClient();
   return useMutation({

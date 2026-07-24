@@ -97,23 +97,34 @@ export const submitEOD = async (req, res) => {
 
 export const getAttendance = async (req, res) => {
   try {
-    const { userId, month, year, page = 1, limit = 31 } = req.query;
+    const { userId, status, month, year, page = 1, limit = 100 } = req.query;
     const filter = {};
 
-    const targetUser = req.user.role === 'employee' ? req.user._id : (userId || req.user._id);
-    filter.user = targetUser;
+    const isPrivileged = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
+
+    if (!isPrivileged || req.user.role === 'employee') {
+      filter.user = req.user._id;
+    } else {
+      if (userId && userId !== 'all') {
+        filter.user = userId;
+      }
+    }
+
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
 
     if (month && year) {
-      const start = new Date(year, month - 1, 1);
-      const end = new Date(year, month, 0, 23, 59, 59);
+      const start = new Date(Number(year), Number(month) - 1, 1);
+      const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
       filter.date = { $gte: start, $lte: end };
     }
 
     const records = await Attendance.find(filter)
-      .populate('user', 'name avatar department')
+      .populate('user', 'name avatar department position role email')
       .populate('approvedBy', 'name role')
       .sort({ date: -1 })
-      .skip((page - 1) * limit)
+      .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 
     // Compute summary
@@ -121,6 +132,8 @@ export const getAttendance = async (req, res) => {
       present: records.filter(r => r.status === 'present').length,
       absent: records.filter(r => r.status === 'absent').length,
       leave: records.filter(r => r.status === 'leave').length,
+      wfh: records.filter(r => r.status === 'work_from_home').length,
+      holiday: records.filter(r => r.status === 'holiday').length,
       totalHours: records.reduce((sum, r) => sum + (r.totalHours || 0), 0).toFixed(2),
     };
 
