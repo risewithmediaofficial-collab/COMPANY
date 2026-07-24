@@ -97,7 +97,7 @@ export const submitEOD = async (req, res) => {
 
 export const getAttendance = async (req, res) => {
   try {
-    const { userId, status, month, year, page = 1, limit = 100 } = req.query;
+    const { userId, status, month, year, page = 1, limit = 1000 } = req.query;
     const filter = {};
 
     const isPrivileged = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
@@ -149,7 +149,7 @@ export const getTeamAttendance = async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     const records = await Attendance.find({ date: today })
-      .populate('user', 'name avatar department position')
+      .populate('user', 'name avatar department position role email')
       .populate('approvedBy', 'name role');
 
     res.json({ success: true, records });

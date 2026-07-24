@@ -17,6 +17,8 @@ import {
   Clock,
   Briefcase,
   Filter,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { EODReportModal } from '../../components/modals/EODReportModal';
 import {
@@ -30,6 +32,14 @@ import {
 } from '../../hooks/useAttendance';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
+
+// Helper function to format 12-Hour AM/PM Time
+const formatTime = (isoString) => {
+  if (!isoString) return '--:--';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '--:--';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+};
 
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
@@ -61,6 +71,7 @@ const Attendance = () => {
     const filters = {
       month: selectedMonth,
       year: selectedYear,
+      limit: 1000,
     };
     if (selectedStatus !== 'all') {
       filters.status = selectedStatus;
@@ -208,6 +219,84 @@ const Attendance = () => {
   const monthName = new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long' });
   const showEmployeeColumn = viewTab === 'team' || (isAdmin && selectedUser === 'all');
 
+  // CSV Report Generator for Monthly Attendance
+  const handleExportCSV = () => {
+    if (!records || records.length === 0) {
+      toast.error('No attendance records available for export in the selected filters');
+      return;
+    }
+
+    const headers = [
+      'Employee Name',
+      'Email',
+      'Department',
+      'Position',
+      'Role',
+      'Date',
+      'Day',
+      'Clock In',
+      'Clock Out',
+      'Total Hours Logged',
+      'Status',
+      'EOD Report Status',
+      'Notes / Reason',
+      'Approved / Assigned By',
+    ];
+
+    const csvRows = [headers.join(',')];
+
+    records.forEach((record) => {
+      const empName = `"${(record.user?.name || 'Unknown Employee').replace(/"/g, '""')}"`;
+      const empEmail = `"${(record.user?.email || '').replace(/"/g, '""')}"`;
+      const empDept = `"${(record.user?.department || '').replace(/"/g, '""')}"`;
+      const empPos = `"${(record.user?.position || '').replace(/"/g, '""')}"`;
+      const empRole = `"${(record.user?.role || '').replace(/"/g, '""')}"`;
+
+      const dateObj = new Date(record.date);
+      const dateStr = record.date ? dateObj.toISOString().split('T')[0] : '';
+      const dayStr = dateObj.toLocaleDateString([], { weekday: 'short' });
+
+      const clockInStr = record.clockIn ? `"${formatTime(record.clockIn)}"` : '"--:--"';
+      const clockOutStr = record.clockOut ? `"${formatTime(record.clockOut)}"` : '"--:--"';
+      const hoursStr = record.totalHours ? record.totalHours.toFixed(2) : '0.00';
+      const statusStr = `"${(record.status || '').replace(/_/g, ' ').toUpperCase()}"`;
+      const eodStr = record.eodReport?.submittedAt ? '"Submitted"' : '"Pending"';
+      const notesStr = `"${(record.notes || '').replace(/"/g, '""')}"`;
+      const approverStr = `"${(record.approvedBy?.name || '').replace(/"/g, '""')}"`;
+
+      const row = [
+        empName,
+        empEmail,
+        empDept,
+        empPos,
+        empRole,
+        dateStr,
+        dayStr,
+        clockInStr,
+        clockOutStr,
+        hoursStr,
+        statusStr,
+        eodStr,
+        notesStr,
+        approverStr,
+      ];
+
+      csvRows.push(row.join(','));
+    });
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Attendance_Report_${monthName}_${selectedYear}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success(`Exported ${records.length} attendance records for ${monthName} ${selectedYear}`);
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto animate-pulse space-y-6">
@@ -224,10 +313,20 @@ const Attendance = () => {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Daily Workspace & Attendance</h1>
           <p className="text-muted-foreground text-sm">
-            {isAdmin ? "Manage team attendance, monitor shifts, and review daily EOD reports" : "Track attendance, hours, and daily reports"}
+            {isAdmin ? "Manage team attendance, monitor shift timings, and download monthly reports" : "Track attendance, hours, and daily reports"}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          {isAdmin && (
+            <button
+              onClick={handleExportCSV}
+              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:bg-emerald-700 transition-colors"
+              title="Download full monthly attendance report as CSV spreadsheet"
+            >
+              <FileSpreadsheet size={18} className="mr-2" />
+              Download Report (CSV)
+            </button>
+          )}
           {isAdmin && (
             <button
               onClick={() => setShowHolidayModal(true)}
@@ -325,14 +424,14 @@ const Attendance = () => {
                   <select
                     value={selectedUser}
                     onChange={(e) => setSelectedUser(e.target.value)}
-                    className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20"
+                    className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20 min-w-[180px]"
                   >
                     <option value="all">All Employees ({users.length})</option>
                     {users
-                      .filter((u) => ['employee', 'manager', 'superAdmin'].includes(u.role))
+                      .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
                       .map((u) => (
                         <option key={u._id} value={u._id}>
-                          {u.name} ({u.role})
+                          {u.name || u.email} {u.department ? `(${u.department})` : `(${u.role})`}
                         </option>
                       ))}
                   </select>
@@ -361,7 +460,7 @@ const Attendance = () => {
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search employee or notes..."
+                  placeholder="Search employee name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-xs font-semibold rounded-xl border border-border bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -369,11 +468,12 @@ const Attendance = () => {
               </div>
             </div>
 
-            {/* Month & Year Navigation */}
+            {/* Month & Year Navigation + CSV Download */}
             <div className="flex items-center space-x-3 bg-secondary/20 px-3 py-1.5 rounded-2xl border border-border">
               <button
                 onClick={handlePrevMonth}
                 className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
+                title="Previous Month"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -383,6 +483,7 @@ const Attendance = () => {
               <button
                 onClick={handleNextMonth}
                 className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
+                title="Next Month"
               >
                 <ChevronRight size={16} />
               </button>
@@ -431,18 +532,14 @@ const Attendance = () => {
                   <div className="flex flex-col items-center">
                     <span className="text-xs uppercase tracking-tighter opacity-60">In</span>
                     <span className="text-foreground">
-                      {todayRecord?.clockIn
-                        ? new Date(todayRecord.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : '--:--'}
+                      {formatTime(todayRecord?.clockIn)}
                     </span>
                   </div>
                   <div className="w-px h-8 bg-border" />
                   <div className="flex flex-col items-center">
                     <span className="text-xs uppercase tracking-tighter opacity-60">Out</span>
                     <span className="text-foreground">
-                      {todayRecord?.clockOut
-                        ? new Date(todayRecord.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : '--:--'}
+                      {formatTime(todayRecord?.clockOut)}
                     </span>
                   </div>
                 </div>
@@ -499,6 +596,17 @@ const Attendance = () => {
                   {records.length} records
                 </span>
               </h3>
+
+              {isAdmin && (
+                <button
+                  onClick={handleExportCSV}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl transition-colors"
+                >
+                  <Download size={14} />
+                  Export CSV
+                </button>
+              )}
+
               {!isAdmin && (
                 <div className="flex items-center space-x-2">
                   <button onClick={handlePrevMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
@@ -522,7 +630,7 @@ const Attendance = () => {
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Employee</th>
                     )}
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Date</th>
-                    <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">In / Out</th>
+                    <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">In / Out Timings</th>
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Total Time</th>
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">EOD Report</th>
                     <th className="sticky top-0 z-10 border-b border-border bg-card px-6 py-4">Status</th>
@@ -543,14 +651,19 @@ const Attendance = () => {
                               {record.user?.avatar ? (
                                 <img src={record.user.avatar} alt={record.user.name} className="h-full w-full object-cover" />
                               ) : (
-                                record.user?.name?.charAt(0) || 'E'
+                                (record.user?.name || record.user?.email || 'E').charAt(0).toUpperCase()
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-foreground truncate max-w-[140px]">
-                                {record.user?.name || 'Unknown User'}
+                              <div className="font-bold text-foreground truncate max-w-[150px]">
+                                {record.user?.name || record.user?.email || 'Unknown Employee'}
                               </div>
-                              <div className="text-[11px] text-muted-foreground truncate max-w-[140px]">
+                              {record.user?.email && (
+                                <div className="text-[11px] text-muted-foreground truncate max-w-[150px]">
+                                  {record.user.email}
+                                </div>
+                              )}
+                              <div className="text-[10px] text-primary/80 font-semibold truncate max-w-[150px]">
                                 {record.user?.department || record.user?.position || record.user?.role || ''}
                               </div>
                             </div>
@@ -567,18 +680,15 @@ const Attendance = () => {
                         </div>
                       </td>
 
+                      {/* Explicit 12-Hour AM/PM Format for Clock In and Out */}
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2 text-xs">
                           <span className="text-emerald-600 font-bold">
-                            {record.clockIn
-                              ? new Date(record.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                              : '--:--'}
+                            {formatTime(record.clockIn)}
                           </span>
                           <span className="text-muted-foreground opacity-40">to</span>
                           <span className="text-amber-600 font-bold">
-                            {record.clockOut
-                              ? new Date(record.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                              : '--:--'}
+                            {formatTime(record.clockOut)}
                           </span>
                         </div>
                       </td>
@@ -750,10 +860,10 @@ const Attendance = () => {
                 >
                   <option value="">Choose an employee...</option>
                   {users
-                    .filter((u) => ['employee', 'manager', 'superAdmin'].includes(u.role))
+                    .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
                     .map((u) => (
                       <option key={u._id} value={u._id}>
-                        {u.name} ({u.role})
+                        {u.name || u.email} ({u.role})
                       </option>
                     ))}
                 </select>
@@ -892,11 +1002,13 @@ const Attendance = () => {
                     {selectedRecord.user.avatar ? (
                       <img src={selectedRecord.user.avatar} alt={selectedRecord.user.name} className="h-full w-full object-cover" />
                     ) : (
-                      selectedRecord.user.name?.charAt(0) || 'E'
+                      (selectedRecord.user.name || selectedRecord.user.email || 'E').charAt(0).toUpperCase()
                     )}
                   </div>
                   <div>
-                    <div className="font-bold text-foreground text-sm">{selectedRecord.user.name}</div>
+                    <div className="font-bold text-foreground text-sm">
+                      {selectedRecord.user.name || selectedRecord.user.email || 'Unknown Employee'}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {selectedRecord.user.email} • {selectedRecord.user.department || selectedRecord.user.position || selectedRecord.user.role}
                     </div>
@@ -941,13 +1053,13 @@ const Attendance = () => {
                 <div className="p-3 rounded-2xl border border-border bg-card">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock In</div>
                   <div className="text-sm font-bold text-emerald-600 mt-1">
-                    {selectedRecord.clockIn ? new Date(selectedRecord.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                    {formatTime(selectedRecord.clockIn)}
                   </div>
                 </div>
                 <div className="p-3 rounded-2xl border border-border bg-card">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock Out</div>
                   <div className="text-sm font-bold text-amber-600 mt-1">
-                    {selectedRecord.clockOut ? new Date(selectedRecord.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                    {formatTime(selectedRecord.clockOut)}
                   </div>
                 </div>
                 <div className="p-3 rounded-2xl border border-border bg-card">
