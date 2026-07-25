@@ -311,6 +311,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
   const videoType = form.watch('videoType');
   const taskType = form.watch('taskType');
   const selectedClientId = form.watch('client');
+  const selectedProject = form.watch('project');
   const isVideoReelFlow = taskCategory === 'content' && contentType === 'videos';
 
   const filteredProjects = useMemo(() => {
