@@ -6,11 +6,14 @@ import { EmptyState } from './page';
 const scrollClass = [
   'overflow-x-auto',
   'overflow-y-auto',
-  '[&::-webkit-scrollbar]:h-1.5',
-  '[&::-webkit-scrollbar]:w-1.5',
+  '[&::-webkit-scrollbar]:h-2',
+  '[&::-webkit-scrollbar]:w-2',
   '[&::-webkit-scrollbar-thumb]:rounded-full',
-  '[&::-webkit-scrollbar-thumb]:bg-border',
+  '[&::-webkit-scrollbar-thumb]:bg-muted-foreground/30',
+  'hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/60',
   '[&::-webkit-scrollbar-track]:bg-transparent',
+  '[scrollbar-width:thin]',
+  '[scrollbar-color:hsl(var(--muted-foreground)/0.35)_transparent]',
 ].join(' ');
 
 export const DataTable = ({

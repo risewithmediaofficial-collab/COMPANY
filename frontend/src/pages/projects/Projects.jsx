@@ -206,6 +206,7 @@ const Projects = () => {
         data={filteredProjects}
         columns={columns}
         loading={isLoading}
+        maxHeight="calc(100vh - 360px)"
         onRowClick={(project) => navigate(`/projects/${project._id}`)}
         onEdit={(project) => {
           setSelectedProject(project);
