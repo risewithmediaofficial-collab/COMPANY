@@ -38,7 +38,9 @@ const rjPromotionSchema = z.object({
   promotionDate: z.string().min(1, 'Date is required'),
   startTime: z.string().min(1, 'Start time is required'),
   endTime: z.string().min(1, 'End time is required'),
+  minutesSpoken: z.coerce.number().min(0, 'Minutes spoken must be >= 0'),
   promotionDetails: z.string().optional().or(z.literal('')),
+  notes: z.string().optional().or(z.literal('')),
   rjMembers: z.array(
     z.object({
       user: z.string().optional().or(z.literal('')),
@@ -77,7 +79,9 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
       promotionDate: new Date().toISOString().split('T')[0],
       startTime: '10:00',
       endTime: '12:00',
+      minutesSpoken: 30,
       promotionDetails: '',
+      notes: '',
       rjMembers: [],
       expensesList: [],
       totalAmount: 0,
@@ -130,7 +134,9 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
           promotionDate: pDate,
           startTime: sTime,
           endTime: eTime,
+          minutesSpoken: promotion.minutesSpoken || 0,
           promotionDetails: promotion.promotionDetails === 'null' || !promotion.promotionDetails ? '' : promotion.promotionDetails,
+          notes: promotion.notes === 'null' || !promotion.notes ? '' : promotion.notes,
           rjMembers: promotion.rjMembers
             ? promotion.rjMembers.map((m) => ({
                 user: m.user?._id || m.user || '',
@@ -151,7 +157,9 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
           promotionDate: new Date().toISOString().split('T')[0],
           startTime: '10:00',
           endTime: '12:00',
+          minutesSpoken: 30,
           promotionDetails: '',
+          notes: '',
           rjMembers: [{ user: '', name: '', role: 'Lead RJ' }],
           expensesList: [],
           totalAmount: 0,
@@ -288,9 +296,21 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
 
               <FormField
                 control={form.control}
+                name="minutesSpoken"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minutes Spoken (mins) *</FormLabel>
+                    <FormControl><Input type="number" min="0" placeholder="E.g., 45" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem>
                     <FormLabel>Status *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
@@ -491,18 +511,33 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
               </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="promotionDetails"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Promotion Details & Script Notes</FormLabel>
-                  <FormControl>
-                    <Textarea className="min-h-20" placeholder="Script points, RJ talk time slots, offer codes..." {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="promotionDetails"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Promotion Details & Script Notes</FormLabel>
+                    <FormControl>
+                      <Textarea className="min-h-20" placeholder="Script points, RJ talk time slots, offer codes..." {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Internal Notes / Remarks</FormLabel>
+                    <FormControl>
+                      <Textarea className="min-h-20" placeholder="Internal production notes, RJ feedback..." {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>

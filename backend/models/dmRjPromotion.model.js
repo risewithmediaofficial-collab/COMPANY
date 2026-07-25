@@ -18,8 +18,10 @@ const dmRjPromotionSchema = new mongoose.Schema(
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
     durationSpoken: { type: Number, default: 0 }, // in hours
+    minutesSpoken: { type: Number, default: 0, min: 0 }, // in minutes manually entered
 
     promotionDetails: { type: String, default: '' },
+    notes: { type: String, default: '' },
     invoiceNumber: { type: String, trim: true, default: '' },
 
     expensesList: [

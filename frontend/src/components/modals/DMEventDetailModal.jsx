@@ -121,10 +121,11 @@ export const DMEventDetailModal = ({
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">Timing & Duration</span>
+                  <span className="text-muted-foreground block text-[10px]">Timing & Spoken Duration</span>
                   <span className="font-semibold text-foreground">
                     {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} -{' '}
-                    {item.endTime ? new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} ({item.duration || item.durationSpoken || 0} hrs)
+                    {item.endTime ? new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}{' '}
+                    ({item.minutesSpoken ? `${item.minutesSpoken} mins` : `${item.duration || item.durationSpoken || 0} hrs`})
                   </span>
                 </div>
               </div>
@@ -247,10 +248,20 @@ export const DMEventDetailModal = ({
               </div>
             </div>
 
+            {/* Details & Script Points */}
+            {item.promotionDetails && item.promotionDetails !== 'null' ? (
+              <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-1">
+                <h4 className="text-xs font-bold text-foreground">Promotion Details & Script Points</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  {item.promotionDetails}
+                </p>
+              </div>
+            ) : null}
+
             {/* Notes */}
             {item.notes && item.notes !== 'null' ? (
               <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-1">
-                <h4 className="text-xs font-bold text-foreground">Notes / Instructions</h4>
+                <h4 className="text-xs font-bold text-foreground">Internal Notes & Remarks</h4>
                 <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {item.notes}
                 </p>

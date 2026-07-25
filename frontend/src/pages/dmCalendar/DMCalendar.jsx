@@ -624,7 +624,9 @@ const DMCalendar = () => {
                   render: (row) => (
                     <div className="text-xs">
                       <div className="font-semibold text-foreground">{row.promotionDate ? new Date(row.promotionDate).toLocaleDateString('en-IN') : 'N/A'}</div>
-                      <div className="text-muted-foreground">{row.durationSpoken || 0} Hours Spoken</div>
+                      <div className="text-muted-foreground">
+                        {row.minutesSpoken ? `${row.minutesSpoken} Mins` : `${row.durationSpoken || 0} Hours`} Spoken
+                      </div>
                     </div>
                   ),
                 },
