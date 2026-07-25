@@ -43,6 +43,10 @@ import {
   Eye,
   Filter,
   FileText,
+  X,
+  Building2,
+  Activity,
+  Monitor,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -143,6 +147,7 @@ const DMCalendar = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [clientFilter, setClientFilter] = useState('all');
   const [platformFilter, setPlatformFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('');
 
   // Master Calendar State
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -170,9 +175,28 @@ const DMCalendar = () => {
   const { data: clients = [] } = useClients();
   const { data: summary = {} } = useDMDashboardSummary();
 
-  const { data: videoShoots = [] } = useVideoShoots({ search, status: statusFilter, client: clientFilter !== 'all' ? clientFilter : undefined });
-  const { data: rjPromotions = [] } = useRjPromotions({ search, status: statusFilter, client: clientFilter !== 'all' ? clientFilter : undefined });
-  const { data: vjPromotions = [] } = useVjPromotions({ search, status: statusFilter, platform: platformFilter !== 'all' ? platformFilter : undefined, client: clientFilter !== 'all' ? clientFilter : undefined });
+  const { data: videoShoots = [] } = useVideoShoots({
+    search,
+    status: statusFilter,
+    client: clientFilter !== 'all' ? clientFilter : undefined,
+    startDate: dateFilter || undefined,
+    endDate: dateFilter || undefined,
+  });
+  const { data: rjPromotions = [] } = useRjPromotions({
+    search,
+    status: statusFilter,
+    client: clientFilter !== 'all' ? clientFilter : undefined,
+    startDate: dateFilter || undefined,
+    endDate: dateFilter || undefined,
+  });
+  const { data: vjPromotions = [] } = useVjPromotions({
+    search,
+    status: statusFilter,
+    platform: platformFilter !== 'all' ? platformFilter : undefined,
+    client: clientFilter !== 'all' ? clientFilter : undefined,
+    startDate: dateFilter || undefined,
+    endDate: dateFilter || undefined,
+  });
 
   const { data: masterEvents = [] } = useDMMasterCalendar({
     start: startOfMonth(subMonths(currentDate, 1)).toISOString(),
@@ -452,12 +476,41 @@ const DMCalendar = () => {
 
           {/* Filters & Actions */}
           <SectionCard title="Video Shoot Schedule" description="List of all recorded video production activities.">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-                <SearchField value={search} onChange={setSearch} placeholder="Search title, location, notes..." />
-                
+            {/* Compact Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-2xl bg-secondary/40 border border-border/50">
+              {/* Search */}
+              <div className="flex items-center gap-2 bg-background border border-border rounded-xl px-3 h-8 flex-1 min-w-[200px] max-w-xs">
+                <Search size={13} className="text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search shoots..."
+                  className="bg-transparent border-none outline-none text-xs text-foreground placeholder:text-muted-foreground w-full"
+                />
+                {search && <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground"><X size={12} /></button>}
+              </div>
+
+              {/* Date */}
+              <div className="flex flex-col justify-center border border-border rounded-xl px-3 h-8 bg-background min-w-[130px]">
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide leading-none mb-0.5">Date</span>
+                <div className="flex items-center gap-1">
+                  <CalendarIcon size={11} className="text-muted-foreground shrink-0" />
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="bg-transparent border-none outline-none text-[11px] text-foreground cursor-pointer"
+                  />
+                  {dateFilter && <button onClick={() => setDateFilter('')} className="text-muted-foreground hover:text-foreground"><X size={11} /></button>}
+                </div>
+              </div>
+
+              {/* Client */}
+              <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 h-8 bg-background">
+                <Building2 size={13} className="text-muted-foreground shrink-0" />
                 <select
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground"
+                  className="bg-transparent border-none outline-none text-xs text-foreground cursor-pointer pr-1"
                   value={clientFilter}
                   onChange={(e) => setClientFilter(e.target.value)}
                 >
@@ -466,9 +519,13 @@ const DMCalendar = () => {
                     <option key={c._id} value={c._id}>{c.company || c.name}</option>
                   ))}
                 </select>
+              </div>
 
+              {/* Status */}
+              <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 h-8 bg-background">
+                <Activity size={13} className="text-muted-foreground shrink-0" />
                 <select
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground"
+                  className="bg-transparent border-none outline-none text-xs text-foreground cursor-pointer pr-1"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                 >
@@ -480,6 +537,16 @@ const DMCalendar = () => {
                   <option value="Postponed">Postponed</option>
                 </select>
               </div>
+
+              {/* Active filter indicator */}
+              {(search || dateFilter || clientFilter !== 'all' || statusFilter !== 'all') && (
+                <button
+                  onClick={() => { setSearch(''); setDateFilter(''); setClientFilter('all'); setStatusFilter('all'); }}
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive border border-border rounded-xl px-2.5 h-8 bg-background transition-colors"
+                >
+                  <X size={11} /> Clear
+                </button>
+              )}
             </div>
 
             {/* Video Shoots Table - RED colors if contents or reels are below scheduled */}
@@ -601,8 +668,76 @@ const DMCalendar = () => {
           </MetricGrid>
 
           <SectionCard title="RJ Promotion Schedule" description="Radio Jockey broadcasting and talk show campaigns.">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <SearchField value={search} onChange={setSearch} placeholder="Search RJ promotion title or details..." />
+            {/* Compact Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-2xl bg-secondary/40 border border-border/50">
+              {/* Search */}
+              <div className="flex items-center gap-2 bg-background border border-border rounded-xl px-3 h-8 flex-1 min-w-[200px] max-w-xs">
+                <Search size={13} className="text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search RJ promotions..."
+                  className="bg-transparent border-none outline-none text-xs text-foreground placeholder:text-muted-foreground w-full"
+                />
+                {search && <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground"><X size={12} /></button>}
+              </div>
+
+              {/* Date */}
+              <div className="flex flex-col justify-center border border-border rounded-xl px-3 h-8 bg-background min-w-[130px]">
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide leading-none mb-0.5">Date</span>
+                <div className="flex items-center gap-1">
+                  <CalendarIcon size={11} className="text-muted-foreground shrink-0" />
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="bg-transparent border-none outline-none text-[11px] text-foreground cursor-pointer"
+                  />
+                  {dateFilter && <button onClick={() => setDateFilter('')} className="text-muted-foreground hover:text-foreground"><X size={11} /></button>}
+                </div>
+              </div>
+
+              {/* Client */}
+              <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 h-8 bg-background">
+                <Building2 size={13} className="text-muted-foreground shrink-0" />
+                <select
+                  className="bg-transparent border-none outline-none text-xs text-foreground cursor-pointer pr-1"
+                  value={clientFilter}
+                  onChange={(e) => setClientFilter(e.target.value)}
+                >
+                  <option value="all">All Clients</option>
+                  {clients.map((c) => (
+                    <option key={c._id} value={c._id}>{c.company || c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status */}
+              <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 h-8 bg-background">
+                <Activity size={13} className="text-muted-foreground shrink-0" />
+                <select
+                  className="bg-transparent border-none outline-none text-xs text-foreground cursor-pointer pr-1"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="Postponed">Postponed</option>
+                </select>
+              </div>
+
+              {(search || dateFilter || clientFilter !== 'all' || statusFilter !== 'all') && (
+                <button
+                  onClick={() => { setSearch(''); setDateFilter(''); setClientFilter('all'); setStatusFilter('all'); }}
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive border border-border rounded-xl px-2.5 h-8 bg-background transition-colors"
+                >
+                  <X size={11} /> Clear
+                </button>
+              )}
             </div>
 
             <DataTable
@@ -698,12 +833,56 @@ const DMCalendar = () => {
           </MetricGrid>
 
           <SectionCard title="VJ Promotion Schedule" description="Video Jockey, Live Stream Hosting, TV, and Event Campaigns.">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-                <SearchField value={search} onChange={setSearch} placeholder="Search VJ promotion title..." />
-                
+            {/* Compact Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-2xl bg-secondary/40 border border-border/50">
+              {/* Search */}
+              <div className="flex items-center gap-2 bg-background border border-border rounded-xl px-3 h-8 flex-1 min-w-[200px] max-w-xs">
+                <Search size={13} className="text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search VJ promotions..."
+                  className="bg-transparent border-none outline-none text-xs text-foreground placeholder:text-muted-foreground w-full"
+                />
+                {search && <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground"><X size={12} /></button>}
+              </div>
+
+              {/* Date */}
+              <div className="flex flex-col justify-center border border-border rounded-xl px-3 h-8 bg-background min-w-[130px]">
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide leading-none mb-0.5">Date</span>
+                <div className="flex items-center gap-1">
+                  <CalendarIcon size={11} className="text-muted-foreground shrink-0" />
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="bg-transparent border-none outline-none text-[11px] text-foreground cursor-pointer"
+                  />
+                  {dateFilter && <button onClick={() => setDateFilter('')} className="text-muted-foreground hover:text-foreground"><X size={11} /></button>}
+                </div>
+              </div>
+
+              {/* Client */}
+              <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 h-8 bg-background">
+                <Building2 size={13} className="text-muted-foreground shrink-0" />
                 <select
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground"
+                  className="bg-transparent border-none outline-none text-xs text-foreground cursor-pointer pr-1"
+                  value={clientFilter}
+                  onChange={(e) => setClientFilter(e.target.value)}
+                >
+                  <option value="all">All Clients</option>
+                  {clients.map((c) => (
+                    <option key={c._id} value={c._id}>{c.company || c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Platform */}
+              <div className="flex items-center gap-1.5 border border-border rounded-xl px-3 h-8 bg-background">
+                <Monitor size={13} className="text-muted-foreground shrink-0" />
+                <select
+                  className="bg-transparent border-none outline-none text-xs text-foreground cursor-pointer pr-1"
                   value={platformFilter}
                   onChange={(e) => setPlatformFilter(e.target.value)}
                 >
@@ -716,6 +895,15 @@ const DMCalendar = () => {
                   <option value="Campaign">Campaign</option>
                 </select>
               </div>
+
+              {(search || dateFilter || clientFilter !== 'all' || platformFilter !== 'all') && (
+                <button
+                  onClick={() => { setSearch(''); setDateFilter(''); setClientFilter('all'); setPlatformFilter('all'); }}
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive border border-border rounded-xl px-2.5 h-8 bg-background transition-colors"
+                >
+                  <X size={11} /> Clear
+                </button>
+              )}
             </div>
 
             <DataTable

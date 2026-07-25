@@ -243,7 +243,7 @@ export const trackVideoShootTime = async (req, res) => {
 
 export const getRjPromotions = async (req, res) => {
   try {
-    const { client, status, search, month, year } = req.query;
+    const { client, status, search, month, year, startDate, endDate } = req.query;
     const filter = { isDeleted: false };
 
     if (client) filter.client = client;
@@ -264,6 +264,14 @@ export const getRjPromotions = async (req, res) => {
       const start = new Date(y, m - 1, 1);
       const end = new Date(y, m, 0, 23, 59, 59, 999);
       filter.promotionDate = { $gte: start, $lte: end };
+    } else if (startDate || endDate) {
+      filter.promotionDate = {};
+      if (startDate) filter.promotionDate.$gte = new Date(startDate);
+      if (endDate) {
+        const eDate = new Date(endDate);
+        eDate.setHours(23, 59, 59, 999);
+        filter.promotionDate.$lte = eDate;
+      }
     }
 
     const promotions = await DMRjPromotion.find(filter)
@@ -370,7 +378,7 @@ export const deleteRjPromotion = async (req, res) => {
 
 export const getVjPromotions = async (req, res) => {
   try {
-    const { client, status, platform, search, month, year } = req.query;
+    const { client, status, platform, search, month, year, startDate, endDate } = req.query;
     const filter = { isDeleted: false };
 
     if (client) filter.client = client;
@@ -392,6 +400,14 @@ export const getVjPromotions = async (req, res) => {
       const start = new Date(y, m - 1, 1);
       const end = new Date(y, m, 0, 23, 59, 59, 999);
       filter.promotionDate = { $gte: start, $lte: end };
+    } else if (startDate || endDate) {
+      filter.promotionDate = {};
+      if (startDate) filter.promotionDate.$gte = new Date(startDate);
+      if (endDate) {
+        const eDate = new Date(endDate);
+        eDate.setHours(23, 59, 59, 999);
+        filter.promotionDate.$lte = eDate;
+      }
     }
 
     const promotions = await DMVjPromotion.find(filter)
