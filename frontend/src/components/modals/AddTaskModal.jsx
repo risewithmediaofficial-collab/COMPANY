@@ -36,6 +36,7 @@ import {
   CONTENT_AVAILABILITY_OPTIONS,
   CONTENT_TASK_TYPE_OPTIONS,
   CONTENT_MEDIA_TYPE_OPTIONS,
+  POSTING_PLATFORM_OPTIONS,
   VIDEO_TYPE_OPTIONS,
   NON_CONTENT_TASK_TYPE_OPTIONS,
   PAGE_OPTIONS,
@@ -93,6 +94,11 @@ const taskFormSchema = z.object({
   project: z.string().min(1, 'Select a project first'),
   assignedTo: z.string().min(1, 'Assigned person is required'),
   assignedManager: z.string().optional(),
+  videographerAssigned: z.string().optional(),
+  editorAssigned: z.string().optional(),
+  publisherAssigned: z.string().optional(),
+  postingPlatforms: z.array(z.string()).default([]),
+  postingScheduleDate: z.string().optional(),
   priority: z.enum(PRIORITY_OPTIONS),
   dueDate: z.string().optional(),
   status: z.enum(TASK_STATUS_OPTIONS),
@@ -135,6 +141,11 @@ const buildDefaultValues = (initialValues = {}) => ({
   project: '',
   assignedTo: '',
   assignedManager: '',
+  videographerAssigned: '',
+  editorAssigned: '',
+  publisherAssigned: '',
+  postingPlatforms: [],
+  postingScheduleDate: '',
   priority: 'Medium',
   dueDate: '',
   status: 'To Do',
@@ -564,7 +575,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         name="assignedTo"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Assigned Person *</FormLabel>
+            <FormLabel>Main Lead Assignee *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -583,6 +594,139 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           </FormItem>
         )}
       />
+
+      {/* Notion-Style Multi-Role Workflow Sub-Assignments & Platform Posting */}
+      <div className="md:col-span-2 rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-4 my-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+            ⚡ Workflow Sub-Assignments & Platform Posting (Notion-Style)
+          </h3>
+          <span className="text-[10px] text-muted-foreground bg-background px-2 py-0.5 rounded-full border border-border">
+            1-Time Multi-Role Assign
+          </span>
+        </div>
+
+        {/* 3 Workflow Roles */}
+        <div className="grid gap-3 md:grid-cols-3">
+          {/* Shoot By (Videographer) */}
+          <FormField
+            control={form.control}
+            name="videographerAssigned"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  🎥 Shoot By (Videographer)
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Videographer" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="_none">Unassigned</SelectItem>
+                    {assignableUsers.map((user) => (
+                      <SelectItem key={user._id} value={user._id}>{user.name} ({user.role})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {/* Editing By (Editor) */}
+          <FormField
+            control={form.control}
+            name="editorAssigned"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  ✂️ Editing By (Video Editor)
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Editor" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="_none">Unassigned</SelectItem>
+                    {assignableUsers.map((user) => (
+                      <SelectItem key={user._id} value={user._id}>{user.name} ({user.role})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {/* Posting By (Publisher) */}
+          <FormField
+            control={form.control}
+            name="publisherAssigned"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  📱 Posting By (Publisher)
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Publisher" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="_none">Unassigned</SelectItem>
+                    {assignableUsers.map((user) => (
+                      <SelectItem key={user._id} value={user._id}>{user.name} ({user.role})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Target Posting Platforms & Schedule Date */}
+        <div className="grid gap-3 md:grid-cols-2 pt-2 border-t border-border/40">
+          <div>
+            <label className="text-xs font-bold text-foreground block mb-2">Target Social Media Posting Platforms</label>
+            <div className="flex flex-wrap gap-2">
+              {POSTING_PLATFORM_OPTIONS.map((plat) => {
+                const currentPlatforms = form.watch('postingPlatforms') || [];
+                const isSelected = currentPlatforms.includes(plat.value);
+
+                return (
+                  <button
+                    key={plat.value}
+                    type="button"
+                    onClick={() => {
+                      const updated = isSelected
+                        ? currentPlatforms.filter((p) => p !== plat.value)
+                        : [...currentPlatforms, plat.value];
+                      form.setValue('postingPlatforms', updated);
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-background text-muted-foreground border-border hover:bg-muted'
+                    }`}
+                  >
+                    {plat.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="postingScheduleDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground">🗓️ Posting Schedule Date & Time</FormLabel>
+                <FormControl>
+                  <Input type="datetime-local" className="bg-background" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
 
       <FormField
         control={form.control}

@@ -78,6 +78,65 @@ const TaskDetails = () => {
         </div>
       </div>
 
+      {/* Notion-Style Multi-Role Workflow & Platform Posting Banner */}
+      {(task.videographerAssigned || task.editorAssigned || task.publisherAssigned || (task.postingPlatforms && task.postingPlatforms.length > 0)) && (
+        <div className="rounded-3xl border border-primary/30 bg-primary/5 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+              ⚡ Notion-Style Workflow Pipeline & Sub-Assignments
+            </h3>
+            {task.postingScheduleDate && (
+              <div className="text-xs font-semibold px-3 py-1 rounded-full bg-primary text-primary-foreground">
+                🗓️ Scheduled Post: {new Date(task.postingScheduleDate).toLocaleString()}
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Videographer */}
+            <div className="p-4 rounded-2xl bg-background border border-border/60">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground block">🎥 Shoot By (Videographer)</span>
+              <span className="font-bold text-foreground text-sm block mt-1">
+                {task.videographerAssigned?.name || task.videographerName || 'Unassigned'}
+              </span>
+              <span className="text-xs text-muted-foreground">{task.videographerAssigned?.role || 'Team Member'}</span>
+            </div>
+
+            {/* Editor */}
+            <div className="p-4 rounded-2xl bg-background border border-border/60">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground block">✂️ Editing By (Video Editor)</span>
+              <span className="font-bold text-foreground text-sm block mt-1">
+                {task.editorAssigned?.name || task.editorName || 'Unassigned'}
+              </span>
+              <span className="text-xs text-muted-foreground">{task.editorAssigned?.role || 'Team Member'}</span>
+            </div>
+
+            {/* Publisher */}
+            <div className="p-4 rounded-2xl bg-background border border-border/60">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground block">📱 Posting By (Publisher)</span>
+              <span className="font-bold text-foreground text-sm block mt-1">
+                {task.publisherAssigned?.name || task.publisherName || 'Unassigned'}
+              </span>
+              <span className="text-xs text-muted-foreground">{task.publisherAssigned?.role || 'Team Member'}</span>
+            </div>
+          </div>
+
+          {/* Target Platforms */}
+          {task.postingPlatforms && task.postingPlatforms.length > 0 && (
+            <div className="pt-2 border-t border-border/40 flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground">Target Posting Platforms:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {task.postingPlatforms.map((plat, idx) => (
+                  <span key={idx} className="px-2.5 py-1 rounded-xl bg-background border border-border text-xs font-semibold text-foreground">
+                    {plat}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Field label="Task Type" value={task.taskCategory === 'non_content' ? 'Non-Content' : 'Content'} />
         <Field label="Category" value={formatTaskTypeLabel(task.taskType)} />

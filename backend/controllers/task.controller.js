@@ -161,9 +161,11 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.scriptLink !== undefined) payload.scriptLink = normalizeLink(payload.scriptLink);
   if (payload.pagesNeeded !== undefined) payload.pagesNeeded = normalizeStringArray(payload.pagesNeeded);
   if (payload.attachments !== undefined) payload.attachments = normalizeFiles(payload.attachments);
-  if (payload.completedFiles !== undefined) payload.completedFiles = normalizeFiles(payload.completedFiles);
-  if (payload.clientResponse) payload.clientResponse = payload.clientResponse.toString().toLowerCase();
-  if (payload.approvalStatus) payload.approvalStatus = payload.approvalStatus.toString().toLowerCase();
+  if (payload.videographerAssigned !== undefined) payload.videographerAssigned = toIdString(payload.videographerAssigned) || undefined;
+  if (payload.editorAssigned !== undefined) payload.editorAssigned = toIdString(payload.editorAssigned) || undefined;
+  if (payload.publisherAssigned !== undefined) payload.publisherAssigned = toIdString(payload.publisherAssigned) || undefined;
+  if (payload.postingScheduleDate !== undefined) payload.postingScheduleDate = payload.postingScheduleDate ? new Date(payload.postingScheduleDate) : undefined;
+  if (payload.postingPlatforms !== undefined) payload.postingPlatforms = normalizeStringArray(payload.postingPlatforms);
   if (payload.clientFeedback !== undefined) payload.clientFeedback = payload.clientFeedback?.toString?.().trim?.() || '';
 
   return payload;
@@ -296,6 +298,9 @@ const hydrateTask = async (taskId) => Task.findById(taskId)
   .populate('assignedTo', 'name email avatar role')
   .populate('assignedManager', 'name email avatar role')
   .populate('createdBy', 'name email avatar role')
+  .populate('videographerAssigned', 'name email avatar role')
+  .populate('editorAssigned', 'name email avatar role')
+  .populate('publisherAssigned', 'name email avatar role')
   .populate('project', 'name client manager')
   .populate('client', 'name company email')
   .populate('clientResponseBy', 'name email avatar role')
@@ -312,7 +317,27 @@ const syncTaskDerivedFields = async (task) => {
     }
   }
 
-  const assigneeIds = uniqueIds(toArray(task.assignedTo));
+  if (task.videographerAssigned) {
+    const vUser = await User.findById(task.videographerAssigned).select('name');
+    if (vUser) task.videographerName = vUser.name;
+  }
+  if (task.editorAssigned) {
+    const eUser = await User.findById(task.editorAssigned).select('name');
+    if (eUser) task.editorName = eUser.name;
+  }
+  if (task.publisherAssigned) {
+    const pUser = await User.findById(task.publisherAssigned).select('name');
+    if (pUser) task.publisherName = pUser.name;
+  }
+
+  const allSubAssignees = [
+    ...toArray(task.assignedTo),
+    task.videographerAssigned,
+    task.editorAssigned,
+    task.publisherAssigned,
+  ].filter(Boolean);
+
+  const assigneeIds = uniqueIds(allSubAssignees);
   if (assigneeIds.length) {
     const assignees = await User.find({ _id: { $in: assigneeIds } }).select('name');
     task.assignedPersonName = assignees.map((user) => user.name).filter(Boolean).join(', ');

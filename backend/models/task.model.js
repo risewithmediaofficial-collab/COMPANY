@@ -87,6 +87,37 @@ const taskSchema = new mongoose.Schema(
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
     parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Task', default: null },
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+    // Multi-Role Sub-Assignments (Notion / ClickUp style)
+    videographerAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    videographerName: { type: String, default: '' },
+
+    editorAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    editorName: { type: String, default: '' },
+
+    publisherAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    publisherName: { type: String, default: '' },
+
+    postingPlatforms: [{ type: String }],
+    postingScheduleDate: { type: Date },
+
+    // Role Workflow Sub-statuses
+    shootStatus: {
+      type: String,
+      enum: ['pending', 'in_progress', 'completed', 'not_applicable'],
+      default: 'pending',
+    },
+    editingStatus: {
+      type: String,
+      enum: ['pending', 'in_progress', 'review', 'completed', 'not_applicable'],
+      default: 'pending',
+    },
+    postingStatus: {
+      type: String,
+      enum: ['pending', 'scheduled', 'posted', 'not_applicable'],
+      default: 'pending',
+    },
+
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     status: {
       type: String,
