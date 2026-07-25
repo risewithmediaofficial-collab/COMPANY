@@ -42,6 +42,7 @@ import {
   Trash2,
   Eye,
   Filter,
+  FileText,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -126,8 +127,6 @@ const STATUS_COLORS = {
   Cancelled: 'bg-rose-500 text-white border-rose-600',
   Postponed: 'bg-slate-500 text-white border-slate-600',
 };
-
-const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4'];
 
 const DMCalendar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -220,17 +219,164 @@ const DMCalendar = () => {
     }
   }, [currentDate, calendarView]);
 
-  // Export handlers
-  const handleExportCSV = (dataList, filename) => {
-    if (!dataList || !dataList.length) return;
-    const keys = Object.keys(dataList[0]);
-    const csvContent = 'data:text/csv;charset=utf-8,' + [keys.join(','), ...dataList.map((row) => keys.map((k) => `"${(row[k] || '').toString().replace(/"/g, '""')}"`).join(','))].join('\n');
-    const link = document.createElement('a');
-    link.setAttribute('href', encodeURI(csvContent));
-    link.setAttribute('download', `${filename}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Professional Monthly Invoice Export
+  const exportMonthlyInvoicePDF = () => {
+    const selectedClientObj = clients.find((c) => c._id === clientFilter);
+    const clientName = selectedClientObj ? (selectedClientObj.company || selectedClientObj.name) : 'All Agency Clients';
+    const invNumber = `RWM-M-INV-${Date.now().toString().slice(-6)}`;
+    const dateStr = format(currentDate, 'MMMM yyyy');
+
+    let allItems = [];
+    videoShoots.forEach((s) => allItems.push({ title: `🎬 Video Shoot: ${s.shootTitle}`, date: s.shootDate, amount: s.totalAmount || 0, paid: s.amountPaid || 0, balance: s.balanceAmount || 0 }));
+    rjPromotions.forEach((r) => allItems.push({ title: `🎙️ RJ Promotion: ${r.promotionTitle}`, date: r.promotionDate, amount: r.totalAmount || 0, paid: r.amountPaid || 0, balance: r.balanceAmount || 0 }));
+    vjPromotions.forEach((v) => allItems.push({ title: `📺 VJ Promotion: ${v.promotionTitle} (${v.platform})`, date: v.promotionDate, amount: v.totalAmount || 0, paid: v.amountPaid || 0, balance: v.balanceAmount || 0 }));
+
+    const grandTotal = allItems.reduce((a, c) => a + c.amount, 0);
+    const grandPaid = allItems.reduce((a, c) => a + c.paid, 0);
+    const grandBalance = Math.max(grandTotal - grandPaid, 0);
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Monthly Statement Invoice - ${clientName} - Rise With Media</title>
+          <style>
+            * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+            body { margin: 0; padding: 40px; color: #1e293b; background: #ffffff; font-size: 13px; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 2px solid #e2e8f0; }
+            .brand { display: flex; align-items: center; gap: 14px; }
+            .brand img { height: 52px; object-fit: contain; }
+            .brand-text h1 { margin: 0; font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+            .brand-text p { margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+            .inv-title { text-align: right; }
+            .inv-title h2 { margin: 0; font-size: 24px; font-weight: 900; color: #3b82f6; text-transform: uppercase; letter-spacing: 1px; }
+            .inv-title p { margin: 4px 0 0 0; font-size: 12px; font-weight: 600; color: #64748b; }
+
+            .meta-grid { display: flex; justify-content: space-between; margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; }
+            .meta-box h4 { margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }
+            .meta-box p { margin: 0; font-size: 14px; font-weight: 700; color: #0f172a; }
+
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1; }
+            td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #334155; }
+            .num-col { text-align: right; font-weight: 700; }
+
+            .totals-container { display: flex; justify-content: flex-end; margin-top: 20px; }
+            .totals-table { width: 340px; }
+            .totals-row { display: flex; justify-content: space-between; padding: 8px 12px; font-size: 13px; }
+            .totals-row.grand { background: #0f172a; color: #ffffff; font-weight: 800; font-size: 15px; border-radius: 8px; margin-top: 6px; }
+            .totals-row.balance { color: #dc2626; font-weight: 800; font-size: 14px; }
+
+            .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-end; }
+            .signature-box { text-align: center; width: 200px; }
+            .signature-line { border-top: 1.5px dashed #94a3b8; margin-top: 40px; padding-top: 6px; font-size: 11px; font-weight: 700; color: #475569; }
+
+            @media print {
+              body { padding: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+              🖨️ Print / Download Monthly Invoice PDF
+            </button>
+          </div>
+
+          <div class="header">
+            <div class="brand">
+              <img src="/branding/rise-with-media-logo.png" alt="Rise With Media Logo" onerror="this.style.display='none'" />
+              <div class="brand-text">
+                <h1>RISE WITH MEDIA</h1>
+                <p>Digital Marketing & Media Agency</p>
+              </div>
+            </div>
+            <div class="inv-title">
+              <h2>MONTHLY INVOICE</h2>
+              <p># ${invNumber}</p>
+              <p>Period: ${dateStr}</p>
+            </div>
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-box">
+              <h4>Client Statement For</h4>
+              <p>${clientName}</p>
+            </div>
+            <div class="meta-box">
+              <h4>Total Production Activities</h4>
+              <p>${allItems.length} Logged Events</p>
+            </div>
+            <div class="meta-box">
+              <h4>Total Outstanding Balance</h4>
+              <p style="color: ${grandBalance === 0 ? '#16a34a' : '#dc2626'}">₹${grandBalance.toLocaleString('en-IN')}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;">#</th>
+                <th>Activity Description</th>
+                <th>Date</th>
+                <th class="num-col">Total Fee</th>
+                <th class="num-col">Paid</th>
+                <th class="num-col">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allItems.map((item, idx) => `
+                <tr>
+                  <td>${idx + 1}</td>
+                  <td style="font-weight: 600;">${item.title}</td>
+                  <td>${new Date(item.date).toLocaleDateString('en-IN')}</td>
+                  <td class="num-col">₹${item.amount.toLocaleString('en-IN')}</td>
+                  <td class="num-col" style="color: #16a34a;">₹${item.paid.toLocaleString('en-IN')}</td>
+                  <td class="num-col" style="color: ${item.balance > 0 ? '#dc2626' : '#16a34a'}">₹${item.balance.toLocaleString('en-IN')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="totals-container">
+            <div class="totals-table">
+              <div class="totals-row">
+                <span>Subtotal Dues:</span>
+                <span>₹${grandTotal.toLocaleString('en-IN')}</span>
+              </div>
+              <div class="totals-row">
+                <span>Total Amount Paid:</span>
+                <span style="color: #16a34a; font-weight: bold;">₹${grandPaid.toLocaleString('en-IN')}</span>
+              </div>
+              <div class="totals-row balance">
+                <span>Total Balance Due:</span>
+                <span>₹${grandBalance.toLocaleString('en-IN')}</span>
+              </div>
+              <div class="totals-row grand">
+                <span>Grand Total:</span>
+                <span>₹${grandTotal.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div style="font-size: 11px; color: #64748b; max-width: 340px;">
+              <p style="margin: 0; font-weight: 700; color: #334155;">Monthly Statement Terms:</p>
+              <p style="margin: 4px 0 0 0;">Official billing report issued by Rise With Media. Please remit pending balances as per account terms.</p>
+            </div>
+            <div class="signature-box">
+              <div class="signature-line">Authorized Signatory</div>
+              <span style="font-size: 10px; color: #64748b;">Rise With Media Finance</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
@@ -325,7 +471,7 @@ const DMCalendar = () => {
               </div>
             </div>
 
-            {/* Video Shoots Table */}
+            {/* Video Shoots Table - RED colors if contents or reels are below scheduled */}
             <DataTable
               data={videoShoots}
               columns={[
@@ -353,19 +499,28 @@ const DMCalendar = () => {
                 },
                 {
                   key: 'progress',
-                  label: 'Contents / Reels',
-                  render: (row) => (
-                    <div className="text-xs space-y-1 w-36">
-                      <div className="flex justify-between text-[11px]">
-                        <span>Contents:</span>
-                        <span className="font-bold text-primary">{row.completedContents || 0}/{row.plannedContents || 0} ({row.contentsCompletionPct || 0}%)</span>
+                  label: 'Contents / Reels Progress',
+                  render: (row) => {
+                    const isContLow = (row.completedContents || 0) < (row.plannedContents || 0);
+                    const isReelLow = (row.completedReels || 0) < (row.plannedReels || 0);
+
+                    return (
+                      <div className="text-xs space-y-1 w-40">
+                        <div className="flex justify-between text-[11px]">
+                          <span>Contents:</span>
+                          <span className={`font-bold ${isContLow ? 'text-rose-500' : 'text-emerald-500'}`}>
+                            {row.completedContents || 0}/{row.plannedContents || 0} ({row.contentsCompletionPct || 0}%)
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span>Reels:</span>
+                          <span className={`font-bold ${isReelLow ? 'text-rose-500' : 'text-emerald-500'}`}>
+                            {row.completedReels || 0}/{row.plannedReels || 0} ({row.reelsCompletionPct || 0}%)
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-[11px]">
-                        <span>Reels:</span>
-                        <span className="font-bold text-emerald-500">{row.completedReels || 0}/{row.plannedReels || 0} ({row.reelsCompletionPct || 0}%)</span>
-                      </div>
-                    </div>
-                  ),
+                    );
+                  },
                 },
                 {
                   key: 'team',
@@ -825,23 +980,17 @@ const DMCalendar = () => {
         <div className="space-y-6">
           <SectionCard
             title="Digital Marketing Management Reports"
-            description="Generate and export management reports for Video Shoots, RJ Promotions, and VJ Promotions."
+            description="Generate professional Rise With Media (RWM) branded invoices and monthly reports."
             action={
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => handleExportCSV(videoShoots, 'DM_Video_Shoots_Report')}>
-                  <Download size={14} className="mr-1" /> Export Shoots CSV
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => handleExportCSV(rjPromotions, 'DM_RJ_Promotions_Report')}>
-                  <Download size={14} className="mr-1" /> Export RJ CSV
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => window.print()}>
-                  <Printer size={14} className="mr-1" /> Print Report
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={exportMonthlyInvoicePDF}>
+                  <Printer size={14} className="mr-1" /> Export Monthly Client Invoice (RWM Branded)
                 </Button>
               </div>
             }
           >
             <div className="p-4 bg-muted/40 rounded-2xl border border-border/40 text-xs font-semibold text-foreground space-y-2">
-              <p>Reports are generated in real-time based on active filters across all video shoots, RJ broadcasting spots, and VJ live sessions.</p>
+              <p>Generate professional monthly invoices with Rise With Media (RWM) logo, client details, itemized production & promo expense breakdown, total fees, amount paid, and balance due.</p>
             </div>
           </SectionCard>
 

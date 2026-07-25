@@ -21,6 +21,13 @@ const dmRjPromotionSchema = new mongoose.Schema(
 
     promotionDetails: { type: String, default: '' },
 
+    expensesList: [
+      {
+        title: { type: String, required: true, trim: true },
+        amount: { type: Number, required: true, min: 0, default: 0 },
+      },
+    ],
+
     totalAmount: { type: Number, default: 0, min: 0 },
     amountPaid: { type: Number, default: 0, min: 0 },
     balanceAmount: { type: Number, default: 0 },
@@ -47,6 +54,13 @@ const dmRjPromotionSchema = new mongoose.Schema(
 );
 
 dmRjPromotionSchema.pre('save', function (next) {
+  if (this.expensesList && this.expensesList.length > 0) {
+    const sumExpenses = this.expensesList.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+    if (sumExpenses > 0) {
+      this.totalAmount = sumExpenses;
+    }
+  }
+
   this.balanceAmount = Math.max(Number(this.totalAmount || 0) - Number(this.amountPaid || 0), 0);
 
   if (this.startTime && this.endTime) {

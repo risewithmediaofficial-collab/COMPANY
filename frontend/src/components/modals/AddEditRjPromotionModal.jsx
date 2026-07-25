@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Radio, UserPlus } from 'lucide-react';
+import { Plus, Trash2, Radio, UserPlus, Receipt } from 'lucide-react';
 import { useClients } from '../../hooks/useClients';
 import { useUsers } from '../../hooks/useUsers';
 import { useCreateRjPromotion, useUpdateRjPromotion } from '../../hooks/useDMCalendar';
@@ -46,11 +46,25 @@ const rjPromotionSchema = z.object({
       role: z.string().optional().or(z.literal('')),
     })
   ),
+  expensesList: z.array(
+    z.object({
+      title: z.string().min(1, 'Expense title is required'),
+      amount: z.coerce.number().min(0, 'Amount must be >= 0'),
+    })
+  ),
   totalAmount: z.coerce.number().min(0, 'Total amount must be >= 0'),
   amountPaid: z.coerce.number().min(0, 'Amount paid must be >= 0'),
   remarks: z.string().optional().or(z.literal('')),
   status: z.enum(['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Postponed']),
 });
+
+const COMMON_EXPENSES = [
+  'RJ Artist Fee',
+  'Studio Rental',
+  'Broadcasting Airtime',
+  'Travel Allowance',
+  'Food & Refreshments',
+];
 
 export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }) => {
   const isEditing = Boolean(promotion?._id);
@@ -65,6 +79,7 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
       endTime: '12:00',
       promotionDetails: '',
       rjMembers: [],
+      expensesList: [],
       totalAmount: 0,
       amountPaid: 0,
       remarks: '',
@@ -77,15 +92,30 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
     name: 'rjMembers',
   });
 
+  const { fields: expenseFields, append: appendExpense, remove: removeExpense } = useFieldArray({
+    control: form.control,
+    name: 'expensesList',
+  });
+
   const { data: clients = [] } = useClients();
   const { data: users = [] } = useUsers();
 
   const createRj = useCreateRjPromotion();
   const updateRj = useUpdateRjPromotion();
 
-  const totalAmount = form.watch('totalAmount') || 0;
+  const watchedExpenses = form.watch('expensesList') || [];
+  const watchedTotalAmount = form.watch('totalAmount') || 0;
   const amountPaid = form.watch('amountPaid') || 0;
-  const balanceAmount = Math.max(Number(totalAmount) - Number(amountPaid), 0);
+
+  const sumExpenses = watchedExpenses.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+  const effectiveTotalAmount = watchedExpenses.length > 0 ? sumExpenses : Number(watchedTotalAmount || 0);
+  const balanceAmount = Math.max(effectiveTotalAmount - Number(amountPaid), 0);
+
+  useEffect(() => {
+    if (watchedExpenses.length > 0) {
+      form.setValue('totalAmount', sumExpenses);
+    }
+  }, [sumExpenses, watchedExpenses.length, form]);
 
   useEffect(() => {
     if (open) {
@@ -100,7 +130,7 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
           promotionDate: pDate,
           startTime: sTime,
           endTime: eTime,
-          promotionDetails: promotion.promotionDetails || '',
+          promotionDetails: promotion.promotionDetails === 'null' || !promotion.promotionDetails ? '' : promotion.promotionDetails,
           rjMembers: promotion.rjMembers
             ? promotion.rjMembers.map((m) => ({
                 user: m.user?._id || m.user || '',
@@ -108,6 +138,7 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
                 role: m.role || 'RJ Member',
               }))
             : [],
+          expensesList: promotion.expensesList || [],
           totalAmount: promotion.totalAmount || 0,
           amountPaid: promotion.amountPaid || 0,
           remarks: promotion.remarks || '',
@@ -122,6 +153,7 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
           endTime: '12:00',
           promotionDetails: '',
           rjMembers: [{ user: '', name: '', role: 'Lead RJ' }],
+          expensesList: [],
           totalAmount: 0,
           amountPaid: 0,
           remarks: '',
@@ -139,16 +171,19 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
       const foundUser = users.find((u) => u._id === m.user);
       return {
         user: m.user && m.user !== '_none' ? m.user : undefined,
-        name: foundUser ? foundUser.name : m.name || 'RJ Member',
+        name: m.name || (foundUser ? foundUser.name : 'RJ Member'),
         role: m.role || 'RJ Member',
       };
     });
+
+    const finalTotalAmount = values.expensesList && values.expensesList.length > 0 ? sumExpenses : Number(values.totalAmount || 0);
 
     const payload = {
       ...values,
       startTime: startDateTime,
       endTime: endDateTime,
       rjMembers: formattedMembers,
+      totalAmount: finalTotalAmount,
     };
 
     if (isEditing) {
@@ -171,7 +206,7 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
             {isEditing ? 'Edit RJ Promotion' : 'Create RJ Promotion Activity'}
           </DialogTitle>
           <DialogDescription>
-            Schedule Radio Jockey (RJ) talk shows, audio promotions, live broadcasts, and fee tracking.
+            Schedule Radio Jockey (RJ) talk shows, audio promotions, live broadcasts, and itemized expenses.
           </DialogDescription>
         </DialogHeader>
 
@@ -291,63 +326,147 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
                 </Button>
               </div>
 
-              {memberFields.map((field, index) => (
-                <div key={field.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
-                  <div className="flex-1 min-w-[200px]">
-                    <Select
-                      value={form.watch(`rjMembers.${index}.user`) || '_none'}
-                      onValueChange={(val) => {
-                        form.setValue(`rjMembers.${index}.user`, val === '_none' ? '' : val);
-                        const selectedU = users.find((u) => u._id === val);
-                        if (selectedU) form.setValue(`rjMembers.${index}.name`, selectedU.name);
-                      }}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select Member" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="_none">None (Manual Name)</SelectItem>
-                        {users.map((u) => (
-                          <SelectItem key={u._id} value={u._id}>
-                            {u.name} ({u.role})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              {memberFields.map((field, index) => {
+                const currentUserId = form.watch(`rjMembers.${index}.user`);
+                return (
+                  <div key={field.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
+                    <div className="w-[180px]">
+                      <Select
+                        value={currentUserId || '_none'}
+                        onValueChange={(val) => {
+                          form.setValue(`rjMembers.${index}.user`, val === '_none' ? '' : val);
+                          const selectedU = users.find((u) => u._id === val);
+                          if (selectedU) form.setValue(`rjMembers.${index}.name`, selectedU.name);
+                        }}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Select Member" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="_none">Manual Name</SelectItem>
+                          {users.map((u) => (
+                            <SelectItem key={u._id} value={u._id}>
+                              {u.name} ({u.role})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="w-[180px]">
+                    <div className="flex-1 min-w-[160px]">
+                      <Input
+                        placeholder="Type RJ Artist Name..."
+                        className="h-9"
+                        {...form.register(`rjMembers.${index}.name`)}
+                      />
+                    </div>
+
+                    <div className="w-[160px]">
+                      <Input
+                        placeholder="Role (e.g., Lead RJ, Voice)"
+                        className="h-9"
+                        {...form.register(`rjMembers.${index}.role`)}
+                      />
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 w-9 p-0 text-destructive"
+                      onClick={() => removeMember(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Expenses List & Fee Tracking */}
+            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                    <Receipt className="h-4 w-4 text-emerald-500" /> Promotion Expenses Breakdown List
+                  </h3>
+                  <p className="text-xs text-muted-foreground">Add specific expenses like RJ Artist Fee, Studio Rental, Travel, Food, etc.</p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => appendExpense({ title: '', amount: 1000 })}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Expense Item
+                </Button>
+              </div>
+
+              {/* Quick Suggestions */}
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-[11px] text-muted-foreground font-semibold mr-1">Quick Add:</span>
+                {COMMON_EXPENSES.map((exp) => (
+                  <button
+                    key={exp}
+                    type="button"
+                    onClick={() => appendExpense({ title: exp, amount: 2000 })}
+                    className="text-[11px] px-2 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 font-medium hover:bg-emerald-500/20 transition-colors"
+                  >
+                    + {exp}
+                  </button>
+                ))}
+              </div>
+
+              {expenseFields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
+                  <div className="flex-1">
                     <Input
-                      placeholder="Role (e.g., Lead RJ, Voice)"
+                      placeholder="Expense Title (e.g., RJ Artist Fee, Studio Rental)"
                       className="h-9"
-                      {...form.register(`rjMembers.${index}.role`)}
+                      {...form.register(`expensesList.${index}.title`)}
                     />
                   </div>
-
+                  <div className="w-[160px]">
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-xs font-semibold text-muted-foreground">₹</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="Amount"
+                        className="h-9 pl-7"
+                        {...form.register(`expensesList.${index}.amount`)}
+                      />
+                    </div>
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     className="h-9 w-9 p-0 text-destructive"
-                    onClick={() => removeMember(index)}
+                    onClick={() => removeExpense(index)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-            </div>
 
-            {/* Financial Tracking */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-              <h3 className="text-sm font-bold text-foreground">Promotion Fee Tracking</h3>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="pt-3 border-t border-border/40 grid gap-4 md:grid-cols-3">
                 <FormField
                   control={form.control}
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Total Amount (₹)</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          {...field}
+                          value={expenseFields.length > 0 ? sumExpenses : field.value}
+                          readOnly={expenseFields.length > 0}
+                          className={expenseFields.length > 0 ? 'bg-muted/50 font-bold' : ''}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />

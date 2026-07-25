@@ -33,6 +33,14 @@ const dmVideoShootSchema = new mongoose.Schema(
     // Equipment Section
     equipment: [{ type: String, trim: true }],
 
+    // Itemized Expenses List
+    expensesList: [
+      {
+        title: { type: String, required: true, trim: true },
+        amount: { type: Number, required: true, min: 0, default: 0 },
+      },
+    ],
+
     // Expense Section
     totalAmount: { type: Number, default: 0, min: 0 },
     amountPaid: { type: Number, default: 0, min: 0 },
@@ -73,6 +81,13 @@ dmVideoShootSchema.pre('save', function (next) {
     this.reelsCompletionPct = Number(((this.completedReels / this.plannedReels) * 100).toFixed(1));
   } else {
     this.reelsCompletionPct = 0;
+  }
+
+  if (this.expensesList && this.expensesList.length > 0) {
+    const sumExpenses = this.expensesList.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+    if (sumExpenses > 0) {
+      this.totalAmount = sumExpenses;
+    }
   }
 
   this.balanceAmount = Math.max(Number(this.totalAmount || 0) - Number(this.amountPaid || 0), 0);

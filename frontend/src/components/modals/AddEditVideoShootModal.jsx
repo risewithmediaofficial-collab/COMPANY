@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Camera, UserPlus, Wrench } from 'lucide-react';
+import { Plus, Trash2, Camera, UserPlus, Wrench, IndianRupee, Receipt } from 'lucide-react';
 import { useClients } from '../../hooks/useClients';
 import { useUsers } from '../../hooks/useUsers';
 import { useCreateVideoShoot, useUpdateVideoShoot } from '../../hooks/useDMCalendar';
@@ -51,6 +51,12 @@ const videoShootSchema = z.object({
     })
   ),
   equipment: z.array(z.string()),
+  expensesList: z.array(
+    z.object({
+      title: z.string().min(1, 'Expense title is required'),
+      amount: z.coerce.number().min(0, 'Amount must be >= 0'),
+    })
+  ),
   totalAmount: z.coerce.number().min(0, 'Total amount must be >= 0'),
   amountPaid: z.coerce.number().min(0, 'Amount paid must be >= 0'),
   notes: z.string().optional().or(z.literal('')),
@@ -83,6 +89,15 @@ const COMMON_EQUIPMENT = [
   'Reflector',
 ];
 
+const COMMON_EXPENSES = [
+  'Camera Rental',
+  'Travel Allowance',
+  'Food & Refreshments',
+  'Location Fee',
+  'Assistant Fee',
+  'Transport',
+];
+
 export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => {
   const isEditing = Boolean(shoot?._id);
   const [equipmentInput, setEquipmentInput] = useState('');
@@ -102,6 +117,7 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
       completedReels: 0,
       assignedTeam: [],
       equipment: [],
+      expensesList: [],
       totalAmount: 0,
       amountPaid: 0,
       notes: '',
@@ -114,25 +130,44 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
     name: 'assignedTeam',
   });
 
+  const { fields: expenseFields, append: appendExpense, remove: removeExpense } = useFieldArray({
+    control: form.control,
+    name: 'expensesList',
+  });
+
   const { data: clients = [] } = useClients();
   const { data: users = [] } = useUsers();
 
   const createShoot = useCreateVideoShoot();
   const updateShoot = useUpdateVideoShoot();
 
-  const totalAmount = form.watch('totalAmount') || 0;
+  const watchedExpenses = form.watch('expensesList') || [];
+  const watchedTotalAmount = form.watch('totalAmount') || 0;
   const amountPaid = form.watch('amountPaid') || 0;
-  const balanceAmount = Math.max(Number(totalAmount) - Number(amountPaid), 0);
+
+  // Calculate sum of itemized expenses
+  const sumExpenses = watchedExpenses.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+  const effectiveTotalAmount = watchedExpenses.length > 0 ? sumExpenses : Number(watchedTotalAmount || 0);
+  const balanceAmount = Math.max(effectiveTotalAmount - Number(amountPaid), 0);
 
   const plannedContents = form.watch('plannedContents') || 0;
   const completedContents = form.watch('completedContents') || 0;
   const contentPct = plannedContents > 0 ? Math.round((completedContents / plannedContents) * 100) : 0;
+  const isContentBelowScheduled = completedContents < plannedContents;
 
   const plannedReels = form.watch('plannedReels') || 0;
   const completedReels = form.watch('completedReels') || 0;
   const reelsPct = plannedReels > 0 ? Math.round((completedReels / plannedReels) * 100) : 0;
+  const isReelsBelowScheduled = completedReels < plannedReels;
 
   const currentEquipment = form.watch('equipment') || [];
+
+  // Synchronize totalAmount when expenses change
+  useEffect(() => {
+    if (watchedExpenses.length > 0) {
+      form.setValue('totalAmount', sumExpenses);
+    }
+  }, [sumExpenses, watchedExpenses.length, form]);
 
   useEffect(() => {
     if (open) {
@@ -160,9 +195,10 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
               }))
             : [],
           equipment: shoot.equipment || [],
+          expensesList: shoot.expensesList || [],
           totalAmount: shoot.totalAmount || 0,
           amountPaid: shoot.amountPaid || 0,
-          notes: shoot.notes || '',
+          notes: shoot.notes === 'null' || !shoot.notes ? '' : shoot.notes,
           status: shoot.status || 'Scheduled',
         });
       } else {
@@ -178,8 +214,9 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
           plannedReels: 5,
           completedReels: 0,
           assignedTeam: [{ user: '', name: '', role: 'Videographer' }],
-          equipment: ['Sony Camera', 'Tripod', 'Mic'],
-          totalAmount: 0,
+          equipment: ['Sony Camera', 'Tripod', 'Wireless Mic'],
+          expensesList: [{ title: 'Camera Rental', amount: 2000 }],
+          totalAmount: 2000,
           amountPaid: 0,
           notes: '',
           status: 'Scheduled',
@@ -202,7 +239,6 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
   };
 
   const onSubmit = async (values) => {
-    // Build combined ISO dates for startTime and endTime
     const startDateTime = new Date(`${values.shootDate}T${values.startTime}:00`);
     const endDateTime = new Date(`${values.shootDate}T${values.endTime}:00`);
 
@@ -210,16 +246,19 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
       const foundUser = users.find((u) => u._id === t.user);
       return {
         user: t.user && t.user !== '_none' ? t.user : undefined,
-        name: foundUser ? foundUser.name : t.name || 'Team Member',
+        name: t.name || (foundUser ? foundUser.name : 'Team Member'),
         role: t.role,
       };
     });
+
+    const finalTotalAmount = values.expensesList && values.expensesList.length > 0 ? sumExpenses : Number(values.totalAmount || 0);
 
     const payload = {
       ...values,
       startTime: startDateTime,
       endTime: endDateTime,
       assignedTeam: formattedTeam,
+      totalAmount: finalTotalAmount,
     };
 
     if (isEditing) {
@@ -242,7 +281,7 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
             {isEditing ? 'Edit Video Shoot Schedule' : 'Create Video Shoot Schedule'}
           </DialogTitle>
           <DialogDescription>
-            Plan video production, assign crew members, manage equipment lists, and track completion progress.
+            Plan video production, assign crew members, manage equipment & itemized expenses list, and track completion progress.
           </DialogDescription>
         </DialogHeader>
 
@@ -366,17 +405,23 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
               </div>
             </div>
 
-            {/* Content & Reels Progress Section */}
+            {/* Content & Reels Progress Section - Dynamic Red / Green colors */}
             <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-4">
               <h3 className="text-sm font-bold text-foreground">Content & Reels Planning Progress</h3>
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="p-3.5 rounded-xl border border-border/40 bg-background space-y-3">
-                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                    <span>Contents Progress</span>
-                    <span className="text-primary font-bold">{completedContents} / {plannedContents} ({contentPct}%)</span>
+                {/* Contents Progress */}
+                <div className={`p-3.5 rounded-xl border space-y-3 ${isContentBelowScheduled ? 'border-rose-500/40 bg-rose-500/5' : 'border-emerald-500/40 bg-emerald-500/5'}`}>
+                  <div className="flex justify-between items-center text-xs font-semibold">
+                    <span className="text-foreground">Contents Progress</span>
+                    <span className={`font-bold ${isContentBelowScheduled ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      {completedContents} / {plannedContents} ({contentPct}%) {isContentBelowScheduled ? '• Below Scheduled' : '• Target Met'}
+                    </span>
                   </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary transition-all duration-300" style={{ width: `${Math.min(contentPct, 100)}%` }} />
+                  <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${isContentBelowScheduled ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                      style={{ width: `${Math.min(contentPct, 100)}%` }}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <FormField
@@ -402,13 +447,19 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl border border-border/40 bg-background space-y-3">
-                  <div className="flex justify-between items-center text-xs font-semibold text-foreground">
-                    <span>Reels Progress</span>
-                    <span className="text-emerald-500 font-bold">{completedReels} / {plannedReels} ({reelsPct}%)</span>
+                {/* Reels Progress */}
+                <div className={`p-3.5 rounded-xl border space-y-3 ${isReelsBelowScheduled ? 'border-rose-500/40 bg-rose-500/5' : 'border-emerald-500/40 bg-emerald-500/5'}`}>
+                  <div className="flex justify-between items-center text-xs font-semibold">
+                    <span className="text-foreground">Reels Progress</span>
+                    <span className={`font-bold ${isReelsBelowScheduled ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      {completedReels} / {plannedReels} ({reelsPct}%) {isReelsBelowScheduled ? '• Below Scheduled' : '• Target Met'}
+                    </span>
                   </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${Math.min(reelsPct, 100)}%` }} />
+                  <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${isReelsBelowScheduled ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                      style={{ width: `${Math.min(reelsPct, 100)}%` }}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <FormField
@@ -436,7 +487,7 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
               </div>
             </div>
 
-            {/* Team Assignment */}
+            {/* Team Assignment - Select or Manual Type */}
             <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
@@ -452,60 +503,75 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
                 </Button>
               </div>
 
-              {teamFields.map((field, index) => (
-                <div key={field.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
-                  <div className="flex-1 min-w-[200px]">
-                    <Select
-                      value={form.watch(`assignedTeam.${index}.user`) || '_none'}
-                      onValueChange={(val) => {
-                        form.setValue(`assignedTeam.${index}.user`, val === '_none' ? '' : val);
-                        const selectedU = users.find((u) => u._id === val);
-                        if (selectedU) form.setValue(`assignedTeam.${index}.name`, selectedU.name);
-                      }}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select Employee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="_none">None (Manual Name)</SelectItem>
-                        {users.map((u) => (
-                          <SelectItem key={u._id} value={u._id}>
-                            {u.name} ({u.role})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              {teamFields.map((field, index) => {
+                const currentUserId = form.watch(`assignedTeam.${index}.user`);
+                const isManual = !currentUserId || currentUserId === '_none';
 
-                  <div className="w-[180px]">
-                    <Select
-                      value={form.watch(`assignedTeam.${index}.role`)}
-                      onValueChange={(val) => form.setValue(`assignedTeam.${index}.role`, val)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Select Role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TEAM_ROLES.map((r) => (
-                          <SelectItem key={r} value={r}>
-                            {r}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                return (
+                  <div key={field.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
+                    <div className="w-[180px]">
+                      <Select
+                        value={currentUserId || '_none'}
+                        onValueChange={(val) => {
+                          form.setValue(`assignedTeam.${index}.user`, val === '_none' ? '' : val);
+                          const selectedU = users.find((u) => u._id === val);
+                          if (selectedU) {
+                            form.setValue(`assignedTeam.${index}.name`, selectedU.name);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Select Employee" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="_none">Manual Name</SelectItem>
+                          {users.map((u) => (
+                            <SelectItem key={u._id} value={u._id}>
+                              {u.name} ({u.role})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10"
-                    onClick={() => removeTeam(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                    <div className="flex-1 min-w-[160px]">
+                      <Input
+                        placeholder="Type Employee / Crew Name..."
+                        className="h-9"
+                        {...form.register(`assignedTeam.${index}.name`)}
+                      />
+                    </div>
+
+                    <div className="w-[160px]">
+                      <Select
+                        value={form.watch(`assignedTeam.${index}.role`)}
+                        onValueChange={(val) => form.setValue(`assignedTeam.${index}.role`, val)}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Select Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TEAM_ROLES.map((r) => (
+                            <SelectItem key={r} value={r}>
+                              {r}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10"
+                      onClick={() => removeTeam(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
               {teamFields.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic py-1">No team members assigned yet. Click Add Team Member.</p>
               ) : null}
@@ -570,17 +636,95 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
               </div>
             </div>
 
-            {/* Expense Section */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-              <h3 className="text-sm font-bold text-foreground">Expense & Financial Tracking</h3>
-              <div className="grid gap-4 md:grid-cols-3">
+            {/* Itemized Shoot Expenses List (Before Total Amount) */}
+            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                    <Receipt className="h-4 w-4 text-emerald-500" /> Shoot Expenses Breakdown List
+                  </h3>
+                  <p className="text-xs text-muted-foreground">Add specific expenses like Camera Rental, Travel Allowance, Food & Catering, etc.</p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => appendExpense({ title: '', amount: 1000 })}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Expense Item
+                </Button>
+              </div>
+
+              {/* Quick Expense Suggestions */}
+              <div className="flex flex-wrap gap-1.5">
+                <span className="text-[11px] text-muted-foreground font-semibold mr-1">Quick Add:</span>
+                {COMMON_EXPENSES.map((exp) => (
+                  <button
+                    key={exp}
+                    type="button"
+                    onClick={() => appendExpense({ title: exp, amount: 1500 })}
+                    className="text-[11px] px-2 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 font-medium hover:bg-emerald-500/20 transition-colors"
+                  >
+                    + {exp}
+                  </button>
+                ))}
+              </div>
+
+              {expenseFields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Expense Title (e.g., Camera Rental, Travel, Food)"
+                      className="h-9"
+                      {...form.register(`expensesList.${index}.title`)}
+                    />
+                  </div>
+                  <div className="w-[160px]">
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-xs font-semibold text-muted-foreground">₹</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="Amount"
+                        className="h-9 pl-7"
+                        {...form.register(`expensesList.${index}.amount`)}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0 text-destructive"
+                    onClick={() => removeExpense(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+
+              {expenseFields.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic py-1">No itemized expenses added. You can type total amount manually below.</p>
+              ) : null}
+
+              {/* Expense & Financial Summary */}
+              <div className="pt-3 border-t border-border/40 grid gap-4 md:grid-cols-3">
                 <FormField
                   control={form.control}
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Total Amount (₹)</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          {...field}
+                          value={expenseFields.length > 0 ? sumExpenses : field.value}
+                          readOnly={expenseFields.length > 0}
+                          className={expenseFields.length > 0 ? 'bg-muted/50 font-bold' : ''}
+                        />
+                      </FormControl>
                     </FormItem>
                   )}
                 />
