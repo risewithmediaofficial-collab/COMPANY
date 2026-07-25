@@ -227,9 +227,9 @@ const DMCalendar = () => {
     const dateStr = format(currentDate, 'MMMM yyyy');
 
     let allItems = [];
-    videoShoots.forEach((s) => allItems.push({ title: `🎬 Video Shoot: ${s.shootTitle}`, date: s.shootDate, amount: s.totalAmount || 0, paid: s.amountPaid || 0, balance: s.balanceAmount || 0 }));
-    rjPromotions.forEach((r) => allItems.push({ title: `🎙️ RJ Promotion: ${r.promotionTitle}`, date: r.promotionDate, amount: r.totalAmount || 0, paid: r.amountPaid || 0, balance: r.balanceAmount || 0 }));
-    vjPromotions.forEach((v) => allItems.push({ title: `📺 VJ Promotion: ${v.promotionTitle} (${v.platform})`, date: v.promotionDate, amount: v.totalAmount || 0, paid: v.amountPaid || 0, balance: v.balanceAmount || 0 }));
+    videoShoots.forEach((s) => allItems.push({ title: `🎬 Video Shoot: ${s.shootTitle}`, date: s.shootDate, amount: s.totalAmount || 0, paid: s.amountPaid || 0, balance: s.balanceAmount || 0, expensesList: s.expensesList || [] }));
+    rjPromotions.forEach((r) => allItems.push({ title: `🎙️ RJ Promotion: ${r.promotionTitle}`, date: r.promotionDate, amount: r.totalAmount || 0, paid: r.amountPaid || 0, balance: r.balanceAmount || 0, expensesList: r.expensesList || [] }));
+    vjPromotions.forEach((v) => allItems.push({ title: `📺 VJ Promotion: ${v.promotionTitle} (${v.platform})`, date: v.promotionDate, amount: v.totalAmount || 0, paid: v.amountPaid || 0, balance: v.balanceAmount || 0, expensesList: v.expensesList || [] }));
 
     const grandTotal = allItems.reduce((a, c) => a + c.amount, 0);
     const grandPaid = allItems.reduce((a, c) => a + c.paid, 0);
@@ -261,8 +261,11 @@ const DMCalendar = () => {
 
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1; }
-            td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #334155; }
+            td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #334155; vertical-align: top; }
             .num-col { text-align: right; font-weight: 700; }
+
+            .exp-list { margin-top: 6px; padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px border-dashed #cbd5e1; font-size: 11px; color: #475569; }
+            .exp-item { display: inline-block; margin-right: 12px; margin-top: 2px; }
 
             .totals-container { display: flex; justify-content: flex-end; margin-top: 20px; }
             .totals-table { width: 340px; }
@@ -321,7 +324,7 @@ const DMCalendar = () => {
             <thead>
               <tr>
                 <th style="width: 40px;">#</th>
-                <th>Activity Description</th>
+                <th>Activity & Expenses Breakdown</th>
                 <th>Date</th>
                 <th class="num-col">Total Fee</th>
                 <th class="num-col">Paid</th>
@@ -332,8 +335,16 @@ const DMCalendar = () => {
               ${allItems.map((item, idx) => `
                 <tr>
                   <td>${idx + 1}</td>
-                  <td style="font-weight: 600;">${item.title}</td>
-                  <td>${new Date(item.date).toLocaleDateString('en-IN')}</td>
+                  <td>
+                    <div style="font-weight: 700; color: #0f172a;">${item.title}</div>
+                    ${item.expensesList && item.expensesList.length > 0 ? `
+                      <div class="exp-list">
+                        <strong style="color: #0f172a;">Itemized Expenses:</strong><br/>
+                        ${item.expensesList.map(e => `<span class="exp-item">• <strong>${e.title}:</strong> ₹${Number(e.amount || 0).toLocaleString('en-IN')}</span>`).join('')}
+                      </div>
+                    ` : ''}
+                  </td>
+                  <td style="white-space: nowrap;">${new Date(item.date).toLocaleDateString('en-IN')}</td>
                   <td class="num-col">₹${item.amount.toLocaleString('en-IN')}</td>
                   <td class="num-col" style="color: #16a34a;">₹${item.paid.toLocaleString('en-IN')}</td>
                   <td class="num-col" style="color: ${item.balance > 0 ? '#dc2626' : '#16a34a'}">₹${item.balance.toLocaleString('en-IN')}</td>
