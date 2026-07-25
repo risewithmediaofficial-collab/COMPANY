@@ -30,7 +30,7 @@ export const DataTable = ({
   emptyDescription = 'Get started by creating a new entry.',
   emptyAction = null,
   // maxHeight controls the inline vertical scroll — table body scrolls, header stays fixed
-  maxHeight = '520px',
+  maxHeight = 'calc(100vh - 350px)',
   className,
 }) => {
   const hasActions = Boolean(onView || onEdit || onDelete);
