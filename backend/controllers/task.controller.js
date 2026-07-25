@@ -161,9 +161,13 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.scriptLink !== undefined) payload.scriptLink = normalizeLink(payload.scriptLink);
   if (payload.pagesNeeded !== undefined) payload.pagesNeeded = normalizeStringArray(payload.pagesNeeded);
   if (payload.attachments !== undefined) payload.attachments = normalizeFiles(payload.attachments);
+  if (payload.scriptWriterAssigned !== undefined) payload.scriptWriterAssigned = toIdString(payload.scriptWriterAssigned) || undefined;
   if (payload.videographerAssigned !== undefined) payload.videographerAssigned = toIdString(payload.videographerAssigned) || undefined;
   if (payload.editorAssigned !== undefined) payload.editorAssigned = toIdString(payload.editorAssigned) || undefined;
   if (payload.publisherAssigned !== undefined) payload.publisherAssigned = toIdString(payload.publisherAssigned) || undefined;
+  if (payload.shootDate !== undefined) payload.shootDate = payload.shootDate ? new Date(payload.shootDate) : undefined;
+  if (payload.shootLocation !== undefined) payload.shootLocation = payload.shootLocation ? payload.shootLocation.trim() : '';
+  if (payload.rawFootageLink !== undefined) payload.rawFootageLink = normalizeLink(payload.rawFootageLink);
   if (payload.postingScheduleDate !== undefined) payload.postingScheduleDate = payload.postingScheduleDate ? new Date(payload.postingScheduleDate) : undefined;
   if (payload.postingPlatforms !== undefined) payload.postingPlatforms = normalizeStringArray(payload.postingPlatforms);
   if (payload.clientFeedback !== undefined) payload.clientFeedback = payload.clientFeedback?.toString?.().trim?.() || '';
@@ -298,6 +302,7 @@ const hydrateTask = async (taskId) => Task.findById(taskId)
   .populate('assignedTo', 'name email avatar role')
   .populate('assignedManager', 'name email avatar role')
   .populate('createdBy', 'name email avatar role')
+  .populate('scriptWriterAssigned', 'name email avatar role')
   .populate('videographerAssigned', 'name email avatar role')
   .populate('editorAssigned', 'name email avatar role')
   .populate('publisherAssigned', 'name email avatar role')
@@ -317,6 +322,10 @@ const syncTaskDerivedFields = async (task) => {
     }
   }
 
+  if (task.scriptWriterAssigned) {
+    const swUser = await User.findById(task.scriptWriterAssigned).select('name');
+    if (swUser) task.scriptWriterName = swUser.name;
+  }
   if (task.videographerAssigned) {
     const vUser = await User.findById(task.videographerAssigned).select('name');
     if (vUser) task.videographerName = vUser.name;
@@ -332,6 +341,7 @@ const syncTaskDerivedFields = async (task) => {
 
   const allSubAssignees = [
     ...toArray(task.assignedTo),
+    task.scriptWriterAssigned,
     task.videographerAssigned,
     task.editorAssigned,
     task.publisherAssigned,

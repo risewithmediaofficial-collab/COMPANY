@@ -61,6 +61,15 @@ const BLANK_TASK_TEMPLATE = {
   videoType: 'reels',
   taskType: 'reel',
   description: '',
+  scriptWriterAssigned: '',
+  videographerAssigned: '',
+  editorAssigned: '',
+  publisherAssigned: '',
+  shootDate: '',
+  shootLocation: '',
+  rawFootageLink: '',
+  postingPlatforms: [],
+  postingScheduleDate: '',
   caption: '',
   scriptText: '',
   scriptLink: '',
@@ -94,9 +103,13 @@ const taskFormSchema = z.object({
   project: z.string().min(1, 'Select a project first'),
   assignedTo: z.string().min(1, 'Assigned person is required'),
   assignedManager: z.string().optional(),
+  scriptWriterAssigned: z.string().optional(),
   videographerAssigned: z.string().optional(),
   editorAssigned: z.string().optional(),
   publisherAssigned: z.string().optional(),
+  shootDate: z.string().optional(),
+  shootLocation: z.string().optional(),
+  rawFootageLink: z.string().optional(),
   postingPlatforms: z.array(z.string()).default([]),
   postingScheduleDate: z.string().optional(),
   priority: z.enum(PRIORITY_OPTIONS),
@@ -141,9 +154,13 @@ const buildDefaultValues = (initialValues = {}) => ({
   project: '',
   assignedTo: '',
   assignedManager: '',
+  scriptWriterAssigned: '',
   videographerAssigned: '',
   editorAssigned: '',
   publisherAssigned: '',
+  shootDate: '',
+  shootLocation: '',
+  rawFootageLink: '',
   postingPlatforms: [],
   postingScheduleDate: '',
   priority: 'Medium',
@@ -595,19 +612,43 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         )}
       />
 
-      {/* Notion-Style Multi-Role Workflow Sub-Assignments & Platform Posting */}
+      {/* Notion-Style Multi-Role Workflow Sub-Assignments & Production Details */}
       <div className="md:col-span-2 rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-4 my-2">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-            ⚡ Workflow Sub-Assignments & Platform Posting (Notion-Style)
+            ⚡ Notion-Style Production Pipeline & Multi-Person Assignments
           </h3>
           <span className="text-[10px] text-muted-foreground bg-background px-2 py-0.5 rounded-full border border-border">
             1-Time Multi-Role Assign
           </span>
         </div>
 
-        {/* 3 Workflow Roles */}
-        <div className="grid gap-3 md:grid-cols-3">
+        {/* 4 Workflow Roles */}
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+          {/* Script By (Writer) */}
+          <FormField
+            control={form.control}
+            name="scriptWriterAssigned"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  ✍️ Script By (Writer)
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Script Writer" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="_none">Unassigned</SelectItem>
+                    {assignableUsers.map((user) => (
+                      <SelectItem key={user._id} value={user._id}>{user.name} ({user.role})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
           {/* Shoot By (Videographer) */}
           <FormField
             control={form.control}
@@ -639,7 +680,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  ✂️ Editing By (Video Editor)
+                  ✂️ Editing By (Editor)
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
@@ -676,6 +717,48 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                     ))}
                   </SelectContent>
                 </Select>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Production Details (Shoot Date, Location, Raw Footage Link) */}
+        <div className="grid gap-3 md:grid-cols-3 pt-2 border-t border-border/40">
+          <FormField
+            control={form.control}
+            name="shootDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground">📅 Shoot Scheduled Date & Time</FormLabel>
+                <FormControl>
+                  <Input type="datetime-local" className="bg-background" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="shootLocation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground">📍 Shoot Location / Studio</FormLabel>
+                <FormControl>
+                  <Input placeholder="E.g., Studio 2, Client Office" className="bg-background" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="rawFootageLink"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground">📁 Raw Footage Drive Link</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://drive.google.com/..." className="bg-background" {...field} />
+                </FormControl>
               </FormItem>
             )}
           />
@@ -1899,6 +1982,115 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                     value={taskItem.editingInstructions || ''}
                                     onChange={(e) => updateTaskField(index, 'editingInstructions', e.target.value)}
                                   />
+                                </div>
+                              </div>
+
+                              {/* Notion-Style Multi-Role Sub-Assignments for Task #Index */}
+                              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                    ⚡ Production Pipeline & Sub-Assignments (Task #{index + 1})
+                                  </h4>
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+                                  {/* Script Writer */}
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-foreground">✍️ Script By (Writer)</label>
+                                    <Select
+                                      value={taskItem.scriptWriterAssigned || '_none'}
+                                      onValueChange={(val) => updateTaskField(index, 'scriptWriterAssigned', val === '_none' ? '' : val)}
+                                    >
+                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Script Writer" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="_none">Unassigned</SelectItem>
+                                        {assignableUsers.map((u) => (
+                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {/* Videographer */}
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-foreground">🎥 Shoot By (Videographer)</label>
+                                    <Select
+                                      value={taskItem.videographerAssigned || '_none'}
+                                      onValueChange={(val) => updateTaskField(index, 'videographerAssigned', val === '_none' ? '' : val)}
+                                    >
+                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Videographer" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="_none">Unassigned</SelectItem>
+                                        {assignableUsers.map((u) => (
+                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {/* Editor */}
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-foreground">✂️ Editing By (Editor)</label>
+                                    <Select
+                                      value={taskItem.editorAssigned || '_none'}
+                                      onValueChange={(val) => updateTaskField(index, 'editorAssigned', val === '_none' ? '' : val)}
+                                    >
+                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Editor" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="_none">Unassigned</SelectItem>
+                                        {assignableUsers.map((u) => (
+                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {/* Publisher */}
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-foreground">📱 Posting By (Publisher)</label>
+                                    <Select
+                                      value={taskItem.publisherAssigned || '_none'}
+                                      onValueChange={(val) => updateTaskField(index, 'publisherAssigned', val === '_none' ? '' : val)}
+                                    >
+                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Publisher" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="_none">Unassigned</SelectItem>
+                                        {assignableUsers.map((u) => (
+                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+
+                                <div className="grid gap-3 md:grid-cols-3 pt-2 border-t border-border/40">
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-foreground">📅 Shoot Date & Time</label>
+                                    <Input
+                                      type="datetime-local"
+                                      className="rounded-xl bg-background text-xs"
+                                      value={taskItem.shootDate || ''}
+                                      onChange={(e) => updateTaskField(index, 'shootDate', e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-foreground">📍 Shoot Location</label>
+                                    <Input
+                                      placeholder="Studio / Client location"
+                                      className="rounded-xl bg-background text-xs"
+                                      value={taskItem.shootLocation || ''}
+                                      onChange={(e) => updateTaskField(index, 'shootLocation', e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[11px] font-bold text-foreground">📁 Raw Footage Drive Link</label>
+                                    <Input
+                                      placeholder="https://drive.google.com/..."
+                                      className="rounded-xl bg-background text-xs"
+                                      value={taskItem.rawFootageLink || ''}
+                                      onChange={(e) => updateTaskField(index, 'rawFootageLink', e.target.value)}
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             </div>

@@ -89,6 +89,9 @@ const taskSchema = new mongoose.Schema(
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
     // Multi-Role Sub-Assignments (Notion / ClickUp style)
+    scriptWriterAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    scriptWriterName: { type: String, default: '' },
+
     videographerAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     videographerName: { type: String, default: '' },
 
@@ -97,6 +100,10 @@ const taskSchema = new mongoose.Schema(
 
     publisherAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     publisherName: { type: String, default: '' },
+
+    shootDate: { type: Date },
+    shootLocation: { type: String, default: '' },
+    rawFootageLink: { type: String, default: '' },
 
     postingPlatforms: [{ type: String }],
     postingScheduleDate: { type: Date },

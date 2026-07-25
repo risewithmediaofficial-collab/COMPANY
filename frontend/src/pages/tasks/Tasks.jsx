@@ -135,12 +135,38 @@ const Tasks = () => {
     },
     {
       key: 'assignedTo',
-      label: 'Assigned Person',
+      label: 'Pipeline & Assignees',
       render: (row) => (
-        <div className="text-sm text-foreground">
-          {Array.isArray(row.assignedTo) && row.assignedTo.length
-            ? row.assignedTo.map((assignee) => assignee.name).join(', ')
-            : row.assignedPersonName || 'Unassigned'}
+        <div className="space-y-1">
+          <div className="text-sm font-bold text-foreground">
+            {Array.isArray(row.assignedTo) && row.assignedTo.length
+              ? row.assignedTo.map((assignee) => assignee.name).join(', ')
+              : row.assignedPersonName || 'Unassigned'}
+          </div>
+          {(row.scriptWriterAssigned || row.videographerAssigned || row.editorAssigned || row.publisherAssigned) && (
+            <div className="flex flex-wrap gap-1 text-[10px]">
+              {row.scriptWriterAssigned && (
+                <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 font-semibold">
+                  ✍️ {row.scriptWriterAssigned.name || row.scriptWriterName}
+                </span>
+              )}
+              {row.videographerAssigned && (
+                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-semibold">
+                  🎥 {row.videographerAssigned.name || row.videographerName}
+                </span>
+              )}
+              {row.editorAssigned && (
+                <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 font-semibold">
+                  ✂️ {row.editorAssigned.name || row.editorName}
+                </span>
+              )}
+              {row.publisherAssigned && (
+                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-semibold">
+                  📱 {row.publisherAssigned.name || row.publisherName}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       ),
     },
