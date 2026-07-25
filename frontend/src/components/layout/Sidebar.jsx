@@ -93,7 +93,6 @@ const Sidebar = () => {
       { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Reports', icon: BarChart3, path: '/reports' },
       { name: 'Asset Library', icon: Palette, path: '/assets' },
-      { name: 'Portal Manager', icon: FileText, path: '/portal-manager' },
       { name: 'Manager Assignments', icon: CheckSquare, path: '/admin/manager-assignments' },
       { name: 'Manager Board', icon: ClipboardList, path: '/manager-board' },
       { name: 'Users', icon: Users2, path: '/admin/users' },
@@ -118,7 +117,6 @@ const Sidebar = () => {
       { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Reports', icon: BarChart3, path: '/reports' },
       { name: 'Asset Library', icon: Palette, path: '/assets' },
-      { name: 'Portal Manager', icon: FileText, path: '/portal-manager' },
       { name: 'Manager Board', icon: ClipboardList, path: '/manager-board' },
     ],
     employee: [

@@ -48,7 +48,6 @@ import ManagerTaskAssignments from './pages/admin/ManagerTaskAssignments';
 import AssetsLibrary from './pages/assets/AssetsLibrary';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
-import PortalManager from './pages/portal/PortalManager';
 import PortalDashboard from './pages/portal/sections/PortalDashboard';
 import PortalReports from './pages/portal/sections/PortalReports';
 import PortalDownloads from './pages/portal/sections/PortalDownloads';
@@ -205,12 +204,7 @@ const App = () => {
             </ProtectedRoute>
           } />
 
-          {/* Portal Manager (agency-side) */}
-          <Route path="/portal-manager" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
-              <PortalManager />
-            </ProtectedRoute>
-          } />
+
 
           {/* Tasks & Calendar */}
           <Route path="/tasks" element={
