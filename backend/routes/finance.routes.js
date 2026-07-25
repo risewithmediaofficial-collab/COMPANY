@@ -13,6 +13,9 @@ import {
   deleteFinanceRecord,
   deleteCallHistory,
   deleteInvoice,
+  updateExpense,
+  deleteExpense,
+  getMonthlyExpenseReport,
   getCallHistory,
   getCallHistoryByClient,
   getCallHistoryByProject,
@@ -45,7 +48,7 @@ const router = express.Router();
 router.get('/invoices/public/:publicLink', getInvoiceByPublicLink);
 router.use(protect);
 
-router.get('/summary', authorize('superAdmin'), getFinanceSummary);
+router.get('/summary', authorize('superAdmin', 'manager'), getFinanceSummary);
 router.get('/dashboard-summary', authorize('superAdmin', 'manager'), getFinanceDashboardSummary);
 
 router.get('/records/overdue/list', authorize('superAdmin', 'manager', 'employee', 'client'), getOverdueFinanceRecords);
@@ -82,9 +85,12 @@ router.post('/call-history', authorize('superAdmin', 'manager', 'employee'), add
 router.put('/call-history/:id', authorize('superAdmin', 'manager', 'employee'), updateCallHistory);
 router.delete('/call-history/:id', authorize('superAdmin', 'manager'), deleteCallHistory);
 
+router.get('/expenses/monthly-report', authorize('superAdmin', 'manager'), getMonthlyExpenseReport);
 router.get('/expenses', authorize('superAdmin', 'manager', 'employee'), getExpenses);
 router.post('/expenses', authorize('superAdmin', 'manager', 'employee'), createExpense);
-router.patch('/expenses/:id/approve', authorize('superAdmin'), approveExpense);
+router.put('/expenses/:id', authorize('superAdmin', 'manager'), updateExpense);
+router.delete('/expenses/:id', authorize('superAdmin', 'manager'), deleteExpense);
+router.patch('/expenses/:id/approve', authorize('superAdmin', 'manager'), approveExpense);
 
 router.put('/:id', authorize('superAdmin', 'manager'), updateFinanceEntry);
 router.delete('/:id', authorize('superAdmin', 'manager'), deleteFinanceEntry);

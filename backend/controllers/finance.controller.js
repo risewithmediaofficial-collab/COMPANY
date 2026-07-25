@@ -1483,26 +1483,58 @@ export const getTodayFollowUpCalls = async (req, res) => {
 
 export const getExpenses = async (req, res) => {
   try {
-    const { status, category, search, page = 1, limit = 20 } = req.query;
+    const { status, category, transactionType, search, sort = 'date_desc', month, startDate, endDate, page = 1, limit = 100 } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
     if (category) filter.category = category;
-    if (req.user.role !== 'superAdmin') filter.submittedBy = req.user._id;
+    if (transactionType) filter.transactionType = transactionType;
+
+    // SuperAdmin and Manager can view all company expenses, employees only see theirs
+    if (!['superAdmin', 'manager'].includes(req.user.role) && !req.user?.permissions?.canManageFinance) {
+      filter.submittedBy = req.user._id;
+    }
+
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: 'i' } },
         { notes: { $regex: search, $options: 'i' } },
+        { customCategory: { $regex: search, $options: 'i' } },
       ];
     }
+
+    if (month) {
+      // Month format: YYYY-MM
+      const [y, m] = month.split('-').map(Number);
+      if (y && m) {
+        const start = new Date(y, m - 1, 1);
+        const end = new Date(y, m, 0, 23, 59, 59, 999);
+        filter.date = { $gte: start, $lte: end };
+      }
+    } else if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) {
+        const eDate = new Date(endDate);
+        eDate.setHours(23, 59, 59, 999);
+        filter.date.$lte = eDate;
+      }
+    }
+
+    let sortOption = { date: -1 };
+    if (sort === 'date_asc') sortOption = { date: 1 };
+    else if (sort === 'date_desc') sortOption = { date: -1 };
+    else if (sort === 'amount_desc') sortOption = { amount: -1 };
+    else if (sort === 'amount_asc') sortOption = { amount: 1 };
 
     const total = await Expense.countDocuments(filter);
     const expenses = await Expense.find(filter)
       .populate('submittedBy', 'name avatar')
       .populate('approvedBy', 'name')
+      .populate('updatedBy', 'name')
       .populate('project', 'name')
       .populate('client', 'name company')
-      .sort({ date: -1 })
+      .sort(sortOption)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 
@@ -1521,12 +1553,19 @@ export const createExpense = async (req, res) => {
     const match = await resolveClientProject({ clientId: req.body.client, projectId: req.body.project });
     if (!match.ok) return res.status(match.status).json({ success: false, message: match.message });
 
+    const isManagerOrAdmin = ['superAdmin', 'manager'].includes(req.user.role) || Boolean(req.user?.permissions?.canManageFinance);
+    const defaultStatus = isManagerOrAdmin ? 'approved' : 'pending';
+
     const expense = await Expense.create({
       ...req.body,
       amount: Number(req.body.amount) || 0,
       client: match.client?._id,
       project: match.project?._id,
       submittedBy: req.user._id,
+      approvedBy: isManagerOrAdmin ? req.user._id : undefined,
+      status: req.body.status || defaultStatus,
+      transactionType: req.body.transactionType || 'Expense',
+      customCategory: req.body.customCategory?.trim() || '',
     });
 
     await createActivityLog({
@@ -1535,15 +1574,94 @@ export const createExpense = async (req, res) => {
       entityType: 'expense',
       entityId: expense._id,
       title: 'Expense created',
-      description: `${expense.title} was submitted.`,
+      description: `${expense.title} was recorded (${expense.transactionType}).`,
       relatedClient: expense.client,
       relatedProject: expense.project,
-      metadata: { amount: expense.amount, status: expense.status },
+      metadata: { amount: expense.amount, status: expense.status, transactionType: expense.transactionType },
     });
 
     res.status(201).json({ success: true, expense });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const updateExpense = async (req, res) => {
+  try {
+    const expense = await Expense.findById(req.params.id);
+    if (!expense) return res.status(404).json({ success: false, message: 'Expense record not found' });
+
+    const isManagerOrAdmin = ['superAdmin', 'manager'].includes(req.user.role) || Boolean(req.user?.permissions?.canManageFinance);
+    if (!isManagerOrAdmin && expense.submittedBy?.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update this expense' });
+    }
+
+    const match = await resolveClientProject({ clientId: req.body.client, projectId: req.body.project });
+    if (!match.ok) return res.status(match.status).json({ success: false, message: match.message });
+
+    if (req.body.title !== undefined) expense.title = req.body.title;
+    if (req.body.amount !== undefined) expense.amount = Number(req.body.amount) || 0;
+    if (req.body.category !== undefined) expense.category = req.body.category;
+    if (req.body.customCategory !== undefined) expense.customCategory = req.body.customCategory.trim();
+    if (req.body.transactionType !== undefined) expense.transactionType = req.body.transactionType;
+    if (req.body.date !== undefined) expense.date = req.body.date;
+    if (req.body.notes !== undefined) expense.notes = req.body.notes;
+    if (req.body.status !== undefined) expense.status = req.body.status;
+    expense.client = match.client?._id;
+    expense.project = match.project?._id;
+    expense.updatedBy = req.user._id;
+
+    await expense.save();
+
+    const updatedExpense = await Expense.findById(expense._id)
+      .populate('submittedBy', 'name avatar')
+      .populate('approvedBy', 'name')
+      .populate('updatedBy', 'name')
+      .populate('project', 'name')
+      .populate('client', 'name company');
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'expense.updated',
+      entityType: 'expense',
+      entityId: expense._id,
+      title: 'Expense updated',
+      description: `${expense.title} was updated by ${req.user.name}.`,
+      relatedClient: expense.client,
+      relatedProject: expense.project,
+      metadata: { amount: expense.amount, status: expense.status },
+    });
+
+    res.json({ success: true, expense: updatedExpense });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteExpense = async (req, res) => {
+  try {
+    const expense = await Expense.findById(req.params.id);
+    if (!expense) return res.status(404).json({ success: false, message: 'Expense record not found' });
+
+    const isManagerOrAdmin = ['superAdmin', 'manager'].includes(req.user.role) || Boolean(req.user?.permissions?.canManageFinance);
+    if (!isManagerOrAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this expense' });
+    }
+
+    await expense.deleteOne();
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'expense.deleted',
+      entityType: 'expense',
+      entityId: req.params.id,
+      title: 'Expense deleted',
+      description: `${expense.title} was deleted.`,
+    });
+
+    res.json({ success: true, message: 'Expense deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -1590,6 +1708,88 @@ export const approveExpense = async (req, res) => {
   }
 };
 
+export const getMonthlyExpenseReport = async (req, res) => {
+  try {
+    const now = new Date();
+    const year = Number(req.query.year) || now.getFullYear();
+    const month = Number(req.query.month) || (now.getMonth() + 1);
+
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+
+    const [monthlyInvoices, monthlyExpensesData] = await Promise.all([
+      Invoice.aggregate([
+        { $match: { status: 'paid', paidDate: { $gte: startOfMonth, $lte: endOfMonth } } },
+        { $group: { _id: null, totalRevenue: { $sum: '$paidAmount' } } },
+      ]),
+      Expense.find({
+        date: { $gte: startOfMonth, $lte: endOfMonth },
+        status: 'approved',
+      })
+        .populate('submittedBy', 'name')
+        .populate('approvedBy', 'name')
+        .populate('client', 'name company')
+        .populate('project', 'name')
+        .sort({ date: -1 }),
+    ]);
+
+    const totalRevenue = monthlyInvoices[0]?.totalRevenue || 0;
+    
+    // Total expenses vs profits logged in month
+    let totalExpenses = 0;
+    let totalProfitsAdded = 0;
+
+    const categoryTotals = {
+      rj: 0,
+      video_shoot: 0,
+      travel_allowance: 0,
+      ads_campaign: 0,
+      salary: 0,
+      tools: 0,
+      advertising: 0,
+      travel: 0,
+      office: 0,
+      freelance: 0,
+      misc: 0,
+      other: 0,
+    };
+
+    monthlyExpensesData.forEach((item) => {
+      const amt = Number(item.amount) || 0;
+      if (item.transactionType === 'Profit') {
+        totalProfitsAdded += amt;
+      } else {
+        totalExpenses += amt;
+        const cat = item.category || 'misc';
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + amt;
+      }
+    });
+
+    const netProfit = (totalRevenue + totalProfitsAdded) - totalExpenses;
+    const profitMargin = (totalRevenue + totalProfitsAdded) > 0 
+      ? Number((((netProfit) / (totalRevenue + totalProfitsAdded)) * 100).toFixed(1)) 
+      : 0;
+
+    res.json({
+      success: true,
+      report: {
+        year,
+        month,
+        totalRevenue,
+        totalExpenses,
+        totalProfitsAdded,
+        netProfit,
+        profitMargin,
+        categoryTotals,
+        expensesCount: monthlyExpensesData.length,
+        expenses: monthlyExpensesData,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const getFinanceSummary = async (req, res) => {
   try {
     const now = new Date();
@@ -1598,7 +1798,7 @@ export const getFinanceSummary = async (req, res) => {
     const [totalRevenue, monthRevenue, totalExpenses, overdueInvoices, pendingInvoices] = await Promise.all([
       Invoice.aggregate([{ $match: { status: 'paid' } }, { $group: { _id: null, total: { $sum: '$paidAmount' } } }]),
       Invoice.aggregate([{ $match: { status: 'paid', paidDate: { $gte: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$paidAmount' } } }]),
-      Expense.aggregate([{ $match: { status: 'approved' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+      Expense.aggregate([{ $match: { status: 'approved', transactionType: { $ne: 'Profit' } } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
       Invoice.countDocuments({ status: 'overdue' }),
       Invoice.countDocuments({ status: { $in: ['draft', 'sent'] } }),
     ]);

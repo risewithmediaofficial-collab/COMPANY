@@ -540,6 +540,43 @@ export const useCreateExpense = () => {
   });
 };
 
+export const useUpdateExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/expenses/${id}`, data);
+      return response.data.expense;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-expense-report'] });
+      toast.success('Expense record updated successfully!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update expense record');
+    },
+  });
+};
+
+export const useDeleteExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/finance/expenses/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-expense-report'] });
+      toast.success('Expense deleted successfully!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete expense');
+    },
+  });
+};
+
 export const useApproveExpense = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -550,11 +587,24 @@ export const useApproveExpense = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['finance-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-expense-report'] });
       toast.success('Expense status updated successfully!');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to update expense status');
     },
+  });
+};
+
+export const useMonthlyExpenseReport = (params = {}, options = {}) => {
+  return useQuery({
+    queryKey: ['monthly-expense-report', params],
+    queryFn: async () => {
+      const response = await api.get('/finance/expenses/monthly-report', { params });
+      return response.data?.report || {};
+    },
+    staleTime: 2 * 60 * 1000,
+    ...options,
   });
 };
 

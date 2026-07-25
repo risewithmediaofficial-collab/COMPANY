@@ -11,6 +11,10 @@ import {
   Receipt,
   Send,
   Users2,
+  Calendar,
+  Pencil,
+  Trash2,
+  Filter,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import {
@@ -26,6 +30,7 @@ import { AddFinanceModal } from '../../components/modals/AddFinanceModal';
 import { AddInvoiceModal } from '../../components/modals/AddInvoiceModal';
 import { AddExpenseModal } from '../../components/modals/AddExpenseModal';
 import { AddAdsCampaignModal } from '../../components/modals/AddAdsCampaignModal';
+import { MonthlyExpenseReportModal } from '../../components/modals/MonthlyExpenseReportModal';
 import { DataTable } from '../../components/ui/DataTable';
 import {
   MetricCard,
@@ -59,6 +64,7 @@ import {
   useSendInvoice,
   useExpenses,
   useApproveExpense,
+  useDeleteExpense,
 } from '../../hooks/useFinance';
 
 const currency = new Intl.NumberFormat('en-IN', {
@@ -66,8 +72,6 @@ const currency = new Intl.NumberFormat('en-IN', {
   currency: 'INR',
   maximumFractionDigits: 0,
 });
-
-
 
 const paymentStatusTone = {
   'Not Paid': 'neutral',
@@ -90,37 +94,39 @@ const Finance = () => {
   const { user } = useSelector((state) => state.auth);
   const isManager = user?.role === 'manager';
   const isAdmin = user?.role === 'superAdmin';
-  const canViewFinanceDetails = isAdmin || (!!user?.permissions?.canManageFinance && !isManager);
+  const canViewFinanceDetails = isAdmin || isManager || Boolean(user?.permissions?.canManageFinance);
 
   const tabs = useMemo(() => {
-    if (isManager) {
-      return [{ id: 'adsCampaigns', label: 'Ads Campaigns', icon: BarChart3 }];
-    }
-    return [
-      ...(canViewFinanceDetails ? [
+    if (canViewFinanceDetails) {
+      return [
         { id: 'records', label: 'Finance Records', icon: IndianRupee },
         { id: 'invoices', label: 'Invoices', icon: FileText },
         { id: 'referrals', label: 'Referrals', icon: Users2 },
         { id: 'adsCampaigns', label: 'Ads Campaigns', icon: BarChart3 },
-      ] : [
-        { id: 'invoices', label: 'Invoices', icon: FileText }
-      ]),
-      ...(isAdmin ? [{ id: 'expenses', label: 'Expenses & Profits', icon: Receipt }] : []),
-    ];
-  }, [isManager, canViewFinanceDetails, isAdmin]);
+        { id: 'expenses', label: 'Expenses & Profits', icon: Receipt },
+      ];
+    }
+    return [{ id: 'invoices', label: 'Invoices', icon: FileText }];
+  }, [canViewFinanceDetails]);
 
-  const [activeTab, setActiveTab] = useState(() => {
-    if (isManager) return 'adsCampaigns';
-    return canViewFinanceDetails ? 'records' : 'invoices';
-  });
+  const [activeTab, setActiveTab] = useState(() => (canViewFinanceDetails ? 'records' : 'invoices'));
   const [search, setSearch] = useState('');
   const [showFinanceModal, setShowFinanceModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showAdsCampaignModal, setShowAdsCampaignModal] = useState(false);
+  const [showMonthlyReportModal, setShowMonthlyReportModal] = useState(false);
+
+  const [expenseCategoryFilter, setExpenseCategoryFilter] = useState('all');
+  const [expenseTypeFilter, setExpenseTypeFilter] = useState('all');
+  const [expenseSort, setExpenseSort] = useState('date_desc');
+
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedExpense, setSelectedExpense] = useState(null);
   const [deleteInvoiceId, setDeleteInvoiceId] = useState(null);
+  const [deleteExpenseId, setDeleteExpenseId] = useState(null);
+
   const [paymentForms, setPaymentForms] = useState({});
   const [followupForms, setFollowupForms] = useState({});
   const [callForm, setCallForm] = useState({
@@ -151,9 +157,9 @@ const Finance = () => {
     notes: '',
   });
 
-  const canManage = canViewFinanceDetails || isManager;
-  const canDeleteFinance = user?.role === 'superAdmin';
-  const canDeleteInvoice = user?.role === 'superAdmin';
+  const canManage = canViewFinanceDetails;
+  const canDeleteFinance = user?.role === 'superAdmin' || isManager;
+  const canDeleteInvoice = user?.role === 'superAdmin' || isManager;
 
   const { data: clients = [] } = useClients({}, { enabled: canManage });
   const { data: projects = [] } = useProjects({}, { enabled: canManage });
@@ -163,9 +169,18 @@ const Finance = () => {
   const { data: callHistory = [] } = useCallHistory({ search }, { enabled: canViewFinanceDetails });
   const { data: referrals = [] } = useReferrals({ search }, { enabled: canViewFinanceDetails });
   const { data: referralAnalytics = {} } = useReferralAnalytics({ enabled: canViewFinanceDetails });
-  const { data: financeSummary = {} } = useFinanceSummary({ enabled: isAdmin });
-  const { data: expenses = [] } = useExpenses({ search }, { enabled: isAdmin });
+  const { data: financeSummary = {} } = useFinanceSummary({ enabled: canViewFinanceDetails });
+  const { data: expenses = [] } = useExpenses(
+    {
+      search,
+      category: expenseCategoryFilter !== 'all' ? expenseCategoryFilter : undefined,
+      transactionType: expenseTypeFilter !== 'all' ? expenseTypeFilter : undefined,
+      sort: expenseSort,
+    },
+    { enabled: canViewFinanceDetails }
+  );
   const approveExpense = useApproveExpense();
+  const deleteExpense = useDeleteExpense();
   const { data: payments = [] } = usePayments({ search }, { enabled: canViewFinanceDetails });
   const { data: overdueRecords = [] } = useOverdueFinanceRecords({ enabled: canViewFinanceDetails });
 
@@ -181,6 +196,10 @@ const Finance = () => {
   const deleteReferral = useDeleteReferral();
 
   const categoryLabels = {
+    rj: 'RJ / Voice Over',
+    video_shoot: 'Video Shoot',
+    travel_allowance: 'Travel Allowance',
+    ads_campaign: 'Ads Campaign Spend',
     salary: 'Salary',
     tools: 'Software Tools',
     advertising: 'Advertising',
@@ -188,21 +207,27 @@ const Finance = () => {
     office: 'Office & Rent',
     freelance: 'Freelancer Fees',
     misc: 'Miscellaneous',
+    other: 'Other (Custom)',
   };
 
   const categoryBreakdown = useMemo(() => {
     const breakdown = {
+      rj: 0,
+      video_shoot: 0,
+      travel_allowance: 0,
+      ads_campaign: 0,
       salary: 0,
       tools: 0,
-      advertising: 0,
       travel: 0,
       office: 0,
       freelance: 0,
       misc: 0,
+      other: 0,
     };
     expenses.forEach((exp) => {
-      if (exp.status === 'approved' && breakdown[exp.category] !== undefined) {
-        breakdown[exp.category] += Number(exp.amount || 0);
+      if (exp.status === 'approved' && exp.transactionType !== 'Profit') {
+        const cat = exp.category || 'misc';
+        breakdown[cat] = (breakdown[cat] || 0) + Number(exp.amount || 0);
       }
     });
     return breakdown;
@@ -342,40 +367,53 @@ const Finance = () => {
   const expenseColumns = [
     {
       key: 'title',
-      label: 'Expense Details',
+      label: 'Expense / Profit Title',
       render: (row) => (
         <div className="min-w-0">
           <div className="font-semibold text-foreground">{row.title}</div>
-          {row.notes && <div className="mt-1 text-xs text-muted-foreground line-clamp-1">{row.notes}</div>}
+          {row.notes ? <div className="mt-1 text-xs text-muted-foreground line-clamp-1">{row.notes}</div> : null}
         </div>
       ),
     },
     {
       key: 'category',
-      label: 'Category',
+      label: 'Type / Category',
       render: (row) => (
-        <span className="capitalize">{categoryLabels[row.category] || row.category}</span>
+        <StatusBadge tone="neutral">
+          {row.category === 'other' && row.customCategory
+            ? row.customCategory
+            : categoryLabels[row.category] || row.category}
+        </StatusBadge>
+      ),
+    },
+    {
+      key: 'transactionType',
+      label: 'Transaction',
+      render: (row) => (
+        <StatusBadge tone={row.transactionType === 'Profit' ? 'success' : 'danger'}>
+          {row.transactionType || 'Expense'}
+        </StatusBadge>
       ),
     },
     {
       key: 'amount',
       label: 'Amount',
       render: (row) => (
-        <span className="font-semibold text-foreground">{currency.format(Number(row.amount || 0))}</span>
+        <span className="font-bold text-foreground">{currency.format(Number(row.amount || 0))}</span>
       ),
     },
     {
       key: 'date',
       label: 'Date',
       render: (row) => (
-        <span>{row.date ? new Date(row.date).toLocaleDateString() : 'N/A'}</span>
+        <span className="text-xs">{row.date ? new Date(row.date).toLocaleDateString('en-IN') : 'N/A'}</span>
       ),
     },
     {
       key: 'submittedBy',
       label: 'Submitted By',
       render: (row) => (
-        <span>{row.submittedBy?.name || 'Admin'}</span>
+        <span className="text-xs text-muted-foreground">{row.submittedBy?.name || 'Admin'}</span>
       ),
     },
     {
@@ -393,17 +431,29 @@ const Finance = () => {
     {
       key: 'actions',
       label: 'Actions',
-      render: (row) => {
-        if (row.status === 'pending') {
-          return (
-            <div className="flex gap-2" onClick={(event) => event.stopPropagation()}>
-              <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50" onClick={() => approveExpense.mutate({ id: row._id, action: 'approve' })} disabled={approveExpense.isPending}>Approve</Button>
-              <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => approveExpense.mutate({ id: row._id, action: 'reject' })} disabled={approveExpense.isPending}>Reject</Button>
-            </div>
-          );
-        }
-        return <span className="text-xs text-muted-foreground">-</span>;
-      },
+      render: (row) => (
+        <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
+          {row.status === 'pending' && canManage ? (
+            <>
+              <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-7 px-2 text-xs" onClick={() => approveExpense.mutate({ id: row._id, action: 'approve' })} disabled={approveExpense.isPending}>Approve</Button>
+              <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50 h-7 px-2 text-xs" onClick={() => approveExpense.mutate({ id: row._id, action: 'reject' })} disabled={approveExpense.isPending}>Reject</Button>
+            </>
+          ) : null}
+          {canManage ? (
+            <>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
+                setSelectedExpense(row);
+                setShowExpenseModal(true);
+              }}>
+                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:text-destructive" onClick={() => setDeleteExpenseId(row._id)}>
+                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            </>
+          ) : null}
+        </div>
+      ),
     },
   ];
 
@@ -738,10 +788,12 @@ const Finance = () => {
         </SectionCard>
       ) : null}
 
-      {activeTab === 'expenses' && isAdmin ? (
+      {activeTab === 'expenses' && (canViewFinanceDetails || isManager) ? (
         <div className="space-y-6">
-          <SectionCard title="Expenses & Profits Dashboard" description="Full-scope P&L summary and operational overhead report. Restricted to superAdmin.">
-            
+          <SectionCard
+            title="Expenses & Profits Management"
+            description="Track company expenses (RJ fees, Video Shoot, Travel Allowance, Ads Spend), profit adjustments, and monthly reports."
+          >
             {/* Metric Overview inside the Tab */}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
               <MetricCard 
@@ -774,9 +826,70 @@ const Finance = () => {
               />
             </div>
 
+            {/* Filter & Action Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6 bg-card/60 p-4 rounded-2xl border border-border/40">
+              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+                <SearchField value={search} onChange={setSearch} placeholder="Search title, category, notes..." />
+                
+                {/* Category Filter */}
+                <select
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={expenseCategoryFilter}
+                  onChange={(e) => setExpenseCategoryFilter(e.target.value)}
+                >
+                  <option value="all">All Categories</option>
+                  <option value="rj">RJ / Voice Over</option>
+                  <option value="video_shoot">Video Shoot</option>
+                  <option value="travel_allowance">Travel Allowance</option>
+                  <option value="ads_campaign">Ads Campaign Spend</option>
+                  <option value="salary">Salary</option>
+                  <option value="tools">Software Tools</option>
+                  <option value="office">Office & Rent</option>
+                  <option value="freelance">Freelance Fees</option>
+                  <option value="misc">Miscellaneous</option>
+                  <option value="other">Other (Custom)</option>
+                </select>
+
+                {/* Transaction Type Filter */}
+                <select
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={expenseTypeFilter}
+                  onChange={(e) => setExpenseTypeFilter(e.target.value)}
+                >
+                  <option value="all">All Transactions</option>
+                  <option value="Expense">Expenses Only</option>
+                  <option value="Profit">Profits Only</option>
+                </select>
+
+                {/* Date Sort Filter */}
+                <select
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={expenseSort}
+                  onChange={(e) => setExpenseSort(e.target.value)}
+                >
+                  <option value="date_desc">Date: Newest First</option>
+                  <option value="date_asc">Date: Oldest First</option>
+                  <option value="amount_desc">Amount: High to Low</option>
+                  <option value="amount_asc">Amount: Low to High</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => setShowMonthlyReportModal(true)}>
+                  <Calendar size={15} className="mr-1.5" /> Monthly Expense Report
+                </Button>
+                <Button size="sm" onClick={() => {
+                  setSelectedExpense(null);
+                  setShowExpenseModal(true);
+                }}>
+                  <Plus size={15} className="mr-1.5" /> Record Expense / Profit
+                </Button>
+              </div>
+            </div>
+
             {/* Category Breakdown list */}
             <div className="rounded-3xl border border-border bg-background p-6 mb-6">
-              <h3 className="text-lg font-bold text-foreground mb-4">Category-Wise Overheads</h3>
+              <h3 className="text-lg font-bold text-foreground mb-4">Category-Wise Overheads & Costs</h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {Object.entries(categoryBreakdown).map(([catKey, val]) => {
                   const maxVal = Math.max(...Object.values(categoryBreakdown), 1);
@@ -801,18 +914,15 @@ const Finance = () => {
             {/* Table of all expenses */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-foreground">All Company Expenses</h3>
-                <Button size="sm" onClick={() => setShowExpenseModal(true)}>
-                  <Plus size={15} className="mr-1" /> Record Expense
-                </Button>
+                <h3 className="text-lg font-bold text-foreground">Logged Expenses & Profit Entries</h3>
               </div>
 
-              <div className="max-h-[400px] overflow-y-auto pr-1 border border-border/40 rounded-2xl">
+              <div className="max-h-[500px] overflow-y-auto pr-1 border border-border/40 rounded-2xl">
                 <DataTable
                   data={expenses}
                   columns={expenseColumns}
-                  emptyTitle="No expenses logged yet"
-                  emptyDescription="Expenses logged or submitted by team members will show up here."
+                  emptyTitle="No financial records found"
+                  emptyDescription="Try adjusting your search or category filters, or record a new expense."
                 />
               </div>
             </div>
@@ -896,10 +1006,43 @@ const Finance = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={!!deleteExpenseId} onOpenChange={(open) => !open && setDeleteExpenseId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Expense Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this financial entry? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (deleteExpenseId) {
+                  await deleteExpense.mutateAsync(deleteExpenseId);
+                  setDeleteExpenseId(null);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AddFinanceModal open={showFinanceModal} onOpenChange={setShowFinanceModal} entry={selectedRecord} />
       <AddInvoiceModal open={showInvoiceModal} onOpenChange={setShowInvoiceModal} invoice={selectedInvoice} />
-      <AddExpenseModal open={showExpenseModal} onOpenChange={setShowExpenseModal} />
+      <AddExpenseModal
+        open={showExpenseModal}
+        onOpenChange={(open) => {
+          setShowExpenseModal(open);
+          if (!open) setSelectedExpense(null);
+        }}
+        expense={selectedExpense}
+      />
       <AddAdsCampaignModal open={showAdsCampaignModal} onOpenChange={setShowAdsCampaignModal} />
+      <MonthlyExpenseReportModal open={showMonthlyReportModal} onOpenChange={setShowMonthlyReportModal} />
     </div>
   );
 };

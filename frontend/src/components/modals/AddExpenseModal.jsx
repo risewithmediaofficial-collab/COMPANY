@@ -27,14 +27,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useCreateExpense } from '../../hooks/useFinance';
+import { useCreateExpense, useUpdateExpense } from '../../hooks/useFinance';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 
 const expenseSchema = z.object({
-  title: z.string().min(1, 'Expense title is required'),
+  title: z.string().min(1, 'Title is required'),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than zero'),
+  transactionType: z.enum(['Expense', 'Profit']),
   category: z.string().min(1, 'Category is required'),
+  customCategory: z.string().optional().or(z.literal('')),
   client: z.string().optional().or(z.literal('')),
   project: z.string().optional().or(z.literal('')),
   date: z.string().min(1, 'Date is required'),
@@ -42,22 +44,29 @@ const expenseSchema = z.object({
 });
 
 const CATEGORIES = [
+  { id: 'rj', label: 'RJ / Voice Over' },
+  { id: 'video_shoot', label: 'Video Shoot' },
+  { id: 'travel_allowance', label: 'Travel Allowance' },
+  { id: 'ads_campaign', label: 'Ads Campaign Spend' },
   { id: 'salary', label: 'Salary' },
   { id: 'tools', label: 'Software Tools' },
-  { id: 'advertising', label: 'Advertising' },
-  { id: 'travel', label: 'Travel' },
   { id: 'office', label: 'Office & Rent' },
   { id: 'freelance', label: 'Freelancer Fees' },
   { id: 'misc', label: 'Miscellaneous' },
+  { id: 'other', label: 'Other (Custom Type)' },
 ];
 
-export const AddExpenseModal = ({ open, onOpenChange }) => {
+export const AddExpenseModal = ({ open, onOpenChange, expense = null }) => {
+  const isEditing = Boolean(expense?._id);
+
   const form = useForm({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       title: '',
       amount: 0,
+      transactionType: 'Expense',
       category: 'misc',
+      customCategory: '',
       client: '',
       project: '',
       date: new Date().toISOString().split('T')[0],
@@ -68,7 +77,10 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
   const { data: clients = [] } = useClients();
   const { data: projects = [] } = useProjects();
   const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
+
   const selectedClientId = form.watch('client');
+  const selectedCategory = form.watch('category');
 
   const clientProjects = selectedClientId && selectedClientId !== '_none'
     ? projects.filter((project) => project.client?._id === selectedClientId || project.client === selectedClientId)
@@ -76,39 +88,63 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
 
   useEffect(() => {
     if (open) {
-      form.reset({
-        title: '',
-        amount: 0,
-        category: 'misc',
-        client: '',
-        project: '',
-        date: new Date().toISOString().split('T')[0],
-        notes: '',
-      });
+      if (expense) {
+        const formattedDate = expense.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        form.reset({
+          title: expense.title || '',
+          amount: Number(expense.amount) || 0,
+          transactionType: expense.transactionType || 'Expense',
+          category: expense.category || 'misc',
+          customCategory: expense.customCategory || '',
+          client: expense.client?._id || expense.client || '',
+          project: expense.project?._id || expense.project || '',
+          date: formattedDate,
+          notes: expense.notes || '',
+        });
+      } else {
+        form.reset({
+          title: '',
+          amount: 0,
+          transactionType: 'Expense',
+          category: 'misc',
+          customCategory: '',
+          client: '',
+          project: '',
+          date: new Date().toISOString().split('T')[0],
+          notes: '',
+        });
+      }
     }
-  }, [open, form]);
+  }, [open, expense, form]);
 
   const onSubmit = async (values) => {
     const payload = {
       ...values,
       client: (values.client && values.client !== '_none') ? values.client : undefined,
       project: (values.project && values.project !== '_none') ? values.project : undefined,
-      status: 'approved', // Admin transactions are auto-approved
+      customCategory: values.category === 'other' ? values.customCategory : '',
+      status: 'approved',
     };
 
-    await createExpense.mutateAsync(payload);
+    if (isEditing) {
+      await updateExpense.mutateAsync({ id: expense._id, data: payload });
+    } else {
+      await createExpense.mutateAsync(payload);
+    }
     onOpenChange(false);
   };
 
-  const isLoading = createExpense.isPending;
+  const isLoading = createExpense.isPending || updateExpense.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Record Company Expense</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Financial Record' : 'Record Expense / Profit'}</DialogTitle>
           <DialogDescription>
-            Note any salary payments, tooling software subscriptions, ads spend, office overheads, or misc items.
+            {isEditing
+              ? 'Update details of this expense or profit entry.'
+              : 'Record RJ fees, video shoots, travel allowance, ad campaign spend, profit adjustments, or custom categories.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -120,8 +156,30 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
                 name="title"
                 render={({ field }) => (
                   <FormItem className="md:col-span-2">
-                    <FormLabel>Expense Title *</FormLabel>
-                    <FormControl><Input placeholder="E.g., AWS Hosting Subscription, Lead Gen Ads" {...field} /></FormControl>
+                    <FormLabel>Title *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="E.g., RJ charges for July Campaign, Studio Video Shoot, Client Travel" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="transactionType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Expense">Expense (Outflow)</SelectItem>
+                        <SelectItem value="Profit">Profit / Income (Inflow)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -132,7 +190,7 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount *</FormLabel>
+                    <FormLabel>Amount (₹) *</FormLabel>
                     <FormControl><Input type="number" min="0" step="0.01" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -144,7 +202,7 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category *</FormLabel>
+                    <FormLabel>Category / Expense Type *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
@@ -155,6 +213,34 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {selectedCategory === 'other' ? (
+                <FormField
+                  control={form.control}
+                  name="customCategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Custom Type Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter custom type (e.g., Equipment Repair, Voice Artist)" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : null}
+
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -206,18 +292,6 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date *</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             <FormField
@@ -225,16 +299,18 @@ export const AddExpenseModal = ({ open, onOpenChange }) => {
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes / Description</FormLabel>
-                  <FormControl><Textarea className="min-h-24" placeholder="Brief explanation of the company expense..." {...field} /></FormControl>
+                  <FormLabel>Notes / Details</FormLabel>
+                  <FormControl>
+                    <Textarea className="min-h-24" placeholder="Description or additional notes..." {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
-              <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : 'Record Expense'}</Button>
+              <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : isEditing ? 'Update Record' : 'Record Entry'}</Button>
             </div>
           </form>
         </Form>

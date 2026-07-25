@@ -11,13 +11,20 @@ const expenseSchema = new mongoose.Schema(
     currency: { type: String, default: 'INR' },
     category: {
       type: String,
-      enum: ['salary', 'tools', 'advertising', 'travel', 'office', 'freelance', 'misc'],
+      enum: ['salary', 'tools', 'advertising', 'travel', 'office', 'freelance', 'misc', 'rj', 'video_shoot', 'travel_allowance', 'ads_campaign', 'other'],
       default: 'misc',
+    },
+    customCategory: { type: String, trim: true, default: '' },
+    transactionType: {
+      type: String,
+      enum: ['Expense', 'Profit'],
+      default: 'Expense',
     },
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
     submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected', 'reimbursed'],
@@ -31,6 +38,8 @@ const expenseSchema = new mongoose.Schema(
 );
 
 expenseSchema.index({ submittedBy: 1 });
+expenseSchema.index({ category: 1 });
+expenseSchema.index({ transactionType: 1 });
 expenseSchema.index({ status: 1 });
 expenseSchema.index({ date: -1 });
 
