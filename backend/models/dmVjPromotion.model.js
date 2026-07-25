@@ -22,6 +22,7 @@ const dmVjPromotionSchema = new mongoose.Schema(
     },
 
     promotionDate: { type: Date, required: true },
+    invoiceNumber: { type: String, trim: true, default: '' },
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
     duration: { type: Number, default: 0 }, // in hours

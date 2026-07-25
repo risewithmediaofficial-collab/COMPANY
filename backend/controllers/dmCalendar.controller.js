@@ -43,6 +43,16 @@ const notifyDMTeam = async ({ title, message, link, recipientIds, io }) => {
   }
 };
 
+const generateNextInvoiceNumber = async () => {
+  const [shootsCount, rjCount, vjCount] = await Promise.all([
+    DMVideoShoot.countDocuments(),
+    DMRjPromotion.countDocuments(),
+    DMVjPromotion.countDocuments(),
+  ]);
+  const total = shootsCount + rjCount + vjCount + 1;
+  return `RWM-INV-${String(total).padStart(3, '0')}`;
+};
+
 // =============================================
 // VIDEO SHOOT CONTROLLERS
 // =============================================
@@ -59,6 +69,7 @@ export const getVideoShoots = async (req, res) => {
       filter.$or = [
         { shootTitle: { $regex: search, $options: 'i' } },
         { shootLocation: { $regex: search, $options: 'i' } },
+        { invoiceNumber: { $regex: search, $options: 'i' } },
         { notes: { $regex: search, $options: 'i' } },
       ];
     }
@@ -96,6 +107,10 @@ export const createVideoShoot = async (req, res) => {
   try {
     if (!req.body.client || !req.body.shootTitle || !req.body.shootDate) {
       return res.status(400).json({ success: false, message: 'Client, Shoot Title, and Shoot Date are required.' });
+    }
+
+    if (!req.body.invoiceNumber) {
+      req.body.invoiceNumber = await generateNextInvoiceNumber();
     }
 
     const shoot = await DMVideoShoot.create({
@@ -238,6 +253,7 @@ export const getRjPromotions = async (req, res) => {
       filter.$or = [
         { promotionTitle: { $regex: search, $options: 'i' } },
         { promotionDetails: { $regex: search, $options: 'i' } },
+        { invoiceNumber: { $regex: search, $options: 'i' } },
         { remarks: { $regex: search, $options: 'i' } },
       ];
     }
@@ -266,6 +282,10 @@ export const createRjPromotion = async (req, res) => {
   try {
     if (!req.body.client || !req.body.promotionTitle || !req.body.promotionDate) {
       return res.status(400).json({ success: false, message: 'Client, Promotion Title, and Promotion Date are required.' });
+    }
+
+    if (!req.body.invoiceNumber) {
+      req.body.invoiceNumber = await generateNextInvoiceNumber();
     }
 
     const promotion = await DMRjPromotion.create({
@@ -361,6 +381,7 @@ export const getVjPromotions = async (req, res) => {
       filter.$or = [
         { promotionTitle: { $regex: search, $options: 'i' } },
         { promotionDetails: { $regex: search, $options: 'i' } },
+        { invoiceNumber: { $regex: search, $options: 'i' } },
         { remarks: { $regex: search, $options: 'i' } },
       ];
     }
@@ -389,6 +410,10 @@ export const createVjPromotion = async (req, res) => {
   try {
     if (!req.body.client || !req.body.promotionTitle || !req.body.promotionDate || !req.body.platform) {
       return res.status(400).json({ success: false, message: 'Client, Promotion Title, Platform, and Promotion Date are required.' });
+    }
+
+    if (!req.body.invoiceNumber) {
+      req.body.invoiceNumber = await generateNextInvoiceNumber();
     }
 
     const promotion = await DMVjPromotion.create({

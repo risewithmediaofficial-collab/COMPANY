@@ -20,6 +20,7 @@ const dmRjPromotionSchema = new mongoose.Schema(
     durationSpoken: { type: Number, default: 0 }, // in hours
 
     promotionDetails: { type: String, default: '' },
+    invoiceNumber: { type: String, trim: true, default: '' },
 
     expensesList: [
       {

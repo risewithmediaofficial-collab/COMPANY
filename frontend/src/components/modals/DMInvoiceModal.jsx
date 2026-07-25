@@ -37,7 +37,7 @@ export const DMInvoiceModal = ({
 
   // Editable fields
   const [invoiceTitle, setInvoiceTitle] = useState('PRODUCTION INVOICE');
-  const [invoiceNumber, setInvoiceNumber] = useState(`RWM-INV-${Date.now().toString().slice(-6)}`);
+  const [invoiceNumber, setInvoiceNumber] = useState(item.invoiceNumber || 'RWM-INV-001');
   const [clientName, setClientName] = useState(item.client?.company || item.client?.name || 'Client');
   const [shootTitle, setShootTitle] = useState(item.shootTitle || item.promotionTitle || 'Shoot / Campaign Activity');
   const [shootLocation, setShootLocation] = useState(item.shootLocation || '');
@@ -61,6 +61,7 @@ export const DMInvoiceModal = ({
   // Synchronize when item changes
   useEffect(() => {
     if (open && item) {
+      if (item.invoiceNumber) setInvoiceNumber(item.invoiceNumber);
       setClientName(item.client?.company || item.client?.name || 'Client');
       setShootTitle(item.shootTitle || item.promotionTitle || 'Shoot Production');
       setShootLocation(item.shootLocation || '');
@@ -159,9 +160,9 @@ export const DMInvoiceModal = ({
             .section-title { font-size: 13px; font-weight: 800; color: #0f172a; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1; }
+            th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1; white-space: nowrap; }
             td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #334155; }
-            .amount-col { text-align: right; font-weight: 700; }
+            .amount-col { text-align: right; font-weight: 700; white-space: nowrap; }
 
             .totals-container { display: flex; justify-content: flex-end; margin-top: 20px; }
             .totals-table { width: 340px; }

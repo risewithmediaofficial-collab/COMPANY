@@ -260,9 +260,9 @@ const DMCalendar = () => {
             .meta-box p { margin: 0; font-size: 14px; font-weight: 700; color: #0f172a; }
 
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1; }
+            th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #475569; font-weight: 700; border-bottom: 2px solid #cbd5e1; white-space: nowrap; }
             td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #334155; vertical-align: top; }
-            .num-col { text-align: right; font-weight: 700; }
+            .num-col { text-align: right; font-weight: 700; white-space: nowrap; }
 
             .exp-list { margin-top: 6px; padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px border-dashed #cbd5e1; font-size: 11px; color: #475569; }
             .exp-item { display: inline-block; margin-right: 12px; margin-top: 2px; }
@@ -325,7 +325,7 @@ const DMCalendar = () => {
               <tr>
                 <th style="width: 40px;">#</th>
                 <th>Activity & Expenses Breakdown</th>
-                <th>Date</th>
+                <th style="white-space: nowrap;">Date</th>
                 <th class="num-col">Total Fee</th>
                 <th class="num-col">Paid</th>
                 <th class="num-col">Balance</th>

@@ -10,6 +10,7 @@ const dmVideoShootSchema = new mongoose.Schema(
     endTime: { type: Date, required: true },
     duration: { type: Number, default: 0 }, // in hours
     shootLocation: { type: String, trim: true, default: '' },
+    invoiceNumber: { type: String, trim: true, default: '' },
 
     // Content tracking
     plannedContents: { type: Number, default: 0, min: 0 },
