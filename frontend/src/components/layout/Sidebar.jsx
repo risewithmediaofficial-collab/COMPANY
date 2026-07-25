@@ -28,6 +28,7 @@ import {
   Globe2,
   CreditCard,
   ClipboardList,
+  Sparkles,
   StickyNote,
   X
 } from 'lucide-react';
@@ -86,6 +87,7 @@ const Sidebar = () => {
       { name: 'Domain Renewals', icon: Globe2, path: '/domain-renewals' },
       { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
       { name: 'DM Calendar', icon: Calendar, path: '/dm-calendar' },
+      { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
       { name: 'Message Center', icon: MessageSquare, path: '/chat' },
       { name: 'HR & Hiring', icon: Users2, path: '/hr' },
       { name: 'Attendance', icon: Clock, path: '/attendance' },
@@ -108,10 +110,10 @@ const Sidebar = () => {
       { name: 'Proposals', icon: FileText, path: '/proposals' },
       { name: 'Ads Campaigns', icon: BarChart3, path: '/finance' },
       { name: 'Client Follow-ups', icon: PhoneCall, path: '/client-followups' },
-      { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
       { name: 'Domain Renewals', icon: Globe2, path: '/domain-renewals' },
       { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
       { name: 'DM Calendar', icon: Calendar, path: '/dm-calendar' },
+      { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
       { name: 'Message Center', icon: MessageSquare, path: '/chat' },
       { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Reports', icon: BarChart3, path: '/reports' },

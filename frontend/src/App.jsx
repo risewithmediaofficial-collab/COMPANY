@@ -32,6 +32,7 @@ import ClientFollowups from './pages/clients/ClientFollowups';
 import Tasks from './pages/tasks/Tasks';
 import ContentCalendar from './pages/tasks/ContentCalendar';
 import DMCalendar from './pages/dmCalendar/DMCalendar';
+import InfluencersDashboard from './pages/influencers/InfluencersDashboard';
 import PendingNotes from './pages/tasks/PendingNotes';
 import ManagerBoard from './pages/tasks/ManagerBoard';
 import Finance from './pages/finance/Finance';
@@ -240,6 +241,11 @@ const App = () => {
           <Route path="/dm-calendar" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
               <DMCalendar />
+            </ProtectedRoute>
+          } />
+          <Route path="/influencers" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
+              <InfluencersDashboard />
             </ProtectedRoute>
           } />
           <Route path="/daily-tasks" element={

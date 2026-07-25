@@ -49,6 +49,7 @@ import sopRoutes from './routes/sop.routes.js';
 import proposalRoutes from './routes/proposal.routes.js';
 import taskNoteRoutes from './routes/taskNote.routes.js';
 import dmCalendarRoutes from './routes/dmCalendar.routes.js';
+import influencerRoutes from './routes/influencer.routes.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 loadEnv();
@@ -157,6 +158,7 @@ app.use('/api/sop', sopRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/task-notes', taskNoteRoutes);
 app.use('/api/dm-calendar', dmCalendarRoutes);
+app.use('/api/influencers', influencerRoutes);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
