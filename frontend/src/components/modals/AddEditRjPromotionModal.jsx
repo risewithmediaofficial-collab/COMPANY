@@ -1,0 +1,401 @@
+import { useEffect } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Trash2, Radio, UserPlus } from 'lucide-react';
+import { useClients } from '../../hooks/useClients';
+import { useUsers } from '../../hooks/useUsers';
+import { useCreateRjPromotion, useUpdateRjPromotion } from '../../hooks/useDMCalendar';
+
+const rjPromotionSchema = z.object({
+  client: z.string().min(1, 'Client is required'),
+  promotionTitle: z.string().min(1, 'Title is required'),
+  promotionDate: z.string().min(1, 'Date is required'),
+  startTime: z.string().min(1, 'Start time is required'),
+  endTime: z.string().min(1, 'End time is required'),
+  promotionDetails: z.string().optional().or(z.literal('')),
+  rjMembers: z.array(
+    z.object({
+      user: z.string().optional().or(z.literal('')),
+      name: z.string().optional().or(z.literal('')),
+      role: z.string().optional().or(z.literal('')),
+    })
+  ),
+  totalAmount: z.coerce.number().min(0, 'Total amount must be >= 0'),
+  amountPaid: z.coerce.number().min(0, 'Amount paid must be >= 0'),
+  remarks: z.string().optional().or(z.literal('')),
+  status: z.enum(['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Postponed']),
+});
+
+export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }) => {
+  const isEditing = Boolean(promotion?._id);
+
+  const form = useForm({
+    resolver: zodResolver(rjPromotionSchema),
+    defaultValues: {
+      client: '',
+      promotionTitle: '',
+      promotionDate: new Date().toISOString().split('T')[0],
+      startTime: '10:00',
+      endTime: '12:00',
+      promotionDetails: '',
+      rjMembers: [],
+      totalAmount: 0,
+      amountPaid: 0,
+      remarks: '',
+      status: 'Scheduled',
+    },
+  });
+
+  const { fields: memberFields, append: appendMember, remove: removeMember } = useFieldArray({
+    control: form.control,
+    name: 'rjMembers',
+  });
+
+  const { data: clients = [] } = useClients();
+  const { data: users = [] } = useUsers();
+
+  const createRj = useCreateRjPromotion();
+  const updateRj = useUpdateRjPromotion();
+
+  const totalAmount = form.watch('totalAmount') || 0;
+  const amountPaid = form.watch('amountPaid') || 0;
+  const balanceAmount = Math.max(Number(totalAmount) - Number(amountPaid), 0);
+
+  useEffect(() => {
+    if (open) {
+      if (promotion) {
+        const pDate = promotion.promotionDate ? new Date(promotion.promotionDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        const sTime = promotion.startTime ? new Date(promotion.startTime).toTimeString().slice(0, 5) : '10:00';
+        const eTime = promotion.endTime ? new Date(promotion.endTime).toTimeString().slice(0, 5) : '12:00';
+
+        form.reset({
+          client: promotion.client?._id || promotion.client || '',
+          promotionTitle: promotion.promotionTitle || '',
+          promotionDate: pDate,
+          startTime: sTime,
+          endTime: eTime,
+          promotionDetails: promotion.promotionDetails || '',
+          rjMembers: promotion.rjMembers
+            ? promotion.rjMembers.map((m) => ({
+                user: m.user?._id || m.user || '',
+                name: m.name || m.user?.name || '',
+                role: m.role || 'RJ Member',
+              }))
+            : [],
+          totalAmount: promotion.totalAmount || 0,
+          amountPaid: promotion.amountPaid || 0,
+          remarks: promotion.remarks || '',
+          status: promotion.status || 'Scheduled',
+        });
+      } else {
+        form.reset({
+          client: clients[0]?._id || '',
+          promotionTitle: '',
+          promotionDate: new Date().toISOString().split('T')[0],
+          startTime: '10:00',
+          endTime: '12:00',
+          promotionDetails: '',
+          rjMembers: [{ user: '', name: '', role: 'Lead RJ' }],
+          totalAmount: 0,
+          amountPaid: 0,
+          remarks: '',
+          status: 'Scheduled',
+        });
+      }
+    }
+  }, [open, promotion, clients, form]);
+
+  const onSubmit = async (values) => {
+    const startDateTime = new Date(`${values.promotionDate}T${values.startTime}:00`);
+    const endDateTime = new Date(`${values.promotionDate}T${values.endTime}:00`);
+
+    const formattedMembers = values.rjMembers.map((m) => {
+      const foundUser = users.find((u) => u._id === m.user);
+      return {
+        user: m.user && m.user !== '_none' ? m.user : undefined,
+        name: foundUser ? foundUser.name : m.name || 'RJ Member',
+        role: m.role || 'RJ Member',
+      };
+    });
+
+    const payload = {
+      ...values,
+      startTime: startDateTime,
+      endTime: endDateTime,
+      rjMembers: formattedMembers,
+    };
+
+    if (isEditing) {
+      await updateRj.mutateAsync({ id: promotion._id, data: payload });
+    } else {
+      await createRj.mutateAsync(payload);
+    }
+
+    onOpenChange(false);
+  };
+
+  const isLoading = createRj.isPending || updateRj.isPending;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Radio className="h-5 w-5 text-amber-500" />
+            {isEditing ? 'Edit RJ Promotion' : 'Create RJ Promotion Activity'}
+          </DialogTitle>
+          <DialogDescription>
+            Schedule Radio Jockey (RJ) talk shows, audio promotions, live broadcasts, and fee tracking.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="client"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Name *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {clients.map((c) => (
+                          <SelectItem key={c._id} value={c._id}>
+                            {c.company || c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="promotionTitle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Promotion Title *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="E.g., Morning RJ Live Spot & Brand Mention" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="promotionDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Promotion Date *</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <FormField
+                  control={form.control}
+                  name="startTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Time *</FormLabel>
+                      <FormControl><Input type="time" {...field} /></FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="endTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Time *</FormLabel>
+                      <FormControl><Input type="time" {...field} /></FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Status *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Scheduled">Scheduled</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                        <SelectItem value="Postponed">Postponed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* RJ Team Members */}
+            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  <UserPlus className="h-4 w-4 text-amber-500" /> RJ Team Members
+                </h3>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => appendMember({ user: '', name: '', role: 'RJ Artist' })}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add RJ Member
+                </Button>
+              </div>
+
+              {memberFields.map((field, index) => (
+                <div key={field.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
+                  <div className="flex-1 min-w-[200px]">
+                    <Select
+                      value={form.watch(`rjMembers.${index}.user`) || '_none'}
+                      onValueChange={(val) => {
+                        form.setValue(`rjMembers.${index}.user`, val === '_none' ? '' : val);
+                        const selectedU = users.find((u) => u._id === val);
+                        if (selectedU) form.setValue(`rjMembers.${index}.name`, selectedU.name);
+                      }}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select Member" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">None (Manual Name)</SelectItem>
+                        {users.map((u) => (
+                          <SelectItem key={u._id} value={u._id}>
+                            {u.name} ({u.role})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-[180px]">
+                    <Input
+                      placeholder="Role (e.g., Lead RJ, Voice)"
+                      className="h-9"
+                      {...form.register(`rjMembers.${index}.role`)}
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0 text-destructive"
+                    onClick={() => removeMember(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Financial Tracking */}
+            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+              <h3 className="text-sm font-bold text-foreground">Promotion Fee Tracking</h3>
+              <div className="grid gap-4 md:grid-cols-3">
+                <FormField
+                  control={form.control}
+                  name="totalAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Amount (₹)</FormLabel>
+                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amountPaid"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Amount Paid (₹)</FormLabel>
+                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div>
+                  <FormLabel className="text-xs font-medium text-muted-foreground">Balance Amount (₹)</FormLabel>
+                  <div className="h-10 px-3 flex items-center font-bold text-lg text-rose-500 bg-background rounded-md border border-border/60 mt-2">
+                    ₹{balanceAmount.toLocaleString('en-IN')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="promotionDetails"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Promotion Details & Script Notes</FormLabel>
+                  <FormControl>
+                    <Textarea className="min-h-20" placeholder="Script points, RJ talk time slots, offer codes..." {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Saving...' : isEditing ? 'Update RJ Promotion' : 'Save RJ Promotion'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
