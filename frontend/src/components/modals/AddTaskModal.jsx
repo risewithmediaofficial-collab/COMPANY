@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -2355,11 +2356,9 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           <DialogTitle className="text-xl font-bold">
             {task ? 'Edit Task' : 'Create Tasks'}
           </DialogTitle>
-          {!task && (
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Select client & project, then add tasks — poster tasks go to a designer, video tasks to a video person
-            </p>
-          )}
+          <DialogDescription className="text-sm text-muted-foreground mt-0.5">
+            {task ? 'Update task details and sub-assignments' : 'Select client & project, then add tasks — poster tasks go to a designer, video tasks to a video person'}
+          </DialogDescription>
         </DialogHeader>
         <div className="px-6 pb-6 pt-4">{formBody}</div>
       </DialogContent>
