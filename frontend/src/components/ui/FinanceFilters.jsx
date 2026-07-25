@@ -27,12 +27,12 @@ const FinanceFilters = ({
   return (
     <div className="flex flex-col md:flex-row gap-3 p-4 rounded-lg bg-secondary/30 border border-border">
       {/* Project Filter */}
-      <Select value={selectedProject} onValueChange={(value) => onFilterChange({ project: value })}>
+      <Select value={selectedProject || '_all'} onValueChange={(value) => onFilterChange({ project: value === '_all' ? '' : value })}>
         <SelectTrigger className="w-full md:w-48">
           <SelectValue placeholder="All Projects" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Projects</SelectItem>
+          <SelectItem value="_all">All Projects</SelectItem>
           {projects.map((project) => (
             <SelectItem key={project._id} value={project._id}>
               {project.name}
@@ -42,12 +42,12 @@ const FinanceFilters = ({
       </Select>
 
       {/* Client Filter */}
-      <Select value={selectedClient} onValueChange={(value) => onFilterChange({ client: value })}>
+      <Select value={selectedClient || '_all'} onValueChange={(value) => onFilterChange({ client: value === '_all' ? '' : value })}>
         <SelectTrigger className="w-full md:w-48">
           <SelectValue placeholder="All Clients" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Clients</SelectItem>
+          <SelectItem value="_all">All Clients</SelectItem>
           {clients.map((client) => (
             <SelectItem key={client._id} value={client._id}>
               {client.name}
@@ -57,12 +57,12 @@ const FinanceFilters = ({
       </Select>
 
       {/* Type Filter */}
-      <Select value={selectedType} onValueChange={(value) => onFilterChange({ type: value })}>
+      <Select value={selectedType || '_all'} onValueChange={(value) => onFilterChange({ type: value === '_all' ? '' : value })}>
         <SelectTrigger className="w-full md:w-40">
           <SelectValue placeholder="All Types" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Types</SelectItem>
+          <SelectItem value="_all">All Types</SelectItem>
           {types.map((type) => (
             <SelectItem key={type} value={type}>
               {type}
@@ -72,12 +72,12 @@ const FinanceFilters = ({
       </Select>
 
       {/* Status Filter */}
-      <Select value={selectedStatus} onValueChange={(value) => onFilterChange({ status: value })}>
+      <Select value={selectedStatus || '_all'} onValueChange={(value) => onFilterChange({ status: value === '_all' ? '' : value })}>
         <SelectTrigger className="w-full md:w-40">
           <SelectValue placeholder="All Status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Status</SelectItem>
+          <SelectItem value="_all">All Status</SelectItem>
           {statuses.map((status) => (
             <SelectItem key={status} value={status}>
               {status}

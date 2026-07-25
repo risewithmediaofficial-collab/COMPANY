@@ -253,6 +253,7 @@ const App = () => {
               <ContentCalendar defaultView="day" />
             </ProtectedRoute>
           } />
+          <Route path="/daily_tasks" element={<Navigate to="/daily-tasks" replace />} />
 
           {/* Pending Notes – employee writes notes to send to manager */}
           <Route path="/pending-notes" element={

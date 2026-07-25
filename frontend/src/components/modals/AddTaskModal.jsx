@@ -49,27 +49,35 @@ import {
   normalizeTaskStatusLabel,
   uploadFiles,
 } from '../../utils/taskFields';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Video, Image, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 const EMPTY_INITIAL_VALUES = {};
 
+// Task type categorisation
+const POSTER_TASK_TYPES = ['poster', 'social_media_post', 'ad_creative', 'story', 'carousel_post'];
+const VIDEO_TASK_TYPES  = ['reel', 'video_content', 'blog'];
+const isPosterTask = (t) => POSTER_TASK_TYPES.includes(t);
+const isVideoTask  = (t) => VIDEO_TASK_TYPES.includes(t);
+const taskTypeBadgeCls = (taskType) => {
+  if (isPosterTask(taskType)) return 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300';
+  if (isVideoTask(taskType))  return 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300';
+  return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300';
+};
+const getRoleHint = (taskType) => {
+  if (isPosterTask(taskType)) return { label: 'Designer / Graphics Person', icon: '\ud83c\udfa8' };
+  if (isVideoTask(taskType))  return { label: 'Video Editor / Creator', icon: '\ud83c\udfac' };
+  return { label: 'Team Member', icon: '\ud83d\udc64' };
+};
+
 const BLANK_TASK_TEMPLATE = {
   taskTitle: '',
   taskCategory: 'content',
-  contentType: 'videos',
+  contentType: 'posts',
   videoType: 'reels',
-  taskType: 'reel',
+  taskType: 'poster',
+  assignedTo: '',
   description: '',
-  scriptWriterAssigned: '',
-  videographerAssigned: '',
-  editorAssigned: '',
-  publisherAssigned: '',
-  shootDate: '',
-  shootLocation: '',
-  rawFootageLink: '',
-  postingPlatforms: [],
-  postingScheduleDate: '',
   caption: '',
   scriptText: '',
   scriptLink: '',
@@ -90,6 +98,14 @@ const BLANK_TASK_TEMPLATE = {
   hostingDetails: '',
   adminCredentials: '',
   requiredFeatures: '',
+  scriptWriterAssigned: '',
+  videographerAssigned: '',
+  editorAssigned: '',
+  publisherAssigned: '',
+  shootDate: '',
+  shootLocation: '',
+  rawFootageLink: '',
+  postingPlatforms: [],
 };
 
 const taskFormSchema = z.object({
@@ -101,7 +117,7 @@ const taskFormSchema = z.object({
   taskType: z.string().optional(),
   client: z.string().min(1, 'Client is required'),
   project: z.string().min(1, 'Select a project first'),
-  assignedTo: z.string().min(1, 'Assigned person is required'),
+  assignedTo: z.string().optional(),
   assignedManager: z.string().optional(),
   scriptWriterAssigned: z.string().optional(),
   videographerAssigned: z.string().optional(),
@@ -146,10 +162,10 @@ const taskFormSchema = z.object({
 const buildDefaultValues = (initialValues = {}) => ({
   taskTitle: '',
   taskCategory: 'content',
-  contentType: 'videos',
+  contentType: 'posts',
   videoType: 'reels',
   contentTitle: '',
-  taskType: 'reel',
+  taskType: 'poster',
   client: '',
   project: '',
   assignedTo: '',
@@ -219,36 +235,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
   const managerOptions = users.filter((user) => user.role === 'manager');
   const [attachmentFiles, setAttachmentFiles] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
-  const [tasksList, setTasksList] = useState([
-    {
-      taskTitle: '',
-      taskCategory: 'content',
-      contentType: 'videos',
-      videoType: 'reels',
-      taskType: 'reel',
-      description: '',
-      caption: '',
-      scriptText: '',
-      scriptLink: '',
-      referenceLink: '',
-      editorGuide: '',
-      hashtags: '',
-      keywords: '',
-      contentIdea: '',
-      audioReference: '',
-      shootInstructions: '',
-      editingInstructions: '',
-      websiteType: '',
-      websiteRequirements: '',
-      pagesNeeded: [],
-      contentAvailability: '',
-      brandingAvailability: '',
-      domainDetails: '',
-      hostingDetails: '',
-      adminCredentials: '',
-      requiredFeatures: '',
-    }
-  ]);
+  const [tasksList, setTasksList] = useState([{ ...BLANK_TASK_TEMPLATE }]);
   const [expandedTasks, setExpandedTasks] = useState({});
 
   const toggleExpand = (index) => {
@@ -275,8 +262,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
       next[index] = {
         ...next[index],
         taskCategory: category,
-        taskType: category === 'content' ? 'reel' : 'website_development',
-        contentType: category === 'content' ? 'videos' : '',
+        taskType: category === 'content' ? 'poster' : 'website_development',
+        contentType: category === 'content' ? 'posts' : '',
         videoType: category === 'content' ? 'reels' : '',
       };
       return next;
@@ -422,11 +409,15 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
       };
       await updateTask.mutateAsync({ id: task._id, data: payload });
     } else {
-      // Create Mode (Bulk/Multi) validation
+      // Create Mode – validate per-task
       for (let i = 0; i < tasksList.length; i++) {
         const t = tasksList[i];
         if (!t.taskTitle?.trim()) {
           toast.error(`Task #${i + 1}: Title is required`);
+          return;
+        }
+        if (!t.assignedTo) {
+          toast.error(`Task #${i + 1}: Please assign a team member`);
           return;
         }
       }
@@ -436,10 +427,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         ...t,
         title: t.taskTitle,
         project: data.project || undefined,
+        client: data.client || undefined,
         attachments: [...existingAttachments, ...uploadedAttachments],
         dueDate: data.dueDate || undefined,
         deadline: data.dueDate || undefined,
-        assignedTo: data.assignedTo,
+        assignedTo: t.assignedTo,
         assignedManager: data.assignedManager || undefined,
         priority: data.priority,
         status: data.status,
@@ -447,6 +439,10 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         clientVisibleNotes: data.clientVisibleNotes,
         isClientVisible: data.isClientVisible,
         approvalRequired: data.approvalRequired,
+        scriptWriterAssigned: t.scriptWriterAssigned || undefined,
+        videographerAssigned: t.videographerAssigned || undefined,
+        editorAssigned: t.editorAssigned || undefined,
+        publisherAssigned: t.publisherAssigned || undefined,
       }));
 
       await createTask.mutateAsync({
@@ -458,36 +454,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
       form.reset(buildDefaultValues(initialValues));
       setAttachmentFiles([]);
       setExistingAttachments([]);
-      setTasksList([
-        {
-          taskTitle: '',
-          taskCategory: 'content',
-          contentType: 'videos',
-          videoType: 'reels',
-          taskType: 'reel',
-          description: '',
-          caption: '',
-          scriptText: '',
-          scriptLink: '',
-          referenceLink: '',
-          editorGuide: '',
-          hashtags: '',
-          keywords: '',
-          contentIdea: '',
-          audioReference: '',
-          shootInstructions: '',
-          editingInstructions: '',
-          websiteType: '',
-          websiteRequirements: '',
-          pagesNeeded: [],
-          contentAvailability: '',
-          brandingAvailability: '',
-          domainDetails: '',
-          hostingDetails: '',
-          adminCredentials: '',
-          requiredFeatures: '',
-        }
-      ]);
+      setTasksList([{ ...BLANK_TASK_TEMPLATE }]);
       setExpandedTasks({});
       onOpenChange(false);
     }
@@ -566,14 +533,14 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Assigned Manager</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value || undefined}>
+              <Select onValueChange={(val) => field.onChange(val === '_unassigned' ? '' : val)} value={field.value || '_unassigned'}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select manager" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="_unassigned">Unassigned</SelectItem>
                   {managerOptions.map((user) => (
                     <SelectItem key={user._id} value={user._id}>
                       {user.name}
@@ -1684,580 +1651,580 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             {taskCategory === 'non_content' && (isWebsiteTaskType(taskType) ? renderWebsiteFields() : renderNonContentCommonFields())}
           </>
         ) : (
-          // CREATE MODE (Dynamic multi-tasks assignment)
+          // CREATE MODE – Smart multi-task assignment
           <>
-            {renderSharedAssignmentFields()}
-
-            <div className="border-t border-border/60 pt-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
-                <div>
-                  <h3 className="text-base font-bold text-foreground">Tasks to Assign</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Specify duplicate count to generate multiple fields, or click the plus button to add dynamic tasks.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-semibold text-foreground whitespace-nowrap">Number of Tasks:</label>
-                  <Input
-                    type="number"
-                    min={1}
-                    className="w-20 rounded-xl"
-                    value={tasksList.length}
-                    onChange={(e) => handleTaskCountChange(e.target.value)}
-                  />
-                </div>
+            {/* Step 1: Client + Project */}
+            <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
+                <span className="text-sm font-bold text-foreground">Select Client & Project</span>
+                <span className="text-xs text-muted-foreground">— task cards will appear below</span>
               </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField control={form.control} name="client" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client <span className="text-rose-500">*</span></FormLabel>
+                    <Select onValueChange={(v) => { field.onChange(v); form.setValue('project', ''); }} value={field.value}>
+                      <FormControl><SelectTrigger className="rounded-xl"><SelectValue placeholder="Select client" /></SelectTrigger></FormControl>
+                      <SelectContent>{clients.map((c) => <SelectItem key={c._id} value={c._id}>{c.name}{c.company ? ` — ${c.company}` : ''}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="project" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project <span className="text-rose-500">*</span></FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || undefined} disabled={!selectedClientId}>
+                      <FormControl>
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder={selectedClientId ? 'Select project' : 'Select client first'} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {filteredProjects.length === 0
+                          ? <SelectItem value="_empty" disabled>No projects for this client</SelectItem>
+                          : filteredProjects.map((p) => <SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {currentUser?.role === 'superAdmin' && (
+                  <FormField control={form.control} name="assignedManager" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assigned Manager</FormLabel>
+                      <Select onValueChange={(val) => field.onChange(val === '_unassigned' ? '' : val)} value={field.value || '_unassigned'}>
+                        <FormControl><SelectTrigger className="rounded-xl"><SelectValue placeholder="Select manager" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="_unassigned">Unassigned</SelectItem>
+                          {managerOptions.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                )}
+                <FormField control={form.control} name="priority" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priority <span className="text-rose-500">*</span></FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl><SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent>{PRIORITY_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="status" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status <span className="text-rose-500">*</span></FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl><SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent>{TASK_STATUS_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="dueDate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Due Date</FormLabel>
+                    <FormControl><Input type="date" className="rounded-xl" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+            </div>
 
-              <div className="space-y-6">
-                {tasksList.map((taskItem, index) => {
-                  const isExpanded = !!expandedTasks[index];
-                  const isVideoReel = taskItem.taskCategory === 'content' && taskItem.contentType === 'videos';
+            {/* Step 2: Task Cards – shown only after client + project selected */}
+            {selectedClientId && selectedProject ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
+                    <span className="text-sm font-bold text-foreground">Add Tasks</span>
+                    <span className="text-xs text-muted-foreground">— each task has its own type & assignment</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-semibold text-muted-foreground">Count:</label>
+                    <Input type="number" min={1} className="w-16 rounded-xl h-8 text-sm"
+                      value={tasksList.length}
+                      onChange={(e) => handleTaskCountChange(e.target.value)} />
+                  </div>
+                </div>
 
-                  return (
-                    <div key={index} className="p-5 rounded-[22px] border border-border bg-secondary/10 space-y-4 shadow-sm relative transition-all duration-200">
-                      <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                        <span className="text-sm font-bold text-primary">Task #{index + 1} Details</span>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs font-semibold h-8 rounded-xl px-3 hover:bg-secondary/40"
-                            onClick={() => toggleExpand(index)}
-                          >
-                            {isExpanded ? 'Hide Advanced Details' : 'Show Advanced Details'}
-                          </Button>
-                          {tasksList.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 w-8 rounded-xl"
-                              onClick={() => handleDeleteTask(index)}
-                              aria-label="Delete task"
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                {/* Legend */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700 text-[11px] font-semibold">
+                    <Image size={11} /> Poster / Design → Designer
+                  </span>
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-100 text-sky-700 border border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-700 text-[11px] font-semibold">
+                    <Video size={11} /> Video / Reel → Video Person
+                  </span>
+                </div>
 
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {/* Task Title */}
-                        <div className="space-y-1 md:col-span-2">
-                          <label className="text-xs font-bold text-foreground">Task Title *</label>
-                          <Input
-                            placeholder="Enter task title"
-                            className="rounded-xl"
-                            value={taskItem.taskTitle}
-                            onChange={(e) => updateTaskField(index, 'taskTitle', e.target.value)}
-                          />
-                        </div>
+                {/* Task Cards */}
+                <div className="space-y-5">
+                  {tasksList.map((taskItem, index) => {
+                    const isExpanded = !!expandedTasks[index];
+                    const isPoster   = isPosterTask(taskItem.taskType);
+                    const isVideo    = isVideoTask(taskItem.taskType);
+                    const roleHint   = getRoleHint(taskItem.taskType);
+                    const cardBorder = isPoster ? 'rgba(167,139,250,0.4)' : isVideo ? 'rgba(56,189,248,0.4)' : undefined;
+                    const cardBg     = isPoster
+                      ? 'linear-gradient(135deg,hsl(var(--background)) 0%,rgba(167,139,250,0.04) 100%)'
+                      : isVideo
+                      ? 'linear-gradient(135deg,hsl(var(--background)) 0%,rgba(56,189,248,0.04) 100%)'
+                      : undefined;
 
-                        {/* Category */}
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-foreground">Task Category *</label>
-                          <Select
-                            value={taskItem.taskCategory}
-                            onValueChange={(val) => handleCategoryChange(index, val)}
-                          >
-                            <SelectTrigger className="rounded-xl">
-                              <SelectValue placeholder="Select Category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TASK_CATEGORY_OPTIONS.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                    return (
+                      <div key={index} className="rounded-2xl border shadow-sm overflow-hidden transition-all duration-200"
+                        style={{ borderColor: cardBorder, background: cardBg }}>
 
-                        {/* Task Type / Format */}
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-foreground">Format / Task Format *</label>
-                          <Select
-                            value={taskItem.taskType}
-                            onValueChange={(val) => updateTaskField(index, 'taskType', val)}
-                          >
-                            <SelectTrigger className="rounded-xl">
-                              <SelectValue placeholder="Select Format" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {(taskItem.taskCategory === 'content'
-                                ? CONTENT_TASK_TYPE_OPTIONS
-                                : NON_CONTENT_TASK_TYPE_OPTIONS
-                              ).map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {(taskItem.taskType === 'custom_content' || taskItem.taskType === 'custom_task') && (
-                            <Input
-                              placeholder="Describe the custom task format..."
-                              className="rounded-xl mt-1"
-                              value={taskItem.customTaskType || ''}
-                              onChange={(e) => updateTaskField(index, 'customTaskType', e.target.value)}
-                            />
-                          )}
-                        </div>
-
-                        {/* If Content, show Content Type */}
-                        {taskItem.taskCategory === 'content' && (
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-foreground">Content Type *</label>
-                            <Select
-                              value={taskItem.contentType}
-                              onValueChange={(val) => updateTaskField(index, 'contentType', val)}
-                            >
-                              <SelectTrigger className="rounded-xl">
-                                <SelectValue placeholder="Select Content Type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {CONTENT_MEDIA_TYPE_OPTIONS.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {taskItem.contentType === 'custom' && (
-                              <Input
-                                placeholder="Describe custom content type..."
-                                className="rounded-xl mt-1"
-                                value={taskItem.customContentType || ''}
-                                onChange={(e) => updateTaskField(index, 'customContentType', e.target.value)}
-                              />
+                        {/* Card Header */}
+                        <div className="flex items-center justify-between px-5 py-3 border-b border-border/50">
+                          <div className="flex items-center gap-2.5">
+                            <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${taskTypeBadgeCls(taskItem.taskType)}`}>
+                              {isPoster ? <Image size={12} /> : isVideo ? <Video size={12} /> : null}
+                              Task #{index + 1}
+                            </span>
+                            {taskItem.taskTitle && (
+                              <span className="text-xs text-muted-foreground truncate max-w-[160px]">— {taskItem.taskTitle}</span>
                             )}
                           </div>
-                        )}
-
-                        {/* If Content & Videos, show Video Type */}
-                        {isVideoReel && (
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-foreground">Video Type *</label>
-                            <Select
-                              value={taskItem.videoType}
-                              onValueChange={(val) => updateTaskField(index, 'videoType', val)}
-                            >
-                              <SelectTrigger className="rounded-xl">
-                                <SelectValue placeholder="Select Video Type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {VIDEO_TYPE_OPTIONS.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {taskItem.videoType === 'custom' && (
-                              <Input
-                                placeholder="Describe custom video type..."
-                                className="rounded-xl mt-1"
-                                value={taskItem.customVideoType || ''}
-                                onChange={(e) => updateTaskField(index, 'customVideoType', e.target.value)}
-                              />
+                          <div className="flex items-center gap-1.5">
+                            <button type="button" onClick={() => toggleExpand(index)}
+                              className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-lg hover:bg-secondary/60 transition-colors">
+                              {isExpanded ? <><ChevronUp size={12} /> Less</> : <><ChevronDown size={12} /> More Fields</>}
+                            </button>
+                            {tasksList.length > 1 && (
+                              <button type="button" onClick={() => handleDeleteTask(index)}
+                                className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 h-7 w-7 flex items-center justify-center rounded-lg transition-colors">
+                                <Trash2 size={14} />
+                              </button>
                             )}
                           </div>
-                        )}
-                      </div>
-
-                      {/* Caption – Always visible for content tasks */}
-                      {taskItem.taskCategory === 'content' && (
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-foreground">Caption * <span className="font-normal text-muted-foreground">(required)</span></label>
-                          <Textarea
-                            className="min-h-16 rounded-xl"
-                            placeholder="Caption / copy text for this post..."
-                            value={taskItem.caption || ''}
-                            onChange={(e) => updateTaskField(index, 'caption', e.target.value)}
-                          />
                         </div>
-                      )}
 
-                      {/* Collapsible Advanced Details */}
-                      {isExpanded && (
-                        <div className="border-t border-border/60 pt-4 space-y-4">
-                          {taskItem.taskCategory === 'content' ? (
-                            // Content Advanced Fields
+                        <div className="p-5 space-y-5">
+                          {/* Row 1: Title + Category */}
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div className="md:col-span-2 space-y-1.5">
+                              <label className="text-xs font-bold text-foreground">Task Title <span className="text-rose-500">*</span></label>
+                              <Input
+                                placeholder={isPoster ? 'e.g. June Week 1 – Offer Poster' : isVideo ? 'e.g. Product Launch Reel' : 'Enter task title'}
+                                className="rounded-xl font-medium"
+                                value={taskItem.taskTitle}
+                                onChange={(e) => updateTaskField(index, 'taskTitle', e.target.value)}
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-bold text-foreground">Category <span className="text-rose-500">*</span></label>
+                              <Select value={taskItem.taskCategory} onValueChange={(v) => handleCategoryChange(index, v)}>
+                                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectContent>{TASK_CATEGORY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          {/* Row 2: Format + Content Type + Video Type */}
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-bold text-foreground">Task Format <span className="text-rose-500">*</span></label>
+                              <Select value={taskItem.taskType} onValueChange={(v) => {
+                                updateTaskField(index, 'taskType', v);
+                                if (VIDEO_TASK_TYPES.includes(v)) updateTaskField(index, 'contentType', 'videos');
+                                if (POSTER_TASK_TYPES.includes(v)) updateTaskField(index, 'contentType', 'posts');
+                              }}>
+                                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {(taskItem.taskCategory === 'content' ? CONTENT_TASK_TYPE_OPTIONS : NON_CONTENT_TASK_TYPE_OPTIONS)
+                                    .map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {taskItem.taskCategory === 'content' && (
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-foreground">Content Type</label>
+                                <Select value={taskItem.contentType} onValueChange={(v) => updateTaskField(index, 'contentType', v)}>
+                                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                                  <SelectContent>{CONTENT_MEDIA_TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                            {taskItem.taskCategory === 'content' && taskItem.contentType === 'videos' && (
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-foreground">Video Type</label>
+                                <Select value={taskItem.videoType} onValueChange={(v) => updateTaskField(index, 'videoType', v)}>
+                                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
+                                  <SelectContent>{VIDEO_TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Smart Assignment Section */}
+                          <div className="rounded-2xl border p-4 space-y-3"
+                            style={{
+                              borderColor: isPoster ? 'rgba(167,139,250,0.4)' : isVideo ? 'rgba(56,189,248,0.4)' : 'hsl(var(--border))',
+                              background: isPoster ? 'rgba(167,139,250,0.06)' : isVideo ? 'rgba(56,189,248,0.06)' : 'hsl(var(--secondary)/0.2)',
+                            }}>
+                            <div className="flex items-center gap-2">
+                              <Users size={13} className={isPoster ? 'text-violet-500' : isVideo ? 'text-sky-500' : 'text-amber-500'} />
+                              <span className="text-xs font-bold text-foreground uppercase tracking-wider">
+                                {roleHint.icon} Assign — {roleHint.label}
+                              </span>
+                              <span className="ml-auto text-[10px] text-rose-500 font-semibold">Required *</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">
+                                  {isPoster ? '🎨 Designer (Assigned To)' : isVideo ? '🎬 Video Person (Assigned To)' : '👤 Assigned To'}
+                                  <span className="text-rose-500 ml-1">*</span>
+                                </label>
+                                <Select value={taskItem.assignedTo || '_none'} onValueChange={(v) => updateTaskField(index, 'assignedTo', v === '_none' ? '' : v)}>
+                                  <SelectTrigger className="rounded-xl bg-background">
+                                    <SelectValue placeholder={isPoster ? 'Select Designer' : isVideo ? 'Select Video Editor' : 'Select Team Member'} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="_none">— Select Person —</SelectItem>
+                                    {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name} ({u.role})</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {isVideo && (
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-semibold text-foreground">✍️ Script Writer</label>
+                                  <Select value={taskItem.scriptWriterAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'scriptWriterAssigned', v === '_none' ? '' : v)}>
+                                    <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Script Writer" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="_none">Unassigned</SelectItem>
+                                      {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+
+                              {isVideo && (
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-semibold text-foreground">🎥 Videographer</label>
+                                  <Select value={taskItem.videographerAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'videographerAssigned', v === '_none' ? '' : v)}>
+                                    <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Videographer" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="_none">Unassigned</SelectItem>
+                                      {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+
+                              {isPoster && (
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-semibold text-foreground">✂️ Revision / Editor</label>
+                                  <Select value={taskItem.editorAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'editorAssigned', v === '_none' ? '' : v)}>
+                                    <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Select Editor" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="_none">Unassigned</SelectItem>
+                                      {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-foreground">📱 Publisher / Poster</label>
+                                <Select value={taskItem.publisherAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'publisherAssigned', v === '_none' ? '' : v)}>
+                                  <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Select Publisher" /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="_none">Unassigned</SelectItem>
+                                    {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Required Content Fields */}
+                          {taskItem.taskCategory === 'content' && (
                             <div className="space-y-4">
-                              <div className="space-y-1">
-                                <label className="text-xs font-bold text-foreground">Content Title</label>
-                                <Input
-                                  placeholder="e.g. Product launch hook reel"
-                                  className="rounded-xl"
-                                  value={taskItem.contentTitle || ''}
-                                  onChange={(e) => updateTaskField(index, 'contentTitle', e.target.value)}
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-foreground">
+                                  Caption / Copy Text <span className="text-rose-500">*</span>
+                                  <span className="text-[10px] font-normal text-muted-foreground ml-1">(required)</span>
+                                </label>
+                                <Textarea
+                                  className="min-h-[75px] rounded-xl resize-none"
+                                  placeholder={isPoster ? 'Caption for this poster...' : isVideo ? 'Caption for this reel/video...' : 'Post caption...'}
+                                  value={taskItem.caption || ''}
+                                  onChange={(e) => updateTaskField(index, 'caption', e.target.value)}
                                 />
                               </div>
-                              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div className="space-y-1 md:col-span-2">
-                                  <label className="text-xs font-bold text-foreground">Content Idea</label>
-                                  <Textarea
-                                    className="min-h-16 rounded-xl"
-                                    placeholder="Core idea, hook, angle..."
-                                    value={taskItem.contentIdea || ''}
-                                    onChange={(e) => updateTaskField(index, 'contentIdea', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-foreground">Script *</label>
-                                  <Textarea
-                                    className="min-h-20 rounded-xl"
-                                    placeholder="Full script or talking points..."
-                                    value={taskItem.scriptText || ''}
-                                    onChange={(e) => updateTaskField(index, 'scriptText', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-foreground">Script Link</label>
+
+                              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-bold text-foreground">
+                                    {isPoster ? '🖼️ Design Reference Link' : '🔗 Reference Link'}
+                                  </label>
                                   <Input
-                                    placeholder="Google Doc / Notion link"
-                                    className="rounded-xl"
-                                    value={taskItem.scriptLink || ''}
-                                    onChange={(e) => updateTaskField(index, 'scriptLink', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-foreground">Reference Link</label>
-                                  <Input
-                                    placeholder="https://..."
+                                    placeholder={isPoster ? 'Figma / Canva / Drive link' : 'Inspiration / sample link'}
                                     className="rounded-xl"
                                     value={taskItem.referenceLink || ''}
                                     onChange={(e) => updateTaskField(index, 'referenceLink', e.target.value)}
                                   />
                                 </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-foreground">Editor Guide</label>
-                                  <Input
-                                    placeholder="Editor notes..."
-                                    className="rounded-xl"
-                                    value={taskItem.editorGuide || ''}
-                                    onChange={(e) => updateTaskField(index, 'editorGuide', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1.5">
                                   <label className="text-xs font-bold text-foreground">Hashtags</label>
-                                  <Input
-                                    placeholder="#marketing, #leads"
-                                    className="rounded-xl"
+                                  <Input placeholder="#brand #marketing #reels" className="rounded-xl"
                                     value={taskItem.hashtags || ''}
-                                    onChange={(e) => updateTaskField(index, 'hashtags', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-foreground">Keywords</label>
-                                  <Input
-                                    placeholder="keywords..."
-                                    className="rounded-xl"
-                                    value={taskItem.keywords || ''}
-                                    onChange={(e) => updateTaskField(index, 'keywords', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-xs font-bold text-foreground">Audio Reference</label>
-                                  <Input
-                                    placeholder="Audio reference link/name"
-                                    className="rounded-xl"
-                                    value={taskItem.audioReference || ''}
-                                    onChange={(e) => updateTaskField(index, 'audioReference', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1 md:col-span-2">
-                                  <label className="text-xs font-bold text-foreground">Shoot Instructions</label>
-                                  <Textarea
-                                    className="min-h-16 rounded-xl"
-                                    placeholder="Framing, location, lighting instructions..."
-                                    value={taskItem.shootInstructions || ''}
-                                    onChange={(e) => updateTaskField(index, 'shootInstructions', e.target.value)}
-                                  />
-                                </div>
-                                <div className="space-y-1 md:col-span-2">
-                                  <label className="text-xs font-bold text-foreground">Editing Instructions</label>
-                                  <Textarea
-                                    className="min-h-16 rounded-xl"
-                                    placeholder="Pacing, transition styles, graphics instructions..."
-                                    value={taskItem.editingInstructions || ''}
-                                    onChange={(e) => updateTaskField(index, 'editingInstructions', e.target.value)}
-                                  />
+                                    onChange={(e) => updateTaskField(index, 'hashtags', e.target.value)} />
                                 </div>
                               </div>
 
-                              {/* Notion-Style Multi-Role Sub-Assignments for Task #Index */}
-                              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-4">
-                                <div className="flex items-center justify-between">
-                                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
-                                    ⚡ Production Pipeline & Sub-Assignments (Task #{index + 1})
-                                  </h4>
-                                </div>
-
-                                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-                                  {/* Script Writer */}
-                                  <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-foreground">✍️ Script By (Writer)</label>
-                                    <Select
-                                      value={taskItem.scriptWriterAssigned || '_none'}
-                                      onValueChange={(val) => updateTaskField(index, 'scriptWriterAssigned', val === '_none' ? '' : val)}
-                                    >
-                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Script Writer" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="_none">Unassigned</SelectItem>
-                                        {assignableUsers.map((u) => (
-                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  {/* Videographer */}
-                                  <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-foreground">🎥 Shoot By (Videographer)</label>
-                                    <Select
-                                      value={taskItem.videographerAssigned || '_none'}
-                                      onValueChange={(val) => updateTaskField(index, 'videographerAssigned', val === '_none' ? '' : val)}
-                                    >
-                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Videographer" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="_none">Unassigned</SelectItem>
-                                        {assignableUsers.map((u) => (
-                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  {/* Editor */}
-                                  <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-foreground">✂️ Editing By (Editor)</label>
-                                    <Select
-                                      value={taskItem.editorAssigned || '_none'}
-                                      onValueChange={(val) => updateTaskField(index, 'editorAssigned', val === '_none' ? '' : val)}
-                                    >
-                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Editor" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="_none">Unassigned</SelectItem>
-                                        {assignableUsers.map((u) => (
-                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  {/* Publisher */}
-                                  <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-foreground">📱 Posting By (Publisher)</label>
-                                    <Select
-                                      value={taskItem.publisherAssigned || '_none'}
-                                      onValueChange={(val) => updateTaskField(index, 'publisherAssigned', val === '_none' ? '' : val)}
-                                    >
-                                      <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Publisher" /></SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="_none">Unassigned</SelectItem>
-                                        {assignableUsers.map((u) => (
-                                          <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
+                              {/* Video production fields */}
+                              {(isVideo || taskItem.contentType === 'videos') && (
+                                <div className="rounded-xl border border-sky-200/60 bg-sky-50/40 dark:bg-sky-950/20 dark:border-sky-800/40 p-4 space-y-3">
+                                  <p className="text-xs font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Video size={12} /> Video Production Details
+                                  </p>
+                                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-semibold text-foreground">📅 Shoot Date & Time</label>
+                                      <Input type="datetime-local" className="rounded-xl bg-background text-xs"
+                                        value={taskItem.shootDate || ''}
+                                        onChange={(e) => updateTaskField(index, 'shootDate', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-semibold text-foreground">📍 Shoot Location</label>
+                                      <Input placeholder="Studio / Client location" className="rounded-xl bg-background"
+                                        value={taskItem.shootLocation || ''}
+                                        onChange={(e) => updateTaskField(index, 'shootLocation', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1.5 md:col-span-2">
+                                      <label className="text-xs font-semibold text-foreground">Content Idea / Hook</label>
+                                      <Textarea className="min-h-[55px] rounded-xl bg-background resize-none"
+                                        placeholder="Core idea, hook, angle for the video..."
+                                        value={taskItem.contentIdea || ''}
+                                        onChange={(e) => updateTaskField(index, 'contentIdea', e.target.value)} />
+                                    </div>
                                   </div>
                                 </div>
+                              )}
 
-                                <div className="grid gap-3 md:grid-cols-3 pt-2 border-t border-border/40">
-                                  <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-foreground">📅 Shoot Date & Time</label>
-                                    <Input
-                                      type="datetime-local"
-                                      className="rounded-xl bg-background text-xs"
-                                      value={taskItem.shootDate || ''}
-                                      onChange={(e) => updateTaskField(index, 'shootDate', e.target.value)}
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-foreground">📍 Shoot Location</label>
-                                    <Input
-                                      placeholder="Studio / Client location"
-                                      className="rounded-xl bg-background text-xs"
-                                      value={taskItem.shootLocation || ''}
-                                      onChange={(e) => updateTaskField(index, 'shootLocation', e.target.value)}
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <label className="text-[11px] font-bold text-foreground">📁 Raw Footage Drive Link</label>
-                                    <Input
-                                      placeholder="https://drive.google.com/..."
-                                      className="rounded-xl bg-background text-xs"
-                                      value={taskItem.rawFootageLink || ''}
-                                      onChange={(e) => updateTaskField(index, 'rawFootageLink', e.target.value)}
-                                    />
+                              {/* Poster design fields */}
+                              {isPoster && (
+                                <div className="rounded-xl border border-violet-200/60 bg-violet-50/40 dark:bg-violet-950/20 dark:border-violet-800/40 p-4 space-y-3">
+                                  <p className="text-xs font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Image size={12} /> Design / Poster Brief
+                                  </p>
+                                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                    <div className="space-y-1.5 md:col-span-2">
+                                      <label className="text-xs font-semibold text-foreground">Design Concept / Brief</label>
+                                      <Textarea className="min-h-[55px] rounded-xl bg-background resize-none"
+                                        placeholder="Design concept, color scheme, messaging..."
+                                        value={taskItem.contentIdea || ''}
+                                        onChange={(e) => updateTaskField(index, 'contentIdea', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-semibold text-foreground">Brand Theme / Reference</label>
+                                      <Input placeholder="Brand colors, theme reference..."
+                                        className="rounded-xl bg-background"
+                                        value={taskItem.audioReference || ''}
+                                        onChange={(e) => updateTaskField(index, 'audioReference', e.target.value)} />
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
-                          ) : (
-                            // Non-Content Advanced Fields
-                            <div className="space-y-4">
-                              <div className="space-y-1">
-                                <label className="text-xs font-bold text-foreground">Requirements / Description *</label>
-                                <Textarea
-                                  className="min-h-24 rounded-xl"
-                                  placeholder="Describe the work required..."
-                                  value={taskItem.description || ''}
-                                  onChange={(e) => updateTaskField(index, 'description', e.target.value)}
-                                />
-                              </div>
+                          )}
 
-                              {isWebsiteTaskType(taskItem.taskType) ? (
-                                // Website-specific fields
+                          {/* Non-content main field */}
+                          {taskItem.taskCategory === 'non_content' && (
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-bold text-foreground">Requirements / Description <span className="text-rose-500">*</span></label>
+                              <Textarea className="min-h-[80px] rounded-xl resize-none"
+                                placeholder="Describe the work required..."
+                                value={taskItem.description || ''}
+                                onChange={(e) => updateTaskField(index, 'description', e.target.value)} />
+                            </div>
+                          )}
+
+                          {/* Expandable advanced fields */}
+                          {isExpanded && (
+                            <div className="border-t border-border/60 pt-4 space-y-4">
+                              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Advanced / Optional Fields</p>
+                              {taskItem.taskCategory === 'content' ? (
                                 <div className="space-y-4">
                                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-bold text-foreground">Website Type *</label>
-                                      <Select
-                                        value={taskItem.websiteType}
-                                        onValueChange={(val) => updateTaskField(index, 'websiteType', val)}
-                                      >
-                                        <SelectTrigger className="rounded-xl">
-                                          <SelectValue placeholder="Select website type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {WEBSITE_TYPE_OPTIONS.map((option) => (
-                                            <SelectItem key={option} value={option}>{option}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-foreground">Content Title</label>
+                                      <Input placeholder="e.g. Product launch hook reel" className="rounded-xl"
+                                        value={taskItem.contentTitle || ''}
+                                        onChange={(e) => updateTaskField(index, 'contentTitle', e.target.value)} />
                                     </div>
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-bold text-foreground">Content Availability</label>
-                                      <Select
-                                        value={taskItem.contentAvailability}
-                                        onValueChange={(val) => updateTaskField(index, 'contentAvailability', val)}
-                                      >
-                                        <SelectTrigger className="rounded-xl">
-                                          <SelectValue placeholder="Content status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {CONTENT_AVAILABILITY_OPTIONS.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-foreground">Keywords</label>
+                                      <Input placeholder="SEO / topic keywords" className="rounded-xl"
+                                        value={taskItem.keywords || ''}
+                                        onChange={(e) => updateTaskField(index, 'keywords', e.target.value)} />
                                     </div>
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-bold text-foreground">Branding Availability</label>
-                                      <Select
-                                        value={taskItem.brandingAvailability}
-                                        onValueChange={(val) => updateTaskField(index, 'brandingAvailability', val)}
-                                      >
-                                        <SelectTrigger className="rounded-xl">
-                                          <SelectValue placeholder="Branding status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {BRANDING_AVAILABILITY_OPTIONS.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-foreground">Script / Copy</label>
+                                      <Textarea className="min-h-[65px] rounded-xl resize-none"
+                                        placeholder="Full script or talking points..."
+                                        value={taskItem.scriptText || ''}
+                                        onChange={(e) => updateTaskField(index, 'scriptText', e.target.value)} />
                                     </div>
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-bold text-foreground">Domain Details</label>
-                                      <Input
-                                        placeholder="e.g. Registered at GoDaddy, transfer needed"
-                                        className="rounded-xl"
-                                        value={taskItem.domainDetails || ''}
-                                        onChange={(e) => updateTaskField(index, 'domainDetails', e.target.value)}
-                                      />
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-foreground">Script Link</label>
+                                      <Input placeholder="Google Doc / Notion link" className="rounded-xl"
+                                        value={taskItem.scriptLink || ''}
+                                        onChange={(e) => updateTaskField(index, 'scriptLink', e.target.value)} />
                                     </div>
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-bold text-foreground">Hosting Details</label>
-                                      <Input
-                                        placeholder="e.g. Hostinger, cPanel details"
-                                        className="rounded-xl"
-                                        value={taskItem.hostingDetails || ''}
-                                        onChange={(e) => updateTaskField(index, 'hostingDetails', e.target.value)}
-                                      />
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-foreground">Editor Guide</label>
+                                      <Input placeholder="Style, fonts, transitions..." className="rounded-xl"
+                                        value={taskItem.editorGuide || ''}
+                                        onChange={(e) => updateTaskField(index, 'editorGuide', e.target.value)} />
                                     </div>
-                                    <div className="space-y-1">
-                                      <label className="text-xs font-bold text-foreground">Admin Credentials</label>
-                                      <Input
-                                        placeholder="WP Admin link, user, pass..."
-                                        className="rounded-xl"
-                                        value={taskItem.adminCredentials || ''}
-                                        onChange={(e) => updateTaskField(index, 'adminCredentials', e.target.value)}
-                                      />
+                                    {isVideo && (
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-foreground">🎵 Audio / Music Reference</label>
+                                        <Input placeholder="Track name or audio link" className="rounded-xl"
+                                          value={taskItem.audioReference || ''}
+                                          onChange={(e) => updateTaskField(index, 'audioReference', e.target.value)} />
+                                      </div>
+                                    )}
+                                    <div className="space-y-1.5 md:col-span-2">
+                                      <label className="text-xs font-bold text-foreground">Shoot Instructions</label>
+                                      <Textarea className="min-h-[55px] rounded-xl resize-none"
+                                        placeholder="Framing, location, lighting..."
+                                        value={taskItem.shootInstructions || ''}
+                                        onChange={(e) => updateTaskField(index, 'shootInstructions', e.target.value)} />
                                     </div>
-                                    <div className="space-y-1 md:col-span-2">
-                                      <label className="text-xs font-bold text-foreground">Required Features / Integrations</label>
-                                      <Textarea
-                                        className="min-h-16 rounded-xl"
-                                        placeholder="e.g. Stripe payment, WhatsApp chat, contact form..."
-                                        value={taskItem.requiredFeatures || ''}
-                                        onChange={(e) => updateTaskField(index, 'requiredFeatures', e.target.value)}
-                                      />
+                                    <div className="space-y-1.5 md:col-span-2">
+                                      <label className="text-xs font-bold text-foreground">Editing Instructions</label>
+                                      <Textarea className="min-h-[55px] rounded-xl resize-none"
+                                        placeholder="Pacing, transitions, graphics..."
+                                        value={taskItem.editingInstructions || ''}
+                                        onChange={(e) => updateTaskField(index, 'editingInstructions', e.target.value)} />
                                     </div>
-                                    <div className="space-y-1 md:col-span-2">
-                                      <label className="text-xs font-bold text-foreground">Website Requirements *</label>
-                                      <Textarea
-                                        className="min-h-20 rounded-xl"
-                                        placeholder="Core functionalities, styling preferences, competitor examples..."
-                                        value={taskItem.websiteRequirements || ''}
-                                        onChange={(e) => updateTaskField(index, 'websiteRequirements', e.target.value)}
-                                      />
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-foreground">📁 Raw Footage Link</label>
+                                      <Input placeholder="https://drive.google.com/..." className="rounded-xl"
+                                        value={taskItem.rawFootageLink || ''}
+                                        onChange={(e) => updateTaskField(index, 'rawFootageLink', e.target.value)} />
                                     </div>
                                   </div>
-                                  {/* Pages Needed */}
                                   <div className="space-y-2">
-                                    <label className="text-xs font-bold text-foreground">Pages Needed</label>
+                                    <label className="text-xs font-bold text-foreground">Target Posting Platforms</label>
                                     <div className="flex flex-wrap gap-2">
-                                      {PAGE_OPTIONS.map((page) => {
-                                        const isChecked = (taskItem.pagesNeeded || []).includes(page);
+                                      {POSTING_PLATFORM_OPTIONS.map((plat) => {
+                                        const isSel = (taskItem.postingPlatforms || []).includes(plat.value);
                                         return (
-                                          <label key={page} className={`flex items-center gap-2 cursor-pointer border rounded-xl px-3 py-1.5 transition ${isChecked ? 'bg-primary/10 border-primary text-primary' : 'bg-background hover:bg-secondary/40 border-border'}`}>
-                                            <input
-                                              type="checkbox"
-                                              className="hidden"
-                                              checked={isChecked}
-                                              onChange={() => {
-                                                const current = taskItem.pagesNeeded || [];
-                                                const next = current.includes(page)
-                                                  ? current.filter(item => item !== page)
-                                                  : [...current, page];
-                                                updateTaskField(index, 'pagesNeeded', next);
-                                              }}
-                                            />
-                                            <span className="text-xs font-medium">{page}</span>
-                                          </label>
+                                          <button key={plat.value} type="button"
+                                            onClick={() => updateTaskField(index, 'postingPlatforms', isSel
+                                              ? (taskItem.postingPlatforms || []).filter((p) => p !== plat.value)
+                                              : [...(taskItem.postingPlatforms || []), plat.value])}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${isSel ? 'bg-primary text-primary-foreground border-primary shadow-sm' : 'bg-background text-muted-foreground border-border hover:bg-muted'}`}>
+                                            {plat.label}
+                                          </button>
                                         );
                                       })}
                                     </div>
                                   </div>
                                 </div>
-                              ) : null}
+                              ) : (
+                                isWebsiteTaskType(taskItem.taskType) && (
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-foreground">Website Type</label>
+                                        <Select value={taskItem.websiteType} onValueChange={(v) => updateTaskField(index, 'websiteType', v)}>
+                                          <SelectTrigger className="rounded-xl"><SelectValue placeholder="Select type" /></SelectTrigger>
+                                          <SelectContent>{WEBSITE_TYPE_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-foreground">Content Availability</label>
+                                        <Select value={taskItem.contentAvailability} onValueChange={(v) => updateTaskField(index, 'contentAvailability', v)}>
+                                          <SelectTrigger className="rounded-xl"><SelectValue placeholder="Content status" /></SelectTrigger>
+                                          <SelectContent>{CONTENT_AVAILABILITY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-foreground">Domain Details</label>
+                                        <Input placeholder="Domain details" className="rounded-xl"
+                                          value={taskItem.domainDetails || ''}
+                                          onChange={(e) => updateTaskField(index, 'domainDetails', e.target.value)} />
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-foreground">Hosting Details</label>
+                                        <Input placeholder="Hosting details" className="rounded-xl"
+                                          value={taskItem.hostingDetails || ''}
+                                          onChange={(e) => updateTaskField(index, 'hostingDetails', e.target.value)} />
+                                      </div>
+                                      <div className="space-y-1.5 md:col-span-2">
+                                        <label className="text-xs font-bold text-foreground">Website Requirements</label>
+                                        <Textarea className="min-h-[70px] rounded-xl resize-none"
+                                          placeholder="Full website requirements..."
+                                          value={taskItem.websiteRequirements || ''}
+                                          onChange={(e) => updateTaskField(index, 'websiteRequirements', e.target.value)} />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <label className="text-xs font-bold text-foreground">Pages Needed</label>
+                                      <div className="flex flex-wrap gap-2">
+                                        {PAGE_OPTIONS.map((page) => {
+                                          const isChecked = (taskItem.pagesNeeded || []).includes(page);
+                                          return (
+                                            <label key={page} className={`flex items-center gap-1.5 cursor-pointer border rounded-xl px-3 py-1.5 text-xs transition ${isChecked ? 'bg-primary/10 border-primary text-primary' : 'bg-background hover:bg-secondary/40 border-border'}`}>
+                                              <input type="checkbox" className="hidden" checked={isChecked}
+                                                onChange={() => {
+                                                  const current = taskItem.pagesNeeded || [];
+                                                  updateTaskField(index, 'pagesNeeded', current.includes(page)
+                                                    ? current.filter((p) => p !== page)
+                                                    : [...current, page]);
+                                                }} />
+                                              <span className="font-medium">{page}</span>
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-              {/* Plus Button */}
-              <div className="mt-4 flex justify-start">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-xl flex items-center gap-2"
-                  onClick={handleAddTask}
-                >
-                  <Plus size={16} />
-                  Add Another Task
+                <Button type="button" variant="outline" onClick={handleAddTask}
+                  className="rounded-xl flex items-center gap-2 w-full border-dashed">
+                  <Plus size={16} /> Add Another Task
                 </Button>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border bg-secondary/10 p-8 text-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-secondary/40 flex items-center justify-center">
+                    <Users size={20} className="text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Select Client & Project first</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Task cards will appear here. Poster tasks → Designer. Video tasks → Video person.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
 
+        {/* ── Notes & Visibility ── */}
         <div className="space-y-4 rounded-2xl border border-border bg-secondary/20 p-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -2267,13 +2234,12 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 <FormItem>
                   <FormLabel>Internal Notes</FormLabel>
                   <FormControl>
-                    <Textarea className="min-h-24 rounded-xl" placeholder="Internal admin/team notes..." {...field} />
+                    <Textarea className="min-h-20 rounded-xl" placeholder="Internal admin/team notes..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="clientVisibleNotes"
@@ -2281,7 +2247,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 <FormItem>
                   <FormLabel>Client Visible Notes</FormLabel>
                   <FormControl>
-                    <Textarea className="min-h-24 rounded-xl" placeholder="Notes the client can see..." {...field} />
+                    <Textarea className="min-h-20 rounded-xl" placeholder="Notes the client can see..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -2295,11 +2261,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               name="isClientVisible"
               render={({ field }) => (
                 <FormItem className="rounded-xl border border-border bg-background px-4 py-3">
-                  <label className="flex items-center gap-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={Boolean(field.value)}
-                      onChange={(event) => field.onChange(event.target.checked)}
+                      onChange={(e) => field.onChange(e.target.checked)}
                     />
                     <div>
                       <FormLabel className="cursor-pointer">Visible in client dashboard</FormLabel>
@@ -2309,21 +2275,20 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="approvalRequired"
               render={({ field }) => (
                 <FormItem className="rounded-xl border border-border bg-background px-4 py-3">
-                  <label className="flex items-center gap-3">
+                  <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={Boolean(field.value)}
-                      onChange={(event) => field.onChange(event.target.checked)}
+                      onChange={(e) => field.onChange(e.target.checked)}
                     />
                     <div>
                       <FormLabel className="cursor-pointer">Client confirmation required</FormLabel>
-                      <p className="text-xs text-muted-foreground">Enable Yes / No response workflow for the client.</p>
+                      <p className="text-xs text-muted-foreground">Enable Yes / No response workflow.</p>
                     </div>
                   </label>
                 </FormItem>
@@ -2331,6 +2296,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             />
           </div>
 
+          {/* Attachments */}
           <div>
             <FormLabel>Attachments</FormLabel>
             <Input
@@ -2338,7 +2304,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               multiple
               accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
               className="rounded-xl mt-1"
-              onChange={(event) => setAttachmentFiles(Array.from(event.target.files || []))}
+              onChange={(e) => setAttachmentFiles(Array.from(e.target.files || []))}
             />
             {(existingAttachments.length > 0 || attachmentFiles.length > 0) && (
               <div className="mt-3 rounded-xl border border-border bg-background p-3 text-sm">
@@ -2346,8 +2312,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                   <div>
                     <p className="font-semibold text-foreground">Existing files</p>
                     <ul className="mt-2 space-y-1 text-muted-foreground">
-                      {existingAttachments.map((file, index) => (
-                        <li key={`${file.url || file.name}-${index}`}>{file.name || 'Attachment'}</li>
+                      {existingAttachments.map((f, i) => (
+                        <li key={`${f.url || f.name}-${i}`}>{f.name || 'Attachment'}</li>
                       ))}
                     </ul>
                   </div>
@@ -2356,8 +2322,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                   <div className={existingAttachments.length > 0 ? 'mt-3' : ''}>
                     <p className="font-semibold text-foreground">New files to upload</p>
                     <ul className="mt-2 space-y-1 text-muted-foreground">
-                      {attachmentFiles.map((file) => (
-                        <li key={`${file.name}-${file.size}`}>{file.name}</li>
+                      {attachmentFiles.map((f) => (
+                        <li key={`${f.name}-${f.size}`}>{f.name}</li>
                       ))}
                     </ul>
                   </div>
@@ -2372,25 +2338,29 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             Cancel
           </Button>
           <Button type="submit" className="rounded-xl" disabled={isLoading}>
-            {isLoading ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
+            {isLoading ? 'Saving...' : task ? 'Update Task' : `Create ${tasksList.length > 1 ? `${tasksList.length} Tasks` : 'Task'}`}
           </Button>
         </div>
       </form>
     </Form>
   );
 
-  if (pageMode) {
-    if (!open) return null;
-    return formBody;
-  }
+  if (pageMode) return <div className="space-y-6">{formBody}</div>;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{task ? 'Edit Task' : 'Create Advanced Task'}</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border sticky top-0 bg-background z-10">
+          <DialogTitle className="text-xl font-bold">
+            {task ? 'Edit Task' : 'Create Tasks'}
+          </DialogTitle>
+          {!task && (
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Select client & project, then add tasks — poster tasks go to a designer, video tasks to a video person
+            </p>
+          )}
         </DialogHeader>
-        {formBody}
+        <div className="px-6 pb-6 pt-4">{formBody}</div>
       </DialogContent>
     </Dialog>
   );
