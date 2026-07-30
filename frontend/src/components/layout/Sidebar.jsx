@@ -155,7 +155,14 @@ const Sidebar = () => {
     ],
   };
 
-  const currentMenu = menuItems[user?.role] || menuItems.employee;
+  let currentMenu = menuItems[user?.role] || menuItems.employee;
+  if (user?.permissions?.canAccessSmm && !currentMenu.some(item => item.path === '/smm')) {
+    currentMenu = [
+      ...currentMenu.slice(0, 1),
+      { name: 'Social Media Manager', icon: Share2, path: '/smm' },
+      ...currentMenu.slice(1)
+    ];
+  }
 
   return (
     <>

@@ -11,6 +11,7 @@ const PERMISSIONS = [
   { key: 'canUploadAssets', label: 'Upload Assets' },
   { key: 'canViewAnalytics', label: 'View Analytics' },
   { key: 'canManageEmployees', label: 'Manage Employees' },
+  { key: 'canAccessSmm', label: 'Social Media Manager' },
 ];
 
 export default function UserPermissionsModal({ user, onClose, onSave }) {

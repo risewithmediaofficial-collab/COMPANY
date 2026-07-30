@@ -95,8 +95,11 @@ const ProtectedRoute = ({ isAuthenticated, user, loading, allowedRoles, children
   // Token valid but user profile not yet fetched (edge case)
   if (!user) return <LoadingScreen />;
 
-  // RBAC check
+  // RBAC & Granular Permission check
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    if (user.permissions?.canAccessSmm && allowedRoles.includes('employee')) {
+      return children;
+    }
     return <Navigate to="/" replace />;
   }
 

@@ -83,6 +83,7 @@ const userSchema = new mongoose.Schema(
       canManageEmployees: { type: Boolean, default: false },
       canManageLeads: { type: Boolean, default: false },
       canManageHR: { type: Boolean, default: false },
+      canAccessSmm: { type: Boolean, default: false },
     },
 
     // Notification preferences
