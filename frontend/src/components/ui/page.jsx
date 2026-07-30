@@ -73,6 +73,29 @@ export const MetricCard = ({ label, title, value, icon: Icon, tone = 'primary', 
   );
 };
 
+export const StatusBadge = ({ tone = 'primary', children, className }) => (
+  <span
+    className={cn(
+      'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider',
+      toneStyles[tone] || toneStyles.primary,
+      className
+    )}
+  >
+    {children}
+  </span>
+);
+
+export const EmptyState = ({ title = 'No data', description = 'There is no data available right now.', action, icon: Icon = Inbox, className }) => (
+  <div className={cn('flex flex-col items-center justify-center p-8 text-center', className)}>
+    <div className="rounded-full bg-secondary p-4 text-muted-foreground mb-3">
+      <Icon size={24} />
+    </div>
+    <h3 className="text-base font-bold text-foreground">{title}</h3>
+    <p className="mt-1 text-xs text-muted-foreground max-w-sm">{description}</p>
+    {action ? <div className="mt-4">{action}</div> : null}
+  </div>
+);
+
 export const PageToolbar = ({ children, className }) => (
   <div className={cn('rounded-[24px] border border-border/80 bg-card/85 p-3 shadow-sm backdrop-blur-sm', className)}>
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">{children}</div>
