@@ -42,6 +42,18 @@ const adSchema = new mongoose.Schema(
       default: 'Pending',
     },
     approvalNotes: { type: String, default: '' },
+    // Performance tracking per Ad
+    performance: {
+      leads: { type: Number, default: 0 },
+      spend: { type: Number, default: 0 },
+      revenue: { type: Number, default: 0 },
+      impressions: { type: Number, default: 0 },
+      clicks: { type: Number, default: 0 },
+      ctr: { type: Number, default: 0 },
+      cpc: { type: Number, default: 0 },
+      cpl: { type: Number, default: 0 },
+      roas: { type: Number, default: 0 },
+    },
     // Future: externalAdId from Meta/Google
     externalAdId: { type: String, default: '' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -105,3 +105,27 @@ export const updateAdApproval = async (req, res) => {
     res.status(400).json({ success: false, message: err.message });
   }
 };
+
+export const updateAdPerformance = async (req, res) => {
+  try {
+    const ad = await Ad.findByIdAndUpdate(
+      req.params.id,
+      { $set: { performance: req.body } },
+      { new: true, runValidators: true }
+    ).populate('adSet', 'name');
+    if (!ad) return res.status(404).json({ success: false, message: 'Ad not found' });
+    
+    await SmmActivityLog.create({
+      action: 'Ad Metrics Updated',
+      entity: 'SmmAd',
+      entityId: ad._id,
+      entityName: ad.name,
+      performedBy: req.user._id,
+      metadata: { performance: req.body },
+    });
+
+    res.json({ success: true, data: ad });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};

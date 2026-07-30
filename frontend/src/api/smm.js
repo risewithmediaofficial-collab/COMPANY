@@ -40,6 +40,7 @@ export const smmApi = {
   createAd: (data) => api.post('/smm/ads', data),
   updateAd: (id, data) => api.put(`/smm/ads/${id}`, data),
   updateAdApproval: (id, data) => api.patch(`/smm/ads/${id}/approval`, data),
+  updateAdPerformance: (id, data) => api.patch(`/smm/ads/${id}/performance`, data),
   deleteAd: (id) => api.delete(`/smm/ads/${id}`),
 
   // Creatives

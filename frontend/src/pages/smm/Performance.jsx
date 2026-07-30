@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, DollarSign, Target, MousePointer, Edit3, Sliders, RefreshCw } from 'lucide-react';
+import { TrendingUp, DollarSign, Target, MousePointer, Edit3, Sliders, RefreshCw, Plus } from 'lucide-react';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, SearchField } from '../../components/ui/page';
@@ -55,6 +55,11 @@ export default function Performance() {
 
       const calculated = {
         ...metrics,
+        leads: lds,
+        spend: spd,
+        revenue: rev,
+        impressions: imp,
+        clicks: clk,
         ctr: imp > 0 ? Number(((clk / imp) * 100).toFixed(2)) : Number(metrics.ctr || 0),
         cpc: clk > 0 ? Number((spd / clk).toFixed(2)) : Number(metrics.cpc || 0),
         cpm: imp > 0 ? Number(((spd / imp) * 1000).toFixed(2)) : Number(metrics.cpm || 0),
@@ -63,7 +68,7 @@ export default function Performance() {
       };
 
       await smmApi.updatePerformance(selectedCampaign._id, calculated);
-      toast.success('Performance metrics updated');
+      toast.success('Leads & campaign metrics updated successfully!');
       setIsDrawerOpen(false);
       fetchCampaigns();
     } catch (err) {
@@ -83,19 +88,19 @@ export default function Performance() {
       ),
     },
     {
-      key: 'spend',
-      label: 'Spend',
-      render: (row) => <span className="text-xs font-mono font-bold">₹{(row.performance?.spend || 0).toLocaleString()}</span>,
-    },
-    {
       key: 'leads',
-      label: 'Leads',
-      render: (row) => <span className="text-xs font-semibold">{row.performance?.leads || 0}</span>,
+      label: 'Leads Generated',
+      render: (row) => (
+        <div>
+          <span className="text-xs font-bold text-emerald-600 block">{row.performance?.leads || 0} Leads</span>
+          <span className="text-[11px] text-muted-foreground">₹{row.performance?.costPerLead || 0} / Lead</span>
+        </div>
+      ),
     },
     {
-      key: 'cpl',
-      label: 'Cost / Lead',
-      render: (row) => <span className="text-xs font-mono">₹{row.performance?.costPerLead || 0}</span>,
+      key: 'spend',
+      label: 'Ad Spend',
+      render: (row) => <span className="text-xs font-mono font-bold">₹{(row.performance?.spend || 0).toLocaleString()}</span>,
     },
     {
       key: 'revenue',
@@ -129,10 +134,10 @@ export default function Performance() {
     },
     {
       key: 'action',
-      label: 'Update',
+      label: 'Log Leads',
       render: (row) => (
-        <button onClick={() => openUpdate(row)} className="px-3 py-1 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg text-xs font-semibold flex items-center gap-1 border border-border">
-          <Edit3 size={12} /> Sync / Edit
+        <button onClick={() => openUpdate(row)} className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 rounded-lg text-xs font-semibold flex items-center gap-1 border border-emerald-200">
+          <Target size={13} /> Log Leads & Metrics
         </button>
       ),
     },
@@ -141,8 +146,8 @@ export default function Performance() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Live Performance Center"
-        subtitle="Automatic calculation of Reach, CTR, CPC, CPM, CPL, ROAS & Conversions"
+        title="Live Performance & Lead Logging"
+        subtitle="Log leads generated, ad spend, revenue, and auto-calculate CPL & ROAS"
       />
 
       <SMMSubNav />
@@ -161,51 +166,100 @@ export default function Performance() {
       <SMMDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        title={`Update Metrics — ${selectedCampaign?.name}`}
+        title={`Log Leads & Metrics — ${selectedCampaign?.name}`}
       >
         <form onSubmit={handleSaveMetrics} className="space-y-4">
+          <div className="p-4 bg-emerald-500/10 border border-emerald-200 rounded-2xl space-y-1">
+            <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Direct Lead & Spend Entry</h4>
+            <p className="text-xs text-emerald-600">Enter total leads generated and ad spend for automatic CPL & ROAS calculation</p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Total Spend (₹)</label>
-              <input type="number" value={metrics.spend} onChange={e => setMetrics({...metrics, spend: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Leads Generated *</label>
+              <input
+                type="number"
+                required
+                value={metrics.leads}
+                onChange={e => setMetrics({...metrics, leads: Number(e.target.value)})}
+                className="app-input font-bold text-emerald-600 text-base"
+                placeholder="e.g. 50"
+              />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Total Revenue (₹)</label>
-              <input type="number" value={metrics.revenue} onChange={e => setMetrics({...metrics, revenue: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Total Ad Spend (₹)</label>
+              <input
+                type="number"
+                value={metrics.spend}
+                onChange={e => setMetrics({...metrics, spend: Number(e.target.value)})}
+                className="app-input font-mono"
+                placeholder="e.g. 5000"
+              />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Leads Generated</label>
-              <input type="number" value={metrics.leads} onChange={e => setMetrics({...metrics, leads: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Total Revenue Generated (₹)</label>
+              <input
+                type="number"
+                value={metrics.revenue}
+                onChange={e => setMetrics({...metrics, revenue: Number(e.target.value)})}
+                className="app-input font-mono text-emerald-600"
+                placeholder="e.g. 25000"
+              />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Purchases</label>
-              <input type="number" value={metrics.purchases} onChange={e => setMetrics({...metrics, purchases: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Purchases Count</label>
+              <input
+                type="number"
+                value={metrics.purchases}
+                onChange={e => setMetrics({...metrics, purchases: Number(e.target.value)})}
+                className="app-input"
+              />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Impressions</label>
-              <input type="number" value={metrics.impressions} onChange={e => setMetrics({...metrics, impressions: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Impressions Count</label>
+              <input
+                type="number"
+                value={metrics.impressions}
+                onChange={e => setMetrics({...metrics, impressions: Number(e.target.value)})}
+                className="app-input"
+              />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Clicks</label>
-              <input type="number" value={metrics.clicks} onChange={e => setMetrics({...metrics, clicks: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Clicks Count</label>
+              <input
+                type="number"
+                value={metrics.clicks}
+                onChange={e => setMetrics({...metrics, clicks: Number(e.target.value)})}
+                className="app-input"
+              />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Reach</label>
-              <input type="number" value={metrics.reach} onChange={e => setMetrics({...metrics, reach: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Reach Count</label>
+              <input
+                type="number"
+                value={metrics.reach}
+                onChange={e => setMetrics({...metrics, reach: Number(e.target.value)})}
+                className="app-input"
+              />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Video Views</label>
-              <input type="number" value={metrics.videoViews} onChange={e => setMetrics({...metrics, videoViews: Number(e.target.value)})} className="app-input" />
+              <label className="text-xs font-semibold text-foreground mb-1 block">Video Views Count</label>
+              <input
+                type="number"
+                value={metrics.videoViews}
+                onChange={e => setMetrics({...metrics, videoViews: Number(e.target.value)})}
+                className="app-input"
+              />
             </div>
           </div>
 
           <div className="p-3 bg-secondary/40 rounded-xl border border-border text-xs text-muted-foreground">
-            💡 CTR, CPC, CPM, Cost Per Lead, and ROAS will automatically recalculate upon save.
+            💡 CTR, CPC, CPM, Cost Per Lead (CPL), and ROAS will automatically recalculate upon saving.
           </div>
 
           <div className="pt-4 flex justify-end gap-3 border-t border-border">
             <button type="button" onClick={() => setIsDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl text-sm hover:opacity-90">Save Metrics</button>
+            <button type="submit" className="bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:opacity-90">Save Lead Log</button>
           </div>
         </form>
       </SMMDrawer>

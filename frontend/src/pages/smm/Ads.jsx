@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Check, X, FileText, ExternalLink, Image as ImageIcon, Video, Layers, MessageSquare } from 'lucide-react';
+import { Plus, Check, X, FileText, ExternalLink, Image as ImageIcon, Video, Layers, MessageSquare, TrendingUp, Target, DollarSign, Edit3 } from 'lucide-react';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, SearchField } from '../../components/ui/page';
@@ -15,13 +15,19 @@ export default function Ads() {
   const [search, setSearch] = useState('');
   const [approvalFilter, setApprovalFilter] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isLogDrawerOpen, setIsLogDrawerOpen] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
+  const [selectedAdForLog, setSelectedAdForLog] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '', adSet: '', status: 'Draft', creativeType: 'Image',
     primaryImage: '', videoUrl: '', thumbnail: '', headline: '',
     primaryText: '', description: '', cta: 'Learn More', destinationUrl: '',
     whatsappNumber: '', utmParameters: '', pixelEvent: '', approvalStatus: 'Pending'
+  });
+
+  const [adMetrics, setAdMetrics] = useState({
+    leads: 0, spend: 0, revenue: 0, impressions: 0, clicks: 0, ctr: 0, cpc: 0, cpl: 0, roas: 0
   });
 
   const fetchData = async () => {
@@ -71,6 +77,53 @@ export default function Ads() {
     }
   };
 
+  const openLogMetrics = (ad) => {
+    setSelectedAdForLog(ad);
+    setAdMetrics({
+      leads: ad.performance?.leads || 0,
+      spend: ad.performance?.spend || 0,
+      revenue: ad.performance?.revenue || 0,
+      impressions: ad.performance?.impressions || 0,
+      clicks: ad.performance?.clicks || 0,
+      ctr: ad.performance?.ctr || 0,
+      cpc: ad.performance?.cpc || 0,
+      cpl: ad.performance?.cpl || 0,
+      roas: ad.performance?.roas || 0,
+    });
+    setIsLogDrawerOpen(true);
+  };
+
+  const handleSaveAdPerformance = async (e) => {
+    e.preventDefault();
+    try {
+      const leads = Number(adMetrics.leads) || 0;
+      const spend = Number(adMetrics.spend) || 0;
+      const revenue = Number(adMetrics.revenue) || 0;
+      const clicks = Number(adMetrics.clicks) || 0;
+      const impressions = Number(adMetrics.impressions) || 0;
+
+      const calculated = {
+        ...adMetrics,
+        leads,
+        spend,
+        revenue,
+        clicks,
+        impressions,
+        cpl: leads > 0 ? Number((spend / leads).toFixed(2)) : 0,
+        roas: spend > 0 ? Number((revenue / spend).toFixed(2)) : 0,
+        ctr: impressions > 0 ? Number(((clicks / impressions) * 100).toFixed(2)) : 0,
+        cpc: clicks > 0 ? Number((spend / clicks).toFixed(2)) : 0,
+      };
+
+      await smmApi.updateAdPerformance(selectedAdForLog._id, calculated);
+      toast.success('Ad lead performance logged successfully!');
+      setIsLogDrawerOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to save ad lead performance');
+    }
+  };
+
   const openAdd = () => {
     setEditingAd(null);
     setFormData({
@@ -109,13 +162,28 @@ export default function Ads() {
       ),
     },
     {
-      key: 'adSet',
-      label: 'Ad Set',
-      render: (row) => <span className="text-xs font-medium text-foreground">{row.adSet?.name || 'Unassigned'}</span>,
+      key: 'leads',
+      label: 'Leads Generated',
+      render: (row) => (
+        <div className="text-xs">
+          <span className="font-bold text-emerald-600 block">{row.performance?.leads || 0} Leads</span>
+          <span className="text-muted-foreground">₹{row.performance?.cpl || 0} / lead</span>
+        </div>
+      ),
+    },
+    {
+      key: 'spend',
+      label: 'Spend & ROAS',
+      render: (row) => (
+        <div className="text-xs">
+          <span className="font-mono font-bold block">₹{(row.performance?.spend || 0).toLocaleString()}</span>
+          <span className="text-primary font-semibold">{row.performance?.roas || 0}x ROAS</span>
+        </div>
+      ),
     },
     {
       key: 'cta',
-      label: 'CTA & Destination',
+      label: 'CTA & Link',
       render: (row) => (
         <div>
           <span className="text-xs font-bold px-2 py-0.5 rounded bg-secondary border border-border inline-block mb-0.5">{row.cta}</span>
@@ -147,17 +215,24 @@ export default function Ads() {
       ),
     },
     {
-      key: 'status',
-      label: 'Ad Status',
-      render: (row) => <StatusBadgeSmm status={row.status} />,
+      key: 'logPerformance',
+      label: 'Log Leads',
+      render: (row) => (
+        <button
+          onClick={() => openLogMetrics(row)}
+          className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-lg text-xs font-semibold flex items-center gap-1 border border-emerald-200"
+        >
+          <Target size={13} /> Log Leads
+        </button>
+      ),
     },
   ];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Ads"
-        subtitle="Manage ad creatives, headlines, copy text, CTAs and approval status"
+        title="Ads & Lead Performance"
+        subtitle="Track headlines, copy, CTAs, and log leads generated per running ad"
         actions={
           <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
             <Plus size={18} />
@@ -196,6 +271,84 @@ export default function Ads() {
         emptyDescription="Create your first Ad within an Ad Set."
       />
 
+      {/* Log Leads & Performance Drawer */}
+      <SMMDrawer
+        isOpen={isLogDrawerOpen}
+        onClose={() => setIsLogDrawerOpen(false)}
+        title={`Log Leads & Metrics — ${selectedAdForLog?.name}`}
+      >
+        <form onSubmit={handleSaveAdPerformance} className="space-y-4">
+          <div className="p-4 bg-emerald-500/10 border border-emerald-200 rounded-2xl space-y-1">
+            <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Direct Lead Log</h4>
+            <p className="text-xs text-emerald-600">Enter daily or total leads generated for this specific ad</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-foreground mb-1 block">Leads Generated *</label>
+              <input
+                type="number"
+                required
+                value={adMetrics.leads}
+                onChange={e => setAdMetrics({...adMetrics, leads: Number(e.target.value)})}
+                className="app-input font-bold text-emerald-600 text-base"
+                placeholder="e.g. 25"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-foreground mb-1 block">Ad Spend Amount (₹)</label>
+              <input
+                type="number"
+                value={adMetrics.spend}
+                onChange={e => setAdMetrics({...adMetrics, spend: Number(e.target.value)})}
+                className="app-input font-mono"
+                placeholder="e.g. 2500"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-foreground mb-1 block">Revenue Generated (₹)</label>
+              <input
+                type="number"
+                value={adMetrics.revenue}
+                onChange={e => setAdMetrics({...adMetrics, revenue: Number(e.target.value)})}
+                className="app-input font-mono text-emerald-600"
+                placeholder="e.g. 15000"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-foreground mb-1 block">Clicks Count</label>
+              <input
+                type="number"
+                value={adMetrics.clicks}
+                onChange={e => setAdMetrics({...adMetrics, clicks: Number(e.target.value)})}
+                className="app-input"
+                placeholder="e.g. 450"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-foreground mb-1 block">Impressions Count</label>
+              <input
+                type="number"
+                value={adMetrics.impressions}
+                onChange={e => setAdMetrics({...adMetrics, impressions: Number(e.target.value)})}
+                className="app-input"
+                placeholder="e.g. 12000"
+              />
+            </div>
+          </div>
+
+          <div className="p-3 bg-secondary/40 rounded-xl border border-border text-xs text-muted-foreground">
+            💡 Cost Per Lead (CPL) and ROAS are automatically calculated on save based on your inputs.
+          </div>
+
+          <div className="pt-4 flex justify-end gap-3 border-t border-border">
+            <button type="button" onClick={() => setIsLogDrawerOpen(false)} className="app-button-secondary">Cancel</button>
+            <button type="submit" className="bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:opacity-90">Save Lead Log</button>
+          </div>
+        </form>
+      </SMMDrawer>
+
+      {/* Ad Edit / Create Drawer */}
       <SMMDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
