@@ -30,6 +30,7 @@ import {
   ClipboardList,
   Sparkles,
   StickyNote,
+  Share2,
   X
 } from 'lucide-react';
 import { toggleSidebar } from '../../store/slices/uiSlice';
@@ -73,6 +74,7 @@ const Sidebar = () => {
   const menuItems = {
     superAdmin: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { name: 'Social Media Manager', icon: Share2, path: '/smm' },
       { name: 'CRM & Leads', icon: TrendingUp, path: '/crm/leads' },
       { name: 'Call History', icon: PhoneCall, path: '/call-history' },
       { name: 'Daily Tasks', icon: Calendar, path: '/daily-tasks' },
@@ -99,6 +101,7 @@ const Sidebar = () => {
     ],
     manager: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { name: 'Social Media Manager', icon: Share2, path: '/smm' },
       { name: 'CRM & Leads', icon: TrendingUp, path: '/crm/leads' },
       { name: 'Call History', icon: PhoneCall, path: '/call-history' },
       { name: 'Daily Tasks', icon: Calendar, path: '/daily-tasks' },
@@ -121,6 +124,7 @@ const Sidebar = () => {
     ],
     employee: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { name: 'Social Media Manager', icon: Share2, path: '/smm' },
       { name: 'Daily Tasks', icon: Calendar, path: '/daily-tasks' },
       { name: 'My Tasks', icon: CheckSquare, path: '/tasks' },
       { name: 'Pending Notes', icon: StickyNote, path: '/pending-notes' },

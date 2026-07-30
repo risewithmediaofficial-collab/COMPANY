@@ -50,6 +50,15 @@ import proposalRoutes from './routes/proposal.routes.js';
 import taskNoteRoutes from './routes/taskNote.routes.js';
 import dmCalendarRoutes from './routes/dmCalendar.routes.js';
 import influencerRoutes from './routes/influencer.routes.js';
+import smmClientRoutes from './routes/smm/smmClient.routes.js';
+import smmProjectRoutes from './routes/smm/smmProject.routes.js';
+import smmCampaignRoutes from './routes/smm/campaign.routes.js';
+import smmAdSetRoutes from './routes/smm/adSet.routes.js';
+import smmAdRoutes from './routes/smm/ad.routes.js';
+import smmCreativeRoutes from './routes/smm/creative.routes.js';
+import smmTaskRoutes from './routes/smm/smmTask.routes.js';
+import smmNoteRoutes from './routes/smm/smmNote.routes.js';
+import smmDashboardRoutes from './routes/smm/smmDashboard.routes.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 loadEnv();
@@ -159,6 +168,17 @@ app.use('/api/proposals', proposalRoutes);
 app.use('/api/task-notes', taskNoteRoutes);
 app.use('/api/dm-calendar', dmCalendarRoutes);
 app.use('/api/influencers', influencerRoutes);
+
+// SMM Module Routes
+app.use('/api/smm/dashboard', smmDashboardRoutes);
+app.use('/api/smm/clients', smmClientRoutes);
+app.use('/api/smm/projects', smmProjectRoutes);
+app.use('/api/smm/campaigns', smmCampaignRoutes);
+app.use('/api/smm/adsets', smmAdSetRoutes);
+app.use('/api/smm/ads', smmAdRoutes);
+app.use('/api/smm/creatives', smmCreativeRoutes);
+app.use('/api/smm/tasks', smmTaskRoutes);
+app.use('/api/smm/notes', smmNoteRoutes);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

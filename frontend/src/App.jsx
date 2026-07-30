@@ -55,6 +55,20 @@ import BrandAssets from './pages/portal/sections/BrandAssets';
 import PortalSupport from './pages/portal/sections/PortalSupport';
 import PortalGuidelines from './pages/portal/sections/PortalGuidelines';
 
+// Social Media Manager Module Pages
+import SMMDashboard from './pages/smm/SMMDashboard';
+import SMMClients from './pages/smm/SMMClients';
+import SMMProjects from './pages/smm/SMMProjects';
+import Campaigns from './pages/smm/Campaigns';
+import AdSets from './pages/smm/AdSets';
+import Ads from './pages/smm/Ads';
+import CreativeLibrary from './pages/smm/CreativeLibrary';
+import SMMContentCalendar from './pages/smm/ContentCalendar';
+import SMMPerformance from './pages/smm/Performance';
+import SMMReports from './pages/smm/Reports';
+import SMMTeam from './pages/smm/Team';
+import SMMSettings from './pages/smm/SMMSettings';
+
 // ─── Shared Loading Screen ────────────────────────────────────────────────────
 const LoadingScreen = () => (
   <div className="flex h-screen w-full flex-col items-center justify-center bg-[#090a0f] text-white">
@@ -334,6 +348,53 @@ const App = () => {
 
           {/* Settings — any authenticated user */}
           <Route path="/settings" element={<Settings />} />
+
+          {/* Social Media Manager Routes */}
+          <Route path="/smm" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/campaigns" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <Campaigns />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/adsets" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <AdSets />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/ads" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <Ads />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/creatives" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <CreativeLibrary />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/calendar" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMContentCalendar />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/performance" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMPerformance />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/reports" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMReports />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/team" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMTeam />
+            </ProtectedRoute>
+          } />
 
           {/* Client Portal Sections */}
           <Route path="/portal/reports" element={
