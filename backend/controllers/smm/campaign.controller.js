@@ -126,3 +126,107 @@ export const bulkUpdateCampaignStatus = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+export const addDailyLog = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+
+    const newLog = {
+      date: req.body.date || new Date(),
+      leads: Number(req.body.leads) || 0,
+      spend: Number(req.body.spend) || 0,
+      revenue: Number(req.body.revenue) || 0,
+      clicks: Number(req.body.clicks) || 0,
+      impressions: Number(req.body.impressions) || 0,
+      notes: req.body.notes || '',
+      loggedBy: req.user._id,
+    };
+
+    campaign.dailyLogs.push(newLog);
+
+    const totals = campaign.dailyLogs.reduce((acc, item) => {
+      acc.leads += item.leads || 0;
+      acc.spend += item.spend || 0;
+      acc.revenue += item.revenue || 0;
+      acc.clicks += item.clicks || 0;
+      acc.impressions += item.impressions || 0;
+      return acc;
+    }, { leads: 0, spend: 0, revenue: 0, clicks: 0, impressions: 0 });
+
+    const cpl = totals.leads > 0 ? Number((totals.spend / totals.leads).toFixed(2)) : 0;
+    const roas = totals.spend > 0 ? Number((totals.revenue / totals.spend).toFixed(2)) : 0;
+    const ctr = totals.impressions > 0 ? Number(((totals.clicks / totals.impressions) * 100).toFixed(2)) : 0;
+    const cpc = totals.clicks > 0 ? Number((totals.spend / totals.clicks).toFixed(2)) : 0;
+
+    campaign.performance = {
+      ...campaign.performance,
+      leads: totals.leads,
+      spend: totals.spend,
+      revenue: totals.revenue,
+      clicks: totals.clicks,
+      impressions: totals.impressions,
+      costPerLead: cpl,
+      roas,
+      ctr,
+      cpc,
+    };
+
+    await campaign.save();
+
+    await SmmActivityLog.create({
+      action: 'Daily Lead Log Added',
+      entity: 'SmmCampaign',
+      entityId: campaign._id,
+      entityName: campaign.name,
+      performedBy: req.user._id,
+      metadata: { leads: newLog.leads, spend: newLog.spend },
+    });
+
+    const populated = await populateCampaign(Campaign.findById(campaign._id));
+    res.status(201).json({ success: true, data: populated });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+export const deleteDailyLog = async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+
+    campaign.dailyLogs = campaign.dailyLogs.filter(
+      (log) => log._id.toString() !== req.params.logId
+    );
+
+    const totals = campaign.dailyLogs.reduce((acc, item) => {
+      acc.leads += item.leads || 0;
+      acc.spend += item.spend || 0;
+      acc.revenue += item.revenue || 0;
+      acc.clicks += item.clicks || 0;
+      acc.impressions += item.impressions || 0;
+      return acc;
+    }, { leads: 0, spend: 0, revenue: 0, clicks: 0, impressions: 0 });
+
+    const cpl = totals.leads > 0 ? Number((totals.spend / totals.leads).toFixed(2)) : 0;
+    const roas = totals.spend > 0 ? Number((totals.revenue / totals.spend).toFixed(2)) : 0;
+
+    campaign.performance = {
+      ...campaign.performance,
+      leads: totals.leads,
+      spend: totals.spend,
+      revenue: totals.revenue,
+      clicks: totals.clicks,
+      impressions: totals.impressions,
+      costPerLead: cpl,
+      roas,
+    };
+
+    await campaign.save();
+
+    const populated = await populateCampaign(Campaign.findById(campaign._id));
+    res.json({ success: true, data: populated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

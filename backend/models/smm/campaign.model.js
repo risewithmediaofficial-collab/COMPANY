@@ -29,9 +29,21 @@ const performanceSchema = new mongoose.Schema({
   apiSource: { type: String, enum: ['manual', 'meta', 'google', 'linkedin'], default: 'manual' },
 }, { _id: false });
 
+const dailyLogSchema = new mongoose.Schema({
+  date: { type: Date, default: Date.now },
+  leads: { type: Number, default: 0 },
+  spend: { type: Number, default: 0 },
+  revenue: { type: Number, default: 0 },
+  clicks: { type: Number, default: 0 },
+  impressions: { type: Number, default: 0 },
+  notes: { type: String, default: '' },
+  loggedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}, { timestamps: true });
+
 const campaignSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
+    dailyLogs: [dailyLogSchema],
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
     objective: {

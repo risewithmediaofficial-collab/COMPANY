@@ -1,7 +1,8 @@
 import express from 'express';
 import {
   getCampaigns, getCampaign, createCampaign, updateCampaign,
-  deleteCampaign, updateCampaignPerformance, bulkUpdateCampaignStatus
+  deleteCampaign, updateCampaignPerformance, bulkUpdateCampaignStatus,
+  addDailyLog, deleteDailyLog
 } from '../../controllers/smm/campaign.controller.js';
 import { protect, authorize } from '../../middleware/auth.middleware.js';
 
@@ -11,10 +12,12 @@ router.use(authorize('superAdmin', 'manager', 'employee'));
 
 router.get('/', getCampaigns);
 router.get('/:id', getCampaign);
-router.post('/', authorize('superAdmin', 'manager'), createCampaign);
+router.post('/', authorize('superAdmin', 'manager', 'employee'), createCampaign);
+router.post('/:id/daily-logs', authorize('superAdmin', 'manager', 'employee'), addDailyLog);
+router.delete('/:id/daily-logs/:logId', authorize('superAdmin', 'manager', 'employee'), deleteDailyLog);
 router.put('/bulk-status', authorize('superAdmin', 'manager'), bulkUpdateCampaignStatus);
-router.put('/:id', authorize('superAdmin', 'manager'), updateCampaign);
-router.patch('/:id/performance', authorize('superAdmin', 'manager'), updateCampaignPerformance);
+router.put('/:id', authorize('superAdmin', 'manager', 'employee'), updateCampaign);
+router.patch('/:id/performance', authorize('superAdmin', 'manager', 'employee'), updateCampaignPerformance);
 router.delete('/:id', authorize('superAdmin', 'manager'), deleteCampaign);
 
 export default router;

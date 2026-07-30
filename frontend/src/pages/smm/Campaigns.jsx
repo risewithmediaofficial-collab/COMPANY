@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Play, Pause, CheckCircle, SlidersHorizontal, CheckSquare, Trash2, Edit2, Layers } from 'lucide-react';
+import { Plus, Play, Pause, CheckCircle, SlidersHorizontal, CheckSquare, Trash2, Edit2, Layers, Calendar, Target, DollarSign, TrendingUp } from 'lucide-react';
 import { smmApi } from '../../api/smm';
 import api from '../../api/index';
 import { DataTable } from '../../components/ui/DataTable';
@@ -8,6 +8,7 @@ import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { PlatformBadge } from '../../components/smm/PlatformBadge';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 
 export default function Campaigns() {
@@ -20,13 +21,25 @@ export default function Campaigns() {
   const [platformFilter, setPlatformFilter] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDailyLogDrawerOpen, setIsDailyLogDrawerOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
+  const [activeCampaignForLog, setActiveCampaignForLog] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '', client: '', project: '', objective: 'Leads', campaignType: 'New Campaign',
     status: 'Draft', platform: 'Meta', budgetType: 'Daily Budget', dailyBudget: 1000,
     lifetimeBudget: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
+  });
+
+  const [dailyLogForm, setDailyLogForm] = useState({
+    date: format(new Date(), 'yyyy-MM-dd'),
+    leads: 0,
+    spend: 0,
+    revenue: 0,
+    clicks: 0,
+    impressions: 0,
+    notes: '',
   });
 
   const fetchData = async () => {
@@ -38,21 +51,9 @@ export default function Campaigns() {
         api.get('/projects'),
       ]);
 
-      if (campRes.data?.success) {
-        setCampaigns(campRes.data.data || []);
-      }
-
-      // Handle clients return structure safely
-      if (clientRes.data) {
-        const list = clientRes.data.clients || clientRes.data.data || (Array.isArray(clientRes.data) ? clientRes.data : []);
-        setCrmClients(list);
-      }
-
-      // Handle projects return structure safely
-      if (projRes.data) {
-        const list = projRes.data.projects || projRes.data.data || (Array.isArray(projRes.data) ? projRes.data : []);
-        setCrmProjects(list);
-      }
+      if (campRes.data?.success) setCampaigns(campRes.data.data || []);
+      if (clientRes.data) setCrmClients(clientRes.data.clients || clientRes.data.data || (Array.isArray(clientRes.data) ? clientRes.data : []));
+      if (projRes.data) setCrmProjects(projRes.data.projects || projRes.data.data || (Array.isArray(projRes.data) ? projRes.data : []));
     } catch (err) {
       toast.error('Failed to load campaigns data');
     } finally {
@@ -90,6 +91,57 @@ export default function Campaigns() {
       fetchData();
     } catch (err) {
       toast.error('Failed to save campaign');
+    }
+  };
+
+  const openDailyLog = (camp) => {
+    setActiveCampaignForLog(camp);
+    setDailyLogForm({
+      date: format(new Date(), 'yyyy-MM-dd'),
+      leads: 0,
+      spend: 0,
+      revenue: 0,
+      clicks: 0,
+      impressions: 0,
+      notes: '',
+    });
+    setIsDailyLogDrawerOpen(true);
+  };
+
+  const handleAddDailyLog = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await smmApi.addDailyLog(activeCampaignForLog._id, dailyLogForm);
+      if (res.data?.success) {
+        toast.success('Daily lead log saved & campaign totals updated!');
+        setActiveCampaignForLog(res.data.data);
+        setDailyLogForm({
+          date: format(new Date(), 'yyyy-MM-dd'),
+          leads: 0,
+          spend: 0,
+          revenue: 0,
+          clicks: 0,
+          impressions: 0,
+          notes: '',
+        });
+        fetchData();
+      }
+    } catch (err) {
+      toast.error('Failed to add daily log entry');
+    }
+  };
+
+  const handleDeleteDailyLog = async (logId) => {
+    if (!window.confirm('Delete this daily log entry?')) return;
+    try {
+      const res = await smmApi.deleteDailyLog(activeCampaignForLog._id, logId);
+      if (res.data?.success) {
+        toast.success('Log entry deleted & campaign totals updated');
+        setActiveCampaignForLog(res.data.data);
+        fetchData();
+      }
+    } catch (err) {
+      toast.error('Failed to delete log entry');
     }
   };
 
@@ -148,10 +200,13 @@ export default function Campaigns() {
       ),
     },
     {
-      key: 'project',
-      label: 'CRM Project',
+      key: 'leads',
+      label: 'Accumulated Leads',
       render: (row) => (
-        <span className="text-xs font-medium text-foreground">{row.project?.name || 'General Project'}</span>
+        <div>
+          <span className="text-xs font-bold text-emerald-600 block">{row.performance?.leads || 0} Leads</span>
+          <span className="text-[10px] text-muted-foreground">₹{row.performance?.costPerLead || 0} / Lead</span>
+        </div>
       ),
     },
     {
@@ -161,11 +216,11 @@ export default function Campaigns() {
     },
     {
       key: 'budget',
-      label: 'Budget',
+      label: 'Spend & Budget',
       render: (row) => (
         <div>
-          <span className="text-xs font-semibold font-mono block">₹{(row.budgetType === 'Daily Budget' ? row.dailyBudget : row.lifetimeBudget)?.toLocaleString()}</span>
-          <span className="text-[10px] text-muted-foreground">{row.budgetType}</span>
+          <span className="text-xs font-semibold font-mono block">₹{(row.performance?.spend || 0).toLocaleString()} Spent</span>
+          <span className="text-[10px] text-muted-foreground">Limit: ₹{(row.budgetType === 'Daily Budget' ? row.dailyBudget : row.lifetimeBudget)?.toLocaleString()}</span>
         </div>
       ),
     },
@@ -174,13 +229,25 @@ export default function Campaigns() {
       label: 'Status',
       render: (row) => <StatusBadgeSmm status={row.status} />,
     },
+    {
+      key: 'dailyLog',
+      label: 'Daily Log',
+      render: (row) => (
+        <button
+          onClick={() => openDailyLog(row)}
+          className="px-2.5 py-1 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-xs font-semibold flex items-center gap-1 border border-primary/20"
+        >
+          <Calendar size={13} /> Daily Lead Log
+        </button>
+      ),
+    },
   ];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Campaigns"
-        subtitle="Manage Meta, Google, LinkedIn & TikTok campaigns linked directly to website Clients & Projects"
+        title="Campaigns & Daily Lead Tracker"
+        subtitle="Track Meta, Google & TikTok campaigns and update daily lead entries often"
         actions={
           <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
             <Plus size={18} />
@@ -234,6 +301,138 @@ export default function Campaigns() {
         emptyDescription="Create your first advertising campaign."
       />
 
+      {/* Daily Lead Tracker Drawer */}
+      <SMMDrawer
+        isOpen={isDailyLogDrawerOpen}
+        onClose={() => setIsDailyLogDrawerOpen(false)}
+        title={`Daily Lead Log — ${activeCampaignForLog?.name}`}
+      >
+        <div className="space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-4 gap-3">
+            <div className="p-3 bg-emerald-500/10 border border-emerald-200 rounded-xl text-center">
+              <span className="text-[11px] font-medium text-emerald-700 block">Total Leads</span>
+              <span className="text-lg font-bold text-emerald-700">{activeCampaignForLog?.performance?.leads || 0}</span>
+            </div>
+            <div className="p-3 bg-secondary/50 border border-border rounded-xl text-center">
+              <span className="text-[11px] font-medium text-muted-foreground block">Total Spend</span>
+              <span className="text-base font-bold font-mono">₹{(activeCampaignForLog?.performance?.spend || 0).toLocaleString()}</span>
+            </div>
+            <div className="p-3 bg-secondary/50 border border-border rounded-xl text-center">
+              <span className="text-[11px] font-medium text-muted-foreground block">Avg CPL</span>
+              <span className="text-base font-bold font-mono text-primary">₹{activeCampaignForLog?.performance?.costPerLead || 0}</span>
+            </div>
+            <div className="p-3 bg-secondary/50 border border-border rounded-xl text-center">
+              <span className="text-[11px] font-medium text-muted-foreground block">ROAS</span>
+              <span className="text-base font-bold font-mono text-purple-600">{activeCampaignForLog?.performance?.roas || 0}x</span>
+            </div>
+          </div>
+
+          {/* Add Daily Entry Form */}
+          <form onSubmit={handleAddDailyLog} className="p-4 bg-secondary/30 rounded-2xl border border-border space-y-4">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+              <Plus size={14} className="text-primary" /> Add Daily Lead Entry
+            </h4>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Entry Date *</label>
+                <input
+                  type="date"
+                  required
+                  value={dailyLogForm.date}
+                  onChange={e => setDailyLogForm({...dailyLogForm, date: e.target.value})}
+                  className="app-input"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Leads Got Today *</label>
+                <input
+                  type="number"
+                  required
+                  value={dailyLogForm.leads}
+                  onChange={e => setDailyLogForm({...dailyLogForm, leads: Number(e.target.value)})}
+                  className="app-input font-bold text-emerald-600 text-base"
+                  placeholder="e.g. 15"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Spend Today (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  value={dailyLogForm.spend}
+                  onChange={e => setDailyLogForm({...dailyLogForm, spend: Number(e.target.value)})}
+                  className="app-input font-mono"
+                  placeholder="e.g. 1200"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">Revenue Today (₹)</label>
+                <input
+                  type="number"
+                  value={dailyLogForm.revenue}
+                  onChange={e => setDailyLogForm({...dailyLogForm, revenue: Number(e.target.value)})}
+                  className="app-input font-mono text-emerald-600"
+                  placeholder="e.g. 8000"
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="text-xs font-semibold text-foreground mb-1 block">Daily Note / Observation</label>
+                <input
+                  type="text"
+                  value={dailyLogForm.notes}
+                  onChange={e => setDailyLogForm({...dailyLogForm, notes: e.target.value})}
+                  className="app-input"
+                  placeholder="e.g. High conversion on IG stories ad variation 2"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button type="submit" className="bg-emerald-600 text-white font-semibold px-5 py-2 rounded-xl text-xs hover:opacity-90">
+                Log Entry & Accumulate Totals
+              </button>
+            </div>
+          </form>
+
+          {/* History Log List */}
+          <div>
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">Daily Lead History</h4>
+            {activeCampaignForLog?.dailyLogs?.length === 0 ? (
+              <div className="py-6 text-center text-xs text-muted-foreground italic border border-dashed border-border rounded-xl">
+                No daily lead entries logged yet. Add your first entry above!
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {activeCampaignForLog?.dailyLogs?.slice().reverse().map((log) => (
+                  <div key={log._id} className="p-3 bg-card rounded-xl border border-border flex items-center justify-between gap-3 text-xs">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-foreground">{log.date ? format(new Date(log.date), 'dd MMM yyyy') : 'Today'}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-bold">
+                          +{log.leads} Leads
+                        </span>
+                        <span className="font-mono text-muted-foreground">₹{log.spend?.toLocaleString()} spent</span>
+                      </div>
+                      {log.notes && <p className="text-[11px] text-muted-foreground mt-0.5">{log.notes}</p>}
+                    </div>
+                    <button
+                      onClick={() => handleDeleteDailyLog(log._id)}
+                      className="p-1 rounded text-muted-foreground hover:text-rose-500 transition-colors"
+                      title="Delete Entry"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </SMMDrawer>
+
+      {/* Campaign Create / Edit Drawer */}
       <SMMDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}

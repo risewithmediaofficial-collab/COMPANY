@@ -24,6 +24,8 @@ export const smmApi = {
   createCampaign: (data) => api.post('/smm/campaigns', data),
   updateCampaign: (id, data) => api.put(`/smm/campaigns/${id}`, data),
   updatePerformance: (id, data) => api.patch(`/smm/campaigns/${id}/performance`, data),
+  addDailyLog: (id, data) => api.post(`/smm/campaigns/${id}/daily-logs`, data),
+  deleteDailyLog: (id, logId) => api.delete(`/smm/campaigns/${id}/daily-logs/${logId}`),
   deleteCampaign: (id) => api.delete(`/smm/campaigns/${id}`),
   bulkUpdateCampaignStatus: (data) => api.put('/smm/campaigns/bulk-status', data),
 
