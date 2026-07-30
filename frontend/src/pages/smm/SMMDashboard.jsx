@@ -65,37 +65,37 @@ export default function SMMDashboard() {
       <div>
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Campaign Overview</h3>
         <MetricGrid className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-          <MetricCard title="CRM Clients" value={stats.totalClients || 0} icon={Users} />
-          <MetricCard title="CRM Projects" value={stats.totalProjects || 0} icon={Briefcase} />
-          <MetricCard title="Running Campaigns" value={stats.runningCampaigns || 0} icon={PlayCircle} />
-          <MetricCard title="Paused Campaigns" value={stats.pausedCampaigns || 0} icon={PauseCircle} />
-          <MetricCard title="Completed Campaigns" value={stats.completedCampaigns || 0} icon={CheckCircle2} />
-          <MetricCard title="Running Ad Sets" value={stats.runningAdSets || 0} icon={Layers} />
+          <MetricCard label="CRM Clients" value={stats.totalClients || 0} icon={Users} />
+          <MetricCard label="CRM Projects" value={stats.totalProjects || 0} icon={Briefcase} />
+          <MetricCard label="Running Campaigns" value={stats.runningCampaigns || 0} icon={PlayCircle} />
+          <MetricCard label="Paused Campaigns" value={stats.pausedCampaigns || 0} icon={PauseCircle} />
+          <MetricCard label="Completed Campaigns" value={stats.completedCampaigns || 0} icon={CheckCircle2} />
+          <MetricCard label="Running Ad Sets" value={stats.runningAdSets || 0} icon={Layers} />
         </MetricGrid>
       </div>
 
       <div>
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Spend & Performance Overview</h3>
         <MetricGrid className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-          <MetricCard title="Monthly Spend" value={`₹${(stats.monthlySpend || 0).toLocaleString()}`} icon={DollarSign} />
-          <MetricCard title="Monthly Budget" value={`₹${(stats.monthlyBudget || 0).toLocaleString()}`} icon={Calendar} />
-          <MetricCard title="Total Revenue" value={`₹${(stats.totalRevenue || 0).toLocaleString()}`} icon={TrendingUp} />
-          <MetricCard title="ROAS Return" value={`${stats.roas || 0}x`} icon={BarChart2} />
-          <MetricCard title="Active Ads" value={stats.activeAds || 0} icon={FileText} />
-          <MetricCard title="Pending Approvals" value={stats.pendingApprovals || 0} icon={AlertCircle} />
+          <MetricCard label="Monthly Spend" value={`₹${(stats.monthlySpend || 0).toLocaleString()}`} icon={DollarSign} />
+          <MetricCard label="Monthly Budget" value={`₹${(stats.monthlyBudget || 0).toLocaleString()}`} icon={Calendar} />
+          <MetricCard label="Total Revenue" value={`₹${(stats.totalRevenue || 0).toLocaleString()}`} icon={TrendingUp} />
+          <MetricCard label="ROAS Return" value={`${stats.roas || 0}x`} icon={BarChart2} />
+          <MetricCard label="Active Ads" value={stats.activeAds || 0} icon={FileText} />
+          <MetricCard label="Pending Approvals" value={stats.pendingApprovals || 0} icon={AlertCircle} />
         </MetricGrid>
       </div>
 
       <div>
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Conversions & Lead Costs</h3>
         <MetricGrid className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
-          <MetricCard title="Total Leads" value={stats.totalLeads || 0} icon={Target} />
-          <MetricCard title="Purchases" value={stats.totalPurchases || 0} icon={ShoppingBag} />
-          <MetricCard title="Click Rate (CTR)" value={`${stats.ctr || 0}%`} icon={MousePointer} />
-          <MetricCard title="Cost Per Click" value={`₹${stats.cpc || 0}`} icon={DollarSign} />
-          <MetricCard title="CPM Cost" value={`₹${stats.cpm || 0}`} icon={BarChart2} />
-          <MetricCard title="Cost Per Lead" value={`₹${stats.cpl || 0}`} icon={Target} />
-          <MetricCard title="Total Clicks" value={stats.totalClicks || 0} icon={MousePointer} />
+          <MetricCard label="Total Leads" value={stats.totalLeads || 0} icon={Target} />
+          <MetricCard label="Purchases" value={stats.totalPurchases || 0} icon={ShoppingBag} />
+          <MetricCard label="Click Rate (CTR)" value={`${stats.ctr || 0}%`} icon={MousePointer} />
+          <MetricCard label="Cost Per Click" value={`₹${stats.cpc || 0}`} icon={DollarSign} />
+          <MetricCard label="CPM Cost" value={`₹${stats.cpm || 0}`} icon={BarChart2} />
+          <MetricCard label="Cost Per Lead" value={`₹${stats.cpl || 0}`} icon={Target} />
+          <MetricCard label="Total Clicks" value={stats.totalClicks || 0} icon={MousePointer} />
         </MetricGrid>
       </div>
 

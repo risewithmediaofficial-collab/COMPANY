@@ -14,6 +14,7 @@ const toneStyles = {
 export const PageHeader = ({
   eyebrow,
   title,
+  subtitle,
   actions,
   children,
   className,
@@ -31,6 +32,9 @@ export const PageHeader = ({
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">{eyebrow}</p>
           ) : null}
           <h1 className={cn('text-3xl font-bold tracking-tight text-foreground sm:text-4xl', eyebrow && 'mt-3')}>{title}</h1>
+          {subtitle ? (
+            <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
+          ) : null}
         </div>
 
         {actions ? <div className="flex flex-wrap items-center gap-3 xl:justify-end">{actions}</div> : null}
@@ -45,26 +49,29 @@ export const MetricGrid = ({ children, className }) => (
   <div className={cn('grid gap-3 sm:grid-cols-2 xl:grid-cols-4', className)}>{children}</div>
 );
 
-export const MetricCard = ({ label, value, icon: Icon, tone = 'primary', className }) => (
-  <div
-    className={cn(
-      'rounded-[24px] border border-border/80 bg-card/90 px-4 py-4 shadow-sm backdrop-blur-sm',
-      className,
-    )}
-  >
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-        <p className="mt-3 text-3xl font-bold tracking-tight text-foreground">{value}</p>
-      </div>
-      {Icon ? (
-        <div className={cn('rounded-2xl p-3', toneStyles[tone] || toneStyles.primary)}>
-          <Icon size={18} />
+export const MetricCard = ({ label, title, value, icon: Icon, tone = 'primary', className }) => {
+  const cardLabel = label || title;
+  return (
+    <div
+      className={cn(
+        'rounded-[24px] border border-border/80 bg-card/90 px-4 py-4 shadow-sm backdrop-blur-sm',
+        className,
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">{cardLabel}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{value}</p>
         </div>
-      ) : null}
+        {Icon ? (
+          <div className={cn('rounded-2xl p-3 flex-shrink-0', toneStyles[tone] || toneStyles.primary)}>
+            <Icon size={18} />
+          </div>
+        ) : null}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const PageToolbar = ({ children, className }) => (
   <div className={cn('rounded-[24px] border border-border/80 bg-card/85 p-3 shadow-sm backdrop-blur-sm', className)}>
@@ -100,36 +107,4 @@ export const SectionCard = ({ title, action, children, className }) => (
     ) : null}
     <div className="p-5">{children}</div>
   </section>
-);
-
-export const StatusBadge = ({ children, tone = 'neutral', className }) => (
-  <span
-    className={cn(
-      'inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold',
-      toneStyles[tone] || toneStyles.neutral,
-      className,
-    )}
-  >
-    {children}
-  </span>
-);
-
-export const EmptyState = ({
-  icon: Icon = Inbox,
-  title = 'Nothing here yet',
-  action,
-  className,
-}) => (
-  <div
-    className={cn(
-      'flex flex-col items-center justify-center rounded-[28px] border border-dashed border-border bg-card/60 px-6 py-16 text-center',
-      className,
-    )}
-  >
-    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
-      <Icon size={22} />
-    </div>
-    <h3 className="mt-5 text-lg font-semibold text-foreground">{title}</h3>
-    {action ? <div className="mt-5">{action}</div> : null}
-  </div>
 );
