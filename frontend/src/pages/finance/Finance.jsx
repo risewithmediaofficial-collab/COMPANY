@@ -4,12 +4,14 @@ import {
   AlertCircle,
   BarChart3,
   CheckCircle2,
+  Download,
   FileText,
   IndianRupee,
   Phone,
   Plus,
   Receipt,
   Send,
+  Share2,
   Users2,
   Calendar,
   Pencil,
@@ -28,9 +30,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { AddFinanceModal } from '../../components/modals/AddFinanceModal';
 import { AddInvoiceModal } from '../../components/modals/AddInvoiceModal';
+import { ShareInvoiceModal } from '../../components/modals/ShareInvoiceModal';
 import { AddExpenseModal } from '../../components/modals/AddExpenseModal';
 import { AddAdsCampaignModal } from '../../components/modals/AddAdsCampaignModal';
 import { MonthlyExpenseReportModal } from '../../components/modals/MonthlyExpenseReportModal';
+import { exportInvoiceToPDF } from '../../utils/pdfExport';
 import { DataTable } from '../../components/ui/DataTable';
 import {
   MetricCard,
@@ -113,6 +117,8 @@ const Finance = () => {
   const [search, setSearch] = useState('');
   const [showFinanceModal, setShowFinanceModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareInvoice, setShareInvoice] = useState(null);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showAdsCampaignModal, setShowAdsCampaignModal] = useState(false);
   const [showMonthlyReportModal, setShowMonthlyReportModal] = useState(false);
@@ -350,15 +356,19 @@ const Finance = () => {
       key: 'actions',
       label: 'Actions',
       render: (row) => (
-        <div className="flex flex-wrap gap-2">
-          {canManage ? <Button size="sm" variant="outline" onClick={(event) => {
-            event.stopPropagation();
-            sendInvoice.mutate(row._id);
-          }}><Send size={14} className="mr-1" />Send</Button> : null}
-          {canManage ? <Button size="sm" variant="outline" onClick={(event) => {
-            event.stopPropagation();
-            markInvoicePaid.mutate({ id: row._id });
-          }}>Mark Paid</Button> : null}
+        <div className="flex flex-wrap gap-1.5" onClick={(event) => event.stopPropagation()}>
+          <Button size="sm" variant="outline" onClick={() => exportInvoiceToPDF(row, { save: true })} title="Download PDF" className="px-2">
+            <Download size={14} className="mr-1" /> PDF
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => { setShareInvoice(row); setShowShareModal(true); }} title="Share Invoice" className="px-2 text-primary border-primary/30">
+            <Share2 size={14} className="mr-1" /> Share
+          </Button>
+          {canManage ? <Button size="sm" variant="outline" onClick={() => sendInvoice.mutate(row._id)} title="Send via email/portal" className="px-2">
+            <Send size={14} className="mr-1" /> Send
+          </Button> : null}
+          {canManage && !['Paid', 'Cancelled'].includes(row.status) ? <Button size="sm" variant="outline" onClick={() => markInvoicePaid.mutate({ id: row._id })} className="px-2">
+            Mark Paid
+          </Button> : null}
         </div>
       ),
     },
@@ -694,7 +704,15 @@ const Finance = () => {
                     <h3 className="text-lg font-bold text-foreground">{invoice.invoiceNumber}</h3>
                     <p className="mt-1 text-sm text-muted-foreground">{invoice.client?.company || invoice.client?.name} • {invoice.project?.name || 'No linked project'}</p>
                   </div>
-                  <StatusBadge tone={invoiceStatusTone[invoice.status] || 'neutral'}>{invoice.status}</StatusBadge>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge tone={invoiceStatusTone[invoice.status] || 'neutral'}>{invoice.status}</StatusBadge>
+                    <Button size="sm" variant="outline" onClick={() => exportInvoiceToPDF(invoice, { save: true })} className="h-8 text-xs gap-1">
+                      <Download size={13} /> PDF
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => { setShareInvoice(invoice); setShowShareModal(true); }} className="h-8 text-xs gap-1 text-primary border-primary/30">
+                      <Share2 size={13} /> Share
+                    </Button>
+                  </div>
                 </div>
                 <div className="mt-4 grid gap-4 md:grid-cols-3">
                   <div className="rounded-2xl border border-border bg-card p-4 text-sm">
@@ -1033,6 +1051,9 @@ const Finance = () => {
 
       <AddFinanceModal open={showFinanceModal} onOpenChange={setShowFinanceModal} entry={selectedRecord} />
       <AddInvoiceModal open={showInvoiceModal} onOpenChange={setShowInvoiceModal} invoice={selectedInvoice} />
+      {showShareModal && shareInvoice && (
+        <ShareInvoiceModal open={showShareModal} onOpenChange={setShowShareModal} invoice={shareInvoice} />
+      )}
       <AddExpenseModal
         open={showExpenseModal}
         onOpenChange={(open) => {

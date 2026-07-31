@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, Download, Receipt, TriangleAlert } from 'lucide-react';
-import { jsPDF } from 'jspdf';
+import { CheckCircle2, Clock, Download, Receipt, Share2, TriangleAlert } from 'lucide-react';
 import api from '../../../api';
 import { TableSkeleton } from '../../../components/ui/Skeleton';
+import { exportInvoiceToPDF } from '../../../utils/pdfExport';
+import { ShareInvoiceModal } from '../../../components/modals/ShareInvoiceModal';
 
 const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -34,46 +35,12 @@ const normalizeStatus = (status) => {
   return map[status] || status || 'Draft';
 };
 
-const downloadInvoicePdf = (invoice) => {
-  const doc = new jsPDF();
-  let y = 18;
-  doc.setFontSize(18);
-  doc.text(invoice.invoiceNumber || 'Invoice', 14, y);
-  y += 10;
-  doc.setFontSize(11);
-  doc.text(`Client: ${invoice.clientDetails?.businessName || invoice.clientDetails?.name || invoice.client?.company || invoice.client?.name || ''}`, 14, y);
-  y += 7;
-  doc.text(`Project: ${invoice.projectName || invoice.project?.name || 'N/A'}`, 14, y);
-  y += 7;
-  doc.text(`Invoice Date: ${invoice.issueDate ? new Date(invoice.issueDate).toLocaleDateString() : 'N/A'}`, 14, y);
-  y += 7;
-  doc.text(`Due Date: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'N/A'}`, 14, y);
-  y += 10;
-  (invoice.invoiceItems || invoice.lineItems || []).forEach((item) => {
-    const amount = Number(item.amount || item.total || (Number(item.quantity || 1) * Number(item.rate || item.unitPrice || 0)));
-    doc.text(`${item.serviceName || 'Service'} - ${item.description || ''}`, 14, y);
-    y += 6;
-    doc.text(`Qty: ${item.quantity || 1}  Rate: ${currency.format(Number(item.rate || item.unitPrice || 0))}  Amount: ${currency.format(amount)}`, 18, y);
-    y += 8;
-  });
-  doc.text(`Total: ${currency.format(Number(invoice.totalAmount || invoice.total || 0))}`, 14, y);
-  y += 7;
-  doc.text(`Paid: ${currency.format(Number(invoice.paidAmount || 0))}`, 14, y);
-  y += 7;
-  doc.text(`Balance: ${currency.format(Number(invoice.balanceAmount || 0))}`, 14, y);
-  if (invoice.paymentTerms) {
-    y += 10;
-    doc.text('Payment Instructions:', 14, y);
-    y += 7;
-    doc.text(doc.splitTextToSize(invoice.paymentTerms, 180), 14, y);
-  }
-  doc.save(`${invoice.invoiceNumber || 'invoice'}.pdf`);
-};
-
 export default function PortalInvoices({ dark }) {
   const [invoices, setInvoices] = useState([]);
   const [financeRecords, setFinanceRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [shareInvoice, setShareInvoice] = useState(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
     api.get('/portal/invoices')
@@ -152,10 +119,20 @@ export default function PortalInvoices({ dark }) {
                   <div className="flex flex-wrap gap-2">
                     <button
                       className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-indigo-600 transition-all hover:bg-indigo-50"
-                      onClick={() => downloadInvoicePdf(invoice)}
+                      onClick={() => exportInvoiceToPDF(invoice, { save: true })}
                     >
                       <Download size={14} />
                       Download PDF
+                    </button>
+                    <button
+                      className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 transition-all hover:bg-indigo-50"
+                      onClick={() => {
+                        setShareInvoice(invoice);
+                        setShareModalOpen(true);
+                      }}
+                    >
+                      <Share2 size={14} />
+                      Share
                     </button>
                     {invoice.paymentLink ? (
                       <a href={invoice.paymentLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
@@ -209,6 +186,14 @@ export default function PortalInvoices({ dark }) {
             );
           })}
         </div>
+      )}
+
+      {shareModalOpen && shareInvoice && (
+        <ShareInvoiceModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          invoice={shareInvoice}
+        />
       )}
     </div>
   );

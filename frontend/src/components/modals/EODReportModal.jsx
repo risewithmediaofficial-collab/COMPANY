@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useSubmitEOD } from '../../hooks/useAttendance';
 
 const eodSchema = z.object({
+  date: z.string().min(1, 'Report date is required'),
   summary: z.string().min(10, 'Add a short summary of your day'),
   tasksCompleted: z.string().min(2, 'Add at least one completed task'),
   blockers: z.string().optional(),
@@ -25,6 +26,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
   const form = useForm({
     resolver: zodResolver(eodSchema),
     defaultValues: {
+      date: new Date().toISOString().split('T')[0],
       summary: '',
       tasksCompleted: '',
       blockers: '',
@@ -34,6 +36,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
 
   useEffect(() => {
     form.reset({
+      date: report?.date ? new Date(report.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       summary: report?.summary || '',
       tasksCompleted: report?.tasksCompleted?.join(', ') || '',
       blockers: report?.blockers || '',
@@ -42,6 +45,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
 
   const onSubmit = async (data) => {
     await submitEOD.mutateAsync({
+      date: data.date,
       summary: data.summary,
       tasksCompleted: data.tasksCompleted.split(',').map((task) => task.trim()).filter(Boolean),
       blockers: data.blockers || '',
@@ -55,7 +59,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
         <div className="shrink-0 p-5 sm:p-6 border-b border-border bg-secondary/20">
           <DialogHeader>
             <DialogTitle>End of Day Report</DialogTitle>
-            <DialogDescription>Share progress, completed work, and blockers before ending your day.</DialogDescription>
+            <DialogDescription>Share progress, completed work, and blockers for today or a previous date.</DialogDescription>
           </DialogHeader>
         </div>
         <Form {...form}>
@@ -63,12 +67,30 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
             <div className="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto">
               <FormField
                 control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Report Date *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        max={new Date().toISOString().split('T')[0]}
+                        {...field}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">Select date for this report. Missed a day? Select a previous date.</p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="summary"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Summary *</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="What did you work on today?" {...field} />
+                      <Textarea placeholder="What did you work on?" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -95,7 +117,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
                   <FormItem>
                     <FormLabel>Blockers</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Anything blocking tomorrow's work?" {...field} />
+                      <Textarea placeholder="Anything blocking work?" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

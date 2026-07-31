@@ -41,12 +41,34 @@ export const clockOut = async (req, res) => {
 
 export const submitEOD = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const { date, summary, tasksCompleted, blockers } = req.body;
+
+    let targetDate = new Date();
+    if (date) {
+      const parsedDate = new Date(date);
+      if (!isNaN(parsedDate.getTime())) {
+        targetDate = parsedDate;
+      }
+    }
+    targetDate.setHours(0, 0, 0, 0);
 
     const attendance = await Attendance.findOneAndUpdate(
-      { user: req.user._id, date: today },
-      { eodReport: { ...req.body, submittedAt: new Date() } },
+      { user: req.user._id, date: targetDate },
+      {
+        $set: {
+          eodReport: {
+            summary: summary || '',
+            tasksCompleted: Array.isArray(tasksCompleted) ? tasksCompleted : (tasksCompleted ? [tasksCompleted] : []),
+            blockers: blockers || '',
+            submittedAt: new Date(),
+          },
+        },
+        $setOnInsert: {
+          user: req.user._id,
+          date: targetDate,
+          status: 'present',
+        },
+      },
       { new: true, upsert: true }
     )
       .populate('user', 'name avatar department position role email')
@@ -74,13 +96,15 @@ export const submitEOD = async (req, res) => {
         isActive: true,
       }).select('_id');
 
+      const dateStr = targetDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
       for (const mgr of managers) {
         if (mgr._id.toString() !== req.user._id.toString()) {
           await createNotification({
             recipient: mgr._id,
             type: 'eod_submitted',
             title: 'New EOD Report Submitted',
-            message: `${req.user.name} submitted an EOD report for today.`,
+            message: `${req.user.name} submitted an EOD report for ${dateStr}.`,
             link: '/dashboard',
           });
         }
