@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ProgressUpdateForm } from './ProgressUpdateForm';
 import { useAddCompletedFiles, useTask, useUpdateTaskStatus } from '../../hooks/useTasks';
 import { AddTaskModal } from '../modals/AddTaskModal';
-import { Edit } from 'lucide-react';
+import { Edit, Plus } from 'lucide-react';
 import {
   formatTaskTypeLabel,
   isWebsiteTaskType,
@@ -97,6 +97,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
   const addCompletedFiles = useAddCompletedFiles();
   const [completedFiles, setCompletedFiles] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [showAssignAnotherModal, setShowAssignAnotherModal] = useState(false);
 
   const isEmployee = user?.role === 'employee';
   const isClient = user?.role === 'client';
@@ -176,14 +177,25 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                     </div>
                   </div>
                   {canEdit && (
-                    <Button
-                      type="button"
-                      onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-primary/95"
-                    >
-                      <Edit size={16} />
-                      Edit Task Details
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        onClick={() => setShowAssignAnotherModal(true)}
+                        variant="outline"
+                        className="flex items-center gap-2 rounded-xl border-primary/30 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/5"
+                      >
+                        <Plus size={16} />
+                        Assign Another Task
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-primary/95"
+                      >
+                        <Edit size={16} />
+                        Edit Task Details
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
@@ -319,6 +331,23 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
           }}
           task={task}
         />
+        {showAssignAnotherModal && (
+          <AddTaskModal
+            open={showAssignAnotherModal}
+            onOpenChange={(val) => {
+              setShowAssignAnotherModal(val);
+              if (!val) refetch();
+            }}
+            initialValues={{
+              client: task.client?._id || task.client || '',
+              project: task.project?._id || task.project || '',
+              assignedTo: Array.isArray(task.assignedTo) ? task.assignedTo[0]?._id || task.assignedTo[0] || '' : task.assignedTo || '',
+              assignedManager: task.assignedManager?._id || task.assignedManager || '',
+              priority: task.priority || 'Medium',
+              dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

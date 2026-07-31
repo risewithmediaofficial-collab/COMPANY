@@ -238,6 +238,33 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [tasksList, setTasksList] = useState([{ ...BLANK_TASK_TEMPLATE }]);
   const [expandedTasks, setExpandedTasks] = useState({});
+  const [additionalTasks, setAdditionalTasks] = useState([]);
+
+  const handleAddAdditionalTask = () => {
+    setAdditionalTasks((prev) => [
+      ...prev,
+      {
+        ...BLANK_TASK_TEMPLATE,
+        taskTitle: '',
+        taskCategory: 'content',
+        taskType: 'poster',
+        assignedTo: form.getValues('assignedTo') || task?.assignedTo?.[0]?._id || '',
+        description: '',
+      },
+    ]);
+  };
+
+  const handleRemoveAdditionalTask = (index) => {
+    setAdditionalTasks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateAdditionalTaskField = (index, field, value) => {
+    setAdditionalTasks((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
 
   const toggleExpand = (index) => {
     setExpandedTasks((prev) => ({
@@ -410,6 +437,39 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         pagesNeeded: data.pagesNeeded || [],
       };
       await updateTask.mutateAsync({ id: task._id, data: payload });
+
+      // Create additional tasks if added during edit
+      if (additionalTasks.length > 0) {
+        for (let i = 0; i < additionalTasks.length; i++) {
+          const addT = additionalTasks[i];
+          if (!addT.taskTitle?.trim()) {
+            toast.error(`Additional Task #${i + 2}: Title is required`);
+            return;
+          }
+          if (!addT.assignedTo) {
+            toast.error(`Additional Task #${i + 2}: Please select an assignee`);
+            return;
+          }
+        }
+
+        const additionalPayload = additionalTasks.map((t) => ({
+          ...t,
+          title: t.taskTitle,
+          taskTitle: t.taskTitle,
+          client: data.client || task.client?._id || task.client,
+          project: data.project || task.project?._id || task.project,
+          assignedTo: t.assignedTo || data.assignedTo,
+          assignedManager: data.assignedManager || undefined,
+          priority: data.priority,
+          status: 'To Do',
+          dueDate: data.dueDate || undefined,
+          deadline: data.dueDate || undefined,
+          description: t.description || '',
+        }));
+
+        await createTask.mutateAsync({ tasks: additionalPayload });
+        toast.success(`Task updated and ${additionalTasks.length} additional task(s) assigned!`);
+      }
     } else {
       // Create Mode – validate per-task
       for (let i = 0; i < tasksList.length; i++) {
@@ -457,6 +517,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
       setAttachmentFiles([]);
       setExistingAttachments([]);
       setTasksList([{ ...BLANK_TASK_TEMPLATE }]);
+      setAdditionalTasks([]);
       setExpandedTasks({});
       onOpenChange(false);
     }
@@ -2333,14 +2394,123 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               </div>
             )}
           </div>
+
+          {/* Additional Tasks Section (when editing or assigning extra tasks) */}
+          {task && (
+            <div className="space-y-4 rounded-3xl border border-primary/20 bg-primary/5 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Plus className="h-4 w-4 text-primary" /> Assign Additional Tasks
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Need to assign another task for this project or team member? Add extra tasks below.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddAdditionalTask}
+                  className="gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 text-xs"
+                >
+                  <Plus size={14} /> Add Another Task
+                </Button>
+              </div>
+
+              {additionalTasks.map((item, idx) => (
+                <div key={idx} className="rounded-2xl border border-border bg-card p-4 space-y-3 shadow-sm">
+                  <div className="flex items-center justify-between pb-2 border-b border-border">
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                      Additional Task #{idx + 2}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveAdditionalTask(idx)}
+                      className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10 rounded-lg"
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                      <label className="text-xs font-semibold text-foreground block mb-1">Task Title *</label>
+                      <Input
+                        placeholder="Enter additional task title..."
+                        value={item.taskTitle}
+                        onChange={(e) => updateAdditionalTaskField(idx, 'taskTitle', e.target.value)}
+                        className="bg-background text-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-foreground block mb-1">Task Category</label>
+                      <select
+                        value={item.taskCategory}
+                        onChange={(e) => updateAdditionalTaskField(idx, 'taskCategory', e.target.value)}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
+                      >
+                        <option value="content">Content Task</option>
+                        <option value="non_content">Non-Content Task</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-foreground block mb-1">Assign To *</label>
+                      <select
+                        value={item.assignedTo}
+                        onChange={(e) => updateAdditionalTaskField(idx, 'assignedTo', e.target.value)}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
+                      >
+                        <option value="">Select team member</option>
+                        {assignableUsers.map((u) => (
+                          <option key={u._id} value={u._id}>{u.name} ({u.role})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="text-xs font-semibold text-foreground block mb-1">Task Description / Instructions</label>
+                      <Textarea
+                        placeholder="Specific instructions for this additional task..."
+                        value={item.description}
+                        onChange={(e) => updateAdditionalTaskField(idx, 'description', e.target.value)}
+                        className="bg-background text-sm min-h-16"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-3 pt-2">
           <Button type="button" variant="outline" className="rounded-xl" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
+          {task && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddAdditionalTask}
+              className="rounded-xl border-primary/30 text-primary hover:bg-primary/10 gap-1.5 text-xs"
+              disabled={isLoading}
+            >
+              <Plus size={14} /> Assign Another Task
+            </Button>
+          )}
           <Button type="submit" className="rounded-xl" disabled={isLoading}>
-            {isLoading ? 'Saving...' : task ? 'Update Task' : `Create ${tasksList.length > 1 ? `${tasksList.length} Tasks` : 'Task'}`}
+            {isLoading
+              ? 'Saving...'
+              : task
+              ? additionalTasks.length > 0
+                ? `Update Task & Assign ${additionalTasks.length} New`
+                : 'Update Task'
+              : `Create ${tasksList.length > 1 ? `${tasksList.length} Tasks` : 'Task'}`}
           </Button>
         </div>
       </form>
