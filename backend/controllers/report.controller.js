@@ -80,6 +80,7 @@ export const getAdminDashboard = async (req, res) => {
       adBudgetTotals,
       totalUsers,
       expiringRenewals,
+      pendingBalanceAgg,
     ] = await Promise.all([
       Lead.countDocuments(),
       Lead.countDocuments({ createdAt: { $gte: periodStart, $lte: periodEnd } }),
