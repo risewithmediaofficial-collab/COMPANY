@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Download, Share2, Plus } from 'lucide-react';
+import { Download, Share2, Plus, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -375,26 +375,32 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
 
                 <div className="space-y-4">
                   {fields.map((field, index) => (
-                    <div key={field.id} className="grid gap-3 rounded-2xl border border-border bg-background p-4 md:grid-cols-12">
-                      <div className="md:col-span-3">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Service Name</label>
+                    <div key={field.id} className="grid gap-3 rounded-2xl border border-border bg-background p-4 sm:grid-cols-12">
+                      <div className="sm:col-span-3">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Service Name</label>
                         <Input {...form.register(`lineItems.${index}.serviceName`)} />
                       </div>
-                      <div className="md:col-span-4">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Description</label>
+                      <div className="sm:col-span-3">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Description</label>
                         <Input {...form.register(`lineItems.${index}.description`)} />
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Qty</label>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Qty</label>
                         <Input type="number" min="1" {...form.register(`lineItems.${index}.quantity`)} />
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Rate</label>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Rate</label>
                         <Input type="number" min="0" step="0.01" {...form.register(`lineItems.${index}.rate`)} />
                       </div>
-                      <div className="flex items-end md:col-span-1">
-                        <Button type="button" variant="outline" onClick={() => remove(index)} disabled={fields.length === 1}>
-                          Remove
+                      <div className="flex items-end sm:col-span-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => remove(index)}
+                          disabled={fields.length === 1}
+                          className="w-full gap-1.5 border-rose-200/80 text-rose-600 hover:bg-rose-50 dark:border-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                        >
+                          <Trash2 size={14} /> Remove
                         </Button>
                       </div>
                     </div>
@@ -415,33 +421,41 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
 
                 <div className="space-y-4">
                   {paymentFields.map((field, index) => (
-                    <div key={field.id} className="grid gap-3 rounded-2xl border border-border bg-background p-4 md:grid-cols-12">
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Amount</label>
+                    <div key={field.id} className="grid gap-3 rounded-2xl border border-border bg-background p-4 sm:grid-cols-12">
+                      <div className="sm:col-span-2">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Amount</label>
                         <Input type="number" min="0" step="0.01" {...form.register(`payments.${index}.amount`)} />
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Method</label>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Method</label>
                         <select className="w-full rounded-2xl border border-slate-200 dark:border-border bg-slate-50/70 dark:bg-card/70 px-3 py-2.5 text-sm font-medium text-slate-800 dark:text-foreground outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15" {...form.register(`payments.${index}.method`)}>
                           {['UPI', 'Cash', 'Bank Transfer', 'Card', 'Cheque', 'Other'].map((method) => (
                             <option key={method} value={method}>{method}</option>
                           ))}
                         </select>
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Date</label>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Date</label>
                         <Input type="date" {...form.register(`payments.${index}.paidAt`)} />
                       </div>
-                      <div className="md:col-span-3">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Reference</label>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Reference</label>
                         <Input {...form.register(`payments.${index}.reference`)} placeholder="UTR / ref" />
                       </div>
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block text-sm font-medium text-foreground">Notes</label>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Notes</label>
                         <Input {...form.register(`payments.${index}.notes`)} placeholder="Notes" />
                       </div>
-                      <div className="flex items-end md:col-span-1">
-                        <Button type="button" variant="outline" onClick={() => removePayment(index)} disabled={paymentFields.length === 1}>Remove</Button>
+                      <div className="flex items-end sm:col-span-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => removePayment(index)}
+                          disabled={paymentFields.length === 1}
+                          className="w-full gap-1.5 border-rose-200/80 text-rose-600 hover:bg-rose-50 dark:border-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                        >
+                          <Trash2 size={14} /> Remove
+                        </Button>
                       </div>
                     </div>
                   ))}
