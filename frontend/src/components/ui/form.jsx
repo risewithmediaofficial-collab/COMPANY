@@ -16,7 +16,7 @@ export const FormItem = React.forwardRef(({ className, ...props }, ref) => {
   const id = React.useId();
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn('space-y-2', className)} {...props} />
+      <div ref={ref} className={cn('space-y-1.5', className)} {...props} />
     </FormItemContext.Provider>
   );
 });
@@ -24,7 +24,7 @@ FormItem.displayName = 'FormItem';
 
 export const FormLabel = React.forwardRef(({ className, ...props }, ref) => {
   const { id } = React.useContext(FormItemContext);
-  return <label ref={ref} htmlFor={id} className={cn('text-sm font-medium', className)} {...props} />;
+  return <label ref={ref} htmlFor={id} className={cn('text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-foreground/90', className)} {...props} />;
 });
 FormLabel.displayName = 'FormLabel';
 
@@ -38,5 +38,5 @@ export const FormMessage = ({ className }) => {
   const { name } = React.useContext(FormFieldContext);
   const { formState } = useFormContext();
   const message = name ? formState.errors?.[name]?.message : undefined;
-  return message ? <p className={cn('text-xs font-medium text-destructive', className)}>{message}</p> : null;
+  return message ? <p className={cn('text-xs font-medium text-destructive mt-1', className)}>{message}</p> : null;
 };
