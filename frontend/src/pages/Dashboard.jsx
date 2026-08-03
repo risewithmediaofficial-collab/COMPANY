@@ -291,32 +291,24 @@ const Dashboard = () => {
         )}
 
         {/* Top KPI Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           {[
             {
-              label: 'Total Revenue',
-              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.monthRevenue || 0),
-              helper: 'Paid invoices in period',
+              label: 'Pending Amount',
+              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.totalPending || 0),
+              helper: 'Unpaid invoice balances',
+              accent: 'rose',
+              icon: Clock,
+              badge: null,
+            },
+            {
+              label: 'Gross Amount',
+              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.grossAmount || 0),
+              helper: 'Revenue collected this period',
               accent: 'emerald',
               icon: IndianRupee,
               badge: stats.revenueGrowth !== undefined && showFinance && user.role !== 'manager' ? `${Number(stats.revenueGrowth) >= 0 ? '+' : '-'}${Math.abs(stats.revenueGrowth)}%` : null,
               badgeTone: Number(stats.revenueGrowth || 0) >= 0 ? 'emerald' : 'rose',
-            },
-            {
-              label: 'Expenses Budget',
-              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.totalExpenses || 0),
-              helper: 'Approved business expenses',
-              accent: 'rose',
-              icon: Receipt,
-              badge: null,
-            },
-            {
-              label: 'Ads Budget',
-              value: formatINR(stats.totalAdsBudget || 0),
-              helper: 'Marketing & campaign budget',
-              accent: 'amber',
-              icon: Megaphone,
-              badge: null,
             },
             {
               label: 'Net Profit',
@@ -326,12 +318,37 @@ const Dashboard = () => {
               icon: Wallet,
               badge: null,
             },
+            {
+              label: 'Expenses',
+              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.totalExpenses || 0),
+              helper: 'Approved business expenses',
+              accent: 'rose',
+              icon: Receipt,
+              badge: null,
+            },
+            {
+              label: 'Ads Budget',
+              value: formatINR(stats.totalAdsBudget || 0),
+              helper: 'Marketing & campaign spend',
+              accent: 'amber',
+              icon: Megaphone,
+              badge: null,
+            },
+            {
+              label: 'Remaining',
+              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.remainingAmount || 0),
+              helper: 'Revenue after expenses and ad spend',
+              accent: 'sky',
+              icon: ShieldCheck,
+              badge: null,
+            },
           ].map(({ label, value, helper, accent, icon: Icon, badge, badgeTone }) => {
             const accentClasses = {
               emerald: 'bg-emerald-500/10 text-emerald-600',
               rose: 'bg-rose-500/10 text-rose-600',
               amber: 'bg-amber-500/10 text-amber-600',
               indigo: 'bg-indigo-500/10 text-indigo-600',
+              sky: 'bg-sky-500/10 text-sky-600',
             };
             const badgeClasses = {
               emerald: 'bg-emerald-500/10 text-emerald-600',
@@ -806,11 +823,11 @@ const Dashboard = () => {
               </div>
               <div className="space-y-3">
                 <Link to="/calendar" className="block w-full text-center py-2.5 rounded-xl bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Open Content Calendar</Link>
-                <Link to="/sop" className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <Link to="/sop" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
                   <BookOpen size={16} className="text-primary" />
                   SOP Dashboard & My SOPs
                 </Link>
-                <Link to="/pending-notes" className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <Link to="/pending-notes" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
                   <StickyNote size={16} className="text-amber-500" />
                   My Pending Task Notes
                 </Link>

@@ -111,6 +111,19 @@ export const getAdminDashboard = async (req, res) => {
         .populate('clientId', 'name company')
         .sort({ expiryDate: 1 })
         .limit(5),
+      Invoice.aggregate([
+        {
+          $match: {
+            status: { $in: ['sent', 'viewed', 'partially_paid'] },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            pendingBalance: { $sum: { $ifNull: ['$balanceAmount', 0] } },
+          },
+        },
+      ]),
     ]);
 
     // Lead stage funnel
@@ -145,6 +158,8 @@ export const getAdminDashboard = async (req, res) => {
     const totalIncome = allTimeRevenue[0]?.total || 0;
     const totalExpenses = totalExpensesData[0]?.total || 0;
     const netProfit = thisMonthRev - totalExpenses;
+    const remainingAmount = thisMonthRev - totalExpenses - totalAdsBudget;
+    const pendingBalance = pendingBalanceAgg[0]?.pendingBalance || 0;
 
     res.json({
       success: true,
@@ -156,12 +171,15 @@ export const getAdminDashboard = async (req, res) => {
         totalClients, activeClients,
         totalProjects, activeProjects,
         totalTasks, overdueTasks,
+        totalPending: isManager ? 0 : pendingBalance,
+        grossAmount: isManager ? 0 : thisMonthRev,
         monthRevenue: isManager ? 0 : thisMonthRev,
         revenueGrowth: isManager ? 0 : revenueGrowth,
         totalIncome: isManager ? 0 : totalIncome,
         totalExpenses: isManager ? 0 : totalExpenses,
         totalAdsBudget,
         netProfit: isManager ? 0 : netProfit,
+        remainingAmount: isManager ? 0 : remainingAmount,
         totalUsers,
         expiringRenewalsCount: expiringRenewals.length,
       },
