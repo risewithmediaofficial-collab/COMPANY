@@ -33,6 +33,7 @@ import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import { exportInvoiceToPDF } from '../../utils/pdfExport';
 import { ShareInvoiceModal } from './ShareInvoiceModal';
+import { toast } from 'sonner';
 
 const invoiceSchema = z.object({
   client: z.string().min(1, 'Client is required'),
@@ -282,9 +283,23 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
     onOpenChange(false);
   };
 
+  const handleModalClose = (isOpen) => {
+    if (!isOpen && !invoice) {
+      const currentValues = form.getValues();
+      const hasAnyValue =
+        currentValues.client || currentValues.invoiceNumber || (currentValues.lineItems || []).some((li) => li.serviceName?.trim() || Number(li.rate) > 0);
+      if (hasAnyValue) {
+        localStorage.setItem(INVOICE_DRAFT_KEY, JSON.stringify(currentValues));
+        setHasDraft(true);
+        toast.success('Draft Saved', { description: 'Invoice data saved as draft — it will be here when you return.' });
+      }
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleModalClose}>
         <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between pr-6">

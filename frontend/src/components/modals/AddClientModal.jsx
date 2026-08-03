@@ -243,17 +243,20 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
     }
   };
 
-  const handleClose = () => {
-    if (!client && form.formState.isDirty) {
-      const data = form.getValues();
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-      toast.info('Saved as draft');
+  const handleClose = (isOpen) => {
+    if (!isOpen && !client) {
+      const currentValues = form.getValues();
+      const hasAnyValue = currentValues.name?.trim() || currentValues.company?.trim() || currentValues.email?.trim();
+      if (hasAnyValue) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(currentValues));
+        toast.success('Draft Saved', { description: 'Client data saved as draft — it will be here when you return.' });
+      }
     }
-    onOpenChange(false);
+    onOpenChange(isOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         className="max-w-2xl max-h-[90vh] overflow-y-auto"
       >

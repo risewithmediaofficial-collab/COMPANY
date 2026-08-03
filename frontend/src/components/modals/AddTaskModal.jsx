@@ -2562,8 +2562,23 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
 
   if (pageMode) return <div className="space-y-6">{formBody}</div>;
 
+  const handleModalClose = (isOpen) => {
+    if (!isOpen && !task) {
+      const currentValues = form.getValues();
+      const hasAnyValue = Object.values(currentValues).some((v) =>
+        Array.isArray(v) ? v.length > 0 : (typeof v === 'string' ? v.trim() !== '' : Boolean(v))
+      );
+      if (hasAnyValue) {
+        localStorage.setItem(TASK_DRAFT_KEY, JSON.stringify(currentValues));
+        setHasDraft(true);
+        toast.success('Draft Saved', { description: 'Your task data has been saved as a draft. It will be here when you return.' });
+      }
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-0">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border sticky top-0 bg-background z-10">
           <div className="flex items-center justify-between gap-3">
