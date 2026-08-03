@@ -105,18 +105,12 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
 
   useEffect(() => {
     if (invoice) {
-      replace((invoice.invoiceItems || invoice.lineItems || [{ serviceName: '', description: invoice.description || '', quantity: 1, rate: invoice.amount || 0 }]).map((item) => ({
-        serviceName: item.serviceName || 'Service',
-        description: item.description || '',
-        quantity: Number(item.quantity || 1),
-        rate: Number(item.rate ?? item.unitPrice ?? 0),
-      })));
       form.reset({
         client: invoice.client?._id || invoice.client || '',
         project: invoice.project?._id || invoice.project || '',
         invoiceNumber: invoice.invoiceNumber || '',
         issueDate: invoice.issueDate ? new Date(invoice.issueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString().split('T')[0] : '',
+        dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString().split('T')[0] : new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
         status: invoice.status || 'Draft',
         paymentTerms: invoice.paymentTerms || invoice.terms || '',
         paymentLink: invoice.paymentLink || '',
@@ -145,10 +139,37 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
       return;
     }
 
-    replace(defaultValues.lineItems);
-    replacePayments(defaultValues.payments);
+    if (open) {
+      const savedDraft = localStorage.getItem(INVOICE_DRAFT_KEY);
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          form.reset(parsed);
+          setHasDraft(true);
+        } catch {
+          form.reset(defaultValues);
+          setHasDraft(false);
+        }
+      } else {
+        form.reset(defaultValues);
+        setHasDraft(false);
+      }
+    }
+  }, [invoice, open, form]);
+
+  const watchedValues = form.watch();
+  useEffect(() => {
+    if (!invoice && open && form.formState.isDirty) {
+      localStorage.setItem(INVOICE_DRAFT_KEY, JSON.stringify(watchedValues));
+      setHasDraft(true);
+    }
+  }, [watchedValues, invoice, open, form.formState.isDirty]);
+
+  const handleClearDraft = () => {
+    localStorage.removeItem(INVOICE_DRAFT_KEY);
     form.reset(defaultValues);
-  }, [invoice, open, form, replace, replacePayments]);
+    setHasDraft(false);
+  };
 
   const isLoading = createInvoice.isPending || updateInvoice.isPending;
 
@@ -255,6 +276,8 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
       return;
     }
 
+    localStorage.removeItem(INVOICE_DRAFT_KEY);
+    setHasDraft(false);
     onOpenChange(false);
   };
 
@@ -267,11 +290,20 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
               <div>
                 <div className="flex items-center gap-3">
                   <DialogTitle>{invoice ? 'Edit Invoice' : 'Create Invoice'}</DialogTitle>
-                  {form.formState.isDirty && (
-                    <span className="px-3 py-1 rounded-full bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-md animate-pulse flex items-center gap-1.5 shrink-0">
-                      <span className="h-2 w-2 rounded-full bg-white animate-ping" />
-                      Draft
-                    </span>
+                  {(form.formState.isDirty || hasDraft) && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="px-3 py-1 rounded-full bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-md animate-pulse flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-white animate-ping" />
+                        Draft (Saved)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleClearDraft}
+                        className="text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900/40 transition-colors"
+                      >
+                        Clear Draft
+                      </button>
+                    </div>
                   )}
                 </div>
                 <DialogDescription>

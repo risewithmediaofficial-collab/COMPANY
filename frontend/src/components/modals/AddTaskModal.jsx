@@ -53,6 +53,8 @@ import {
 import { Trash2, Plus, Video, Image, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
+const TASK_DRAFT_KEY = 'draft:task-modal';
+
 const EMPTY_INITIAL_VALUES = {};
 
 // Task type categorisation
@@ -347,18 +349,31 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
     return projects.filter((project) => (project.client?._id || project.client) === selectedClientId);
   }, [projects, selectedClientId]);
 
+  const [hasDraft, setHasDraft] = useState(false);
+
   useEffect(() => {
     if (task) {
+      const taskCategory = getTaskCategoryFromType(task.taskType);
       form.reset({
         taskTitle: task.taskTitle || task.title || '',
-        taskCategory: deriveTaskCategory(task),
-        contentType: task.contentType || 'videos',
-        videoType: task.videoType || 'reels',
+        taskCategory,
+        contentType: task.contentType || (taskCategory === 'content' ? 'posts' : ''),
+        videoType: task.videoType || (taskCategory === 'content' ? 'reels' : ''),
         contentTitle: task.contentTitle || '',
-        taskType: task.taskType || 'reel',
+        taskType: task.taskType || (taskCategory === 'content' ? 'poster' : 'website_development'),
         client: task.client?._id || task.client || '',
         project: task.project?._id || task.project || '',
-        assignedTo: task.assignedTo?.[0]?._id || task.assignedTo?.[0] || '',
+        assignedTo: Array.isArray(task.assignedTo) ? task.assignedTo[0]?._id || task.assignedTo[0] || '' : task.assignedTo || '',
+        assignedManager: task.assignedManager?._id || task.assignedManager || '',
+        scriptWriterAssigned: task.scriptWriterAssigned?._id || task.scriptWriterAssigned || '',
+        videographerAssigned: task.videographerAssigned?._id || task.videographerAssigned || '',
+        editorAssigned: task.editorAssigned?._id || task.editorAssigned || '',
+        publisherAssigned: task.publisherAssigned?._id || task.publisherAssigned || '',
+        shootDate: task.shootDate ? new Date(task.shootDate).toISOString().split('T')[0] : '',
+        shootLocation: task.shootLocation || '',
+        rawFootageLink: task.rawFootageLink || '',
+        postingPlatforms: task.postingPlatforms || [],
+        postingScheduleDate: task.postingScheduleDate ? new Date(task.postingScheduleDate).toISOString().split('T')[0] : '',
         priority: task.priority || 'Medium',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
         status: normalizeTaskStatusLabel(task.status),
@@ -390,12 +405,40 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
       });
       setExistingAttachments(task.attachments || []);
       setAttachmentFiles([]);
-    } else {
-      form.reset(buildDefaultValues(initialValues));
+    } else if (open) {
+      const savedDraft = localStorage.getItem(TASK_DRAFT_KEY);
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          form.reset(parsed);
+          setHasDraft(true);
+        } catch {
+          form.reset(buildDefaultValues(initialValues));
+          setHasDraft(false);
+        }
+      } else {
+        form.reset(buildDefaultValues(initialValues));
+        setHasDraft(false);
+      }
       setExistingAttachments([]);
       setAttachmentFiles([]);
     }
   }, [task, open, form, initialValues]);
+
+  const watchedValues = form.watch();
+  useEffect(() => {
+    if (!task && open && form.formState.isDirty) {
+      localStorage.setItem(TASK_DRAFT_KEY, JSON.stringify(watchedValues));
+      setHasDraft(true);
+    }
+  }, [watchedValues, task, open, form.formState.isDirty]);
+
+  const handleClearDraft = () => {
+    localStorage.removeItem(TASK_DRAFT_KEY);
+    form.reset(buildDefaultValues(initialValues));
+    setHasDraft(false);
+    toast.success('Draft cleared');
+  };
 
   useEffect(() => {
     if (taskCategory === 'content' && !CONTENT_TASK_TYPE_OPTIONS.some((item) => item.value === taskType)) {
