@@ -10,6 +10,21 @@ const getOrCreateSettings = async (userId) => {
   return settings;
 };
 
+export const updateCompanySettings = async (req, res) => {
+  try {
+    const settings = await getOrCreateSettings(req.user._id);
+    const updates = req.body || {};
+    settings.companyProfile = {
+      ...(settings.companyProfile || {}),
+      ...updates,
+    };
+    await settings.save();
+    res.json({ success: true, settings });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const getSettings = async (req, res) => {
   try {
     const settings = await getOrCreateSettings(req.user._id);

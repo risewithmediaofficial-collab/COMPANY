@@ -6,9 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
+    "start:prod": "NODE_ENV=production node index.js",
     "dev": "nodemon index.js",
     "seed": "node utils/seed.js",
-    "seed:portal": "node utils/seedPortal.js"
+    "seed:portal": "node utils/seedPortal.js",
+    "healthcheck": "node -e \"fetch('http://localhost:' + (process.env.PORT || 5000) + '/api/health').then(r => { if (!r.ok) process.exit(1); return r.text(); }).then(() => console.log('OK')).catch(err => { console.error(err); process.exit(1); })\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

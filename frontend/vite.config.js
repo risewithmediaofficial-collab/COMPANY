@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
   server: {
@@ -23,6 +23,25 @@ export default defineConfig({
       '/socket.io': {
         target: 'http://localhost:5000',
         ws: true,
+      },
+    },
+  },
+  build: {
+    target: 'es2020',
+    sourcemap: false,
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          reactCore: ['react', 'react-dom', 'react-router-dom', 'react-redux'],
+          appState: ['@reduxjs/toolkit', '@tanstack/react-query'],
+          dataViz: ['recharts'],
+          formUi: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          motion: ['framer-motion'],
+          pdf: ['jspdf', 'html2canvas'],
+          ui: ['lucide-react', 'sonner', 'react-hot-toast'],
+        },
       },
     },
   },

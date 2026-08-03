@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import api from '../api';
 
 /**
  * Export element to PDF
@@ -265,13 +266,58 @@ const formatCurrencyINR = (amount) => {
   }).format(Number(amount || 0));
 };
 
+const getCompanyProfileForInvoice = async () => {
+  try {
+    const response = await api.get('/settings');
+    const profile = response?.data?.settings?.companyProfile || {};
+    return {
+      name: profile.name || 'RISE WITH MEDIA',
+      address: profile.address || '',
+      email: profile.email || '',
+      phone: profile.phone || '',
+      gstNumber: profile.gstNumber || '',
+      services: profile.services || 'Media & Marketing Operations Platform',
+      logoUrl: profile.logoUrl || '',
+    };
+  } catch {
+    return {
+      name: 'RISE WITH MEDIA',
+      address: '',
+      email: '',
+      phone: '',
+      gstNumber: '',
+      services: 'Media & Marketing Operations Platform',
+      logoUrl: '',
+    };
+  }
+};
+
+const loadLogoImage = async (logoUrl) => {
+  if (!logoUrl) return null;
+
+  try {
+    const response = await fetch(logoUrl, { mode: 'cors' });
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Export Invoice to PDF
  * @param {object} invoice - Invoice data object
  * @param {object} options - Options (save: boolean, filename: string)
  */
-export const exportInvoiceToPDF = (invoice, options = {}) => {
+export const exportInvoiceToPDF = async (invoice, options = {}) => {
   const { save = true } = options;
+  const companyProfile = await getCompanyProfileForInvoice();
+  const logoDataUrl = await loadLogoImage(companyProfile.logoUrl);
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -290,15 +336,25 @@ export const exportInvoiceToPDF = (invoice, options = {}) => {
   pdf.setFillColor(15, 23, 42); // slate-900 header
   pdf.rect(0, 0, pageWidth, 28, 'F');
 
+  if (logoDataUrl) {
+    try {
+      pdf.addImage(logoDataUrl, 'PNG', margin, 7, 26, 14);
+    } catch {
+      // Ignore logo render issues and fall back to text branding
+    }
+  }
+
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(18);
   pdf.setTextColor(255, 255, 255);
-  pdf.text('RISE WITH MEDIA', margin, 14);
+  const companyTitleX = logoDataUrl ? margin + 32 : margin;
+  pdf.text(companyProfile.name || 'RISE WITH MEDIA', companyTitleX, 14);
 
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(9);
   pdf.setTextColor(203, 213, 225);
-  pdf.text('Media & Marketing Operations Platform', margin, 20);
+  const companyTagline = companyProfile.services || 'Media & Marketing Operations Platform';
+  pdf.text(companyTagline, companyTitleX, 20);
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(16);

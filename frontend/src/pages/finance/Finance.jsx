@@ -106,7 +106,6 @@ const Finance = () => {
         { id: 'records', label: 'Finance Records', icon: IndianRupee },
         { id: 'invoices', label: 'Invoices', icon: FileText },
         { id: 'referrals', label: 'Referrals', icon: Users2 },
-        { id: 'adsCampaigns', label: 'Ads Campaigns', icon: BarChart3 },
         { id: 'expenses', label: 'Expenses & Profits', icon: Receipt },
       ];
     }
@@ -546,34 +545,43 @@ const Finance = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={isManager ? "Ads Campaigns" : "Finance Operations"}
-        description={isManager ? "Review ads budgets, actual spends, and log monthly campaign metrics for clients." : "Track partial payments, private follow-ups, client-visible payment history, invoice status, client communication, and lead sources from one workspace."}
-        actions={(
-          <div className="flex gap-3">
-            {!isManager && canManage ? <Button variant="outline" onClick={() => { setSelectedRecord(null); setShowFinanceModal(true); }}><Plus size={16} className="mr-2" />Finance Record</Button> : null}
-            {!isManager && canManage ? <Button variant="outline" onClick={() => { setSelectedInvoice(null); setShowInvoiceModal(true); }}><Plus size={16} className="mr-2" />Invoice</Button> : null}
-            {isAdmin && activeTab === 'expenses' ? <Button onClick={() => setShowExpenseModal(true)}><Plus size={16} className="mr-2" />Record Expense</Button> : null}
-            {(isManager || (isAdmin && activeTab === 'adsCampaigns')) ? <Button onClick={() => setShowAdsCampaignModal(true)}><Plus size={16} className="mr-2" />Record Ads Campaign</Button> : null}
+      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 p-6 text-white shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="mb-3 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-100">
+              Finance
+            </div>
+            <h1 className="text-2xl font-black tracking-tight text-white">{isManager ? 'Ads Campaigns' : 'Finance Operations'}</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-300">
+              {isManager ? 'Review ads budgets, actual spends, and log monthly campaign metrics for clients.' : 'Track partial payments, follow-ups, visible payment history, invoice status, and client communication from one workspace.'}
+            </p>
           </div>
-        )}
-      >
-        {isManager ? (
-          <MetricGrid>
-            <MetricCard label="Projects" value={adsBudgetProjects.length} helper="Total tracked projects" icon={FileText} tone="info" />
-            <MetricCard label="Total Ads Budget" value={currency.format(totalAdsBudget)} helper="Combined ads allocation only" icon={IndianRupee} tone="primary" />
-            <MetricCard label="Active Campaigns" value={adsBudgetProjects.filter((project) => project.status === 'In Progress' || project.status === 'active').length} helper="Campaigns currently running" icon={CheckCircle2} tone="success" />
-            <MetricCard label="No Ads Budget" value={adsBudgetProjects.filter((project) => project.adsBudget <= 0).length} helper="Projects missing ads allocation" icon={AlertCircle} tone="warning" />
-          </MetricGrid>
-        ) : (
-          <MetricGrid>
-            <MetricCard label="Outstanding" value={currency.format(metrics.totalReceivable)} helper="Pending receivable balance" icon={AlertCircle} tone={metrics.totalReceivable > 0 ? 'warning' : 'success'} />
-            <MetricCard label="Collected" value={currency.format(metrics.totalPaid)} helper="Total payments recorded" icon={CheckCircle2} tone="success" />
-            <MetricCard label="Open Invoices" value={metrics.openInvoices} helper="Draft, sent, viewed, or partial" icon={Receipt} tone="info" />
-            <MetricCard label="Overdue" value={metrics.overdue} helper="Finance records past due date" icon={FileText} tone={metrics.overdue ? 'danger' : 'neutral'} />
-          </MetricGrid>
-        )}
-      </PageHeader>
+
+          <div className="flex flex-wrap gap-3">
+            {!isManager && canManage ? <Button variant="outline" onClick={() => { setSelectedRecord(null); setShowFinanceModal(true); }} className="border-white/15 bg-white/5 text-white hover:bg-white/10"><Plus size={16} className="mr-2" />Finance Record</Button> : null}
+            {!isManager && canManage ? <Button variant="outline" onClick={() => { setSelectedInvoice(null); setShowInvoiceModal(true); }} className="border-white/15 bg-white/5 text-white hover:bg-white/10"><Plus size={16} className="mr-2" />Invoice</Button> : null}
+            {isAdmin && activeTab === 'expenses' ? <Button onClick={() => setShowExpenseModal(true)} className="bg-white text-slate-900 hover:bg-indigo-50"><Plus size={16} className="mr-2" />Record Expense</Button> : null}
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {isManager ? (
+            <>
+              <MetricCard label="Projects" value={adsBudgetProjects.length} helper="Total tracked projects" icon={FileText} tone="info" />
+              <MetricCard label="Total Ads Budget" value={currency.format(totalAdsBudget)} helper="Combined ads allocation only" icon={IndianRupee} tone="primary" />
+              <MetricCard label="Active Campaigns" value={adsBudgetProjects.filter((project) => project.status === 'In Progress' || project.status === 'active').length} helper="Campaigns currently running" icon={CheckCircle2} tone="success" />
+              <MetricCard label="No Ads Budget" value={adsBudgetProjects.filter((project) => project.adsBudget <= 0).length} helper="Projects missing ads allocation" icon={AlertCircle} tone="warning" />
+            </>
+          ) : (
+            <>
+              <MetricCard label="Outstanding" value={currency.format(metrics.totalReceivable)} helper="Pending receivable balance" icon={AlertCircle} tone={metrics.totalReceivable > 0 ? 'warning' : 'success'} />
+              <MetricCard label="Collected" value={currency.format(metrics.totalPaid)} helper="Total payments recorded" icon={CheckCircle2} tone="success" />
+              <MetricCard label="Open Invoices" value={metrics.openInvoices} helper="Draft, sent, viewed, or partial" icon={Receipt} tone="info" />
+              <MetricCard label="Overdue" value={metrics.overdue} helper="Finance records past due date" icon={FileText} tone={metrics.overdue ? 'danger' : 'neutral'} />
+            </>
+          )}
+        </div>
+      </div>
 
       {tabs.length > 1 && (
         <div className="flex items-center gap-1 rounded-2xl border border-border bg-card p-1.5">
@@ -945,56 +953,6 @@ const Finance = () => {
               </div>
             </div>
 
-          </SectionCard>
-        </div>
-      ) : null}
-      {activeTab === 'adsCampaigns' ? (
-        <div className="space-y-6 animate-fadeIn">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard label="Projects" value={adsBudgetProjects.length} helper="Total tracked projects" icon={FileText} tone="info" />
-            <MetricCard label="Total Ads Budget" value={currency.format(totalAdsBudget)} helper="Combined allocation" icon={IndianRupee} tone="primary" />
-            <MetricCard label="Active Campaigns" value={adsBudgetProjects.filter((project) => project.status === 'In Progress' || project.status === 'active').length} helper="Campaigns currently running" icon={CheckCircle2} tone="success" />
-            <MetricCard label="No Allocation" value={adsBudgetProjects.filter((project) => project.adsBudget <= 0).length} helper="Projects without ads budgets" icon={AlertCircle} tone="warning" />
-          </div>
-
-          <SectionCard 
-            title="Project Ads Budgets" 
-            description="Review ads budgets allocated across active client campaigns."
-            action={
-              <Button size="sm" onClick={() => setShowAdsCampaignModal(true)}>
-                <BarChart3 size={15} className="mr-1" /> Record Ads Campaign
-              </Button>
-            }
-          >
-            <div className="max-h-[400px] overflow-y-auto pr-1 border border-border/40 rounded-2xl">
-              <DataTable
-                data={adsBudgetProjects}
-                columns={[
-                  {
-                    key: 'project',
-                    label: 'Project',
-                    render: (row) => (
-                      <div className="min-w-0">
-                        <div className="font-semibold text-foreground">{row.name}</div>
-                        <div className="mt-1 text-xs text-muted-foreground">{row.client?.company || row.client?.name || 'No client linked'}</div>
-                      </div>
-                    ),
-                  },
-                  {
-                    key: 'status',
-                    label: 'Status',
-                    render: (row) => <StatusBadge tone={row.status === 'In Progress' || row.status === 'active' ? 'success' : 'neutral'}>{row.status}</StatusBadge>,
-                  },
-                  {
-                    key: 'adsBudget',
-                    label: 'Ads Budget',
-                    render: (row) => currency.format(row.adsBudget),
-                  },
-                ]}
-                emptyTitle="No projects found"
-                emptyDescription="Projects with ads budgets will appear here."
-              />
-            </div>
           </SectionCard>
         </div>
       ) : null}

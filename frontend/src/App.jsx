@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { fetchMe } from './store/slices/authSlice';
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Toaster as SonnerToaster } from 'sonner';
@@ -10,64 +10,63 @@ import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
 
 // Pages
-import Dashboard from './pages/Dashboard';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ResetPassword from './pages/auth/ResetPassword';
-import Leads from './pages/crm/Leads';
-import LeadDetails from './pages/crm/LeadDetails';
-import SOPDashboard from './pages/sop/SOPDashboard';
-import Proposals from './pages/proposals/Proposals';
-import ProposalDetails from './pages/proposals/ProposalDetails';
-import ClientProposals from './pages/proposals/ClientProposals';
-import AddTask from './pages/tasks/AddTask';
-import TaskDetails from './pages/tasks/TaskDetails';
-import Projects from './pages/projects/Projects';
-import ProjectDetails from './pages/projects/ProjectDetails';
-import Clients from './pages/clients/Clients';
-import ClientDetails from './pages/clients/ClientDetails';
-import ClientVault from './pages/clients/ClientVault';
-import ClientFollowups from './pages/clients/ClientFollowups';
-import Tasks from './pages/tasks/Tasks';
-import ContentCalendar from './pages/tasks/ContentCalendar';
-import DMCalendar from './pages/dmCalendar/DMCalendar';
-import InfluencersDashboard from './pages/influencers/InfluencersDashboard';
-import PendingNotes from './pages/tasks/PendingNotes';
-import ManagerBoard from './pages/tasks/ManagerBoard';
-import Finance from './pages/finance/Finance';
-import CallHistoryDashboard from './pages/finance/CallHistoryDashboard';
-import HR from './pages/hr/HR';
-import Reports from './pages/reports/Reports';
-import Attendance from './pages/employee/Attendance';
-import Communication from './pages/employee/Communication';
-import ReferralDashboard from './pages/referral/ReferralDashboard';
-import Users from './pages/admin/Users';
-import DomainRenewals from './pages/admin/DomainRenewals';
-import ManagerTaskAssignments from './pages/admin/ManagerTaskAssignments';
-import AssetsLibrary from './pages/assets/AssetsLibrary';
-import Settings from './pages/Settings';
-import NotFound from './pages/NotFound';
-import PortalDashboard from './pages/portal/sections/PortalDashboard';
-import PortalReports from './pages/portal/sections/PortalReports';
-import PortalDownloads from './pages/portal/sections/PortalDownloads';
-import BrandAssets from './pages/portal/sections/BrandAssets';
-import PortalSupport from './pages/portal/sections/PortalSupport';
-import PortalGuidelines from './pages/portal/sections/PortalGuidelines';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Login = lazy(() => import('./pages/auth/Login'));
+const Register = lazy(() => import('./pages/auth/Register'));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
+const Leads = lazy(() => import('./pages/crm/Leads'));
+const LeadDetails = lazy(() => import('./pages/crm/LeadDetails'));
+const SOPDashboard = lazy(() => import('./pages/sop/SOPDashboard'));
+const Proposals = lazy(() => import('./pages/proposals/Proposals'));
+const ProposalDetails = lazy(() => import('./pages/proposals/ProposalDetails'));
+const ClientProposals = lazy(() => import('./pages/proposals/ClientProposals'));
+const AddTask = lazy(() => import('./pages/tasks/AddTask'));
+const TaskDetails = lazy(() => import('./pages/tasks/TaskDetails'));
+const Projects = lazy(() => import('./pages/projects/Projects'));
+const ProjectDetails = lazy(() => import('./pages/projects/ProjectDetails'));
+const Clients = lazy(() => import('./pages/clients/Clients'));
+const ClientDetails = lazy(() => import('./pages/clients/ClientDetails'));
+const ClientVault = lazy(() => import('./pages/clients/ClientVault'));
+const ClientFollowups = lazy(() => import('./pages/clients/ClientFollowups'));
+const Tasks = lazy(() => import('./pages/tasks/Tasks'));
+const ContentCalendar = lazy(() => import('./pages/tasks/ContentCalendar'));
+const DMCalendar = lazy(() => import('./pages/dmCalendar/DMCalendar'));
+const InfluencersDashboard = lazy(() => import('./pages/influencers/InfluencersDashboard'));
+const PendingNotes = lazy(() => import('./pages/tasks/PendingNotes'));
+const ManagerBoard = lazy(() => import('./pages/tasks/ManagerBoard'));
+const Finance = lazy(() => import('./pages/finance/Finance'));
+const CallHistoryDashboard = lazy(() => import('./pages/finance/CallHistoryDashboard'));
+const HR = lazy(() => import('./pages/hr/HR'));
+const Reports = lazy(() => import('./pages/reports/Reports'));
+const Attendance = lazy(() => import('./pages/employee/Attendance'));
+const Communication = lazy(() => import('./pages/employee/Communication'));
+const ReferralDashboard = lazy(() => import('./pages/referral/ReferralDashboard'));
+const Users = lazy(() => import('./pages/admin/Users'));
+const DomainRenewals = lazy(() => import('./pages/admin/DomainRenewals'));
+const ManagerTaskAssignments = lazy(() => import('./pages/admin/ManagerTaskAssignments'));
+const AssetsLibrary = lazy(() => import('./pages/assets/AssetsLibrary'));
+const Settings = lazy(() => import('./pages/Settings'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const PortalDashboard = lazy(() => import('./pages/portal/sections/PortalDashboard'));
+const PortalReports = lazy(() => import('./pages/portal/sections/PortalReports'));
+const PortalDownloads = lazy(() => import('./pages/portal/sections/PortalDownloads'));
+const BrandAssets = lazy(() => import('./pages/portal/sections/BrandAssets'));
+const PortalSupport = lazy(() => import('./pages/portal/sections/PortalSupport'));
+const PortalGuidelines = lazy(() => import('./pages/portal/sections/PortalGuidelines'));
 
 // Social Media Manager Module Pages
-import SMMDashboard from './pages/smm/SMMDashboard';
-import SMMClients from './pages/smm/SMMClients';
-import SMMProjects from './pages/smm/SMMProjects';
-import Campaigns from './pages/smm/Campaigns';
-import AdSets from './pages/smm/AdSets';
-import Ads from './pages/smm/Ads';
-import CreativeLibrary from './pages/smm/CreativeLibrary';
-import SMMContentCalendar from './pages/smm/ContentCalendar';
-import SMMPerformance from './pages/smm/Performance';
-import SMMReports from './pages/smm/Reports';
-import SMMTeam from './pages/smm/Team';
-import SMMSettings from './pages/smm/SMMSettings';
+const SMMDashboard = lazy(() => import('./pages/smm/SMMDashboard'));
+const SMMClients = lazy(() => import('./pages/smm/SMMClients'));
+const SMMProjects = lazy(() => import('./pages/smm/SMMProjects'));
+const Campaigns = lazy(() => import('./pages/smm/Campaigns'));
+const AdSets = lazy(() => import('./pages/smm/AdSets'));
+const Ads = lazy(() => import('./pages/smm/Ads'));
+const CreativeLibrary = lazy(() => import('./pages/smm/CreativeLibrary'));
+const SMMContentCalendar = lazy(() => import('./pages/smm/ContentCalendar'));
+const SMMPerformance = lazy(() => import('./pages/smm/Performance'));
+const SMMReports = lazy(() => import('./pages/smm/Reports'));
+const SMMTeam = lazy(() => import('./pages/smm/Team'));
 
 // ─── Shared Loading Screen ────────────────────────────────────────────────────
 const LoadingScreen = () => (
@@ -125,23 +124,24 @@ const App = () => {
     <Router>
       <HotToaster position="top-right" reverseOrder={false} />
       <SonnerToaster position="top-right" richColors closeButton />
-      <Routes>
-        {/* ── Auth Routes ─────────────────────────────────────────────── */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login"          element={!isAuthenticated ? <Login />          : <Navigate to="/" />} />
-          <Route path="/register"       element={!isAuthenticated ? <Register />       : <Navigate to="/" />} />
-          <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/" />} />
-          <Route path="/reset-password/:token" element={!isAuthenticated ? <ResetPassword /> : <Navigate to="/" />} />
-        </Route>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          {/* ── Auth Routes ─────────────────────────────────────────────── */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login"          element={!isAuthenticated ? <Login />          : <Navigate to="/" />} />
+            <Route path="/register"       element={!isAuthenticated ? <Register />       : <Navigate to="/" />} />
+            <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/" />} />
+            <Route path="/reset-password/:token" element={!isAuthenticated ? <ResetPassword /> : <Navigate to="/" />} />
+          </Route>
 
-        {/* ── Protected Shell ─────────────────────────────────────────── */}
-        <Route
-          element={(
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading}>
-              <MainLayout />
-            </ProtectedRoute>
-          )}
-        >
+          {/* ── Protected Shell ─────────────────────────────────────────── */}
+          <Route
+            element={(
+              <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading}>
+                <MainLayout />
+              </ProtectedRoute>
+            )}
+          >
           {/* Root */}
           <Route
             path="/"
@@ -325,14 +325,14 @@ const App = () => {
 
           {/* Chat / Communication */}
           <Route path="/chat" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee', 'client']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <Communication />
             </ProtectedRoute>
           } />
 
           {/* Referral */}
           <Route path="/referral" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'referral', 'client']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'referral']}>
               <ReferralDashboard />
             </ProtectedRoute>
           } />
@@ -425,11 +425,12 @@ const App = () => {
               <PortalGuidelines dark={false} />
             </ProtectedRoute>
           } />
-        </Route>
+          </Route>
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 };

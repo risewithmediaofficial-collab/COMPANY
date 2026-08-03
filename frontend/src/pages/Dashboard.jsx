@@ -166,56 +166,61 @@ const Dashboard = () => {
     
     return (
       <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Executive Dashboard</h1>
-            <p className="text-muted-foreground text-sm">Real-time revenue, expenses, ads budget, leads, and operational performance.</p>
-          </div>
+        {/* Premium Header */}
+        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 p-6 text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="mb-3 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-indigo-100">
+                Executive Dashboard
+              </div>
+              <h1 className="text-2xl font-black tracking-tight text-white md:text-3xl">Performance overview</h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-300">Real-time revenue, expenses, ad spend, team output, and conversion metrics across the business.</p>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {user.role !== 'manager' && (
-              <button
-                onClick={() => setShowFinance((v) => !v)}
-                title={showFinance ? 'Hide revenue & financial amounts' : 'Show revenue & financial amounts'}
-                className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all shadow-sm ${
-                  showFinance
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
-                    : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`}
+            <div className="flex flex-wrap items-center gap-3">
+              {user.role !== 'manager' && (
+                <button
+                  onClick={() => setShowFinance((v) => !v)}
+                  title={showFinance ? 'Hide revenue & financial amounts' : 'Show revenue & financial amounts'}
+                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all ${
+                    showFinance
+                      ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20'
+                      : 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10'
+                  }`}
+                >
+                  {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
+                  {showFinance ? 'Hide Financials' : 'Show Financials'}
+                </button>
+              )}
+
+              <Link
+                to="/calendar"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-lg shadow-indigo-950/30 transition-all hover:bg-indigo-50"
               >
-                {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
-                {showFinance ? 'Hide Financials' : 'Show Financials'}
-              </button>
-            )}
+                <Calendar size={16} />
+                Content Calendar
+              </Link>
 
-            <Link
-              to="/calendar"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90"
-            >
-              <Calendar size={16} />
-              Content Calendar
-            </Link>
-
-            <select
-              value={period}
-              onChange={(e) => {
-                const val = e.target.value;
-                setPeriod(val);
-                if (val !== 'custom') {
-                  setStartDate('');
-                  setEndDate('');
-                }
-              }}
-              className="bg-card border border-border text-sm font-semibold rounded-xl px-3.5 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-            >
-              <option value="monthly">This Month</option>
-              <option value="lastMonth">Last Month</option>
-              <option value="weekly">This Week</option>
-              <option value="yearly">This Year</option>
-              <option value="allTime">All Time</option>
-              <option value="custom">Custom Date Range 📅</option>
-            </select>
+              <select
+                value={period}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setPeriod(val);
+                  if (val !== 'custom') {
+                    setStartDate('');
+                    setEndDate('');
+                  }
+                }}
+                className="rounded-xl border border-white/15 bg-white/10 px-3.5 py-2 text-sm font-semibold text-white outline-none backdrop-blur-sm transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-400/30"
+              >
+                <option value="monthly" className="text-slate-900">This Month</option>
+                <option value="lastMonth" className="text-slate-900">Last Month</option>
+                <option value="weekly" className="text-slate-900">This Week</option>
+                <option value="yearly" className="text-slate-900">This Year</option>
+                <option value="allTime" className="text-slate-900">All Time</option>
+                <option value="custom" className="text-slate-900">Custom Date Range</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -286,152 +291,73 @@ const Dashboard = () => {
         )}
 
         {/* Top KPI Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Revenue */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Total Revenue</span>
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600">
-                <IndianRupee size={18} />
-              </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">
-                {user.role === 'manager'
-                  ? 'Locked'
-                  : !showFinance
-                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
-                    : formatINR(stats.monthRevenue || 0)}
-              </p>
-              {stats.revenueGrowth !== undefined && showFinance && user.role !== 'manager' && (
-                <span className={`text-xs font-bold flex items-center ${Number(stats.revenueGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {Number(stats.revenueGrowth) >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                  {Math.abs(stats.revenueGrowth)}%
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Paid invoices in period</p>
-          </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              label: 'Total Revenue',
+              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.monthRevenue || 0),
+              helper: 'Paid invoices in period',
+              accent: 'emerald',
+              icon: IndianRupee,
+              badge: stats.revenueGrowth !== undefined && showFinance && user.role !== 'manager' ? `${Number(stats.revenueGrowth) >= 0 ? '+' : '-'}${Math.abs(stats.revenueGrowth)}%` : null,
+              badgeTone: Number(stats.revenueGrowth || 0) >= 0 ? 'emerald' : 'rose',
+            },
+            {
+              label: 'Expenses Budget',
+              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.totalExpenses || 0),
+              helper: 'Approved business expenses',
+              accent: 'rose',
+              icon: Receipt,
+              badge: null,
+            },
+            {
+              label: 'Ads Budget',
+              value: formatINR(stats.totalAdsBudget || 0),
+              helper: 'Marketing & campaign budget',
+              accent: 'amber',
+              icon: Megaphone,
+              badge: null,
+            },
+            {
+              label: 'Net Profit',
+              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.netProfit || 0),
+              helper: 'Revenue minus total expenses',
+              accent: 'indigo',
+              icon: Wallet,
+              badge: null,
+            },
+          ].map(({ label, value, helper, accent, icon: Icon, badge, badgeTone }) => {
+            const accentClasses = {
+              emerald: 'bg-emerald-500/10 text-emerald-600',
+              rose: 'bg-rose-500/10 text-rose-600',
+              amber: 'bg-amber-500/10 text-amber-600',
+              indigo: 'bg-indigo-500/10 text-indigo-600',
+            };
+            const badgeClasses = {
+              emerald: 'bg-emerald-500/10 text-emerald-600',
+              rose: 'bg-rose-500/10 text-rose-600',
+            };
 
-          {/* Expenses Budget */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Expenses Budget</span>
-              <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600">
-                <Receipt size={18} />
+            return (
+              <div key={label} className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</span>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${accentClasses[accent]}`}>
+                    <Icon size={18} />
+                  </div>
+                </div>
+                <div className="flex items-end justify-between gap-2">
+                  <p className="text-2xl font-black tracking-tight text-slate-900">{value}</p>
+                  {badge && (
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-bold ${badgeClasses[badgeTone]}`}>
+                      {badge}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">{helper}</p>
               </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">
-                {user.role === 'manager'
-                  ? 'Locked'
-                  : !showFinance
-                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
-                    : formatINR(stats.totalExpenses || 0)}
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Approved business expenses</p>
-          </div>
-
-          {/* Ads Budget */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Ads Budget</span>
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
-                <Megaphone size={18} />
-              </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">{formatINR(stats.totalAdsBudget || 0)}</p>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Project marketing & campaign budget</p>
-          </div>
-
-          {/* Net Profit */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Net Profit</span>
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600">
-                <Wallet size={18} />
-              </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className={`text-2xl font-bold ${showFinance && user.role !== 'manager' && (stats.netProfit || 0) < 0 ? 'text-rose-600' : ''}`}>
-                {user.role === 'manager'
-                  ? 'Locked'
-                  : !showFinance
-                    ? <span className="tracking-widest text-muted-foreground/60 select-none">•••••</span>
-                    : formatINR(stats.netProfit || 0)}
-              </p>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Revenue minus total expenses</p>
-          </div>
-
-          {/* Leads Pipeline */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Leads Pipeline</span>
-              <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600">
-                <Users size={18} />
-              </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">{stats.totalLeads || 0}</p>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                {stats.conversionRate || 0}% Conv.
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.newLeadsThisMonth || 0} new in period</p>
-          </div>
-
-          {/* Active Projects */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Active Projects</span>
-              <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600">
-                <Briefcase size={18} />
-              </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">{stats.activeProjects || 0}</p>
-              <span className="text-xs text-muted-foreground">of {stats.totalProjects || 0} Total</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.activeClients || 0} active client accounts</p>
-          </div>
-
-          {/* Task Execution */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Task Execution</span>
-              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600">
-                <CheckSquare size={18} />
-              </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">{stats.totalTasks || 0}</p>
-              {stats.overdueTasks > 0 && (
-                <span className="text-xs font-bold text-rose-600 bg-rose-500/10 px-2 py-0.5 rounded-full">
-                  {stats.overdueTasks} Overdue
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Pending parent tasks</p>
-          </div>
-
-          {/* Team & Users */}
-          <div className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div className="flex items-center justify-between text-muted-foreground mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider">Team & Users</span>
-              <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-600">
-                <ShieldCheck size={18} />
-              </div>
-            </div>
-            <div className="flex items-baseline justify-between">
-              <p className="text-2xl font-bold">{stats.totalUsers || 0}</p>
-              <span className="text-xs font-medium text-cyan-600 bg-cyan-500/10 px-2 py-0.5 rounded-full">Active</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Active team & partner accounts</p>
-          </div>
+            );
+          })}
         </div>
 
         {/* Charts Grid */}

@@ -27,6 +27,21 @@ export const useUpdateProfileSettings = () => {
   });
 };
 
+export const useUpdateCompanySettings = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await api.put('/settings/company', data);
+      return response.data.settings?.companyProfile || data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      toast.success('Company details saved');
+    },
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to save company details'),
+  });
+};
+
 export const useUploadProfileAvatar = () => {
   return useMutation({
     mutationFn: async (file) => {

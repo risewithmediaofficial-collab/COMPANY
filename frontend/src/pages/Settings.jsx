@@ -24,6 +24,7 @@ import { updateCurrentUser } from '../store/slices/authSlice';
 import {
   useChangePassword,
   useSettings,
+  useUpdateCompanySettings,
   useUpdatePreferences,
   useUpdateProfileSettings,
   useUploadProfileAvatar,
@@ -45,6 +46,7 @@ const Settings = () => {
   const { darkMode } = useSelector((state) => state.ui);
   const { data, isLoading } = useSettings();
   const updateProfile = useUpdateProfileSettings();
+  const updateCompany = useUpdateCompanySettings();
   const uploadProfileAvatar = useUploadProfileAvatar();
   const updatePreferences = useUpdatePreferences();
   const changePassword = useChangePassword();
@@ -62,6 +64,15 @@ const Settings = () => {
   });
   const [currentAvatar, setCurrentAvatar] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
+  const [companyProfile, setCompanyProfile] = useState({
+    name: '',
+    address: '',
+    email: '',
+    phone: '',
+    gstNumber: '',
+    services: '',
+    logoUrl: '',
+  });
 
   const [preferences, setPreferences] = useState({
     notifications: {},
@@ -98,6 +109,15 @@ const Settings = () => {
       notifications: settings.notifications || {},
       appearance: settings.appearance || {},
       regional: settings.regional || {},
+    });
+    setCompanyProfile({
+      name: settings.companyProfile?.name || '',
+      address: settings.companyProfile?.address || '',
+      email: settings.companyProfile?.email || '',
+      phone: settings.companyProfile?.phone || '',
+      gstNumber: settings.companyProfile?.gstNumber || '',
+      services: settings.companyProfile?.services || '',
+      logoUrl: settings.companyProfile?.logoUrl || '',
     });
   }, [settings]);
 
@@ -497,7 +517,49 @@ const Settings = () => {
             )}
 
             {activeSection === 'billing' && (
-              <div className="space-y-6">
+              <div className="space-y-8">
+                <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold">Company Details</h3>
+                    <p className="text-sm text-muted-foreground">These values are reused on bills, invoices, and proposals.</p>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Company Name</span>
+                      <input value={companyProfile.name} onChange={(event) => setCompanyProfile((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Rise With Media" />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">GST Number</span>
+                      <input value={companyProfile.gstNumber} onChange={(event) => setCompanyProfile((current) => ({ ...current, gstNumber: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="27ABCDE1234F1Z5" />
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Address</span>
+                      <textarea value={companyProfile.address} onChange={(event) => setCompanyProfile((current) => ({ ...current, address: event.target.value }))} rows={3} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Street, city, state, PIN" />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</span>
+                      <input value={companyProfile.email} onChange={(event) => setCompanyProfile((current) => ({ ...current, email: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="hello@company.com" />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</span>
+                      <input value={companyProfile.phone} onChange={(event) => setCompanyProfile((current) => ({ ...current, phone: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="+91 98XXXXXX" />
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Services</span>
+                      <textarea value={companyProfile.services} onChange={(event) => setCompanyProfile((current) => ({ ...current, services: event.target.value }))} rows={3} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Social media management, branding, ads, web design, video production" />
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Logo URL</span>
+                      <input value={companyProfile.logoUrl} onChange={(event) => setCompanyProfile((current) => ({ ...current, logoUrl: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="https://.../logo.png" />
+                    </label>
+                  </div>
+                  <div className="flex justify-end">
+                    <button onClick={() => updateCompany.mutate(companyProfile)} disabled={updateCompany.isPending} className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60">
+                      {updateCompany.isPending ? 'Saving...' : 'Save Company Details'}
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <h3 className="text-lg font-bold">Billing & Pricing Plans</h3>
                   <p className="text-sm text-muted-foreground">Upgrade your plan to unlock more CRM features and power up your agency.</p>

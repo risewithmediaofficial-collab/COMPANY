@@ -254,12 +254,24 @@ const buildInvoicePayload = (body = {}) => {
   const discount = Number(body.discount) || 0;
   const taxRate = Number(body.taxRate || body.tax || 0) || 0;
   const issueDate = body.issueDate || body.invoiceDate;
+  const quotedAmount = Number(body.quotedAmount || body.total || body.totalAmount || amount || 0);
+  const paymentRecords = Array.isArray(body.payments) ? body.payments.map((payment) => ({
+    amount: Number(payment.amount || 0),
+    method: payment.method || 'manual',
+    reference: payment.reference || '',
+    notes: payment.notes || '',
+    paidAt: payment.paidAt || new Date(),
+  })).filter((payment) => Number(payment.amount || 0) > 0) : [];
+  const paidAmount = Number(body.paidAmount || paymentRecords.reduce((sum, p) => sum + Number(p.amount || 0), 0) || 0);
+
   const payload = {
     ...body,
     status: normalizeStatus(body.status || 'draft'),
     taxRate,
     discount,
-    paidAmount: Number(body.paidAmount) || 0,
+    quotedAmount,
+    paidAmount,
+    payments: paymentRecords,
     issueDate,
     invoiceDate: issueDate,
     paymentTerms: body.paymentTerms || body.terms || '',

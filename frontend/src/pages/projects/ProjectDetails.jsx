@@ -903,27 +903,25 @@ const ProjectDetails = () => {
   return (
     <div className="space-y-6">
       {/* Project Header */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm">
-        <div className="absolute left-0 top-0 h-1 w-full bg-primary" />
-
+      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 p-6 text-white shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start space-x-4">
-            <Link to="/projects" className="mt-1 rounded-xl p-2 text-muted-foreground transition-colors hover:bg-secondary">
+            <Link to="/projects" className="mt-1 rounded-xl border border-white/15 bg-white/5 p-2 text-slate-200 transition-colors hover:bg-white/10">
               <ChevronLeft size={20} />
             </Link>
             <div>
               <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
+                <h1 className="text-2xl font-black tracking-tight text-white">{project.name}</h1>
                 <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${projectStatusStyles[project.status] || projectStatusStyles.Planning}`}>
                   {project.status}
                 </span>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-300">
                 <span className="flex items-center font-medium">
                   <Briefcase size={16} className="mr-2" />
                   {project.client?.name}
                 </span>
-                <span className="h-1 w-1 rounded-full bg-border" />
+                <span className="h-1 w-1 rounded-full bg-slate-400" />
                 <span className="flex items-center">
                   <Calendar size={16} className="mr-2" />
                   Due {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'TBD'}
@@ -937,7 +935,7 @@ const ProjectDetails = () => {
               {(project.team || []).map((member) => (
                 <div
                   key={member._id}
-                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-card bg-secondary text-xs font-bold shadow-sm"
+                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-slate-900 bg-white text-xs font-bold text-slate-900 shadow-sm"
                   title={member.name}
                 >
                   {member.avatar ? <img src={getAssetUrl(member.avatar)} alt="" /> : member.name.charAt(0)}
@@ -946,7 +944,7 @@ const ProjectDetails = () => {
               {user?.role !== 'client' && (
                 <button
                   onClick={() => openTaskModal()}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary text-white text-xs font-bold transition-transform hover:scale-110"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-900 bg-primary text-white text-xs font-bold transition-transform hover:scale-110"
                   title="Add task"
                 >
                   <Plus size={14} />
@@ -955,23 +953,22 @@ const ProjectDetails = () => {
             </div>
             <button
               onClick={handleShare}
-              className="rounded-xl border border-border p-2.5 transition-colors hover:bg-secondary"
+              className="rounded-xl border border-white/15 bg-white/5 p-2.5 text-slate-200 transition-colors hover:bg-white/10"
             >
-              <Share2 size={18} className="text-muted-foreground" />
+              <Share2 size={18} />
             </button>
             {user?.role !== 'client' && (
               <button
                 onClick={() => setShowProjectModal(true)}
-                className="rounded-xl border border-border p-2.5 transition-colors hover:bg-secondary"
+                className="rounded-xl border border-white/15 bg-white/5 p-2.5 text-slate-200 transition-colors hover:bg-white/10"
               >
-                <Settings size={18} className="text-muted-foreground" />
+                <Settings size={18} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="mt-8 flex items-center space-x-8 border-t border-border pt-4">
+        <div className="mt-8 flex items-center gap-2 overflow-x-auto border-t border-white/10 pt-4">
           {[
             { id: 'board', label: 'Task Board', icon: LayoutGrid },
             { id: 'list', label: 'List View', icon: List },
@@ -984,15 +981,12 @@ const ProjectDetails = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center py-2 text-sm font-bold transition-all ${
-                activeTab === tab.id ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              className={`relative flex items-center rounded-xl px-3 py-2 text-sm font-bold transition-all ${
+                activeTab === tab.id ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'
               }`}
             >
               <tab.icon size={16} className="mr-2" />
               {tab.label}
-              {activeTab === tab.id && (
-                <motion.div layoutId="activeTab" className="absolute -bottom-4 left-0 h-0.5 w-full rounded-full bg-primary" />
-              )}
             </button>
           ))}
         </div>

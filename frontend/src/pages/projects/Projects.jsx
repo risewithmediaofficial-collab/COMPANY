@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Briefcase, Gauge, Plus, Target, TrendingUp } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Briefcase, Gauge, Plus, Target, TrendingUp, Filter } from 'lucide-react';
 import { useProjects, useDeleteProject } from '../../hooks/useProjects';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { DataTable } from '../../components/ui/DataTable';
@@ -66,6 +67,7 @@ const Projects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const filters = {
     search: searchTerm,
@@ -177,30 +179,53 @@ const Projects = () => {
         </MetricGrid>
       </PageHeader>
 
-      <PageToolbar>
-        <SearchField
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Search project or client name..."
-          className="lg:min-w-[320px]"
-        />
-        <SelectDropdown
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={STATUSES}
-          placeholder="All statuses"
-          className="lg:w-56"
-        />
-        <SelectDropdown
-          value={monthFilter}
-          onChange={setMonthFilter}
-          options={MONTHS}
-          placeholder="Filter by Month"
-          className="lg:w-56"
-        />
-        <Button type="button" variant="outline" onClick={clearFilters}>Clear</Button>
-        <div className="app-pill">{filteredProjects.length} projects</div>
-      </PageToolbar>
+      <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-1 items-center gap-3">
+            <SearchField
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search project or client name..."
+              className="lg:min-w-[320px]"
+            />
+            <Button type="button" variant="outline" onClick={() => setShowFilters((prev) => !prev)} className="gap-2">
+              <Filter size={14} />
+              Filter
+            </Button>
+          </div>
+          <div className="app-pill">{filteredProjects.length} projects</div>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -8 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="overflow-hidden"
+            >
+              <div className="mt-4 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3 md:grid-cols-[1fr_1fr_auto]">
+                <SelectDropdown
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  options={STATUSES}
+                  placeholder="All statuses"
+                  className="lg:w-full"
+                />
+                <SelectDropdown
+                  value={monthFilter}
+                  onChange={setMonthFilter}
+                  options={MONTHS}
+                  placeholder="Filter by Month"
+                  className="lg:w-full"
+                />
+                <Button type="button" variant="outline" onClick={clearFilters}>Clear</Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <DataTable
         data={filteredProjects}

@@ -3,6 +3,15 @@ import mongoose from 'mongoose';
 const settingsSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
+    companyProfile: {
+      name: { type: String, default: '' },
+      address: { type: String, default: '' },
+      email: { type: String, default: '' },
+      phone: { type: String, default: '' },
+      gstNumber: { type: String, default: '' },
+      services: { type: String, default: '' },
+      logoUrl: { type: String, default: '' },
+    },
     notifications: {
       email: { type: Boolean, default: true },
       inApp: { type: Boolean, default: true },

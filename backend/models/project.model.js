@@ -20,6 +20,7 @@ const budgetSchema = new mongoose.Schema({
   developmentAmount: { type: Number, default: 0 },
   printingAmount: { type: Number, default: 0 },
   otherExpenses: { type: Number, default: 0 },
+  quotedAmount: { type: Number, default: 0 },
   totalBudget: { type: Number, default: 0 },
   amountReceived: { type: Number, default: 0 },
   paymentStatus: {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Share2, Plus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,7 @@ const invoiceSchema = z.object({
   serviceDetails: z.string().optional(),
   discount: z.coerce.number().min(0).default(0),
   taxRate: z.coerce.number().min(0).default(0),
+  quotedAmount: z.coerce.number().min(0).default(0),
   allowAssignedPersonAccess: z.boolean().default(false),
   lineItems: z.array(z.object({
     serviceName: z.string().min(1, 'Service name is required'),
@@ -54,6 +55,13 @@ const invoiceSchema = z.object({
     quantity: z.coerce.number().min(1),
     rate: z.coerce.number().min(0),
   })).min(1),
+  payments: z.array(z.object({
+    amount: z.coerce.number().min(0).default(0),
+    method: z.string().default('UPI'),
+    reference: z.string().optional(),
+    notes: z.string().optional(),
+    paidAt: z.string().optional(),
+  })).default([]),
 });
 
 const defaultValues = {
@@ -69,8 +77,10 @@ const defaultValues = {
   serviceDetails: '',
   discount: 0,
   taxRate: 0,
+  quotedAmount: 0,
   allowAssignedPersonAccess: false,
   lineItems: [{ serviceName: '', description: '', quantity: 1, rate: 0 }],
+  payments: [{ amount: 0, method: 'UPI', reference: '', notes: '', paidAt: new Date().toISOString().split('T')[0] }],
 };
 
 export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
@@ -87,6 +97,7 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const { fields, append, remove, replace } = useFieldArray({ control: form.control, name: 'lineItems' });
+  const { fields: paymentFields, append: appendPayment, remove: removePayment, replace: replacePayments } = useFieldArray({ control: form.control, name: 'payments' });
   const selectedClientId = form.watch('client');
   const clientProjects = selectedClientId
     ? projects.filter((project) => project.client?._id === selectedClientId || project.client === selectedClientId)
@@ -113,6 +124,7 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
         serviceDetails: invoice.serviceDetails || invoice.description || '',
         discount: Number(invoice.discount || 0),
         taxRate: Number(invoice.taxRate || 0),
+        quotedAmount: Number(invoice.quotedAmount || invoice.totalAmount || invoice.total || 0),
         allowAssignedPersonAccess: Boolean(invoice.allowAssignedPersonAccess),
         lineItems: (invoice.invoiceItems || invoice.lineItems || []).map((item) => ({
           serviceName: item.serviceName || 'Service',
@@ -120,13 +132,23 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
           quantity: Number(item.quantity || 1),
           rate: Number(item.rate ?? item.unitPrice ?? 0),
         })),
+        payments: Array.isArray(invoice.payments) && invoice.payments.length
+          ? invoice.payments.map((payment) => ({
+              amount: Number(payment.amount || 0),
+              method: payment.method || 'UPI',
+              reference: payment.reference || '',
+              notes: payment.notes || '',
+              paidAt: payment.paidAt ? new Date(payment.paidAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            }))
+          : [{ amount: 0, method: 'UPI', reference: '', notes: '', paidAt: new Date().toISOString().split('T')[0] }],
       });
       return;
     }
 
     replace(defaultValues.lineItems);
+    replacePayments(defaultValues.payments);
     form.reset(defaultValues);
-  }, [invoice, open, form, replace]);
+  }, [invoice, open, form, replace, replacePayments]);
 
   const isLoading = createInvoice.isPending || updateInvoice.isPending;
 
@@ -141,9 +163,15 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
     const rawSubtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
     const discount = Number(values.discount || 0);
     const taxRate = Number(values.taxRate || 0);
+    const quotedAmount = Number(values.quotedAmount || 0) || rawSubtotal;
     const subtotalAfterDiscount = Math.max(rawSubtotal - discount, 0);
     const taxAmount = taxRate > 0 ? (subtotalAfterDiscount * taxRate) / 100 : 0;
     const totalAmount = subtotalAfterDiscount + taxAmount;
+    const manualPayments = (values.payments || []).map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount || 0),
+    })).filter((payment) => Number(payment.amount || 0) > 0);
+    const paidAmount = manualPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
 
     return {
       _id: invoice?._id,
@@ -157,12 +185,14 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
       serviceDetails: values.serviceDetails,
       discount,
       taxRate,
+      quotedAmount,
       lineItems,
       invoiceItems: lineItems,
       totalAmount,
       total: totalAmount,
-      paidAmount: Number(invoice?.paidAmount || 0),
-      balanceAmount: Math.max(totalAmount - Number(invoice?.paidAmount || 0), 0),
+      paidAmount: paidAmount || Number(invoice?.paidAmount || 0),
+      balanceAmount: Math.max(quotedAmount - (paidAmount || Number(invoice?.paidAmount || 0)), 0),
+      payments: manualPayments,
       client: matchedClient,
       clientDetails: {
         businessName: matchedClient?.company || matchedClient?.name || '',
@@ -190,13 +220,21 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
   };
 
   const onSubmit = async (values, action = 'save') => {
+    const manualPayments = (values.payments || []).filter((payment) => Number(payment.amount || 0) > 0).map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount || 0),
+      paidAt: payment.paidAt || new Date().toISOString().split('T')[0],
+    }));
     const payload = {
       ...values,
+      quotedAmount: Number(values.quotedAmount || 0),
+      payments: manualPayments,
       invoiceItems: values.lineItems.map((item) => ({
         ...item,
         amount: Number(item.quantity) * Number(item.rate),
       })),
       description: values.serviceDetails,
+      paidAmount: manualPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0),
     };
 
     let resultInvoice = null;
@@ -311,6 +349,9 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
                 <FormField control={form.control} name="taxRate" render={({ field }) => (
                   <FormItem><FormLabel>Tax / GST (%)</FormLabel><FormControl><Input type="number" min="0" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
+                <FormField control={form.control} name="quotedAmount" render={({ field }) => (
+                  <FormItem><FormLabel>Quoted Amount</FormLabel><FormControl><Input type="number" min="0" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
               </div>
 
               <FormField control={form.control} name="serviceDetails" render={({ field }) => (
@@ -355,6 +396,52 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
                         <Button type="button" variant="outline" onClick={() => remove(index)} disabled={fields.length === 1}>
                           Remove
                         </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-border bg-card p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-foreground">Partial Payments</h3>
+                    <p className="text-sm text-muted-foreground">Add each payment received and the remaining balance updates automatically.</p>
+                  </div>
+                  <Button type="button" variant="outline" onClick={() => appendPayment({ amount: 0, method: 'UPI', reference: '', notes: '', paidAt: new Date().toISOString().split('T')[0] })} className="gap-1.5">
+                    <Plus size={14} /> Add Payment
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {paymentFields.map((field, index) => (
+                    <div key={field.id} className="grid gap-3 rounded-2xl border border-border bg-background p-4 md:grid-cols-12">
+                      <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-foreground">Amount</label>
+                        <Input type="number" min="0" step="0.01" {...form.register(`payments.${index}.amount`)} />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-foreground">Method</label>
+                        <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring" {...form.register(`payments.${index}.method`)}>
+                          {['UPI', 'Cash', 'Bank Transfer', 'Card', 'Cheque', 'Other'].map((method) => (
+                            <option key={method} value={method}>{method}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-foreground">Date</label>
+                        <Input type="date" {...form.register(`payments.${index}.paidAt`)} />
+                      </div>
+                      <div className="md:col-span-3">
+                        <label className="mb-2 block text-sm font-medium text-foreground">Reference</label>
+                        <Input {...form.register(`payments.${index}.reference`)} placeholder="UTR / ref" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-foreground">Notes</label>
+                        <Input {...form.register(`payments.${index}.notes`)} placeholder="Notes" />
+                      </div>
+                      <div className="flex items-end md:col-span-1">
+                        <Button type="button" variant="outline" onClick={() => removePayment(index)} disabled={paymentFields.length === 1}>Remove</Button>
                       </div>
                     </div>
                   ))}

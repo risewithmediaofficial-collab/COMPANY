@@ -145,7 +145,6 @@ const Sidebar = () => {
       { name: 'Invoices', icon: Receipt, path: '/finance' },
       { name: 'Support', icon: HeadphonesIcon, path: '/portal/support' },
       { name: 'Guidelines', icon: BookOpen, path: '/portal/guidelines' },
-      { name: 'Message Center', icon: MessageSquare, path: '/chat' },
     ],
     referral: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
