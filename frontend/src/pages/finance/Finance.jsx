@@ -103,7 +103,6 @@ const Finance = () => {
   const tabs = useMemo(() => {
     if (canViewFinanceDetails) {
       return [
-        { id: 'records', label: 'Finance Records', icon: IndianRupee },
         { id: 'invoices', label: 'Invoices', icon: FileText },
         { id: 'referrals', label: 'Referrals', icon: Users2 },
         { id: 'expenses', label: 'Expenses & Profits', icon: Receipt },
@@ -112,7 +111,7 @@ const Finance = () => {
     return [{ id: 'invoices', label: 'Invoices', icon: FileText }];
   }, [canViewFinanceDetails]);
 
-  const [activeTab, setActiveTab] = useState(() => (canViewFinanceDetails ? 'records' : 'invoices'));
+  const [activeTab, setActiveTab] = useState('invoices');
   const [search, setSearch] = useState('');
   const [showFinanceModal, setShowFinanceModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -264,10 +263,10 @@ const Finance = () => {
     : projects;
 
   const metrics = {
-    totalReceivable: financeRecords.reduce((sum, item) => sum + Number(item.balanceAmount || 0), 0),
-    totalPaid: financeRecords.reduce((sum, item) => sum + Number(item.totalPaidAmount || item.paidAmount || 0), 0),
-    openInvoices: invoices.filter((item) => !['Paid', 'Cancelled'].includes(item.status)).length,
-    overdue: overdueRecords.length,
+    totalReceivable: invoices.reduce((sum, item) => sum + Number(item.balanceAmount || Math.max((item.total || item.amount || 0) - (item.paidAmount || 0), 0)), 0),
+    totalPaid: invoices.reduce((sum, item) => sum + Number(item.paidAmount || (item.status?.toLowerCase() === 'paid' ? (item.total || item.amount || 0) : 0)), 0),
+    openInvoices: invoices.filter((item) => !['Paid', 'Cancelled', 'paid', 'cancelled'].includes(item.status)).length,
+    overdue: invoices.filter((item) => item.status?.toLowerCase() === 'overdue' || (new Date(item.dueDate) < new Date() && !['paid', 'cancelled'].includes(item.status?.toLowerCase()))).length,
   };
 
   const financeColumns = [
@@ -558,7 +557,6 @@ const Finance = () => {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            {!isManager && canManage ? <Button variant="outline" onClick={() => { setSelectedRecord(null); setShowFinanceModal(true); }} className="border-white/15 bg-white/5 text-white hover:bg-white/10"><Plus size={16} className="mr-2" />Finance Record</Button> : null}
             {!isManager && canManage ? <Button variant="outline" onClick={() => { setSelectedInvoice(null); setShowInvoiceModal(true); }} className="border-white/15 bg-white/5 text-white hover:bg-white/10"><Plus size={16} className="mr-2" />Invoice</Button> : null}
             {isAdmin && activeTab === 'expenses' ? <Button onClick={() => setShowExpenseModal(true)} className="bg-white text-slate-900 hover:bg-indigo-50"><Plus size={16} className="mr-2" />Record Expense</Button> : null}
           </div>
@@ -607,7 +605,6 @@ const Finance = () => {
             <div className="app-pill">{adsBudgetProjects.length} campaigns</div>
           ) : (
             <>
-              <div className="app-pill">{financeRecords.length} finance records</div>
               <div className="app-pill">{invoices.length} invoices</div>
               <div className="app-pill">{payments.length} payments</div>
               {isAdmin && <div className="app-pill">{expenses.length} expenses</div>}

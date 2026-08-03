@@ -104,7 +104,6 @@ const ClientDetails = () => {
     { id: 'overview', label: 'Overview', icon: TrendingUp },
     { id: 'projects', label: `Projects (${projects.length})`, icon: Briefcase },
     ...(isFinanceVisible ? [
-      { id: 'finance', label: `Finance (${financeRecords.length})`, icon: IndianRupee },
       { id: 'invoices', label: `Invoices (${invoices.length})`, icon: FileText },
       { id: 'paymentNotes', label: 'Payment Notes', icon: AlertCircle },
       { id: 'callHistory', label: `Call History (${callHistory.length})`, icon: Phone },

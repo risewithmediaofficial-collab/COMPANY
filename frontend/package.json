@@ -8,7 +8,10 @@
     "build": "vite build",
     "build:prod": "vite build --mode production",
     "preview": "vite preview --host 0.0.0.0",
-    "preview:prod": "vite preview --host 0.0.0.0 --port 4173"
+    "preview:prod": "vite preview --host 0.0.0.0 --port 4173",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
