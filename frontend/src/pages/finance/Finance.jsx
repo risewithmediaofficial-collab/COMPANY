@@ -544,21 +544,21 @@ const Finance = () => {
 
   return (
     <div className="space-y-6">
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 p-6 text-white shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
+      <div className="overflow-hidden rounded-[28px] border border-slate-200/90 dark:border-border bg-gradient-to-br from-indigo-50/90 via-white to-slate-50 dark:from-card dark:to-secondary/50 p-6 text-slate-900 dark:text-foreground shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-100">
+            <div className="mb-3 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
               Finance
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-white">{isManager ? 'Ads Campaigns' : 'Finance Operations'}</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-300">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-foreground">{isManager ? 'Ads Campaigns' : 'Finance Operations'}</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-muted-foreground">
               {isManager ? 'Review ads budgets, actual spends, and log monthly campaign metrics for clients.' : 'Track partial payments, follow-ups, visible payment history, invoice status, and client communication from one workspace.'}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
-            {!isManager && canManage ? <Button variant="outline" onClick={() => { setSelectedInvoice(null); setShowInvoiceModal(true); }} className="border-white/15 bg-white/5 text-white hover:bg-white/10"><Plus size={16} className="mr-2" />Invoice</Button> : null}
-            {isAdmin && activeTab === 'expenses' ? <Button onClick={() => setShowExpenseModal(true)} className="bg-white text-slate-900 hover:bg-indigo-50"><Plus size={16} className="mr-2" />Record Expense</Button> : null}
+            {!isManager && canManage ? <Button onClick={() => { setSelectedInvoice(null); setShowInvoiceModal(true); }} className="bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 rounded-2xl px-4 py-2.5 font-bold"><Plus size={16} className="mr-2" />Invoice</Button> : null}
+            {isAdmin && activeTab === 'expenses' ? <Button onClick={() => setShowExpenseModal(true)} className="bg-slate-900 text-white dark:bg-card dark:text-foreground hover:bg-slate-800 rounded-2xl px-4 py-2.5 font-bold"><Plus size={16} className="mr-2" />Record Expense</Button> : null}
           </div>
         </div>
 

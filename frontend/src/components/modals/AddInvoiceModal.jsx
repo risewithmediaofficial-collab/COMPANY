@@ -422,7 +422,7 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
                       </div>
                       <div className="md:col-span-2">
                         <label className="mb-2 block text-sm font-medium text-foreground">Method</label>
-                        <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring" {...form.register(`payments.${index}.method`)}>
+                        <select className="w-full rounded-2xl border border-slate-200 dark:border-border bg-slate-50/70 dark:bg-card/70 px-3 py-2.5 text-sm font-medium text-slate-800 dark:text-foreground outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/15" {...form.register(`payments.${index}.method`)}>
                           {['UPI', 'Cash', 'Bank Transfer', 'Card', 'Cheque', 'Other'].map((method) => (
                             <option key={method} value={method}>{method}</option>
                           ))}
