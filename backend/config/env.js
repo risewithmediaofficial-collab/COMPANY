@@ -21,8 +21,8 @@ export const loadEnv = () => {
   process.env.MONGO_URI ||= process.env.MONGODB_URI || 'mongodb://localhost:27017/agency_crm';
   process.env.JWT_SECRET ||= process.env.NODE_ENV === 'production' ? 'replace-with-strong-production-secret' : 'dev-only-change-me-access-secret';
   process.env.JWT_REFRESH_SECRET ||= process.env.JWT_SECRET;
-  process.env.JWT_EXPIRE ||= '15m';
-  process.env.JWT_REFRESH_EXPIRE ||= '7d';
+  process.env.JWT_EXPIRE ||= '30d';
+  process.env.JWT_REFRESH_EXPIRE ||= '365d';
   process.env.ENCRYPTION_KEY ||= process.env.NODE_ENV === 'production' ? 'replace-with-32-char-production-key' : 'rise-with-media-development-credential-key';
   process.env.MAX_FILE_SIZE ||= String(10 * 1024 * 1024);
   process.env.PAGINATION_LIMIT ||= '20';

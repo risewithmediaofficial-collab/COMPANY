@@ -94,12 +94,15 @@ await ensureDefaultAdmin();
 const app = express();
 const httpServer = http.createServer(app);
 
+const corsOptions = {
+  origin: (origin, callback) => callback(null, true),
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+};
+
 const io = new SocketIO(httpServer, {
-  cors: {
-    origin: env.clientUrl,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 initSocket(io);
@@ -109,10 +112,7 @@ app.set('io', io);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(mongoSanitize());
-app.use(cors({
-  origin: env.clientUrl,
-  credentials: true,
-}));
+app.use(cors(corsOptions));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
