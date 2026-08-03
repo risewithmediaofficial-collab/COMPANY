@@ -125,8 +125,9 @@ test.describe('Complete System & Button Audit Spec', () => {
     const routes = ['/finance', '/reports', '/sop', '/hr', '/settings', '/smm/dashboard'];
     for (const route of routes) {
       await page.goto(`http://localhost:5173${route}`);
-      await page.waitForLoadState('networkidle');
-      await expect(page.locator('body')).toBeVisible();
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(300);
+      await expect(page.locator('#root')).toBeVisible();
     }
   });
 

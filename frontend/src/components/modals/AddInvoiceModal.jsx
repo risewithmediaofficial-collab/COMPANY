@@ -84,6 +84,7 @@ const defaultValues = {
 };
 
 export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
+  const [hasDraft, setHasDraft] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [currentShareInvoice, setCurrentShareInvoice] = useState(null);
 
