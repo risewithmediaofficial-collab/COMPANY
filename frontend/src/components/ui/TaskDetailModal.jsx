@@ -117,7 +117,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
     });
   }, [task, user]);
 
-  const canEdit = ['superAdmin', 'manager'].includes(user?.role) || (isEmployee && isAssigned);
+  const canEdit = ['superAdmin', 'manager'].includes(user?.role);
 
   const handleUploadCompletedFiles = async () => {
     const uploaded = await uploadFiles(completedFiles);
@@ -149,7 +149,9 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                 <Field label="Task Category" value={task.taskCategory === 'non_content' ? 'Non-Content Task' : 'Content Task'} />
                 <Field label="Task Type" value={formatTaskTypeLabel(task.taskType)} />
                 <Field label="Priority" value={task.priority} />
-                <Field label="Due Date" value={task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Not set'} />
+                <Field label="Task Due Date" value={task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Not set'} />
+                <Field label="Posting Assigned Person" value={task.publisherAssigned?.name || task.publisherName || 'Not assigned'} />
+                <Field label="Posting Date" value={task.postingScheduleDate ? new Date(task.postingScheduleDate).toLocaleString() : 'Not set'} />
                 <div className="rounded-2xl border border-border bg-background px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Current Status</p>
                   <div className="mt-2"><StatusPill status={task.status} /></div>
