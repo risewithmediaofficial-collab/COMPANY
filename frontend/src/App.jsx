@@ -86,13 +86,13 @@ const LoadingScreen = () => (
 // ─── Protected Route ──────────────────────────────────────────────────────────
 const ProtectedRoute = ({ isAuthenticated, user, loading, allowedRoles, children }) => {
   // Still resolving session — don't redirect prematurely
-  if (loading && !user) return <LoadingScreen />;
+  if (loading && !user) return null;
 
   // Truly unauthenticated
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   // Token valid but user profile not yet fetched (edge case)
-  if (!user) return <LoadingScreen />;
+  if (!user) return null;
 
   // RBAC & Granular Permission check
   if (allowedRoles && !allowedRoles.includes(user.role)) {
@@ -118,13 +118,13 @@ const App = () => {
   }, [dispatch, isAuthenticated, user, loading]);
 
   // Global boot-screen while the very first /me call is in-flight
-  if (loading && !user && isAuthenticated) return <LoadingScreen />;
+  if (loading && !user && isAuthenticated) return null;
 
   return (
     <Router>
       <HotToaster position="top-right" reverseOrder={false} />
       <SonnerToaster position="top-right" richColors closeButton />
-      <Suspense fallback={<LoadingScreen />}>
+      <Suspense fallback={null}>
         <Routes>
           {/* ── Auth Routes ─────────────────────────────────────────────── */}
           <Route element={<AuthLayout />}>
