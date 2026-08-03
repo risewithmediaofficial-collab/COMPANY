@@ -222,6 +222,66 @@ const Attendance = () => {
     };
   }, [users, teamTodayRecords]);
 
+  // Filtered employee profile info & detailed performance metrics
+  const selectedEmployeeInfo = useMemo(() => {
+    if (selectedUser === 'all') return null;
+    return users.find((u) => u._id === selectedUser) || null;
+  }, [users, selectedUser]);
+
+  const selectedUserStats = useMemo(() => {
+    if (!selectedEmployeeInfo) return null;
+    const empRecords = rawRecords.filter((r) => (r.user?._id || r.user) === selectedEmployeeInfo._id);
+    const present = empRecords.filter((r) => r.status === 'present').length;
+    const leave = empRecords.filter((r) => r.status === 'leave').length;
+    const absent = empRecords.filter((r) => r.status === 'absent').length;
+    const wfh = empRecords.filter((r) => r.status === 'work_from_home').length;
+    const totalHours = empRecords.reduce((sum, r) => sum + (r.totalHours || 0), 0);
+    const avgDailyHours = (present + wfh) > 0 ? (totalHours / (present + wfh)).toFixed(1) : '0.0';
+    const eodSubmittedCount = empRecords.filter((r) => r.eodReport?.submittedAt).length;
+
+    // Collect all worked work logs / EOD task entries from these records
+    const workedTasks = [];
+    empRecords.forEach((r) => {
+      if (r.eodReport) {
+        if (Array.isArray(r.eodReport.tasksCompleted) && r.eodReport.tasksCompleted.length > 0) {
+          r.eodReport.tasksCompleted.forEach((taskItem) => {
+            workedTasks.push({
+              date: r.date,
+              workTitle: typeof taskItem === 'string' ? taskItem : taskItem.title || taskItem.taskTitle || 'Completed task',
+              hours: taskItem.hours || r.totalHours || 0,
+              type: 'EOD Completed Task',
+              notes: r.notes || r.eodReport.summary || '',
+            });
+          });
+        } else if (r.eodReport.summary) {
+          workedTasks.push({
+            date: r.date,
+            workTitle: r.eodReport.summary,
+            hours: r.totalHours || 0,
+            type: 'Daily EOD Summary',
+            notes: r.notes || '',
+          });
+        }
+      }
+    });
+
+    const totalLoggedDays = present + wfh + leave + absent;
+    const attendanceRate = totalLoggedDays > 0 ? (((present + wfh) / totalLoggedDays) * 100).toFixed(0) : '100';
+
+    return {
+      present,
+      leave,
+      absent,
+      wfh,
+      totalHours: totalHours.toFixed(1),
+      avgDailyHours,
+      eodSubmittedCount,
+      totalLoggedDays,
+      attendanceRate,
+      workedTasks,
+    };
+  }, [selectedEmployeeInfo, rawRecords]);
+
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
       setSelectedMonth(12);
@@ -702,6 +762,118 @@ const Attendance = () => {
               </button>
             </div>
           </div>
+
+          {/* Detailed Employee Stats & Worked Works Dashboard for Selected Employee */}
+          {selectedEmployeeInfo && selectedUserStats && (
+            <div className="bg-gradient-to-br from-indigo-50/90 via-white to-slate-50 dark:from-card dark:to-secondary/40 p-6 rounded-3xl border border-indigo-200/80 dark:border-border shadow-md space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 font-black text-primary text-lg uppercase overflow-hidden border border-primary/20 shadow-sm">
+                    {selectedEmployeeInfo.avatar ? (
+                      <img src={selectedEmployeeInfo.avatar} alt={selectedEmployeeInfo.name} className="h-full w-full object-cover" />
+                    ) : (
+                      (selectedEmployeeInfo.name || selectedEmployeeInfo.email || 'E').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-black text-slate-900 dark:text-foreground">
+                        {selectedEmployeeInfo.name || selectedEmployeeInfo.email}
+                      </h3>
+                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 text-xs font-extrabold uppercase border border-indigo-500/20">
+                        {selectedEmployeeInfo.department || selectedEmployeeInfo.position || selectedEmployeeInfo.role}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">
+                      {selectedEmployeeInfo.email} • Filtered Month: {monthName} {selectedYear}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="px-4 py-2 rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-black">
+                    🎯 {selectedUserStats.attendanceRate}% Attendance Rate
+                  </div>
+                  <button
+                    onClick={() => setSelectedUser('all')}
+                    className="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-muted-foreground dark:hover:text-foreground bg-slate-200/60 hover:bg-slate-200 px-3 py-2 rounded-xl transition-all"
+                  >
+                    Clear Filter
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 Core Stat Cards for Employee */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Present Days</span>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-2xl font-black text-emerald-600">{selectedUserStats.present + selectedUserStats.wfh}</span>
+                    <span className="text-xs text-muted-foreground font-semibold">Days ({selectedUserStats.present} P, {selectedUserStats.wfh} WFH)</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Worked Hours</span>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-2xl font-black text-primary">{selectedUserStats.totalHours}</span>
+                    <span className="text-xs text-muted-foreground font-semibold">hrs (Avg {selectedUserStats.avgDailyHours}h/day)</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Leaves & Absences</span>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-2xl font-black text-rose-600">{selectedUserStats.leave + selectedUserStats.absent}</span>
+                    <span className="text-xs text-muted-foreground font-semibold">({selectedUserStats.leave} Leave, {selectedUserStats.absent} Absent)</span>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-sm">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">EOD Reports Submitted</span>
+                  <div className="flex items-baseline gap-1.5 mt-1">
+                    <span className="text-2xl font-black text-indigo-600">{selectedUserStats.eodSubmittedCount}</span>
+                    <span className="text-xs text-muted-foreground font-semibold">Reports</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Worked Works & Daily Tasks Logged List */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-foreground flex items-center gap-1.5">
+                    <Briefcase size={14} className="text-primary" />
+                    Worked Works & Daily Task Updates ({selectedUserStats.workedTasks.length} Logged Entries)
+                  </h4>
+                </div>
+
+                {selectedUserStats.workedTasks.length === 0 ? (
+                  <div className="p-4 rounded-2xl bg-white/60 dark:bg-card/60 border border-dashed border-slate-200 dark:border-border text-center text-xs text-muted-foreground">
+                    No EOD work tasks or progress updates logged for this employee in {monthName} {selectedYear}.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                    {selectedUserStats.workedTasks.map((work, idx) => (
+                      <div key={idx} className="p-3.5 rounded-2xl bg-white dark:bg-card border border-slate-200/80 dark:border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <div className="min-w-0 space-y-0.5">
+                          <div className="font-bold text-slate-900 dark:text-foreground truncate">{work.workTitle}</div>
+                          {work.notes && <div className="text-[11px] text-muted-foreground truncate">{work.notes}</div>}
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-secondary text-slate-700 dark:text-foreground font-bold">
+                            {new Date(work.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                            {work.hours} hrs
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
