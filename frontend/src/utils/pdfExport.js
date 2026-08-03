@@ -259,11 +259,12 @@ export const exportToCSV = (data, filename = 'export.csv') => {
 };
 
 const formatCurrencyINR = (amount) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
+  const val = Number(amount || 0);
+  const formatted = new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(Number(amount || 0));
+  }).format(val);
+  return `Rs. ${formatted}`;
 };
 
 const getCompanyProfileForInvoice = async () => {
@@ -277,7 +278,7 @@ const getCompanyProfileForInvoice = async () => {
       phone: profile.phone || '',
       gstNumber: profile.gstNumber || '',
       services: profile.services || 'Media & Marketing Operations Platform',
-      logoUrl: profile.logoUrl || '',
+      logoUrl: profile.logoUrl || '/branding/rise-with-media-logo.png',
     };
   } catch {
     return {
@@ -287,16 +288,23 @@ const getCompanyProfileForInvoice = async () => {
       phone: '',
       gstNumber: '',
       services: 'Media & Marketing Operations Platform',
-      logoUrl: '',
+      logoUrl: '/branding/rise-with-media-logo.png',
     };
   }
 };
 
 const loadLogoImage = async (logoUrl) => {
-  if (!logoUrl) return null;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+  const defaultAssetLogo = `${origin}/branding/rise-with-media-logo.png`;
+  const targetUrl = logoUrl
+    ? (logoUrl.startsWith('http') ? logoUrl : `${origin}${logoUrl.startsWith('/') ? '' : '/'}${logoUrl}`)
+    : defaultAssetLogo;
 
   try {
-    const response = await fetch(logoUrl, { mode: 'cors' });
+    let response = await fetch(targetUrl, { mode: 'cors' });
+    if (!response.ok && targetUrl !== defaultAssetLogo) {
+      response = await fetch(defaultAssetLogo);
+    }
     if (!response.ok) return null;
     const blob = await response.blob();
     return await new Promise((resolve) => {
@@ -525,7 +533,7 @@ export const exportInvoiceToPDF = async (invoice, options = {}) => {
   const balanceAmount = Number(invoice.balanceAmount ?? Math.max(grandTotal - paidAmount, 0));
 
   // Bottom Summary Grid
-  const summaryWidth = 80;
+  const summaryWidth = 92;
   const summaryX = pageWidth - margin - summaryWidth;
 
   pdf.setFillColor(248, 250, 252);
