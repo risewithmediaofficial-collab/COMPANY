@@ -33,6 +33,7 @@ import { getAssetUrl } from '../utils/assetUrl';
 
 const sections = [
   { id: 'profile', label: 'Profile Info', icon: User },
+  { id: 'company', label: 'Company & GST Details', icon: Briefcase },
   { id: 'security', label: 'Security', icon: Lock },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'appearance', label: 'Appearance', icon: Palette },
@@ -385,6 +386,61 @@ const Settings = () => {
                     />
                   </label>
                 ))}
+              </div>
+            )}
+
+            {activeSection === 'company' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-bold">Company Details & GST Settings</h3>
+                  <p className="text-sm text-muted-foreground">Configure your agency name, GSTIN, address, contact details, and logo to appear on official invoices & proposals.</p>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Company Name *</span>
+                      <input value={companyProfile.name} onChange={(event) => setCompanyProfile((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold text-foreground" placeholder="RISE WITH MEDIA" />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">GSTIN / GST Number</span>
+                      <input value={companyProfile.gstNumber} onChange={(event) => setCompanyProfile((current) => ({ ...current, gstNumber: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold tracking-wider text-primary" placeholder="29ABCDE1234F1Z5" />
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Company Logo Image / URL</span>
+                      <div className="flex gap-3">
+                        <input value={companyProfile.logoUrl} onChange={(event) => setCompanyProfile((current) => ({ ...current, logoUrl: event.target.value }))} className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="https://domain.com/logo.png" />
+                        {companyProfile.logoUrl && (
+                          <div className="h-11 w-11 shrink-0 rounded-xl border border-border bg-white p-1 shadow-sm flex items-center justify-center overflow-hidden">
+                            <img src={companyProfile.logoUrl} alt="Company Logo" className="h-full w-full object-contain" />
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Registered Office Address</span>
+                      <textarea value={companyProfile.address} onChange={(event) => setCompanyProfile((current) => ({ ...current, address: event.target.value }))} rows={3} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Street Address, City, State, PIN Code" />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Official Email</span>
+                      <input value={companyProfile.email} onChange={(event) => setCompanyProfile((current) => ({ ...current, email: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="hello@risewithmedia.com" />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Official Phone Number</span>
+                      <input value={companyProfile.phone} onChange={(event) => setCompanyProfile((current) => ({ ...current, phone: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="+91 9876543210" />
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Services / Agency Tagline</span>
+                      <textarea value={companyProfile.services} onChange={(event) => setCompanyProfile((current) => ({ ...current, services: event.target.value }))} rows={2} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Social Media Management, Video Production, Meta & Google Ads, Web Development" />
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button onClick={() => updateCompany.mutate(companyProfile)} disabled={updateCompany.isPending} className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-60">
+                      {updateCompany.isPending ? 'Saving...' : 'Save Company Details & GST Settings'}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
