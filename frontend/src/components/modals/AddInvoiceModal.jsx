@@ -265,7 +265,15 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
           <DialogHeader>
             <div className="flex items-center justify-between pr-6">
               <div>
-                <DialogTitle>{invoice ? 'Edit Invoice' : 'Create Invoice'}</DialogTitle>
+                <div className="flex items-center gap-3">
+                  <DialogTitle>{invoice ? 'Edit Invoice' : 'Create Invoice'}</DialogTitle>
+                  {form.formState.isDirty && (
+                    <span className="px-3 py-1 rounded-full bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-md animate-pulse flex items-center gap-1.5 shrink-0">
+                      <span className="h-2 w-2 rounded-full bg-white animate-ping" />
+                      Draft
+                    </span>
+                  )}
+                </div>
                 <DialogDescription>
                   Create a detailed invoice with line items, balance tracking, and client-facing payment information.
                 </DialogDescription>

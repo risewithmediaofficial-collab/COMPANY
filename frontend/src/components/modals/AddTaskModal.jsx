@@ -2523,9 +2523,17 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-0">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border sticky top-0 bg-background z-10">
-          <DialogTitle className="text-xl font-bold">
-            {task ? 'Edit Task' : 'Create Tasks'}
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-3">
+            <DialogTitle className="text-xl font-bold">
+              {task ? 'Edit Task' : 'Create Tasks'}
+            </DialogTitle>
+            {form.formState.isDirty && (
+              <span className="px-3 py-1 rounded-full bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-md animate-pulse flex items-center gap-1.5 shrink-0">
+                <span className="h-2 w-2 rounded-full bg-white animate-ping" />
+                Draft
+              </span>
+            )}
+          </div>
           <DialogDescription className="text-sm text-muted-foreground mt-0.5">
             {task ? 'Update task details and sub-assignments' : 'Select client & project, then add tasks — poster tasks go to a designer, video tasks to a video person'}
           </DialogDescription>
