@@ -9,17 +9,17 @@ const AddTask = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <PageHeader
-          title="Create New Task"
-          description="Select a project first, then choose content or non-content task fields."
-        />
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Create New Task</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Select a project first, then choose content or non-content task fields.</p>
+        </div>
         <Button variant="outline" size="icon" className="shrink-0 rounded-xl" onClick={() => navigate('/tasks')} aria-label="Close">
           <X size={18} />
         </Button>
       </div>
 
-      <div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-[24px] border border-border bg-card p-6 shadow-none">
         <AddTaskModal
           open
           onOpenChange={(open) => {

@@ -107,6 +107,8 @@ const taskSchema = new mongoose.Schema(
 
     postingPlatforms: [{ type: String }],
     postingScheduleDate: { type: Date },
+    publishingDate: { type: Date },
+    publishingTime: { type: String, default: '' },
 
     // Role Workflow Sub-statuses
     shootStatus: {

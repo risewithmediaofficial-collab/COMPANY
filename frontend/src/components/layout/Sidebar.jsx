@@ -89,7 +89,6 @@ const Sidebar = () => {
       { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
       { name: 'DM Calendar', icon: Calendar, path: '/dm-calendar' },
       { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
-      { name: 'Message Center', icon: MessageSquare, path: '/chat' },
       { name: 'HR & Hiring', icon: Users2, path: '/hr' },
       { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Reports', icon: BarChart3, path: '/reports' },
@@ -115,7 +114,6 @@ const Sidebar = () => {
       { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
       { name: 'DM Calendar', icon: Calendar, path: '/dm-calendar' },
       { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
-      { name: 'Message Center', icon: MessageSquare, path: '/chat' },
       { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Reports', icon: BarChart3, path: '/reports' },
       { name: 'Asset Library', icon: Palette, path: '/assets' },
@@ -131,7 +129,6 @@ const Sidebar = () => {
       { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
       { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
       { name: 'Attendance', icon: Clock, path: '/attendance' },
-      { name: 'Message Center', icon: MessageSquare, path: '/chat' },
     ],
     client: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },

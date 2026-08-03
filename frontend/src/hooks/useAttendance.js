@@ -32,6 +32,8 @@ export const useClockIn = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
+      queryClient.invalidateQueries({ queryKey: ['hr-employees'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       toast.success('Clocked in successfully');
     },
@@ -48,6 +50,8 @@ export const useClockOut = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
+      queryClient.invalidateQueries({ queryKey: ['hr-employees'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
       toast.success('Clocked out successfully');
     },

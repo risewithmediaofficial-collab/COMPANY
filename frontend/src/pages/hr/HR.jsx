@@ -35,9 +35,17 @@ const HR = () => {
   const { data: employees = [], isLoading } = useEmployees({ search: searchTerm });
   const deleteEmployeeMutation = useDeleteEmployee();
 
+  const isEmpClockedIn = (employee) => {
+    const att = employee.todayAttendance;
+    if (!att) return false;
+    if (att.isClockedIn !== undefined) return att.isClockedIn;
+    if (att.sessions && att.sessions.length > 0) return att.sessions.some((s) => !s.clockOut);
+    return Boolean(att.clockIn && !att.clockOut);
+  };
+
   const activeEmployees = employees.filter((employee) => employee.status === 'Active').length;
   const activeDepartments = new Set(employees.map((employee) => employee.department).filter(Boolean)).size;
-  const clockedInNow = employees.filter((employee) => employee.todayAttendance?.clockIn && !employee.todayAttendance?.clockOut).length;
+  const clockedInNow = employees.filter(isEmpClockedIn).length;
   const loggedHoursToday = employees.reduce(
     (sum, employee) => sum + Number(employee.todayAttendance?.totalHours || 0),
     0,
@@ -95,6 +103,8 @@ const HR = () => {
           return <span className="text-xs text-muted-foreground">No clock-in yet</span>;
         }
 
+        const active = isEmpClockedIn(row);
+
         return (
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-semibold">
@@ -107,7 +117,7 @@ const HR = () => {
               </span>
             </div>
             <div className="text-[11px] text-muted-foreground">
-              {attendance.clockOut ? 'Shift logged' : 'Currently clocked in'}
+              {active ? 'Currently clocked in' : 'Clocked Out / On Break'}
             </div>
           </div>
         );

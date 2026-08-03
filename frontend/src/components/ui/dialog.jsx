@@ -10,11 +10,11 @@ export const DialogClose = DialogPrimitive.Close;
 export const DialogContent = React.forwardRef(({ className, children, hideCloseButton = false, ...props }, ref) => (
   <DialogPrimitive.Portal>
     <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out" />
-    <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+    <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-1.5rem)] max-w-4xl -translate-x-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'pointer-events-auto relative w-full max-h-[88vh] overflow-y-auto rounded-3xl border border-slate-200/90 dark:border-border bg-white dark:bg-card p-5 sm:p-6 shadow-2xl outline-none custom-scrollbar data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95',
+          'pointer-events-auto relative w-full max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200/90 dark:border-border bg-white dark:bg-card p-5 sm:p-8 shadow-2xl outline-none custom-scrollbar data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95',
           className
         )}
         onPointerDownOutside={(e) => e.preventDefault()}

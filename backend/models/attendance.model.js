@@ -4,6 +4,12 @@
 
 import mongoose from 'mongoose';
 
+const sessionSchema = new mongoose.Schema({
+  clockIn: { type: Date, required: true },
+  clockOut: { type: Date },
+  durationHours: { type: Number, default: 0 },
+});
+
 const attendanceSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -11,6 +17,7 @@ const attendanceSchema = new mongoose.Schema(
     clockIn: { type: Date },
     clockOut: { type: Date },
     totalHours: { type: Number, default: 0 },
+    sessions: [sessionSchema],
     status: {
       type: String,
       enum: ['present', 'absent', 'half_day', 'leave', 'holiday', 'work_from_home'],

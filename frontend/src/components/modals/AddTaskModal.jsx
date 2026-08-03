@@ -109,6 +109,8 @@ const BLANK_TASK_TEMPLATE = {
   shootLocation: '',
   rawFootageLink: '',
   postingPlatforms: [],
+  publishingDate: '',
+  publishingTime: '',
 };
 
 const taskFormSchema = z.object({
@@ -131,6 +133,8 @@ const taskFormSchema = z.object({
   rawFootageLink: z.string().optional(),
   postingPlatforms: z.array(z.string()).default([]),
   postingScheduleDate: z.string().optional(),
+  publishingDate: z.string().optional(),
+  publishingTime: z.string().optional(),
   priority: z.enum(PRIORITY_OPTIONS),
   dueDate: z.string().optional(),
   status: z.enum(TASK_STATUS_OPTIONS),
@@ -182,6 +186,8 @@ const buildDefaultValues = (initialValues = {}) => ({
   rawFootageLink: '',
   postingPlatforms: [],
   postingScheduleDate: '',
+  publishingDate: '',
+  publishingTime: '',
   priority: 'Medium',
   dueDate: '',
   status: 'To Do',
@@ -869,18 +875,46 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             </div>
           </div>
 
-          <FormField
-            control={form.control}
-            name="postingScheduleDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-bold text-foreground">🗓️ Posting Schedule Date & Time</FormLabel>
-                <FormControl>
-                  <Input type="datetime-local" className="bg-background" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <div className="space-y-3">
+            <FormField
+              control={form.control}
+              name="postingScheduleDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold text-foreground">🗓️ Posting Schedule Date & Time</FormLabel>
+                  <FormControl>
+                    <Input type="datetime-local" className="bg-background" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <FormField
+                control={form.control}
+                name="publishingDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold text-foreground">📅 Publishing Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" className="bg-background" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="publishingTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold text-foreground">⏰ Publishing Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" className="bg-background" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

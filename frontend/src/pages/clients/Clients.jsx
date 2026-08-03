@@ -57,7 +57,6 @@ const Clients = () => {
 
   const activeClients = clients.filter((client) => client.status === 'Active').length;
   const prospectClients = clients.filter((client) => client.status === 'Prospect').length;
-  const totalRevenue = clients.reduce((sum, client) => sum + Number(client.totalRevenue || 0), 0);
 
   const columns = [
     {
@@ -105,15 +104,6 @@ const Clients = () => {
       ),
     },
     {
-      key: 'totalRevenue',
-      label: 'Revenue',
-      render: (row) => (
-        <span className="font-semibold text-foreground">
-          {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(row.totalRevenue || 0))}
-        </span>
-      ),
-    },
-    {
       key: 'status',
       label: 'Status',
       render: (row) => (
@@ -141,13 +131,6 @@ const Clients = () => {
           <MetricCard label="Client Records" value={clients.length} helper="Visible in the current search scope" icon={Users} tone="info" />
           <MetricCard label="Active Accounts" value={activeClients} helper="Clients currently in service" icon={Building2} tone="success" />
           <MetricCard label="Prospects" value={prospectClients} helper="Warm opportunities still being nurtured" icon={Briefcase} tone="warning" />
-          <MetricCard
-            label="Tracked Revenue"
-            value={new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(totalRevenue)}
-            helper="Combined revenue attached to visible clients"
-            icon={IndianRupee}
-            tone="primary"
-          />
         </MetricGrid>
         <div className="mt-5 pt-5 border-t border-border flex flex-wrap items-center gap-2">
           <SearchField

@@ -121,7 +121,7 @@ const App = () => {
   if (loading && !user && isAuthenticated) return null;
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HotToaster position="top-right" reverseOrder={false} />
       <SonnerToaster position="top-right" richColors closeButton />
       <Suspense fallback={null}>

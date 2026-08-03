@@ -903,25 +903,25 @@ const ProjectDetails = () => {
   return (
     <div className="space-y-6">
       {/* Project Header */}
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 p-6 text-white shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
+      <div className="overflow-hidden rounded-[24px] border border-border bg-card p-6 text-foreground shadow-none">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start space-x-4">
-            <Link to="/projects" className="mt-1 rounded-xl border border-white/15 bg-white/5 p-2 text-slate-200 transition-colors hover:bg-white/10">
+            <Link to="/projects" className="mt-1 rounded-xl border border-border bg-background p-2 text-foreground transition-colors hover:bg-secondary">
               <ChevronLeft size={20} />
             </Link>
             <div>
               <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-black tracking-tight text-white">{project.name}</h1>
+                <h1 className="text-2xl font-black tracking-tight text-foreground">{project.name}</h1>
                 <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${projectStatusStyles[project.status] || projectStatusStyles.Planning}`}>
                   {project.status}
                 </span>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-300">
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <span className="flex items-center font-medium">
                   <Briefcase size={16} className="mr-2" />
                   {project.client?.name}
                 </span>
-                <span className="h-1 w-1 rounded-full bg-slate-400" />
+                <span className="h-1 w-1 rounded-full bg-border" />
                 <span className="flex items-center">
                   <Calendar size={16} className="mr-2" />
                   Due {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'TBD'}

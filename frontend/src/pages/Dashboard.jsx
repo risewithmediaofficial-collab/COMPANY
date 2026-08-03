@@ -168,14 +168,14 @@ const Dashboard = () => {
     return (
       <div className="space-y-8">
         {/* Premium Header */}
-        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 p-6 text-white shadow-[0_20px_50px_rgba(15,23,42,0.18)]">
+        <div className="overflow-hidden rounded-[24px] border border-border bg-card p-6 text-foreground shadow-none">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-indigo-100">
+              <div className="mb-3 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
                 Executive Dashboard
               </div>
-              <h1 className="text-2xl font-black tracking-tight text-white md:text-3xl">Performance overview</h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-300">Real-time revenue, expenses, ad spend, team output, and conversion metrics across the business.</p>
+              <h1 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">Performance overview</h1>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Real-time revenue, expenses, ad spend, team output, and conversion metrics across the business.</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -185,8 +185,8 @@ const Dashboard = () => {
                   title={showFinance ? 'Hide revenue & financial amounts' : 'Show revenue & financial amounts'}
                   className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all ${
                     showFinance
-                      ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20'
-                      : 'border-white/15 bg-white/5 text-slate-200 hover:bg-white/10'
+                      ? 'border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
+                      : 'border-border bg-background text-foreground hover:bg-secondary'
                   }`}
                 >
                   {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -196,7 +196,7 @@ const Dashboard = () => {
 
               <Link
                 to="/calendar"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-lg shadow-indigo-950/30 transition-all hover:bg-indigo-50"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition-all hover:bg-primary/20"
               >
                 <Calendar size={16} />
                 Content Calendar
@@ -212,7 +212,7 @@ const Dashboard = () => {
                     setEndDate('');
                   }
                 }}
-                className="rounded-xl border border-white/15 bg-white/10 px-3.5 py-2 text-sm font-semibold text-white outline-none backdrop-blur-sm transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-400/30"
+                className="app-select !py-2 !px-3.5 text-sm font-semibold"
               >
                 <option value="monthly" className="text-slate-900">This Month</option>
                 <option value="lastMonth" className="text-slate-900">Last Month</option>
@@ -923,7 +923,6 @@ const Dashboard = () => {
                 <button onClick={() => setShowEodModal(true)} className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">
                   {isEodSubmittedToday ? 'View / Edit EOD Report' : 'Submit EOD Report'}
                 </button>
-                <Link to="/chat" className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">Message Manager</Link>
               </div>
             </div>
 

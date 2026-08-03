@@ -178,7 +178,12 @@ const Attendance = () => {
     );
   }, [rawRecords, user?._id]);
 
-  const isClockedIn = Boolean(todayRecord?.clockIn && !todayRecord?.clockOut);
+  const isClockedIn = Boolean(
+    todayRecord && (
+      (todayRecord.sessions && todayRecord.sessions.length > 0 && todayRecord.sessions.some((s) => !s.clockOut)) ||
+      (todayRecord.clockIn && !todayRecord.clockOut)
+    )
+  );
   const eodSubmitted = Boolean(todayRecord?.eodReport?.submittedAt);
 
   // Live today activity list for managers
@@ -206,7 +211,9 @@ const Attendance = () => {
   const teamMetrics = useMemo(() => {
     const employeeUsers = users.filter((u) => u.role !== 'client' && u.role !== 'referral');
     const totalEmployees = employeeUsers.length;
-    const clockedIn = teamTodayRecords.filter((r) => r.clockIn && !r.clockOut).length;
+    const clockedIn = teamTodayRecords.filter((r) =>
+      r.sessions && r.sessions.length > 0 ? r.sessions.some((s) => !s.clockOut) : Boolean(r.clockIn && !r.clockOut)
+    ).length;
     const completed = teamTodayRecords.filter((r) => r.clockOut).length;
     const onLeave = teamTodayRecords.filter((r) => r.status === 'leave').length;
     const wfh = teamTodayRecords.filter((r) => r.status === 'work_from_home').length;
@@ -901,33 +908,54 @@ const Attendance = () => {
                     disabled={clockOut.isPending}
                     className="w-full py-4 rounded-3xl bg-destructive text-white font-black text-lg shadow-xl shadow-destructive/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
                   >
-                    {clockOut.isPending ? 'Clocking Out...' : 'Clock Out'}
+                    {clockOut.isPending ? 'Clocking Out...' : 'Clock Out (Take Break)'}
                   </button>
                 ) : (
                   <button
                     onClick={handleClockIn}
-                    disabled={clockIn.isPending || Boolean(todayRecord?.clockOut)}
-                    className="w-full py-4 rounded-3xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                    disabled={clockIn.isPending}
+                    className="w-full py-4 rounded-3xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                   >
-                    {todayRecord?.clockOut ? 'Shift Completed' : clockIn.isPending ? 'Clocking In...' : 'Clock In'}
+                    {clockIn.isPending ? 'Clocking In...' : todayRecord?.clockIn ? 'Clock In / Resume Shift' : 'Clock In'}
                   </button>
                 )}
 
                 <div className="flex items-center justify-center space-x-6 pt-6 text-sm font-bold text-muted-foreground">
                   <div className="flex flex-col items-center">
-                    <span className="text-xs uppercase tracking-tighter opacity-60">In</span>
+                    <span className="text-xs uppercase tracking-tighter opacity-60">First In</span>
                     <span className="text-foreground">
                       {formatTime(todayRecord?.clockIn)}
                     </span>
                   </div>
                   <div className="w-px h-8 bg-border" />
                   <div className="flex flex-col items-center">
-                    <span className="text-xs uppercase tracking-tighter opacity-60">Out</span>
+                    <span className="text-xs uppercase tracking-tighter opacity-60">Last Out</span>
                     <span className="text-foreground">
                       {formatTime(todayRecord?.clockOut)}
                     </span>
                   </div>
+                  <div className="w-px h-8 bg-border" />
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs uppercase tracking-tighter opacity-60">Total Hours</span>
+                    <span className="text-emerald-600 font-extrabold">
+                      {Number(todayRecord?.totalHours || 0).toFixed(2)} hrs
+                    </span>
+                  </div>
                 </div>
+
+                {todayRecord?.sessions && todayRecord.sessions.length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-border text-left">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Today&apos;s Sessions & Breaks</p>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                      {todayRecord.sessions.map((sess, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-xs p-2.5 rounded-xl bg-secondary/40 border border-border">
+                          <span className="font-bold text-foreground">Session {idx + 1}: {formatTime(sess.clockIn)} - {sess.clockOut ? formatTime(sess.clockOut) : 'Active Now'}</span>
+                          <span className="font-bold text-primary">{sess.clockOut ? `${sess.durationHours || 0} hrs` : 'Working'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

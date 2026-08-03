@@ -30,17 +30,26 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/');
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        store.dispatch(logout());
+        return Promise.reject(error);
+      }
+
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
         const res = await axios.post('/api/auth/refresh', { refreshToken });
         
         if (res.status === 200) {
           localStorage.setItem('accessToken', res.data.accessToken);
-          localStorage.setItem('refreshToken', res.data.refreshToken);
+          if (res.data.refreshToken) {
+            localStorage.setItem('refreshToken', res.data.refreshToken);
+          }
           api.defaults.headers.common['Authorization'] = `Bearer ${res.data.accessToken}`;
+          originalRequest.headers['Authorization'] = `Bearer ${res.data.accessToken}`;
           return api(originalRequest);
         }
       } catch (refreshError) {

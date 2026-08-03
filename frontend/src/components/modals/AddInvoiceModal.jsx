@@ -35,6 +35,8 @@ import { exportInvoiceToPDF } from '../../utils/pdfExport';
 import { ShareInvoiceModal } from './ShareInvoiceModal';
 import { toast } from 'sonner';
 
+const INVOICE_DRAFT_KEY = 'add_invoice_modal_draft';
+
 const invoiceSchema = z.object({
   client: z.string().min(1, 'Client is required'),
   project: z.string().optional(),
@@ -490,9 +492,9 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
                           ))}
                         </select>
                       </div>
-                      <div className="sm:col-span-2">
+                      <div className="sm:col-span-3 min-w-[155px]">
                         <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Date</label>
-                        <Input type="date" {...form.register(`payments.${index}.paidAt`)} />
+                        <Input type="date" className="min-w-[155px] pr-2" {...form.register(`payments.${index}.paidAt`)} />
                       </div>
                       <div className="sm:col-span-2">
                         <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Reference</label>
@@ -502,15 +504,17 @@ export const AddInvoiceModal = ({ open, onOpenChange, invoice = null }) => {
                         <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Notes</label>
                         <Input {...form.register(`payments.${index}.notes`)} placeholder="Notes" />
                       </div>
-                      <div className="flex items-end sm:col-span-2">
+                      <div className="flex items-end sm:col-span-1">
                         <Button
                           type="button"
                           variant="outline"
+                          size="icon"
                           onClick={() => removePayment(index)}
                           disabled={paymentFields.length === 1}
-                          className="w-full gap-1.5 border-rose-200/80 text-rose-600 hover:bg-rose-50 dark:border-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                          className="h-10 w-10 border-rose-200/80 text-rose-600 hover:bg-rose-50 dark:border-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                          title="Remove Payment"
                         >
-                          <Trash2 size={14} /> Remove
+                          <Trash2 size={16} />
                         </Button>
                       </div>
                     </div>

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useSelector } from 'react-redux';
+import { sendBrowserNotification } from '../utils/browserNotification';
 
 const SocketContext = createContext(null);
 
@@ -12,14 +13,36 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?._id) {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        setSocket(null);
+      }
+      return;
+    }
 
     // Connect to the same origin — Vite proxies /socket.io → :5000 in dev
     const newSocket = io(window.location.origin, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       reconnectionAttempts: 5,
       reconnectionDelay: 2000,
+      autoConnect: true,
+    });
+
+    newSocket.on('connect_error', () => {
+      // Clean silent error handling for WebSocket dev server reconnections
+    });
+
+    newSocket.on('newNotification', (data) => {
+      if (data) {
+        sendBrowserNotification({
+          title: data.title || 'New CRM Notification',
+          message: data.message || '',
+          link: data.link || '/',
+        });
+      }
     });
 
     socketRef.current = newSocket;
@@ -29,7 +52,7 @@ export const SocketProvider = ({ children }) => {
       newSocket.disconnect();
       socketRef.current = null;
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?._id]);
 
   // Register user room after socket connects or user changes
   useEffect(() => {

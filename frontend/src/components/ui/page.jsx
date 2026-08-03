@@ -15,35 +15,32 @@ export const PageHeader = ({
   eyebrow,
   title,
   subtitle,
+  description,
   actions,
   children,
   className,
-}) => (
-  <section
-    className={cn(
-      'overflow-hidden rounded-[30px] border border-border bg-gradient-to-br from-background via-background to-secondary/70 shadow-sm',
-      className,
-    )}
-  >
-    <div className="p-5 sm:p-6 lg:p-7">
-      <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-        <div className="max-w-3xl min-w-0">
+}) => {
+  const sub = subtitle || description;
+  return (
+    <div className={cn('space-y-4', className)}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           {eyebrow ? (
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">{eyebrow}</p>
           ) : null}
-          <h1 className={cn('text-3xl font-bold tracking-tight text-foreground sm:text-4xl', eyebrow && 'mt-3')}>{title}</h1>
-          {subtitle ? (
-            <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
+          <h1 className={cn('text-xl font-bold tracking-tight text-foreground sm:text-2xl', eyebrow && 'mt-1')}>{title}</h1>
+          {sub ? (
+            <p className="mt-1 text-xs text-muted-foreground max-w-3xl">{sub}</p>
           ) : null}
         </div>
 
-        {actions ? <div className="flex flex-wrap items-center gap-3 xl:justify-end">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
       </div>
 
-      {children ? <div className="mt-6">{children}</div> : null}
+      {children ? <div>{children}</div> : null}
     </div>
-  </section>
-);
+  );
+};
 
 export const MetricGrid = ({ children, className }) => (
   <div className={cn('grid gap-3 sm:grid-cols-2 xl:grid-cols-4', className)}>{children}</div>

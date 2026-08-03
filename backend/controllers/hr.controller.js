@@ -308,11 +308,17 @@ export const getTeamMembers = async (req, res) => {
 
     const attendanceMap = {};
     attendanceRecords.forEach((record) => {
+      const isClockedIn = record.sessions && record.sessions.length > 0
+        ? record.sessions.some((s) => !s.clockOut)
+        : Boolean(record.clockIn && !record.clockOut);
+
       attendanceMap[record.user.toString()] = {
         clockIn: record.clockIn,
         clockOut: record.clockOut,
         totalHours: record.totalHours,
         status: record.status,
+        sessions: record.sessions || [],
+        isClockedIn,
       };
     });
 

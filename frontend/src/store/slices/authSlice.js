@@ -24,10 +24,15 @@ export const loginUser = createAsyncThunk(
 // Raw axios is safe here: on first load the token is fresh enough.
 export const fetchMe = createAsyncThunk(
   'auth/fetchMe',
-  async (_, { rejectWithValue, getState }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) return rejectWithValue({ message: 'No token' });
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!token || !refreshToken) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        return rejectWithValue({ message: 'No active session' });
+      }
 
       const response = await axios.get('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
@@ -36,10 +41,14 @@ export const fetchMe = createAsyncThunk(
     } catch (error) {
       // If 401 — try refreshing once before giving up
       if (error.response?.status === 401) {
-        try {
-          const refreshToken = localStorage.getItem('refreshToken');
-          if (!refreshToken) throw new Error('No refresh token');
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          return rejectWithValue({ message: 'Session expired. Please log in again.' });
+        }
 
+        try {
           const refreshRes = await axios.post('/api/auth/refresh', { refreshToken });
           localStorage.setItem('accessToken', refreshRes.data.accessToken);
           if (refreshRes.data.refreshToken) {
@@ -53,6 +62,8 @@ export const fetchMe = createAsyncThunk(
           return retryRes.data;
         } catch (_refreshError) {
           // Refresh failed — session is truly expired
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
           return rejectWithValue({ message: 'Session expired. Please log in again.' });
         }
       }
@@ -71,7 +82,7 @@ const authSlice = createSlice({
     activeWorkspace: localStorage.getItem('activeWorkspace') || null,
     loading: false,
     error: null,
-    isAuthenticated: !!localStorage.getItem('accessToken'),
+    isAuthenticated: Boolean(localStorage.getItem('accessToken') && localStorage.getItem('refreshToken')),
   },
   reducers: {
     logout: (state) => {

@@ -169,6 +169,9 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.shootLocation !== undefined) payload.shootLocation = payload.shootLocation ? payload.shootLocation.trim() : '';
   if (payload.rawFootageLink !== undefined) payload.rawFootageLink = normalizeLink(payload.rawFootageLink);
   if (payload.postingScheduleDate !== undefined) payload.postingScheduleDate = payload.postingScheduleDate ? new Date(payload.postingScheduleDate) : undefined;
+  if (payload.publishingDate !== undefined) payload.publishingDate = payload.publishingDate ? new Date(payload.publishingDate) : undefined;
+  if (payload.publishingTime !== undefined) payload.publishingTime = payload.publishingTime ? payload.publishingTime.toString().trim() : '';
+  if (payload.publishingDate && !payload.postingScheduleDate) payload.postingScheduleDate = payload.publishingDate;
   if (payload.postingPlatforms !== undefined) payload.postingPlatforms = normalizeStringArray(payload.postingPlatforms);
   if (payload.clientFeedback !== undefined) payload.clientFeedback = payload.clientFeedback?.toString?.().trim?.() || '';
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   addDays,
   addMonths,
@@ -504,6 +505,7 @@ const TaskSummaryCard = ({ task, onOpen }) => {
 };
 
 const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState(defaultView);
@@ -841,24 +843,9 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               ))}
             </div>
 
-            {canLogDailyUpdates ? (
-              <Button
-                variant="outline"
-                onClick={() => setShowDailyTaskDialog(true)}
-                className="w-full justify-center sm:w-auto"
-              >
-                <Plus size={16} className="mr-2" />
-                Add Daily Task
-              </Button>
-            ) : null}
-
             {canManageCalendar ? (
               <Button
-                onClick={() => {
-                  setSelectedTask(null);
-                  setDraftDueDate('');
-                  setShowAddModal(true);
-                }}
+                onClick={() => navigate('/tasks/new')}
                 className="w-full justify-center sm:w-auto"
               >
                 <Plus size={16} className="mr-2" />
@@ -994,94 +981,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
         </div>
       </CollapsibleFilterBar>
 
-      {canDownloadWeeklyReport ? (
-        <SectionCard
-          title="Weekly Work Report"
-          description={`Daily work logs saved from ${format(weeklyRange.start, 'MMM d')} to ${format(weeklyRange.end, 'MMM d, yyyy')}.`}
-          action={(
-            <div className="flex flex-wrap items-center gap-2">
-              {canLogDailyUpdates ? (
-                <Button onClick={() => setShowDailyUpdateDialog(true)}>
-                  <Plus size={16} className="mr-2" />
-                  Log Daily Update
-                </Button>
-              ) : null}
-              <Button
-                variant="outline"
-                onClick={handleDownloadWeeklyReport}
-                disabled={!weeklyReport?.rows?.length || isWeeklyReportLoading}
-              >
-                <Download size={16} className="mr-2" />
-                {isWeeklyReportLoading ? 'Preparing...' : 'Download Weekly Report'}
-              </Button>
-            </div>
-          )}
-        >
-          <div className="grid gap-4 lg:grid-cols-4">
-            <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Report Owner</p>
-              <p className="mt-3 text-lg font-bold text-foreground">{weeklyReportOwnerLabel}</p>
-            </div>
-            <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Total Updates</p>
-              <p className="mt-3 text-3xl font-bold text-foreground">{weeklyReport?.summary?.totalUpdates || 0}</p>
-            </div>
-            <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Hours Logged</p>
-              <p className="mt-3 text-3xl font-bold text-foreground">{Number(weeklyReport?.summary?.totalHours || 0).toFixed(2)}</p>
-            </div>
-            <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Unique Tasks</p>
-              <p className="mt-3 text-3xl font-bold text-foreground">{weeklyReport?.summary?.uniqueTasks || 0}</p>
-            </div>
-          </div>
 
-          <div className="mt-4 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Daily Breakdown</p>
-              <div className="mt-4 space-y-3">
-                {(weeklyReport?.dailyBreakdown || []).length ? (
-                  weeklyReport.dailyBreakdown.map((item) => (
-                    <div key={item.date} className="flex items-center justify-between rounded-2xl border border-border bg-background px-4 py-3">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{format(new Date(item.date), 'EEE, MMM d')}</p>
-                        <p className="text-xs text-muted-foreground">{item.updates} updates</p>
-                      </div>
-                      <p className="text-sm font-bold text-foreground">{Number(item.hours || 0).toFixed(2)}h</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-border bg-background px-4 py-8 text-center text-sm text-muted-foreground">
-                    No daily updates saved for this week yet.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Recent Logged Work</p>
-              <div className="mt-4 space-y-3">
-                {(weeklyReport?.rows || []).length ? (
-                  weeklyReport.rows.slice(0, 5).map((row, index) => (
-                    <div key={`${row.taskId}-${row.workDate}-${index}`} className="rounded-2xl border border-border bg-background px-4 py-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-semibold text-foreground">{row.taskTitle}</p>
-                        <p className="text-xs text-muted-foreground">{format(new Date(row.workDate), 'MMM d')} • {Number(row.hours || 0).toFixed(2)}h</p>
-                      </div>
-                      <p className="mt-2 text-sm text-muted-foreground">{row.description}</p>
-                      <p className="mt-2 text-xs text-muted-foreground">{row.clientName || 'No client'} • {row.projectName || 'No project'}</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-border bg-background px-4 py-8 text-center text-sm text-muted-foreground">
-                    Weekly exports will populate once the team starts logging daily updates.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-      ) : null}
 
       <SectionCard
         title={toolbarTitle}
@@ -1118,13 +1018,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               title="No tasks found for this list view"
               description="Adjust your filters or date range to surface the tasks you want to review."
               action={canManageCalendar ? (
-                <Button
-                  onClick={() => {
-                    setSelectedTask(null);
-                    setDraftDueDate('');
-                    setShowAddModal(true);
-                  }}
-                >
+                <Button onClick={() => navigate('/tasks/new')}>
                   <Plus size={16} className="mr-2" />
                   Create Task
                 </Button>
@@ -1137,24 +1031,6 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           renderWeekOrDayView()
         )}
       </SectionCard>
-
-      <AddTaskModal
-        open={showAddModal}
-        onOpenChange={(open) => {
-          setShowAddModal(open);
-          if (!open) {
-            setSelectedTask(null);
-            setDraftDueDate('');
-            refetch();
-          }
-        }}
-        task={selectedTask}
-        initialValues={{
-          dueDate: draftDueDate,
-          status: 'To Do',
-          isClientVisible: true,
-        }}
-      />
 
       <DailyTaskUpdateDialog
         open={showDailyUpdateDialog}

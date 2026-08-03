@@ -41,6 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { PageHeader, MetricGrid, MetricCard } from '../../components/ui/page';
 
 const PIPELINE_STAGES = ['new', 'contacted', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'won', 'lost', 'refollow_later'];
 
@@ -487,7 +488,7 @@ const Leads = () => {
       <div className="min-w-0">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground">Pipeline Board</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground">Leads Board</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Drag leads between stages to keep the funnel current.
             </p>
@@ -664,75 +665,71 @@ const Leads = () => {
 
   return (
     <div className="min-w-0 space-y-6">
-      <section className="overflow-hidden rounded-[32px] border border-border bg-gradient-to-br from-background via-background to-secondary/70 shadow-sm">
-        <div className="p-5 sm:p-6 lg:p-7">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div className="max-w-2xl">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                CRM Pipeline
-              </h1>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-              <div className="inline-flex items-center rounded-2xl border border-border bg-card p-1 shadow-sm">
-                <button
-                  onClick={() => setView('kanban')}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-                    view === 'kanban'
-                      ? 'bg-primary text-white shadow-md shadow-primary/20'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  <LayoutGrid size={16} />
-                  Board
-                </button>
-                <button
-                  onClick={() => setView('list')}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-                    view === 'list'
-                      ? 'bg-primary text-white shadow-md shadow-primary/20'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  <List size={16} />
-                  List
-                </button>
-              </div>
-
-              <Button
-                onClick={() => {
-                  setSelectedLead(null);
-                  setShowAddModal(true);
-                }}
-                className="w-full justify-center sm:w-auto"
+      <PageHeader
+        title="CRM & Leads"
+        description="Track lead conversions, assign owners, schedule follow-ups, and manage deal stages."
+        actions={(
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center rounded-2xl border border-border bg-card p-1 shadow-sm">
+              <button
+                onClick={() => setView('kanban')}
+                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
+                  view === 'kanban'
+                    ? 'bg-primary text-white shadow-md shadow-primary/20'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                }`}
               >
-                <Plus size={18} className="mr-2" />
-                Add Lead
-              </Button>
+                <LayoutGrid size={16} />
+                Board
+              </button>
+              <button
+                onClick={() => setView('list')}
+                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
+                  view === 'list'
+                    ? 'bg-primary text-white shadow-md shadow-primary/20'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                }`}
+              >
+                <List size={16} />
+                List
+              </button>
             </div>
+
+            <Button
+              onClick={() => {
+                setSelectedLead(null);
+                setShowAddModal(true);
+              }}
+              className="w-full justify-center sm:w-auto"
+            >
+              <Plus size={18} className="mr-2" />
+              Add Lead
+            </Button>
           </div>
-
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {pipelineHighlights.map((item) => (
-              <div
-                key={item.label}
-                onClick={item.onClick}
-                className={`rounded-[24px] border border-border/80 bg-gradient-to-br px-4 py-4 shadow-sm ${item.tone}`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      {item.label}
-                    </p>
-                    <p className="mt-3 text-3xl font-bold tracking-tight text-foreground">{item.value}</p>
-                  </div>
-                  <div className="rounded-2xl bg-background/80 p-3">
-                    <item.icon size={18} />
-                  </div>
+        )}
+      >
+        <MetricGrid>
+          {pipelineHighlights.map((item) => (
+            <div
+              key={item.label}
+              onClick={item.onClick}
+              className={`rounded-[24px] border border-border/80 bg-card p-4 shadow-none cursor-pointer transition-all hover:border-primary/40 ${item.tone}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    {item.label}
+                  </p>
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{item.value}</p>
+                </div>
+                <div className="rounded-2xl bg-secondary/80 p-3">
+                  <item.icon size={18} />
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </MetricGrid>
+      </PageHeader>
 
           <div className="mt-6 rounded-[26px] border border-border/80 bg-card/80 p-3 shadow-sm backdrop-blur-sm">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -795,8 +792,6 @@ const Leads = () => {
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
       {isLoading ? (
         <TableSkeleton columns={5} rows={6} dark={false} />

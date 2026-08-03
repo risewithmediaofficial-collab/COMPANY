@@ -113,7 +113,7 @@
 }
 
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1;
+  @apply transition-all duration-300 hover:border-primary/40 hover:-translate-y-0.5;
 }
 
 .gradient-text {
@@ -122,11 +122,11 @@
 
 @layer components {
   .app-card {
-    @apply rounded-[28px] border border-border bg-card shadow-sm;
+    @apply rounded-[24px] border border-border bg-card shadow-none;
   }
 
   .app-card-muted {
-    @apply rounded-[24px] border border-border/80 bg-card/85 shadow-sm backdrop-blur-sm;
+    @apply rounded-[20px] border border-border/80 bg-card/85 shadow-none backdrop-blur-sm;
   }
 
   .app-pill {
@@ -163,5 +163,19 @@
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.6);
+}
+
+/* Fix date & datetime-local input text clipping/truncation */
+input[type="date"],
+input[type="datetime-local"] {
+  min-width: 145px;
+  padding-right: 0.5rem !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
 }
 

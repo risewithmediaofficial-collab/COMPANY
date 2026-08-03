@@ -81,18 +81,18 @@ const Proposals = () => {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[28px] border border-slate-200 bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 p-6 text-white shadow-[0_20px_45px_rgba(15,23,42,0.12)]">
+      <div className="overflow-hidden rounded-[24px] border border-border bg-card p-6 text-foreground shadow-none">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-100">
+            <div className="mb-3 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
               Proposals
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-white">Client proposal pipeline</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-300">Create and manage client proposals. Accepted proposals can be linked when creating projects and project budgets.</p>
+            <h1 className="text-2xl font-black tracking-tight text-foreground">Client proposal pipeline</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Create and manage client proposals. Accepted proposals can be linked when creating projects and project budgets.</p>
           </div>
 
           {canManage ? (
-            <Button onClick={() => { setSelectedProposal(null); setShowCreateModal(true); }} className="h-11 rounded-xl bg-white px-5 text-sm font-bold text-slate-900 shadow-lg shadow-indigo-950/25 hover:bg-indigo-50">
+            <Button onClick={() => { setSelectedProposal(null); setShowCreateModal(true); }}>
               <Plus size={16} className="mr-2" />
               Create Proposal
             </Button>

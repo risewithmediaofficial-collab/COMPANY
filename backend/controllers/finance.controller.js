@@ -1161,7 +1161,8 @@ export const addPartialPaymentToInvoice = async (req, res) => {
     const invoice = await Invoice.findById(req.params.id).populate('client', 'name userId assignedManager assignedTeam');
     if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
 
-    const amount = toNumber(req.body.amountPaid);
+    const rawAmount = req.body.amountPaid ?? req.body.amount ?? req.body.paidAmount;
+    const amount = toNumber(rawAmount);
     if (amount <= 0) {
       return res.status(400).json({ success: false, message: 'Amount paid must be greater than zero' });
     }
