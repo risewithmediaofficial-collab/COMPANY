@@ -31,6 +31,7 @@ import {
   BookOpen,
   StickyNote,
   Plus,
+  Activity,
 } from 'lucide-react';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { EODDetailModal } from '../components/modals/EODDetailModal';
@@ -564,6 +565,94 @@ const Dashboard = () => {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Web Activity & Edits Metrics (Admin Audit Log) */}
+        <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-foreground flex items-center gap-2">
+                <Activity className="text-indigo-600" size={22} />
+                Web Activity & Edits Metrics
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">
+                Real-time audit log of all creations, edits, status updates, and user actions on the website.
+              </p>
+            </div>
+            <Link
+              to="/reports"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-border bg-card text-xs font-semibold text-slate-700 dark:text-foreground hover:bg-slate-50 transition-all"
+            >
+              View Full Audit Log
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200/80 dark:border-border bg-card p-5 shadow-sm divide-y divide-slate-100 dark:divide-border/60">
+            {data.activityLogs?.length > 0 ? (
+              data.activityLogs.map((log) => {
+                const actionBadgeColors = {
+                  create: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                  update: 'bg-blue-50 text-blue-600 border-blue-200',
+                  delete: 'bg-rose-50 text-rose-600 border-rose-200',
+                  status_change: 'bg-amber-50 text-amber-600 border-amber-200',
+                };
+                const badgeStyle = actionBadgeColors[log.action] || 'bg-slate-100 text-slate-600 border-slate-200';
+
+                return (
+                  <div key={log._id} className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-secondary/30 px-2 rounded-xl transition-colors">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="h-9 w-9 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                        {log.actor?.avatar ? (
+                          <img src={getAssetUrl(log.actor.avatar)} alt={log.actor.name} className="h-full w-full rounded-full object-cover" />
+                        ) : (
+                          log.actor?.name?.charAt(0).toUpperCase() || 'A'
+                        )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-slate-900 dark:text-foreground">
+                            {log.actor?.name || 'System User'}
+                          </span>
+                          <span className="text-[10px] font-semibold text-slate-400 capitalize">
+                            ({log.actor?.role || log.actorRole || 'admin'})
+                          </span>
+                          <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border ${badgeStyle}`}>
+                            {log.action?.replace('_', ' ')}
+                          </span>
+                          <span className="text-[10px] font-semibold bg-slate-100 dark:bg-secondary text-slate-500 px-2 py-0.5 rounded-md capitalize">
+                            {log.entityType}
+                          </span>
+                        </div>
+
+                        <p className="text-sm font-semibold text-slate-800 dark:text-foreground mt-0.5 truncate">
+                          {log.title}
+                        </p>
+                        {log.description && (
+                          <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5 line-clamp-1">
+                            {log.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-right text-[11px] font-medium text-slate-400 shrink-0 sm:self-center">
+                      {new Date(log.createdAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-8 text-center text-sm text-slate-400">
+                No web activity logs recorded yet. Action edits across the platform will appear here automatically.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

@@ -37,6 +37,7 @@ import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { ClientTaskResponsePanel } from '../../components/tasks/ClientTaskResponsePanel';
 import { DailyCalendarTaskDialog } from '../../components/tasks/DailyCalendarTaskDialog';
 import { DailyTaskUpdateDialog } from '../../components/tasks/DailyTaskUpdateDialog';
+import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { Button } from '../../components/ui/button';
 import {
@@ -875,18 +876,19 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
         </MetricGrid>
       </PageHeader>
 
-      <PageToolbar>
-        <SearchField
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search task titles, clients, scripts, website requirements, or notes..."
-        />
-        <div className="grid w-full gap-2 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+      <CollapsibleFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search task titles, clients, scripts, website requirements, or notes..."
+        activeFilterCount={Object.values(filters).filter(Boolean).length}
+        onResetFilters={() => setFilters({ client: '', project: '', assignedTo: '', taskCategory: '', taskType: '', status: '', priority: '', startDate: '', endDate: '' })}
+      >
+        <div className="grid w-full gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {canFilterClientProject ? (
             <select
               value={filters.client}
               onChange={(event) => setFilters((current) => ({ ...current, client: event.target.value }))}
-              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="app-select"
             >
               <option value="">All clients</option>
               {clients.map((client) => (
@@ -899,7 +901,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             <select
               value={filters.project}
               onChange={(event) => setFilters((current) => ({ ...current, project: event.target.value }))}
-              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="app-select"
             >
               <option value="">All projects</option>
               {projects.map((project) => (
@@ -912,7 +914,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             <select
               value={filters.assignedTo}
               onChange={(event) => setFilters((current) => ({ ...current, assignedTo: event.target.value }))}
-              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="app-select"
             >
               <option value="">All assignees</option>
               {assignableUsers.map((person) => (
@@ -924,7 +926,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           <select
             value={filters.taskCategory}
             onChange={(event) => setFilters((current) => ({ ...current, taskCategory: event.target.value, taskType: '' }))}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-select"
           >
             <option value="">All categories</option>
             {TASK_CATEGORY_OPTIONS.map((option) => (
@@ -935,7 +937,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           <select
             value={filters.taskType}
             onChange={(event) => setFilters((current) => ({ ...current, taskType: event.target.value }))}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-select"
           >
             <option value="">All task types</option>
             {(filters.taskCategory === 'content'
@@ -951,7 +953,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           <select
             value={filters.status}
             onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-select"
           >
             <option value="">All statuses</option>
             {TASK_STATUS_OPTIONS.map((option) => (
@@ -962,7 +964,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           <select
             value={filters.priority}
             onChange={(event) => setFilters((current) => ({ ...current, priority: event.target.value }))}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-select"
           >
             <option value="">All priorities</option>
             {PRIORITY_OPTIONS.map((option) => (
@@ -971,26 +973,26 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           </select>
 
           <div className="relative">
-            <span className="absolute left-4 top-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Start Date</span>
+            <span className="absolute left-4 top-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">Start Date</span>
             <input
               type="date"
               value={filters.startDate}
               onChange={(event) => setFilters((current) => ({ ...current, startDate: event.target.value }))}
-              className="w-full rounded-2xl border border-border bg-background px-4 pb-1.5 pt-5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="app-input pb-1.5 pt-5"
             />
           </div>
 
           <div className="relative">
-            <span className="absolute left-4 top-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">End Date</span>
+            <span className="absolute left-4 top-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-wider">End Date</span>
             <input
               type="date"
               value={filters.endDate}
               onChange={(event) => setFilters((current) => ({ ...current, endDate: event.target.value }))}
-              className="w-full rounded-2xl border border-border bg-background px-4 pb-1.5 pt-5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="app-input pb-1.5 pt-5"
             />
           </div>
         </div>
-      </PageToolbar>
+      </CollapsibleFilterBar>
 
       {canDownloadWeeklyReport ? (
         <SectionCard

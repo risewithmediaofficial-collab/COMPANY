@@ -5,6 +5,7 @@ import { useClients, useDeleteClient } from '../../hooks/useClients';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { MetricCard, MetricGrid, PageHeader, SearchField, StatusBadge } from '../../components/ui/page';
 import {
   AlertDialog,
@@ -14,7 +15,7 @@ import {
   AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '../../components/ui/alert-dialog';
 
 const clientStatusTone = {
   Active: 'success',
@@ -155,18 +156,20 @@ const Clients = () => {
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Search by name, email, phone, or company..."
           />
-          <select className="app-input h-10 text-xs w-full sm:w-auto sm:min-w-[140px]" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="" onClick={() => setStatusFilter('')}>All statuses</option>
-            {['Active', 'Prospect', 'Inactive', 'Churned', 'Renew'].map((s) => (
-              <option key={s} value={s} onClick={() => { if (statusFilter === s) setStatusFilter(''); }}>{s}</option>
-            ))}
-          </select>
-          <select className="app-input h-10 text-xs w-full sm:w-auto sm:min-w-[140px]" value={serviceFilter} onChange={(e) => setServiceFilter(e.target.value)}>
-            <option value="" onClick={() => setServiceFilter('')}>All services</option>
-            {['Social Media', 'Website', 'Branding', 'SEO', 'Ads', 'Video Editing', 'Content Creation', 'Custom'].map((s) => (
-              <option key={s} value={s} onClick={() => { if (serviceFilter === s) setServiceFilter(''); }}>{s}</option>
-            ))}
-          </select>
+          <SelectDropdown
+            className="w-full sm:w-auto sm:w-44"
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            options={['Active', 'Prospect', 'Inactive', 'Churned', 'Renew']}
+            allOptionLabel="All statuses"
+          />
+          <SelectDropdown
+            className="w-full sm:w-auto sm:w-44"
+            value={serviceFilter}
+            onChange={(val) => setServiceFilter(val)}
+            options={['Social Media', 'Website', 'Branding', 'SEO', 'Ads', 'Video Editing', 'Content Creation', 'Custom']}
+            allOptionLabel="All services"
+          />
           <input type="date" className="app-input h-10 text-xs w-full sm:w-auto sm:min-w-[140px]" value={createdFrom} onChange={(e) => setCreatedFrom(e.target.value)} />
           <input type="date" className="app-input h-10 text-xs w-full sm:w-auto sm:min-w-[140px]" value={createdTo} onChange={(e) => setCreatedTo(e.target.value)} />
           <Button type="button" variant="outline" size="sm" onClick={clearFilters}>Clear</Button>

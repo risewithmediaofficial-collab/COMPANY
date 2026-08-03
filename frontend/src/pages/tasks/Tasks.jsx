@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { CheckCircle2, Clock, ListChecks, Plus, TimerReset } from 'lucide-react';
+import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { DataTable } from '../../components/ui/DataTable';
@@ -272,18 +273,19 @@ const Tasks = () => {
         </div>
       )}
 
-      <PageToolbar>
-        <SearchField
-          value={filters.search}
-          onChange={(event) => updateFilter('search', event.target.value)}
-          placeholder="Search tasks, clients, requirements, or assignees..."
-        />
-        <div className="grid w-full gap-2 md:grid-cols-3 xl:grid-cols-6">
+      <CollapsibleFilterBar
+        search={filters.search}
+        onSearchChange={(val) => updateFilter('search', val)}
+        searchPlaceholder="Search tasks, clients, requirements, or assignees..."
+        activeFilterCount={Object.entries(filters).filter(([key, val]) => key !== 'search' && Boolean(val)).length}
+        onResetFilters={() => setFilters({ search: '', client: '', assignedTo: '', status: '', taskType: '', priority: '', dueDate: '' })}
+      >
+        <div className="grid w-full gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {!isEmployee && (
             <select
               value={filters.client}
               onChange={(event) => updateFilter('client', event.target.value)}
-              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="app-select"
             >
               <option value="">All clients</option>
               {clients.map((client) => (
@@ -295,7 +297,7 @@ const Tasks = () => {
             <select
               value={filters.assignedTo}
               onChange={(event) => updateFilter('assignedTo', event.target.value)}
-              className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="app-select"
             >
               <option value="">All assignees</option>
               {assignableUsers.map((person) => (
@@ -306,7 +308,7 @@ const Tasks = () => {
           <select
             value={filters.status}
             onChange={(event) => updateFilter('status', event.target.value)}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-select"
           >
             <option value="">All statuses</option>
             {TASK_STATUS_OPTIONS.map((option) => (
@@ -316,7 +318,7 @@ const Tasks = () => {
           <select
             value={filters.taskType}
             onChange={(event) => updateFilter('taskType', event.target.value)}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-select"
           >
             <option value="">All task types</option>
             {ALL_TASK_TYPES.map((option) => (
@@ -326,7 +328,7 @@ const Tasks = () => {
           <select
             value={filters.priority}
             onChange={(event) => updateFilter('priority', event.target.value)}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-select"
           >
             <option value="">All priorities</option>
             {PRIORITY_OPTIONS.map((option) => (
@@ -337,10 +339,10 @@ const Tasks = () => {
             type="date"
             value={filters.dueDate}
             onChange={(event) => updateFilter('dueDate', event.target.value)}
-            className="rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="app-input"
           />
         </div>
-      </PageToolbar>
+      </CollapsibleFilterBar>
 
       <DataTable
         data={normalizedTasks}

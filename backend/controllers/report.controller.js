@@ -13,6 +13,7 @@ import DomainRenewal from '../models/domainRenewal.model.js';
 import User from '../models/user.model.js';
 import CallHistory from '../models/callHistory.model.js';
 import SOP from '../models/sop.model.js';
+import ActivityLog from '../models/activityLog.model.js';
 
 export const getAdminDashboard = async (req, res) => {
   try {
@@ -162,6 +163,11 @@ export const getAdminDashboard = async (req, res) => {
     const remainingAmount = thisMonthRev - totalExpenses - totalAdsBudget;
     const pendingBalance = pendingBalanceAgg[0]?.pendingBalance || 0;
 
+    const recentActivityLogs = await ActivityLog.find()
+      .populate('actor', 'name email avatar role')
+      .sort({ createdAt: -1 })
+      .limit(15);
+
     res.json({
       success: true,
       periodStart,
@@ -186,11 +192,51 @@ export const getAdminDashboard = async (req, res) => {
       },
       charts: { stageFunnel, revenueChart: isManager ? [] : revenueChart, taskBreakdown },
       renewals: expiringRenewals,
+      activityLogs: recentActivityLogs,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getAdminAuditLogs = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    const skip = (page - 1) * limit;
+    const { entityType, search } = req.query;
+
+    const query = {};
+    if (entityType) query.entityType = entityType;
+    if (search) {
+      query.$or = [
+        { action: { $regex: search, $options: 'i' } },
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [logs, total] = await Promise.all([
+      ActivityLog.find(query)
+        .populate('actor', 'name email avatar role')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      ActivityLog.countDocuments(query),
+    ]);
+
+    res.json({
+      success: true,
+      logs,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 export const getEmployeeDashboard = async (req, res) => {
   try {
