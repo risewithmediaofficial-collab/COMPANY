@@ -26,7 +26,6 @@ import {
   KeyRound,
   PhoneCall,
   Globe2,
-  CreditCard,
   ClipboardList,
   Sparkles,
   StickyNote,

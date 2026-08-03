@@ -14,8 +14,6 @@ import {
   Shield,
   Trash2,
   User,
-  CreditCard,
-  Sparkles,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -37,7 +35,6 @@ const sections = [
   { id: 'security', label: 'Security', icon: Lock },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'appearance', label: 'Appearance', icon: Palette },
-  { id: 'billing', label: 'Billing & Plans', icon: CreditCard },
   { id: 'permissions', label: 'Permissions', icon: Shield },
 ];
 
@@ -566,143 +563,6 @@ const Settings = () => {
                     <div key={key} className="flex items-center justify-between rounded-xl border border-border p-4">
                       <span className="text-sm font-medium">{key.replace(/([A-Z])/g, ' $1')}</span>
                       <span className={`text-xs font-bold ${value ? 'text-emerald-600' : 'text-muted-foreground'}`}>{value ? 'Enabled' : 'Disabled'}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeSection === 'billing' && (
-              <div className="space-y-8">
-                <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-4">
-                  <div>
-                    <h3 className="text-lg font-bold">Company Details</h3>
-                    <p className="text-sm text-muted-foreground">These values are reused on bills, invoices, and proposals.</p>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Company Name</span>
-                      <input value={companyProfile.name} onChange={(event) => setCompanyProfile((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Rise With Media" />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">GST Number</span>
-                      <input value={companyProfile.gstNumber} onChange={(event) => setCompanyProfile((current) => ({ ...current, gstNumber: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="27ABCDE1234F1Z5" />
-                    </label>
-                    <label className="space-y-2 md:col-span-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Address</span>
-                      <textarea value={companyProfile.address} onChange={(event) => setCompanyProfile((current) => ({ ...current, address: event.target.value }))} rows={3} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Street, city, state, PIN" />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Email</span>
-                      <input value={companyProfile.email} onChange={(event) => setCompanyProfile((current) => ({ ...current, email: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="hello@company.com" />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone</span>
-                      <input value={companyProfile.phone} onChange={(event) => setCompanyProfile((current) => ({ ...current, phone: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="+91 98XXXXXX" />
-                    </label>
-                    <label className="space-y-2 md:col-span-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Services</span>
-                      <textarea value={companyProfile.services} onChange={(event) => setCompanyProfile((current) => ({ ...current, services: event.target.value }))} rows={3} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Social media management, branding, ads, web design, video production" />
-                    </label>
-                    <label className="space-y-2 md:col-span-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Logo URL</span>
-                      <input value={companyProfile.logoUrl} onChange={(event) => setCompanyProfile((current) => ({ ...current, logoUrl: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="https://.../logo.png" />
-                    </label>
-                  </div>
-                  <div className="flex justify-end">
-                    <button onClick={() => updateCompany.mutate(companyProfile)} disabled={updateCompany.isPending} className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60">
-                      {updateCompany.isPending ? 'Saving...' : 'Save Company Details'}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-bold">Billing & Pricing Plans</h3>
-                  <p className="text-sm text-muted-foreground">Upgrade your plan to unlock more CRM features and power up your agency.</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-                  {[
-                    {
-                      name: 'Starter',
-                      price: '₹999',
-                      period: '/month',
-                      desc: 'Essential leads & tasks tracking.',
-                      features: ['Up to 5 Projects', 'Basic CRM Leads', 'Content Calendar', 'Shared SOPs'],
-                    },
-                    {
-                      name: 'Basic',
-                      price: '₹2,499',
-                      period: '/month',
-                      desc: 'Perfect for small growing teams.',
-                      features: ['Up to 15 Projects', 'Advanced CRM Leads', 'Content Calendar', 'Shared SOPs', 'Asset Library', 'Portal Access'],
-                      popular: true,
-                    },
-                    {
-                      name: 'Professional',
-                      price: '₹4,999',
-                      period: '/month',
-                      desc: 'Advanced options for agencies.',
-                      features: ['Unlimited Projects', 'Custom Proposals', 'Client Vault access', 'Daily Tasks & HR', 'Finance Status', 'Realtime Chat'],
-                    },
-                    {
-                      name: 'Premium',
-                      price: '₹9,999',
-                      period: '/month',
-                      desc: 'Scale up your agency work.',
-                      features: ['Everything in Pro', 'Priority Admin Support', 'Dedicated Account Manager', 'Custom domain renewals'],
-                    },
-                    {
-                      name: 'Enterprise',
-                      price: '₹19,999',
-                      period: '/month',
-                      desc: 'Custom solutions for companies.',
-                      features: ['Custom workflows', 'Granular team access override', 'Unlimited Client Portals', '24/7 dedicated support team'],
-                    },
-                  ].map((plan) => (
-                    <div
-                      key={plan.name}
-                      className={`relative flex flex-col rounded-3xl border p-6 transition-all duration-300 ${
-                        plan.popular
-                          ? 'border-primary bg-primary/5 shadow-lg ring-1 ring-primary/20 scale-[1.02]'
-                          : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
-                      }`}
-                    >
-                      {plan.popular && (
-                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
-                          <Sparkles size={10} /> Popular
-                        </span>
-                      )}
-                      <div>
-                        <h4 className="text-base font-bold text-foreground">{plan.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-1 min-h-[32px]">{plan.desc}</p>
-                        <div className="mt-4 flex items-baseline">
-                          <span className="text-3xl font-black text-foreground">{plan.price}</span>
-                          <span className="text-xs text-muted-foreground ml-1">{plan.period}</span>
-                        </div>
-                      </div>
-
-                      <ul className="mt-6 space-y-2.5 flex-1">
-                        {plan.features.map((feat) => (
-                          <li key={feat} className="flex items-center text-xs text-muted-foreground gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            <span>{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
-
-                      <button
-                        onClick={() => {
-                          toast('Purchases are disabled in this build');
-                        }}
-                        className={`mt-6 w-full py-2.5 rounded-xl text-xs font-bold transition-all ${
-                          plan.popular
-                            ? 'bg-primary text-primary-foreground shadow-md hover:opacity-90 active:scale-[0.98]'
-                            : 'bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground'
-                        }`}
-                      >
-                        Buy {plan.name} Plan
-                      </button>
                     </div>
                   ))}
                 </div>
