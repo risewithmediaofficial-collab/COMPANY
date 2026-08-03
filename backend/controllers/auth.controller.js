@@ -11,12 +11,16 @@ import { createNotification } from '../utils/notification.js';
 
 // Generate access token (set to long lifetime: 30 days so users stay logged in)
 const generateAccessToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '30d' });
+  const secret = process.env.JWT_SECRET || 'dev-super-secret-jwt-key';
+  const expire = process.env.JWT_EXPIRE || '30d';
+  return jwt.sign({ id, role }, secret, { expiresIn: expire });
 };
 
 // Generate refresh token (set to long lifetime: 365 days)
 const generateRefreshToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRE || '365d' });
+  const secret = process.env.JWT_REFRESH_SECRET || 'dev-super-secret-refresh-key';
+  const expire = process.env.JWT_REFRESH_EXPIRE || '365d';
+  return jwt.sign({ id }, secret, { expiresIn: expire });
 };
 
 // @desc    Register user
