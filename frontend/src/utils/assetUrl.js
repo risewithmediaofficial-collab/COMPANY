@@ -27,23 +27,16 @@ export const getAssetUrl = (url) => {
 
   const normalized = url.replace(/\\/g, '/');
 
-  // If page is HTTPS and asset URL is insecure http://.../uploads/..., strip insecure origin to avoid Mixed Content
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    if (/^http:\/\//i.test(normalized) && normalized.includes('/uploads/')) {
-      const uploadPath = normalized.substring(normalized.indexOf('/uploads/'));
-      return `${window.location.origin}${uploadPath}`;
-    }
+  // Handle uploaded assets by routing through /api/uploads/ which is proxied by Nginx over HTTPS
+  if (normalized.includes('/uploads/') || normalized.startsWith('uploads/')) {
+    const uploadIndex = normalized.indexOf('uploads/');
+    const relativePath = normalized.substring(uploadIndex);
+    return `/api/${relativePath}`;
   }
 
   if (/^(blob:|data:|https?:\/\/)/i.test(normalized)) {
     return normalized;
   }
 
-  if (normalized.startsWith('/uploads/')) {
-    return `${getApiOrigin()}${normalized}`;
-  }
-  if (normalized.startsWith('uploads/')) {
-    return `${getApiOrigin()}/${normalized}`;
-  }
   return normalized;
 };

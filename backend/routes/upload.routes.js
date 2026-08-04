@@ -38,7 +38,7 @@ router.post('/', upload.single('file'), (req, res) => {
 
   return res.json({
     success: true,
-    url: `/uploads/${req.file.filename}`,
+    url: `/api/uploads/${req.file.filename}`,
     name: req.file.originalname,
     storedName: req.file.filename,
     size: req.file.size,
