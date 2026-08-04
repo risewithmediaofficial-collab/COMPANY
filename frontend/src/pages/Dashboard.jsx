@@ -504,7 +504,7 @@ const Dashboard = () => {
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
                         {report.user?.avatar ? (
-                          <img src={report.user.avatar} alt={report.user.name} className="h-full w-full object-cover" />
+                          <img src={getAssetUrl(report.user.avatar)} alt={report.user.name} className="h-full w-full object-cover" />
                         ) : (
                           report.user?.name ? report.user.name.charAt(0).toUpperCase() : 'U'
                         )}
@@ -1032,7 +1032,7 @@ const Dashboard = () => {
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
                         {report.user?.avatar ? (
-                          <img src={report.user.avatar} alt={report.user.name} className="h-full w-full object-cover" />
+                          <img src={getAssetUrl(report.user.avatar)} alt={report.user.name} className="h-full w-full object-cover" />
                         ) : (
                           report.user?.name ? report.user.name.charAt(0).toUpperCase() : 'T'
                         )}

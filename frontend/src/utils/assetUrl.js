@@ -13,6 +13,14 @@ export const getApiOrigin = () => {
 export const getAssetUrl = (url) => {
   if (!url) return '';
   if (/^(blob:|data:|https?:\/\/)/i.test(url)) return url;
-  if (url.startsWith('/uploads/')) return `${getApiOrigin()}${url}`;
-  return url;
+
+  const normalized = url.replace(/\\/g, '/');
+
+  if (normalized.startsWith('/uploads/')) {
+    return `${getApiOrigin()}${normalized}`;
+  }
+  if (normalized.startsWith('uploads/')) {
+    return `${getApiOrigin()}/${normalized}`;
+  }
+  return normalized;
 };

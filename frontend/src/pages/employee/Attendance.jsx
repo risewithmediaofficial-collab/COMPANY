@@ -23,6 +23,7 @@ import {
   XCircle,
   AlertCircle,
 } from 'lucide-react';
+import { getAssetUrl } from '../../utils/assetUrl';
 import { EODReportModal } from '../../components/modals/EODReportModal';
 import {
   useAttendance,
@@ -642,7 +643,7 @@ const Attendance = () => {
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
                         {item.user.avatar ? (
-                          <img src={item.user.avatar} alt={item.user.name} className="h-full w-full object-cover" />
+                          <img src={getAssetUrl(item.user.avatar)} alt={item.user.name} className="h-full w-full object-cover" />
                         ) : (
                           (item.user.name || item.user.email || 'E').charAt(0).toUpperCase()
                         )}
@@ -777,7 +778,7 @@ const Attendance = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 font-black text-primary text-lg uppercase overflow-hidden border border-primary/20 shadow-sm">
                     {selectedEmployeeInfo.avatar ? (
-                      <img src={selectedEmployeeInfo.avatar} alt={selectedEmployeeInfo.name} className="h-full w-full object-cover" />
+                      <img src={getAssetUrl(selectedEmployeeInfo.avatar)} alt={selectedEmployeeInfo.name} className="h-full w-full object-cover" />
                     ) : (
                       (selectedEmployeeInfo.name || selectedEmployeeInfo.email || 'E').charAt(0).toUpperCase()
                     )}
@@ -1062,7 +1063,7 @@ const Attendance = () => {
                           <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
                               {record.user?.avatar ? (
-                                <img src={record.user.avatar} alt={record.user.name} className="h-full w-full object-cover" />
+                                <img src={getAssetUrl(record.user.avatar)} alt={record.user.name} className="h-full w-full object-cover" />
                               ) : (
                                 (record.user?.name || record.user?.email || 'E').charAt(0).toUpperCase()
                               )}
@@ -1413,7 +1414,7 @@ const Attendance = () => {
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-secondary/30 border border-border">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-sm uppercase overflow-hidden border border-primary/20">
                     {selectedRecord.user.avatar ? (
-                      <img src={selectedRecord.user.avatar} alt={selectedRecord.user.name} className="h-full w-full object-cover" />
+                      <img src={getAssetUrl(selectedRecord.user.avatar)} alt={selectedRecord.user.name} className="h-full w-full object-cover" />
                     ) : (
                       (selectedRecord.user.name || selectedRecord.user.email || 'E').charAt(0).toUpperCase()
                     )}

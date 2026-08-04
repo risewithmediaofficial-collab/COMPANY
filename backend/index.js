@@ -186,8 +186,8 @@ const __dirname = path.dirname(__filename);
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/dist')));
   
-  // Any route that doesn't start with /api gets sent to the React app
-  app.get(/^(?!\/api).*/, (req, res) => {
+  // Any route that doesn't start with /api or /uploads gets sent to the React app
+  app.get(/^(?!\/(api|uploads)).*/, (req, res) => {
     res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
   });
 }

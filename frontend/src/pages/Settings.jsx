@@ -409,7 +409,7 @@ const Settings = () => {
                         <input value={companyProfile.logoUrl} onChange={(event) => setCompanyProfile((current) => ({ ...current, logoUrl: event.target.value }))} className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="https://domain.com/logo.png" />
                         {companyProfile.logoUrl && (
                           <div className="h-11 w-11 shrink-0 rounded-xl border border-border bg-white p-1 shadow-sm flex items-center justify-center overflow-hidden">
-                            <img src={companyProfile.logoUrl} alt="Company Logo" className="h-full w-full object-contain" />
+                            <img src={getAssetUrl(companyProfile.logoUrl)} alt="Company Logo" className="h-full w-full object-contain" />
                           </div>
                         )}
                       </div>

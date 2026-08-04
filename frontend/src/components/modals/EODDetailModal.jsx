@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { FileText, CheckCircle2, AlertCircle, Clock, User, Calendar, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getAssetUrl } from '@/utils/assetUrl';
 
 export const EODDetailModal = ({ open, onOpenChange, record }) => {
   if (!record) return null;
@@ -54,7 +55,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
           <div className="mt-4 flex items-center gap-3 pt-3 border-t border-border/50">
             <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-bold text-sm overflow-hidden shrink-0">
               {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                <img src={getAssetUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
               ) : (
                 user.name ? user.name.charAt(0).toUpperCase() : 'U'
               )}
