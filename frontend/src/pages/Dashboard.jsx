@@ -33,6 +33,7 @@ import {
   Plus,
   Activity,
 } from 'lucide-react';
+import { getAssetUrl } from '../utils/assetUrl';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { EODDetailModal } from '../components/modals/EODDetailModal';
 import { useEodReports } from '../hooks/useEodReports';
