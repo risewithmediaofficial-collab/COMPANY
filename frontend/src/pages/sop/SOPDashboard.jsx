@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
 import { useSOPs, useCreateSOP, useUpdateSOP, useDeleteSOP } from '../../hooks/useSOP';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -131,6 +132,16 @@ const SOPDashboard = () => {
     setForm(emptyForm);
   };
 
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await deleteSOP.mutateAsync(deleteId);
+    setDeleteId(null);
+    if (viewingSOP?._id === deleteId) {
+      setViewingSOP(null);
+      setShowViewModal(false);
+    }
+  };
+
   const columns = [
     { key: 'title', label: 'Title', render: (row) => <span className="font-semibold text-foreground">{row.title}</span> },
     {
@@ -183,8 +194,10 @@ const SOPDashboard = () => {
         loading={isLoading}
         onRowClick={openView}
         onView={openView}
-        onEdit={(row) => canEditSop(row) ? openEdit(row) : null}
-        onDelete={(row) => canDeleteSop(row) ? () => setDeleteId(row._id) : null}
+        onEdit={openEdit}
+        canEditRow={canEditSop}
+        onDelete={(id) => setDeleteId(id)}
+        canDeleteRow={canDeleteSop}
         emptyTitle="No SOPs yet"
         emptyDescription="Create your first standard operating procedure."
       />
@@ -336,13 +349,11 @@ const SOPDashboard = () => {
           <div className="flex justify-end gap-3">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={async () => {
-                if (deleteId) await deleteSOP.mutateAsync(deleteId);
-                setDeleteId(null);
-              }}
-              className="bg-destructive text-destructive-foreground"
+              onClick={handleDelete}
+              disabled={deleteSOP.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {deleteSOP.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </div>
         </AlertDialogContent>
