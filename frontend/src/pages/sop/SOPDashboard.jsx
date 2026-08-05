@@ -184,7 +184,7 @@ const SOPDashboard = () => {
         onRowClick={openView}
         onView={openView}
         onEdit={(row) => canEditSop(row) ? openEdit(row) : null}
-        onDelete={(row) => canDeleteSop(row) ? (id) => setDeleteId(id) : null}
+        onDelete={(row) => canDeleteSop(row) ? () => setDeleteId(row._id) : null}
         emptyTitle="No SOPs yet"
         emptyDescription="Create your first standard operating procedure."
       />
