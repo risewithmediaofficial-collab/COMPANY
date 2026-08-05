@@ -22,14 +22,13 @@ export const DialogContent = React.forwardRef(({ className, children, hideCloseB
         {...props}
       >
         {children}
+        {!hideCloseButton && (
+          <DialogPrimitive.Close className="absolute right-3 top-3 z-[100] flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xl border-2 border-white dark:border-slate-800 transition-all hover:scale-110 active:scale-95 cursor-pointer">
+            <X size={18} className="stroke-[2.5]" />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
+        )}
       </DialogPrimitive.Content>
-
-      {!hideCloseButton && (
-        <DialogPrimitive.Close className="pointer-events-auto absolute -top-3 -right-3 sm:-top-4 sm:-right-4 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xl border-2 border-white dark:border-slate-800 transition-all hover:scale-110 active:scale-95 cursor-pointer z-[100]">
-          <X size={18} className="stroke-[2.5]" />
-          <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
-      )}
     </div>
   </DialogPrimitive.Portal>
 ));
