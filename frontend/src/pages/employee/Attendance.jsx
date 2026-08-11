@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { EODReportModal } from '../../components/modals/EODReportModal';
+import { AttendanceWidget } from '../../components/attendance/AttendanceWidget';
 import {
   useAttendance,
   useTeamTodayAttendance,
@@ -888,119 +889,49 @@ const Attendance = () => {
       {/* Main Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Clock In/Out & Monthly Summary */}
-        {!isSuperAdmin && (
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-card p-8 rounded-3xl border border-border shadow-xl relative overflow-hidden text-center">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
-              <div className="relative z-10">
-                <div className="w-16 h-16 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                  <Timer size={32} className={isClockedIn ? 'animate-pulse' : ''} />
-                </div>
-                <h2 className="text-4xl font-black tracking-tighter mb-1">
-                  {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </h2>
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-8">
-                  {time.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
-                </p>
+        <div className="lg:col-span-1 space-y-6">
+          <AttendanceWidget todayRecord={todayRecord} user={user} />
 
-                {isClockedIn ? (
-                  <button
-                    onClick={handleClockOut}
-                    disabled={clockOut.isPending}
-                    className="w-full py-4 rounded-3xl bg-destructive text-white font-black text-lg shadow-xl shadow-destructive/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60"
-                  >
-                    {clockOut.isPending ? 'Clocking Out...' : 'Clock Out (Take Break)'}
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleClockIn}
-                    disabled={clockIn.isPending}
-                    className="w-full py-4 rounded-3xl bg-primary text-white font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
-                  >
-                    {clockIn.isPending ? 'Clocking In...' : todayRecord?.clockIn ? 'Clock In / Resume Shift' : 'Clock In'}
-                  </button>
-                )}
-
-                <div className="flex items-center justify-center space-x-6 pt-6 text-sm font-bold text-muted-foreground">
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs uppercase tracking-tighter opacity-60">First In</span>
-                    <span className="text-foreground">
-                      {formatTime(todayRecord?.clockIn)}
-                    </span>
-                  </div>
-                  <div className="w-px h-8 bg-border" />
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs uppercase tracking-tighter opacity-60">Last Out</span>
-                    <span className="text-foreground">
-                      {formatTime(todayRecord?.clockOut)}
-                    </span>
-                  </div>
-                  <div className="w-px h-8 bg-border" />
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs uppercase tracking-tighter opacity-60">Total Hours</span>
-                    <span className="text-emerald-600 font-extrabold">
-                      {Number(todayRecord?.totalHours || 0).toFixed(2)} hrs
-                    </span>
-                  </div>
-                </div>
-
-                {todayRecord?.sessions && todayRecord.sessions.length > 0 && (
-                  <div className="mt-6 pt-4 border-t border-border text-left">
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Today&apos;s Sessions & Breaks</p>
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                      {todayRecord.sessions.map((sess, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-xs p-2.5 rounded-xl bg-secondary/40 border border-border">
-                          <span className="font-bold text-foreground">Session {idx + 1}: {formatTime(sess.clockIn)} - {sess.clockOut ? formatTime(sess.clockOut) : 'Active Now'}</span>
-                          <span className="font-bold text-primary">{sess.clockOut ? `${sess.durationHours || 0} hrs` : 'Working'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
+            <h3 className="font-bold flex items-center mb-6">
+              <TrendingUp size={18} className="mr-2 text-emerald-500" />
+              {viewTab === 'team' ? 'Filtered Summary' : 'This Month Summary'}
+            </h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Present Days / Logs</span>
+                <span className="font-bold text-emerald-600">{summary.present} Records</span>
               </div>
-            </div>
-
-            <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
-              <h3 className="font-bold flex items-center mb-6">
-                <TrendingUp size={18} className="mr-2 text-emerald-500" />
-                {viewTab === 'team' ? 'Filtered Summary' : 'This Month Summary'}
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Present Days / Logs</span>
-                  <span className="font-bold text-emerald-600">{summary.present} Records</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">Total Hours</span>
-                  <span className="font-bold">{summary.totalHours} hrs</span>
-                </div>
-                {summary.leave > 0 && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Leaves</span>
-                    <span className="font-bold text-rose-600">{summary.leave} Days</span>
-                  </div>
-                )}
-                {summary.wfh > 0 && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Work From Home</span>
-                    <span className="font-bold text-purple-600">{summary.wfh} Days</span>
-                  </div>
-                )}
-                {viewTab === 'personal' && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">EOD Submitted</span>
-                    <span className={`font-bold ${eodSubmitted ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {eodSubmitted ? 'Yes' : 'Pending'}
-                    </span>
-                  </div>
-                )}
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Total Hours</span>
+                <span className="font-bold">{summary.totalHours} hrs</span>
               </div>
+              {summary.leave > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Leaves</span>
+                  <span className="font-bold text-rose-600">{summary.leave} Days</span>
+                </div>
+              )}
+              {summary.wfh > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">Work From Home</span>
+                  <span className="font-bold text-purple-600">{summary.wfh} Days</span>
+                </div>
+              )}
+              {viewTab === 'personal' && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">EOD Submitted</span>
+                  <span className={`font-bold ${eodSubmitted ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    {eodSubmitted ? 'Yes' : 'Pending'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
         {/* Right Column: Attendance Records Table */}
-        <div className={`${isSuperAdmin ? 'lg:col-span-3' : 'lg:col-span-2'} space-y-6`}>
+        <div className="lg:col-span-2 space-y-6">
           <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
             <div className="p-6 border-b border-border flex flex-wrap items-center justify-between gap-4 bg-secondary/10">
               <h3 className="font-bold flex items-center">

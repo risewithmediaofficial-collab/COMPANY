@@ -102,10 +102,28 @@ export const useSubmitLeave = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
-      toast.success(data?.message || 'Leave informed successfully');
+      toast.success(data?.message || 'Leave marked successfully');
     },
-    onError: (error) => toast.error(error.response?.data?.message || 'Failed to submit leave notice'),
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to submit leave'),
+  });
+};
+
+export const useSubmitAbsent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await api.post('/attendance/absent', data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      toast.success(data?.message || 'Absent marked successfully');
+    },
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to mark absent'),
   });
 };
 

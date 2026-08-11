@@ -73,6 +73,7 @@ const Sidebar = () => {
   const menuItems = {
     superAdmin: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Social Media Manager', icon: Share2, path: '/smm' },
       { name: 'CRM & Leads', icon: TrendingUp, path: '/crm/leads' },
       { name: 'Call History', icon: PhoneCall, path: '/call-history' },
@@ -90,7 +91,6 @@ const Sidebar = () => {
       { name: 'DM Calendar', icon: Calendar, path: '/dm-calendar' },
       { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
       { name: 'HR & Hiring', icon: Users2, path: '/hr' },
-      { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Reports', icon: BarChart3, path: '/reports' },
       { name: 'Asset Library', icon: Palette, path: '/assets' },
       { name: 'Manager Assignments', icon: CheckSquare, path: '/admin/manager-assignments' },
@@ -99,6 +99,7 @@ const Sidebar = () => {
     ],
     manager: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Social Media Manager', icon: Share2, path: '/smm' },
       { name: 'CRM & Leads', icon: TrendingUp, path: '/crm/leads' },
       { name: 'Call History', icon: PhoneCall, path: '/call-history' },
@@ -114,13 +115,13 @@ const Sidebar = () => {
       { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
       { name: 'DM Calendar', icon: Calendar, path: '/dm-calendar' },
       { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
-      { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Reports', icon: BarChart3, path: '/reports' },
       { name: 'Asset Library', icon: Palette, path: '/assets' },
       { name: 'Manager Board', icon: ClipboardList, path: '/manager-board' },
     ],
     employee: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+      { name: 'Attendance', icon: Clock, path: '/attendance' },
       { name: 'Social Media Manager', icon: Share2, path: '/smm' },
       { name: 'Daily Tasks', icon: Calendar, path: '/daily-tasks' },
       { name: 'My Tasks', icon: CheckSquare, path: '/tasks' },
@@ -128,7 +129,6 @@ const Sidebar = () => {
       { name: 'SOP Dashboard', icon: BookOpen, path: '/sop' },
       { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
       { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
-      { name: 'Attendance', icon: Clock, path: '/attendance' },
     ],
     client: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/' },

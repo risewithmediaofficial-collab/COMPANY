@@ -368,47 +368,82 @@ export const assignHoliday = async (req, res) => {
   }
 };
 
-export const submitLeave = async (req, res) => {
+export const submitAbsent = async (req, res) => {
   try {
-    const { userId, date, notes } = req.body;
-    if (!userId) {
-      return res.status(400).json({ success: false, message: 'Employee userId is required' });
-    }
-    if (!date) {
-      return res.status(400).json({ success: false, message: 'Date is required' });
+    const { userId, date, notes, reason } = req.body;
+    const targetUserId = userId || req.user._id;
+    const reasonText = notes || reason;
+
+    if (!reasonText || !reasonText.trim()) {
+      return res.status(400).json({ success: false, message: 'Reason for marking absent is required' });
     }
 
-    const leaveDate = new Date(date);
-    leaveDate.setHours(0, 0, 0, 0);
-
-    const assignerRole = req.user.role === 'superAdmin' ? 'Super Admin' : 'Manager';
-    const reasonText = notes || 'Assigned Leave';
+    const absentDate = date ? new Date(date) : new Date();
+    absentDate.setHours(0, 0, 0, 0);
 
     const attendance = await Attendance.findOneAndUpdate(
-      { user: userId, date: leaveDate },
+      { user: targetUserId, date: absentDate },
       {
-        status: 'leave',
-        notes: reasonText,
+        status: 'absent',
+        notes: reasonText.trim(),
+        clockIn: null,
+        clockOut: null,
+        totalHours: 0,
+        sessions: [],
         isApproved: true,
         approvedBy: req.user._id,
       },
       { upsert: true, new: true }
-    );
+    ).populate('user', 'name avatar department position role email');
 
-    // Send notification to employee
-    await createNotification(
+    res.json({ success: true, message: 'Marked absent successfully', attendance });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const submitLeave = async (req, res) => {
+  try {
+    const { userId, date, notes, reason } = req.body;
+    const targetUserId = userId || req.user._id;
+    const reasonText = notes || reason;
+
+    if (!reasonText || !reasonText.trim()) {
+      return res.status(400).json({ success: false, message: 'Reason for leave is required' });
+    }
+
+    const leaveDate = date ? new Date(date) : new Date();
+    leaveDate.setHours(0, 0, 0, 0);
+
+    const assignerRole = req.user.role === 'superAdmin' ? 'Super Admin' : req.user.role === 'manager' ? 'Manager' : 'User';
+
+    const attendance = await Attendance.findOneAndUpdate(
+      { user: targetUserId, date: leaveDate },
       {
-        recipient: userId,
-        sender: req.user._id,
-        type: 'attendance',
-        title: 'Leave Assigned 🏖️',
-        message: `${req.user.name} (${assignerRole}) assigned you leave on ${date}: "${reasonText}"`,
-        link: '/attendance',
+        status: 'leave',
+        notes: reasonText.trim(),
+        isApproved: true,
+        approvedBy: req.user._id,
       },
-      req.app.get('io')
-    );
+      { upsert: true, new: true }
+    ).populate('user', 'name avatar department position role email');
 
-    res.json({ success: true, message: 'Leave assigned successfully', attendance });
+    if (targetUserId.toString() !== req.user._id.toString()) {
+      const formattedDate = leaveDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      await createNotification(
+        {
+          recipient: targetUserId,
+          sender: req.user._id,
+          type: 'attendance',
+          title: 'Leave Marked 🏖️',
+          message: `${req.user.name} (${assignerRole}) marked leave for you on ${formattedDate}: "${reasonText.trim()}"`,
+          link: '/attendance',
+        },
+        req.app.get('io')
+      );
+    }
+
+    res.json({ success: true, message: 'Leave marked successfully', attendance });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -37,6 +37,7 @@ import { getAssetUrl } from '../utils/assetUrl';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { EODDetailModal } from '../components/modals/EODDetailModal';
 import { useEodReports } from '../hooks/useEodReports';
+import { AttendanceWidget } from '../components/attendance/AttendanceWidget';
 import { 
   AreaChart, 
   Area, 
@@ -895,36 +896,24 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Quick Actions & Attendance */}
+          {/* Attendance Widget & Quick Actions */}
           <div className="space-y-6">
-            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-              <h3 className="font-bold mb-4">Daily Attendance & Actions</h3>
-              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-xl mb-4 border border-border">
-                <div className="flex items-center">
-                  <Clock size={20} className="text-primary mr-3" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Clock In</p>
-                    <p className="text-sm font-bold">{data.todayAttendance?.clockIn ? new Date(data.todayAttendance.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}</p>
-                  </div>
-                </div>
-                {!data.todayAttendance?.clockIn && (
-                  <Link to="/attendance" className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-primary/30 transition-all">Clock In</Link>
-                )}
-              </div>
-              <div className="space-y-3">
-                <Link to="/calendar" className="block w-full text-center py-2.5 rounded-xl bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Open Content Calendar</Link>
-                <Link to="/sop" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                  <BookOpen size={16} className="text-primary" />
-                  SOP Dashboard & My SOPs
-                </Link>
-                <Link to="/pending-notes" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                  <StickyNote size={16} className="text-amber-500" />
-                  My Pending Task Notes
-                </Link>
-                <button onClick={() => setShowEodModal(true)} className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">
-                  {isEodSubmittedToday ? 'View / Edit EOD Report' : 'Submit EOD Report'}
-                </button>
-              </div>
+            <AttendanceWidget todayRecord={data?.todayAttendance} user={user} />
+
+            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-3">
+              <h3 className="font-bold mb-3 text-sm text-foreground">Quick Portal Shortcuts</h3>
+              <Link to="/calendar" className="block w-full text-center py-2.5 rounded-xl bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Open Content Calendar</Link>
+              <Link to="/sop" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <BookOpen size={16} className="text-primary" />
+                SOP Dashboard & My SOPs
+              </Link>
+              <Link to="/pending-notes" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                <StickyNote size={16} className="text-amber-500" />
+                My Pending Task Notes
+              </Link>
+              <button onClick={() => setShowEodModal(true)} className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">
+                {isEodSubmittedToday ? 'View / Edit EOD Report' : 'Submit EOD Report'}
+              </button>
             </div>
 
             <div className="bg-card p-6 rounded-2xl border border-border shadow-sm bg-gradient-to-br from-indigo-600 to-primary text-white">

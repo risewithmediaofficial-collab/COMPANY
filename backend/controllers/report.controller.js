@@ -168,10 +168,15 @@ export const getAdminDashboard = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(15);
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayAttendance = await Attendance.findOne({ user: req.user._id, date: today });
+
     res.json({
       success: true,
       periodStart,
       periodEnd,
+      todayAttendance,
       stats: {
         totalLeads, newLeadsThisMonth, wonLeads,
         conversionRate: totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : 0,
