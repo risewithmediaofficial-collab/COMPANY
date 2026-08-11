@@ -29,9 +29,7 @@ export const fetchMe = createAsyncThunk(
       const token = localStorage.getItem('accessToken');
       const refreshToken = localStorage.getItem('refreshToken');
       if (!token || !refreshToken) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        return rejectWithValue({ message: 'No active session' });
+        return rejectWithValue({ isAuthError: true, message: 'No active session' });
       }
 
       const response = await axios.get('/api/auth/me', {
@@ -43,9 +41,7 @@ export const fetchMe = createAsyncThunk(
       if (error.response?.status === 401) {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          return rejectWithValue({ message: 'Session expired. Please log in again.' });
+          return rejectWithValue({ isAuthError: true, message: 'Session expired. Please log in again.' });
         }
 
         try {
@@ -62,12 +58,10 @@ export const fetchMe = createAsyncThunk(
           return retryRes.data;
         } catch (_refreshError) {
           // Refresh failed — session is truly expired
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          return rejectWithValue({ message: 'Session expired. Please log in again.' });
+          return rejectWithValue({ isAuthError: true, message: 'Session expired. Please log in again.' });
         }
       }
-      return rejectWithValue(error.response?.data || { message: 'Session expired' });
+      return rejectWithValue({ isAuthError: false, message: error.response?.data?.message || 'Server connection issue' });
     }
   }
 );
@@ -150,12 +144,16 @@ const authSlice = createSlice({
       })
       .addCase(fetchMe.rejected, (state, action) => {
         state.loading = false;
-        state.user = null;
-        state.accessToken = null;
-        state.isAuthenticated = false;
-        state.error = action.payload?.message || 'Session expired';
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        if (action.payload?.isAuthError) {
+          state.user = null;
+          state.accessToken = null;
+          state.isAuthenticated = false;
+          state.error = action.payload?.message || 'Session expired';
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+        } else {
+          state.error = action.payload?.message || 'Temporary connection issue';
+        }
       });
   },
 });

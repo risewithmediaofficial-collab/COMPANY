@@ -9,17 +9,17 @@ import Client from '../models/client.model.js';
 import { sendEmail } from '../utils/email.js';
 import { createNotification } from '../utils/notification.js';
 
-// Generate access token (set to long lifetime: 30 days so users stay logged in)
+// Generate access token (set to long lifetime: 365 days so users stay logged in)
 const generateAccessToken = (id, role) => {
   const secret = process.env.JWT_SECRET || 'dev-super-secret-jwt-key';
-  const expire = process.env.JWT_EXPIRE || '30d';
+  const expire = process.env.JWT_EXPIRE || '365d';
   return jwt.sign({ id, role }, secret, { expiresIn: expire });
 };
 
-// Generate refresh token (set to long lifetime: 365 days)
+// Generate refresh token (set to long lifetime: 3650 days)
 const generateRefreshToken = (id) => {
   const secret = process.env.JWT_REFRESH_SECRET || 'dev-super-secret-refresh-key';
-  const expire = process.env.JWT_REFRESH_EXPIRE || '365d';
+  const expire = process.env.JWT_REFRESH_EXPIRE || '3650d';
   return jwt.sign({ id }, secret, { expiresIn: expire });
 };
 
