@@ -26,6 +26,7 @@ import {
   NON_CONTENT_TASK_TYPE_OPTIONS,
   PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
+  TEAM_STATUS_OPTIONS,
   formatTaskTypeLabel,
   normalizeTaskStatusLabel,
 } from '../../utils/taskFields';
@@ -175,20 +176,16 @@ const Tasks = () => {
       key: 'status',
       label: 'Status',
       render: (row) => (
-        isEmployee ? (
-          <StatusBadge tone={statusTone[row.status] || 'neutral'}>{row.status}</StatusBadge>
-        ) : (
-          <select
-            value={row.status}
-            onClick={(event) => event.stopPropagation()}
-            onChange={(event) => updateStatusMutation.mutate({ id: row._id, status: event.target.value })}
-            className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
-          >
-            {TASK_STATUS_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        )
+        <select
+          value={row.status}
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => updateStatusMutation.mutate({ id: row._id, status: event.target.value })}
+          className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15 cursor-pointer"
+        >
+          {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
       ),
     },
     {

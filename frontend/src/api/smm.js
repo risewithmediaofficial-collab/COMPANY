@@ -4,19 +4,20 @@ export const smmApi = {
   // Dashboard
   getDashboardStats: (params) => api.get('/smm/dashboard/stats', { params }),
 
-  // Clients
+  // Clients & Projects
   getClients: (params) => api.get('/smm/clients', { params }),
   getClient: (id) => api.get(`/smm/clients/${id}`),
-  createClient: (data) => api.post('/smm/clients', data),
-  updateClient: (id, data) => api.put(`/smm/clients/${id}`, data),
-  deleteClient: (id) => api.delete(`/smm/clients/${id}`),
-
-  // Projects
   getProjects: (params) => api.get('/smm/projects', { params }),
   getProject: (id) => api.get(`/smm/projects/${id}`),
-  createProject: (data) => api.post('/smm/projects', data),
-  updateProject: (id, data) => api.put(`/smm/projects/${id}`, data),
-  deleteProject: (id) => api.delete(`/smm/projects/${id}`),
+
+  // Organic Content
+  getContents: (params) => api.get('/smm/content', { params }),
+  getContentById: (id) => api.get(`/smm/content/${id}`),
+  getPublishedContentForAd: (params) => api.get('/smm/content/published-for-ad', { params }),
+  createContent: (data) => api.post('/smm/content', data),
+  updateContent: (id, data) => api.put(`/smm/content/${id}`, data),
+  updateContentPerformance: (id, data) => api.patch(`/smm/content/${id}/performance`, data),
+  deleteContent: (id) => api.delete(`/smm/content/${id}`),
 
   // Campaigns
   getCampaigns: (params) => api.get('/smm/campaigns', { params }),
@@ -24,10 +25,20 @@ export const smmApi = {
   createCampaign: (data) => api.post('/smm/campaigns', data),
   updateCampaign: (id, data) => api.put(`/smm/campaigns/${id}`, data),
   updatePerformance: (id, data) => api.patch(`/smm/campaigns/${id}/performance`, data),
-  addDailyLog: (id, data) => api.post(`/smm/campaigns/${id}/daily-logs`, data),
-  deleteDailyLog: (id, logId) => api.delete(`/smm/campaigns/${id}/daily-logs/${logId}`),
   deleteCampaign: (id) => api.delete(`/smm/campaigns/${id}`),
   bulkUpdateCampaignStatus: (data) => api.put('/smm/campaigns/bulk-status', data),
+
+  // Daily Ad Spend Logging
+  getAdSpendLogs: (params) => api.get('/smm/ad-spend', { params }),
+  addAdSpendLog: (data) => api.post('/smm/ad-spend', data),
+  deleteAdSpendLog: (id) => api.delete(`/smm/ad-spend/${id}`),
+
+  // Leads Tracking
+  getLeads: (params) => api.get('/smm/leads', { params }),
+  getLeadStats: (params) => api.get('/smm/leads/stats', { params }),
+  createLead: (data) => api.post('/smm/leads', data),
+  updateLead: (id, data) => api.put(`/smm/leads/${id}`, data),
+  deleteLead: (id) => api.delete(`/smm/leads/${id}`),
 
   // Ad Sets
   getAdSets: (params) => api.get('/smm/adsets', { params }),
@@ -51,14 +62,11 @@ export const smmApi = {
   updateCreative: (id, data) => api.put(`/smm/creatives/${id}`, data),
   deleteCreative: (id) => api.delete(`/smm/creatives/${id}`),
 
-  // Tasks
+  // Tasks & Notes
   getTasks: (params) => api.get('/smm/tasks', { params }),
   createTask: (data) => api.post('/smm/tasks', data),
   updateTask: (id, data) => api.put(`/smm/tasks/${id}`, data),
   deleteTask: (id) => api.delete(`/smm/tasks/${id}`),
-  addTaskComment: (id, data) => api.post(`/smm/tasks/${id}/comments`, data),
-
-  // Notes
   getNotes: (params) => api.get('/smm/notes', { params }),
   createNote: (data) => api.post('/smm/notes', data),
   deleteNote: (id) => api.delete(`/smm/notes/${id}`),

@@ -46,6 +46,7 @@ import {
   TASK_STATUS_OPTIONS,
   WEBSITE_TYPE_OPTIONS,
   formatTaskTypeLabel,
+  getTaskCategoryFromType,
   isWebsiteTaskType,
   normalizeTaskStatusLabel,
   uploadFiles,

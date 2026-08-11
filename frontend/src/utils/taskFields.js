@@ -231,3 +231,9 @@ export const uploadFiles = async (files) => {
 
   return uploaded;
 };
+
+export const getTaskCategoryFromType = (taskType) => {
+  if (!taskType) return 'content';
+  if (NON_CONTENT_TASK_TYPE_OPTIONS.some((opt) => opt.value === taskType)) return 'non_content';
+  return 'content';
+};

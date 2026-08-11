@@ -2,23 +2,28 @@
 // SMM CAMPAIGN CONTROLLER
 // =============================================
 import Campaign from '../../models/smm/campaign.model.js';
+import SmmContent from '../../models/smm/smmContent.model.js';
 import SmmActivityLog from '../../models/smm/smmActivityLog.model.js';
+import SmmAdSpend from '../../models/smm/smmAdSpend.model.js';
+import SmmLead from '../../models/smm/smmLead.model.js';
+import { recalculateCampaignSpend } from './smmAdSpend.controller.js';
 
 const populateCampaign = (query) =>
   query
     .populate('client', 'name company email logo')
-    .populate({ path: 'project', select: 'name status client', populate: { path: 'client', select: 'name company' } })
+    .populate('project', 'name category status client')
+    .populate('sourceContentId', 'name contentType platforms thumbnail mediaUpload actualPostedDate')
     .populate('team.campaignManager', 'name')
     .populate('team.performanceMarketer', 'name')
     .populate('team.designer', 'name')
-    .populate('team.videoEditor', 'name')
     .populate('team.copywriter', 'name')
     .populate('createdBy', 'name');
 
 export const getCampaigns = async (req, res) => {
   try {
-    const { project, status, platform, objective, search, page = 1, limit = 50 } = req.query;
+    const { client, project, status, platform, objective, search, page = 1, limit = 50 } = req.query;
     const query = {};
+    if (client) query.client = client;
     if (project) query.project = project;
     if (status) query.status = status;
     if (platform) query.platform = platform;
@@ -27,7 +32,7 @@ export const getCampaigns = async (req, res) => {
 
     const total = await Campaign.countDocuments(query);
     const campaigns = await populateCampaign(
-      Campaign.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit))
+      Campaign.find(query).sort({ createdAt: -1 }).skip((Number(page) - 1) * Number(limit)).limit(Number(limit))
     );
 
     res.json({ success: true, data: campaigns, total });
@@ -40,7 +45,21 @@ export const getCampaign = async (req, res) => {
   try {
     const campaign = await populateCampaign(Campaign.findById(req.params.id));
     if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
-    res.json({ success: true, data: campaign });
+
+    // Fetch daily spend logs and campaign leads
+    const [spendLogs, campaignLeads] = await Promise.all([
+      SmmAdSpend.find({ campaign: campaign._id }).sort({ date: -1 }),
+      SmmLead.find({ campaign: campaign._id }).sort({ leadDate: -1 }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        ...campaign.toObject(),
+        spendLogs,
+        leadsList: campaignLeads,
+      },
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -48,14 +67,66 @@ export const getCampaign = async (req, res) => {
 
 export const createCampaign = async (req, res) => {
   try {
-    const campaign = await Campaign.create({ ...req.body, createdBy: req.user._id });
+    const { client, project, name, platform, objective, startDate, endDate, dailyBudget, lifetimeBudget, budgetType, adSource, sourceContentId } = req.body;
+
+    if (!client || !project) {
+      return res.status(400).json({
+        success: false,
+        message: 'Client and Project selection are required to create a campaign.',
+      });
+    }
+
+    if (!name || !platform || !objective) {
+      return res.status(400).json({
+        success: false,
+        message: 'Campaign Name, Platform, and Objective are required.',
+      });
+    }
+
+    if (adSource === 'Existing Posted Content' && !sourceContentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Source content selection is required when creating an ad from an existing post.',
+      });
+    }
+
+    // Calculate duration in days
+    let durationDays = 0;
+    if (startDate && endDate) {
+      const diffMs = new Date(endDate) - new Date(startDate);
+      durationDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    }
+
+    // Calculate initial remaining budget
+    const totalBudget = budgetType === 'Daily Budget'
+      ? (Number(dailyBudget) || 0) * (durationDays || 30)
+      : (Number(lifetimeBudget) || 0);
+
+    const payload = {
+      ...req.body,
+      durationDays,
+      amountSpent: 0,
+      remainingBalance: totalBudget,
+      createdBy: req.user?._id,
+    };
+
+    const campaign = await Campaign.create(payload);
+
+    // If linked to an organic post, append campaign ID to SmmContent
+    if (sourceContentId) {
+      await SmmContent.findByIdAndUpdate(sourceContentId, {
+        $addToSet: { linkedAdCampaignIds: campaign._id },
+      });
+    }
+
     await SmmActivityLog.create({
       action: 'Campaign Created',
       entity: 'SmmCampaign',
       entityId: campaign._id,
       entityName: campaign.name,
-      performedBy: req.user._id,
+      performedBy: req.user?._id,
     });
+
     const populated = await populateCampaign(Campaign.findById(campaign._id));
     res.status(201).json({ success: true, data: populated });
   } catch (err) {
@@ -66,24 +137,25 @@ export const createCampaign = async (req, res) => {
 export const updateCampaign = async (req, res) => {
   try {
     const prevCampaign = await Campaign.findById(req.params.id);
-    const campaign = await populateCampaign(
-      Campaign.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
-    );
-    if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+    if (!prevCampaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
 
-    const action = prevCampaign?.status !== req.body.status
-      ? 'Status Changed'
-      : prevCampaign?.dailyBudget !== req.body.dailyBudget
-        ? 'Budget Changed'
-        : 'Campaign Updated';
+    const updates = { ...req.body };
+
+    if (updates.startDate && updates.endDate) {
+      const diffMs = new Date(updates.endDate) - new Date(updates.startDate);
+      updates.durationDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    }
+
+    const campaign = await populateCampaign(
+      Campaign.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true })
+    );
 
     await SmmActivityLog.create({
-      action,
+      action: 'Campaign Updated',
       entity: 'SmmCampaign',
       entityId: campaign._id,
       entityName: campaign.name,
-      performedBy: req.user._id,
-      metadata: { changes: req.body },
+      performedBy: req.user?._id,
     });
 
     res.json({ success: true, data: campaign });
@@ -110,7 +182,16 @@ export const deleteCampaign = async (req, res) => {
   try {
     const campaign = await Campaign.findByIdAndDelete(req.params.id);
     if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
-    res.json({ success: true, message: 'Campaign deleted' });
+
+    // Clean up daily spend logs and remove reference from source content
+    await SmmAdSpend.deleteMany({ campaign: req.params.id });
+    if (campaign.sourceContentId) {
+      await SmmContent.findByIdAndUpdate(campaign.sourceContentId, {
+        $pull: { linkedAdCampaignIds: campaign._id },
+      });
+    }
+
+    res.json({ success: true, message: 'Campaign deleted successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -129,62 +210,27 @@ export const bulkUpdateCampaignStatus = async (req, res) => {
 
 export const addDailyLog = async (req, res) => {
   try {
-    const campaign = await Campaign.findById(req.params.id);
+    const campaignId = req.params.id;
+    const campaign = await Campaign.findById(campaignId);
     if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
 
-    const newLog = {
+    const spendLog = await SmmAdSpend.create({
+      client: campaign.client,
+      project: campaign.project,
+      campaign: campaignId,
       date: req.body.date || new Date(),
-      leads: Number(req.body.leads) || 0,
-      spend: Number(req.body.spend) || 0,
-      revenue: Number(req.body.revenue) || 0,
+      dailyBudget: campaign.dailyBudget,
+      amountSpent: Number(req.body.spend || req.body.amountSpent) || 0,
+      leadsGenerated: Number(req.body.leads || req.body.leadsGenerated) || 0,
       clicks: Number(req.body.clicks) || 0,
       impressions: Number(req.body.impressions) || 0,
       notes: req.body.notes || '',
-      loggedBy: req.user._id,
-    };
-
-    campaign.dailyLogs.push(newLog);
-
-    const totals = campaign.dailyLogs.reduce((acc, item) => {
-      acc.leads += item.leads || 0;
-      acc.spend += item.spend || 0;
-      acc.revenue += item.revenue || 0;
-      acc.clicks += item.clicks || 0;
-      acc.impressions += item.impressions || 0;
-      return acc;
-    }, { leads: 0, spend: 0, revenue: 0, clicks: 0, impressions: 0 });
-
-    const cpl = totals.leads > 0 ? Number((totals.spend / totals.leads).toFixed(2)) : 0;
-    const roas = totals.spend > 0 ? Number((totals.revenue / totals.spend).toFixed(2)) : 0;
-    const ctr = totals.impressions > 0 ? Number(((totals.clicks / totals.impressions) * 100).toFixed(2)) : 0;
-    const cpc = totals.clicks > 0 ? Number((totals.spend / totals.clicks).toFixed(2)) : 0;
-
-    campaign.performance = {
-      ...campaign.performance,
-      leads: totals.leads,
-      spend: totals.spend,
-      revenue: totals.revenue,
-      clicks: totals.clicks,
-      impressions: totals.impressions,
-      costPerLead: cpl,
-      roas,
-      ctr,
-      cpc,
-    };
-
-    await campaign.save();
-
-    await SmmActivityLog.create({
-      action: 'Daily Lead Log Added',
-      entity: 'SmmCampaign',
-      entityId: campaign._id,
-      entityName: campaign.name,
-      performedBy: req.user._id,
-      metadata: { leads: newLog.leads, spend: newLog.spend },
+      loggedBy: req.user?._id,
     });
 
-    const populated = await populateCampaign(Campaign.findById(campaign._id));
-    res.status(201).json({ success: true, data: populated });
+    await recalculateCampaignSpend(campaignId);
+    const updated = await populateCampaign(Campaign.findById(campaignId));
+    res.status(201).json({ success: true, data: updated });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -192,40 +238,12 @@ export const addDailyLog = async (req, res) => {
 
 export const deleteDailyLog = async (req, res) => {
   try {
-    const campaign = await Campaign.findById(req.params.id);
-    if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
-
-    campaign.dailyLogs = campaign.dailyLogs.filter(
-      (log) => log._id.toString() !== req.params.logId
-    );
-
-    const totals = campaign.dailyLogs.reduce((acc, item) => {
-      acc.leads += item.leads || 0;
-      acc.spend += item.spend || 0;
-      acc.revenue += item.revenue || 0;
-      acc.clicks += item.clicks || 0;
-      acc.impressions += item.impressions || 0;
-      return acc;
-    }, { leads: 0, spend: 0, revenue: 0, clicks: 0, impressions: 0 });
-
-    const cpl = totals.leads > 0 ? Number((totals.spend / totals.leads).toFixed(2)) : 0;
-    const roas = totals.spend > 0 ? Number((totals.revenue / totals.spend).toFixed(2)) : 0;
-
-    campaign.performance = {
-      ...campaign.performance,
-      leads: totals.leads,
-      spend: totals.spend,
-      revenue: totals.revenue,
-      clicks: totals.clicks,
-      impressions: totals.impressions,
-      costPerLead: cpl,
-      roas,
-    };
-
-    await campaign.save();
-
-    const populated = await populateCampaign(Campaign.findById(campaign._id));
-    res.json({ success: true, data: populated });
+    const campaignId = req.params.id;
+    const logId = req.params.logId;
+    await SmmAdSpend.findByIdAndDelete(logId);
+    await recalculateCampaignSpend(campaignId);
+    const updated = await populateCampaign(Campaign.findById(campaignId));
+    res.json({ success: true, data: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

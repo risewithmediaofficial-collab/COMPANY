@@ -57,6 +57,8 @@ import PortalGuidelines from './pages/portal/sections/PortalGuidelines';
 
 // Social Media Manager Module Pages
 import SMMDashboard from './pages/smm/SMMDashboard';
+import SMMContent from './pages/smm/SMMContent';
+import SMMLeads from './pages/smm/SMMLeads';
 import SMMClients from './pages/smm/SMMClients';
 import SMMProjects from './pages/smm/SMMProjects';
 import Campaigns from './pages/smm/Campaigns';
@@ -358,9 +360,19 @@ const App = () => {
               <SMMDashboard />
             </ProtectedRoute>
           } />
+          <Route path="/smm/content" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMContent />
+            </ProtectedRoute>
+          } />
           <Route path="/smm/campaigns" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <Campaigns />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/leads" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMLeads />
             </ProtectedRoute>
           } />
           <Route path="/smm/adsets" element={
