@@ -48,8 +48,11 @@ const normalizeClientPayload = (body) => {
     payload.referredByManual = '';
   }
 
-  if (payload.referredByManual) {
-    payload.referredBy = null;
+  if (payload.contractEndDate === '' || payload.contractEndDate === undefined) {
+    payload.contractEndDate = null;
+  }
+  if (payload.contractStartDate === '' || payload.contractStartDate === undefined) {
+    payload.contractStartDate = null;
   }
 
   return payload;

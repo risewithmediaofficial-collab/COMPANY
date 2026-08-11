@@ -40,6 +40,11 @@ const clientSchema = new mongoose.Schema(
     convertedFromLead: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' },
     // Billing
     contractValue: { type: Number, default: 0 },
+    budgetType: {
+      type: String,
+      enum: ['monthly', 'overall'],
+      default: 'monthly',
+    },
     contractStartDate: { type: Date },
     contractEndDate: { type: Date },
     billingCycle: {

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Briefcase, Building2, IndianRupee, Plus, Users } from 'lucide-react';
 import { useClients, useDeleteClient } from '../../hooks/useClients';
 import { AddClientModal } from '../../components/modals/AddClientModal';
+import { formatINR } from '../../utils/currency';
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
@@ -100,6 +101,22 @@ const Clients = () => {
             <span className="app-pill">+{row.services.length - 3}</span>
           ) : null}
           {(!row.services || row.services.length === 0) ? 'Not set' : null}
+        </div>
+      ),
+    },
+    {
+      key: 'budget',
+      label: 'Budget',
+      render: (row) => (
+        <div className="min-w-0">
+          <span className="font-bold text-foreground">
+            {row.contractValue ? formatINR(row.contractValue) : '—'}
+          </span>
+          {row.contractValue ? (
+            <span className="text-[10px] text-muted-foreground block capitalize font-medium">
+              {row.budgetType === 'overall' ? 'Overall Budget' : 'Monthly Budget'}
+            </span>
+          ) : null}
         </div>
       ),
     },

@@ -112,6 +112,13 @@ const clientFormSchema = z.object({
   referredBy: z.string().optional(),
   referredByManual: z.string().optional(),
   notes: z.string().optional(),
+  budgetType: z.enum(['monthly', 'overall']).default('monthly'),
+  contractValue: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
+    z.number().optional()
+  ),
+  contractStartDate: z.string().optional().or(z.literal('')),
+  contractEndDate: z.string().optional().or(z.literal('')),
 }).superRefine((data, ctx) => {
   if (data.referredByMode === 'dropdown' && !data.referredBy) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['referredBy'], message: 'Select who referred this client' });
@@ -142,6 +149,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
       referredBy: '',
       referredByManual: '',
       notes: '',
+      budgetType: 'monthly',
+      contractValue: undefined,
+      contractStartDate: '',
+      contractEndDate: '',
     },
   });
 
@@ -169,6 +180,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
         referredBy: client.referredBy?._id || client.referredBy || '',
         referredByManual: client.referredByManual || '',
         notes: client.notes || '',
+        budgetType: client.budgetType || 'monthly',
+        contractValue: client.contractValue || undefined,
+        contractStartDate: client.contractStartDate ? new Date(client.contractStartDate).toISOString().split('T')[0] : '',
+        contractEndDate: client.contractEndDate ? new Date(client.contractEndDate).toISOString().split('T')[0] : '',
       });
     } else if (open) {
       const draft = localStorage.getItem(DRAFT_KEY);
@@ -194,6 +209,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
             referredBy: '',
             referredByManual: '',
             notes: '',
+            budgetType: 'monthly',
+            contractValue: undefined,
+            contractStartDate: '',
+            contractEndDate: '',
           });
         }
       } else {
@@ -213,6 +232,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
             referredBy: '',
             referredByManual: '',
             notes: '',
+            budgetType: 'monthly',
+            contractValue: undefined,
+            contractStartDate: '',
+            contractEndDate: '',
           });
         }
     }
@@ -228,6 +251,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
       customService: data.services?.includes('Other') ? (data.customService?.trim() || '') : '',
       referredBy: data.referredByMode === 'dropdown' ? (data.referredBy || null) : null,
       referredByManual: data.referredByMode === 'manual' ? data.referredByManual?.trim() || '' : '',
+      budgetType: data.budgetType || 'monthly',
+      contractValue: data.contractValue ? Number(data.contractValue) : 0,
+      contractStartDate: data.contractStartDate || null,
+      contractEndDate: data.contractEndDate || null,
     };
 
     if (client) {
@@ -417,6 +444,87 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
                       </SelectContent>
                     </Select>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Budget & Contract Values */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="budgetType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Budget Type / Name</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select budget type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="monthly">Monthly Budget (Social Media / Retainer)</SelectItem>
+                        <SelectItem value="overall">Overall Budget (One-time Project)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contractValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {form.watch('budgetType') === 'overall' ? 'Overall Budget Amount (₹)' : 'Monthly Budget Amount (₹)'}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 50000"
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Contract Dates */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="contractStartDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contract Start Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contractEndDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contract End Date (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    <p className="text-[11px] text-muted-foreground">
+                      Leave blank for ongoing monthly retainers or SMM.
+                    </p>
                   </FormItem>
                 )}
               />

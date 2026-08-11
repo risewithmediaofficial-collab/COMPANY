@@ -234,10 +234,13 @@ const ClientDetails = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
                 {[
                   ['Type / Sector', client.industry || 'Not set'],
-                  ['Contract Value', client.contractValue ? formatINR(client.contractValue) : '—'],
+                  [
+                    client.budgetType === 'overall' ? 'Overall Budget Amount' : 'Monthly Budget Amount',
+                    client.contractValue ? `${formatINR(client.contractValue)} (${client.budgetType === 'overall' ? 'Overall' : 'Monthly'})` : '—',
+                  ],
                   ['Billing Cycle', client.billingCycle || '—'],
                   ['Contract Start', client.contractStartDate ? new Date(client.contractStartDate).toLocaleDateString() : '—'],
-                  ['Contract End', client.contractEndDate ? new Date(client.contractEndDate).toLocaleDateString() : '—'],
+                  ['Contract End', client.contractEndDate ? new Date(client.contractEndDate).toLocaleDateString() : 'Ongoing / Retainer (No End Date)'],
                   ['Requirements', client.services?.join(', ') || 'Not set'],
                 ].map(([label, value]) => (
                   <div key={label} className="p-4 bg-secondary/30 rounded-2xl border border-border/50">
