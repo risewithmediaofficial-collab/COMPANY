@@ -14,7 +14,7 @@ export const DialogContent = React.forwardRef(({ className, children, hideCloseB
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'pointer-events-auto relative w-full max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200/90 dark:border-border bg-white dark:bg-card p-5 sm:p-8 shadow-2xl outline-none custom-scrollbar data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95',
+          'pointer-events-auto relative w-full max-h-[90vh] flex flex-col overflow-hidden rounded-3xl border border-slate-200/90 dark:border-border bg-white dark:bg-card p-0 shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95',
           className
         )}
         onPointerDownOutside={(e) => e.preventDefault()}
@@ -23,7 +23,7 @@ export const DialogContent = React.forwardRef(({ className, children, hideCloseB
       >
         {children}
         {!hideCloseButton && (
-          <DialogPrimitive.Close className="absolute right-3 top-3 z-[100] flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xl border-2 border-white dark:border-slate-800 transition-all hover:scale-110 active:scale-95 cursor-pointer">
+          <DialogPrimitive.Close className="absolute right-4 top-4 z-[100] flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 shadow-md border border-border transition-all hover:scale-105 active:scale-95 cursor-pointer">
             <X size={18} className="stroke-[2.5]" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>

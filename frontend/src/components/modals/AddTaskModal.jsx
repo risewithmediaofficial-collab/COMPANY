@@ -2614,10 +2614,10 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border sticky top-0 bg-background z-10">
+      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-3xl shadow-2xl">
+        <DialogHeader className="px-6 py-4.5 border-b border-border bg-card shrink-0 pr-14 select-none">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-xl font-bold text-foreground">
               {task ? 'Edit Task' : 'Create Tasks'}
             </DialogTitle>
             {form.formState.isDirty && (
@@ -2631,7 +2631,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             {task ? 'Update task details and sub-assignments' : 'Select client & project, then add tasks — poster tasks go to a designer, video tasks to a video person'}
           </DialogDescription>
         </DialogHeader>
-        <div className="px-6 pb-6 pt-4">{formBody}</div>
+
+        {/* Scrollable Modal Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+          {formBody}
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -142,3 +142,20 @@ export const useSubmitWFH = () => {
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to submit WFH notice'),
   });
 };
+
+export const useApproveAttendanceRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, action, rejectionReason }) => {
+      const response = await api.put(`/attendance/${id}/approve`, { action, rejectionReason });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      toast.success(data?.message || 'Attendance request updated');
+    },
+    onError: (error) => toast.error(error.response?.data?.message || 'Failed to update attendance request'),
+  });
+};

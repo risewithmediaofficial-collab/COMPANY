@@ -11,6 +11,7 @@ import {
   submitLeave,
   submitAbsent,
   submitWFH,
+  approveOrRejectAttendanceRequest,
 } from '../controllers/attendance.controller.js';
 
 const router = express.Router();
@@ -26,5 +27,6 @@ router.post('/leave', submitLeave);
 router.post('/eod', submitEOD);
 router.post('/holiday', authorize('superAdmin', 'organizationOwner', 'manager'), assignHoliday);
 router.post('/wfh', submitWFH);
+router.put('/:id/approve', authorize('superAdmin', 'organizationOwner', 'manager', 'accountManager'), approveOrRejectAttendanceRequest);
 
 export default router;

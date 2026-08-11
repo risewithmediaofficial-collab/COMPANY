@@ -34,6 +34,7 @@ import {
   useAssignHoliday,
   useSubmitLeave,
   useSubmitWFH,
+  useApproveAttendanceRequest,
 } from '../../hooks/useAttendance';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
@@ -53,6 +54,7 @@ const Attendance = () => {
 
   const currentDate = new Date();
   const [time, setTime] = useState(new Date());
+  const approveAttendanceMutation = useApproveAttendanceRequest();
 
   // Manager View Controls vs Personal View
   const [viewTab, setViewTab] = useState(isAdmin ? 'team' : 'personal'); // 'team' | 'personal'
@@ -1058,23 +1060,57 @@ const Attendance = () => {
 
                       <td className="px-6 py-4">
                         <div className="flex flex-col items-start gap-1">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 ${
-                              statusColors[record.status] || 'bg-secondary/40 text-muted-foreground'
-                            }`}
-                          >
-                            {record.status?.replace(/_/g, ' ')}
-                            {(record.notes || record.approvedBy) && <Info size={11} className="ml-0.5 opacity-80" />}
-                          </span>
-                          {record.notes && (
-                            <span className="text-xs font-medium text-foreground/90 truncate max-w-[180px]" title={record.notes}>
-                              {record.notes}
+                          {record.approvalStatus === 'pending' ? (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center gap-1">
+                              <AlertCircle size={11} />
+                              Pending Approval: {(record.requestedStatus || record.status).replace(/_/g, ' ')}
+                            </span>
+                          ) : record.approvalStatus === 'rejected' ? (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center gap-1">
+                              <XCircle size={11} />
+                              Rejected: {(record.requestedStatus || record.status).replace(/_/g, ' ')}
+                            </span>
+                          ) : (
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1 ${
+                                statusColors[record.status] || 'bg-secondary/40 text-muted-foreground'
+                              }`}
+                            >
+                              {record.status?.replace(/_/g, ' ')}
+                              {(record.notes || record.approvedBy) && <Info size={11} className="ml-0.5 opacity-80" />}
                             </span>
                           )}
-                          {record.approvedBy && (
-                            <span className="text-[10px] font-semibold text-primary flex items-center gap-1">
+
+                          {record.notes && (
+                            <span className="text-xs font-medium text-foreground/90 truncate max-w-[180px]" title={record.notes}>
+                              Reason: {record.notes}
+                            </span>
+                          )}
+
+                          {isAdmin && record.approvalStatus === 'pending' && (
+                            <div className="flex items-center gap-1.5 mt-1" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                onClick={() => approveAttendanceMutation.mutate({ id: record._id, action: 'approve' })}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700 transition-all shadow-xs"
+                              >
+                                <CheckCircle2 size={12} /> Approve
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const reason = window.prompt('Rejection reason (optional):');
+                                  approveAttendanceMutation.mutate({ id: record._id, action: 'reject', rejectionReason: reason || '' });
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 rounded-lg bg-rose-600 text-white font-bold text-[10px] hover:bg-rose-700 transition-all shadow-xs"
+                              >
+                                <XCircle size={12} /> Reject
+                              </button>
+                            </div>
+                          )}
+
+                          {record.approvedBy && record.approvalStatus === 'approved' && (
+                            <span className="text-[10px] font-semibold text-primary flex items-center gap-1 mt-0.5">
                               <UserCheck size={10} />
-                              By: {record.approvedBy.name}
+                              Approved by: {record.approvedBy.name}
                             </span>
                           )}
                         </div>

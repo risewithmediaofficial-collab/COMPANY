@@ -23,10 +23,21 @@ const attendanceSchema = new mongoose.Schema(
       enum: ['present', 'absent', 'half_day', 'leave', 'holiday', 'work_from_home'],
       default: 'present',
     },
+    requestedStatus: {
+      type: String,
+      enum: ['present', 'absent', 'half_day', 'leave', 'holiday', 'work_from_home', 'none'],
+      default: 'none',
+    },
+    approvalStatus: {
+      type: String,
+      enum: ['none', 'pending', 'approved', 'rejected'],
+      default: 'none',
+    },
     location: { type: String, default: '' },
     notes: { type: String, default: '' },
     isApproved: { type: Boolean, default: false },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectionReason: { type: String, default: '' },
     eodReport: {
       summary: { type: String },
       tasksCompleted: [{ type: String }],
