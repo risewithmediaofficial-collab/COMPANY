@@ -129,9 +129,9 @@ const Projects = () => {
       ),
     },
     {
-      key: isManager ? 'adsBudget' : 'budget',
-      label: isManager ? 'Ads Budget' : 'Budget',
-      render: (row) => formatINR(isManager ? row.budgetDetails?.adsAmount || 0 : row.budget),
+      key: 'budget',
+      label: 'Budget',
+      render: (row) => formatINR(row.budget || 0),
     },
     {
       key: 'progress',

@@ -99,7 +99,7 @@ const Finance = () => {
   const isManager = user?.role === 'manager';
   const isAdmin = user?.role === 'superAdmin';
   const canViewFinanceOverview = isAdmin || isManager || Boolean(user?.permissions?.canViewFinanceOverview) || Boolean(user?.permissions?.canManageFinance);
-  const canManageFinanceAccess = isAdmin || Boolean(user?.permissions?.canManageFinance);
+  const canManageFinanceAccess = isAdmin || isManager || Boolean(user?.permissions?.canManageFinance);
 
   const tabs = useMemo(() => {
     if (canViewFinanceOverview) {
@@ -551,34 +551,23 @@ const Finance = () => {
             <div className="mb-3 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
               Finance
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-foreground">{isManager ? 'Ads Campaigns' : 'Finance Operations'}</h1>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-foreground">Finance Operations</h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-muted-foreground">
-              {isManager ? 'Review ads budgets, actual spends, and log monthly campaign metrics for clients.' : 'Track partial payments, follow-ups, visible payment history, invoice status, and client communication from one workspace.'}
+              Track partial payments, follow-ups, visible payment history, invoice status, and client communication from one workspace.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
-            {!isManager && canManage ? <Button onClick={() => { setSelectedInvoice(null); setShowInvoiceModal(true); }} className="bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 rounded-2xl px-4 py-2.5 font-bold"><Plus size={16} className="mr-2" />Invoice</Button> : null}
-            {isAdmin && activeTab === 'expenses' ? <Button onClick={() => setShowExpenseModal(true)} className="bg-slate-900 text-white dark:bg-card dark:text-foreground hover:bg-slate-800 rounded-2xl px-4 py-2.5 font-bold"><Plus size={16} className="mr-2" />Record Expense</Button> : null}
+            {canManage ? <Button onClick={() => { setSelectedInvoice(null); setShowInvoiceModal(true); }} className="bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/90 rounded-2xl px-4 py-2.5 font-bold"><Plus size={16} className="mr-2" />Invoice</Button> : null}
+            {(isAdmin || isManager) && activeTab === 'expenses' ? <Button onClick={() => setShowExpenseModal(true)} className="bg-slate-900 text-white dark:bg-card dark:text-foreground hover:bg-slate-800 rounded-2xl px-4 py-2.5 font-bold"><Plus size={16} className="mr-2" />Record Expense</Button> : null}
           </div>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {isManager ? (
-            <>
-              <MetricCard label="Projects" value={adsBudgetProjects.length} helper="Total tracked projects" icon={FileText} tone="info" />
-              <MetricCard label="Total Ads Budget" value={currency.format(totalAdsBudget)} helper="Combined ads allocation only" icon={IndianRupee} tone="primary" />
-              <MetricCard label="Active Campaigns" value={adsBudgetProjects.filter((project) => project.status === 'In Progress' || project.status === 'active').length} helper="Campaigns currently running" icon={CheckCircle2} tone="success" />
-              <MetricCard label="No Ads Budget" value={adsBudgetProjects.filter((project) => project.adsBudget <= 0).length} helper="Projects missing ads allocation" icon={AlertCircle} tone="warning" />
-            </>
-          ) : (
-            <>
-              <MetricCard label="Outstanding" value={currency.format(metrics.totalReceivable)} helper="Pending receivable balance" icon={AlertCircle} tone={metrics.totalReceivable > 0 ? 'warning' : 'success'} />
-              <MetricCard label="Collected" value={currency.format(metrics.totalPaid)} helper="Total payments recorded" icon={CheckCircle2} tone="success" />
-              <MetricCard label="Open Invoices" value={metrics.openInvoices} helper="Draft, sent, viewed, or partial" icon={Receipt} tone="info" />
-              <MetricCard label="Overdue" value={metrics.overdue} helper="Finance records past due date" icon={FileText} tone={metrics.overdue ? 'danger' : 'neutral'} />
-            </>
-          )}
+          <MetricCard label="Outstanding" value={currency.format(metrics.totalReceivable)} helper="Pending receivable balance" icon={AlertCircle} tone={metrics.totalReceivable > 0 ? 'warning' : 'success'} />
+          <MetricCard label="Collected" value={currency.format(metrics.totalPaid)} helper="Total payments recorded" icon={CheckCircle2} tone="success" />
+          <MetricCard label="Open Invoices" value={metrics.openInvoices} helper="Draft, sent, viewed, or partial" icon={Receipt} tone="info" />
+          <MetricCard label="Overdue" value={metrics.overdue} helper="Finance records past due date" icon={FileText} tone={metrics.overdue ? 'danger' : 'neutral'} />
         </div>
       </div>
 
@@ -600,17 +589,11 @@ const Finance = () => {
       )}
 
       <PageToolbar>
-        <SearchField value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isManager ? "Search campaigns..." : "Search clients, projects, invoices, calls, or referrals..."} />
+        <SearchField value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search clients, projects, invoices, calls, or referrals..." />
         <div className="flex flex-wrap items-center gap-2">
-          {isManager ? (
-            <div className="app-pill">{adsBudgetProjects.length} campaigns</div>
-          ) : (
-            <>
-              <div className="app-pill">{invoices.length} invoices</div>
-              <div className="app-pill">{payments.length} payments</div>
-              {isAdmin && <div className="app-pill">{expenses.length} expenses</div>}
-            </>
-          )}
+          <div className="app-pill">{invoices.length} invoices</div>
+          <div className="app-pill">{payments.length} payments</div>
+          {(isAdmin || isManager) && <div className="app-pill">{expenses.length} expenses</div>}
         </div>
       </PageToolbar>
 

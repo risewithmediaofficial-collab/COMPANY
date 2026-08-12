@@ -298,7 +298,7 @@ const Dashboard = () => {
           {[
             {
               label: 'Pending Amount',
-              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.totalPending || 0),
+              value: !showFinance ? '•••••' : formatINR(stats.totalPending || 0),
               helper: 'Unpaid invoice balances',
               accent: 'rose',
               icon: Clock,
@@ -306,16 +306,16 @@ const Dashboard = () => {
             },
             {
               label: 'Gross Amount',
-              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.grossAmount || 0),
+              value: !showFinance ? '•••••' : formatINR(stats.grossAmount || 0),
               helper: 'Revenue collected this period',
               accent: 'emerald',
               icon: IndianRupee,
-              badge: stats.revenueGrowth !== undefined && showFinance && user.role !== 'manager' ? `${Number(stats.revenueGrowth) >= 0 ? '+' : '-'}${Math.abs(stats.revenueGrowth)}%` : null,
+              badge: stats.revenueGrowth !== undefined && showFinance ? `${Number(stats.revenueGrowth) >= 0 ? '+' : '-'}${Math.abs(stats.revenueGrowth)}%` : null,
               badgeTone: Number(stats.revenueGrowth || 0) >= 0 ? 'emerald' : 'rose',
             },
             {
               label: 'Net Profit',
-              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.netProfit || 0),
+              value: !showFinance ? '•••••' : formatINR(stats.netProfit || 0),
               helper: 'Revenue minus total expenses',
               accent: 'indigo',
               icon: Wallet,
@@ -323,7 +323,7 @@ const Dashboard = () => {
             },
             {
               label: 'Expenses',
-              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.totalExpenses || 0),
+              value: !showFinance ? '•••••' : formatINR(stats.totalExpenses || 0),
               helper: 'Approved business expenses',
               accent: 'rose',
               icon: Receipt,
@@ -339,7 +339,7 @@ const Dashboard = () => {
             },
             {
               label: 'Remaining',
-              value: user.role === 'manager' ? 'Locked' : !showFinance ? '•••••' : formatINR(stats.remainingAmount || 0),
+              value: !showFinance ? '•••••' : formatINR(stats.remainingAmount || 0),
               helper: 'Revenue after expenses and ad spend',
               accent: 'sky',
               icon: ShieldCheck,
@@ -392,11 +392,7 @@ const Dashboard = () => {
             </div>
 
             <div className="h-[280px]">
-              {user.role === 'manager' ? (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                  Financial charts restricted to Super Admin.
-                </div>
-              ) : !showFinance ? (
+              {!showFinance ? (
                 <div className="h-full flex flex-col items-center justify-center text-sm text-muted-foreground gap-2">
                   <EyeOff size={32} className="text-muted-foreground/40" />
                   <p>Revenue trend hidden.</p>
