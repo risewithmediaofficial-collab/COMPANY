@@ -98,10 +98,11 @@ const Finance = () => {
   const { user } = useSelector((state) => state.auth);
   const isManager = user?.role === 'manager';
   const isAdmin = user?.role === 'superAdmin';
-  const canViewFinanceDetails = isAdmin || isManager || Boolean(user?.permissions?.canManageFinance);
+  const canViewFinanceOverview = isAdmin || isManager || Boolean(user?.permissions?.canViewFinanceOverview) || Boolean(user?.permissions?.canManageFinance);
+  const canManageFinanceAccess = isAdmin || Boolean(user?.permissions?.canManageFinance);
 
   const tabs = useMemo(() => {
-    if (canViewFinanceDetails) {
+    if (canViewFinanceOverview) {
       return [
         { id: 'invoices', label: 'Invoices', icon: FileText },
         { id: 'referrals', label: 'Referrals', icon: Users2 },
@@ -109,7 +110,7 @@ const Finance = () => {
       ];
     }
     return [{ id: 'invoices', label: 'Invoices', icon: FileText }];
-  }, [canViewFinanceDetails]);
+  }, [canViewFinanceOverview]);
 
   const [activeTab, setActiveTab] = useState('invoices');
   const [search, setSearch] = useState('');
@@ -161,19 +162,19 @@ const Finance = () => {
     notes: '',
   });
 
-  const canManage = canViewFinanceDetails;
-  const canDeleteFinance = user?.role === 'superAdmin' || isManager;
-  const canDeleteInvoice = user?.role === 'superAdmin' || isManager;
+  const canManage = canManageFinanceAccess;
+  const canDeleteFinance = canManageFinanceAccess;
+  const canDeleteInvoice = canManageFinanceAccess;
 
-  const { data: clients = [] } = useClients({}, { enabled: canManage });
-  const { data: projects = [] } = useProjects({}, { enabled: canManage });
+  const { data: clients = [] } = useClients({}, { enabled: canViewFinanceOverview });
+  const { data: projects = [] } = useProjects({}, { enabled: canViewFinanceOverview });
   const { data: managerProjects = [] } = useProjects({ search }, { enabled: isManager });
-  const { data: financeRecords = [] } = useFinanceRecords({ search }, { enabled: canViewFinanceDetails });
-  const { data: invoices = [] } = useInvoices({ search }, { enabled: canViewFinanceDetails });
-  const { data: callHistory = [] } = useCallHistory({ search }, { enabled: canViewFinanceDetails });
-  const { data: referrals = [] } = useReferrals({ search }, { enabled: canViewFinanceDetails });
-  const { data: referralAnalytics = {} } = useReferralAnalytics({ enabled: canViewFinanceDetails });
-  const { data: financeSummary = {} } = useFinanceSummary({ enabled: canViewFinanceDetails });
+  const { data: financeRecords = [] } = useFinanceRecords({ search }, { enabled: canViewFinanceOverview });
+  const { data: invoices = [] } = useInvoices({ search }, { enabled: canViewFinanceOverview });
+  const { data: callHistory = [] } = useCallHistory({ search }, { enabled: canViewFinanceOverview });
+  const { data: referrals = [] } = useReferrals({ search }, { enabled: canViewFinanceOverview });
+  const { data: referralAnalytics = {} } = useReferralAnalytics({ enabled: canViewFinanceOverview });
+  const { data: financeSummary = {} } = useFinanceSummary({ enabled: canViewFinanceOverview });
   const { data: expenses = [] } = useExpenses(
     {
       search,
@@ -181,12 +182,12 @@ const Finance = () => {
       transactionType: expenseTypeFilter !== 'all' ? expenseTypeFilter : undefined,
       sort: expenseSort,
     },
-    { enabled: canViewFinanceDetails }
+    { enabled: canViewFinanceOverview }
   );
   const approveExpense = useApproveExpense();
   const deleteExpense = useDeleteExpense();
-  const { data: payments = [] } = usePayments({ search }, { enabled: canViewFinanceDetails });
-  const { data: overdueRecords = [] } = useOverdueFinanceRecords({ enabled: canViewFinanceDetails });
+  const { data: payments = [] } = usePayments({ search }, { enabled: canViewFinanceOverview });
+  const { data: overdueRecords = [] } = useOverdueFinanceRecords({ enabled: canViewFinanceOverview });
 
   const addPaymentNote = useAddPaymentNote();
   const addInternalFinanceNote = useAddInternalFinanceNote();
@@ -811,7 +812,7 @@ const Finance = () => {
         </SectionCard>
       ) : null}
 
-      {activeTab === 'expenses' && (canViewFinanceDetails || isManager) ? (
+      {activeTab === 'expenses' && canViewFinanceOverview ? (
         <div className="space-y-6">
           <SectionCard
             title="Expenses & Profits Management"

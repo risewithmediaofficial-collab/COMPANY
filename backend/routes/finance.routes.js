@@ -56,24 +56,24 @@ router.get('/records/client/:clientId', authorize('superAdmin', 'manager', 'empl
 router.get('/records/project/:projectId', authorize('superAdmin', 'manager', 'employee', 'client'), getFinanceRecordsByProject);
 router.get('/records/:id', authorize('superAdmin', 'manager', 'employee', 'client'), getFinanceRecord);
 router.get('/records', authorize('superAdmin', 'manager', 'employee', 'client'), getFinanceRecords);
-router.post('/records', authorize('superAdmin', 'manager', 'employee'), createFinanceRecord);
-router.put('/records/:id', authorize('superAdmin', 'manager', 'employee'), updateFinanceRecord);
-router.delete('/records/:id', authorize('superAdmin', 'manager'), deleteFinanceRecord);
-router.post('/records/:id/payment-notes', authorize('superAdmin', 'manager', 'employee'), addPaymentNote);
+router.post('/records', authorize('superAdmin', 'employee'), createFinanceRecord);
+router.put('/records/:id', authorize('superAdmin', 'employee'), updateFinanceRecord);
+router.delete('/records/:id', authorize('superAdmin'), deleteFinanceRecord);
+router.post('/records/:id/payment-notes', authorize('superAdmin', 'employee'), addPaymentNote);
 router.get('/records/:id/payment-notes', authorize('superAdmin', 'manager', 'employee', 'client'), getPaymentNotes);
-router.post('/records/:id/internal-notes', authorize('superAdmin', 'manager', 'employee'), addInternalFinanceNote);
+router.post('/records/:id/internal-notes', authorize('superAdmin', 'employee'), addInternalFinanceNote);
 
 router.get('/', authorize('superAdmin', 'manager', 'employee'), getFinanceEntries);
-router.post('/', authorize('superAdmin', 'manager', 'employee'), createFinanceEntry);
+router.post('/', authorize('superAdmin', 'employee'), createFinanceEntry);
 
 router.get('/invoices', authorize('superAdmin', 'manager', 'employee', 'client'), getInvoices);
 router.get('/invoices/:id', authorize('superAdmin', 'manager', 'employee', 'client'), getInvoice);
-router.post('/invoices', authorize('superAdmin', 'manager'), createInvoice);
-router.put('/invoices/:id', authorize('superAdmin', 'manager'), updateInvoice);
-router.post('/invoices/:id/send', authorize('superAdmin', 'manager'), sendInvoice);
+router.post('/invoices', authorize('superAdmin'), createInvoice);
+router.put('/invoices/:id', authorize('superAdmin'), updateInvoice);
+router.post('/invoices/:id/send', authorize('superAdmin'), sendInvoice);
 router.post('/invoices/:id/viewed', authorize('client'), markInvoiceViewed);
-router.post('/invoices/:id/partial-payment', authorize('superAdmin', 'manager'), addPartialPaymentToInvoice);
-router.post('/invoices/:id/mark-paid', authorize('superAdmin', 'manager'), markInvoicePaid);
+router.post('/invoices/:id/partial-payment', authorize('superAdmin'), addPartialPaymentToInvoice);
+router.post('/invoices/:id/mark-paid', authorize('superAdmin'), markInvoicePaid);
 router.delete('/invoices/:id', authorize('superAdmin'), deleteInvoice);
 router.get('/payments', authorize('superAdmin', 'manager', 'employee', 'client'), getPayments);
 
@@ -81,18 +81,18 @@ router.get('/call-history/followups/today', authorize('superAdmin', 'manager', '
 router.get('/call-history/client/:clientId', authorize('superAdmin', 'manager', 'employee', 'client'), getCallHistoryByClient);
 router.get('/call-history/project/:projectId', authorize('superAdmin', 'manager', 'employee', 'client'), getCallHistoryByProject);
 router.get('/call-history', authorize('superAdmin', 'manager', 'employee', 'client'), getCallHistory);
-router.post('/call-history', authorize('superAdmin', 'manager', 'employee'), addCallHistory);
-router.put('/call-history/:id', authorize('superAdmin', 'manager', 'employee'), updateCallHistory);
-router.delete('/call-history/:id', authorize('superAdmin', 'manager'), deleteCallHistory);
+router.post('/call-history', authorize('superAdmin', 'employee'), addCallHistory);
+router.put('/call-history/:id', authorize('superAdmin', 'employee'), updateCallHistory);
+router.delete('/call-history/:id', authorize('superAdmin'), deleteCallHistory);
 
 router.get('/expenses/monthly-report', authorize('superAdmin', 'manager'), getMonthlyExpenseReport);
 router.get('/expenses', authorize('superAdmin', 'manager', 'employee'), getExpenses);
-router.post('/expenses', authorize('superAdmin', 'manager', 'employee'), createExpense);
-router.put('/expenses/:id', authorize('superAdmin', 'manager'), updateExpense);
-router.delete('/expenses/:id', authorize('superAdmin', 'manager'), deleteExpense);
-router.patch('/expenses/:id/approve', authorize('superAdmin', 'manager'), approveExpense);
+router.post('/expenses', authorize('superAdmin', 'employee'), createExpense);
+router.put('/expenses/:id', authorize('superAdmin', 'employee'), updateExpense);
+router.delete('/expenses/:id', authorize('superAdmin'), deleteExpense);
+router.patch('/expenses/:id/approve', authorize('superAdmin'), approveExpense);
 
-router.put('/:id', authorize('superAdmin', 'manager'), updateFinanceEntry);
-router.delete('/:id', authorize('superAdmin', 'manager'), deleteFinanceEntry);
+router.put('/:id', authorize('superAdmin'), updateFinanceEntry);
+router.delete('/:id', authorize('superAdmin'), deleteFinanceEntry);
 
 export default router;

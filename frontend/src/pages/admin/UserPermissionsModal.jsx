@@ -6,6 +6,7 @@ import api from '../../api';
 const PERMISSIONS = [
   { key: 'canViewReports', label: 'View Reports' },
   { key: 'canApproveContent', label: 'Approve Content' },
+  { key: 'canViewFinanceOverview', label: 'View Finance Overview' },
   { key: 'canManageFinance', label: 'Manage Finance' },
   { key: 'canAssignTasks', label: 'Assign Tasks' },
   { key: 'canUploadAssets', label: 'Upload Assets' },

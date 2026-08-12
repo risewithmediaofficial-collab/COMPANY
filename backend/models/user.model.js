@@ -76,6 +76,7 @@ const userSchema = new mongoose.Schema(
     permissions: {
       canViewReports: { type: Boolean, default: false },
       canApproveContent: { type: Boolean, default: false },
+      canViewFinanceOverview: { type: Boolean, default: false },
       canManageFinance: { type: Boolean, default: false },
       canAssignTasks: { type: Boolean, default: false },
       canUploadAssets: { type: Boolean, default: false },
