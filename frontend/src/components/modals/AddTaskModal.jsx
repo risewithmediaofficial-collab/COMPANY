@@ -1246,7 +1246,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               name="caption"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Caption *</FormLabel>
+                  <FormLabel>Caption <span className="text-xs font-normal text-muted-foreground">(Optional)</span></FormLabel>
                   <FormControl>
                     <Textarea className="min-h-24" placeholder="Post caption for this reel..." {...field} />
                   </FormControl>
@@ -1305,7 +1305,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             name="caption"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Caption *</FormLabel>
+                <FormLabel>Caption <span className="text-xs font-normal text-muted-foreground">(Optional)</span></FormLabel>
                 <FormControl>
                   <Textarea className="min-h-24" placeholder="Enter caption..." {...field} />
                 </FormControl>
@@ -2089,8 +2089,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                             <div className="space-y-4">
                               <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-foreground">
-                                  Caption / Copy Text <span className="text-rose-500">*</span>
-                                  <span className="text-[10px] font-normal text-muted-foreground ml-1">(required)</span>
+                                  Caption / Copy Text
+                                  <span className="text-[10px] font-normal text-muted-foreground ml-1">(optional)</span>
                                 </label>
                                 <Textarea
                                   className="min-h-[75px] rounded-xl resize-none"
