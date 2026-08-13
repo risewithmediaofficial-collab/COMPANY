@@ -138,7 +138,7 @@ export const AddExpenseModal = ({ open, onOpenChange, expense = null }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto px-6 py-6">
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Financial Record' : 'Record Expense / Profit'}</DialogTitle>
           <DialogDescription>
@@ -149,7 +149,7 @@ export const AddExpenseModal = ({ open, onOpenChange, expense = null }) => {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-x-4 gap-y-4 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -308,7 +308,7 @@ export const AddExpenseModal = ({ open, onOpenChange, expense = null }) => {
               )}
             />
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-border mt-2">
+            <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-slate-100 dark:border-border">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
               <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : isEditing ? 'Update Record' : 'Record Entry'}</Button>
             </div>

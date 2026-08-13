@@ -28,10 +28,10 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
+      <DialogContent noPadding className="max-w-xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
         {/* Header styling */}
         <div className="shrink-0 bg-gradient-to-r from-primary/10 via-indigo-500/10 to-purple-500/10 p-5 sm:p-6 border-b border-border">
-          <DialogHeader>
+          <DialogHeader className="border-b-0 mb-0 pb-0">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
                 <CheckCircle2 size={14} /> EOD Report Submitted

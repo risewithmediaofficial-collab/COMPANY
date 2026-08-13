@@ -1048,9 +1048,9 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
       />
 
       <Dialog open={showDayDialog} onOpenChange={setShowDayDialog}>
-        <DialogContent className="max-h-[88vh] overflow-hidden p-0 sm:max-w-4xl">
+        <DialogContent noPadding className="max-h-[88vh] overflow-hidden p-0 sm:max-w-4xl">
           <div className="border-b border-border bg-gradient-to-br from-background via-background to-secondary/60 px-6 py-5">
-            <DialogHeader className="mb-0">
+            <DialogHeader className="border-b-0 mb-0 pb-0">
               <DialogTitle className="text-2xl tracking-tight">
                 {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Tasks'}
               </DialogTitle>

@@ -264,6 +264,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
       <DialogContent
         hideCloseButton
         className="max-w-4xl max-h-[92vh] overflow-y-auto border-0 bg-transparent p-0 shadow-none"
+        noPadding
       >
         <motion.div
           initial={{ opacity: 0, y: 18, scale: 0.98 }}

@@ -55,9 +55,9 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
+      <DialogContent noPadding className="max-w-2xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
         <div className="shrink-0 p-5 sm:p-6 border-b border-border bg-secondary/20">
-          <DialogHeader>
+          <DialogHeader className="border-b-0 mb-0 pb-0">
             <DialogTitle>End of Day Report</DialogTitle>
             <DialogDescription>Share progress, completed work, and blockers for today or a previous date.</DialogDescription>
           </DialogHeader>
