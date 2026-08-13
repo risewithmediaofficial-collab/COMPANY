@@ -35,7 +35,7 @@ export const DialogContent = React.forwardRef(({ className, children, hideCloseB
 DialogContent.displayName = 'DialogContent';
 
 export const DialogHeader = ({ className, ...props }) => (
-  <div className={cn('mb-4 space-y-1.5 text-left pr-4', className)} {...props} />
+  <div className={cn('pb-4 mb-2 border-b border-slate-100 dark:border-border space-y-1 text-left pr-10', className)} {...props} />
 );
 export const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Title ref={ref} className={cn('text-lg font-bold text-slate-900 dark:text-foreground', className)} {...props} />
