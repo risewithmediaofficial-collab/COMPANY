@@ -15,6 +15,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const roles = [
   { value: 'superAdmin', label: 'Super Admin' },
@@ -50,16 +52,18 @@ const Users = () => {
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
 
+  const { isDateInRange } = useDateFilter();
+
   const filteredUsers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return users;
-
     return users.filter((user) => {
+      if (!isDateInRange(user.createdAt)) return false;
+      if (!term) return true;
       return [user.name, user.email, user.role, user.position, user.approvalStatus]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term));
     });
-  }, [searchTerm, users]);
+  }, [searchTerm, users, isDateInRange]);
 
   const counts = useMemo(() => {
     return users.reduce(
@@ -246,6 +250,8 @@ const Users = () => {
           </div>
         )}
       </div>
+
+      <DateRangePicker title="User Management Date Filter (From Date to To Date)" />
 
       <div className="flex items-center bg-card/50 p-3 rounded-2xl border border-border backdrop-blur-sm">
         <Search size={16} className="absolute left-5 text-muted-foreground" />

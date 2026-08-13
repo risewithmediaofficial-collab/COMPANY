@@ -7,7 +7,8 @@ import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
 import { AddProposalModal } from '../../components/modals/AddProposalModal';
 import { useProposals } from '../../hooks/useProposals';
-import { formatINR } from '../../utils/currency';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const statusTone = {
   draft: 'neutral',
@@ -26,10 +27,12 @@ const Proposals = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState(null);
+  const { isDateInRange } = useDateFilter();
 
   const { data: proposals = [], isLoading } = useProposals(statusFilter ? { status: statusFilter } : {});
 
   const filtered = proposals.filter((p) => {
+    if (!isDateInRange(p.createdAt || p.validUntil)) return false;
     const q = search.toLowerCase();
     if (!q) return true;
     return (
@@ -123,6 +126,8 @@ const Proposals = () => {
           );
         })}
       </div>
+
+      <DateRangePicker title="Filter Proposals (From Date to To Date)" />
 
       <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
         <PageToolbar>

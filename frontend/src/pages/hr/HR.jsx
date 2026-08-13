@@ -5,6 +5,8 @@ import { AddEmployeeModal } from '../../components/modals/AddEmployeeModal';
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
 import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +33,10 @@ const HR = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [deleteEmployeeId, setDeleteEmployeeId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const { isDateInRange } = useDateFilter();
 
-  const { data: employees = [], isLoading } = useEmployees({ search: searchTerm });
+  const { data: rawEmployees = [], isLoading } = useEmployees({ search: searchTerm });
+  const employees = rawEmployees.filter((emp) => isDateInRange(emp.createdAt || emp.joinDate));
   const deleteEmployeeMutation = useDeleteEmployee();
 
   const isEmpClockedIn = (employee) => {
@@ -177,6 +181,7 @@ const HR = () => {
           <MetricCard label="Departments" value={activeDepartments} helper="Distinct teams represented" icon={Building2} tone="primary" />
           <MetricCard label="Clocked In" value={clockedInNow} helper={`${loggedHoursToday.toFixed(1)} total hours logged today`} icon={Clock3} tone="warning" />
         </MetricGrid>
+        <DateRangePicker title="HR Date Filter (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
       <PageToolbar>

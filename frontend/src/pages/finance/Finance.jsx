@@ -45,6 +45,8 @@ import {
   SectionCard,
   StatusBadge,
 } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import {
@@ -162,6 +164,8 @@ const Finance = () => {
     notes: '',
   });
 
+  const { startDate, endDate, isDateInRange } = useDateFilter();
+
   const canManage = canManageFinanceAccess;
   const canDeleteFinance = canManageFinanceAccess;
   const canDeleteInvoice = canManageFinanceAccess;
@@ -169,21 +173,27 @@ const Finance = () => {
   const { data: clients = [] } = useClients({}, { enabled: canViewFinanceOverview });
   const { data: projects = [] } = useProjects({}, { enabled: canViewFinanceOverview });
   const { data: managerProjects = [] } = useProjects({ search }, { enabled: isManager });
-  const { data: financeRecords = [] } = useFinanceRecords({ search }, { enabled: canViewFinanceOverview });
-  const { data: invoices = [] } = useInvoices({ search }, { enabled: canViewFinanceOverview });
+  const { data: rawFinanceRecords = [] } = useFinanceRecords({ search, startDate, endDate }, { enabled: canViewFinanceOverview });
+  const { data: rawInvoices = [] } = useInvoices({ search, startDate, endDate }, { enabled: canViewFinanceOverview });
   const { data: callHistory = [] } = useCallHistory({ search }, { enabled: canViewFinanceOverview });
   const { data: referrals = [] } = useReferrals({ search }, { enabled: canViewFinanceOverview });
   const { data: referralAnalytics = {} } = useReferralAnalytics({ enabled: canViewFinanceOverview });
   const { data: financeSummary = {} } = useFinanceSummary({ enabled: canViewFinanceOverview });
-  const { data: expenses = [] } = useExpenses(
+  const { data: rawExpenses = [] } = useExpenses(
     {
       search,
+      startDate,
+      endDate,
       category: expenseCategoryFilter !== 'all' ? expenseCategoryFilter : undefined,
       transactionType: expenseTypeFilter !== 'all' ? expenseTypeFilter : undefined,
       sort: expenseSort,
     },
     { enabled: canViewFinanceOverview }
   );
+
+  const financeRecords = useMemo(() => rawFinanceRecords.filter((r) => isDateInRange(r.createdAt || r.date)), [rawFinanceRecords, isDateInRange]);
+  const invoices = useMemo(() => rawInvoices.filter((i) => isDateInRange(i.issueDate || i.createdAt)), [rawInvoices, isDateInRange]);
+  const expenses = useMemo(() => rawExpenses.filter((e) => isDateInRange(e.date || e.createdAt)), [rawExpenses, isDateInRange]);
   const approveExpense = useApproveExpense();
   const deleteExpense = useDeleteExpense();
   const { data: payments = [] } = usePayments({ search }, { enabled: canViewFinanceOverview });
@@ -569,6 +579,7 @@ const Finance = () => {
           <MetricCard label="Open Invoices" value={metrics.openInvoices} helper="Draft, sent, viewed, or partial" icon={Receipt} tone="info" />
           <MetricCard label="Overdue" value={metrics.overdue} helper="Finance records past due date" icon={FileText} tone={metrics.overdue ? 'danger' : 'neutral'} />
         </div>
+        <DateRangePicker title="Finance Date Filter (From Date to To Date)" className="mt-4" />
       </div>
 
       {tabs.length > 1 && (

@@ -8,6 +8,8 @@ import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { MetricCard, MetricGrid, PageHeader, SearchField, StatusBadge } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,25 +36,23 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
-  const [createdFrom, setCreatedFrom] = useState('');
-  const [createdTo, setCreatedTo] = useState('');
+  const { startDate, endDate, isDateInRange } = useDateFilter();
 
   const filters = {
     search: searchTerm,
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(serviceFilter ? { service: serviceFilter } : {}),
-    ...(createdFrom ? { createdFrom } : {}),
-    ...(createdTo ? { createdTo } : {}),
+    ...(startDate ? { createdFrom: startDate } : {}),
+    ...(endDate ? { createdTo: endDate } : {}),
   };
 
-  const { data: clients = [], isLoading } = useClients(filters);
+  const { data: rawClients = [], isLoading } = useClients(filters);
+  const clients = rawClients.filter((c) => isDateInRange(c.createdAt));
 
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
     setServiceFilter('');
-    setCreatedFrom('');
-    setCreatedTo('');
   };
   const deleteClientMutation = useDeleteClient();
 
@@ -62,62 +62,36 @@ const Clients = () => {
   const columns = [
     {
       key: 'name',
-      label: 'Contact',
+      label: 'Client / Company',
       render: (row) => (
         <div className="min-w-0">
-          <Link to={`/clients/${row._id}`} className="font-semibold transition-colors hover:text-primary">
-            {row.name}
-          </Link>
-          <div className="mt-1 text-xs text-muted-foreground">{row.email}</div>
+          <div className="font-semibold text-foreground">{row.name}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{row.company || row.email || 'No company info'}</div>
         </div>
       ),
     },
     {
-      key: 'company',
-      label: 'Company',
+      key: 'contact',
+      label: 'Contact Info',
       render: (row) => (
-        <span className="font-medium text-foreground">{row.company || 'Independent client'}</span>
-      ),
-    },
-    {
-      key: 'phone',
-      label: 'Phone',
-      render: (row) => row.phone || 'Not added',
-    },
-    {
-      key: 'industry',
-      label: 'Type / Sector',
-      render: (row) => row.industry || 'Not set',
-    },
-    {
-      key: 'services',
-      label: 'Requirements',
-      render: (row) => (
-        <div className="flex max-w-[240px] flex-wrap gap-1">
-          {(row.services || []).slice(0, 3).map((service) => (
-            <span key={service} className="app-pill">{service}</span>
-          ))}
-          {(row.services || []).length > 3 ? (
-            <span className="app-pill">+{row.services.length - 3}</span>
-          ) : null}
-          {(!row.services || row.services.length === 0) ? 'Not set' : null}
+        <div className="text-xs space-y-0.5">
+          <div className="font-medium text-foreground">{row.phone || 'No phone'}</div>
+          <div className="text-muted-foreground">{row.email || 'No email'}</div>
         </div>
       ),
     },
     {
-      key: 'budget',
-      label: 'Budget',
+      key: 'service',
+      label: 'Service',
+      render: (row) => <span className="font-medium text-xs">{row.service || 'General'}</span>,
+    },
+    {
+      key: 'monthlyRetainer',
+      label: 'Monthly Retainer',
       render: (row) => (
-        <div className="min-w-0">
-          <span className="font-bold text-foreground">
-            {row.contractValue ? formatINR(row.contractValue) : '—'}
-          </span>
-          {row.contractValue ? (
-            <span className="text-[10px] text-muted-foreground block capitalize font-medium">
-              {row.budgetType === 'overall' ? 'Overall Budget' : 'Monthly Budget'}
-            </span>
-          ) : null}
-        </div>
+        <span className="font-bold text-emerald-600">
+          {row.monthlyRetainer ? formatINR(row.monthlyRetainer) : '—'}
+        </span>
       ),
     },
     {
@@ -149,6 +123,7 @@ const Clients = () => {
           <MetricCard label="Active Accounts" value={activeClients} helper="Clients currently in service" icon={Building2} tone="success" />
           <MetricCard label="Prospects" value={prospectClients} helper="Warm opportunities still being nurtured" icon={Briefcase} tone="warning" />
         </MetricGrid>
+        <DateRangePicker title="Filter Clients (From Date to To Date)" className="mt-4" />
         <div className="mt-5 pt-5 border-t border-border flex flex-wrap items-center gap-2">
           <SearchField
             className="w-full sm:w-auto sm:min-w-[240px]"

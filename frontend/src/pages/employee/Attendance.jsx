@@ -38,6 +38,8 @@ import {
 } from '../../hooks/useAttendance';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 // Helper function to format 12-Hour AM/PM Time
 const formatTime = (isoString) => {
@@ -49,6 +51,7 @@ const formatTime = (isoString) => {
 
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
+  const { isDateInRange } = useDateFilter();
   const isAdmin = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(user?.role);
   const isSuperAdmin = user?.role === 'superAdmin';
 
@@ -566,6 +569,8 @@ const Attendance = () => {
           )}
         </div>
       </div>
+
+      <DateRangePicker title="Attendance Date Filter (From Date to To Date)" />
 
       {/* Admin / Manager Navigation Tabs & Overview Cards */}
       {isAdmin && (

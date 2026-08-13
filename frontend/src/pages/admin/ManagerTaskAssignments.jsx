@@ -8,6 +8,8 @@ import {
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
 import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import { AddProjectNoteModal } from '../../components/modals/AddProjectNoteModal';
 import { useClients } from '../../hooks/useClients';
 import { useDeleteTask, useTasks, useUpdateTaskStatus } from '../../hooks/useTasks';
@@ -161,9 +163,13 @@ const ManagerTaskAssignments = () => {
     [users],
   );
 
+  const { isDateInRange } = useDateFilter();
+
   const normalizedTasks = useMemo(
-    () => tasks.map((task) => ({ ...task, status: normalizeTaskStatusLabel(task.status) })),
-    [tasks],
+    () => tasks
+      .filter((task) => isDateInRange(task.startDate || task.dueDate || task.createdAt))
+      .map((task) => ({ ...task, status: normalizeTaskStatusLabel(task.status) })),
+    [tasks, isDateInRange],
   );
 
   const taskMetrics = {
@@ -275,6 +281,8 @@ const ManagerTaskAssignments = () => {
           <MetricCard label="Completed" value={taskMetrics.done} helper="Work finished or approved" icon={CheckCircle2} tone="success" />
           <MetricCard label="Overdue" value={taskMetrics.overdue} helper="Needs attention now" icon={TimerReset} tone={taskMetrics.overdue > 0 ? 'danger' : 'neutral'} />
         </MetricGrid>
+
+        <DateRangePicker title="Assignments Date Filter (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
       {/* ── Project Briefs Panel ── */}

@@ -19,6 +19,8 @@ import { formatINR } from '../../utils/currency';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   Dialog,
   DialogContent,
@@ -101,13 +103,17 @@ const ReferralDashboard = () => {
     }
   };
 
+  const { isDateInRange } = useDateFilter();
+
   if (loading) return <div className="animate-pulse space-y-6"><div className="h-40 bg-card rounded-3xl"></div><div className="h-96 bg-card rounded-3xl"></div></div>;
 
+  const rawReferrals = data?.referrals || [];
+  const referrals = rawReferrals.filter((ref) => isDateInRange(ref.createdAt));
   const statsPayload = data?.stats || {};
   const stats = [
     { label: 'Total Earnings', value: formatINR(statsPayload.totalEarnings || 0), icon: IndianRupee, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { label: 'Pending Payout', value: formatINR(statsPayload.pendingEarnings || 0), icon: TrendingUp, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'Total Referrals', value: statsPayload.totalReferrals || data.referrals.length, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+    { label: 'Total Referrals', value: referrals.length, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
     { label: 'Conv. Rate', value: `${Number(statsPayload.conversionRate || 0)}%`, icon: Zap, color: 'text-amber-500', bg: 'bg-amber-500/10' },
   ];
 
@@ -127,6 +133,8 @@ const ReferralDashboard = () => {
           Submit New Lead
         </button>
       </div>
+
+      <DateRangePicker title="Referral Date Filter (From Date to To Date)" />
 
       {/* Referral Banner */}
       <div className="bg-card rounded-3xl border border-border shadow-sm p-8 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
@@ -207,7 +215,7 @@ const ReferralDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {data.referrals.map((ref) => (
+              {referrals.map((ref) => (
                 <tr key={ref._id} className="hover:bg-secondary/20 transition-colors">
                   <td className="px-6 py-4">
                     <div className="font-bold">{ref.lead?.name || 'Manual Submission'}</div>

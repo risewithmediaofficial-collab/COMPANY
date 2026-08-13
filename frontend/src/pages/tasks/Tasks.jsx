@@ -21,6 +21,8 @@ import { useClients } from '../../hooks/useClients';
 import { useDeleteTask, useTasks, useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useUsers } from '../../hooks/useUsers';
 import PortalTasks from '../portal/sections/PortalTasks';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   CONTENT_TASK_TYPE_OPTIONS,
   NON_CONTENT_TASK_TYPE_OPTIONS,
@@ -93,12 +95,16 @@ const Tasks = () => {
     });
   };
 
+  const { isDateInRange } = useDateFilter();
+
   const normalizedTasks = useMemo(
-    () => tasks.map((task) => ({
-      ...task,
-      status: normalizeTaskStatusLabel(task.status),
-    })),
-    [tasks],
+    () => tasks
+      .filter((task) => isDateInRange(task.startDate || task.dueDate || task.createdAt))
+      .map((task) => ({
+        ...task,
+        status: normalizeTaskStatusLabel(task.status),
+      })),
+    [tasks, isDateInRange],
   );
 
   const taskMetrics = {
@@ -261,6 +267,8 @@ const Tasks = () => {
           <MetricCard label="Completed" value={taskMetrics.done} helper="Completed or approved tasks" icon={CheckCircle2} tone="success" />
           <MetricCard label="Overdue" value={taskMetrics.overdue} helper="Needs attention right away" icon={TimerReset} tone={taskMetrics.overdue > 0 ? 'danger' : 'neutral'} />
         </MetricGrid>
+
+        <DateRangePicker title="Filter Tasks (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
       {isManager && (

@@ -17,6 +17,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, SectionCard, StatusBadge } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const emptyForm = {
   itemName: '',
@@ -258,13 +260,17 @@ const DomainRenewals = () => {
 
   const { data: clients = [] } = useClients();
   const { data: projects = [] } = useProjects();
+  const { isDateInRange } = useDateFilter();
   const { data, isLoading } = useDomainRenewals({ search, status, itemType });
   const createRecord = useCreateDomainRenewal();
   const updateRecord = useUpdateDomainRenewal();
   const addProgress = useAddDomainRenewalProgress();
   const deleteRecord = useDeleteDomainRenewal();
 
-  const records = data?.records || [];
+  const records = useMemo(
+    () => (data?.records || []).filter((r) => isDateInRange(r.expiryDate || r.purchaseDate || r.createdAt)),
+    [data, isDateInRange],
+  );
   const metrics = data?.metrics || { total: 0, expired: 0, expiringSoon: 0, renewed: 0 };
 
   const columns = useMemo(() => ([
@@ -333,6 +339,8 @@ const DomainRenewals = () => {
           <MetricCard label="Expired" value={metrics.expired} helper="Needs immediate attention" icon={ShieldAlert} tone={metrics.expired > 0 ? 'danger' : 'neutral'} />
           <MetricCard label="Renewed" value={metrics.renewed} helper="Already processed" icon={RefreshCw} tone="success" />
         </MetricGrid>
+
+        <DateRangePicker title="Domain Renewals Date Filter (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
       <PageToolbar>

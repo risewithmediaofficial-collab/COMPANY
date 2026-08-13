@@ -4,6 +4,8 @@ import { BookOpen, Plus, Trash2, Edit2, Eye, User, Clock, FileText, ListOrdered,
 import { Button } from '../../components/ui/button';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import { useSOPs, useCreateSOP, useUpdateSOP, useDeleteSOP } from '../../hooks/useSOP';
 import { toast } from 'sonner';
 import {
@@ -60,13 +62,15 @@ const SOPDashboard = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [form, setForm] = useState(emptyForm);
 
+  const { isDateInRange } = useDateFilter();
   const { data: sops = [], isLoading } = useSOPs();
   const createSOP = useCreateSOP();
   const updateSOP = useUpdateSOP();
   const deleteSOP = useDeleteSOP();
 
   const filtered = sops.filter((sop) =>
-    !search.trim() || sop.title?.toLowerCase().includes(search.toLowerCase()),
+    isDateInRange(sop.updatedAt || sop.createdAt) &&
+    (!search.trim() || sop.title?.toLowerCase().includes(search.toLowerCase())),
   );
 
   const canEditSop = (sop) => {
@@ -182,6 +186,8 @@ const SOPDashboard = () => {
           </Button>
         ) : null}
       />
+
+      <DateRangePicker title="SOP Date Filter (From Date to To Date)" />
 
       <PageToolbar>
         <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search SOPs..." />

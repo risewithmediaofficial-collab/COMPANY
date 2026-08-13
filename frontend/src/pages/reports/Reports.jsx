@@ -13,6 +13,8 @@ import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { formatINR } from '../../utils/currency';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -55,7 +57,8 @@ const titleCase = (value) => String(value || '')
   .replace(/\b\w/g, (char) => char.toUpperCase());
 
 const Reports = () => {
-  const { data, isLoading } = useAdminReport();
+  const { startDate, endDate } = useDateFilter();
+  const { data, isLoading } = useAdminReport({ startDate, endDate });
   const [period, setPeriod] = useState('6m');
   const [activeTab, setActiveTab] = useState('overall'); // 'overall' | 'employees'
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
@@ -405,6 +408,8 @@ const Reports = () => {
           </button>
         </div>
       </div>
+
+      <DateRangePicker title="Reports Date Filter (From Date to To Date)" />
 
       {/* Tab Switcher */}
       <div className="border-b border-border flex items-center gap-6">

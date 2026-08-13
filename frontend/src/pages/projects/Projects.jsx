@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { formatINR } from '../../utils/currency';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const projectStatusTone = {
   Completed: 'success',
@@ -76,14 +78,20 @@ const Projects = () => {
 
   const { data: projects = [], isLoading } = useProjects(filters);
 
+  const { isDateInRange } = useDateFilter();
+
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
-      if (!monthFilter) return true;
-      const projectDate = project.startDate ? new Date(project.startDate) : new Date(project.createdAt);
-      const projectMonth = projectDate.getMonth();
-      return projectMonth === Number(monthFilter);
+      const rawDate = project.startDate || project.createdAt;
+      if (!isDateInRange(rawDate)) return false;
+      if (monthFilter !== '') {
+        const projectDate = rawDate ? new Date(rawDate) : new Date();
+        const projectMonth = projectDate.getMonth();
+        if (projectMonth !== Number(monthFilter)) return false;
+      }
+      return true;
     });
-  }, [projects, monthFilter]);
+  }, [projects, monthFilter, isDateInRange]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -111,37 +119,57 @@ const Projects = () => {
       ),
     },
     {
+      key: 'client',
+      label: 'Client',
+      render: (row) => <span className="font-medium">{row.client?.name || 'Unassigned'}</span>,
+    },
+    {
       key: 'status',
       label: 'Status',
-      render: (row) => (
-        <StatusBadge tone={projectStatusTone[row.status] || 'neutral'}>
-          {row.status}
-        </StatusBadge>
-      ),
+      render: (row) => <StatusBadge label={row.status || 'Planning'} tone={projectStatusTone[row.status] || 'neutral'} />,
     },
     {
       key: 'priority',
       label: 'Priority',
-      render: (row) => (
-        <StatusBadge tone={projectPriorityTone[row.priority] || 'neutral'}>
-          {row.priority}
-        </StatusBadge>
-      ),
+      render: (row) => <StatusBadge label={row.priority || 'Medium'} tone={projectPriorityTone[row.priority] || 'neutral'} />,
     },
     {
       key: 'budget',
       label: 'Budget',
-      render: (row) => formatINR(row.budget || 0),
+      render: (row) => <span className="font-bold text-emerald-600">{row.budget ? formatINR(row.budget) : '₹0'}</span>,
     },
     {
       key: 'progress',
       label: 'Progress',
       render: (row) => (
-        <div className="w-28">
-          <div className="h-2.5 overflow-hidden rounded-full bg-secondary">
-            <div className="h-full rounded-full bg-primary" style={{ width: `${row.progress || 0}%` }} />
+        <div className="w-32">
+          <div className="flex items-center justify-between text-xs mb-1 font-semibold">
+            <span>{row.progress || 0}%</span>
           </div>
-          <span className="mt-1 inline-block text-xs text-muted-foreground">{row.progress || 0}% complete</span>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div className="h-full bg-primary transition-all duration-300" style={{ width: `${row.progress || 0}%` }} />
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="ghost" onClick={() => navigate(`/projects/${row._id}`)}>
+            View Details
+          </Button>
+          {!isManager && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10"
+              onClick={() => setDeleteProjectId(row._id)}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },
@@ -157,19 +185,16 @@ const Projects = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Project Delivery"
-        description="Keep active delivery, budget context, and portfolio progress aligned in a single management view."
-        actions={(
-          <Button
-            onClick={() => {
-              setSelectedProject(null);
-              setShowAddModal(true);
-            }}
-          >
-            <Plus size={16} className="mr-2" />
-            Create Project
-          </Button>
-        )}
+        title="Projects Portfolio"
+        description="Monitor current work, progress levels, deadlines, and project statuses."
+        actions={
+          !isManager && (
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus size={18} className="mr-2" />
+              Add Project
+            </Button>
+          )
+        }
       >
         <MetricGrid>
           <MetricCard label="Portfolio Size" value={filteredProjects.length} helper="Projects visible in the current search" icon={Briefcase} tone="info" />
@@ -177,6 +202,8 @@ const Projects = () => {
           <MetricCard label="Completed" value={completed} helper="Finished work ready for archive" icon={Target} tone="success" />
           <MetricCard label="Average Progress" value={`${averageProgress}%`} helper="Across the visible portfolio" icon={Gauge} tone="primary" />
         </MetricGrid>
+
+        <DateRangePicker title="Filter Projects (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
       <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">

@@ -56,9 +56,12 @@ import api from '../api';
 import { formatINR } from '../utils/currency';
 import { motion } from 'framer-motion';
 import { useSocket } from '../context/SocketContext';
+import { useDateFilter } from '../context/DateFilterContext';
+import { DateRangePicker } from '../components/ui/DateRangePicker';
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
+  const { startDate, endDate, period, setFromDate, setToDate, setPeriod, resetDateFilter } = useDateFilter();
   const queryClient = useQueryClient();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,10 +70,7 @@ const Dashboard = () => {
   const [showEodDetailModal, setShowEodDetailModal] = useState(false);
   const [eodSearch, setEodSearch] = useState('');
   const [eodDays, setEodDays] = useState(7);
-  const [period, setPeriod] = useState('monthly');
   const [showFinance, setShowFinance] = useState(true);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
 
   const socket = useSocket();
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager';
@@ -104,9 +104,10 @@ const Dashboard = () => {
             : '/reports/employee';
           
       const params = { period };
-      if (period === 'custom' && startDate && endDate) {
+      if (startDate && endDate) {
         params.startDate = startDate;
         params.endDate = endDate;
+        params.period = 'custom';
       }
 
       const res = await api.get(endpoint, { params });
@@ -120,7 +121,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!user?.role) return;
-    if (period === 'custom' && (!startDate || !endDate)) return;
     fetchStats();
   }, [user?.role, period, startDate, endDate]);
 
@@ -204,81 +204,12 @@ const Dashboard = () => {
                 Content Calendar
               </Link>
 
-              <select
-                value={period}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setPeriod(val);
-                  if (val !== 'custom') {
-                    setStartDate('');
-                    setEndDate('');
-                  }
-                }}
-                className="app-select !py-2 !px-3.5 text-sm font-semibold"
-              >
-                <option value="monthly" className="text-slate-900">This Month</option>
-                <option value="lastMonth" className="text-slate-900">Last Month</option>
-                <option value="weekly" className="text-slate-900">This Week</option>
-                <option value="yearly" className="text-slate-900">This Year</option>
-                <option value="allTime" className="text-slate-900">All Time</option>
-                <option value="custom" className="text-slate-900">Custom Date Range</option>
-              </select>
             </div>
           </div>
         </div>
 
-        {/* Custom Calendar Date Filter Row */}
-        {period === 'custom' && (
-          <div className="bg-card p-4 rounded-2xl border border-border shadow-sm flex flex-wrap items-center gap-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Calendar size={14} className="text-primary" /> Filter Past Date Range:
-            </span>
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-muted-foreground font-semibold">From:</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-secondary/40 border border-border rounded-xl px-3 py-1.5 text-xs font-medium outline-none focus:border-primary"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-muted-foreground font-semibold">To:</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-secondary/40 border border-border rounded-xl px-3 py-1.5 text-xs font-medium outline-none focus:border-primary"
-              />
-            </div>
-            <div className="flex items-center gap-1.5 ml-auto">
-              <button
-                onClick={() => {
-                  const now = new Date();
-                  const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-                  const lastDay = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
-                  setStartDate(firstDay);
-                  setEndDate(lastDay);
-                }}
-                className="text-[11px] font-semibold bg-secondary px-2.5 py-1 rounded-lg hover:bg-secondary/80 text-foreground"
-              >
-                Last Month
-              </button>
-              <button
-                onClick={() => {
-                  const now = new Date();
-                  const firstDay = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-                  const today = now.toISOString().split('T')[0];
-                  setStartDate(firstDay);
-                  setEndDate(today);
-                }}
-                className="text-[11px] font-semibold bg-secondary px-2.5 py-1 rounded-lg hover:bg-secondary/80 text-foreground"
-              >
-                This Year YTD
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Date to Date Range Picker Filter Bar */}
+        <DateRangePicker title="Dashboard Filter (From Date to To Date)" />
 
         {/* Date Period Active Badge */}
         {data?.periodStart && data?.periodEnd && (

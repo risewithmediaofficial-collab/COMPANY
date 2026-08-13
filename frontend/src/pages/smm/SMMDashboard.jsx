@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { smmApi } from '../../api/smm';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { SMMFilterBar } from '../../components/smm/SMMFilterBar';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   FileText, Video, ImageIcon, CheckCircle2, Clock, Megaphone, PlayCircle,
   PauseCircle, DollarSign, Users, UserCheck, Award, TrendingUp, Share2,
@@ -12,6 +14,7 @@ import {
 } from 'recharts';
 
 export const SMMDashboard = () => {
+  const { startDate, endDate } = useDateFilter();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,8 +36,8 @@ export const SMMDashboard = () => {
         platform: filters.platform || undefined,
         contentType: filters.contentType || undefined,
         campaignStatus: filters.campaignStatus || undefined,
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
+        startDate: filters.startDate || startDate || undefined,
+        endDate: filters.endDate || endDate || undefined,
       };
       const res = await smmApi.getDashboardStats(params);
       if (res.data?.success) {
@@ -49,7 +52,7 @@ export const SMMDashboard = () => {
 
   useEffect(() => {
     fetchDashboardStats();
-  }, [filters]);
+  }, [filters, startDate, endDate]);
 
   const handleFilterChange = (key, val) => {
     setFilters((prev) => ({ ...prev, [key]: val }));
@@ -101,6 +104,7 @@ export const SMMDashboard = () => {
 
       <SMMSubNav />
       <SMMFilterBar filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
+      <DateRangePicker title="SMM Date Filter (From Date to To Date)" className="mt-3 mb-4" />
 
       {loading ? (
         <div className="p-16 text-center text-xs text-muted-foreground">Loading marketing analytics...</div>

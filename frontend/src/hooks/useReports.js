@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../api';
 
-export const useAdminReport = () => {
+export const useAdminReport = (params = {}) => {
   return useQuery({
-    queryKey: ['reports', 'admin'],
+    queryKey: ['reports', 'admin', params],
     queryFn: async () => {
-      const response = await api.get('/reports/admin');
+      const response = await api.get('/reports/admin', { params });
       return response.data;
     },
     staleTime: 2 * 60 * 1000,

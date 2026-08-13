@@ -42,6 +42,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { PageHeader, MetricGrid, MetricCard } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
+import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const PIPELINE_STAGES = ['new', 'contacted', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'won', 'lost', 'refollow_later'];
 
@@ -405,8 +407,11 @@ const Leads = () => {
     },
   ];
 
+  const { isDateInRange } = useDateFilter();
+
   const filteredListLeads = useMemo(() => {
     return leads.filter((lead) => {
+      if (!isDateInRange(lead.createdAt || lead.followUpDate || lead.updatedAt)) return false;
       if (selectedFollowUpDate) {
         if (!lead.followUpDate) return false;
         const d = new Date(lead.followUpDate).toISOString().split('T')[0];
@@ -426,13 +431,13 @@ const Leads = () => {
       }
       return true;
     });
-  }, [leads, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd]);
+  }, [leads, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd, isDateInRange]);
 
   const filteredKanbanData = useMemo(() => {
-    if (!selectedFollowUpDate && !selectedTodayFollowedOnly) return kanbanData;
     const filtered = {};
     PIPELINE_STAGES.forEach((stage) => {
       filtered[stage] = (kanbanData[stage] || []).filter((lead) => {
+        if (!isDateInRange(lead.createdAt || lead.followUpDate || lead.updatedAt)) return false;
         if (selectedFollowUpDate) {
           if (!lead.followUpDate) return false;
           const d = new Date(lead.followUpDate).toISOString().split('T')[0];
@@ -454,7 +459,7 @@ const Leads = () => {
       });
     });
     return filtered;
-  }, [kanbanData, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd]);
+  }, [kanbanData, selectedFollowUpDate, selectedTodayFollowedOnly, todayStart, todayEnd, isDateInRange]);
 
   const handleDeleteLead = async () => {
     if (deleteLeadId) {
@@ -729,6 +734,7 @@ const Leads = () => {
             </div>
           ))}
         </MetricGrid>
+        <DateRangePicker title="Filter Leads (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
           <div className="mt-6 rounded-[26px] border border-border/80 bg-card/80 p-3 shadow-sm backdrop-blur-sm">

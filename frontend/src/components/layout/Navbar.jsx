@@ -22,6 +22,7 @@ import {
 } from '../ui/DropdownMenu';
 import GlobalSearchModal from '../modals/GlobalSearchModal';
 import FavoritesPanel from '../modals/FavoritesPanel';
+import { DateRangePicker } from '../ui/DateRangePicker';
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -103,6 +104,12 @@ const Navbar = () => {
 
         {/* Right Actions */}
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-3">
+          {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
+            <div className="hidden xl:block">
+              <DateRangePicker compact />
+            </div>
+          )}
+
           {/* Theme Toggle */}
           <button
             onClick={() => dispatch(toggleDarkMode())}

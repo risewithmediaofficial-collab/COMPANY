@@ -6,6 +6,7 @@ import { store } from './store'
 import App from './App.jsx'
 import './index.css'
 import { SocketProvider } from './context/SocketContext'
+import { DateFilterProvider } from './context/DateFilterContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,7 +22,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <SocketProvider>
-          <App />
+          <DateFilterProvider>
+            <App />
+          </DateFilterProvider>
         </SocketProvider>
       </QueryClientProvider>
     </Provider>
