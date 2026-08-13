@@ -73,7 +73,7 @@ const Dashboard = () => {
   const [endDate, setEndDate] = useState('');
 
   const socket = useSocket();
-  const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'manager';
+  const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager';
   
   // Queries for manager and employee EOD views
   const { data: eodData } = useEodReports(eodDays, {}, { enabled: isAdminOrManager });
@@ -95,7 +95,7 @@ const Dashboard = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const endpoint = user.role === 'superAdmin' || user.role === 'manager'
+      const endpoint = user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager'
         ? '/reports/admin'
         : user.role === 'client'
           ? '/reports/client'
@@ -1188,7 +1188,7 @@ const Dashboard = () => {
 
   return (
     <div className="animate-in fade-in duration-500">
-      {user.role === 'superAdmin' || user.role === 'manager'
+      {user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager'
         ? renderAdminStats()
         : user.role === 'client'
           ? renderClientStats()

@@ -41,7 +41,7 @@ const invoiceStatusLabels = {
 
 const normalizeStatus = (value = '') => invoiceStatusMap[value] || value.toString().toLowerCase();
 
-const financeRoles = ['superAdmin', 'manager', 'financeManager'];
+const financeRoles = ['superAdmin', 'admin', 'manager', 'financeManager'];
 const paymentModes = ['Cash', 'UPI', 'Bank Transfer', 'Card', 'Cheque', 'Other'];
 
 const toNumber = (value, fallback = 0) => {

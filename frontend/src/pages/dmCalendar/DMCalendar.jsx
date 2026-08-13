@@ -134,7 +134,7 @@ const STATUS_COLORS = {
 
 const DMCalendar = () => {
   const { user } = useSelector((state) => state.auth);
-  const isAdmin = user?.role === 'superAdmin';
+  const isAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
   const isManager = user?.role === 'manager';
 
   // Role Access Guard: Only Admin and Manager

@@ -10,8 +10,8 @@ import Notification from '../models/notification.model.js';
 
 const router = express.Router();
 
-const isAdmin = (user) => user.role === 'superAdmin';
-const canManageProposals = (user) => ['superAdmin', 'manager'].includes(user.role);
+const isAdmin = (user) => user.role === 'superAdmin' || user.role === 'admin';
+const canManageProposals = (user) => ['superAdmin', 'admin', 'manager'].includes(user.role) || Boolean(user.permissions?.canManageFinance);
 
 const getClientRecordForUser = async (user) => {
   if (user.role !== 'client') return null;

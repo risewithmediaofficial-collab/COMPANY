@@ -96,9 +96,33 @@ const ProtectedRoute = ({ isAuthenticated, user, loading, allowedRoles, children
   // Token valid but user profile not yet fetched (edge case)
   if (!user) return null;
 
+  // SuperAdmin and Admin have unrestricted access everywhere
+  if (user.role === 'superAdmin' || user.role === 'admin') {
+    return children;
+  }
+
   // RBAC & Granular Permission check
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    if (user.permissions?.canAccessSmm && allowedRoles.includes('employee')) {
+    const p = user.permissions || {};
+    if (p.canAccessSmm && (allowedRoles.includes('employee') || allowedRoles.includes('manager'))) {
+      return children;
+    }
+    if ((p.canManageFinance || p.canViewFinanceOverview) && (allowedRoles.includes('manager') || allowedRoles.includes('superAdmin'))) {
+      return children;
+    }
+    if (p.canManageLeads && (allowedRoles.includes('manager') || allowedRoles.includes('employee') || allowedRoles.includes('referral'))) {
+      return children;
+    }
+    if ((p.canManageHR || p.canManageEmployees) && (allowedRoles.includes('manager') || allowedRoles.includes('superAdmin'))) {
+      return children;
+    }
+    if ((p.canViewReports || p.canViewAnalytics) && (allowedRoles.includes('manager') || allowedRoles.includes('superAdmin'))) {
+      return children;
+    }
+    if (p.canUploadAssets && (allowedRoles.includes('employee') || allowedRoles.includes('manager'))) {
+      return children;
+    }
+    if (p.canAssignTasks && (allowedRoles.includes('manager') || allowedRoles.includes('superAdmin'))) {
       return children;
     }
     return <Navigate to="/" replace />;

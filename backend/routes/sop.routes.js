@@ -9,11 +9,11 @@ import User from '../models/user.model.js';
 
 const router = express.Router();
 
-const isAdmin = (user) => user.role === 'superAdmin';
-const canManageSop = (user) => ['superAdmin', 'manager'].includes(user.role);
+const isAdmin = (user) => user.role === 'superAdmin' || user.role === 'admin';
+const canManageSop = (user) => ['superAdmin', 'admin', 'manager'].includes(user.role);
 
 const mapUserRoleToSopRole = (role) => {
-  if (role === 'superAdmin') return 'admin';
+  if (role === 'superAdmin' || role === 'admin') return 'admin';
   return role;
 };
 

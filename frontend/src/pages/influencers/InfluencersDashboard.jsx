@@ -84,7 +84,7 @@ const CATEGORIES = [
 
 const InfluencersDashboard = () => {
   const { user } = useSelector((state) => state.auth);
-  const isAdmin = user?.role === 'superAdmin';
+  const isAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
   const isManager = user?.role === 'manager';
 
   // Access Control Guard: Only Admin & Manager

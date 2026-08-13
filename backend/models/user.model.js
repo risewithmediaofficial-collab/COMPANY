@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['superAdmin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'clientAdmin', 'clientMember', 'intern', 'employee', 'referral', 'client'],
+      enum: ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'clientAdmin', 'clientMember', 'intern', 'employee', 'referral', 'client'],
       default: 'employee',
     },
     avatar: { type: String, default: '' },

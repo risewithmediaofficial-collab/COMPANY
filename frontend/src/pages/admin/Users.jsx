@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 
 const roles = [
   { value: 'superAdmin', label: 'Super Admin' },
+  { value: 'admin', label: 'Admin' },
   { value: 'manager', label: 'Manager' },
   { value: 'employee', label: 'Employee' },
   { value: 'client', label: 'Client' },

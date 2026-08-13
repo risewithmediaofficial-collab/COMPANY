@@ -97,7 +97,7 @@ const invoiceStatusTone = {
 const Finance = () => {
   const { user } = useSelector((state) => state.auth);
   const isManager = user?.role === 'manager';
-  const isAdmin = user?.role === 'superAdmin';
+  const isAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
   const canViewFinanceOverview = isAdmin || isManager || Boolean(user?.permissions?.canViewFinanceOverview) || Boolean(user?.permissions?.canManageFinance);
   const canManageFinanceAccess = isAdmin || isManager || Boolean(user?.permissions?.canManageFinance);
 

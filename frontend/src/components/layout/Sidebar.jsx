@@ -150,13 +150,31 @@ const Sidebar = () => {
     ],
   };
 
-  let currentMenu = menuItems[user?.role] || menuItems.employee;
-  if (user?.permissions?.canAccessSmm && !currentMenu.some(item => item.path === '/smm')) {
-    currentMenu = [
-      ...currentMenu.slice(0, 1),
-      { name: 'Social Media Manager', icon: Share2, path: '/smm' },
-      ...currentMenu.slice(1)
-    ];
+  menuItems.admin = menuItems.superAdmin;
+  let currentMenu = [...(menuItems[user?.role] || menuItems.employee)];
+
+  const p = user?.permissions || {};
+
+  if (p.canAccessSmm && !currentMenu.some((item) => item.path === '/smm')) {
+    currentMenu.splice(1, 0, { name: 'Social Media Manager', icon: Share2, path: '/smm' });
+  }
+  if (p.canManageLeads && !currentMenu.some((item) => item.path === '/crm/leads')) {
+    currentMenu.push({ name: 'CRM & Leads', icon: TrendingUp, path: '/crm/leads' });
+  }
+  if ((p.canManageFinance || p.canViewFinanceOverview) && !currentMenu.some((item) => item.path === '/finance')) {
+    currentMenu.push({ name: 'Finance Status', icon: IndianRupee, path: '/finance' });
+  }
+  if ((p.canManageHR || p.canManageEmployees) && !currentMenu.some((item) => item.path === '/hr')) {
+    currentMenu.push({ name: 'HR & Hiring', icon: Users2, path: '/hr' });
+  }
+  if ((p.canViewReports || p.canViewAnalytics) && !currentMenu.some((item) => item.path === '/reports')) {
+    currentMenu.push({ name: 'Reports', icon: BarChart3, path: '/reports' });
+  }
+  if (p.canUploadAssets && !currentMenu.some((item) => item.path === '/assets')) {
+    currentMenu.push({ name: 'Asset Library', icon: Palette, path: '/assets' });
+  }
+  if (p.canAssignTasks && !currentMenu.some((item) => item.path === '/manager-tasks')) {
+    currentMenu.push({ name: 'Manager Tasks', icon: CheckSquare, path: '/manager-tasks' });
   }
 
   return (

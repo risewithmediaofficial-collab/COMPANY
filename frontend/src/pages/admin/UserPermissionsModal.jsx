@@ -8,6 +8,8 @@ const PERMISSIONS = [
   { key: 'canApproveContent', label: 'Approve Content' },
   { key: 'canViewFinanceOverview', label: 'View Finance Overview' },
   { key: 'canManageFinance', label: 'Manage Finance' },
+  { key: 'canManageLeads', label: 'Manage Leads' },
+  { key: 'canManageHR', label: 'Manage HR' },
   { key: 'canAssignTasks', label: 'Assign Tasks' },
   { key: 'canUploadAssets', label: 'Upload Assets' },
   { key: 'canViewAnalytics', label: 'View Analytics' },

@@ -119,7 +119,24 @@ const Settings = () => {
     });
   }, [settings]);
 
-  const permissions = useMemo(() => profileUser?.permissions || {}, [profileUser]);
+  const permissions = useMemo(() => {
+    if (profileUser?.role === 'superAdmin' || profileUser?.role === 'admin') {
+      return {
+        canViewReports: true,
+        canManageFinance: true,
+        canManageLeads: true,
+        canManageHR: true,
+        canApproveContent: true,
+        canAssignTasks: true,
+        canUploadAssets: true,
+        canViewAnalytics: true,
+        canManageEmployees: true,
+        canAccessSmm: true,
+        canViewFinanceOverview: true,
+      };
+    }
+    return profileUser?.permissions || {};
+  }, [profileUser]);
 
   const handleProfileChange = (event) => {
     setProfileData({ ...profileData, [event.target.name]: event.target.value });
