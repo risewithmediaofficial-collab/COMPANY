@@ -270,7 +270,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative w-full overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_30px_80px_rgba(15,23,42,0.18)] flex flex-col max-h-[min(92vh,calc(100dvh-1rem))]"
+          className="relative w-full overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_30px_80px_rgba(15,23,42,0.18)] flex flex-col min-h-0 max-h-[min(92vh,calc(100dvh-1rem))]"
         >
           <button
             type="button"
@@ -296,7 +296,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 custom-scrollbar">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
                 <FormField
                   control={form.control}

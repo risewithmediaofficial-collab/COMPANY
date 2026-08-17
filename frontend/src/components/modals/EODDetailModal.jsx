@@ -28,7 +28,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent noPadding className="max-w-xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
+      <DialogContent noPadding className="max-w-xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
         {/* Header styling */}
         <div className="shrink-0 bg-gradient-to-r from-primary/10 via-indigo-500/10 to-purple-500/10 p-5 sm:p-6 border-b border-border">
           <DialogHeader className="border-b-0 mb-0 pb-0">
@@ -70,7 +70,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
         </div>
 
         {/* Scrollable Modal content */}
-        <div className="p-4 sm:p-6 space-y-5 flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-5 flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar">
           {/* Summary */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">

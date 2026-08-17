@@ -55,7 +55,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent noPadding className="max-w-2xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
+      <DialogContent noPadding className="max-w-2xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
         <div className="shrink-0 p-5 sm:p-6 border-b border-border bg-secondary/20">
           <DialogHeader className="border-b-0 mb-0 pb-0">
             <DialogTitle>End of Day Report</DialogTitle>
@@ -63,8 +63,8 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
           </DialogHeader>
         </div>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-5 sm:p-6 space-y-4 flex-1 overflow-y-auto">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="p-5 sm:p-6 space-y-4 flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar">
               <FormField
                 control={form.control}
                 name="date"

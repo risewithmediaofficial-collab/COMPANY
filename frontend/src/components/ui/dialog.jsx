@@ -15,7 +15,7 @@ export const DialogContent = React.forwardRef(
         <DialogPrimitive.Content
           ref={ref}
           className={cn(
-            'relative w-full my-auto max-h-[min(92vh,calc(100dvh-1rem))] sm:max-h-[min(90vh,calc(100dvh-2rem))] rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-border bg-white dark:bg-card shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 duration-200 flex flex-col overflow-hidden',
+            'relative w-full my-auto max-h-[min(92vh,calc(100dvh-1rem))] sm:max-h-[min(90vh,calc(100dvh-2rem))] rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-border bg-white dark:bg-card shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 duration-200 flex flex-col min-h-0 overflow-hidden',
             className
           )}
           onPointerDownOutside={props.onPointerDownOutside || ((e) => e.preventDefault())}
@@ -26,7 +26,7 @@ export const DialogContent = React.forwardRef(
           {noPadding ? (
             children
           ) : (
-            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 custom-scrollbar">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 custom-scrollbar">
               {children}
             </div>
           )}
