@@ -1160,8 +1160,8 @@ const Attendance = () => {
 
       {/* Assign Holiday Modal */}
       {showHolidayModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
-          <div className="w-full max-w-md rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
+          <div className="w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Calendar className="text-primary h-5 w-5" />
@@ -1220,8 +1220,8 @@ const Attendance = () => {
 
       {/* Assign Leave Modal */}
       {showLeaveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
-          <div className="w-full max-w-md rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
+          <div className="w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Calendar className="text-rose-500 h-5 w-5" />
@@ -1298,8 +1298,8 @@ const Attendance = () => {
 
       {/* Inform WFH Modal */}
       {showWFHModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
-          <div className="w-full max-w-md rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
+          <div className="w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar">
             <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Calendar className="text-indigo-500 h-5 w-5" />
@@ -1359,8 +1359,8 @@ const Attendance = () => {
 
       {/* Attendance Detail Modal */}
       {selectedRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
-          <div className="w-full max-w-lg rounded-[28px] border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 space-y-5">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
+          <div className="w-full my-auto max-w-lg max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar space-y-5">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">

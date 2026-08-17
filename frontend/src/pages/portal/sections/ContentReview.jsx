@@ -198,10 +198,10 @@ export default function ContentReview({ dark, setPendingCount }) {
       <AnimatePresence>
         {modal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center p-3 sm:p-4"
             style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="w-full max-w-lg rounded-2xl p-6"
+              className="w-full my-auto max-w-lg max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar rounded-2xl p-4 sm:p-6"
               style={{ background: dark ? '#0f172a' : '#fff', border: '1px solid rgba(99,102,241,0.3)' }}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className={`font-bold ${txt}`}>

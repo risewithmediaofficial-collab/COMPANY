@@ -263,32 +263,32 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         hideCloseButton
-        className="max-w-4xl max-h-[92vh] overflow-y-auto border-0 bg-transparent p-0 shadow-none"
+        className="max-w-4xl max-h-[min(92vh,calc(100dvh-1rem))] border-0 bg-transparent p-0 shadow-none overflow-hidden"
         noPadding
       >
         <motion.div
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative w-full overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_30px_80px_rgba(15,23,42,0.18)]"
+          className="relative w-full overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_30px_80px_rgba(15,23,42,0.18)] flex flex-col max-h-[min(92vh,calc(100dvh-1rem))]"
         >
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="absolute right-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-lg shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:bg-secondary hover:text-foreground"
+            className="absolute right-4 top-4 sm:right-5 sm:top-5 z-20 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-lg shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:bg-secondary hover:text-foreground"
             aria-label="Close project form"
           >
             <X size={18} />
           </button>
 
-          <div className="border-b border-border bg-gradient-to-r from-slate-50 via-white to-slate-50 px-7 py-6">
+          <div className="border-b border-border bg-gradient-to-r from-slate-50 via-white to-slate-50 px-5 sm:px-7 py-4 sm:py-6 shrink-0 pr-16 sm:pr-20">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
                 <Briefcase size={20} />
               </div>
               <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight text-slate-900">{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
-                <DialogDescription className="text-sm text-slate-500">
+                <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-slate-500">
                   {project ? 'Update the project details' : 'Create a new project for a client'}
                 </DialogDescription>
               </div>
@@ -296,8 +296,8 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
           </div>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-7">
-              <div className="grid gap-5 md:grid-cols-2">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="name"

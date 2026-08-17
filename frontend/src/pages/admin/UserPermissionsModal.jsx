@@ -49,19 +49,19 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-card rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-5 border-b border-border">
+    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+      <div className="w-full my-auto max-w-lg bg-card rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[min(90vh,calc(100dvh-2rem))] border border-border">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border shrink-0">
           <div>
-            <h2 className="text-xl font-bold">Access Control</h2>
-            <p className="text-sm text-muted-foreground mt-1">Configure permissions for {user.name}</p>
+            <h2 className="text-lg sm:text-xl font-bold">Access Control</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Configure permissions for {user.name}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-secondary rounded-xl text-muted-foreground transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-5 overflow-y-auto flex-1 space-y-6">
+        <div className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Granular Permissions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

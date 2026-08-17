@@ -330,16 +330,16 @@ export const SMMLeads = () => {
 
       {/* ADD LEAD MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl p-6">
-            <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
               <h2 className="text-base font-bold text-foreground">Record New Social Media Lead</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary">
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-3 text-xs">
+            <form onSubmit={handleCreateSubmit} className="space-y-3 p-5 text-xs overflow-y-auto flex-1 custom-scrollbar">
               <div>
                 <label className="font-semibold text-foreground block mb-1">Select Client *</label>
                 <select

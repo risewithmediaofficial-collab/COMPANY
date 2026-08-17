@@ -290,8 +290,8 @@ export const AttendanceWidget = ({ todayRecord, user }) => {
 
       {/* Modal: Mark Absent */}
       {showAbsentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-card border border-border rounded-[28px] p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+          <div className="w-full my-auto max-w-md bg-card border border-border rounded-[28px] p-4 sm:p-6 shadow-2xl space-y-4 max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h4 className="font-extrabold text-lg text-foreground flex items-center gap-2">
                 <XCircle className="text-destructive h-5 w-5" />
@@ -340,8 +340,8 @@ export const AttendanceWidget = ({ todayRecord, user }) => {
 
       {/* Modal: Mark Leave */}
       {showLeaveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-card border border-border rounded-[28px] p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+          <div className="w-full my-auto max-w-md bg-card border border-border rounded-[28px] p-4 sm:p-6 shadow-2xl space-y-4 max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h4 className="font-extrabold text-lg text-foreground flex items-center gap-2">
                 <Calendar className="text-rose-500 h-5 w-5" />

@@ -384,16 +384,16 @@ export const Campaigns = () => {
 
       {/* CREATE AD CAMPAIGN MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl p-6">
-            <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl w-full my-auto max-w-xl max-h-[min(90vh,calc(100dvh-2rem))] shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
               <h2 className="text-lg font-bold text-foreground">Create Paid Advertisement Campaign</h2>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary">
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateSubmit} className="space-y-4 p-5 text-xs overflow-y-auto flex-1 custom-scrollbar">
               {/* Client & Project Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-muted/30 p-3.5 rounded-xl border border-border">
                 <div>
@@ -674,19 +674,19 @@ export const Campaigns = () => {
 
       {/* LOG DAILY SPEND MODAL */}
       {isSpendModalOpen && selectedCampaign && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl p-6">
-            <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
               <h2 className="text-base font-bold text-foreground">
                 Log Daily Ad Spend — {selectedCampaign.name}
               </h2>
-              <button onClick={() => setIsSpendModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => setIsSpendModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary">
                 <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleAddSpendSubmit} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleAddSpendSubmit} className="space-y-3 p-5 text-xs overflow-y-auto flex-1 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-medium text-muted-foreground block mb-1">Date *</label>
                   <input

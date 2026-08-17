@@ -52,19 +52,19 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-3 sm:p-4 flex min-h-full items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         onClick={() => onOpenChange(false)}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg rounded-3xl border border-border bg-card shadow-2xl">
+      <div className="relative w-full my-auto max-w-lg max-h-[min(90vh,calc(100dvh-2rem))] rounded-3xl border border-border bg-card shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-5">
+        <div className="flex items-center justify-between border-b border-border px-5 sm:px-6 py-4 sm:py-5 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
               <FileText size={20} />
             </div>
             <div>
@@ -82,7 +82,7 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 p-6">
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar">
           {error && (
             <div className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {error}
@@ -121,7 +121,7 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
           </div>
 
           {/* Dates row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground">
                 <Calendar size={12} />
@@ -172,7 +172,7 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancel
             </Button>

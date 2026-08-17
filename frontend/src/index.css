@@ -179,3 +179,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   margin-left: 2px;
 }
 
+/* Modal and dialog touch scrolling enhancements */
+[data-radix-dialog-content],
+[data-radix-alert-dialog-content],
+.modal-scrollable {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+

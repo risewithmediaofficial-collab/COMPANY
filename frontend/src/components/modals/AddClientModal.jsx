@@ -296,7 +296,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -450,7 +450,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
             </div>
 
             {/* Budget & Contract Values */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="budgetType"
@@ -497,7 +497,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
             </div>
 
             {/* Contract Dates */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="contractStartDate"
@@ -530,7 +530,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="referredByMode"

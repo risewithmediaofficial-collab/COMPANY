@@ -355,8 +355,8 @@ const ProjectDetails = () => {
     <>
       {/* Confirmation Dialog */}
       {pendingDrop && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="mx-4 max-w-sm rounded-3xl border border-border bg-card p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
+          <div className="relative w-full my-auto max-w-sm max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-2xl custom-scrollbar">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <CheckCircle2 size={24} />
             </div>

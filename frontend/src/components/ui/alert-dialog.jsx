@@ -9,15 +9,17 @@ export const AlertDialogOverlay = AlertDialogPrimitive.Overlay;
 
 export const AlertDialogContent = React.forwardRef(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Portal>
-    <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
-    <AlertDialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card p-6 shadow-2xl outline-none',
-        className
-      )}
-      {...props}
-    />
+    <AlertDialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-3 sm:p-4 flex min-h-full items-center justify-center">
+      <AlertDialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          'relative w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 duration-200 custom-scrollbar',
+          className
+        )}
+        {...props}
+      />
+    </div>
   </AlertDialogPrimitive.Portal>
 ));
 AlertDialogContent.displayName = 'AlertDialogContent';
