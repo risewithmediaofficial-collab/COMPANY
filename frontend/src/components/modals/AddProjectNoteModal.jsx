@@ -1,15 +1,22 @@
 import { useState } from 'react';
-import { X, FileText, Calendar, AlertTriangle } from 'lucide-react';
+import { FileText, Calendar, AlertTriangle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../ui/dialog';
 import { Button } from '../ui/button';
 import api from '../../api';
 
 const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'urgent'];
 
 const priorityColors = {
-  low: 'bg-slate-500/10 text-slate-600 border-slate-200',
-  medium: 'bg-blue-500/10 text-blue-600 border-blue-200',
-  high: 'bg-amber-500/10 text-amber-600 border-amber-200',
-  urgent: 'bg-red-500/10 text-red-600 border-red-200',
+  low: 'bg-slate-500/10 text-slate-600 border-slate-200 dark:text-slate-400',
+  medium: 'bg-blue-500/10 text-blue-600 border-blue-200 dark:text-blue-400',
+  high: 'bg-amber-500/10 text-amber-600 border-amber-200 dark:text-amber-400',
+  urgent: 'bg-rose-500/10 text-rose-600 border-rose-200 dark:text-rose-400',
 };
 
 export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
@@ -49,49 +56,31 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-3 sm:p-4 flex min-h-full items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={() => onOpenChange(false)}
-      />
-
-      {/* Modal */}
-      <div className="relative w-full my-auto max-w-lg max-h-[min(90vh,calc(100dvh-2rem))] rounded-3xl border border-border bg-card shadow-2xl flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-5 sm:px-6 py-4 sm:py-5 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
-              <FileText size={20} />
-            </div>
-            <div>
-              <h2 className="text-base font-bold tracking-tight">Add Project Brief</h2>
-              <p className="text-xs text-muted-foreground">Manager will see this and assign tasks</p>
-            </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent size="default">
+        <DialogHeader>
+          <div className="flex items-center gap-2.5">
+            <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs font-bold">
+              📝
+            </span>
+            <DialogTitle>Add Project Brief</DialogTitle>
           </div>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            type="button"
-          >
-            <X size={18} />
-          </button>
-        </div>
+          <DialogDescription>
+            Brief managers on project deliverables, milestones, and priority
+          </DialogDescription>
+        </DialogHeader>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {error && (
-            <div className="rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-3.5 py-2.5 text-xs text-destructive">
               {error}
             </div>
           )}
 
           {/* Title */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-foreground">
+            <label className="mb-1.5 block font-semibold text-foreground">
               Brief Title <span className="text-destructive">*</span>
             </label>
             <input
@@ -100,14 +89,14 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
               value={form.title}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="e.g. Social Media Campaign – July 2026"
-              className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-primary/20"
               required
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-foreground">
+            <label className="mb-1.5 block font-semibold text-foreground">
               Task Details / Instructions
             </label>
             <textarea
@@ -115,15 +104,15 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
               value={form.description}
               onChange={(e) => handleChange('description', e.target.value)}
               rows={4}
-              placeholder="Describe the project scope, deliverables, and any specific instructions for the manager..."
-              className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              placeholder="Describe the project scope, deliverables, and specific instructions..."
+              className="w-full resize-none rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
 
           {/* Dates row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <label className="mb-1.5 flex items-center gap-1.5 font-semibold text-foreground">
                 <Calendar size={12} />
                 Start Date
               </label>
@@ -132,11 +121,11 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
                 type="date"
                 value={form.startDate}
                 onChange={(e) => handleChange('startDate', e.target.value)}
-                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+                className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <div>
-              <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-foreground">
+              <label className="mb-1.5 flex items-center gap-1.5 font-semibold text-foreground">
                 <AlertTriangle size={12} />
                 Deadline
               </label>
@@ -145,21 +134,21 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
                 type="date"
                 value={form.deadline}
                 onChange={(e) => handleChange('deadline', e.target.value)}
-                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+                className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
           </div>
 
           {/* Priority */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-foreground">Priority</label>
+            <label className="mb-1.5 block font-semibold text-foreground">Priority</label>
             <div className="flex gap-2 flex-wrap">
               {PRIORITY_OPTIONS.map((p) => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => handleChange('priority', p)}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize transition-all ${
+                  className={`rounded-lg border px-3 py-1 text-xs font-semibold capitalize transition-all ${
                     form.priority === p
                       ? priorityColors[p]
                       : 'border-border bg-background text-muted-foreground hover:bg-secondary'
@@ -172,16 +161,16 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-2 border-t border-border">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <div className="flex justify-end gap-2 pt-4 border-t border-border">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading} className="rounded-xl text-xs">
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || !form.title.trim()}>
+            <Button type="submit" disabled={loading || !form.title.trim()} className="rounded-xl bg-primary text-primary-foreground font-bold text-xs">
               {loading ? 'Posting...' : 'Post Brief'}
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

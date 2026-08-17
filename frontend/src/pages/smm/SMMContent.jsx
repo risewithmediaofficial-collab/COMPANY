@@ -9,6 +9,13 @@ import {
   Video, Layers
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../components/ui/dialog';
 
 export const SMMContent = () => {
   const navigate = useNavigate();
@@ -371,240 +378,233 @@ export const SMMContent = () => {
             </table>
           </div>
         )}
-      </div>
+      </div>      {/* CREATE CONTENT MODAL (SLIDE-OVER SHEET) */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent size="lg">
+          <DialogHeader>
+            <DialogTitle>Create Social Media Content</DialogTitle>
+            <DialogDescription>
+              Draft and schedule posts, reels, or stories across client social media accounts.
+            </DialogDescription>
+          </DialogHeader>
 
-      {/* CREATE CONTENT MODAL */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl w-full my-auto max-w-xl max-h-[min(90vh,calc(100dvh-2rem))] shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
-              <h2 className="text-lg font-bold text-foreground">Create Social Media Content</h2>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary">
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateSubmit} className="space-y-4 p-5 text-xs overflow-y-auto flex-1 custom-scrollbar">
-              {/* Client & Project Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-muted/30 p-3.5 rounded-xl border border-border">
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Select Client *</label>
-                  <select
-                    required
-                    value={formData.client}
-                    onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '' })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden"
-                  >
-                    <option value="">-- Choose Client --</option>
-                    {clientsList.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {c.companyName || c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Select Project *</label>
-                  <select
-                    required
-                    value={formData.project}
-                    onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                    disabled={!formData.client || loadingProjects}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden disabled:opacity-50"
-                  >
-                    <option value="">-- Choose Project --</option>
-                    {projectsList.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Content Type & Platform */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Content Type *</label>
-                  <select
-                    value={formData.contentType}
-                    onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  >
-                    <option value="Post">Post</option>
-                    <option value="Reel">Reel</option>
-                    <option value="Story">Story</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Platform *</label>
-                  <select
-                    value={formData.platforms[0] || 'Instagram'}
-                    onChange={(e) => setFormData({ ...formData, platforms: [e.target.value] })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  >
-                    <option value="Instagram">Instagram</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="YouTube">YouTube</option>
-                    <option value="X/Twitter">X / Twitter</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Name & Caption */}
+          <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+            {/* Client & Project Selection */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border/80">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Post / Content Name *</label>
-                <input
-                  type="text"
+                <label className="font-semibold text-foreground block mb-1">Select Client *</label>
+                <select
                   required
-                  placeholder="e.g. Summer Festival Campaign Promo Reel"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                />
+                  value={formData.client}
+                  onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '' })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
+                >
+                  <option value="">-- Choose Client --</option>
+                  {clientsList.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.companyName || c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="font-semibold text-foreground block mb-1">Caption</label>
-                <textarea
-                  rows={3}
-                  placeholder="Enter full caption here..."
-                  value={formData.caption}
-                  onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
-                  className="w-full p-3 bg-background border border-input rounded-xl"
-                />
-              </div>
-
-              {/* Dates & Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Scheduled Date</label>
-                  <input
-                    type="date"
-                    value={formData.scheduledDate}
-                    onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Scheduled Time</label>
-                  <input
-                    type="time"
-                    value={formData.scheduledTime}
-                    onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Posting Status</label>
-                  <select
-                    value={formData.postingStatus}
-                    onChange={(e) => setFormData({ ...formData, postingStatus: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  >
-                    <option value="Draft">Draft</option>
-                    <option value="Scheduled">Scheduled</option>
-                    <option value="Published">Published</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 border border-border rounded-xl font-medium text-xs hover:bg-secondary"
+                <label className="font-semibold text-foreground block mb-1">Select Project *</label>
+                <select
+                  required
+                  value={formData.project}
+                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                  disabled={!formData.client || loadingProjects}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-xs"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-xs hover:bg-primary/90"
-                >
-                  Save Content Record
-                </button>
+                  <option value="">-- Choose Project --</option>
+                  {projectsList.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* PERFORMANCE METRICS MODAL */}
-      {isPerfModalOpen && selectedContent && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl w-full my-auto max-w-lg max-h-[min(90vh,calc(100dvh-2rem))] shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
-              <h2 className="text-base font-bold text-foreground">
-                Log Organic Performance — {selectedContent.name}
-              </h2>
-              <button onClick={() => setIsPerfModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary">
-                <X size={18} />
-              </button>
             </div>
 
-            <form onSubmit={handlePerfSubmit} className="space-y-3 p-5 text-xs overflow-y-auto flex-1 custom-scrollbar">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Reach</label>
-                  <input
-                    type="number"
-                    value={perfData.reach || 0}
-                    onChange={(e) => setPerfData({ ...perfData, reach: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Impressions</label>
-                  <input
-                    type="number"
-                    value={perfData.impressions || 0}
-                    onChange={(e) => setPerfData({ ...perfData, impressions: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Likes</label>
-                  <input
-                    type="number"
-                    value={perfData.likes || 0}
-                    onChange={(e) => setPerfData({ ...perfData, likes: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Comments</label>
-                  <input
-                    type="number"
-                    value={perfData.comments || 0}
-                    onChange={(e) => setPerfData({ ...perfData, comments: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
+            {/* Content Type & Platform */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Content Type *</label>
+                <select
+                  value={formData.contentType}
+                  onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                >
+                  <option value="Post">Post</option>
+                  <option value="Reel">Reel</option>
+                  <option value="Story">Story</option>
+                </select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setIsPerfModalOpen(false)}
-                  className="px-4 py-2 border border-border rounded-xl font-medium text-xs hover:bg-secondary"
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Platform *</label>
+                <select
+                  value={formData.platforms[0] || 'Instagram'}
+                  onChange={(e) => setFormData({ ...formData, platforms: [e.target.value] })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-xs hover:bg-primary/90"
-                >
-                  Save Metrics
-                </button>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Twitter/X">Twitter/X</option>
+                  <option value="YouTube">YouTube</option>
+                </select>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+
+            {/* Post / Content Name */}
+            <div>
+              <label className="font-semibold text-foreground block mb-1">Post / Content Name *</label>
+              <input
+                required
+                type="text"
+                placeholder="e.g. Summer Festival Campaign Promo Reel"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
+              />
+            </div>
+
+            {/* Caption */}
+            <div>
+              <label className="font-semibold text-foreground block mb-1">Caption</label>
+              <textarea
+                rows={4}
+                placeholder="Enter full caption here..."
+                value={formData.caption}
+                onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
+                className="w-full p-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs custom-scrollbar"
+              />
+            </div>
+
+            {/* Scheduled Date, Time, & Status */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Scheduled Date</label>
+                <input
+                  type="date"
+                  value={formData.scheduledDate}
+                  onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Scheduled Time</label>
+                <input
+                  type="time"
+                  value={formData.scheduledTime}
+                  onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                />
+              </div>
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Posting Status</label>
+                <select
+                  value={formData.postingStatus}
+                  onChange={(e) => setFormData({ ...formData, postingStatus: e.target.value })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                >
+                  <option value="Draft">Draft</option>
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Published">Published</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(false)}
+                className="px-4 py-2 border border-border rounded-xl font-semibold text-xs hover:bg-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-sm hover:bg-primary/90"
+              >
+                Save Content Record
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* PERFORMANCE METRICS MODAL (SLIDE-OVER SHEET) */}
+      <Dialog open={isPerfModalOpen && Boolean(selectedContent)} onOpenChange={setIsPerfModalOpen}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>Log Organic Performance — {selectedContent?.name}</DialogTitle>
+            <DialogDescription>
+              Record reach, impressions, likes, and engagement metrics for this post.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handlePerfSubmit} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="font-medium text-muted-foreground block mb-1">Reach</label>
+                <input
+                  type="number"
+                  value={perfData.reach || 0}
+                  onChange={(e) => setPerfData({ ...perfData, reach: Number(e.target.value) })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                />
+              </div>
+              <div>
+                <label className="font-medium text-muted-foreground block mb-1">Impressions</label>
+                <input
+                  type="number"
+                  value={perfData.impressions || 0}
+                  onChange={(e) => setPerfData({ ...perfData, impressions: Number(e.target.value) })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                />
+              </div>
+              <div>
+                <label className="font-medium text-muted-foreground block mb-1">Likes</label>
+                <input
+                  type="number"
+                  value={perfData.likes || 0}
+                  onChange={(e) => setPerfData({ ...perfData, likes: Number(e.target.value) })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                />
+              </div>
+              <div>
+                <label className="font-medium text-muted-foreground block mb-1">Comments</label>
+                <input
+                  type="number"
+                  value={perfData.comments || 0}
+                  onChange={(e) => setPerfData({ ...perfData, comments: Number(e.target.value) })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setIsPerfModalOpen(false)}
+                className="px-4 py-2 border border-border rounded-xl font-semibold text-xs hover:bg-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-sm hover:bg-primary/90"
+              >
+                Save Metrics
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

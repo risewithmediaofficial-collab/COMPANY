@@ -1,13 +1,30 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { CheckCircle2, Clock, ListChecks, Plus, TimerReset } from 'lucide-react';
+import {
+  CheckCircle2,
+  Clock,
+  ListChecks,
+  Plus,
+  TimerReset,
+  CheckSquare,
+  AlertTriangle,
+  ArrowRight,
+  Filter,
+  Users,
+  Video,
+  Scissors,
+  FileEdit,
+  Share2,
+} from 'lucide-react';
 import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
-import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
+import { StatusBadge } from '../../components/ui/page';
+import { WorkspacePage } from '../../components/ui/WorkspacePage';
+import { DatabaseView } from '../../components/ui/DatabaseView';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,16 +68,16 @@ const priorityTone = {
   Urgent: 'danger',
 };
 
-const ALL_TASK_TYPES = [...CONTENT_TASK_TYPE_OPTIONS, ...NON_CONTENT_TASK_TYPE_OPTIONS];
+const KANBAN_STATUSES = ['To Do', 'On Process', 'Waiting for Client', 'Review Required', 'Completed'];
 
 const Tasks = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
+  const [currentView, setCurrentView] = useState('table'); // 'table' | 'board'
   const [filters, setFilters] = useState({
     search: '',
     client: '',
@@ -81,29 +98,16 @@ const Tasks = () => {
   const deleteTaskMutation = useDeleteTask();
   const updateStatusMutation = useUpdateTaskStatus();
 
-  const assignableUsers = useMemo(
-    () => users.filter((person) => ['superAdmin', 'manager', 'employee'].includes(person.role)),
-    [users],
-  );
-
-  const isAssigned = (task) => {
-    if (!task || !user) return false;
-    const assignees = Array.isArray(task.assignedTo) ? task.assignedTo : [task.assignedTo];
-    return assignees.some((assignee) => {
-      const id = typeof assignee === 'object' ? assignee._id : assignee;
-      return id?.toString() === user._id?.toString();
-    });
-  };
-
   const { isDateInRange } = useDateFilter();
 
   const normalizedTasks = useMemo(
-    () => tasks
-      .filter((task) => isDateInRange(task.startDate || task.dueDate || task.createdAt))
-      .map((task) => ({
-        ...task,
-        status: normalizeTaskStatusLabel(task.status),
-      })),
+    () =>
+      tasks
+        .filter((task) => isDateInRange(task.startDate || task.dueDate || task.createdAt))
+        .map((task) => ({
+          ...task,
+          status: normalizeTaskStatusLabel(task.status),
+        })),
     [tasks, isDateInRange],
   );
 
@@ -112,64 +116,66 @@ const Tasks = () => {
     inProgress: normalizedTasks.filter((task) => task.status === 'On Process').length,
     done: normalizedTasks.filter((task) => ['Completed', 'Approved'].includes(task.status)).length,
     overdue: normalizedTasks.filter(
-      (task) => task.dueDate && new Date(task.dueDate) < new Date() && !['Completed', 'Approved'].includes(task.status),
+      (task) =>
+        task.dueDate &&
+        new Date(task.dueDate) < new Date() &&
+        !['Completed', 'Approved'].includes(task.status),
     ).length,
   };
 
   const columns = [
     {
       key: 'title',
-      label: 'Task',
+      label: 'Task Title',
       render: (row) => (
         <div className="min-w-0">
-          <div className="font-semibold text-foreground">{row.taskTitle || row.title}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{row.client?.name || row.client?.company || row.clientName || 'No client linked'}</div>
+          <div className="font-bold text-foreground text-xs hover:text-primary transition-colors">
+            {row.taskTitle || row.title}
+          </div>
+          <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
+            {row.client?.name || row.client?.company || row.clientName || 'Internal Task'}
+          </div>
         </div>
       ),
     },
     {
       key: 'category',
-      label: 'Category',
+      label: 'Type',
       render: (row) => (
-        <StatusBadge tone={row.taskCategory === 'non_content' ? 'warning' : 'info'}>
-          {row.taskCategory === 'non_content' ? 'Non-Content' : 'Content'}
-        </StatusBadge>
+        <span className="px-2 py-0.5 rounded-lg bg-secondary text-[11px] font-medium text-foreground">
+          {formatTaskTypeLabel(row.taskType) || 'General'}
+        </span>
       ),
     },
     {
-      key: 'taskType',
-      label: 'Task Type',
-      render: (row) => formatTaskTypeLabel(row.taskType),
-    },
-    {
       key: 'assignedTo',
-      label: 'Pipeline & Assignees',
+      label: 'Production Assignees',
       render: (row) => (
         <div className="space-y-1">
-          <div className="text-sm font-bold text-foreground">
+          <div className="text-xs font-semibold text-foreground">
             {Array.isArray(row.assignedTo) && row.assignedTo.length
-              ? row.assignedTo.map((assignee) => assignee.name).join(', ')
+              ? row.assignedTo.map((a) => a.name).join(', ')
               : row.assignedPersonName || 'Unassigned'}
           </div>
           {(row.scriptWriterAssigned || row.videographerAssigned || row.editorAssigned || row.publisherAssigned) && (
             <div className="flex flex-wrap gap-1 text-[10px]">
               {row.scriptWriterAssigned && (
-                <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 font-semibold">
+                <span className="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 font-semibold">
                   ✍️ {row.scriptWriterAssigned.name || row.scriptWriterName}
                 </span>
               )}
               {row.videographerAssigned && (
-                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-semibold">
+                <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 font-semibold">
                   🎥 {row.videographerAssigned.name || row.videographerName}
                 </span>
               )}
               {row.editorAssigned && (
-                <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 font-semibold">
+                <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 font-semibold">
                   ✂️ {row.editorAssigned.name || row.editorName}
                 </span>
               )}
               {row.publisherAssigned && (
-                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-semibold">
+                <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 font-semibold">
                   📱 {row.publisherAssigned.name || row.publisherName}
                 </span>
               )}
@@ -184,12 +190,14 @@ const Tasks = () => {
       render: (row) => (
         <select
           value={row.status}
-          onClick={(event) => event.stopPropagation()}
-          onChange={(event) => updateStatusMutation.mutate({ id: row._id, status: event.target.value })}
-          className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15 cursor-pointer"
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => updateStatusMutation.mutate({ id: row._id, status: e.target.value })}
+          className="rounded-xl border border-border bg-background px-2.5 py-1 text-xs font-semibold text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15 cursor-pointer"
         >
           {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((option) => (
-            <option key={option} value={option}>{option}</option>
+            <option key={option} value={option}>
+              {option}
+            </option>
           ))}
         </select>
       ),
@@ -197,12 +205,20 @@ const Tasks = () => {
     {
       key: 'priority',
       label: 'Priority',
-      render: (row) => <StatusBadge tone={priorityTone[row.priority] || 'neutral'}>{row.priority}</StatusBadge>,
+      render: (row) => (
+        <StatusBadge tone={priorityTone[row.priority] || 'neutral'}>
+          {row.priority || 'Medium'}
+        </StatusBadge>
+      ),
     },
     {
       key: 'dueDate',
       label: 'Due Date',
-      render: (row) => row.dueDate ? new Date(row.dueDate).toLocaleDateString() : 'Not set',
+      render: (row) => (
+        <span className="text-[11px] text-muted-foreground">
+          {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '—'}
+        </span>
+      ),
     },
   ];
 
@@ -211,10 +227,6 @@ const Tasks = () => {
       await deleteTaskMutation.mutateAsync(deleteTaskId);
       setDeleteTaskId(null);
     }
-  };
-
-  const updateFilter = (key, value) => {
-    setFilters((current) => ({ ...current, [key]: value }));
   };
 
   const openTaskDetail = (taskId) => {
@@ -243,137 +255,161 @@ const Tasks = () => {
     return <PortalTasks />;
   }
 
+  const canCreate = ['superAdmin', 'admin', 'manager'].includes(user?.role);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={isEmployee ? 'Assigned Work' : isManager ? 'Manager Tasks' : 'Advanced Task Management'}
-        description={isEmployee
-          ? 'See only the tasks assigned to you, update delivery status, upload completed files, and keep clients informed.'
-          : isManager
-            ? 'View and manage the tasks under your team’s responsibility. Create, assign, and track task progress across clients and projects.'
-            : 'Manage content and non-content tasks with structured requirements, clear ownership, and client approval flow.'}
-        actions={!isEmployee ? (
+    <WorkspacePage
+      title={isEmployee ? 'My Assigned Deliverables' : 'Tasks Database'}
+      subtitle="Universal multi-person production pipeline, multi-role assignees, and stages."
+      icon={CheckSquare}
+      breadcrumbs={[{ name: 'Delivery', path: '/tasks' }, { name: 'Tasks Database' }]}
+      actions={
+        canCreate && (
           <Button
-            onClick={() => navigate('/tasks/new')}
+            size="sm"
+            onClick={() => setShowAddModal(true)}
+            className="bg-primary text-primary-foreground font-bold shadow-sm"
           >
-            <Plus size={16} className="mr-2" />
-            Add Task
+            <Plus size={15} className="mr-1.5 stroke-[2.5]" />
+            New Task
           </Button>
-        ) : null}
-      >
-        <MetricGrid>
-          <MetricCard label="Assigned" value={taskMetrics.total} helper="Tasks in the current filtered view" icon={ListChecks} tone="info" />
-          <MetricCard label="On Process" value={taskMetrics.inProgress} helper="Work that is actively moving" icon={Clock} tone="warning" />
-          <MetricCard label="Completed" value={taskMetrics.done} helper="Completed or approved tasks" icon={CheckCircle2} tone="success" />
-          <MetricCard label="Overdue" value={taskMetrics.overdue} helper="Needs attention right away" icon={TimerReset} tone={taskMetrics.overdue > 0 ? 'danger' : 'neutral'} />
-        </MetricGrid>
-
-        <DateRangePicker title="Filter Tasks (From Date to To Date)" className="mt-4" />
-      </PageHeader>
-
-      {isManager && (
-        <div className="rounded-3xl border border-border bg-secondary/70 p-4 text-sm text-foreground">
-          <p className="font-semibold">Manager task inbox</p>
-          <p className="mt-1 text-sm text-muted-foreground">This page shows tasks within your management scope. Use filters to narrow by client, assignee, or status.</p>
-        </div>
-      )}
-
-      <CollapsibleFilterBar
-        search={filters.search}
-        onSearchChange={(val) => updateFilter('search', val)}
-        searchPlaceholder="Search tasks, clients, requirements, or assignees..."
-        activeFilterCount={Object.entries(filters).filter(([key, val]) => key !== 'search' && Boolean(val)).length}
-        onResetFilters={() => setFilters({ search: '', client: '', assignedTo: '', status: '', taskType: '', priority: '', dueDate: '' })}
-      >
-        <div className="grid w-full gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {!isEmployee && (
-            <select
-              value={filters.client}
-              onChange={(event) => updateFilter('client', event.target.value)}
-              className="app-select"
-            >
-              <option value="">All clients</option>
-              {clients.map((client) => (
-                <option key={client._id} value={client._id}>{client.name}</option>
-              ))}
-            </select>
+        )
+      }
+      properties={
+        <>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border/80 text-foreground font-semibold">
+            <CheckSquare size={13} className="text-primary" />
+            <span>Total Tasks: {taskMetrics.total}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 rounded-lg font-semibold">
+            <Clock size={13} />
+            <span>In Process: {taskMetrics.inProgress}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg font-semibold">
+            <CheckCircle2 size={13} />
+            <span>Completed: {taskMetrics.done}</span>
+          </div>
+          {taskMetrics.overdue > 0 && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-600 rounded-lg font-semibold">
+              <AlertTriangle size={13} />
+              <span>Overdue: {taskMetrics.overdue}</span>
+            </div>
           )}
-          {!isEmployee && (
-            <select
-              value={filters.assignedTo}
-              onChange={(event) => updateFilter('assignedTo', event.target.value)}
-              className="app-select"
-            >
-              <option value="">All assignees</option>
-              {assignableUsers.map((person) => (
-                <option key={person._id} value={person._id}>{person.name}</option>
-              ))}
-            </select>
-          )}
-          <select
-            value={filters.status}
-            onChange={(event) => updateFilter('status', event.target.value)}
-            className="app-select"
-          >
-            <option value="">All statuses</option>
-            {TASK_STATUS_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <select
-            value={filters.taskType}
-            onChange={(event) => updateFilter('taskType', event.target.value)}
-            className="app-select"
-          >
-            <option value="">All task types</option>
-            {ALL_TASK_TYPES.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-          <select
-            value={filters.priority}
-            onChange={(event) => updateFilter('priority', event.target.value)}
-            className="app-select"
-          >
-            <option value="">All priorities</option>
-            {PRIORITY_OPTIONS.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={filters.dueDate}
-            onChange={(event) => updateFilter('dueDate', event.target.value)}
-            className="app-input"
+        </>
+      }
+    >
+      <DateRangePicker title="Filter Tasks by Date Window" />
+
+      {/* Database View Engine (Table + Kanban Board) */}
+      <DatabaseView
+        activeView={currentView}
+        onViewChange={setCurrentView}
+        searchQuery={filters.search}
+        onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
+        totalCount={normalizedTasks.length}
+      >
+        {/* Table View */}
+        {currentView === 'table' && (
+          <DataTable
+            data={normalizedTasks}
+            columns={columns}
+            loading={isLoading}
+            onRowClick={handleRowClick}
+            onDelete={canCreate ? (id) => setDeleteTaskId(id) : undefined}
+            emptyTitle="No tasks found"
+            emptyDescription="Create a task to assign scripting, filming, editing, or publishing deliverables."
           />
-        </div>
-      </CollapsibleFilterBar>
+        )}
 
-      <DataTable
-        data={normalizedTasks}
-        columns={columns}
-        loading={isLoading}
-        onRowClick={handleRowClick}
-        onEdit={(task) => {
-          setSelectedTask(task);
-          setShowAddModal(true);
-        }}
-        onDelete={isEmployee ? null : (id) => setDeleteTaskId(id)}
-        canEditRow={(row) => !isEmployee || isAssigned(row)}
-        emptyTitle="No tasks match this view"
-        emptyDescription="Adjust filters or create a new task to keep delivery moving."
-      />
+        {/* Board View (Kanban by Task Status) */}
+        {currentView === 'board' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            {KANBAN_STATUSES.map((status) => {
+              const statusTasks = normalizedTasks.filter((t) => (t.status || 'To Do') === status);
+              return (
+                <div key={status} className="bg-secondary/20 rounded-2xl border border-border/80 p-3 space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
+                    <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
+                      {statusTasks.length}
+                    </span>
+                  </div>
 
-      <TaskDetailModal
-        taskId={selectedTaskId}
-        open={showTaskDetail}
-        onOpenChange={setShowTaskDetail}
-      />
+                  <div className="space-y-2">
+                    {statusTasks.map((task) => (
+                      <div
+                        key={task._id}
+                        onClick={() => handleRowClick(task)}
+                        className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2 group shadow-sm"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                            {task.taskTitle || task.title}
+                          </h4>
+                          <span className={`px-2 py-0.2 rounded-md text-[9px] font-bold uppercase ${
+                            task.priority === 'Urgent' || task.priority === 'High'
+                              ? 'bg-rose-500/10 text-rose-600'
+                              : 'bg-secondary text-muted-foreground'
+                          }`}>
+                            {task.priority || 'Med'}
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {task.client?.name || task.clientName || 'Internal'}
+                        </p>
+
+                        {/* Pipeline sub-assignees badges */}
+                        {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                          <div className="flex flex-wrap gap-1 text-[9px] pt-1">
+                            {task.scriptWriterAssigned && (
+                              <span className="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 font-bold">✍️ Script</span>
+                            )}
+                            {task.videographerAssigned && (
+                              <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 font-bold">🎥 Shoot</span>
+                            )}
+                            {task.editorAssigned && (
+                              <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 font-bold">✂️ Edit</span>
+                            )}
+                            {task.publisherAssigned && (
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 font-bold">📱 Post</span>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
+                          <span>
+                            {task.dueDate ? `Due ${new Date(task.dueDate).toLocaleDateString()}` : 'No date'}
+                          </span>
+                          <span className="group-hover:text-primary flex items-center gap-0.5">
+                            Open <ArrowRight size={10} />
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {statusTasks.length === 0 && (
+                      <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
+                        No {status} tasks
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </DatabaseView>
 
       <AddTaskModal
         open={showAddModal}
         onOpenChange={setShowAddModal}
-        task={selectedTask}
+      />
+
+      <TaskDetailModal
+        open={showTaskDetail}
+        onOpenChange={setShowTaskDetail}
+        taskId={selectedTaskId}
       />
 
       <AlertDialog open={!!deleteTaskId} onOpenChange={(open) => !open && setDeleteTaskId(null)}>
@@ -395,7 +431,7 @@ const Tasks = () => {
           </div>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </WorkspacePage>
   );
 };
 

@@ -32,6 +32,13 @@ import toast from 'react-hot-toast';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { getAssetUrl } from '../../utils/assetUrl';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../components/ui/dialog';
 
 const statuses = ['todo', 'in_progress', 'review', 'approved', 'rejected', 'done'];
 
@@ -354,31 +361,31 @@ const ProjectDetails = () => {
   const renderBoard = () => (
     <>
       {/* Confirmation Dialog */}
-      {pendingDrop && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
-          <div className="relative w-full my-auto max-w-sm max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-2xl custom-scrollbar">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <CheckCircle2 size={24} />
-            </div>
-            <h2 className="text-base font-bold">Confirm Status Change</h2>
-            <p className="mt-2 text-sm text-muted-foreground">{pendingDrop.message}</p>
-            <div className="mt-5 flex gap-3">
-              <button
-                onClick={() => setPendingDrop(null)}
-                className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmPendingDrop}
-                className="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-primary/30 transition-colors hover:bg-primary/90"
-              >
-                Yes, Confirm
-              </button>
-            </div>
+      <Dialog open={Boolean(pendingDrop)} onOpenChange={(open) => { if (!open) setPendingDrop(null); }}>
+        <DialogContent size="sm">
+          <DialogHeader>
+            <DialogTitle>Confirm Status Change</DialogTitle>
+            <DialogDescription>
+              {pendingDrop?.message}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-border">
+            <button
+              onClick={() => setPendingDrop(null)}
+              className="px-4 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmPendingDrop}
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm hover:bg-primary/90"
+            >
+              Yes, Confirm
+            </button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       <div className="flex h-[calc(100vh-320px)] space-x-6 overflow-x-auto pb-6 scrollbar-hide">
         {statuses.map((status) => {

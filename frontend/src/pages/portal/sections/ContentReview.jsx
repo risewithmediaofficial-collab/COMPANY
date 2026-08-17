@@ -10,6 +10,13 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
 import { TableSkeleton } from '../../../components/ui/Skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../../components/ui/dialog';
 
 const TABS = [
   { id: 'review', label: 'Ready for Review', color: '#f59e0b' },
@@ -195,74 +202,75 @@ export default function ContentReview({ dark, setPendingCount }) {
       )}
 
       {/* Modal */}
-      <AnimatePresence>
-        {modal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center p-3 sm:p-4"
-            style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-              className="w-full my-auto max-w-lg max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar rounded-2xl p-4 sm:p-6"
-              style={{ background: dark ? '#0f172a' : '#fff', border: '1px solid rgba(99,102,241,0.3)' }}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`font-bold ${txt}`}>
+      <Dialog open={Boolean(modal)} onOpenChange={(open) => { if (!open) setModal(null); }}>
+        <DialogContent size="default">
+          {modal && (
+            <>
+              <DialogHeader>
+                <DialogTitle>
                   {modal.type === 'approve' ? '✅ Approve Content'
                     : modal.type === 'revision' ? '✏️ Request Revision'
-                    : '👁️ View Content'}
-                </h3>
-                <button onClick={() => setModal(null)}><X size={16} className="text-slate-400" /></button>
-              </div>
+                    : '👁️ View Content Details'}
+                </DialogTitle>
+                <DialogDescription>
+                  {modal.type === 'approve' ? 'Approve this deliverable to notify the creative production team.'
+                    : modal.type === 'revision' ? 'Provide change requests or required revisions to the team.'
+                    : 'Review content assets, links, and production notes.'}
+                </DialogDescription>
+              </DialogHeader>
 
-              <div className="rounded-xl p-3 mb-4" style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#f8fafc' }}>
-                <p className={`text-sm font-bold ${txt}`}>{modal.item.taskName}</p>
-                <div className="flex gap-2 mt-1 flex-wrap">
-                  <span className="text-[10px] text-slate-400">{modal.item.platform}</span>
-                  <span className="text-[10px] text-slate-400">{modal.item.contentType}</span>
-                  <StatusBadge status={modal.item.status} dark={dark} />
-                </div>
-                {modal.item.contentUrl && (
-                  <a href={modal.item.contentUrl} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-1 text-indigo-400 text-xs mt-2 hover:underline">
-                    <ExternalLink size={11} /> View Content
-                  </a>
-                )}
-                {modal.item.notes && <p className={`text-xs mt-2 ${sub}`}>{modal.item.notes}</p>}
-              </div>
-
-              {modal.type !== 'view' && (
-                <>
-                  <label className={`text-xs font-medium ${sub} block mb-1.5`}>
-                    {modal.type === 'approve' ? 'Optional feedback / comments:' : 'Revision notes (required):'}
-                  </label>
-                  <textarea rows={3} value={feedback} onChange={e => setFeedback(e.target.value)}
-                    placeholder={modal.type === 'approve' ? 'Looks great! Ready to go.' : 'Please change the caption and add our logo...'}
-                    className={`w-full rounded-xl px-3 py-2 text-xs border outline-none resize-none ${dark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400'}`} />
-                  <div className="flex gap-3 mt-4">
-                    {modal.type === 'approve' && (
-                      <button disabled={acting} onClick={handleApprove}
-                        className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-all"
-                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-                        <Check size={14} /> {acting ? 'Approving…' : 'Approve'}
-                      </button>
-                    )}
-                    {modal.type === 'revision' && (
-                      <button disabled={acting || !feedback.trim()} onClick={handleRevision}
-                        className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 disabled:opacity-50"
-                        style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
-                        <RotateCcw size={14} /> {acting ? 'Submitting…' : 'Request Revision'}
-                      </button>
-                    )}
-                    <button onClick={() => setModal(null)}
-                      className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white transition-all"
-                      style={{ background: dark ? 'rgba(255,255,255,0.05)' : '#f1f5f9' }}>
-                      Cancel
-                    </button>
+              <div className="space-y-4 text-xs">
+                <div className="rounded-xl p-3.5 border border-border bg-secondary/30">
+                  <p className="text-xs font-bold text-foreground">{modal.item.taskName}</p>
+                  <div className="flex gap-2 mt-1.5 flex-wrap items-center">
+                    <span className="text-[10px] text-muted-foreground">{modal.item.platform}</span>
+                    <span className="text-[10px] text-muted-foreground">•</span>
+                    <span className="text-[10px] text-muted-foreground">{modal.item.contentType}</span>
+                    <StatusBadge status={modal.item.status} dark={dark} />
                   </div>
-                </>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  {modal.item.contentUrl && (
+                    <a href={modal.item.contentUrl} target="_blank" rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-primary text-xs mt-2 font-medium hover:underline">
+                      <ExternalLink size={12} /> View Attached Content Asset
+                    </a>
+                  )}
+                  {modal.item.notes && <p className="text-xs mt-2 text-muted-foreground">{modal.item.notes}</p>}
+                </div>
+
+                {modal.type !== 'view' && (
+                  <div>
+                    <label className="text-xs font-semibold text-foreground block mb-1.5">
+                      {modal.type === 'approve' ? 'Optional feedback / comments:' : 'Revision notes (required):'}
+                    </label>
+                    <textarea rows={3} value={feedback} onChange={e => setFeedback(e.target.value)}
+                      placeholder={modal.type === 'approve' ? 'Looks great! Ready to go.' : 'Please change the caption and add our logo...'}
+                      className="w-full rounded-xl p-3 text-xs border border-border bg-background outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none" />
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-3 border-t border-border">
+                  <button onClick={() => setModal(null)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold border border-border hover:bg-secondary transition-all">
+                    Cancel
+                  </button>
+                  {modal.type === 'approve' && (
+                    <button disabled={acting} onClick={handleApprove}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-all disabled:opacity-50">
+                      {acting ? 'Approving…' : 'Confirm Approval'}
+                    </button>
+                  )}
+                  {modal.type === 'revision' && (
+                    <button disabled={acting || !feedback.trim()} onClick={handleRevision}
+                      className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-sm transition-all disabled:opacity-50">
+                      {acting ? 'Submitting…' : 'Submit Revision Request'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

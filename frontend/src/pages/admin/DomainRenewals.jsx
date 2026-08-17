@@ -1,5 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarClock, Globe2, Plus, RefreshCw, ShieldAlert } from 'lucide-react';
+import {
+  CalendarClock,
+  Globe2,
+  Plus,
+  RefreshCw,
+  ShieldAlert,
+  Search,
+  Server,
+  ShieldCheck,
+  IndianRupee,
+  ExternalLink,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+  Building2,
+  Clock,
+} from 'lucide-react';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import {
@@ -12,13 +28,21 @@ import {
   useUpdateDomainRenewal,
 } from '../../hooks/useDomainRenewals';
 import { Button } from '../../components/ui/button';
-import { DataTable } from '../../components/ui/DataTable';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, SectionCard, StatusBadge } from '../../components/ui/page';
-import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
+import WorkspacePage from '../../components/ui/WorkspacePage';
+import DatabaseView from '../../components/ui/DatabaseView';
+import { formatINR } from '../../utils/currency';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const emptyForm = {
   itemName: '',
@@ -40,12 +64,26 @@ const formatDate = (value) => {
   return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
 };
 
-const toneByStatus = {
-  active: 'success',
-  pending: 'warning',
-  renewed: 'info',
-  expired: 'danger',
+const getRemainingDays = (expiryDate) => {
+  if (!expiryDate) return null;
+  const now = new Date();
+  const exp = new Date(expiryDate);
+  return Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
 };
+
+const toneByStatus = {
+  active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  renewed: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  expired: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+};
+
+const FormField = ({ label, children }) => (
+  <label className="space-y-1.5 text-xs font-semibold text-foreground block">
+    <span>{label}</span>
+    {children}
+  </label>
+);
 
 const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSave, saving }) => {
   const [form, setForm] = useState(emptyForm);
@@ -66,127 +104,144 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
       notes: record?.notes || '',
       progressNote: '',
     });
-  }, [open, record]);
+  }, [record, open]);
 
-  const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    await onSave({
-      id: record?._id,
-      data: {
-        itemName: form.itemName.trim(),
-        itemType: form.itemType,
-        domainName: form.domainName.trim(),
-        provider: form.provider.trim(),
-        clientId: form.clientId === 'all' ? null : form.clientId,
-        projectId: form.projectId === 'all' ? null : form.projectId,
-        purchaseDate: form.purchaseDate || null,
-        expiryDate: form.expiryDate,
-        renewalCost: Number(form.renewalCost) || 0,
-        status: form.status,
-        notes: form.notes.trim(),
-        progressNote: form.progressNote.trim(),
-      },
-    });
+    const payload = {
+      ...form,
+      clientId: form.clientId === 'all' ? undefined : form.clientId,
+      projectId: form.projectId === 'all' ? undefined : form.projectId,
+      purchaseDate: form.purchaseDate || undefined,
+      expiryDate: form.expiryDate || undefined,
+      renewalCost: form.renewalCost ? Number(form.renewalCost) : 0,
+    };
+    await onSave({ id: record?._id, data: payload });
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-w-xl bg-card border border-border">
         <DialogHeader>
-          <DialogTitle>{record ? 'Edit Renewal Record' : 'Add Renewal Record'}</DialogTitle>
-          <DialogDescription>
-            Track what was purchased, when it expires, and any progress or renewal notes the team should remember.
+          <DialogTitle className="text-base font-black text-foreground">
+            {record ? 'Edit Domain / Renewal Asset' : 'Add Domain / Hosting Asset'}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Track registrar expiration dates and prevent website downtime for clients.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-          <label className="space-y-1.5 text-sm font-medium md:col-span-2">
-            <span>Item name</span>
-            <Input value={form.itemName} onChange={(event) => updateField('itemName', event.target.value)} placeholder="Example: acme.com renewal" required />
-          </label>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Asset / Domain Name *">
+              <Input
+                value={form.itemName}
+                onChange={(e) => updateField('itemName', e.target.value)}
+                placeholder="e.g. risewithmedia.com, Client AWS Hosting"
+                required
+                className="h-9 text-xs rounded-xl"
+              />
+            </FormField>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Type</span>
-            <select value={form.itemType} onChange={(event) => updateField('itemType', event.target.value)} className="app-input">
-              {renewalTypeOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
+            <FormField label="Asset Type *">
+              <select
+                value={form.itemType}
+                onChange={(e) => updateField('itemType', e.target.value)}
+                required
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                {renewalTypeOptions.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          </div>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Status</span>
-            <select value={form.status} onChange={(event) => updateField('status', event.target.value)} className="app-input">
-              {renewalStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Linked Client">
+              <select
+                value={form.clientId}
+                onChange={(e) => updateField('clientId', e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                <option value="all">None / Internal</option>
+                {clients.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.company || c.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Domain / item</span>
-            <Input value={form.domainName} onChange={(event) => updateField('domainName', event.target.value)} placeholder="acme.com" />
-          </label>
+            <FormField label="Registrar / Provider">
+              <Input
+                value={form.provider}
+                onChange={(e) => updateField('provider', e.target.value)}
+                placeholder="e.g. GoDaddy, Hostinger, AWS, Namecheap"
+                className="h-9 text-xs rounded-xl"
+              />
+            </FormField>
+          </div>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Provider</span>
-            <Input value={form.provider} onChange={(event) => updateField('provider', event.target.value)} placeholder="GoDaddy, Hostinger, Google..." />
-          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField label="Expiry Date *">
+              <Input
+                type="date"
+                value={form.expiryDate}
+                onChange={(e) => updateField('expiryDate', e.target.value)}
+                required
+                className="h-9 text-xs rounded-xl"
+              />
+            </FormField>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Client</span>
-            <select value={form.clientId} onChange={(event) => updateField('clientId', event.target.value)} className="app-input">
-              <option value="all">No client</option>
-              {clients.map((client) => (
-                <option key={client._id} value={client._id}>{client.company || client.name}</option>
-              ))}
-            </select>
-          </label>
+            <FormField label="Renewal Cost (₹)">
+              <Input
+                type="number"
+                value={form.renewalCost}
+                onChange={(e) => updateField('renewalCost', e.target.value)}
+                placeholder="₹ Amount"
+                className="h-9 text-xs rounded-xl"
+              />
+            </FormField>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Project</span>
-            <select value={form.projectId} onChange={(event) => updateField('projectId', event.target.value)} className="app-input">
-              <option value="all">No project</option>
-              {projects.map((project) => (
-                <option key={project._id} value={project._id}>{project.name}</option>
-              ))}
-            </select>
-          </label>
+            <FormField label="Status">
+              <select
+                value={form.status}
+                onChange={(e) => updateField('status', e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                {renewalStatusOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          </div>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Purchase date</span>
-            <Input type="date" value={form.purchaseDate} onChange={(event) => updateField('purchaseDate', event.target.value)} />
-          </label>
+          <FormField label="Notes & Access Details">
+            <Textarea
+              value={form.notes}
+              onChange={(e) => updateField('notes', e.target.value)}
+              placeholder="Auto-renewal enabled, primary billing card info..."
+              rows={2}
+              className="text-xs rounded-xl"
+            />
+          </FormField>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Expiry date</span>
-            <Input type="date" value={form.expiryDate} onChange={(event) => updateField('expiryDate', event.target.value)} required />
-          </label>
-
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Renewal cost</span>
-            <Input type="number" min="0" value={form.renewalCost} onChange={(event) => updateField('renewalCost', event.target.value)} placeholder="0" />
-          </label>
-
-          <label className="space-y-1.5 text-sm font-medium md:col-span-2">
-            <span>Notes</span>
-            <Textarea value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Purchase details, renewal owner, account reminders..." />
-          </label>
-
-          <label className="space-y-1.5 text-sm font-medium md:col-span-2">
-            <span>Initial progress note</span>
-            <Textarea value={form.progressNote} onChange={(event) => updateField('progressNote', event.target.value)} placeholder="Optional: record what happened on this date." />
-          </label>
-
-          <div className="flex justify-end gap-3 md:col-span-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-2 pt-3 border-t border-border">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs">
               Cancel
             </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Saving...' : record ? 'Update Record' : 'Save Record'}
+            <Button type="submit" size="sm" disabled={saving} className="rounded-xl text-xs font-bold">
+              {saving ? 'Saving...' : record ? 'Save Changes' : 'Track Asset'}
             </Button>
           </div>
         </form>
@@ -195,249 +250,279 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
   );
 };
 
-const ProgressDialog = ({ open, onOpenChange, record, onSubmit, saving }) => {
-  const [note, setNote] = useState('');
-  const [status, setStatus] = useState('active');
-
-  useEffect(() => {
-    if (!open) return;
-    setNote('');
-    setStatus(record?.status || 'active');
-  }, [open, record]);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    await onSubmit({ note: note.trim(), status });
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Add Renewal Progress</DialogTitle>
-          <DialogDescription>
-            Save today&apos;s update so the team can track renewal follow-up and ownership.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Status</span>
-            <select value={status} onChange={(event) => setStatus(event.target.value)} className="app-input">
-              {renewalStatusOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-1.5 text-sm font-medium">
-            <span>Progress note</span>
-            <Textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Renewal invoice requested, waiting for OTP, payment completed..." />
-          </label>
-
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={saving || !note.trim()}>
-              {saving ? 'Saving...' : 'Add Progress'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const DomainRenewals = () => {
+export default function DomainRenewals() {
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
-  const [itemType, setItemType] = useState('all');
-  const [formOpen, setFormOpen] = useState(false);
-  const [progressOpen, setProgressOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [openDialog, setOpenDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
 
   const { data: clients = [] } = useClients();
   const { data: projects = [] } = useProjects();
-  const { isDateInRange } = useDateFilter();
-  const { data, isLoading } = useDomainRenewals({ search, status, itemType });
-  const createRecord = useCreateDomainRenewal();
-  const updateRecord = useUpdateDomainRenewal();
-  const addProgress = useAddDomainRenewalProgress();
-  const deleteRecord = useDeleteDomainRenewal();
+  const { data: renewals = [], isLoading } = useDomainRenewals();
+  const createMutation = useCreateDomainRenewal();
+  const updateMutation = useUpdateDomainRenewal();
+  const deleteMutation = useDeleteDomainRenewal();
 
-  const records = useMemo(
-    () => (data?.records || []).filter((r) => isDateInRange(r.expiryDate || r.purchaseDate || r.createdAt)),
-    [data, isDateInRange],
-  );
-  const metrics = data?.metrics || { total: 0, expired: 0, expiringSoon: 0, renewed: 0 };
+  const handleSave = async ({ id, data }) => {
+    if (id) {
+      await updateMutation.mutateAsync({ id, data });
+    } else {
+      await createMutation.mutateAsync(data);
+    }
+  };
 
-  const columns = useMemo(() => ([
+  const filteredRenewals = useMemo(() => {
+    return renewals.filter((item) => {
+      const q = search.toLowerCase();
+      const name = (item.itemName || '').toLowerCase();
+      const client = (item.clientId?.company || item.clientId?.name || '').toLowerCase();
+      const provider = (item.provider || '').toLowerCase();
+
+      const matchesSearch = !q || name.includes(q) || client.includes(q) || provider.includes(q);
+      const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+      const matchesType = typeFilter === 'all' || item.itemType === typeFilter;
+
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [renewals, search, statusFilter, typeFilter]);
+
+  // Statistics
+  const total = renewals.length;
+  const activeCount = renewals.filter((r) => r.status === 'active').length;
+  const expiringSoonCount = renewals.filter((r) => {
+    const days = getRemainingDays(r.expiryDate);
+    return days !== null && days <= 30 && days >= 0 && r.status !== 'renewed';
+  }).length;
+  const totalCost = renewals.reduce((sum, r) => sum + (Number(r.renewalCost) || 0), 0);
+
+  // Table Columns
+  const tableColumns = [
     {
       key: 'itemName',
-      label: 'Item',
-      render: (row) => (
-        <div className="min-w-0">
-          <div className="font-semibold text-foreground">{row.itemName}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{row.domainName || row.provider || 'No domain/provider added'}</div>
+      label: 'Domain / Asset',
+      render: (item) => (
+        <div className="flex items-center gap-2.5">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+            {item.itemType === 'hosting' ? <Server size={14} /> : <Globe2 size={14} />}
+          </div>
+          <div>
+            <p className="font-bold text-foreground">{item.itemName}</p>
+            <p className="text-[11px] text-muted-foreground">🏢 {item.clientId?.company || item.clientId?.name || 'Internal'}</p>
+          </div>
         </div>
       ),
     },
     {
-      key: 'client',
-      label: 'Client / Project',
-      render: (row) => `${row.clientId?.company || row.clientId?.name || 'No client'}${row.projectId?.name ? ` • ${row.projectId.name}` : ''}`,
+      key: 'provider',
+      label: 'Registrar / Host',
+      render: (item) => (
+        <span className="font-semibold text-xs text-foreground">{item.provider || '—'}</span>
+      ),
+    },
+    {
+      key: 'expiryDate',
+      label: 'Expiry Date',
+      render: (item) => {
+        const days = getRemainingDays(item.expiryDate);
+        return (
+          <div className="text-xs">
+            <p className="font-semibold text-foreground">{formatDate(item.expiryDate)}</p>
+            {days !== null && (
+              <span
+                className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded mt-0.5 ${
+                  days < 0
+                    ? 'bg-rose-500/10 text-rose-600'
+                    : days <= 15
+                    ? 'bg-rose-500/10 text-rose-600'
+                    : days <= 30
+                    ? 'bg-amber-500/10 text-amber-600'
+                    : 'bg-emerald-500/10 text-emerald-600'
+                }`}
+              >
+                {days < 0 ? `Expired ${Math.abs(days)}d ago` : `${days} days remaining`}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'renewalCost',
+      label: 'Renewal Fee',
+      render: (item) => (
+        <span className="font-bold text-xs text-foreground">
+          {item.renewalCost ? formatINR(item.renewalCost) : '—'}
+        </span>
+      ),
     },
     {
       key: 'status',
       label: 'Status',
-      render: (row) => <StatusBadge tone={toneByStatus[row.status] || 'neutral'}>{row.status}</StatusBadge>,
+      render: (item) => (
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${toneByStatus[item.status] || toneByStatus.active}`}>
+          {item.status}
+        </span>
+      ),
     },
     {
-      key: 'purchaseDate',
-      label: 'Bought',
-      render: (row) => formatDate(row.purchaseDate),
-    },
-    {
-      key: 'expiryDate',
-      label: 'Expiry',
-      render: (row) => (
-        <div>
-          <div className="font-medium text-foreground">{formatDate(row.expiryDate)}</div>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {row.daysUntilExpiry < 0 ? 'Expired' : `${row.daysUntilExpiry} days left`}
-          </div>
+      key: 'actions',
+      label: '',
+      render: (item) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => {
+              setSelectedRecord(item);
+              setOpenDialog(true);
+            }}
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            title="Edit"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => setDeleteId(item._id)}
+            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            title="Delete"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       ),
     },
-  ]), []);
+  ];
 
-  const handleSave = async ({ id, data: payload }) => {
-    if (id) {
-      await updateRecord.mutateAsync({ id, data: payload });
-      return;
-    }
-    await createRecord.mutateAsync(payload);
+  // Cards View
+  const renderCard = (item) => {
+    const days = getRemainingDays(item.expiryDate);
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
+            {item.itemType}
+          </span>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${toneByStatus[item.status] || toneByStatus.active}`}>
+            {item.status}
+          </span>
+        </div>
+
+        <div>
+          <h4 className="font-bold text-sm text-foreground">{item.itemName}</h4>
+          <p className="text-xs text-muted-foreground mt-0.5">🏢 {item.clientId?.company || item.clientId?.name || 'Internal'}</p>
+        </div>
+
+        <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Provider:</span>
+            <span className="font-semibold text-foreground">{item.provider || '—'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Expires:</span>
+            <span className="font-semibold text-foreground">{formatDate(item.expiryDate)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Annual Cost:</span>
+            <span className="font-bold text-foreground">{item.renewalCost ? formatINR(item.renewalCost) : '—'}</span>
+          </div>
+        </div>
+
+        {days !== null && days <= 30 && (
+          <div className="flex items-center gap-1.5 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs font-bold">
+            <AlertTriangle size={13} />
+            <span>Expires in {days} days! Action required.</span>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Renewal Tracker"
-        description="Store purchase dates, expiry dates, progress notes, and get reminder coverage during the last seven days before expiry."
-        actions={(
-          <Button onClick={() => { setSelectedRecord(null); setFormOpen(true); }}>
-            <Plus size={16} className="mr-2" />
-            Add Renewal
-          </Button>
-        )}
-      >
-        <MetricGrid>
-          <MetricCard label="Tracked Items" value={metrics.total} helper="All visible renewal records" icon={Globe2} tone="primary" />
-          <MetricCard label="Expiring in 7 Days" value={metrics.expiringSoon} helper="Daily reminders will be sent" icon={CalendarClock} tone="warning" />
-          <MetricCard label="Expired" value={metrics.expired} helper="Needs immediate attention" icon={ShieldAlert} tone={metrics.expired > 0 ? 'danger' : 'neutral'} />
-          <MetricCard label="Renewed" value={metrics.renewed} helper="Already processed" icon={RefreshCw} tone="success" />
-        </MetricGrid>
-
-        <DateRangePicker title="Domain Renewals Date Filter (From Date to To Date)" className="mt-4" />
-      </PageHeader>
-
-      <PageToolbar>
-        <SearchField value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search item, domain, provider, or notes..." />
-        <select value={itemType} onChange={(event) => setItemType(event.target.value)} className="app-input w-full sm:w-auto sm:min-w-[150px] lg:w-52">
-          <option value="all" onClick={() => setItemType('all')}>All types</option>
-          {renewalTypeOptions.map((option) => (
-            <option key={option.value} value={option.value} onClick={() => { if (itemType === option.value) setItemType('all'); }}>{option.label}</option>
-          ))}
-        </select>
-        <select value={status} onChange={(event) => setStatus(event.target.value)} className="app-input w-full sm:w-auto sm:min-w-[150px] lg:w-52">
-          <option value="all" onClick={() => setStatus('all')}>All statuses</option>
-          {renewalStatusOptions.map((option) => (
-            <option key={option.value} value={option.value} onClick={() => { if (status === option.value) setStatus('all'); }}>{option.label}</option>
-          ))}
-        </select>
-      </PageToolbar>
-
-      <SectionCard
-        title="Renewal Records"
-        description="Open a record to edit expiry details or add dated progress notes for the team."
-        action={<span className="app-pill">{records.length} records</span>}
-      >
-        <DataTable
-          data={records}
-          columns={columns}
-          loading={isLoading}
-          onView={(row) => {
-            setSelectedRecord(row);
-            setProgressOpen(true);
+    <WorkspacePage
+      breadcrumbs={['RiseWithMedia', 'Business & Finance', 'Domain & Hosting Renewals']}
+      title="Domain & Hosting Renewals"
+      subtitle="Track client domains, hosting packages, SSL certificates, recurring renewals, and expiry alerts."
+      icon="🌐"
+      properties={[
+        { label: 'Total Tracked', value: total, icon: Globe2 },
+        { label: 'Expiring Soon (30d)', value: expiringSoonCount, tone: expiringSoonCount > 0 ? 'danger' : 'neutral' },
+        { label: 'Active Services', value: activeCount, tone: 'success' },
+        { label: 'Total Annual Value', value: formatINR(totalCost), tone: 'info' },
+      ]}
+      actions={
+        <Button
+          size="sm"
+          onClick={() => {
+            setSelectedRecord(null);
+            setOpenDialog(true);
           }}
-          onEdit={(row) => {
-            setSelectedRecord(row);
-            setFormOpen(true);
-          }}
-          onDelete={(id) => {
-            if (window.confirm('Delete this renewal record?')) {
-              deleteRecord.mutate(id);
-            }
-          }}
-          emptyTitle="No renewal records yet"
-          emptyDescription="Add domains, hosting plans, subscriptions, and anything else that has a purchase and expiry cycle."
-          emptyAction={(
-            <Button onClick={() => { setSelectedRecord(null); setFormOpen(true); }}>
-              <Plus size={16} className="mr-2" />
-              Add First Record
-            </Button>
-          )}
-        />
-      </SectionCard>
-
-      {selectedRecord ? (
-        <SectionCard
-          title={`${selectedRecord.itemName} progress`}
-          description="Latest notes for this renewal record."
+          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
         >
-          <div className="space-y-3">
-            {(selectedRecord.progressNotes || []).length ? (
-              selectedRecord.progressNotes.slice().reverse().map((entry) => (
-                <div key={entry._id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <StatusBadge tone={toneByStatus[entry.status] || 'neutral'}>{entry.status}</StatusBadge>
-                    <p className="text-xs text-muted-foreground">
-                      {entry.createdBy?.name || 'Team'} • {formatDate(entry.createdAt)}
-                    </p>
-                  </div>
-                  <p className="mt-3 text-sm text-foreground">{entry.note}</p>
-                </div>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border bg-background px-4 py-8 text-center text-sm text-muted-foreground">
-                No progress notes saved yet for this record.
-              </div>
-            )}
-          </div>
-        </SectionCard>
-      ) : null}
+          <Plus size={14} className="stroke-[2.5]" />
+          <span>Add Asset</span>
+        </Button>
+      }
+    >
+      {/* Quick Filter Tabs */}
+      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+        {['all', 'active', 'pending', 'renewed', 'expired'].map((st) => (
+          <button
+            key={st}
+            onClick={() => setStatusFilter(st)}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
+              statusFilter === st
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+            }`}
+          >
+            {st === 'all' ? 'All Statuses' : st}
+          </button>
+        ))}
+      </div>
+
+      <DatabaseView
+        viewKey="rwm_renewals_view_v1"
+        views={['table', 'cards']}
+        items={filteredRenewals}
+        totalCount={filteredRenewals.length}
+        searchPlaceholder="Search by asset name, client, or registrar..."
+        columns={tableColumns}
+        renderCard={renderCard}
+        onSearchChange={setSearch}
+      />
 
       <RenewalFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
+        open={openDialog}
+        onOpenChange={setOpenDialog}
         record={selectedRecord}
         clients={clients}
         projects={projects}
         onSave={handleSave}
-        saving={createRecord.isPending || updateRecord.isPending}
+        saving={createMutation.isPending || updateMutation.isPending}
       />
 
-      <ProgressDialog
-        open={progressOpen}
-        onOpenChange={setProgressOpen}
-        record={selectedRecord}
-        saving={addProgress.isPending}
-        onSubmit={(payload) => addProgress.mutateAsync({ id: selectedRecord._id, data: payload })}
-      />
-    </div>
+      <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-card border border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold">Delete Renewal Asset?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              This will remove this asset from the renewal tracking dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId);
+                setDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </WorkspacePage>
   );
-};
-
-export default DomainRenewals;
+}

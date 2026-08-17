@@ -261,223 +261,261 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        hideCloseButton
-        className="max-w-4xl max-h-[min(92vh,calc(100dvh-1rem))] border-0 bg-transparent p-0 shadow-none overflow-hidden"
-        noPadding
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 18, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="relative w-full overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_30px_80px_rgba(15,23,42,0.18)] flex flex-col min-h-0 max-h-[min(92vh,calc(100dvh-1rem))]"
-        >
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 sm:right-5 sm:top-5 z-20 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-lg shadow-slate-200/70 transition-all hover:-translate-y-0.5 hover:bg-secondary hover:text-foreground"
-            aria-label="Close project form"
-          >
-            <X size={18} />
-          </button>
-
-          <div className="border-b border-border bg-gradient-to-r from-slate-50 via-white to-slate-50 px-5 sm:px-7 py-4 sm:py-6 shrink-0 pr-16 sm:pr-20">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
-                <Briefcase size={20} />
-              </div>
-              <div>
-                <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-slate-500">
-                  {project ? 'Update the project details' : 'Create a new project for a client'}
-                </DialogDescription>
-              </div>
+      <DialogContent size="xl" noPadding className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
+        <DialogHeader className="px-6 py-4.5 border-b border-border bg-card shrink-0 pr-14 select-none">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+              <Briefcase size={16} />
+            </div>
+            <div>
+              <DialogTitle className="text-base sm:text-lg font-bold text-foreground">{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                {project ? 'Update project scope, deliverables, budget, and timeline' : 'Create a new project pipeline for client deliverables and milestones'}
+              </DialogDescription>
             </div>
           </div>
+        </DialogHeader>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-              <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-1">
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Project Name *</FormLabel>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-1">
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Project Name *</FormLabel>
+                    <FormControl>
+                      <Input className="h-9 rounded-xl border-border bg-background px-3 text-xs focus:ring-2 focus:ring-primary/20" placeholder="e.g. Website Redesign & SEO" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="client"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Client *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Input className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10" placeholder="Website Redesign" {...field} />
+                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                          <SelectValue placeholder="Select client" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem key={client._id} value={client._id}>
+                            {client.name} - {client.company}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="client"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Client *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:ring-4 focus:ring-primary/10">
-                            <SelectValue placeholder="Select client" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {clients.map((client) => (
-                            <SelectItem key={client._id} value={client._id}>
-                              {client.name} - {client.company}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Project Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                          <SelectValue placeholder="Select project type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="web_development">Web Development</SelectItem>
+                        <SelectItem value="web_design">Web Design</SelectItem>
+                        <SelectItem value="mobile_app">Mobile App</SelectItem>
+                        <SelectItem value="e_commerce">E-commerce</SelectItem>
+                        <SelectItem value="video_content">Video Content</SelectItem>
+                        <SelectItem value="social_media">Social Media</SelectItem>
+                        <SelectItem value="content">Content Creation</SelectItem>
+                        <SelectItem value="graphic_design">Graphic Design</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Project Type *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:ring-4 focus:ring-primary/10">
-                            <SelectValue placeholder="Select project type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="web_development">Web Development</SelectItem>
-                          <SelectItem value="web_design">Web Design</SelectItem>
-                          <SelectItem value="mobile_app">Mobile App</SelectItem>
-                          <SelectItem value="e_commerce">E-commerce</SelectItem>
-                          <SelectItem value="video_content">Video Content</SelectItem>
-                          <SelectItem value="social_media">Social Media</SelectItem>
-                          <SelectItem value="content">Content Creation</SelectItem>
-                          <SelectItem value="graphic_design">Graphic Design</SelectItem>
-                          <SelectItem value="branding">Branding</SelectItem>
-                          <SelectItem value="seo">SEO</SelectItem>
-                          <SelectItem value="paid_ads">Paid Ads</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {field.value === 'other' && (
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Planning">Planning</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="On Hold">On Hold</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Priority</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Low">Low</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                        <SelectItem value="Critical">Critical</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Start Date *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                        <Input type="date" className="h-9 rounded-xl border-border bg-background pl-9 text-xs focus:ring-2 focus:ring-primary/20" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">End Date *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                        <Input type="date" className="h-9 rounded-xl border-border bg-background pl-9 text-xs focus:ring-2 focus:ring-primary/20" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="budget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Budget (₹ INR)</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <IndianRupee className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                          className="mt-2 h-11 rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10"
-                          placeholder="Specify project type..."
-                          {...form.register('customCategory')}
+                          type="number"
+                          placeholder="50000"
+                          className="h-9 rounded-xl border-border bg-background pl-9 text-xs focus:ring-2 focus:ring-primary/20"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                         />
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-semibold text-foreground/90">Project Description</FormLabel>
+                  <FormControl>
+                    <Textarea className="min-h-[75px] rounded-xl border-border bg-background px-3 py-2 text-xs focus:ring-2 focus:ring-primary/20" placeholder="Brief summary of goals and deliverables..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Budget & Payment Section */}
+            <div className="rounded-2xl border border-border/80 bg-secondary/25 p-4 space-y-3">
+              <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <IndianRupee className="h-3.5 w-3.5 text-primary" /> Budget & Payment Workflow
+              </h3>
+
+              <div className="grid gap-3 sm:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="status"
+                  name="currency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Status</FormLabel>
+                      <FormLabel className="text-xs font-semibold text-foreground/90">Currency</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:ring-4 focus:ring-primary/10">
-                            <SelectValue placeholder="Select status" />
+                          <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs">
+                            <SelectValue />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Planning">Planning</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="On Hold">On Hold</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                          <SelectItem value="INR">INR (₹)</SelectItem>
+                          <SelectItem value="USD">USD ($)</SelectItem>
+                          <SelectItem value="EUR">EUR (€)</SelectItem>
+                          <SelectItem value="GBP">GBP (£)</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
 
                 <FormField
                   control={form.control}
-                  name="priority"
+                  name="paymentStatus"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Priority</FormLabel>
+                      <FormLabel className="text-xs font-semibold text-foreground/90">Payment Status</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:ring-4 focus:ring-primary/10">
-                            <SelectValue placeholder="Select priority" />
+                          <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs">
+                            <SelectValue />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Low">Low</SelectItem>
-                          <SelectItem value="Medium">Medium</SelectItem>
-                          <SelectItem value="High">High</SelectItem>
-                          <SelectItem value="Critical">Critical</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="partial">Partial</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Start Date *</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <CalendarDays className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <Input type="date" className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-11 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="endDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">End Date *</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <CalendarDays className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <Input type="date" className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-11 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="budget"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Budget (₹ INR)</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <IndianRupee className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <Input
-                            type="number"
-                            placeholder="50000"
-                            className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-11 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10"
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -485,142 +523,34 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
               <FormField
                 control={form.control}
-                name="description"
+                name="budgetNotes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Description</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Budget Notes</FormLabel>
                     <FormControl>
-                      <Textarea className="min-h-[120px] rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10" placeholder="Project description and details..." {...field} />
+                      <Textarea className="min-h-[60px] rounded-xl border-border bg-background px-3 py-2 text-xs" placeholder="Payment schedule, milestone terms..." {...field} />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
 
-              {selectedClientId ? (
-                <FormField
-                  control={form.control}
-                  name="acceptedProposalId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Accepted Proposal (optional)</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || undefined}>
-                        <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50 text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:ring-4 focus:ring-primary/10">
-                            <SelectValue placeholder={acceptedProposals.length ? 'Select accepted proposal' : 'No accepted proposals for this client'} />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {acceptedProposals.map((proposal) => (
-                            <SelectItem key={proposal._id} value={proposal._id}>
-                              {proposal.title} — {formatINR(proposal.amount)} — {proposal.acceptedAt ? new Date(proposal.acceptedAt).toLocaleDateString() : 'Accepted'}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ) : null}
-
-              <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-5">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <IndianRupee size={17} />
-                  </div>
-                  <div>
-                    <p className="text-base font-bold text-slate-900">Budget Details</p>
-                    <p className="text-xs text-slate-500">Track planned spend, received amount, and payment status.</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {[
-                    ['marketingAmount', 'Marketing Amount'],
-                    ['adsAmount', 'Ads Budget'],
-                    ['contentAmount', 'Content Budget'],
-                    ['designAmount', 'Design Budget'],
-                    ['developmentAmount', 'Development Budget'],
-                    ['printingAmount', 'Printing Budget'],
-                    ['otherExpenses', 'Other Expenses'],
-                    ['totalBudget', 'Total Project Budget'],
-                    ['amountReceived', 'Amount Received'],
-                  ].map(([name, label]) => (
-                    <FormField
-                      key={name}
-                      control={form.control}
-                      name={name}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              className="h-11 rounded-xl border-slate-200 bg-white text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10"
-                              {...field}
-                              onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  ))}
-
-                  <FormField
-                    control={form.control}
-                    name="paymentStatus"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Payment Status</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white text-sm shadow-sm transition-all duration-200 hover:border-slate-300 focus:ring-4 focus:ring-primary/10">
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="partial">Partial</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="budgetNotes"
-                  render={({ field }) => (
-                    <FormItem className="mt-4">
-                      <FormLabel className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Budget Notes</FormLabel>
-                      <FormControl>
-                        <Textarea className="min-h-[90px] rounded-xl border-slate-200 bg-white px-4 py-3 text-sm shadow-sm transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10" placeholder="Budget notes..." {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleClose}
-                  disabled={isLoading}
-                  className="h-11 rounded-xl border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-100"
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading} className="h-11 rounded-xl bg-primary px-6 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary/90">
-                  {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </motion.div>
+            <div className="flex justify-end gap-2 border-t border-border pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isLoading}
+                className="h-9 rounded-xl text-xs font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} className="h-9 rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90">
+                {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

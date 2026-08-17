@@ -12,6 +12,12 @@ import {
   ShieldCheck,
   Tags,
   UserRound,
+  Search,
+  ExternalLink,
+  Pencil,
+  Trash2,
+  Building2,
+  Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useClients } from '../../hooks/useClients';
@@ -24,11 +30,20 @@ import {
   useUpdateCredential,
 } from '../../hooks/useClientCredentials';
 import { Button } from '../../components/ui/button';
-import { DataTable } from '../../components/ui/DataTable';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, SectionCard, StatusBadge } from '../../components/ui/page';
+import WorkspacePage from '../../components/ui/WorkspacePage';
+import DatabaseView from '../../components/ui/DatabaseView';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const emptyForm = {
   clientId: '',
@@ -59,7 +74,7 @@ const formatDate = (value) => {
 };
 
 const FormField = ({ label, children }) => (
-  <label className="space-y-1.5 text-sm font-medium text-foreground">
+  <label className="space-y-1.5 text-xs font-semibold text-foreground block">
     <span>{label}</span>
     {children}
   </label>
@@ -71,7 +86,6 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
   useEffect(() => {
     if (!open) return;
-
     setForm({
       clientId: credential?.clientId?._id || credential?.clientId || '',
       credentialName: credential?.credentialName || '',
@@ -80,9 +94,9 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
       password: '',
       url: credential?.url || '',
       notes: credential?.notes || '',
-      information: credential?.data?.information || '',
+      information: credential?.information || '',
       expiryDate: credential?.expiryDate ? credential.expiryDate.slice(0, 10) : '',
-      tags: Array.isArray(credential?.tags) ? credential.tags.join(', ') : '',
+      tags: Array.isArray(credential?.tags) ? credential.tags.join(', ') : credential?.tags || '',
     });
   }, [credential, open]);
 
@@ -92,147 +106,147 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    if (!form.clientId) {
-      toast.error('Choose a client first');
-      return;
-    }
-
     const payload = {
-      credentialName: form.credentialName.trim(),
-      credentialType: form.credentialType,
-      username: form.username.trim(),
-      url: form.url.trim(),
-      notes: form.notes.trim(),
-      expiryDate: form.expiryDate || null,
+      ...form,
+      clientId: form.clientId || undefined,
+      expiryDate: form.expiryDate || undefined,
       tags: form.tags
         .split(',')
         .map((tag) => tag.trim())
         .filter(Boolean),
-      data: form.information.trim() ? { information: form.information.trim() } : undefined,
     };
 
-    if (form.password) {
-      payload.password = form.password;
+    if (isEditing && !payload.password) {
+      delete payload.password;
     }
 
-    await onSave({ id: credential?._id, clientId: form.clientId, data: payload });
+    await onSave({ id: credential?._id, data: payload });
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-w-xl bg-card border border-border">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Saved Credential' : 'Save Client Password'}</DialogTitle>
-          <DialogDescription>
-            Store login details and important client access notes for internal remembering.
+          <DialogTitle className="text-base font-black text-foreground">
+            {isEditing ? 'Edit Client Credential' : 'Add Secure Credential'}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Credentials are encrypted with agency-grade AES security before storage.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-          <FormField label="Client">
-            <select
-              value={form.clientId}
-              onChange={(event) => updateField('clientId', event.target.value)}
-              className="app-input"
-              required
-              disabled={isEditing}
-            >
-              <option value="">Select client</option>
-              {clients.map((client) => (
-                <option key={client._id} value={client._id}>
-                  {client.company || client.name}
-                </option>
-              ))}
-            </select>
-          </FormField>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Client *">
+              <select
+                value={form.clientId}
+                onChange={(e) => updateField('clientId', e.target.value)}
+                required
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                <option value="">Select client</option>
+                {clients.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.company || c.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
 
-          <FormField label="Type">
-            <select
-              value={form.credentialType}
-              onChange={(event) => updateField('credentialType', event.target.value)}
-              className="app-input"
-            >
-              {credentialTypes.map((type) => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
-            </select>
-          </FormField>
+            <FormField label="Category Type *">
+              <select
+                value={form.credentialType}
+                onChange={(e) => updateField('credentialType', e.target.value)}
+                required
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                {credentialTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+          </div>
 
-          <FormField label="Credential name">
+          <FormField label="Credential Name / Account Title *">
             <Input
               value={form.credentialName}
-              onChange={(event) => updateField('credentialName', event.target.value)}
-              placeholder="Instagram login, Hosting panel, Google Ads..."
+              onChange={(e) => updateField('credentialName', e.target.value)}
+              placeholder="e.g. Instagram Official Account, Meta Business Manager"
               required
+              className="h-9 text-xs rounded-xl"
             />
           </FormField>
 
-          <FormField label="Username / Email">
-            <Input
-              value={form.username}
-              onChange={(event) => updateField('username', event.target.value)}
-              placeholder="name@example.com"
-            />
-          </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Username / Email / Account ID">
+              <Input
+                value={form.username}
+                onChange={(e) => updateField('username', e.target.value)}
+                placeholder="login@brand.com or @handle"
+                className="h-9 text-xs rounded-xl"
+              />
+            </FormField>
 
-          <FormField label={isEditing ? 'New password' : 'Password'}>
-            <Input
-              type="password"
-              value={form.password}
-              onChange={(event) => updateField('password', event.target.value)}
-              placeholder={isEditing ? 'Leave blank to keep current password' : 'Enter password'}
-            />
-          </FormField>
+            <FormField label={isEditing ? 'New Password (Leave blank to keep)' : 'Password / API Secret *'}>
+              <Input
+                type="password"
+                value={form.password}
+                onChange={(e) => updateField('password', e.target.value)}
+                placeholder={isEditing ? 'Leave blank to keep existing' : 'Enter password'}
+                required={!isEditing}
+                className="h-9 text-xs rounded-xl font-mono"
+              />
+            </FormField>
+          </div>
 
-          <FormField label="Login URL">
-            <Input
-              value={form.url}
-              onChange={(event) => updateField('url', event.target.value)}
-              placeholder="https://..."
-            />
-          </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="Login URL / Portal Link">
+              <Input
+                value={form.url}
+                onChange={(e) => updateField('url', e.target.value)}
+                placeholder="https://instagram.com or business.facebook.com"
+                className="h-9 text-xs rounded-xl"
+              />
+            </FormField>
 
-          <FormField label="Expiry date">
-            <Input
-              type="date"
-              value={form.expiryDate}
-              onChange={(event) => updateField('expiryDate', event.target.value)}
-            />
-          </FormField>
+            <FormField label="Expiry Date (Optional)">
+              <Input
+                type="date"
+                value={form.expiryDate}
+                onChange={(e) => updateField('expiryDate', e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+            </FormField>
+          </div>
 
-          <FormField label="Tags">
+          <FormField label="Tags (Comma separated)">
             <Input
               value={form.tags}
-              onChange={(event) => updateField('tags', event.target.value)}
-              placeholder="ads, hosting, urgent"
+              onChange={(e) => updateField('tags', e.target.value)}
+              placeholder="social, instagram, meta, ads"
+              className="h-9 text-xs rounded-xl"
             />
           </FormField>
 
-          <FormField label="Private information">
-            <Textarea
-              value={form.information}
-              onChange={(event) => updateField('information', event.target.value)}
-              placeholder="Recovery codes, account IDs, security answers, backup email..."
-            />
-          </FormField>
-
-          <FormField label="Notes">
+          <FormField label="Security Notes / 2FA Instructions">
             <Textarea
               value={form.notes}
-              onChange={(event) => updateField('notes', event.target.value)}
-              placeholder="Internal reminder notes"
+              onChange={(e) => updateField('notes', e.target.value)}
+              placeholder="e.g. 2FA sent to client phone number (+91 98765 43210)"
+              rows={2}
+              className="text-xs rounded-xl"
             />
           </FormField>
 
-          <div className="flex justify-end gap-3 md:col-span-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-2 pt-3 border-t border-border">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs">
               Cancel
             </Button>
-            <Button type="submit" disabled={saving}>
-              <ShieldCheck size={16} className="mr-2" />
-              {saving ? 'Saving...' : 'Save Credential'}
+            <Button type="submit" size="sm" disabled={saving} className="rounded-xl text-xs font-bold">
+              {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Store Securely'}
             </Button>
           </div>
         </form>
@@ -241,306 +255,344 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
   );
 };
 
-const CredentialDetailsDialog = ({ open, onOpenChange, credentialId }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const { data: credential, isLoading } = useCredential(open ? credentialId : null);
-
-  useEffect(() => {
-    if (open) setShowPassword(false);
-  }, [open, credentialId]);
-
-  const copyText = async (label, text) => {
-    if (!text) return;
-    await navigator.clipboard.writeText(text);
-    toast.success(`${label} copied`);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Credential Details</DialogTitle>
-          <DialogDescription>Reveal only when you need to use or copy the saved access details.</DialogDescription>
-        </DialogHeader>
-
-        {isLoading ? (
-          <div className="space-y-3">
-            <div className="h-16 animate-pulse rounded-2xl bg-secondary" />
-            <div className="h-32 animate-pulse rounded-2xl bg-secondary" />
-          </div>
-        ) : credential ? (
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-border bg-secondary/30 p-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{getClientName(credential)}</p>
-                  <h3 className="mt-1 text-xl font-bold text-foreground">{credential.credentialName}</h3>
-                </div>
-                <StatusBadge tone="info">{typeLabels[credential.credentialType] || 'Other'}</StatusBadge>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <InfoRow icon={UserRound} label="Username" value={credential.username || 'Not added'} onCopy={() => copyText('Username', credential.username)} />
-              <InfoRow icon={CalendarClock} label="Expiry" value={formatDate(credential.expiryDate)} />
-              <InfoRow icon={LinkIcon} label="Login URL" value={credential.url || 'Not added'} onCopy={() => copyText('URL', credential.url)} />
-              <div className="rounded-2xl border border-border bg-card p-4">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  <LockKeyhole size={14} />
-                  Password
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <code className="min-w-0 truncate rounded-lg bg-secondary px-2 py-1 text-sm">
-                    {showPassword ? credential.password || 'Not added' : credential.password ? '********' : 'Not added'}
-                  </code>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((current) => !current)}
-                      className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                      title={showPassword ? 'Hide password' : 'Reveal password'}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => copyText('Password', credential.password)}
-                      className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                      title="Copy password"
-                    >
-                      <Copy size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {credential.data?.information ? (
-              <DetailBlock title="Private information" value={credential.data.information} />
-            ) : null}
-            {credential.notes ? <DetailBlock title="Notes" value={credential.notes} /> : null}
-            {credential.tags?.length ? (
-              <div className="flex flex-wrap gap-2">
-                {credential.tags.map((tag) => <span key={tag} className="app-pill">{tag}</span>)}
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">Credential not found.</p>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const InfoRow = ({ icon: Icon, label, value, onCopy }) => (
-  <div className="rounded-2xl border border-border bg-card p-4">
-    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      <Icon size={14} />
-      {label}
-    </div>
-    <div className="mt-3 flex items-center justify-between gap-3">
-      <span className="min-w-0 truncate text-sm font-medium text-foreground">{value}</span>
-      {onCopy ? (
-        <button
-          type="button"
-          onClick={onCopy}
-          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          title={`Copy ${label}`}
-        >
-          <Copy size={16} />
-        </button>
-      ) : null}
-    </div>
-  </div>
-);
-
-const DetailBlock = ({ title, value }) => (
-  <div className="rounded-2xl border border-border bg-card p-4">
-    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{title}</p>
-    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-foreground">{value}</p>
-  </div>
-);
-
-const ClientVault = () => {
+export default function ClientVault() {
   const { user } = useSelector((state) => state.auth);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [clientFilter, setClientFilter] = useState('all');
-  const [formOpen, setFormOpen] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [selectedCredential, setSelectedCredential] = useState(null);
+  const [activePasswordId, setActivePasswordId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
 
   const { data: clients = [] } = useClients();
-  const { data: credentials = [], isLoading } = useCredentialsVault({
-    search: searchTerm,
-    credentialType: typeFilter,
-    clientId: clientFilter,
-  });
-  const createCredential = useCreateCredential();
-  const updateCredential = useUpdateCredential();
-  const deleteCredential = useDeleteCredential();
-  const canManageVault = ['superAdmin', 'manager'].includes(user?.role);
+  const { data: credentials = [], isLoading } = useCredentialsVault();
+  const { data: revealedCredential } = useCredential(activePasswordId);
+  const createMutation = useCreateCredential();
+  const updateMutation = useUpdateCredential();
+  const deleteMutation = useDeleteCredential();
 
-  const metrics = useMemo(() => {
-    const expiringSoon = credentials.filter((credential) => {
-      if (!credential.expiryDate) return false;
-      const days = (new Date(credential.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
-      return days >= 0 && days <= 30;
-    }).length;
+  const handleCopy = (text, id) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    toast.success('Copied to clipboard!');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
-    return {
-      total: credentials.length,
-      clientsCovered: new Set(credentials.map((credential) => credential.clientId?._id || credential.clientId).filter(Boolean)).size,
-      passwords: credentials.filter((credential) => credential.credentialType === 'password').length,
-      expiringSoon,
-    };
-  }, [credentials]);
-
-  const handleSave = async ({ id, clientId, data }) => {
+  const handleSave = async ({ id, data }) => {
     if (id) {
-      await updateCredential.mutateAsync({ id, data });
+      await updateMutation.mutateAsync({ id, data });
     } else {
-      await createCredential.mutateAsync({ clientId, data });
+      await createMutation.mutateAsync(data);
     }
   };
 
-  const columns = [
+  const filteredCredentials = useMemo(() => {
+    return credentials.filter((item) => {
+      const q = search.toLowerCase();
+      const name = (item.credentialName || '').toLowerCase();
+      const client = getClientName(item).toLowerCase();
+      const username = (item.username || '').toLowerCase();
+      const tags = (Array.isArray(item.tags) ? item.tags.join(' ') : '').toLowerCase();
+
+      const matchesSearch = !q || name.includes(q) || client.includes(q) || username.includes(q) || tags.includes(q);
+      const matchesType = typeFilter === 'all' || item.credentialType === typeFilter;
+      const matchesClient = clientFilter === 'all' || (item.clientId?._id || item.clientId) === clientFilter;
+
+      return matchesSearch && matchesType && matchesClient;
+    });
+  }, [credentials, search, typeFilter, clientFilter]);
+
+  // Statistics
+  const total = credentials.length;
+  const socialCount = credentials.filter((c) => c.credentialType === 'social_media' || c.credentialType === 'instagram' || c.credentialType === 'facebook').length;
+  const hostingCount = credentials.filter((c) => c.credentialType === 'hosting' || c.credentialType === 'domain' || c.credentialType === 'cpanel' || c.credentialType === 'wordpress').length;
+  const adCount = credentials.filter((c) => c.credentialType === 'meta_ads' || c.credentialType === 'google_ads' || c.credentialType === 'ad_account').length;
+
+  // Table Columns
+  const tableColumns = [
     {
       key: 'credentialName',
-      label: 'Credential',
-      render: (row) => (
-        <div className="min-w-0">
-          <div className="font-semibold text-foreground">{row.credentialName}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{row.username || 'No username saved'}</div>
+      label: 'Account / Title',
+      render: (item) => (
+        <div className="flex items-center gap-2.5">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+            <LockKeyhole size={14} />
+          </div>
+          <div>
+            <p className="font-bold text-foreground">{item.credentialName}</p>
+            <p className="text-[11px] text-muted-foreground">🏢 {getClientName(item)}</p>
+          </div>
         </div>
       ),
     },
     {
-      key: 'client',
-      label: 'Client',
-      render: (row) => getClientName(row),
+      key: 'credentialType',
+      label: 'Category',
+      render: (item) => (
+        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground capitalize">
+          {typeLabels[item.credentialType] || item.credentialType}
+        </span>
+      ),
     },
     {
-      key: 'credentialType',
-      label: 'Type',
-      render: (row) => <StatusBadge tone="info">{typeLabels[row.credentialType] || 'Other'}</StatusBadge>,
+      key: 'username',
+      label: 'Username / Email',
+      render: (item) => (
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs text-foreground">{item.username || '—'}</span>
+          {item.username && (
+            <button
+              onClick={() => handleCopy(item.username, `user-${item._id}`)}
+              className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+              title="Copy username"
+            >
+              {copiedId === `user-${item._id}` ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+            </button>
+          )}
+        </div>
+      ),
     },
     {
       key: 'password',
       label: 'Password',
-      render: (row) => <code className="rounded-lg bg-secondary px-2 py-1 text-xs">{row.passwordMask || 'Not added'}</code>,
+      render: (item) => {
+        const isRevealed = activePasswordId === item._id && Boolean(revealedCredential?.password);
+        const passText = isRevealed ? revealedCredential.password : '••••••••••••';
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-foreground font-semibold">{passText}</span>
+            <button
+              onClick={() => setActivePasswordId(activePasswordId === item._id ? null : item._id)}
+              className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+              title={isRevealed ? 'Hide' : 'Reveal'}
+            >
+              {isRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
+            </button>
+            {isRevealed && (
+              <button
+                onClick={() => handleCopy(revealedCredential.password, `pass-${item._id}`)}
+                className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
+                title="Copy Password"
+              >
+                {copiedId === `pass-${item._id}` ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+              </button>
+            )}
+          </div>
+        );
+      },
     },
     {
-      key: 'expiryDate',
-      label: 'Expiry',
-      render: (row) => formatDate(row.expiryDate),
+      key: 'url',
+      label: 'Portal URL',
+      render: (item) =>
+        item.url ? (
+          <a
+            href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <span>Open Link</span>
+            <ExternalLink size={11} />
+          </a>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
     },
     {
-      key: 'tags',
-      label: 'Tags',
-      render: (row) => (
-        <div className="flex max-w-[220px] flex-wrap gap-1">
-          {(row.tags || []).slice(0, 3).map((tag) => <span key={tag} className="app-pill">{tag}</span>)}
+      key: 'actions',
+      label: '',
+      render: (item) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => {
+              setSelectedCredential(item);
+              setOpenDialog(true);
+            }}
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            title="Edit"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => setDeleteId(item._id)}
+            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            title="Delete"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       ),
     },
   ];
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Client Vault"
-        description="A separate internal dashboard for client logins, account URLs, recovery notes, and other sensitive reminders."
-        actions={canManageVault ? (
-          <Button
-            onClick={() => {
-              setSelectedCredential(null);
-              setFormOpen(true);
-            }}
+  // Cards Renderer
+  const renderCard = (item) => {
+    const isRevealed = activePasswordId === item._id && Boolean(revealedCredential?.password);
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
+            {typeLabels[item.credentialType] || item.credentialType}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                setSelectedCredential(item);
+                setOpenDialog(true);
+              }}
+              className="p-1 rounded hover:bg-secondary text-muted-foreground"
+              title="Edit"
+            >
+              <Pencil size={13} />
+            </button>
+            <button
+              onClick={() => setDeleteId(item._id)}
+              className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+              title="Delete"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="font-bold text-sm text-foreground">{item.credentialName}</h4>
+          <p className="text-xs text-muted-foreground mt-0.5">🏢 {getClientName(item)}</p>
+        </div>
+
+        <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1.5 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">User:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono font-medium">{item.username || '—'}</span>
+              {item.username && (
+                <button onClick={() => handleCopy(item.username, `user-${item._id}`)}>
+                  {copiedId === `user-${item._id}` ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Pass:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono font-medium">{isRevealed ? revealedCredential.password : '••••••••'}</span>
+              <button onClick={() => setActivePasswordId(activePasswordId === item._id ? null : item._id)}>
+                {isRevealed ? <EyeOff size={11} /> : <Eye size={11} />}
+              </button>
+              {isRevealed && (
+                <button onClick={() => handleCopy(revealedCredential.password, `pass-${item._id}`)}>
+                  {copiedId === `pass-${item._id}` ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {item.url && (
+          <a
+            href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-xs text-primary hover:bg-secondary transition-all font-semibold"
           >
-            <Plus size={16} className="mr-2" />
-            Save Password
-          </Button>
-        ) : null}
-      >
-        <MetricGrid>
-          <MetricCard label="Saved Items" value={metrics.total} helper="Credentials visible in this view" icon={KeyRound} tone="primary" />
-          <MetricCard label="Clients Covered" value={metrics.clientsCovered} helper="Clients with at least one saved item" icon={ShieldCheck} tone="success" />
-          <MetricCard label="Passwords" value={metrics.passwords} helper="Login passwords stored in the vault" icon={LockKeyhole} tone="info" />
-          <MetricCard label="Expiring Soon" value={metrics.expiringSoon} helper="Credentials expiring within 30 days" icon={CalendarClock} tone="warning" />
-        </MetricGrid>
-      </PageHeader>
+            <span>Open Login Portal</span>
+            <ExternalLink size={12} />
+          </a>
+        )}
+      </div>
+    );
+  };
 
-      <PageToolbar>
-        <SearchField
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Search client, username, URL, tag, or credential name..."
-        />
-        <select value={clientFilter} onChange={(event) => setClientFilter(event.target.value)} className="app-input w-full sm:w-auto sm:min-w-[160px] lg:w-56">
-          <option value="all" onClick={() => setClientFilter('all')}>All clients</option>
-          {clients.map((client) => (
-            <option key={client._id} value={client._id} onClick={() => { if (clientFilter === client._id) setClientFilter('all'); }}>{client.company || client.name}</option>
-          ))}
-        </select>
-        <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="app-input w-full sm:w-auto sm:min-w-[150px] lg:w-52">
-          <option value="all" onClick={() => setTypeFilter('all')}>All types</option>
-          {credentialTypes.map((type) => (
-            <option key={type.value} value={type.value} onClick={() => { if (typeFilter === type.value) setTypeFilter('all'); }}>{type.label}</option>
-          ))}
-        </select>
-      </PageToolbar>
-
-      <SectionCard
-        title="Saved Client Access"
-        description="Use view to reveal passwords only when needed. Add notes for anything the team needs to remember."
-        action={<span className="app-pill"><Tags size={14} className="mr-1.5" />{credentials.length} records</span>}
-      >
-        <DataTable
-          data={credentials}
-          columns={columns}
-          loading={isLoading}
-          onView={(credential) => {
-            setSelectedCredential(credential);
-            setDetailsOpen(true);
+  return (
+    <WorkspacePage
+      breadcrumbs={['RiseWithMedia', 'Client Lifecycle', 'Client Vault']}
+      title="Client Vault & Credentials"
+      subtitle="Encrypted credential repository for client social media accounts, CMS, domain hosting, ad managers, and brand assets."
+      icon="🔐"
+      properties={[
+        { label: 'Total Vault Items', value: total, icon: LockKeyhole },
+        { label: 'Social Logins', value: socialCount, tone: 'info' },
+        { label: 'Hosting & CMS', value: hostingCount, tone: 'neutral' },
+        { label: 'Ad Accounts', value: adCount, tone: 'warning' },
+      ]}
+      actions={
+        <Button
+          size="sm"
+          onClick={() => {
+            setSelectedCredential(null);
+            setOpenDialog(true);
           }}
-          onDelete={canManageVault ? (id) => {
-            if (window.confirm('Remove this saved credential from the vault?')) {
-              deleteCredential.mutate(id);
-            }
-          } : null}
-          onEdit={canManageVault ? (credential) => {
-            setSelectedCredential(credential);
-            setFormOpen(true);
-          } : null}
-          emptyTitle="No saved passwords yet"
-          emptyDescription="Save client logins, recovery information, URLs, and notes here so the team can find them later."
-          emptyAction={canManageVault ? (
-            <Button onClick={() => setFormOpen(true)}>
-              <Plus size={16} className="mr-2" />
-              Save First Password
-            </Button>
-          ) : null}
-        />
-      </SectionCard>
+          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+        >
+          <Plus size={14} className="stroke-[2.5]" />
+          <span>Add Credential</span>
+        </Button>
+      }
+    >
+      {/* Category Filter Tabs */}
+      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+        {['all', 'social_media', 'meta_ads', 'google_ads', 'wordpress', 'hosting', 'domain'].map((type) => (
+          <button
+            key={type}
+            onClick={() => setTypeFilter(type)}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
+              typeFilter === type
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+            }`}
+          >
+            {type === 'all' ? 'All Categories' : typeLabels[type] || type.replace(/_/g, ' ')}
+          </button>
+        ))}
+      </div>
+
+      <DatabaseView
+        viewKey="rwm_vault_view_v1"
+        views={['cards', 'table']}
+        items={filteredCredentials}
+        totalCount={filteredCredentials.length}
+        searchPlaceholder="Search by account title, client name, username, or tags..."
+        columns={tableColumns}
+        renderCard={renderCard}
+        onSearchChange={setSearch}
+      />
 
       <CredentialFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
+        open={openDialog}
+        onOpenChange={setOpenDialog}
         credential={selectedCredential}
         clients={clients}
         onSave={handleSave}
-        saving={createCredential.isPending || updateCredential.isPending}
+        saving={createMutation.isPending || updateMutation.isPending}
       />
 
-      <CredentialDetailsDialog
-        open={detailsOpen}
-        onOpenChange={setDetailsOpen}
-        credentialId={selectedCredential?._id}
-      />
-    </div>
+      <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-card border border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold">Delete Credential?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              This will permanently delete this credential from the secure vault. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId);
+                setDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </WorkspacePage>
   );
-};
-
-export default ClientVault;
+}

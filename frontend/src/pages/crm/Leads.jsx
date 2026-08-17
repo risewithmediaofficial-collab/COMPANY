@@ -41,7 +41,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { PageHeader, MetricGrid, MetricCard } from '../../components/ui/page';
+import { WorkspacePage } from '../../components/ui/WorkspacePage';
+import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
@@ -669,135 +670,87 @@ const Leads = () => {
   };
 
   return (
-    <div className="min-w-0 space-y-6">
-      <PageHeader
-        title="CRM & Leads"
-        description="Track lead conversions, assign owners, schedule follow-ups, and manage deal stages."
-        actions={(
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="inline-flex items-center rounded-2xl border border-border bg-card p-1 shadow-sm">
-              <button
-                onClick={() => setView('kanban')}
-                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-                  view === 'kanban'
-                    ? 'bg-primary text-white shadow-md shadow-primary/20'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
-              >
-                <LayoutGrid size={16} />
-                Board
-              </button>
-              <button
-                onClick={() => setView('list')}
-                className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all ${
-                  view === 'list'
-                    ? 'bg-primary text-white shadow-md shadow-primary/20'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
-              >
-                <List size={16} />
-                List
-              </button>
-            </div>
-
-            <Button
+    <WorkspacePage
+      breadcrumbs={['RiseWithMedia', 'Growth & Sales', 'CRM & Leads']}
+      title="Sales Pipeline & Lead Management"
+      subtitle="Track lead conversions, assign team owners, schedule follow-ups, and manage deal stages."
+      icon={Target}
+      properties={[
+        { label: 'Active Leads', value: activeLeads, tone: 'info', icon: Target },
+        { label: 'Pipeline Value', value: pipelineValue, tone: 'success', icon: TrendingUp },
+        { label: 'Today Follow-ups', value: followUpToday, tone: followUpToday > 0 ? 'warning' : 'neutral', icon: Calendar },
+        { label: 'Overdue Follow-ups', value: overdueFollowUps, tone: overdueFollowUps > 0 ? 'danger' : 'neutral', icon: ClipboardList },
+      ]}
+      actions={
+        <Button
+          size="sm"
+          onClick={() => {
+            setSelectedLead(null);
+            setShowAddModal(true);
+          }}
+          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+        >
+          <Plus size={14} className="stroke-[2.5]" />
+          <span>Add Lead</span>
+        </Button>
+      }
+    >
+      <DatabaseView
+        views={[
+          { id: 'kanban', label: 'Board', icon: LayoutGrid },
+          { id: 'list', label: 'List', icon: List },
+        ]}
+        activeView={view}
+        onViewChange={setView}
+        searchQuery={searchTerm}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search leads, companies, phone numbers..."
+        totalCount={filteredListLeads.length}
+        filters={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
               onClick={() => {
-                setSelectedLead(null);
-                setShowAddModal(true);
+                setFollowUpFilter(followUpFilter === 'today' ? '' : 'today');
+                setView('list');
               }}
-              className="w-full justify-center sm:w-auto"
+              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                followUpFilter === 'today'
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
             >
-              <Plus size={18} className="mr-2" />
-              Add Lead
-            </Button>
+              Today ({followUpToday})
+            </button>
+            <button
+              onClick={() => {
+                setFollowUpFilter(followUpFilter === 'overdue' ? '' : 'overdue');
+                setView('list');
+              }}
+              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                followUpFilter === 'overdue'
+                  ? 'border-destructive bg-destructive text-destructive-foreground'
+                  : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
+            >
+              Overdue ({overdueFollowUps})
+            </button>
+            <button
+              onClick={() => {
+                setFollowUpFilter(followUpFilter === 'refollow' ? '' : 'refollow');
+                setView('list');
+              }}
+              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors ${
+                followUpFilter === 'refollow'
+                  ? 'border-amber-500 bg-amber-500 text-white'
+                  : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
+            >
+              Refollow ({refollowLeads})
+            </button>
           </div>
-        )}
+        }
       >
-        <MetricGrid>
-          {pipelineHighlights.map((item) => (
-            <div
-              key={item.label}
-              onClick={item.onClick}
-              className={`rounded-[24px] border border-border/80 bg-card p-4 shadow-none cursor-pointer transition-all hover:border-primary/40 ${item.tone}`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">{item.value}</p>
-                </div>
-                <div className="rounded-2xl bg-secondary/80 p-3">
-                  <item.icon size={18} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </MetricGrid>
-        <DateRangePicker title="Filter Leads (From Date to To Date)" className="mt-4" />
-      </PageHeader>
-
-          <div className="mt-6 rounded-[26px] border border-border/80 bg-card/80 p-3 shadow-sm backdrop-blur-sm">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-              <div className="relative flex-1">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search leads, companies, phone numbers..."
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full rounded-2xl border border-border bg-background py-3 pl-11 pr-4 text-sm shadow-inner outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => {
-                    setFollowUpFilter(followUpFilter === 'today' ? '' : 'today');
-                    setView('list');
-                  }}
-                  className={`rounded-2xl border px-3 py-2 text-xs font-semibold transition-colors ${
-                    followUpFilter === 'today'
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border bg-background text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  Today {followUpToday}
-                </button>
-                <button
-                  onClick={() => {
-                    setFollowUpFilter(followUpFilter === 'overdue' ? '' : 'overdue');
-                    setView('list');
-                  }}
-                  className={`rounded-2xl border px-3 py-2 text-xs font-semibold transition-colors ${
-                    followUpFilter === 'overdue'
-                      ? 'border-destructive bg-destructive text-destructive-foreground'
-                      : 'border-border bg-background text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  Overdue {overdueFollowUps}
-                </button>
-                <button
-                  onClick={() => {
-                    setFollowUpFilter(followUpFilter === 'refollow' ? '' : 'refollow');
-                    setView('list');
-                  }}
-                  className={`rounded-2xl border px-3 py-2 text-xs font-semibold transition-colors ${
-                    followUpFilter === 'refollow'
-                      ? 'border-orange-500 bg-orange-500 text-white'
-                      : 'border-border bg-background text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  Refollow {refollowLeads}
-                </button>
-                <div className="rounded-2xl border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground">
-                  {view === 'kanban' ? 'Board view active' : 'List view active'}
-                </div>
-                <div className="rounded-2xl border border-border bg-background px-3 py-2 text-xs font-medium text-muted-foreground">
-                  {hasSearch ? `${filteredListLeads.length} matching leads` : `${totalLeads} total leads`}
-                </div>
-              </div>
-            </div>
-          </div>
+        <DateRangePicker title="Filter Leads Range" className="mb-4" />
 
       {isLoading ? (
         <TableSkeleton columns={5} rows={6} dark={false} />
@@ -921,6 +874,7 @@ const Leads = () => {
           </div>
         )
       )}
+      </DatabaseView>
 
       <AddLeadModal
         open={showAddModal}
@@ -955,7 +909,7 @@ const Leads = () => {
           </div>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </WorkspacePage>
   );
 };
 

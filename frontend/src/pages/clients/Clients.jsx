@@ -1,13 +1,32 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Briefcase, Building2, IndianRupee, Plus, Users } from 'lucide-react';
+import {
+  Briefcase,
+  Building2,
+  IndianRupee,
+  Plus,
+  Users,
+  Search,
+  SlidersHorizontal,
+  FolderOpen,
+  ArrowRight,
+  TrendingUp,
+  ShieldCheck,
+  Phone,
+  Mail,
+  MoreVertical,
+  Edit2,
+  Trash2,
+} from 'lucide-react';
 import { useClients, useDeleteClient } from '../../hooks/useClients';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { formatINR } from '../../utils/currency';
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
-import { MetricCard, MetricGrid, PageHeader, SearchField, StatusBadge } from '../../components/ui/page';
+import { StatusBadge } from '../../components/ui/page';
+import { WorkspacePage } from '../../components/ui/WorkspacePage';
+import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
@@ -28,6 +47,8 @@ const clientStatusTone = {
   Renew: 'primary',
 };
 
+const STATUS_COLUMNS = ['Active', 'Prospect', 'Renew', 'Inactive', 'Churned'];
+
 const Clients = () => {
   const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -36,6 +57,7 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
+  const [currentView, setCurrentView] = useState('table'); // 'table' | 'board'
   const { startDate, endDate, isDateInRange } = useDateFilter();
 
   const filters = {
@@ -58,6 +80,9 @@ const Clients = () => {
 
   const activeClients = clients.filter((client) => client.status === 'Active').length;
   const prospectClients = clients.filter((client) => client.status === 'Prospect').length;
+  const totalMrr = clients
+    .filter((c) => c.status === 'Active')
+    .reduce((sum, c) => sum + (c.monthlyRetainer || 0), 0);
 
   const columns = [
     {
@@ -65,8 +90,12 @@ const Clients = () => {
       label: 'Client / Company',
       render: (row) => (
         <div className="min-w-0">
-          <div className="font-semibold text-foreground">{row.name}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{row.company || row.email || 'No company info'}</div>
+          <div className="font-bold text-foreground text-xs hover:text-primary transition-colors">
+            {row.name}
+          </div>
+          <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
+            {row.company || row.email || 'No company specified'}
+          </div>
         </div>
       ),
     },
@@ -74,22 +103,26 @@ const Clients = () => {
       key: 'contact',
       label: 'Contact Info',
       render: (row) => (
-        <div className="text-xs space-y-0.5">
-          <div className="font-medium text-foreground">{row.phone || 'No phone'}</div>
-          <div className="text-muted-foreground">{row.email || 'No email'}</div>
+        <div className="text-[11px] space-y-0.5">
+          <div className="font-medium text-foreground">{row.phone || '—'}</div>
+          <div className="text-muted-foreground">{row.email || '—'}</div>
         </div>
       ),
     },
     {
       key: 'service',
-      label: 'Service',
-      render: (row) => <span className="font-medium text-xs">{row.service || 'General'}</span>,
+      label: 'Primary Service',
+      render: (row) => (
+        <span className="px-2 py-0.5 rounded-lg bg-secondary/80 text-[11px] font-medium text-foreground">
+          {row.service || 'General Retainer'}
+        </span>
+      ),
     },
     {
       key: 'monthlyRetainer',
       label: 'Monthly Retainer',
       render: (row) => (
-        <span className="font-bold text-emerald-600">
+        <span className="font-bold text-xs text-emerald-600">
           {row.monthlyRetainer ? formatINR(row.monthlyRetainer) : '—'}
         </span>
       ),
@@ -113,69 +146,147 @@ const Clients = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Client Operations"
-        description="Track contacts, commercial value, and lifecycle status in one cleaner operational view."
+    <WorkspacePage
+      title="Clients 360"
+      subtitle="Universal client database, retainer values, projects, and relationship health."
+      icon={Users}
+      breadcrumbs={[{ name: 'Clients', path: '/clients' }, { name: 'Directory' }]}
+      actions={
+        <Button
+          size="sm"
+          onClick={() => {
+            setSelectedClient(null);
+            setShowAddModal(true);
+          }}
+          className="bg-primary text-primary-foreground font-bold shadow-sm"
+        >
+          <Plus size={15} className="mr-1.5 stroke-[2.5]" />
+          Add Client
+        </Button>
+      }
+      properties={
+        <>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border/80 text-foreground font-semibold">
+            <Users size={13} className="text-primary" />
+            <span>Total Accounts: {clients.length}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg font-semibold">
+            <Building2 size={13} />
+            <span>Active Retainers: {activeClients}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border/80 text-foreground font-semibold">
+            <IndianRupee size={13} className="text-emerald-600" />
+            <span>MRR: {formatINR(totalMrr)}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-600 rounded-lg font-semibold">
+            <Briefcase size={13} />
+            <span>Prospects: {prospectClients}</span>
+          </div>
+        </>
+      }
+    >
+      <DateRangePicker title="Filter Clients by Creation Range" />
+
+      {/* Notion-Style Multi-View Database Engine */}
+      <DatabaseView
+        activeView={currentView}
+        onViewChange={setCurrentView}
+        searchQuery={searchTerm}
+        onSearchChange={setSearchTerm}
+        totalCount={clients.length}
+        filters={
+          <div className="flex items-center gap-2">
+            <SelectDropdown
+              className="w-36 text-xs"
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val)}
+              options={['Active', 'Prospect', 'Inactive', 'Churned', 'Renew']}
+              allOptionLabel="All statuses"
+            />
+            <SelectDropdown
+              className="w-36 text-xs"
+              value={serviceFilter}
+              onChange={(val) => setServiceFilter(val)}
+              options={['Social Media', 'Website', 'Branding', 'SEO', 'Ads', 'Video Editing', 'Content Creation', 'Custom']}
+              allOptionLabel="All services"
+            />
+          </div>
+        }
       >
-        <MetricGrid>
-          <MetricCard label="Client Records" value={clients.length} helper="Visible in the current search scope" icon={Users} tone="info" />
-          <MetricCard label="Active Accounts" value={activeClients} helper="Clients currently in service" icon={Building2} tone="success" />
-          <MetricCard label="Prospects" value={prospectClients} helper="Warm opportunities still being nurtured" icon={Briefcase} tone="warning" />
-        </MetricGrid>
-        <DateRangePicker title="Filter Clients (From Date to To Date)" className="mt-4" />
-        <div className="mt-5 pt-5 border-t border-border flex flex-wrap items-center gap-2">
-          <SearchField
-            className="w-full sm:w-auto sm:min-w-[240px]"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search by name, email, phone, or company..."
-          />
-          <SelectDropdown
-            className="w-full sm:w-auto sm:w-44"
-            value={statusFilter}
-            onChange={(val) => setStatusFilter(val)}
-            options={['Active', 'Prospect', 'Inactive', 'Churned', 'Renew']}
-            allOptionLabel="All statuses"
-          />
-          <SelectDropdown
-            className="w-full sm:w-auto sm:w-44"
-            value={serviceFilter}
-            onChange={(val) => setServiceFilter(val)}
-            options={['Social Media', 'Website', 'Branding', 'SEO', 'Ads', 'Video Editing', 'Content Creation', 'Custom']}
-            allOptionLabel="All services"
-          />
-          <input type="date" className="app-input h-10 text-xs w-full sm:w-auto sm:min-w-[140px]" value={createdFrom} onChange={(e) => setCreatedFrom(e.target.value)} />
-          <input type="date" className="app-input h-10 text-xs w-full sm:w-auto sm:min-w-[140px]" value={createdTo} onChange={(e) => setCreatedTo(e.target.value)} />
-          <Button type="button" variant="outline" size="sm" onClick={clearFilters}>Clear</Button>
-          <div className="app-pill text-xs">{clients.length} clients</div>
-          <Button
-            size="sm"
-            className="ml-auto w-full sm:w-auto"
-            onClick={() => {
-              setSelectedClient(null);
+        {/* Table View */}
+        {currentView === 'table' && (
+          <DataTable
+            data={clients}
+            columns={columns}
+            loading={isLoading}
+            onRowClick={(client) => navigate(`/clients/${client._id}`)}
+            onEdit={(client) => {
+              setSelectedClient(client);
               setShowAddModal(true);
             }}
-          >
-            <Plus size={16} className="mr-2" />
-            Add Client
-          </Button>
-        </div>
-      </PageHeader>
+            onDelete={(id) => setDeleteClientId(id)}
+            emptyTitle="No clients found"
+            emptyDescription="Try adjusting your filter or create a new client to start building the relationship database."
+          />
+        )}
 
-      <DataTable
-        data={clients}
-        columns={columns}
-        loading={isLoading}
-        onRowClick={(client) => navigate(`/clients/${client._id}`)}
-        onEdit={(client) => {
-          setSelectedClient(client);
-          setShowAddModal(true);
-        }}
-        onDelete={(id) => setDeleteClientId(id)}
-        emptyTitle="No clients found"
-        emptyDescription="Try a broader search or create a new client to start building the relationship database."
-      />
+        {/* Board View (Kanban by Client Status) */}
+        {currentView === 'board' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+            {STATUS_COLUMNS.map((status) => {
+              const statusClients = clients.filter((c) => (c.status || 'Prospect') === status);
+              return (
+                <div key={status} className="bg-secondary/20 rounded-2xl border border-border/80 p-3 space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
+                    <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
+                      {statusClients.length}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {statusClients.map((client) => (
+                      <div
+                        key={client._id}
+                        onClick={() => navigate(`/clients/${client._id}`)}
+                        className="p-3 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2 group shadow-sm"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                            {client.name}
+                          </h4>
+                          {client.monthlyRetainer ? (
+                            <span className="text-[11px] font-bold text-emerald-600">
+                              {formatINR(client.monthlyRetainer)}
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {client.company || client.email || 'No company'}
+                        </p>
+
+                        <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
+                          <span>{client.service || 'Retainer'}</span>
+                          <span className="group-hover:text-primary flex items-center gap-0.5">
+                            Open <ArrowRight size={10} />
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {statusClients.length === 0 && (
+                      <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
+                        No {status} clients
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </DatabaseView>
 
       <AddClientModal
         open={showAddModal}
@@ -202,7 +313,7 @@ const Clients = () => {
           </div>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </WorkspacePage>
   );
 };
 

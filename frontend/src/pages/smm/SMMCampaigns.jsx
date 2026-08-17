@@ -9,6 +9,13 @@ import {
   Info, FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../components/ui/dialog';
 
 export const Campaigns = () => {
   const location = useLocation();
@@ -382,388 +389,270 @@ export const Campaigns = () => {
         )}
       </div>
 
-      {/* CREATE AD CAMPAIGN MODAL */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl w-full my-auto max-w-xl max-h-[min(90vh,calc(100dvh-2rem))] shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
-              <h2 className="text-lg font-bold text-foreground">Create Paid Advertisement Campaign</h2>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary">
-                <X size={18} />
-              </button>
-            </div>
+      {/* CREATE AD CAMPAIGN MODAL (SLIDE-OVER SHEET) */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                <DialogContent size="lg">
+                  <DialogHeader>
+                    <DialogTitle>Create Paid Advertisement Campaign</DialogTitle>
+                    <DialogDescription>
+                      Launch Meta Ads, Google Ads, or LinkedIn sponsored campaigns with daily budget and goals.
+                    </DialogDescription>
+                  </DialogHeader>
 
-            <form onSubmit={handleCreateSubmit} className="space-y-4 p-5 text-xs overflow-y-auto flex-1 custom-scrollbar">
-              {/* Client & Project Selection */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-muted/30 p-3.5 rounded-xl border border-border">
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Select Client *</label>
-                  <select
-                    required
-                    value={formData.client}
-                    onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '', sourceContentId: '' })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden"
-                  >
-                    <option value="">-- Choose Client --</option>
-                    {clientsList.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {c.companyName || c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Select Project *</label>
-                  <select
-                    required
-                    value={formData.project}
-                    onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                    disabled={!formData.client}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl disabled:opacity-50"
-                  >
-                    <option value="">-- Choose Project --</option>
-                    {projectsList.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Ad Source Selection */}
-              <div>
-                <label className="font-semibold text-foreground block mb-1">Ad Source</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, adSource: 'Existing Posted Content' })}
-                    className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all ${
-                      formData.adSource === 'Existing Posted Content'
-                        ? 'border-primary bg-primary/10 text-primary font-bold'
-                        : 'border-border text-muted-foreground'
-                    }`}
-                  >
-                    <FileText size={16} />
-                    <span>Existing Posted Content</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, adSource: 'Manual Ad' })}
-                    className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all ${
-                      formData.adSource === 'Manual Ad'
-                        ? 'border-primary bg-primary/10 text-primary font-bold'
-                        : 'border-border text-muted-foreground'
-                    }`}
-                  >
-                    <Megaphone size={16} />
-                    <span>Manual Ad</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Existing Posted Content / Video Picker */}
-              {formData.adSource === 'Existing Posted Content' && (
-                <div className="space-y-2 bg-muted/20 p-3 rounded-xl border border-border/60">
-                  <label className="font-semibold text-foreground block">Select Posted Video / Content *</label>
-                  <select
-                    required
-                    value={formData.sourceContentId}
-                    onChange={(e) => {
-                      const sel = publishedContents.find((c) => c._id === e.target.value);
-                      if (sel) {
-                        const selClient = sel.client?._id || sel.client || formData.client;
-                        const selProject = sel.project?._id || sel.project || formData.project;
-                        setFormData((prev) => ({
-                          ...prev,
-                          sourceContentId: sel._id,
-                          name: `Ad: ${sel.name}`,
-                          client: selClient,
-                          project: selProject,
-                          platform: sel.platforms?.[0] === 'YouTube' ? 'YouTube' : sel.platforms?.[0] === 'LinkedIn' ? 'LinkedIn' : 'Meta',
-                        }));
-                      } else {
-                        setFormData((prev) => ({ ...prev, sourceContentId: e.target.value }));
-                      }
-                    }}
-                    className="w-full h-9.5 px-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden text-xs font-medium"
-                  >
-                    <option value="">-- Choose Posted Video / Reel / Post --</option>
-                    {publishedContents.map((c) => {
-                      const icon = c.contentType === 'Reel' ? '📹 Reel:' : c.contentType === 'Story' ? '📱 Story:' : '📷 Post:';
-                      const clientName = c.client?.company || c.client?.name || '';
-                      return (
-                        <option key={c._id} value={c._id}>
-                          {icon} {c.name} {clientName ? `— ${clientName}` : ''}
-                        </option>
-                      );
-                    })}
-                  </select>
-
-                  {/* Selected Video Preview Badge */}
-                  {formData.sourceContentId && (
-                    <div className="p-3 bg-card rounded-xl border border-border flex items-center justify-between text-xs">
+                  <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
+                    {/* Client & Project Selection */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border/80">
                       <div>
-                        <div className="font-bold text-foreground flex items-center gap-1.5">
-                          <FileText size={14} className="text-primary" />
-                          <span>{publishedContents.find((c) => c._id === formData.sourceContentId)?.name}</span>
-                        </div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">
-                          Format: <span className="font-medium text-foreground">{publishedContents.find((c) => c._id === formData.sourceContentId)?.contentType}</span> • 
-                          Platform: <span className="font-medium text-foreground">{publishedContents.find((c) => c._id === formData.sourceContentId)?.platforms?.join(', ')}</span>
-                        </div>
+                        <label className="font-semibold text-foreground block mb-1">Select Client *</label>
+                        <select
+                          required
+                          value={formData.client}
+                          onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '', sourceContentId: '' })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
+                        >
+                          <option value="">-- Choose Client --</option>
+                          {clientsList.map((c) => (
+                            <option key={c._id} value={c._id}>
+                              {c.companyName || c.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-bold">
-                        Linked Content
-                      </span>
+
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Select Project *</label>
+                        <select
+                          required
+                          value={formData.project}
+                          onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                          disabled={!formData.client || loadingProjects}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-xs"
+                        >
+                          <option value="">-- Choose Project --</option>
+                          {projectsList.map((p) => (
+                            <option key={p._id} value={p._id}>
+                              {p.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* Campaign Name & Platform */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Meta Q3 Lead Generation Ad"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Platform *</label>
-                  <select
-                    value={formData.platform}
-                    onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  >
-                    <option value="Meta">Meta Ads</option>
-                    <option value="Google">Google Ads</option>
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="YouTube">YouTube</option>
-                    <option value="TikTok">TikTok</option>
-                    <option value="Twitter">Twitter / X</option>
-                  </select>
-                </div>
-              </div>
+                    {/* Campaign Name & Platform */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Q4 Festive Offer Lead Gen"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
+                        />
+                      </div>
 
-              {/* Objective & Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Campaign Objective *</label>
-                  <select
-                    value={formData.objective}
-                    onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  >
-                    <option value="Lead Generation">Lead Generation</option>
-                    <option value="Website Traffic">Website Traffic</option>
-                    <option value="Engagement">Engagement</option>
-                    <option value="Awareness">Awareness</option>
-                    <option value="Reach">Reach</option>
-                    <option value="Video Views">Video Views</option>
-                    <option value="Conversions">Conversions</option>
-                    <option value="Messages">Messages</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Campaign Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  >
-                    <option value="Draft">Draft</option>
-                    <option value="Scheduled">Scheduled</option>
-                    <option value="Running">Running</option>
-                    <option value="Paused">Paused</option>
-                    <option value="Stopped">Stopped</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Dates & Calculated Duration */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-secondary/30 p-3 rounded-xl">
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-foreground block mb-1">End Date</label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div className="col-span-2 text-right text-[11px] font-semibold text-primary">
-                  Calculated Duration: {calculatedDuration} Days
-                </div>
-              </div>
-
-              {/* Budget Configuration */}
-              <div className="space-y-2 bg-muted/40 p-3.5 rounded-xl border border-border">
-                <label className="font-bold text-foreground block">Budget Configuration</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-medium text-muted-foreground block mb-1">Budget Type</label>
-                    <select
-                      value={formData.budgetType}
-                      onChange={(e) => setFormData({ ...formData, budgetType: e.target.value })}
-                      className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                    >
-                      <option value="Daily Budget">Daily Budget</option>
-                      <option value="Lifetime Budget">Lifetime Budget</option>
-                    </select>
-                  </div>
-                  {formData.budgetType === 'Daily Budget' ? (
-                    <div>
-                      <label className="font-medium text-muted-foreground block mb-1">Daily Budget (₹)</label>
-                      <input
-                        type="number"
-                        value={formData.dailyBudget}
-                        onChange={(e) => setFormData({ ...formData, dailyBudget: Number(e.target.value) })}
-                        className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                      />
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Ad Platform *</label>
+                        <select
+                          value={formData.platform}
+                          onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        >
+                          <option value="Meta Ads">Meta Ads (Instagram / FB)</option>
+                          <option value="Google Ads">Google Ads</option>
+                          <option value="LinkedIn Ads">LinkedIn Ads</option>
+                          <option value="YouTube Ads">YouTube Ads</option>
+                          <option value="X Ads">X Ads</option>
+                        </select>
+                      </div>
                     </div>
-                  ) : (
-                    <div>
-                      <label className="font-medium text-muted-foreground block mb-1">Total Lifetime Budget (₹)</label>
-                      <input
-                        type="number"
-                        value={formData.lifetimeBudget}
-                        onChange={(e) => setFormData({ ...formData, lifetimeBudget: Number(e.target.value) })}
-                        className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                      />
+
+                    {/* Objective & Budget */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Campaign Objective</label>
+                        <select
+                          value={formData.objective}
+                          onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        >
+                          <option value="Lead Generation">Lead Generation</option>
+                          <option value="Brand Awareness">Brand Awareness</option>
+                          <option value="Traffic">Traffic / Clicks</option>
+                          <option value="Conversions">Conversions / Sales</option>
+                          <option value="Engagement">Engagement</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Daily Budget (₹) *</label>
+                        <input
+                          required
+                          type="number"
+                          placeholder="1000"
+                          value={formData.dailyBudget}
+                          onChange={(e) => setFormData({ ...formData, dailyBudget: Number(e.target.value) })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Total Budget (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="30000"
+                          value={formData.totalBudget}
+                          onChange={(e) => setFormData({ ...formData, totalBudget: Number(e.target.value) })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 border border-border rounded-xl font-medium text-xs hover:bg-secondary"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-xs hover:bg-primary/90"
-                >
-                  Create Campaign
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                    {/* Dates & Status */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Start Date *</label>
+                        <input
+                          required
+                          type="date"
+                          value={formData.startDate}
+                          onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
 
-      {/* LOG DAILY SPEND MODAL */}
-      {isSpendModalOpen && selectedCampaign && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xs flex min-h-full items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] shadow-2xl flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
-              <h2 className="text-base font-bold text-foreground">
-                Log Daily Ad Spend — {selectedCampaign.name}
-              </h2>
-              <button onClick={() => setIsSpendModalOpen(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary">
-                <X size={18} />
-              </button>
-            </div>
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">End Date</label>
+                        <input
+                          type="date"
+                          value={formData.endDate}
+                          onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
 
-            <form onSubmit={handleAddSpendSubmit} className="space-y-3 p-5 text-xs overflow-y-auto flex-1 custom-scrollbar">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Date *</label>
-                  <input
-                    type="date"
-                    required
-                    value={spendFormData.date}
-                    onChange={(e) => setSpendFormData({ ...spendFormData, date: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Amount Spent (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    value={spendFormData.amountSpent}
-                    onChange={(e) => setSpendFormData({ ...spendFormData, amountSpent: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Leads Generated</label>
-                  <input
-                    type="number"
-                    value={spendFormData.leadsGenerated}
-                    onChange={(e) => setSpendFormData({ ...spendFormData, leadsGenerated: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Clicks</label>
-                  <input
-                    type="number"
-                    value={spendFormData.clicks}
-                    onChange={(e) => setSpendFormData({ ...spendFormData, clicks: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Impressions</label>
-                  <input
-                    type="number"
-                    value={spendFormData.impressions}
-                    onChange={(e) => setSpendFormData({ ...spendFormData, impressions: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="font-medium text-muted-foreground block mb-1">Reach</label>
-                  <input
-                    type="number"
-                    value={spendFormData.reach}
-                    onChange={(e) => setSpendFormData({ ...spendFormData, reach: Number(e.target.value) })}
-                    className="w-full h-9 px-3 bg-background border border-input rounded-xl"
-                  />
-                </div>
-              </div>
+                      <div>
+                        <label className="font-semibold text-foreground block mb-1">Initial Status</label>
+                        <select
+                          value={formData.status}
+                          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        >
+                          <option value="Running">Running</option>
+                          <option value="Paused">Paused</option>
+                          <option value="Draft">Draft</option>
+                        </select>
+                      </div>
+                    </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setIsSpendModalOpen(false)}
-                  className="px-4 py-2 border border-border rounded-xl font-medium text-xs hover:bg-secondary"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-xs hover:bg-primary/90"
-                >
-                  Save Spend Log
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                    <div className="flex justify-end gap-2 pt-4 border-t border-border">
+                      <button
+                        type="button"
+                        onClick={() => setIsCreateModalOpen(false)}
+                        className="px-4 py-2 border border-border rounded-xl font-semibold text-xs hover:bg-secondary"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-sm hover:bg-primary/90"
+                      >
+                        Create Campaign
+                      </button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* LOG DAILY SPEND MODAL (SLIDE-OVER SHEET) */}
+              <Dialog open={isSpendModalOpen && Boolean(selectedCampaign)} onOpenChange={setIsSpendModalOpen}>
+                <DialogContent size="default">
+                  <DialogHeader>
+                    <DialogTitle>Log Daily Ad Spend — {selectedCampaign?.name}</DialogTitle>
+                    <DialogDescription>
+                      Record daily ad cost, impressions, clicks, and lead generation totals.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <form onSubmit={handleAddSpendSubmit} className="space-y-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-medium text-muted-foreground block mb-1">Date *</label>
+                        <input
+                          type="date"
+                          required
+                          value={spendFormData.date}
+                          onChange={(e) => setSpendFormData({ ...spendFormData, date: e.target.value })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-medium text-muted-foreground block mb-1">Amount Spent (₹) *</label>
+                        <input
+                          type="number"
+                          required
+                          value={spendFormData.amountSpent}
+                          onChange={(e) => setSpendFormData({ ...spendFormData, amountSpent: Number(e.target.value) })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-medium text-muted-foreground block mb-1">Leads Generated</label>
+                        <input
+                          type="number"
+                          value={spendFormData.leadsGenerated}
+                          onChange={(e) => setSpendFormData({ ...spendFormData, leadsGenerated: Number(e.target.value) })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-medium text-muted-foreground block mb-1">Clicks</label>
+                        <input
+                          type="number"
+                          value={spendFormData.clicks}
+                          onChange={(e) => setSpendFormData({ ...spendFormData, clicks: Number(e.target.value) })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-medium text-muted-foreground block mb-1">Impressions</label>
+                        <input
+                          type="number"
+                          value={spendFormData.impressions}
+                          onChange={(e) => setSpendFormData({ ...spendFormData, impressions: Number(e.target.value) })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-medium text-muted-foreground block mb-1">Reach</label>
+                        <input
+                          type="number"
+                          value={spendFormData.reach}
+                          onChange={(e) => setSpendFormData({ ...spendFormData, reach: Number(e.target.value) })}
+                          className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4 border-t border-border">
+                      <button
+                        type="button"
+                        onClick={() => setIsSpendModalOpen(false)}
+                        className="px-4 py-2 border border-border rounded-xl font-semibold text-xs hover:bg-secondary"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-sm hover:bg-primary/90"
+                      >
+                        Save Spend Log
+                      </button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
     </div>
   );
 };

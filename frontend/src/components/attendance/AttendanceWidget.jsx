@@ -16,6 +16,13 @@ import {
   useSubmitLeave,
 } from '../../hooks/useAttendance';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../ui/dialog';
 
 const formatTime = (isoString) => {
   if (!isoString) return '--:--';
@@ -289,104 +296,88 @@ export const AttendanceWidget = ({ todayRecord, user }) => {
       </div>
 
       {/* Modal: Mark Absent */}
-      {showAbsentModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
-          <div className="w-full my-auto max-w-md bg-card border border-border rounded-[28px] p-4 sm:p-6 shadow-2xl space-y-4 max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h4 className="font-extrabold text-lg text-foreground flex items-center gap-2">
-                <XCircle className="text-destructive h-5 w-5" />
-                Mark Absent for Today
-              </h4>
+      <Dialog open={showAbsentModal} onOpenChange={setShowAbsentModal}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>Mark Absent for Today</DialogTitle>
+            <DialogDescription>
+              Record your absence in the system with a reason for HR/Management.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleMarkAbsentSubmit} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Reason for Absence *</label>
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter detailed reason for absence (e.g. Unwell, Emergency)..."
+                value={absentReason}
+                onChange={(e) => setAbsentReason(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={() => setShowAbsentModal(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
               >
-                ✕
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitAbsent.isPending}
+                className="px-4 py-2 rounded-xl bg-destructive text-destructive-foreground font-bold text-xs shadow-sm hover:bg-destructive/90 disabled:opacity-50"
+              >
+                {submitAbsent.isPending ? 'Marking...' : 'Confirm Mark Absent'}
               </button>
             </div>
-            <form onSubmit={handleMarkAbsentSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Reason for Absence *</label>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder="Enter detailed reason for absence (e.g. Unwell, Emergency)..."
-                  value={absentReason}
-                  onChange={(e) => setAbsentReason(e.target.value)}
-                  className="w-full rounded-2xl border border-border bg-secondary/20 p-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitAbsent.isPending}
-                  className="flex-1 py-3 rounded-2xl bg-destructive text-white font-bold text-sm shadow-md hover:bg-destructive/90 transition-all disabled:opacity-50"
-                >
-                  {submitAbsent.isPending ? 'Marking...' : 'Confirm Mark Absent'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAbsentModal(false)}
-                  className="px-5 py-3 rounded-2xl border border-border bg-secondary/30 text-foreground font-semibold text-sm hover:bg-secondary/50 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal: Mark Leave */}
-      {showLeaveModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4">
-          <div className="w-full my-auto max-w-md bg-card border border-border rounded-[28px] p-4 sm:p-6 shadow-2xl space-y-4 max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h4 className="font-extrabold text-lg text-foreground flex items-center gap-2">
-                <Calendar className="text-rose-500 h-5 w-5" />
-                Mark Leave for Today
-              </h4>
+      <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>Mark Leave for Today</DialogTitle>
+            <DialogDescription>
+              Submit a leave request for today's working schedule.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleMarkLeaveSubmit} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Reason for Leave *</label>
+              <textarea
+                required
+                rows={3}
+                placeholder="Enter detailed reason for leave (e.g. Casual leave, Appointment)..."
+                value={leaveReason}
+                onChange={(e) => setLeaveReason(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={() => setShowLeaveModal(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
               >
-                ✕
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitLeave.isPending}
+                className="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-sm hover:bg-rose-700 disabled:opacity-50"
+              >
+                {submitLeave.isPending ? 'Submitting...' : 'Confirm Mark Leave'}
               </button>
             </div>
-            <form onSubmit={handleMarkLeaveSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Reason for Leave *</label>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder="Enter detailed reason for leave (e.g. Casual leave, Vacation, Appointment)..."
-                  value={leaveReason}
-                  onChange={(e) => setLeaveReason(e.target.value)}
-                  className="w-full rounded-2xl border border-border bg-secondary/20 p-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 text-foreground"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitLeave.isPending}
-                  className="flex-1 py-3 rounded-2xl bg-rose-600 text-white font-bold text-sm shadow-md hover:bg-rose-700 transition-all disabled:opacity-50"
-                >
-                  {submitLeave.isPending ? 'Submitting...' : 'Confirm Mark Leave'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowLeaveModal(false)}
-                  className="px-5 py-3 rounded-2xl border border-border bg-secondary/30 text-foreground font-semibold text-sm hover:bg-secondary/50 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

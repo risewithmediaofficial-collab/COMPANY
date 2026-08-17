@@ -1795,18 +1795,26 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           // CREATE MODE – Smart multi-task assignment
           <>
             {/* Step 1: Client + Project */}
-            <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
-                <span className="text-sm font-bold text-foreground">Select Client & Project</span>
-                <span className="text-xs text-muted-foreground">— task cards will appear below</span>
+            <div className="rounded-2xl border border-border/80 bg-secondary/25 p-4 sm:p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-md bg-primary/15 text-primary text-xs font-bold border border-primary/20">
+                    1
+                  </span>
+                  <span className="text-xs font-bold text-foreground">Project Scope & Properties</span>
+                  <span className="text-[11px] text-muted-foreground hidden sm:inline">— Select client and project to add deliverables</span>
+                </div>
+                <span className="text-[10px] font-medium text-muted-foreground bg-background px-2.5 py-0.5 rounded-full border border-border/80">
+                  Required Step
+                </span>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <FormField control={form.control} name="client" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Client <span className="text-rose-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Client <span className="text-rose-500">*</span></FormLabel>
                     <Select onValueChange={(v) => { field.onChange(v); form.setValue('project', ''); }} value={field.value}>
-                      <FormControl><SelectTrigger className="rounded-xl"><SelectValue placeholder="Select client" /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border"><SelectValue placeholder="Select client" /></SelectTrigger></FormControl>
                       <SelectContent>{clients.map((c) => <SelectItem key={c._id} value={c._id}>{c.name}{c.company ? ` — ${c.company}` : ''}</SelectItem>)}</SelectContent>
                     </Select>
                     <FormMessage />
@@ -1814,10 +1822,10 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 )} />
                 <FormField control={form.control} name="project" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project <span className="text-rose-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Project <span className="text-rose-500">*</span></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value || undefined} disabled={!selectedClientId}>
                       <FormControl>
-                        <SelectTrigger className="rounded-xl">
+                        <SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border disabled:opacity-50">
                           <SelectValue placeholder={selectedClientId ? 'Select project' : 'Select client first'} />
                         </SelectTrigger>
                       </FormControl>
@@ -1833,9 +1841,9 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 {currentUser?.role === 'superAdmin' && (
                   <FormField control={form.control} name="assignedManager" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Assigned Manager</FormLabel>
+                      <FormLabel className="text-xs font-semibold text-foreground/90">Assigned Manager</FormLabel>
                       <Select onValueChange={(val) => field.onChange(val === '_unassigned' ? '' : val)} value={field.value || '_unassigned'}>
-                        <FormControl><SelectTrigger className="rounded-xl"><SelectValue placeholder="Select manager" /></SelectTrigger></FormControl>
+                        <FormControl><SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border"><SelectValue placeholder="Select manager" /></SelectTrigger></FormControl>
                         <SelectContent>
                           <SelectItem value="_unassigned">Unassigned</SelectItem>
                           {managerOptions.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
@@ -1847,9 +1855,9 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 )}
                 <FormField control={form.control} name="priority" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Priority <span className="text-rose-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Priority <span className="text-rose-500">*</span></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border"><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>{PRIORITY_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
                     </Select>
                     <FormMessage />
@@ -1857,9 +1865,9 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 )} />
                 <FormField control={form.control} name="status" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status <span className="text-rose-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Status <span className="text-rose-500">*</span></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border"><SelectValue /></SelectTrigger></FormControl>
                       <SelectContent>{TASK_STATUS_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
                     </Select>
                     <FormMessage />
@@ -1867,8 +1875,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 )} />
                 <FormField control={form.control} name="dueDate" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Due Date</FormLabel>
-                    <FormControl><Input type="date" className="rounded-xl" {...field} /></FormControl>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">Due Date</FormLabel>
+                    <FormControl><Input type="date" className="rounded-xl h-9 text-xs bg-background border-border" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -1878,27 +1886,29 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             {/* Step 2: Task Cards – shown only after client + project selected */}
             {selectedClientId && selectedProject ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
-                    <span className="text-sm font-bold text-foreground">Add Tasks</span>
-                    <span className="text-xs text-muted-foreground">— each task has its own type & assignment</span>
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex items-center justify-center w-5 h-5 rounded-md bg-primary/15 text-primary text-xs font-bold border border-primary/20">
+                      2
+                    </span>
+                    <span className="text-xs font-bold text-foreground">Deliverables & Multi-Role Pipeline</span>
+                    <span className="text-[11px] text-muted-foreground hidden sm:inline">— customize each deliverable's format & assignee</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="text-xs font-semibold text-muted-foreground">Count:</label>
-                    <Input type="number" min={1} className="w-16 rounded-xl h-8 text-sm"
+                    <label className="text-[11px] font-semibold text-muted-foreground">Deliverable Count:</label>
+                    <Input type="number" min={1} className="w-14 rounded-xl h-7 text-xs text-center font-bold"
                       value={tasksList.length}
                       onChange={(e) => handleTaskCountChange(e.target.value)} />
                   </div>
                 </div>
 
-                {/* Legend */}
+                {/* Role legend badges */}
                 <div className="flex flex-wrap gap-2">
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700 text-[11px] font-semibold">
-                    <Image size={11} /> Poster / Design → Designer
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 text-[11px] font-semibold">
+                    <Image size={12} /> Poster / Graphic → Designer
                   </span>
-                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-100 text-sky-700 border border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-700 text-[11px] font-semibold">
-                    <Video size={11} /> Video / Reel → Video Person
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 text-[11px] font-semibold">
+                    <Video size={12} /> Video / Reel → Video Person
                   </span>
                 </div>
 
@@ -2348,15 +2358,15 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                 </Button>
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-border bg-secondary/10 p-8 text-center">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-secondary/40 flex items-center justify-center">
-                    <Users size={20} className="text-muted-foreground" />
+              <div className="rounded-2xl border border-dashed border-border/80 bg-secondary/15 p-8 text-center">
+                <div className="flex flex-col items-center gap-2.5 max-w-sm mx-auto">
+                  <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center text-lg">
+                    ✨
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Select Client & Project first</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Task cards will appear here. Poster tasks → Designer. Video tasks → Video person.
+                    <p className="text-xs font-bold text-foreground">Select Client & Project to configure deliverables</p>
+                    <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                      Once selected, deliverable cards will appear with automatic multi-role assignment for Script Writers, Videographers, Editors, and Graphic Designers.
                     </p>
                   </div>
                 </div>
@@ -2365,17 +2375,25 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           </>
         )}
 
-        {/* ── Notes & Visibility ── */}
-        <div className="space-y-4 rounded-2xl border border-border bg-secondary/20 p-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* ── Step 3: Notes & Client Portal Visibility ── */}
+        <div className="space-y-4 rounded-2xl border border-border/80 bg-secondary/25 p-4 sm:p-5">
+          <div className="flex items-center gap-2.5">
+            <span className="flex items-center justify-center w-5 h-5 rounded-md bg-primary/15 text-primary text-xs font-bold border border-primary/20">
+              3
+            </span>
+            <span className="text-xs font-bold text-foreground">Notes & Client Portal Synchronization</span>
+            <span className="text-[11px] text-muted-foreground hidden sm:inline">— Manage access permissions and instructions</span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="internalNotes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Internal Notes</FormLabel>
+                  <FormLabel className="text-xs font-semibold text-foreground/90">Internal Admin & Team Notes</FormLabel>
                   <FormControl>
-                    <Textarea className="min-h-20 rounded-xl" placeholder="Internal admin/team notes..." {...field} />
+                    <Textarea className="min-h-20 rounded-xl text-xs bg-background border-border" placeholder="Private internal notes (hidden from client)..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -2386,9 +2404,9 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               name="clientVisibleNotes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Visible Notes</FormLabel>
+                  <FormLabel className="text-xs font-semibold text-foreground/90">Client Visible Portal Notes</FormLabel>
                   <FormControl>
-                    <Textarea className="min-h-20 rounded-xl" placeholder="Notes the client can see..." {...field} />
+                    <Textarea className="min-h-20 rounded-xl text-xs bg-background border-border" placeholder="Public briefing visible in the client portal..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -2396,21 +2414,22 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField
               control={form.control}
               name="isClientVisible"
               render={({ field }) => (
-                <FormItem className="rounded-xl border border-border bg-background px-4 py-3">
+                <FormItem className="rounded-xl border border-border/80 bg-background px-4 py-3">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
+                      className="rounded text-primary focus:ring-primary/20"
                       checked={Boolean(field.value)}
                       onChange={(e) => field.onChange(e.target.checked)}
                     />
                     <div>
-                      <FormLabel className="cursor-pointer">Visible in client dashboard</FormLabel>
-                      <p className="text-xs text-muted-foreground">Client can track this task in the portal.</p>
+                      <FormLabel className="cursor-pointer text-xs font-semibold text-foreground">Visible in Client Dashboard</FormLabel>
+                      <p className="text-[11px] text-muted-foreground">Client can view real-time progress and milestones in their portal.</p>
                     </div>
                   </label>
                 </FormItem>
@@ -2420,16 +2439,17 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               control={form.control}
               name="approvalRequired"
               render={({ field }) => (
-                <FormItem className="rounded-xl border border-border bg-background px-4 py-3">
+                <FormItem className="rounded-xl border border-border/80 bg-background px-4 py-3">
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
+                      className="rounded text-primary focus:ring-primary/20"
                       checked={Boolean(field.value)}
                       onChange={(e) => field.onChange(e.target.checked)}
                     />
                     <div>
-                      <FormLabel className="cursor-pointer">Client confirmation required</FormLabel>
-                      <p className="text-xs text-muted-foreground">Enable Yes / No response workflow.</p>
+                      <FormLabel className="cursor-pointer text-xs font-semibold text-foreground">Client Approval Required</FormLabel>
+                      <p className="text-[11px] text-muted-foreground">Require client sign-off before marking deliverables complete.</p>
                     </div>
                   </label>
                 </FormItem>
@@ -2614,26 +2634,33 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent noPadding className="max-w-3xl max-h-[88vh] sm:max-h-[90vh] flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border rounded-3xl shadow-2xl">
+      <DialogContent size="xl" noPadding className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
         <DialogHeader className="px-6 py-4.5 border-b border-border bg-card shrink-0 pr-14 select-none">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="text-xl font-bold text-foreground">
-              {task ? 'Edit Task' : 'Create Tasks'}
-            </DialogTitle>
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-primary/10 text-primary border border-primary/20 text-sm font-bold">
+                {task ? '✍️' : '✨'}
+              </span>
+              <DialogTitle className="text-base sm:text-lg font-bold text-foreground">
+                {task ? 'Edit Task & Deliverable' : 'Create Tasks & Deliverables'}
+              </DialogTitle>
+            </div>
             {form.formState.isDirty && (
-              <span className="px-3 py-1 rounded-full bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-md animate-pulse flex items-center gap-1.5 shrink-0">
-                <span className="h-2 w-2 rounded-full bg-white animate-ping" />
+              <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
                 Draft
               </span>
             )}
           </div>
-          <DialogDescription className="text-sm text-muted-foreground mt-0.5">
-            {task ? 'Update task details and sub-assignments' : 'Select client & project, then add tasks — poster tasks go to a designer, video tasks to a video person'}
+          <DialogDescription className="text-xs text-muted-foreground mt-1">
+            {task
+              ? 'Update task properties, deliverable scope, and multi-role production assignments.'
+              : 'Select client & project, configure deliverable formats (Poster / Reel / Video), and assign team roles.'}
           </DialogDescription>
         </DialogHeader>
 
         {/* Scrollable Modal Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-5 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-6 py-5 custom-scrollbar">
           {formBody}
         </div>
       </DialogContent>

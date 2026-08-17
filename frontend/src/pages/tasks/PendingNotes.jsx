@@ -1,30 +1,55 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  Plus, Send, Trash2, Edit3, X,
-  Clock, CheckCircle2, XCircle,
-  StickyNote, ChevronDown,
+  Plus,
+  Send,
+  Trash2,
+  Edit3,
+  X,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  StickyNote,
+  Building2,
+  Calendar,
+  Pencil,
+  Search,
 } from 'lucide-react';
 import { useMyNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/useTaskNotes';
-import { PageHeader, MetricGrid, MetricCard, EmptyState, StatusBadge } from '../../components/ui/page';
 import { Button } from '../../components/ui/button';
+import WorkspacePage from '../../components/ui/WorkspacePage';
+import DatabaseView from '../../components/ui/DatabaseView';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'urgent'];
 
-const priorityTone = { low: 'neutral', medium: 'info', high: 'warning', urgent: 'danger' };
-const statusTone   = { pending: 'warning', assigned: 'success', dismissed: 'danger' };
-const statusIcon   = {
-  pending:   <Clock size={13} />,
-  assigned:  <CheckCircle2 size={13} />,
-  dismissed: <XCircle size={13} />,
+const priorityTone = {
+  low: 'bg-slate-500/10 text-slate-600',
+  medium: 'bg-blue-500/10 text-blue-600',
+  high: 'bg-amber-500/10 text-amber-600',
+  urgent: 'bg-rose-500/10 text-rose-600',
+};
+
+const statusTone = {
+  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  assigned: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  dismissed: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
 };
 
 // ── Inline form for create / edit ─────────────────────────────────────────────
 const NoteForm = ({ initial = {}, onSubmit, onCancel, loading }) => {
   const [form, setForm] = useState({
-    title:       initial.title       || '',
-    description: initial.description || '',
-    priority:    initial.priority    || 'medium',
+    title: initial.title || '',
+    content: initial.content || initial.description || '',
+    priority: initial.priority || 'medium',
   });
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -36,295 +61,330 @@ const NoteForm = ({ initial = {}, onSubmit, onCancel, loading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3 p-4 rounded-2xl border border-border bg-card shadow-sm">
       <div>
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Task Title *
-        </label>
+        <label className="block text-xs font-semibold text-foreground mb-1">Task Requirement / Title *</label>
         <input
           autoFocus
           value={form.title}
           onChange={set('title')}
           placeholder="What needs to be done?"
-          className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
+          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs"
         />
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Description
-        </label>
+        <label className="block text-xs font-semibold text-foreground mb-1">Detailed Notes / Requirements</label>
         <textarea
-          value={form.description}
-          onChange={set('description')}
+          value={form.content}
+          onChange={set('content')}
           rows={3}
-          placeholder="Add details, context or requirements..."
-          className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
+          placeholder="Client notes, references, or instructions..."
+          className="w-full rounded-xl border border-border bg-background p-3 text-xs"
         />
       </div>
 
-      <div>
-        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Priority
-        </label>
-        <div className="relative">
-          <select
-            value={form.priority}
-            onChange={set('priority')}
-            className="w-full appearance-none rounded-2xl border border-border bg-background px-4 py-3 pr-10 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
-          >
-            {PRIORITY_OPTIONS.map((p) => (
-              <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-            ))}
-          </select>
-          <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-muted-foreground">Priority:</span>
+          {PRIORITY_OPTIONS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, priority: p }))}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold capitalize transition-all ${
+                form.priority === p
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-secondary text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {p}
+            </button>
+          ))}
         </div>
-      </div>
 
-      <div className="flex justify-end gap-2 pt-1">
-        <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-          <X size={14} className="mr-1" /> Cancel
-        </Button>
-        <Button type="submit" size="sm" disabled={!form.title.trim() || loading}>
-          <Send size={14} className="mr-1" />
-          {initial._id ? 'Save Changes' : 'Send to Manager'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-xl border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
+            >
+              Cancel
+            </button>
+          )}
+          <Button type="submit" size="sm" disabled={loading || !form.title.trim()} className="rounded-xl text-xs font-bold gap-1">
+            <Send size={12} />
+            <span>{loading ? 'Submitting...' : initial._id ? 'Update Note' : 'Submit for Review'}</span>
+          </Button>
+        </div>
       </div>
     </form>
   );
 };
 
-// ── Note card ────────────────────────────────────────────────────────────────
-const NoteCard = ({ note, onEdit, onDelete }) => {
-  const isPending = note.status === 'pending';
+export default function PendingNotes() {
+  const { user } = useSelector((state) => state.auth);
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  const [tab, setTab] = useState('pending');
+  const [search, setSearch] = useState('');
 
-  return (
-    <div className="group relative overflow-hidden rounded-[22px] border border-border bg-card p-5 shadow-sm transition-all duration-200 hover:border-primary/30 hover:shadow-md">
-      {/* Priority stripe */}
-      <div
-        className={`absolute left-0 top-0 h-full w-1 rounded-l-[22px] ${
-          note.priority === 'urgent' ? 'bg-red-500' :
-          note.priority === 'high'   ? 'bg-amber-500' :
-          note.priority === 'medium' ? 'bg-blue-500' : 'bg-slate-300'
-        }`}
-      />
-
-      <div className="pl-3">
-        {/* Header row */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-foreground leading-snug">{note.title}</h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {new Date(note.createdAt).toLocaleDateString('en-IN', {
-                day: 'numeric', month: 'short', year: 'numeric',
-              })}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <StatusBadge tone={statusTone[note.status]}>
-              <span className="mr-1">{statusIcon[note.status]}</span>
-              {note.status.charAt(0).toUpperCase() + note.status.slice(1)}
-            </StatusBadge>
-          </div>
-        </div>
-
-        {/* Description */}
-        {note.description && (
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-3">
-            {note.description}
-          </p>
-        )}
-
-        {/* Priority badge */}
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <StatusBadge tone={priorityTone[note.priority]}>
-            {note.priority.charAt(0).toUpperCase() + note.priority.slice(1)} Priority
-          </StatusBadge>
-
-          {note.assignedTo && (
-            <StatusBadge tone="success">
-              Assigned → {note.assignedTo.name}
-            </StatusBadge>
-          )}
-
-          {note.dueDate && (
-            <StatusBadge tone="info">
-              Due: {new Date(note.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-            </StatusBadge>
-          )}
-        </div>
-
-        {/* Manager note */}
-        {note.managerNote && (
-          <div className="mt-3 rounded-xl border border-border bg-secondary/50 px-3 py-2.5 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">Manager note: </span>
-            {note.managerNote}
-          </div>
-        )}
-
-        {/* Actions (only for pending) */}
-        {isPending && (
-          <div className="mt-4 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <button
-              onClick={() => onEdit(note)}
-              className="flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
-            >
-              <Edit3 size={12} /> Edit
-            </button>
-            <button
-              onClick={() => onDelete(note._id)}
-              className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 dark:border-red-900 dark:bg-red-900/20 dark:text-red-400"
-            >
-              <Trash2 size={12} /> Delete
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ── Main page ────────────────────────────────────────────────────────────────
-const PendingNotes = () => {
-  const { user } = useSelector((s) => s.auth);
   const { data: notes = [], isLoading } = useMyNotes();
   const createMutation = useCreateNote();
   const updateMutation = useUpdateNote();
   const deleteMutation = useDeleteNote();
 
-  const [showForm, setShowForm]   = useState(false);
-  const [editNote, setEditNote]   = useState(null);
-  const [statusFilter, setFilter] = useState('all');
+  const pendingNotes = useMemo(() => notes.filter((n) => n.status === 'pending'), [notes]);
+  const assignedNotes = useMemo(() => notes.filter((n) => n.status === 'assigned'), [notes]);
+  const dismissedNotes = useMemo(() => notes.filter((n) => n.status === 'dismissed'), [notes]);
 
-  const pending   = notes.filter((n) => n.status === 'pending');
-  const assigned  = notes.filter((n) => n.status === 'assigned');
-  const dismissed = notes.filter((n) => n.status === 'dismissed');
-
-  const filtered =
-    statusFilter === 'all'      ? notes :
-    statusFilter === 'pending'  ? pending :
-    statusFilter === 'assigned' ? assigned : dismissed;
-
-  const handleCreate = (form) => {
-    createMutation.mutate(form, {
-      onSuccess: () => setShowForm(false),
+  const filteredNotes = useMemo(() => {
+    const list = tab === 'pending' ? pendingNotes : tab === 'assigned' ? assignedNotes : dismissedNotes;
+    if (!search.trim()) return list;
+    const q = search.toLowerCase();
+    return list.filter((n) => {
+      const title = (n.title || '').toLowerCase();
+      const content = (n.content || '').toLowerCase();
+      return title.includes(q) || content.includes(q);
     });
+  }, [tab, pendingNotes, assignedNotes, dismissedNotes, search]);
+
+  const handleCreate = async (data) => {
+    await createMutation.mutateAsync(data);
+    setIsCreating(false);
   };
 
-  const handleUpdate = (form) => {
-    updateMutation.mutate({ id: editNote._id, data: form }, {
-      onSuccess: () => setEditNote(null),
-    });
+  const handleUpdate = async (data) => {
+    await updateMutation.mutateAsync({ noteId: editingNote._id, data });
+    setEditingNote(null);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this note?')) deleteMutation.mutate(id);
-  };
+  // Table Columns
+  const tableColumns = [
+    {
+      key: 'title',
+      label: 'Note Title',
+      render: (note) => (
+        <div className="flex items-center gap-2.5">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+            <StickyNote size={14} />
+          </div>
+          <div>
+            <p className="font-bold text-foreground">{note.title}</p>
+            <p className="text-xs text-muted-foreground line-clamp-1">{note.content}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'priority',
+      label: 'Priority',
+      render: (note) => (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${priorityTone[note.priority] || priorityTone.medium}`}>
+          {note.priority || 'medium'}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (note) => (
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${statusTone[note.status] || statusTone.pending}`}>
+          {note.status}
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: 'Date',
+      render: (note) => (
+        <span className="text-xs text-muted-foreground">
+          {new Date(note.createdAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: '',
+      render: (note) => (
+        <div className="flex items-center justify-end gap-1">
+          {note.status === 'pending' && (
+            <button
+              onClick={() => setEditingNote(note)}
+              className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+              title="Edit"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
+          <button
+            onClick={() => setDeleteId(note._id)}
+            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            title="Delete"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  // Cards Render
+  const renderCard = (note) => (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${priorityTone[note.priority] || priorityTone.medium}`}>
+          {note.priority || 'medium'}
+        </span>
+        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${statusTone[note.status] || statusTone.pending}`}>
+          {note.status}
+        </span>
+      </div>
+
+      <div>
+        <h4 className="font-bold text-sm text-foreground">{note.title}</h4>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Created: {new Date(note.createdAt).toLocaleDateString()}
+        </p>
+      </div>
+
+      {note.content && (
+        <p className="text-xs text-foreground/80 bg-secondary/30 p-2.5 rounded-xl border border-border/40 line-clamp-3">
+          {note.content}
+        </p>
+      )}
+
+      {note.managerNote && (
+        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 space-y-1">
+          <p className="font-bold">Manager Feedback:</p>
+          <p>{note.managerNote}</p>
+        </div>
+      )}
+
+      {note.status === 'pending' && (
+        <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/40">
+          <button
+            onClick={() => setEditingNote(note)}
+            className="p-1 rounded hover:bg-secondary text-muted-foreground text-xs flex items-center gap-1 font-semibold"
+          >
+            <Pencil size={12} />
+            <span>Edit</span>
+          </button>
+          <button
+            onClick={() => setDeleteId(note._id)}
+            className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 text-xs flex items-center gap-1 font-semibold"
+          >
+            <Trash2 size={12} />
+            <span>Delete</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <PageHeader
-        eyebrow="My Pending Notes"
-        title="Task Notes"
-        actions={
-          !showForm && !editNote && (
-            <Button onClick={() => setShowForm(true)}>
-              <Plus size={16} className="mr-2" />
-              New Note
-            </Button>
-          )
-        }
-      >
-        <MetricGrid>
-          <MetricCard label="Total Notes"  value={notes.length}     icon={StickyNote}   tone="info" />
-          <MetricCard label="Pending"      value={pending.length}   icon={Clock}        tone="warning" />
-          <MetricCard label="Assigned"     value={assigned.length}  icon={CheckCircle2} tone="success" />
-          <MetricCard label="Dismissed"    value={dismissed.length} icon={XCircle}      tone="danger" />
-        </MetricGrid>
-      </PageHeader>
-
-      {/* Create form panel */}
-      {showForm && (
-        <div className="rounded-[28px] border border-primary/20 bg-card p-6 shadow-lg">
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <StickyNote size={16} />
-            </div>
-            <h2 className="text-base font-bold text-foreground">New Task Note</h2>
-          </div>
+    <WorkspacePage
+      breadcrumbs={['RiseWithMedia', 'Delivery', 'Pending Notes']}
+      title="Pending Task Notes Queue"
+      subtitle="Submit ideas, client requests, and ad-hoc task requirements for manager assignment and execution."
+      icon="📝"
+      properties={[
+        { label: 'Pending Review', value: pendingNotes.length, tone: pendingNotes.length > 0 ? 'warning' : 'neutral', icon: Clock },
+        { label: 'Assigned', value: assignedNotes.length, tone: 'success', icon: CheckCircle2 },
+        { label: 'Dismissed', value: dismissedNotes.length, tone: 'neutral' },
+      ]}
+      actions={
+        !isCreating && (
+          <Button
+            size="sm"
+            onClick={() => setIsCreating(true)}
+            className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+          >
+            <Plus size={14} className="stroke-[2.5]" />
+            <span>New Note</span>
+          </Button>
+        )
+      }
+    >
+      {/* Create Note Drawer */}
+      {isCreating && (
+        <div className="mb-6">
           <NoteForm
             onSubmit={handleCreate}
-            onCancel={() => setShowForm(false)}
+            onCancel={() => setIsCreating(false)}
             loading={createMutation.isPending}
           />
         </div>
       )}
 
-      {/* Filter tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {['all', 'pending', 'assigned', 'dismissed'].map((s) => (
+      {/* Edit Note Drawer */}
+      {editingNote && (
+        <div className="mb-6">
+          <NoteForm
+            initial={editingNote}
+            onSubmit={handleUpdate}
+            onCancel={() => setEditingNote(null)}
+            loading={updateMutation.isPending}
+          />
+        </div>
+      )}
+
+      {/* Quick Filter Tabs */}
+      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+        {[
+          { id: 'pending', label: `Pending (${pendingNotes.length})` },
+          { id: 'assigned', label: `Assigned (${assignedNotes.length})` },
+          { id: 'dismissed', label: `Dismissed (${dismissedNotes.length})` },
+        ].map((t) => (
           <button
-            key={s}
-            onClick={() => setFilter(s)}
-            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
-              statusFilter === s
-                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                : 'border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-3.5 py-1 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+              tab === t.id
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
-            {s.charAt(0).toUpperCase() + s.slice(1)}
-            <span className="ml-1.5 opacity-70">
-              ({s === 'all' ? notes.length : s === 'pending' ? pending.length : s === 'assigned' ? assigned.length : dismissed.length})
-            </span>
+            {t.label}
           </button>
         ))}
       </div>
 
-      {/* Notes grid */}
-      {isLoading ? (
-        <div className="flex h-40 items-center justify-center text-muted-foreground text-sm">
-          Loading notes...
-        </div>
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          icon={StickyNote}
-          title={statusFilter === 'all' ? 'No notes yet' : `No ${statusFilter} notes`}
-          action={
-            statusFilter === 'all' && (
-              <Button size="sm" onClick={() => setShowForm(true)}>
-                <Plus size={14} className="mr-1" /> Write your first note
-              </Button>
-            )
-          }
-        />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((note) => (
-            editNote?._id === note._id ? (
-              <div key={note._id} className="rounded-[22px] border border-primary/30 bg-card p-5 shadow-md sm:col-span-2 xl:col-span-1">
-                <h3 className="mb-4 text-sm font-bold text-foreground">Edit Note</h3>
-                <NoteForm
-                  initial={note}
-                  onSubmit={handleUpdate}
-                  onCancel={() => setEditNote(null)}
-                  loading={updateMutation.isPending}
-                />
-              </div>
-            ) : (
-              <NoteCard
-                key={note._id}
-                note={note}
-                onEdit={setEditNote}
-                onDelete={handleDelete}
-              />
-            )
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+      <DatabaseView
+        viewKey="rwm_pending_notes_v1"
+        views={['cards', 'table']}
+        items={filteredNotes}
+        totalCount={filteredNotes.length}
+        searchPlaceholder="Search your notes..."
+        columns={tableColumns}
+        renderCard={renderCard}
+        onSearchChange={setSearch}
+      />
 
-export default PendingNotes;
+      <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-card border border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold">Delete Note?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              This note will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId);
+                setDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </WorkspacePage>
+  );
+}

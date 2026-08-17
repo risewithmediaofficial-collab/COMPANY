@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Users,
@@ -32,49 +32,71 @@ import {
   StickyNote,
   Plus,
   Activity,
+  Zap,
+  Sparkles,
+  Video,
+  ChevronRight,
+  UserCheck,
+  Building2,
+  FolderKanban,
+  Check,
+  BarChart3,
+  Flame,
+  ArrowRight,
+  Layers,
+  CheckCheck,
 } from 'lucide-react';
-import { getAssetUrl } from '../utils/assetUrl';
-import { EODReportModal } from '../components/modals/EODReportModal';
-import { EODDetailModal } from '../components/modals/EODDetailModal';
-import { useEodReports } from '../hooks/useEodReports';
-import { AttendanceWidget } from '../components/attendance/AttendanceWidget';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
   Cell,
-  PieChart,
-  Pie
 } from 'recharts';
+import { getAssetUrl } from '../utils/assetUrl';
+import { EODReportModal } from '../components/modals/EODReportModal';
+import { EODDetailModal } from '../components/modals/EODDetailModal';
+import { AddTaskModal } from '../components/modals/AddTaskModal';
+import { AddProjectModal } from '../components/modals/AddProjectModal';
+import { AddClientModal } from '../components/modals/AddClientModal';
+import { useEodReports } from '../hooks/useEodReports';
+import { AttendanceWidget } from '../components/attendance/AttendanceWidget';
 import api from '../api';
 import { formatINR } from '../utils/currency';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSocket } from '../context/SocketContext';
 import { useDateFilter } from '../context/DateFilterContext';
 import { DateRangePicker } from '../components/ui/DateRangePicker';
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const { startDate, endDate, period, setFromDate, setToDate, setPeriod, resetDateFilter } = useDateFilter();
   const queryClient = useQueryClient();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('command'); // 'command' | 'operations' | 'team'
+
+  // Modals
   const [showEodModal, setShowEodModal] = useState(false);
   const [selectedEodRecord, setSelectedEodRecord] = useState(null);
   const [showEodDetailModal, setShowEodDetailModal] = useState(false);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
+  const [createClientOpen, setCreateClientOpen] = useState(false);
+
   const [eodSearch, setEodSearch] = useState('');
   const [eodDays, setEodDays] = useState(7);
   const [showFinance, setShowFinance] = useState(true);
 
   const socket = useSocket();
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager';
-  
+
   // Queries for manager and employee EOD views
   const { data: eodData } = useEodReports(eodDays, {}, { enabled: isAdminOrManager });
   const rawEodReports = eodData?.records || [];
@@ -102,7 +124,7 @@ const Dashboard = () => {
           : user.role === 'referral'
             ? '/referrals'
             : '/reports/employee';
-          
+
       const params = { period };
       if (startDate && endDate) {
         params.startDate = startDate;
@@ -113,7 +135,7 @@ const Dashboard = () => {
       const res = await api.get(endpoint, { params });
       setData(res.data);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load dashboard data:', err);
     } finally {
       setLoading(false);
     }
@@ -153,703 +175,835 @@ const Dashboard = () => {
     };
   }, [socket, queryClient]);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const currentDateStr = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
   if (!user || loading || !data) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-32 bg-card rounded-2xl border border-border"></div>
-        ))}
+      <div className="space-y-6 animate-pulse">
+        <div className="h-28 bg-card rounded-2xl border border-border"></div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-24 bg-card rounded-2xl border border-border"></div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  const renderAdminStats = () => {
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 1. DATA-DRIVEN NOTION-STYLE COMMAND CENTER
+  // ─────────────────────────────────────────────────────────────────────────────
+  const renderAdminCommandCenter = () => {
     const stats = data.stats || {};
-    const pipelineLeads = stats.totalLeads || 0;
-    
+    const viz = data.visualizations || {};
+
+    const revenueTrend = viz.revenueTrend || [];
+    const revenueByClient = viz.revenueByClient || [];
+    const projectHealth = viz.projectHealth || { onTrack: 0, atRisk: 0, delayed: 0, byStatus: {} };
+    const taskDist = viz.taskDistribution || { 'To Do': 0, 'On Process': 0, 'Waiting for Client': 0, 'Review Required': 0, Completed: 0 };
+    const clientHealth = viz.clientHealth || { healthy: 0, attention: 0, atRisk: 0, breakdown: {} };
+    const teamWorkload = viz.teamWorkload || [];
+    const contentPipeline = viz.contentPipeline || { ideas: 0, shoot: 0, editing: 0, review: 0, approval: 0, published: 0 };
+    const salesFunnel = viz.salesFunnel || [];
+
     return (
-      <div className="space-y-8">
-        {/* Premium Header */}
-        <div className="overflow-hidden rounded-[24px] border border-border bg-card p-6 text-foreground shadow-none">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="space-y-6">
+        {/* Command Center Title Header */}
+        <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
-                Executive Dashboard
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Agency Command Center
+                </span>
+                <span className="text-xs text-muted-foreground">• {currentDateStr}</span>
               </div>
-              <h1 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">Performance overview</h1>
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Real-time revenue, expenses, ad spend, team output, and conversion metrics across the business.</p>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+                {getGreeting()}, {user.name} 👋
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                Real-time operational health, active revenue flow, project progress, and content velocity across RiseWithMedia.
+              </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            {/* Top Quick Actions */}
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               {user.role !== 'manager' && (
                 <button
+                  type="button"
                   onClick={() => setShowFinance((v) => !v)}
-                  title={showFinance ? 'Hide revenue & financial amounts' : 'Show revenue & financial amounts'}
-                  className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     showFinance
-                      ? 'border-emerald-500/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300'
-                      : 'border-border bg-background text-foreground hover:bg-secondary'
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600'
+                      : 'border-border bg-background text-muted-foreground hover:bg-secondary'
                   }`}
                 >
                   {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
-                  {showFinance ? 'Hide Financials' : 'Show Financials'}
+                  <span>{showFinance ? 'Financials Visible' : 'Financials Hidden'}</span>
                 </button>
               )}
 
+              <button
+                type="button"
+                onClick={() => setCreateTaskOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm transition-all"
+              >
+                <Plus size={14} className="stroke-[2.5]" />
+                <span>Create Task</span>
+              </button>
+
               <Link
                 to="/calendar"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition-all hover:bg-primary/20"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold transition-all"
               >
-                <Calendar size={16} />
-                Content Calendar
+                <Calendar size={14} />
+                <span>Content Calendar</span>
               </Link>
-
             </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex items-center gap-1 mt-6 pt-4 border-t border-border/60 overflow-x-auto custom-scrollbar">
+            {[
+              { id: 'command', label: 'Agency Command Center', icon: Activity },
+              { id: 'operations', label: 'My Focus & Deliverables', icon: Target },
+              { id: 'team', label: 'Team Workload & EOD', icon: Users },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`}
+                >
+                  <Icon size={14} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Date to Date Range Picker Filter Bar */}
-        <DateRangePicker title="Dashboard Filter (From Date to To Date)" />
+        {/* Date Period Filter Bar */}
+        <DateRangePicker title="Filter Command Center Analytics Range" />
 
-        {/* Date Period Active Badge */}
-        {data?.periodStart && data?.periodEnd && (
-          <div className="flex items-center justify-between text-xs text-muted-foreground bg-primary/5 border border-primary/15 px-4 py-2 rounded-xl">
-            <span className="flex items-center gap-2 font-medium text-foreground">
-              <Calendar size={14} className="text-primary" />
-              Showing metrics for period: <strong className="text-primary">{new Date(data.periodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong> to <strong className="text-primary">{new Date(data.periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
-            </span>
-            <span className="hidden sm:inline font-semibold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-              Filtered Dashboard View
-            </span>
-          </div>
-        )}
-
-        {/* Top KPI Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-          {[
-            {
-              label: 'Pending Amount',
-              value: !showFinance ? '•••••' : formatINR(stats.totalPending || 0),
-              helper: 'Unpaid invoice balances',
-              accent: 'rose',
-              icon: Clock,
-              badge: null,
-            },
-            {
-              label: 'Gross Amount',
-              value: !showFinance ? '•••••' : formatINR(stats.grossAmount || 0),
-              helper: 'Revenue collected this period',
-              accent: 'emerald',
-              icon: IndianRupee,
-              badge: stats.revenueGrowth !== undefined && showFinance ? `${Number(stats.revenueGrowth) >= 0 ? '+' : '-'}${Math.abs(stats.revenueGrowth)}%` : null,
-              badgeTone: Number(stats.revenueGrowth || 0) >= 0 ? 'emerald' : 'rose',
-            },
-            {
-              label: 'Net Profit',
-              value: !showFinance ? '•••••' : formatINR(stats.netProfit || 0),
-              helper: 'Revenue minus total expenses',
-              accent: 'indigo',
-              icon: Wallet,
-              badge: null,
-            },
-            {
-              label: 'Expenses',
-              value: !showFinance ? '•••••' : formatINR(stats.totalExpenses || 0),
-              helper: 'Approved business expenses',
-              accent: 'rose',
-              icon: Receipt,
-              badge: null,
-            },
-            {
-              label: 'Ads Budget',
-              value: formatINR(stats.totalAdsBudget || 0),
-              helper: 'Marketing & campaign spend',
-              accent: 'amber',
-              icon: Megaphone,
-              badge: null,
-            },
-            {
-              label: 'Remaining',
-              value: !showFinance ? '•••••' : formatINR(stats.remainingAmount || 0),
-              helper: 'Revenue after expenses and ad spend',
-              accent: 'sky',
-              icon: ShieldCheck,
-              badge: null,
-            },
-          ].map(({ label, value, helper, accent, icon: Icon, badge, badgeTone }) => {
-            const accentClasses = {
-              emerald: 'bg-emerald-500/10 text-emerald-600',
-              rose: 'bg-rose-500/10 text-rose-600',
-              amber: 'bg-amber-500/10 text-amber-600',
-              indigo: 'bg-indigo-500/10 text-indigo-600',
-              sky: 'bg-sky-500/10 text-sky-600',
-            };
-            const badgeClasses = {
-              emerald: 'bg-emerald-500/10 text-emerald-600',
-              rose: 'bg-rose-500/10 text-rose-600',
-            };
-
-            return (
-              <div key={label} className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_35px_rgba(15,23,42,0.08)]">
-                <div className="mb-4 flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</span>
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${accentClasses[accent]}`}>
-                    <Icon size={18} />
+        {/* ── TAB 1: FULL DATA-DRIVEN COMMAND CENTER ─────────────────────────── */}
+        {activeTab === 'command' && (
+          <div className="space-y-6">
+            {/* 1. TOP 6 CORE METRIC CARDS (INTERACTIVE & CLICKABLE) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
+              {/* Revenue */}
+              <div
+                onClick={() => navigate('/finance')}
+                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer shadow-sm group space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Revenue</span>
+                  <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                    <IndianRupee size={14} />
                   </div>
                 </div>
-                <div className="flex items-end justify-between gap-2">
-                  <p className="text-2xl font-black tracking-tight text-slate-900">{value}</p>
-                  {badge && (
-                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-bold ${badgeClasses[badgeTone]}`}>
-                      {badge}
-                    </span>
+                <div className="text-xl sm:text-2xl font-black text-foreground">
+                  {!showFinance ? '•••••' : formatINR(stats.grossAmount || 0)}
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
+                  <span>View ledger</span>
+                  <ArrowRight size={10} />
+                </div>
+              </div>
+
+              {/* Active Clients */}
+              <div
+                onClick={() => navigate('/clients')}
+                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer shadow-sm group space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Active Clients</span>
+                  <div className="h-7 w-7 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                    <Building2 size={14} />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-foreground">
+                  {stats.activeClients || 0}
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
+                  <span>Client directory</span>
+                  <ArrowRight size={10} />
+                </div>
+              </div>
+
+              {/* Active Projects */}
+              <div
+                onClick={() => navigate('/projects')}
+                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer shadow-sm group space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Live Projects</span>
+                  <div className="h-7 w-7 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                    <FolderKanban size={14} />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-foreground">
+                  {stats.activeProjects || 0}
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
+                  <span>Project board</span>
+                  <ArrowRight size={10} />
+                </div>
+              </div>
+
+              {/* Total Tasks */}
+              <div
+                onClick={() => navigate('/tasks')}
+                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer shadow-sm group space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Active Tasks</span>
+                  <div className="h-7 w-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <CheckSquare size={14} />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-foreground">
+                  {stats.totalTasks || 0}
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
+                  <span>Task pipeline</span>
+                  <ArrowRight size={10} />
+                </div>
+              </div>
+
+              {/* Overdue Tasks */}
+              <div
+                onClick={() => navigate('/tasks')}
+                className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-sm group space-y-1.5 ${
+                  stats.overdueTasks > 0
+                    ? 'border-rose-500/40 bg-rose-500/[0.04] hover:bg-rose-500/10'
+                    : 'border-border bg-card hover:bg-secondary/30'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600">Overdue</span>
+                  <div className="h-7 w-7 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+                    <Clock size={14} />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-rose-600">
+                  {stats.overdueTasks || 0}
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-rose-600/80 group-hover:text-rose-600 transition-colors">
+                  <span>Action required</span>
+                  <ArrowRight size={10} />
+                </div>
+              </div>
+
+              {/* Pending Approvals */}
+              <div
+                onClick={() => navigate('/manager-board')}
+                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer shadow-sm group space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Approvals</span>
+                  <div className="h-7 w-7 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                    <ClipboardList size={14} />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-foreground">
+                  {stats.pendingApprovals || 0}
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
+                  <span>Review queue</span>
+                  <ArrowRight size={10} />
+                </div>
+              </div>
+            </div>
+
+            {/* 2. REVENUE TREND VISUALIZER & REVENUE BY CLIENT */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Revenue Curve (Line / Area Chart) */}
+              <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <TrendingUp size={16} className="text-primary" />
+                      Revenue Trend
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Monthly collected revenue trajectory across past periods.</p>
+                  </div>
+                  <Link to="/finance" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                    <span>Full Ledger</span>
+                    <ArrowRight size={12} />
+                  </Link>
+                </div>
+
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={revenueTrend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(150,150,150,0.15)" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'currentColor' }} stroke="rgba(150,150,150,0.3)" />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: 'currentColor' }}
+                        stroke="rgba(150,150,150,0.3)"
+                        tickFormatter={(v) => `₹${v >= 100000 ? (v / 100000).toFixed(1) + 'L' : (v / 1000).toFixed(0) + 'k'}`}
+                      />
+                      <RechartsTooltip
+                        formatter={(value) => [showFinance ? formatINR(value) : '•••••', 'Revenue']}
+                        contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}
+                      />
+                      <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#revenueGrad)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Top Revenue by Client */}
+              <div className="lg:col-span-1 bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Building2 size={16} className="text-emerald-600" />
+                    Revenue by Client
+                  </h3>
+                  <Link to="/clients" className="text-xs font-semibold text-primary hover:underline">
+                    View All
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {revenueByClient.length > 0 ? (
+                    revenueByClient.map((client, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => client.clientId ? navigate(`/clients/${client.clientId}`) : navigate('/clients')}
+                        className="p-2.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-secondary/40 transition-all cursor-pointer space-y-1.5 group"
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                            {client.name}
+                          </span>
+                          <span className="font-bold text-emerald-600">
+                            {!showFinance ? '•••••' : formatINR(client.revenue)}
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-emerald-500 rounded-full"
+                            style={{
+                              width: `${Math.min(Math.round((client.revenue / (revenueByClient[0]?.revenue || 1)) * 100), 100)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-xs text-muted-foreground">
+                      No paid invoices recorded for this period.
+                    </div>
                   )}
                 </div>
-                <p className="mt-2 text-xs text-slate-500">{helper}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Revenue chart */}
-          <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="font-bold text-base">Revenue Trend</h3>
-                <p className="text-xs text-muted-foreground">Monthly paid invoice collections</p>
               </div>
             </div>
 
-            <div className="h-[280px]">
-              {!showFinance ? (
-                <div className="h-full flex flex-col items-center justify-center text-sm text-muted-foreground gap-2">
-                  <EyeOff size={32} className="text-muted-foreground/40" />
-                  <p>Revenue trend hidden.</p>
-                  <button
-                    onClick={() => setShowFinance(true)}
-                    className="text-xs font-semibold text-primary hover:underline"
+            {/* 3. PROJECT HEALTH & TASK STATUS (SIDE BY SIDE INTERACTIVE PANELS) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Project Health */}
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <FolderKanban size={16} className="text-indigo-600" />
+                    Project Health
+                  </h3>
+                  <Link to="/projects" className="text-xs font-semibold text-primary hover:underline">
+                    Projects →
+                  </Link>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div
+                    onClick={() => navigate('/projects')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-emerald-500/[0.06] hover:border-emerald-500/40 transition-all cursor-pointer flex items-center justify-between"
                   >
-                    Click &quot;Show Revenue&quot; to view charts
-                  </button>
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <span className="text-xs font-bold text-foreground">On Track</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-xs">
+                      {projectHealth.onTrack}
+                    </span>
+                  </div>
+
+                  <div
+                    onClick={() => navigate('/projects')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-amber-500/[0.06] hover:border-amber-500/40 transition-all cursor-pointer flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                      <span className="text-xs font-bold text-foreground">At Risk</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 font-bold text-xs">
+                      {projectHealth.atRisk}
+                    </span>
+                  </div>
+
+                  <div
+                    onClick={() => navigate('/projects')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-rose-500/[0.06] hover:border-rose-500/40 transition-all cursor-pointer flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                      <span className="text-xs font-bold text-foreground">Delayed</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 font-bold text-xs">
+                      {projectHealth.delayed}
+                    </span>
+                  </div>
                 </div>
-              ) : data.charts?.revenueChart?.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.charts.revenueChart}>
-                    <defs>
-                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="_id.month" tickFormatter={(m) => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]} />
-                    <YAxis tickFormatter={(v) => `₹${v/1000}k`} />
-                    <Tooltip formatter={(val) => [formatINR(val), 'Revenue']} />
-                    <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                  No revenue data recorded yet.
+              </div>
+
+              {/* Task Status Distribution */}
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <CheckSquare size={16} className="text-blue-600" />
+                    Task Status
+                  </h3>
+                  <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">
+                    Tasks →
+                  </Link>
                 </div>
-              )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div
+                    onClick={() => navigate('/tasks')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-secondary/50 transition-all cursor-pointer"
+                  >
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground">To Do</span>
+                    <div className="text-lg font-black text-foreground mt-0.5">{taskDist['To Do'] || 0}</div>
+                  </div>
+                  <div
+                    onClick={() => navigate('/tasks')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-blue-500/[0.06] transition-all cursor-pointer"
+                  >
+                    <span className="text-[10px] font-bold uppercase text-blue-600">On Process</span>
+                    <div className="text-lg font-black text-blue-600 mt-0.5">{taskDist['On Process'] || 0}</div>
+                  </div>
+                  <div
+                    onClick={() => navigate('/tasks')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-amber-500/[0.06] transition-all cursor-pointer"
+                  >
+                    <span className="text-[10px] font-bold uppercase text-amber-600">Review</span>
+                    <div className="text-lg font-black text-amber-600 mt-0.5">
+                      {(taskDist['Review Required'] || 0) + (taskDist['Waiting for Client'] || 0)}
+                    </div>
+                  </div>
+                  <div
+                    onClick={() => navigate('/tasks')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-emerald-500/[0.06] transition-all cursor-pointer"
+                  >
+                    <span className="text-[10px] font-bold uppercase text-emerald-600">Done</span>
+                    <div className="text-lg font-black text-emerald-600 mt-0.5">{taskDist['Completed'] || 0}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Client Health */}
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-emerald-600" />
+                    Client Health
+                  </h3>
+                  <Link to="/clients" className="text-xs font-semibold text-primary hover:underline">
+                    Clients →
+                  </Link>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div
+                    onClick={() => navigate('/clients')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-emerald-500/[0.06] transition-all cursor-pointer flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                      <span className="text-xs font-bold text-foreground">Healthy</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-xs">
+                      {clientHealth.healthy}
+                    </span>
+                  </div>
+
+                  <div
+                    onClick={() => navigate('/clients')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-amber-500/[0.06] transition-all cursor-pointer flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                      <span className="text-xs font-bold text-foreground">Needs Attention</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 font-bold text-xs">
+                      {clientHealth.attention}
+                    </span>
+                  </div>
+
+                  <div
+                    onClick={() => navigate('/clients')}
+                    className="p-3 rounded-xl border border-border/80 hover:bg-rose-500/[0.06] transition-all cursor-pointer flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                      <span className="text-xs font-bold text-foreground">At Risk</span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 font-bold text-xs">
+                      {clientHealth.atRisk}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Lead Funnel */}
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm flex flex-col justify-between">
-            <div>
-              <h3 className="font-bold text-base mb-1">Lead Conversion Funnel</h3>
-              <p className="text-xs text-muted-foreground mb-6">Distribution across current pipeline stages</p>
+            {/* 4. CONTENT PRODUCTION PIPELINE FLOW (NOTION-STYLE STAGE FLOW) */}
+            <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Layers size={16} className="text-primary" />
+                    Content Production Pipeline
+                  </h3>
+                  <p className="text-xs text-muted-foreground">Live lifecycle velocity from creative brief to final published post.</p>
+                </div>
+                <Link to="/calendar" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                  <span>Open Calendar</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
 
-              <div className="space-y-4">
-                {data.charts?.stageFunnel?.length > 0 ? data.charts.stageFunnel.map((stage) => {
-                  const width = pipelineLeads > 0 ? Math.max(8, Math.round((stage.count / pipelineLeads) * 100)) : 0;
+              {/* Stage Flow Nodes */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {[
+                  { label: 'Ideas & Briefs', count: contentPipeline.ideas, link: '/tasks', icon: Sparkles, color: 'text-blue-500 bg-blue-500/10' },
+                  { label: 'Shoots & Footage', count: contentPipeline.shoot, link: '/dm-calendar', icon: Video, color: 'text-amber-500 bg-amber-500/10' },
+                  { label: 'Editing Pipeline', count: contentPipeline.editing, link: '/tasks', icon: Activity, color: 'text-purple-500 bg-purple-500/10' },
+                  { label: 'Internal Review', count: contentPipeline.review, link: '/manager-board', icon: ClipboardList, color: 'text-indigo-500 bg-indigo-500/10' },
+                  { label: 'Client Approval', count: contentPipeline.approval, link: '/tasks', icon: Clock, color: 'text-rose-500 bg-rose-500/10' },
+                  { label: 'Published / Live', count: contentPipeline.published, link: '/calendar', icon: CheckCheck, color: 'text-emerald-500 bg-emerald-500/10' },
+                ].map((stage, idx) => {
+                  const Icon = stage.icon;
                   return (
-                    <div key={stage._id}>
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="capitalize font-medium">{String(stage._id).replace(/_/g, ' ')}</span>
-                        <span className="text-muted-foreground">{stage.count}</span>
+                    <div
+                      key={stage.label}
+                      onClick={() => navigate(stage.link)}
+                      className="p-3.5 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/60 hover:border-primary/40 transition-all cursor-pointer space-y-2 group shadow-sm"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">{stage.label}</span>
+                        <div className={`h-6 w-6 rounded-lg ${stage.color} flex items-center justify-center`}>
+                          <Icon size={13} />
+                        </div>
                       </div>
-                      <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full" style={{ width: `${width}%` }} />
+                      <div className="text-2xl font-black text-foreground">{stage.count}</div>
+                      <div className="text-[10px] text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-1">
+                        <span>Open stage</span>
+                        <ArrowRight size={10} />
                       </div>
                     </div>
                   );
-                }) : (
-                  <div className="h-[260px] flex items-center justify-center text-sm text-muted-foreground">
-                    No lead data yet.
-                  </div>
-                )}
+                })}
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Team EOD Reports Section */}
-        <div className="space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                <FileText className="text-primary" size={20} />
-                Team EOD Reports
-              </h2>
-              <p className="text-sm text-muted-foreground">End-of-day reports submitted by employees and interns.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search team or keyword..."
-                  value={eodSearch}
-                  onChange={(e) => setEodSearch(e.target.value)}
-                  className="pl-9 pr-3 py-1.5 bg-card border border-border rounded-xl text-xs outline-none focus:border-primary w-44 md:w-56"
-                />
-              </div>
-              <select
-                value={eodDays}
-                onChange={(e) => setEodDays(Number(e.target.value))}
-                className="bg-card border border-border text-xs rounded-xl px-3 py-1.5 font-medium outline-none focus:border-primary"
-              >
-                <option value={7}>Last 7 days</option>
-                <option value={14}>Last 14 days</option>
-                <option value={30}>Last 30 days</option>
-              </select>
-            </div>
-          </div>
+            {/* 5. TEAM WORKLOAD & SALES PIPELINE (TWO-COLUMN OPERATIONAL VIEW) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Team Workload */}
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Users size={16} className="text-primary" />
+                    Team Workload & Capacity
+                  </h3>
+                  <Link to="/admin/users" className="text-xs font-semibold text-primary hover:underline">
+                    Team Directory
+                  </Link>
+                </div>
 
-          {eodReports.length > 0 ? (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {eodReports.slice(0, 8).map((report) => (
-                <div
-                  key={report._id}
-                  onClick={() => { setSelectedEodRecord(report); setShowEodDetailModal(true); }}
-                  className="bg-card rounded-2xl border border-border p-5 shadow-sm hover:border-primary/50 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
-                        {report.user?.avatar ? (
-                          <img src={getAssetUrl(report.user.avatar)} alt={report.user.name} className="h-full w-full object-cover" />
-                        ) : (
-                          report.user?.name ? report.user.name.charAt(0).toUpperCase() : 'U'
-                        )}
+                <div className="space-y-3.5">
+                  {teamWorkload.length > 0 ? (
+                    teamWorkload.map((member) => (
+                      <div key={member.userId} className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="h-6 w-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px]">
+                              {member.name?.charAt(0) || 'U'}
+                            </div>
+                            <span className="font-bold text-foreground truncate">{member.name}</span>
+                            <span className="text-[10px] text-muted-foreground capitalize">({member.department || member.role})</span>
+                          </div>
+                          <span className="font-bold text-foreground text-xs">
+                            {member.workloadPercent}% ({member.activeTasks} tasks)
+                          </span>
+                        </div>
+                        <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              member.workloadPercent >= 90
+                                ? 'bg-rose-500'
+                                : member.workloadPercent >= 70
+                                ? 'bg-amber-500'
+                                : 'bg-primary'
+                            }`}
+                            style={{ width: `${member.workloadPercent}%` }}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                          {report.user?.name || 'Unknown User'}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {report.user?.department || report.user?.position || report.user?.role || 'Team Member'}
-                        </p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-xs text-muted-foreground">
+                      No active task allocations found.
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        <CheckCircle2 size={12} /> EOD Submitted
+                  )}
+                </div>
+              </div>
+
+              {/* Sales & CRM Pipeline */}
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <TrendingUp size={16} className="text-emerald-600" />
+                    Sales Pipeline Funnel
+                  </h3>
+                  <Link to="/crm/leads" className="text-xs font-semibold text-primary hover:underline">
+                    CRM & Leads →
+                  </Link>
+                </div>
+
+                <div className="space-y-2.5">
+                  {salesFunnel.map((step) => (
+                    <div
+                      key={step.stage}
+                      onClick={() => navigate('/crm/leads')}
+                      className="p-2.5 rounded-xl border border-border/60 hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer flex items-center justify-between group text-xs"
+                    >
+                      <span className="font-bold text-foreground group-hover:text-primary transition-colors">
+                        {step.label}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="px-2 py-0.5 rounded-full bg-secondary font-bold text-foreground text-xs">
+                        {step.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB 2: MY FOCUS & DELIVERABLES ──────────────────────────────────── */}
+        {activeTab === 'operations' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <AttendanceWidget />
+              </div>
+
+              <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-primary" />
+                    My Deliverables & Priority Tasks
+                  </h2>
+                  <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">
+                    All Tasks →
+                  </Link>
+                </div>
+
+                <div className="divide-y divide-border/60">
+                  {(data.recentTasks || []).length > 0 ? (
+                    data.recentTasks.slice(0, 6).map((task) => (
+                      <div key={task._id} className="py-3 flex items-center justify-between gap-3 group">
+                        <div>
+                          <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                            {task.title || task.taskTitle}
+                          </p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">
+                            {task.clientName ? `🏢 ${task.clientName} • ` : ''}
+                            Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
+                          </p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground capitalize">
+                          {task.status?.replace(/_/g, ' ') || 'Todo'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-xs text-muted-foreground">
+                      No active tasks found in your priority queue.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB 3: TEAM WORKLOAD & EOD ──────────────────────────────────────── */}
+        {activeTab === 'team' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border">
+              <div>
+                <h2 className="text-sm font-bold text-foreground">Team Daily Work Reports (EOD)</h2>
+                <p className="text-xs text-muted-foreground">Daily progress logs submitted by your project and production team.</p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={eodSearch}
+                    onChange={(e) => setEodSearch(e.target.value)}
+                    placeholder="Search by name, summary..."
+                    className="pl-8 pr-3 py-1.5 rounded-xl border border-border text-xs bg-background w-48 sm:w-64"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* EOD Reports Grid */}
+            {eodReports.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {eodReports.map((report) => (
+                  <div
+                    key={report._id}
+                    onClick={() => {
+                      setSelectedEodRecord(report);
+                      setShowEodDetailModal(true);
+                    }}
+                    className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 transition-all cursor-pointer space-y-3 group shadow-sm"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                          {report.user?.name?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                            {report.user?.name || 'Team Member'}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground capitalize">
+                            {report.user?.department || report.user?.role || 'Employee'}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground">
                         {new Date(report.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
-                  </div>
 
-                  <div className="space-y-2.5">
-                    <p className="text-sm text-foreground/90 line-clamp-2">{report.eodReport?.summary}</p>
+                    <p className="text-xs text-foreground/80 line-clamp-2 leading-relaxed">
+                      {report.eodReport?.summary || 'No summary text.'}
+                    </p>
 
                     {report.eodReport?.tasksCompleted?.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {report.eodReport.tasksCompleted.slice(0, 3).map((task, i) => (
-                          <span key={i} className="text-[10px] bg-secondary text-foreground/80 font-medium px-2.5 py-0.5 rounded-full border border-border">
-                            ✓ {task}
-                          </span>
-                        ))}
-                        {report.eodReport.tasksCompleted.length > 3 && (
-                          <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">
-                            +{report.eodReport.tasksCompleted.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {report.eodReport?.blockers && (
-                      <div className="flex items-start gap-1.5 text-xs text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5">
-                        <AlertCircle size={13} className="mt-0.5 shrink-0" />
-                        <span className="line-clamp-1 font-medium">{report.eodReport.blockers}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-card rounded-2xl border border-border p-8 text-center">
-              <FileText size={36} className="mx-auto text-muted-foreground/40 mb-3" />
-              <h3 className="font-semibold text-foreground">No team EOD reports found</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-                No end-of-day reports match your filter criteria for the past {eodDays} days.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Web Activity & Edits Metrics (Admin Audit Log) */}
-        <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-border">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-foreground flex items-center gap-2">
-                <Activity className="text-indigo-600" size={22} />
-                Web Activity & Edits Metrics
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">
-                Real-time audit log of all creations, edits, status updates, and user actions on the website.
-              </p>
-            </div>
-            <Link
-              to="/reports"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-border bg-card text-xs font-semibold text-slate-700 dark:text-foreground hover:bg-slate-50 transition-all"
-            >
-              View Full Audit Log
-            </Link>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200/80 dark:border-border bg-card p-5 shadow-sm divide-y divide-slate-100 dark:divide-border/60">
-            {data.activityLogs?.length > 0 ? (
-              data.activityLogs.map((log) => {
-                const actionBadgeColors = {
-                  create: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-                  update: 'bg-blue-50 text-blue-600 border-blue-200',
-                  delete: 'bg-rose-50 text-rose-600 border-rose-200',
-                  status_change: 'bg-amber-50 text-amber-600 border-amber-200',
-                };
-                const badgeStyle = actionBadgeColors[log.action] || 'bg-slate-100 text-slate-600 border-slate-200';
-
-                return (
-                  <div key={log._id} className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-secondary/30 px-2 rounded-xl transition-colors">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
-                        {log.actor?.avatar ? (
-                          <img src={getAssetUrl(log.actor.avatar)} alt={log.actor.name} className="h-full w-full rounded-full object-cover" />
-                        ) : (
-                          log.actor?.name?.charAt(0).toUpperCase() || 'A'
-                        )}
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-bold text-slate-900 dark:text-foreground">
-                            {log.actor?.name || 'System User'}
-                          </span>
-                          <span className="text-[10px] font-semibold text-slate-400 capitalize">
-                            ({log.actor?.role || log.actorRole || 'admin'})
-                          </span>
-                          <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full border ${badgeStyle}`}>
-                            {log.action?.replace('_', ' ')}
-                          </span>
-                          <span className="text-[10px] font-semibold bg-slate-100 dark:bg-secondary text-slate-500 px-2 py-0.5 rounded-md capitalize">
-                            {log.entityType}
-                          </span>
-                        </div>
-
-                        <p className="text-sm font-semibold text-slate-800 dark:text-foreground mt-0.5 truncate">
-                          {log.title}
-                        </p>
-                        {log.description && (
-                          <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5 line-clamp-1">
-                            {log.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-right text-[11px] font-medium text-slate-400 shrink-0 sm:self-center">
-                      {new Date(log.createdAt).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="py-8 text-center text-sm text-slate-400">
-                No web activity logs recorded yet. Action edits across the platform will appear here automatically.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderEmployeeStats = () => {
-    const todayEod = data?.todayAttendance?.eodReport;
-    const isEodSubmittedToday = Boolean(todayEod?.submittedAt);
-
-    return (
-      <div className="space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Personal Dashboard</h1>
-            <p className="text-muted-foreground text-sm">Welcome back, {user.name}. Here&apos;s your focus and report status today.</p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Link to="/sop" className="inline-flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-secondary">
-              <BookOpen size={18} className="text-primary" />
-              SOP Dashboard
-            </Link>
-            <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
-              <Calendar size={18} />
-              Content Calendar
-            </Link>
-            <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl flex items-center justify-center">
-              <Calendar size={18} className="mr-2" />
-              <span className="text-sm font-bold">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Today's EOD Report Status Card */}
-        <div className={`rounded-2xl p-6 border transition-all ${
-          isEodSubmittedToday
-            ? 'bg-emerald-500/5 border-emerald-500/20 shadow-sm'
-            : 'bg-amber-500/5 border-amber-500/20 shadow-sm'
-        }`}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className={`p-3 rounded-2xl shrink-0 ${
-                isEodSubmittedToday ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
-              }`}>
-                {isEodSubmittedToday ? <CheckCircle2 size={24} /> : <FileText size={24} />}
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-base font-bold text-foreground">Today&apos;s EOD Report Status</h3>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                    isEodSubmittedToday
-                      ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30'
-                      : 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
-                  }`}>
-                    {isEodSubmittedToday ? 'Submitted' : 'Pending'}
-                  </span>
-                  {todayEod?.submittedAt && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock size={12} /> {new Date(todayEod.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  )}
-                </div>
-                {isEodSubmittedToday ? (
-                  <div className="mt-2 space-y-1.5">
-                    <p className="text-sm text-foreground/90 font-medium line-clamp-2">{todayEod.summary}</p>
-                    {todayEod.tasksCompleted?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {todayEod.tasksCompleted.map((t, idx) => (
-                          <span key={idx} className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold px-2 py-0.5 rounded-md border border-emerald-500/20">
+                      <div className="flex flex-wrap gap-1 pt-1 border-t border-border/40">
+                        {report.eodReport.tasksCompleted.slice(0, 2).map((t, idx) => (
+                          <span key={idx} className="text-[10px] bg-secondary px-2 py-0.5 rounded-md text-foreground/80 font-medium">
                             ✓ {t}
                           </span>
                         ))}
                       </div>
                     )}
                   </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Remember to submit your end-of-day report before finishing work today so your manager and clients stay updated on your progress.
-                  </p>
-                )}
+                ))}
               </div>
-            </div>
-            <button
-              onClick={() => setShowEodModal(true)}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all shrink-0 ${
-                isEodSubmittedToday
-                  ? 'bg-card border border-border text-foreground hover:bg-secondary'
-                  : 'bg-primary text-white hover:bg-primary/90 shadow-primary/20'
-              }`}
-            >
-              {isEodSubmittedToday ? 'Update EOD Report' : 'Submit EOD Report'}
-            </button>
+            ) : (
+              <div className="p-8 text-center bg-card rounded-2xl border border-border text-xs text-muted-foreground">
+                No team EOD reports found for the selected filter.
+              </div>
+            )}
           </div>
+        )}
+      </div>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 2. EMPLOYEE DASHBOARD
+  // ─────────────────────────────────────────────────────────────────────────────
+  const renderEmployeeStats = () => {
+    const assignedTasks = data.assignedTasks || [];
+    const pendingTasks = assignedTasks.filter((t) => t.status !== 'completed' && t.status !== 'Approved');
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-bold text-primary uppercase tracking-wider">Employee Workspace</span>
+            <h1 className="text-2xl font-black text-foreground mt-0.5">{getGreeting()}, {user.name} 👋</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Here is your daily agenda, assigned deliverables, and attendance log.</p>
+          </div>
+          <button
+            onClick={() => setShowEodModal(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm"
+          >
+            <CheckCircle2 size={15} />
+            <span>Submit Daily EOD Report</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Active Tasks & My EOD History & SOPs */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-border flex items-center justify-between bg-secondary/20">
-                <h3 className="font-bold flex items-center">
-                  <CheckCircle2 size={18} className="mr-2 text-primary" />
-                  Priority Tasks
-                </h3>
-                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">{data.myTasks?.length || 0} Assigned</span>
-              </div>
-              <div className="divide-y divide-border">
-                {data.myTasks?.length > 0 ? data.myTasks.map((task) => (
-                  <Link key={task._id} to={`/tasks?open=${task._id}`} className="p-4 hover:bg-secondary/30 transition-colors flex items-center justify-between group">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <CheckSquare size={20} />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold">{task.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">{task.project?.name}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 text-xs">
-                      <div className="flex items-center text-muted-foreground">
-                        <Clock size={14} className="mr-1" />
-                        {new Date(task.dueDate).toLocaleDateString()}
-                      </div>
-                      <span className={`px-2 py-1 rounded-lg font-bold capitalize ${
-                        task.priority === 'urgent' ? 'bg-destructive/10 text-destructive' :
-                        task.priority === 'high' ? 'bg-amber-500/10 text-amber-600' : 'bg-blue-500/10 text-blue-600'
-                      }`}>
-                        {task.priority}
-                      </span>
-                    </div>
-                  </Link>
-                )) : (
-                  <div className="p-8 text-center text-muted-foreground">No tasks assigned today. Take a break!</div>
-                )}
-              </div>
-            </div>
-
-            {/* Standard Operating Procedures (SOPs) */}
-            <div className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold flex items-center text-base">
-                    <BookOpen size={18} className="mr-2 text-primary" />
-                    Standard Operating Procedures (SOPs)
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Company guidelines, role procedures, and your created SOPs</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Link to="/sop" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                    <Plus size={14} /> Add SOP
-                  </Link>
-                  <Link to="/sop" className="text-xs bg-secondary text-muted-foreground px-2.5 py-1 rounded-full font-semibold">
-                    View All
-                  </Link>
-                </div>
-              </div>
-
-              {data.sops?.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data.sops.slice(0, 4).map((sop) => (
-                    <Link
-                      key={sop._id}
-                      to="/sop"
-                      className="p-4 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors block group"
-                    >
-                      <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 line-clamp-1">
-                          <BookOpen size={13} className="text-primary shrink-0" />
-                          {sop.title}
-                        </span>
-                        <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full capitalize shrink-0">
-                          {sop.sopType?.replace('_', ' ')}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{sop.content || 'No description provided.'}</p>
-                      <div className="mt-2 text-[10px] text-muted-foreground flex items-center justify-between">
-                        <span>By {sop.createdBy?.name || 'Team'}</span>
-                        <span>{sop.createdAt ? new Date(sop.createdAt).toLocaleDateString() : ''}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-6 text-center text-xs text-muted-foreground border border-dashed border-border rounded-xl">
-                  No SOPs added yet. Click &quot;Add SOP&quot; above to create your first standard operating procedure!
-                </div>
-              )}
-            </div>
-
-            {/* My EOD Reports History */}
-            <div className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold flex items-center text-base">
-                    <FileText size={18} className="mr-2 text-primary" />
-                    My Submitted EOD Reports
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Your recent daily work submissions</p>
-                </div>
-                <span className="text-xs font-semibold text-muted-foreground bg-secondary px-2.5 py-1 rounded-full">
-                  {myEodReports.length} Reports
-                </span>
-              </div>
-
-              {myEodReports.length > 0 ? (
-                <div className="space-y-3">
-                  {myEodReports.slice(0, 5).map((report) => (
-                    <div
-                      key={report._id}
-                      onClick={() => { setSelectedEodRecord(report); setShowEodDetailModal(true); }}
-                      className="p-4 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between text-xs mb-2">
-                        <span className="font-bold text-foreground flex items-center gap-1.5">
-                          <Calendar size={13} className="text-primary" />
-                          {new Date(report.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </span>
-                        <span className="text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full font-semibold text-[10px]">
-                          Submitted
-                        </span>
-                      </div>
-                      <p className="text-xs text-foreground/90 line-clamp-2">{report.eodReport?.summary}</p>
-                      {report.eodReport?.tasksCompleted?.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {report.eodReport.tasksCompleted.slice(0, 3).map((t, idx) => (
-                            <span key={idx} className="text-[10px] bg-card px-2 py-0.5 rounded-md border border-border text-muted-foreground">
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-6 text-center text-xs text-muted-foreground border border-dashed border-border rounded-xl">
-                  No EOD reports submitted yet. Use the submit button above to send your first report!
-                </div>
-              )}
-            </div>
+          <div className="lg:col-span-1">
+            <AttendanceWidget />
           </div>
 
-          {/* Attendance Widget & Quick Actions */}
-          <div className="space-y-6">
-            <AttendanceWidget todayRecord={data?.todayAttendance} user={user} />
-
-            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm space-y-3">
-              <h3 className="font-bold mb-3 text-sm text-foreground">Quick Portal Shortcuts</h3>
-              <Link to="/calendar" className="block w-full text-center py-2.5 rounded-xl bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Open Content Calendar</Link>
-              <Link to="/sop" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                <BookOpen size={16} className="text-primary" />
-                SOP Dashboard & My SOPs
-              </Link>
-              <Link to="/pending-notes" className="w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                <StickyNote size={16} className="text-amber-500" />
-                My Pending Task Notes
-              </Link>
-              <button onClick={() => setShowEodModal(true)} className="block w-full text-center py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-medium transition-colors">
-                {isEodSubmittedToday ? 'View / Edit EOD Report' : 'Submit EOD Report'}
-              </button>
+          <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-sm font-bold text-foreground">My Assigned Tasks ({pendingTasks.length})</h2>
+              <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">View All Tasks →</Link>
             </div>
 
-            <div className="bg-card p-6 rounded-2xl border border-border shadow-sm bg-gradient-to-br from-indigo-600 to-primary text-white">
-              <Award size={32} className="mb-4 opacity-50" />
-              <h3 className="text-lg font-bold leading-tight">Weekly Progress</h3>
-              <p className="text-white/70 text-xs mt-1">You&apos;ve completed {data?.completedThisWeek || 0} tasks, logged {data?.weeklyLoggedUpdates || 0} updates, and added {data?.personalTasksThisWeek || 0} personal daily tasks this week.</p>
-              <div className="mt-4 bg-white/20 h-2 rounded-full">
-                <div className="bg-white h-full rounded-full" style={{ width: `${Math.min(100, ((data?.completedThisWeek || 0) / 10) * 100)}%` }}></div>
-              </div>
+            <div className="divide-y divide-border/60">
+              {pendingTasks.length > 0 ? (
+                pendingTasks.slice(0, 6).map((task) => (
+                  <div key={task._id} className="py-3 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-foreground">{task.title || task.taskTitle}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {task.clientName ? `🏢 ${task.clientName} • ` : ''}
+                        Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
+                      </p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground capitalize">
+                      {task.status?.replace(/_/g, ' ') || 'Todo'}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="py-8 text-center text-xs text-muted-foreground">
+                  You are all caught up! No pending tasks assigned.
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -857,277 +1011,107 @@ const Dashboard = () => {
     );
   };
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 3. CLIENT PORTAL
+  // ─────────────────────────────────────────────────────────────────────────────
   const renderClientStats = () => {
-    const projects = data.projects || [];
-    const invoices = data.invoices || [];
-    const clientEodReports = data.eodReports || [];
-
     return (
-      <div className="space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Client Portal</h1>
-            <p className="text-muted-foreground text-sm">Project progress, daily team reports, and billing for {data.client?.company || data.client?.name || user.name}.</p>
-          </div>
-          <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
-            <Calendar size={16} />
-            Content Calendar
+      <div className="space-y-6">
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <h1 className="text-2xl font-black text-foreground">{getGreeting()}, {user.name} 👋</h1>
+          <p className="text-xs text-muted-foreground mt-1">Welcome to your RiseWithMedia Client Portal. Review projects, approve content, and view invoices.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link to="/tasks" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all">
+            <CheckSquare className="text-primary mb-2" size={24} />
+            <h3 className="font-bold text-sm">Tasks & Deliverables</h3>
+            <p className="text-xs text-muted-foreground mt-1">Check active content and progress</p>
+          </Link>
+          <Link to="/calendar" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all">
+            <Calendar className="text-blue-500 mb-2" size={24} />
+            <h3 className="font-bold text-sm">Content Calendar</h3>
+            <p className="text-xs text-muted-foreground mt-1">View scheduled posts and shoots</p>
+          </Link>
+          <Link to="/finance" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all">
+            <Receipt className="text-emerald-500 mb-2" size={24} />
+            <h3 className="font-bold text-sm">Invoices & Receipts</h3>
+            <p className="text-xs text-muted-foreground mt-1">View billing status and receipts</p>
           </Link>
         </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            ['Active Projects', projects.filter((project) => project.status === 'active').length || projects.length, Briefcase],
-            ['Open Invoices', invoices.filter((invoice) => invoice.status !== 'paid').length, IndianRupee],
-            ['Average Progress', projects.length ? `${Math.round(projects.reduce((sum, project) => sum + (project.progress || 0), 0) / projects.length)}%` : '0%', CheckCircle2],
-          ].map(([label, value, Icon]) => (
-            <div key={label} className="bg-card rounded-2xl border border-border p-5 shadow-sm">
-              <Icon size={20} className="text-primary mb-3" />
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-              <p className="text-2xl font-bold mt-1">{value}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <h2 className="font-bold mb-4">Projects</h2>
-            <div className="space-y-3">
-              {projects.length ? projects.map((project) => (
-                <Link key={project._id} to={`/projects/${project._id}`} className="block rounded-xl border border-border p-4 hover:bg-secondary/40">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold">{project.name}</span>
-                    <span className="capitalize text-muted-foreground">{String(project.status).replace('_', ' ')}</span>
-                  </div>
-                  <div className="mt-3 h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary" style={{ width: `${project.progress || 0}%` }} />
-                  </div>
-                </Link>
-              )) : <p className="text-sm text-muted-foreground">No projects are visible yet.</p>}
-            </div>
-          </div>
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <h2 className="font-bold mb-4">Recent Invoices</h2>
-            <div className="space-y-3">
-              {invoices.length ? invoices.map((invoice) => (
-                <div key={invoice._id} className="rounded-xl border border-border p-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold">{invoice.invoiceNumber}</span>
-                    <span className="capitalize text-muted-foreground">{invoice.status}</span>
-                  </div>
-                  <p className="mt-2 text-xl font-bold">{formatINR(invoice.total || 0)}</p>
-                </div>
-              )) : <p className="text-sm text-muted-foreground">No invoices found.</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Client View: Daily Team EOD & Work Progress Reports */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
-                <FileText className="text-primary" size={20} />
-                Daily Team EOD & Work Reports
-              </h2>
-              <p className="text-sm text-muted-foreground">Daily progress reports submitted by team members working on your account.</p>
-            </div>
-            <span className="text-xs font-semibold text-muted-foreground bg-card border border-border rounded-full px-3 py-1">
-              {clientEodReports.length} Reports
-            </span>
-          </div>
-
-          {clientEodReports.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {clientEodReports.map((report) => (
-                <div
-                  key={report._id}
-                  onClick={() => { setSelectedEodRecord(report); setShowEodDetailModal(true); }}
-                  className="bg-card rounded-2xl border border-border p-5 shadow-sm hover:border-primary/50 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
-                        {report.user?.avatar ? (
-                          <img src={getAssetUrl(report.user.avatar)} alt={report.user.name} className="h-full w-full object-cover" />
-                        ) : (
-                          report.user?.name ? report.user.name.charAt(0).toUpperCase() : 'T'
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                          {report.user?.name || 'Team Member'}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {report.user?.position || report.user?.department || 'Project Team'}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(report.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm text-foreground/90 line-clamp-2">{report.eodReport?.summary}</p>
-                    {report.eodReport?.tasksCompleted?.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {report.eodReport.tasksCompleted.slice(0, 3).map((task, i) => (
-                          <span key={i} className="text-[10px] bg-secondary px-2 py-0.5 rounded-full text-foreground/80 font-medium">
-                            ✓ {task}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-card rounded-2xl border border-border p-8 text-center">
-              <FileText size={32} className="mx-auto text-muted-foreground/40 mb-3" />
-              <h3 className="font-semibold text-foreground">No team EOD reports yet</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Daily work reports submitted by your project team will appear here.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
     );
   };
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 4. REFERRAL PORTAL
+  // ─────────────────────────────────────────────────────────────────────────────
   const renderReferralStats = () => {
     const referrals = data.referrals || [];
-    const converted = referrals.filter((referral) => referral.status === 'converted').length;
-    const pending = referrals.filter((referral) => !referral.isPaid && referral.status === 'converted').length;
-    const conversionRate = referrals.length ? Math.round((converted / referrals.length) * 100) : 0;
-    const recentReferrals = referrals.slice(0, 5);
     const stats = [
-      { label: 'Total Earnings', value: formatINR(data.totalEarnings || 0), icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-      { label: 'Pending Payouts', value: formatINR(data.pendingEarnings || 0), icon: IndianRupee, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-      { label: 'Submitted Leads', value: referrals.length, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
-      { label: 'Conversion Rate', value: `${conversionRate}%`, icon: TrendingUp, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+      { label: 'Total Earnings', value: formatINR(data.totalEarnings || 0), icon: Wallet },
+      { label: 'Pending Payouts', value: formatINR(data.pendingEarnings || 0), icon: IndianRupee },
+      { label: 'Submitted Leads', value: referrals.length, icon: Users },
     ];
 
-    const copyRefCode = () => {
-      if (!user.referralCode) return;
-      navigator.clipboard.writeText(user.referralCode);
-    };
-
     return (
-      <div className="space-y-8">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Award size={22} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Referral Partner Home</h1>
-              <p className="text-muted-foreground text-sm">Track your network, commissions, and active lead submissions.</p>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link to="/calendar" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
-              <Calendar size={16} />
-              Content Calendar
-            </Link>
-            <button
-              onClick={copyRefCode}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold hover:bg-secondary transition-colors"
-            >
-              <Copy size={16} />
-              {user.referralCode || 'No referral code'}
-            </button>
-            <Link to="/referral" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
-              <Send size={16} />
-              Open Partner Portal
-            </Link>
-          </div>
+      <div className="space-y-6">
+        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+          <h1 className="text-2xl font-black text-foreground">Partner Dashboard</h1>
+          <p className="text-xs text-muted-foreground mt-1">Track your referred leads, client wins, and commission payouts.</p>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, i) => (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 }}
-              key={stat.label}
-              className="bg-card p-6 rounded-2xl border border-border shadow-sm card-hover"
-            >
-              <div className={`mb-5 inline-flex rounded-xl p-3 ${stat.bg} ${stat.color}`}>
-                <stat.icon size={22} />
-              </div>
-              <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-              <h3 className="text-2xl font-bold mt-1 tracking-tight">{stat.value}</h3>
-            </motion.div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {stats.map((s) => (
+            <div key={s.label} className="p-5 rounded-2xl border border-border bg-card">
+              <span className="text-xs text-muted-foreground font-semibold">{s.label}</span>
+              <div className="text-2xl font-bold mt-1 text-foreground">{s.value}</div>
+            </div>
           ))}
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-border flex items-center justify-between bg-secondary/20">
-              <h2 className="font-bold">Recent Referrals</h2>
-              <span className="text-xs font-semibold text-muted-foreground">{pending} pending payout</span>
-            </div>
-            <div className="divide-y divide-border">
-              {recentReferrals.length ? recentReferrals.map((referral) => (
-                <div key={referral._id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold">{referral.lead?.name || 'Manual submission'}</p>
-                    <p className="text-xs text-muted-foreground">{referral.lead?.email || 'Lead details pending'}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      referral.status === 'converted' ? 'bg-emerald-500/10 text-emerald-600' :
-                      referral.status === 'qualified' ? 'bg-blue-500/10 text-blue-600' : 'bg-secondary text-muted-foreground'
-                    }`}>
-                      {referral.status}
-                    </span>
-                    <span className="text-sm font-bold text-emerald-600">{formatINR(referral.commissionAmount || 0)}</span>
-                  </div>
-                </div>
-              )) : (
-                <div className="p-8 text-center text-sm text-muted-foreground">
-                  No referrals yet. Your submitted leads will appear here.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <h2 className="font-bold">Partner Next Steps</h2>
-            <div className="mt-5 space-y-4">
-              {[
-                ['Share your code', 'Use it with warm introductions and campaign links.'],
-                ['Submit qualified leads', 'Add context so the sales team can follow up quickly.'],
-                ['Track commissions', 'Converted leads move into payout review automatically.'],
-              ].map(([title, detail], index) => (
-                <div key={title} className="flex gap-3">
-                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{index + 1}</div>
-                  <div>
-                    <p className="text-sm font-semibold">{title}</p>
-                    <p className="text-xs text-muted-foreground">{detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-300">
       {user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager'
-        ? renderAdminStats()
+        ? renderAdminCommandCenter()
         : user.role === 'client'
-          ? renderClientStats()
-          : user.role === 'referral'
-            ? renderReferralStats()
-            : renderEmployeeStats()}
-      <EODReportModal open={showEodModal} onOpenChange={setShowEodModal} report={data?.todayAttendance?.eodReport} />
-      <EODDetailModal open={showEodDetailModal} onOpenChange={setShowEodDetailModal} record={selectedEodRecord} />
+        ? renderClientStats()
+        : user.role === 'referral'
+        ? renderReferralStats()
+        : renderEmployeeStats()}
+
+      {/* Shared EOD Modals */}
+      <EODReportModal
+        open={showEodModal}
+        onOpenChange={setShowEodModal}
+        report={data?.todayAttendance?.eodReport}
+      />
+      <EODDetailModal
+        open={showEodDetailModal}
+        onOpenChange={setShowEodDetailModal}
+        record={selectedEodRecord}
+      />
+
+      {/* Quick Action Modals */}
+      {createTaskOpen && (
+        <AddTaskModal
+          open={createTaskOpen}
+          onOpenChange={setCreateTaskOpen}
+        />
+      )}
+      {createProjectOpen && (
+        <AddProjectModal
+          open={createProjectOpen}
+          onOpenChange={setCreateProjectOpen}
+        />
+      )}
+      {createClientOpen && (
+        <AddClientModal
+          open={createClientOpen}
+          onOpenChange={setCreateClientOpen}
+        />
+      )}
     </div>
   );
 };

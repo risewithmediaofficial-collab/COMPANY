@@ -40,6 +40,13 @@ import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../components/ui/dialog';
 
 // Helper function to format 12-Hour AM/PM Time
 const formatTime = (isoString) => {
@@ -1159,232 +1166,196 @@ const Attendance = () => {
       <EODReportModal open={showEOD} onOpenChange={setShowEOD} report={todayRecord?.eodReport} />
 
       {/* Assign Holiday Modal */}
-      {showHolidayModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
-          <div className="w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
-              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Calendar className="text-primary h-5 w-5" />
-                Assign Company Holiday
-              </h3>
+      <Dialog open={showHolidayModal} onOpenChange={setShowHolidayModal}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>Assign Company Holiday</DialogTitle>
+            <DialogDescription>
+              Record an official agency holiday across all employee attendance calendars.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAssignHoliday} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Select Holiday Date *</label>
+              <input
+                type="date"
+                required
+                value={holidayForm.date}
+                onChange={(e) => setHolidayForm((prev) => ({ ...prev, date: e.target.value }))}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Reason / Description *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Christmas, Independence Day, Diwali"
+                value={holidayForm.notes}
+                onChange={(e) => setHolidayForm((prev) => ({ ...prev, notes: e.target.value }))}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={() => setShowHolidayModal(false)}
-                className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
               >
-                ✕
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={assignHolidayMutation.isPending}
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              >
+                {assignHolidayMutation.isPending ? 'Assigning...' : 'Assign Holiday'}
               </button>
             </div>
-            <form onSubmit={handleAssignHoliday} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Select Holiday Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={holidayForm.date}
-                  onChange={(e) => setHolidayForm((prev) => ({ ...prev, date: e.target.value }))}
-                  className="app-input"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Reason / Description *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Christmas, Independence Day"
-                  value={holidayForm.notes}
-                  onChange={(e) => setHolidayForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  className="app-input"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={assignHolidayMutation.isPending}
-                  className="flex-1 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary/90 transition-all disabled:opacity-50"
-                >
-                  {assignHolidayMutation.isPending ? 'Assigning...' : 'Assign Holiday'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowHolidayModal(false)}
-                  className="px-5 py-3 rounded-2xl border border-border bg-secondary/30 text-foreground font-semibold text-sm hover:bg-secondary/50 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Assign Leave Modal */}
-      {showLeaveModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
-          <div className="w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
-              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Calendar className="text-rose-500 h-5 w-5" />
-                Assign Leave
-              </h3>
+      <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>Assign Employee Leave</DialogTitle>
+            <DialogDescription>
+              Record an approved leave of absence on behalf of a team member.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAssignLeave} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Select Employee *</label>
+              <select
+                required
+                value={leaveForm.userId}
+                onChange={(e) => setLeaveForm((prev) => ({ ...prev, userId: e.target.value }))}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Choose an employee...</option>
+                {users
+                  .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
+                  .map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.name || u.email} ({u.role})
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Select Leave Date *</label>
+              <input
+                type="date"
+                required
+                value={leaveForm.date}
+                onChange={(e) => setLeaveForm((prev) => ({ ...prev, date: e.target.value }))}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Reason / Details *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Medical appointment, emergency"
+                value={leaveForm.notes}
+                onChange={(e) => setLeaveForm((prev) => ({ ...prev, notes: e.target.value }))}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={() => setShowLeaveModal(false)}
-                className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
               >
-                ✕
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitLeaveMutation.isPending}
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              >
+                {submitLeaveMutation.isPending ? 'Assigning...' : 'Assign Leave'}
               </button>
             </div>
-            <form onSubmit={handleAssignLeave} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Select Employee *</label>
-                <select
-                  required
-                  value={leaveForm.userId}
-                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, userId: e.target.value }))}
-                  className="app-select"
-                >
-                  <option value="">Choose an employee...</option>
-                  {users
-                    .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
-                    .map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name || u.email} ({u.role})
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Select Leave Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={leaveForm.date}
-                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, date: e.target.value }))}
-                  className="app-input"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Reason / Details *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Doctor appointment, personal work"
-                  value={leaveForm.notes}
-                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  className="app-input"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitLeaveMutation.isPending}
-                  className="flex-1 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary/90 transition-all disabled:opacity-50"
-                >
-                  {submitLeaveMutation.isPending ? 'Assigning...' : 'Assign Leave'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowLeaveModal(false)}
-                  className="px-5 py-3 rounded-2xl border border-border bg-secondary/30 text-foreground font-semibold text-sm hover:bg-secondary/50 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Inform WFH Modal */}
-      {showWFHModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
-          <div className="w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar">
-            <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
-              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Calendar className="text-indigo-500 h-5 w-5" />
-                Inform Work From Home
-              </h3>
+      <Dialog open={showWFHModal} onOpenChange={setShowWFHModal}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>Inform Work From Home (WFH)</DialogTitle>
+            <DialogDescription>
+              Submit in advance when working remotely.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleInformWFH} className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Select WFH Date *</label>
+              <input
+                type="date"
+                required
+                value={wfhForm.date}
+                onChange={(e) => setWfhForm((prev) => ({ ...prev, date: e.target.value }))}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <span className="text-[11px] text-muted-foreground">Must be submitted at least one day in advance.</span>
+            </div>
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground">Reason / Details *</label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Remote work, commute issue"
+                value={wfhForm.notes}
+                onChange={(e) => setWfhForm((prev) => ({ ...prev, notes: e.target.value }))}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={() => setShowWFHModal(false)}
-                className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
               >
-                ✕
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitWFHMutation.isPending}
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm hover:bg-primary/90 disabled:opacity-50"
+              >
+                {submitWFHMutation.isPending ? 'Submitting...' : 'Submit WFH Notice'}
               </button>
             </div>
-            <form onSubmit={handleInformWFH} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Select WFH Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={wfhForm.date}
-                  onChange={(e) => setWfhForm((prev) => ({ ...prev, date: e.target.value }))}
-                  className="app-input"
-                />
-                <span className="text-[10px] text-muted-foreground">Must be submitted at least one day in advance.</span>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Reason / Details *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Internet issue, personal commitment"
-                  value={wfhForm.notes}
-                  onChange={(e) => setWfhForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  className="app-input"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitWFHMutation.isPending}
-                  className="flex-1 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-md hover:bg-primary/90 transition-all disabled:opacity-50"
-                >
-                  {submitWFHMutation.isPending ? 'Submitting...' : 'Submit WFH Notice'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowWFHModal(false)}
-                  className="px-5 py-3 rounded-2xl border border-border bg-secondary/30 text-foreground font-semibold text-sm hover:bg-secondary/50 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Attendance Detail Modal */}
-      {selectedRecord && (
-        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain flex min-h-full items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 transition-all duration-300">
-          <div className="w-full my-auto max-w-lg max-h-[min(90vh,calc(100dvh-2rem))] rounded-[28px] border border-border bg-card p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 overflow-y-auto custom-scrollbar space-y-5">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <div>
-                <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                  <Calendar className="text-primary h-5 w-5" />
-                  Attendance Record Details
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {new Date(selectedRecord.date).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedRecord(null)}
-                className="rounded-lg p-1 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-              >
-                ✕
-              </button>
-            </div>
+      <Dialog open={Boolean(selectedRecord)} onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}>
+        <DialogContent size="default">
+          <DialogHeader>
+            <DialogTitle>Attendance Record Details</DialogTitle>
+            <DialogDescription>
+              {selectedRecord?.date && new Date(selectedRecord.date).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="space-y-4">
-              {/* Employee Info if present */}
+          {selectedRecord && (
+            <div className="space-y-4 text-xs">
+              {/* Employee Info */}
               {selectedRecord.user && typeof selectedRecord.user === 'object' && (
-                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-secondary/30 border border-border">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-sm uppercase overflow-hidden border border-primary/20">
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-secondary/30 border border-border/80">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
                     {selectedRecord.user.avatar ? (
                       <img src={getAssetUrl(selectedRecord.user.avatar)} alt={selectedRecord.user.name} className="h-full w-full object-cover" />
                     ) : (
@@ -1392,65 +1363,48 @@ const Attendance = () => {
                     )}
                   </div>
                   <div>
-                    <div className="font-bold text-foreground text-sm">
-                      {selectedRecord.user.name || selectedRecord.user.email || 'Unknown Employee'}
+                    <div className="font-bold text-foreground text-xs">
+                      {selectedRecord.user.name || selectedRecord.user.email || 'Employee'}
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {selectedRecord.user.email} • {selectedRecord.user.department || selectedRecord.user.position || selectedRecord.user.role}
+                    <div className="text-[11px] text-muted-foreground">
+                      {selectedRecord.user.email} • {selectedRecord.user.role}
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/30 border border-border">
-                <span className="text-xs font-medium text-muted-foreground">Status</span>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${statusColors[selectedRecord.status] || 'bg-secondary text-muted-foreground'}`}>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/25 border border-border">
+                <span className="font-medium text-muted-foreground">Status</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${statusColors[selectedRecord.status] || 'bg-secondary text-muted-foreground'}`}>
                   {selectedRecord.status?.replace(/_/g, ' ')}
                 </span>
               </div>
 
               {/* Reason / Notes */}
-              <div className="p-4 rounded-2xl bg-secondary/20 border border-border space-y-1.5">
-                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reason / Description</div>
-                <div className="text-sm font-semibold text-foreground">
+              <div className="p-3.5 rounded-xl bg-secondary/20 border border-border space-y-1">
+                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Reason / Description</div>
+                <div className="font-medium text-foreground">
                   {selectedRecord.notes || 'No notes or reason provided.'}
                 </div>
               </div>
 
-              {/* Assigned / Approved By */}
-              <div className="p-4 rounded-2xl bg-secondary/20 border border-border space-y-1.5">
-                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Assigned / Approved By</div>
-                <div className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <UserCheck className="h-4 w-4 text-primary" />
-                  {selectedRecord.approvedBy ? (
-                    <span>
-                      {selectedRecord.approvedBy.name} ({selectedRecord.approvedBy.role === 'superAdmin' ? 'Super Admin' : 'Manager'})
-                    </span>
-                  ) : selectedRecord.isApproved ? (
-                    <span>Manager / Admin</span>
-                  ) : (
-                    <span>Self Clock-in / System Recorded</span>
-                  )}
-                </div>
-              </div>
-
               {/* Times */}
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="p-3 rounded-2xl border border-border bg-card">
+              <div className="grid grid-cols-3 gap-2.5 text-center">
+                <div className="p-2.5 rounded-xl border border-border bg-card">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock In</div>
-                  <div className="text-sm font-bold text-emerald-600 mt-1">
+                  <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                     {formatTime(selectedRecord.clockIn)}
                   </div>
                 </div>
-                <div className="p-3 rounded-2xl border border-border bg-card">
+                <div className="p-2.5 rounded-xl border border-border bg-card">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase">Clock Out</div>
-                  <div className="text-sm font-bold text-amber-600 mt-1">
+                  <div className="text-xs font-bold text-amber-600 dark:text-amber-400 mt-1">
                     {formatTime(selectedRecord.clockOut)}
                   </div>
                 </div>
-                <div className="p-3 rounded-2xl border border-border bg-card">
+                <div className="p-2.5 rounded-xl border border-border bg-card">
                   <div className="text-[10px] font-bold text-muted-foreground uppercase">Total Time</div>
-                  <div className="text-sm font-bold text-foreground mt-1">
+                  <div className="text-xs font-bold text-foreground mt-1">
                     {selectedRecord.totalHours?.toFixed(1) || '0.0'} hrs
                   </div>
                 </div>
@@ -1458,29 +1412,29 @@ const Attendance = () => {
 
               {/* EOD Report if exists */}
               {selectedRecord.eodReport?.submittedAt && (
-                <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-1">
-                  <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
-                    <FileText size={13} /> EOD Report Submitted
+                <div className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-1">
+                  <div className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                    <FileText size={12} /> EOD Report Submitted
                   </div>
                   <p className="text-xs text-foreground/80 line-clamp-3">
                     {selectedRecord.eodReport.summary || 'Summary submitted.'}
                   </p>
                 </div>
               )}
-            </div>
 
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setSelectedRecord(null)}
-                className="w-full py-3 rounded-2xl border border-border bg-secondary/50 text-foreground font-bold text-sm hover:bg-secondary transition-all"
-              >
-                Close
-              </button>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRecord(null)}
+                  className="w-full py-2.5 rounded-xl border border-border bg-secondary/50 text-foreground font-semibold text-xs hover:bg-secondary transition-all"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

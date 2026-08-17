@@ -1,11 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarClock, CheckCircle2, MessageSquareText, PhoneCall, Plus } from 'lucide-react';
+import {
+  CalendarClock,
+  CheckCircle2,
+  MessageSquareText,
+  PhoneCall,
+  Plus,
+  Search,
+  Calendar,
+  Clock,
+  Phone,
+  Video,
+  Mail,
+  MessageCircle,
+  Pencil,
+  Trash2,
+  Building2,
+  User,
+  ArrowRight,
+  Filter,
+} from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { DataTable } from '../../components/ui/DataTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import { MetricCard, MetricGrid, PageHeader, PageToolbar, SearchField, StatusBadge } from '../../components/ui/page';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import {
@@ -14,6 +31,17 @@ import {
   useDeleteClientFollowup,
   useUpdateClientFollowup,
 } from '../../hooks/useClientFollowups';
+import WorkspacePage from '../../components/ui/WorkspacePage';
+import DatabaseView from '../../components/ui/DatabaseView';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const emptyForm = {
   client: '',
@@ -32,17 +60,24 @@ const emptyForm = {
 };
 
 const statusTone = {
-  open: 'warning',
-  completed: 'success',
-  waiting: 'info',
-  cancelled: 'danger',
+  open: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  completed: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  waiting: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  cancelled: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
 };
 
 const priorityTone = {
-  low: 'neutral',
-  medium: 'info',
-  high: 'warning',
-  urgent: 'danger',
+  low: 'bg-slate-500/10 text-slate-600',
+  medium: 'bg-blue-500/10 text-blue-600',
+  high: 'bg-amber-500/10 text-amber-600',
+  urgent: 'bg-rose-500/10 text-rose-600',
+};
+
+const typeIcons = {
+  call: Phone,
+  meeting: Video,
+  whatsapp: MessageCircle,
+  email: Mail,
 };
 
 const formatDate = (value) => {
@@ -53,7 +88,7 @@ const formatDate = (value) => {
 const labelize = (value) => String(value || '').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
 const Field = ({ label, children }) => (
-  <label className="space-y-1.5 text-sm font-medium text-foreground">
+  <label className="space-y-1.5 text-xs font-semibold text-foreground block">
     <span>{label}</span>
     {children}
   </label>
@@ -102,111 +137,164 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-w-2xl bg-card border border-border">
         <DialogHeader>
-          <DialogTitle>{followup ? 'Edit Client Follow-up' : 'Add Client Follow-up'}</DialogTitle>
+          <DialogTitle className="text-base font-black text-foreground">
+            {followup ? 'Edit Client Follow-up' : 'Log New Client Touchpoint'}
+          </DialogTitle>
         </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Client *">
+              <select
+                value={form.client}
+                onChange={(e) => updateField('client', e.target.value)}
+                required
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                <option value="">Select client</option>
+                {clients.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.company || c.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-          <Field label="Client">
-            <select
-              value={form.client}
-              onChange={(event) => {
-                updateField('client', event.target.value);
-                updateField('project', '');
-              }}
-              className="app-input"
-              required
-            >
-              <option value="">Select client</option>
-              {clients.map((client) => (
-                <option key={client._id} value={client._id}>{client.company || client.name}</option>
-              ))}
-            </select>
-          </Field>
+            <Field label="Related Project (Optional)">
+              <select
+                value={form.project}
+                onChange={(e) => updateField('project', e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                <option value="">None / General</option>
+                {clientProjects.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
 
-          <Field label="Project">
-            <select value={form.project} onChange={(event) => updateField('project', event.target.value)} className="app-input">
-              <option value="">No linked project</option>
-              {clientProjects.map((project) => (
-                <option key={project._id} value={project._id}>{project.name}</option>
-              ))}
-            </select>
-          </Field>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Field label="Touchpoint Channel">
+              <select
+                value={form.type}
+                onChange={(e) => updateField('type', e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                <option value="call">Phone Call</option>
+                <option value="meeting">Video / In-Person Meeting</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="email">Email</option>
+              </select>
+            </Field>
 
-          <Field label="Type">
-            <select value={form.type} onChange={(event) => updateField('type', event.target.value)} className="app-input">
-              <option value="call">Call</option>
-              <option value="meeting">Meeting</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="email">Email</option>
-              <option value="review">Review</option>
-              <option value="other">Other</option>
-            </select>
-            {form.type === 'other' && (
-              <input
-                type="text"
-                placeholder="Specify type..."
-                className="app-input mt-1"
-                value={form.customType || ''}
-                onChange={(e) => updateField('customType', e.target.value)}
+            <Field label="Status">
+              <select
+                value={form.status}
+                onChange={(e) => updateField('status', e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                <option value="open">Open</option>
+                <option value="waiting">Waiting for Client</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </Field>
+
+            <Field label="Priority">
+              <select
+                value={form.priority}
+                onChange={(e) => updateField('priority', e.target.value)}
+                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </Field>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Contact Person / Stakeholder">
+              <Input
+                value={form.contactPerson}
+                onChange={(e) => updateField('contactPerson', e.target.value)}
+                placeholder="e.g. Rahul Sharma (Marketing Head)"
+                className="h-9 text-xs rounded-xl"
               />
-            )}
+            </Field>
+
+            <Field label="Discussion Subject *">
+              <Input
+                value={form.subject}
+                onChange={(e) => updateField('subject', e.target.value)}
+                placeholder="e.g. August Reel Plan & Retainer Review"
+                required
+                className="h-9 text-xs rounded-xl"
+              />
+            </Field>
+          </div>
+
+          <Field label="Meeting Summary / Core Takeaway">
+            <Textarea
+              value={form.summary}
+              onChange={(e) => updateField('summary', e.target.value)}
+              placeholder="Brief summary of what was discussed..."
+              rows={2}
+              className="text-xs rounded-xl"
+            />
           </Field>
 
-          <Field label="Status">
-            <select value={form.status} onChange={(event) => updateField('status', event.target.value)} className="app-input">
-              <option value="open">Open</option>
-              <option value="completed">Completed</option>
-              <option value="waiting">Waiting</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+          <Field label="Detailed Notes & Feedback">
+            <Textarea
+              value={form.discussionNotes}
+              onChange={(e) => updateField('discussionNotes', e.target.value)}
+              placeholder="Detailed notes, feedback on deliverables, client expectations..."
+              rows={3}
+              className="text-xs rounded-xl"
+            />
           </Field>
 
-          <Field label="Contact Person">
-            <Input value={form.contactPerson} onChange={(event) => updateField('contactPerson', event.target.value)} placeholder="Client contact name" />
-          </Field>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Field label="Meeting Date">
+              <Input
+                type="date"
+                value={form.meetingDate}
+                onChange={(e) => updateField('meetingDate', e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+            </Field>
 
-          <Field label="Priority">
-            <select value={form.priority} onChange={(event) => updateField('priority', event.target.value)} className="app-input">
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
-            </select>
-          </Field>
+            <Field label="Next Follow-up Date">
+              <Input
+                type="date"
+                value={form.nextFollowUpDate}
+                onChange={(e) => updateField('nextFollowUpDate', e.target.value)}
+                className="h-9 text-xs rounded-xl"
+              />
+            </Field>
 
-          <Field label="Subject">
-            <Input value={form.subject} onChange={(event) => updateField('subject', event.target.value)} placeholder="Call / meeting topic" required />
-          </Field>
+            <Field label="Next Action Item">
+              <Input
+                value={form.nextAction}
+                onChange={(e) => updateField('nextAction', e.target.value)}
+                placeholder="e.g. Send revised video draft"
+                className="h-9 text-xs rounded-xl"
+              />
+            </Field>
+          </div>
 
-          <Field label="Meeting Date">
-            <Input type="date" value={form.meetingDate} onChange={(event) => updateField('meetingDate', event.target.value)} />
-          </Field>
-
-          <Field label="Next Follow-up Date">
-            <Input type="date" value={form.nextFollowUpDate} onChange={(event) => updateField('nextFollowUpDate', event.target.value)} />
-          </Field>
-
-          <Field label="Next Action">
-            <Input value={form.nextAction} onChange={(event) => updateField('nextAction', event.target.value)} placeholder="Send proposal, schedule review..." />
-          </Field>
-
-          <Field label="What Was Spoken">
-            <Textarea value={form.discussionNotes} onChange={(event) => updateField('discussionNotes', event.target.value)} placeholder="Detailed discussion points" />
-          </Field>
-
-          <Field label="Outcome / Summary">
-            <Textarea value={form.summary} onChange={(event) => updateField('summary', event.target.value)} placeholder="Meeting result, client requirement, blockers" />
-          </Field>
-
-          <Field label="Decision / Outcome">
-            <Textarea value={form.outcome} onChange={(event) => updateField('outcome', event.target.value)} placeholder="Approved, waiting, changes requested..." />
-          </Field>
-
-          <div className="flex justify-end gap-3 md:col-span-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancel</Button>
-            <Button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Follow-up'}</Button>
+          <div className="flex justify-end gap-2 pt-3 border-t border-border">
+            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs">
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={saving} className="rounded-xl text-xs font-bold">
+              {saving ? 'Saving...' : followup ? 'Save Changes' : 'Log Touchpoint'}
+            </Button>
           </div>
         </form>
       </DialogContent>
@@ -214,153 +302,283 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
   );
 };
 
-const ClientFollowups = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [dueFilter, setDueFilter] = useState('');
+export default function ClientFollowups() {
+  const [search, setSearch] = useState('');
+  const [channelFilter, setChannelFilter] = useState('all');
+  const [openDialog, setOpenDialog] = useState(false);
   const [selectedFollowup, setSelectedFollowup] = useState(null);
-  const [formOpen, setFormOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   const { data: clients = [] } = useClients();
   const { data: projects = [] } = useProjects();
-  const { data: followups = [], isLoading } = useClientFollowups({ search: searchTerm, status: statusFilter, due: dueFilter });
-  const createFollowup = useCreateClientFollowup();
-  const updateFollowup = useUpdateClientFollowup();
-  const deleteFollowup = useDeleteClientFollowup();
+  const { data: followups = [], isLoading } = useClientFollowups();
+  const createMutation = useCreateClientFollowup();
+  const updateMutation = useUpdateClientFollowup();
+  const deleteMutation = useDeleteClientFollowup();
 
-  const metrics = useMemo(() => {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+  const handleSave = async ({ id, data }) => {
+    if (id) {
+      await updateMutation.mutateAsync({ id, ...data });
+    } else {
+      await createMutation.mutateAsync(data);
+    }
+  };
 
-    return {
-      total: followups.length,
-      open: followups.filter((item) => item.status === 'open').length,
-      today: followups.filter((item) => item.nextFollowUpDate && new Date(item.nextFollowUpDate) >= todayStart && new Date(item.nextFollowUpDate) <= todayEnd).length,
-      completed: followups.filter((item) => item.status === 'completed').length,
-    };
-  }, [followups]);
+  const filteredFollowups = useMemo(() => {
+    return followups.filter((item) => {
+      const q = search.toLowerCase();
+      const clientName = (item.client?.company || item.client?.name || '').toLowerCase();
+      const subject = (item.subject || '').toLowerCase();
+      const summary = (item.summary || '').toLowerCase();
+      const matchesSearch = !q || clientName.includes(q) || subject.includes(q) || summary.includes(q);
+      const matchesChannel = channelFilter === 'all' || item.type === channelFilter;
+      return matchesSearch && matchesChannel;
+    });
+  }, [followups, search, channelFilter]);
 
-  const columns = [
+  // Statistics properties
+  const total = followups.length;
+  const openCount = followups.filter((f) => f.status === 'open').length;
+  const waitingCount = followups.filter((f) => f.status === 'waiting').length;
+  const completedCount = followups.filter((f) => f.status === 'completed').length;
+
+  const now = new Date();
+  const upcomingCount = followups.filter((f) => {
+    if (!f.nextFollowUpDate || f.status === 'completed') return false;
+    const d = new Date(f.nextFollowUpDate);
+    const diffDays = (d - now) / 86400000;
+    return diffDays >= 0 && diffDays <= 7;
+  }).length;
+
+  // Table Columns
+  const tableColumns = [
     {
-      key: 'subject',
-      label: 'Follow-up',
-      render: (row) => (
-        <div className="min-w-0">
-          <div className="font-semibold text-foreground">{row.subject}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{labelize(row.type)} - {row.contactPerson || 'No contact'}</div>
+      key: 'client',
+      label: 'Client / Company',
+      render: (item) => (
+        <div className="flex items-center gap-2.5">
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+            {(item.client?.company || item.client?.name || 'C').charAt(0)}
+          </div>
+          <div>
+            <p className="font-bold text-foreground">{item.client?.company || item.client?.name || 'Unnamed Client'}</p>
+            {item.contactPerson && <p className="text-[11px] text-muted-foreground">{item.contactPerson}</p>}
+          </div>
         </div>
       ),
     },
     {
-      key: 'client',
-      label: 'Client',
-      render: (row) => (
-        <div>
-          <div className="font-medium">{row.client?.company || row.client?.name || 'Unknown'}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{row.project?.name || 'No project'}</div>
+      key: 'type',
+      label: 'Channel',
+      render: (item) => {
+        const Icon = typeIcons[item.type] || PhoneCall;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground capitalize">
+            <Icon size={12} className="text-muted-foreground" />
+            {item.type}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'subject',
+      label: 'Subject & Notes',
+      render: (item) => (
+        <div className="max-w-md">
+          <p className="font-bold text-foreground">{item.subject}</p>
+          {item.summary && <p className="text-xs text-muted-foreground line-clamp-1">{item.summary}</p>}
         </div>
       ),
     },
     {
       key: 'nextFollowUpDate',
-      label: 'Next Date',
-      render: (row) => formatDate(row.nextFollowUpDate),
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      render: (row) => <StatusBadge tone={statusTone[row.status] || 'neutral'}>{labelize(row.status)}</StatusBadge>,
+      label: 'Next Touchpoint',
+      render: (item) => (
+        <div className="text-xs">
+          <p className="font-semibold text-foreground">{formatDate(item.nextFollowUpDate)}</p>
+          {item.nextAction && <p className="text-[11px] text-muted-foreground line-clamp-1">👉 {item.nextAction}</p>}
+        </div>
+      ),
     },
     {
       key: 'priority',
       label: 'Priority',
-      render: (row) => <StatusBadge tone={priorityTone[row.priority] || 'neutral'}>{labelize(row.priority)}</StatusBadge>,
+      render: (item) => (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${priorityTone[item.priority] || priorityTone.medium}`}>
+          {item.priority || 'medium'}
+        </span>
+      ),
     },
     {
-      key: 'nextAction',
-      label: 'Next Action',
-      render: (row) => row.nextAction || 'Not set',
+      key: 'status',
+      label: 'Status',
+      render: (item) => (
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusTone[item.status] || statusTone.open}`}>
+          {labelize(item.status)}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: '',
+      render: (item) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => {
+              setSelectedFollowup(item);
+              setOpenDialog(true);
+            }}
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            title="Edit"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => setDeleteId(item._id)}
+            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            title="Delete"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ),
     },
   ];
 
-  const handleSave = async ({ id, data }) => {
-    if (id) {
-      await updateFollowup.mutateAsync({ id, data });
-    } else {
-      await createFollowup.mutateAsync(data);
-    }
+  // Kanban Card Renderer
+  const renderKanbanCard = (item) => {
+    const Icon = typeIcons[item.type] || PhoneCall;
+    return (
+      <div
+        onClick={() => {
+          setSelectedFollowup(item);
+          setOpenDialog(true);
+        }}
+        className="space-y-2 cursor-pointer"
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
+            {item.type}
+          </span>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${priorityTone[item.priority] || priorityTone.medium}`}>
+            {item.priority}
+          </span>
+        </div>
+
+        <div>
+          <h4 className="font-bold text-xs text-foreground line-clamp-1">{item.subject}</h4>
+          <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
+            🏢 {item.client?.company || item.client?.name || 'Unnamed Client'}
+          </p>
+        </div>
+
+        {item.nextFollowUpDate && (
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1.5 border-t border-border/40">
+            <CalendarClock size={12} className="text-primary" />
+            <span>Next: {formatDate(item.nextFollowUpDate)}</span>
+          </div>
+        )}
+      </div>
+    );
   };
 
+  const kanbanColumns = [
+    { key: 'open', label: 'Open Queue' },
+    { key: 'waiting', label: 'Waiting for Client' },
+    { key: 'completed', label: 'Completed' },
+    { key: 'cancelled', label: 'Cancelled' },
+  ];
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Client Follow-ups"
-        actions={(
-          <Button onClick={() => {
-            setSelectedFollowup(null);
-            setFormOpen(true);
-          }}>
-            <Plus size={16} className="mr-2" />
-            Add Follow-up
+    <WorkspacePage
+      breadcrumbs={['RiseWithMedia', 'Client Lifecycle', 'Client Follow-ups']}
+      title="Client Follow-ups & Touchpoints"
+      subtitle="Comprehensive CRM logs of all client calls, meetings, feedback notes, and scheduled upcoming touchpoints."
+      icon="📞"
+      properties={[
+        { label: 'Total Logs', value: total, icon: MessageSquareText },
+        { label: 'Open Queue', value: openCount, tone: openCount > 0 ? 'warning' : 'neutral' },
+        { label: 'Upcoming (7d)', value: upcomingCount, tone: upcomingCount > 0 ? 'info' : 'neutral' },
+        { label: 'Completed', value: completedCount, tone: 'success' },
+      ]}
+      actions={
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => {
+              setSelectedFollowup(null);
+              setOpenDialog(true);
+            }}
+            className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+          >
+            <Plus size={14} className="stroke-[2.5]" />
+            <span>Log Touchpoint</span>
           </Button>
-        )}
-      >
-        <MetricGrid>
-          <MetricCard label="Total" value={metrics.total} icon={MessageSquareText} tone="primary" />
-          <MetricCard label="Open" value={metrics.open} icon={PhoneCall} tone="warning" />
-          <MetricCard label="Today" value={metrics.today} icon={CalendarClock} tone="info" />
-          <MetricCard label="Completed" value={metrics.completed} icon={CheckCircle2} tone="success" />
-        </MetricGrid>
-      </PageHeader>
+        </div>
+      }
+    >
+      {/* Channel Quick Filter Bar */}
+      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+        {['all', 'call', 'meeting', 'whatsapp', 'email'].map((ch) => (
+          <button
+            key={ch}
+            onClick={() => setChannelFilter(ch)}
+            className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
+              channelFilter === ch
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+            }`}
+          >
+            {ch === 'all' ? 'All Channels' : ch}
+          </button>
+        ))}
+      </div>
 
-      <PageToolbar>
-        <SearchField value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search clients, notes, outcomes..." />
-        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="app-input w-full sm:w-auto sm:min-w-[150px] lg:w-48">
-          <option value="" onClick={() => setStatusFilter('')}>All statuses</option>
-          <option value="open" onClick={() => { if (statusFilter === 'open') setStatusFilter(''); }}>Open</option>
-          <option value="completed" onClick={() => { if (statusFilter === 'completed') setStatusFilter(''); }}>Completed</option>
-          <option value="waiting" onClick={() => { if (statusFilter === 'waiting') setStatusFilter(''); }}>Waiting</option>
-          <option value="cancelled" onClick={() => { if (statusFilter === 'cancelled') setStatusFilter(''); }}>Cancelled</option>
-        </select>
-        <select value={dueFilter} onChange={(event) => setDueFilter(event.target.value)} className="app-input w-full sm:w-auto sm:min-w-[150px] lg:w-48">
-          <option value="" onClick={() => setDueFilter('')}>All dates</option>
-          <option value="today" onClick={() => { if (dueFilter === 'today') setDueFilter(''); }}>Today</option>
-          <option value="overdue" onClick={() => { if (dueFilter === 'overdue') setDueFilter(''); }}>Overdue</option>
-          <option value="upcoming" onClick={() => { if (dueFilter === 'upcoming') setDueFilter(''); }}>Upcoming</option>
-        </select>
-      </PageToolbar>
-
-      <DataTable
-        data={followups}
-        columns={columns}
-        loading={isLoading}
-        onRowClick={(followup) => {
-          setSelectedFollowup(followup);
-          setFormOpen(true);
-        }}
-        onEdit={(followup) => {
-          setSelectedFollowup(followup);
-          setFormOpen(true);
-        }}
-        onDelete={(id) => {
-          if (window.confirm('Delete this client follow-up?')) deleteFollowup.mutate(id);
-        }}
-        emptyTitle="No client follow-ups"
+      <DatabaseView
+        viewKey="rwm_followups_view_v1"
+        views={['table', 'kanban']}
+        items={filteredFollowups}
+        totalCount={filteredFollowups.length}
+        searchPlaceholder="Search by client, discussion subject, or takeaways..."
+        columns={tableColumns}
+        kanbanColumns={kanbanColumns}
+        groupBy="status"
+        renderKanbanCard={renderKanbanCard}
+        onSearchChange={setSearch}
       />
 
       <FollowupDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
+        open={openDialog}
+        onOpenChange={setOpenDialog}
         followup={selectedFollowup}
         clients={clients}
         projects={projects}
         onSave={handleSave}
-        saving={createFollowup.isPending || updateFollowup.isPending}
+        saving={createMutation.isPending || updateMutation.isPending}
       />
-    </div>
-  );
-};
 
-export default ClientFollowups;
+      <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-card border border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold">Delete Follow-up Record?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              This action cannot be undone. This log entry will be permanently removed from the client history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteId) deleteMutation.mutate(deleteId);
+                setDeleteId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </WorkspacePage>
+  );
+}
