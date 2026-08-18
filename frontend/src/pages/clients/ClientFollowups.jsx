@@ -20,9 +20,10 @@ import {
   Filter,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
+import { cn } from '../../utils/cn';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import {
@@ -87,11 +88,19 @@ const formatDate = (value) => {
 
 const labelize = (value) => String(value || '').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
-const Field = ({ label, children }) => (
-  <label className="space-y-1.5 text-xs font-semibold text-foreground block">
-    <span>{label}</span>
+const Field = ({ label, required, helper, children, className }) => (
+  <div className={cn("space-y-1.5", className)}>
+    {label && (
+      <label className="text-[13px] font-medium text-foreground/90 flex items-center justify-between select-none">
+        <span>
+          {label.replace(/\s*\*/, '')}
+          {(required || label.includes('*')) && <span className="text-primary ml-1 font-bold">*</span>}
+        </span>
+        {helper && <span className="text-[11px] text-muted-foreground font-normal">{helper}</span>}
+      </label>
+    )}
     {children}
-  </label>
+  </div>
 );
 
 const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSave, saving }) => {
@@ -137,20 +146,24 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border border-border">
+      <DialogContent size="lg" className="bg-card border border-border">
         <DialogHeader>
-          <DialogTitle className="text-base font-black text-foreground">
+          <DialogTitle>
+            <PhoneCall size={20} className="text-primary" />
             {followup ? 'Edit Client Follow-up' : 'Log New Client Touchpoint'}
           </DialogTitle>
+          <DialogDescription>
+            Record communication logs, meetings, notes, and action items for this client account.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit} className="space-y-5 pt-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Client *">
               <select
                 value={form.client}
                 onChange={(e) => updateField('client', e.target.value)}
                 required
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
               >
                 <option value="">Select client</option>
                 {clients.map((c) => (
@@ -165,7 +178,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.project}
                 onChange={(e) => updateField('project', e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
               >
                 <option value="">None / General</option>
                 {clientProjects.map((p) => (
@@ -182,7 +195,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.type}
                 onChange={(e) => updateField('type', e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
               >
                 <option value="call">Phone Call</option>
                 <option value="meeting">Video / In-Person Meeting</option>
@@ -195,7 +208,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.status}
                 onChange={(e) => updateField('status', e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
               >
                 <option value="open">Open</option>
                 <option value="waiting">Waiting for Client</option>
@@ -208,7 +221,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.priority}
                 onChange={(e) => updateField('priority', e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -224,7 +237,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                 value={form.contactPerson}
                 onChange={(e) => updateField('contactPerson', e.target.value)}
                 placeholder="e.g. Rahul Sharma (Marketing Head)"
-                className="h-9 text-xs rounded-xl"
+                className="h-10 text-sm rounded-xl px-3.5"
               />
             </Field>
 
@@ -234,7 +247,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                 onChange={(e) => updateField('subject', e.target.value)}
                 placeholder="e.g. August Reel Plan & Retainer Review"
                 required
-                className="h-9 text-xs rounded-xl"
+                className="h-10 text-sm rounded-xl px-3.5"
               />
             </Field>
           </div>
@@ -245,7 +258,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               onChange={(e) => updateField('summary', e.target.value)}
               placeholder="Brief summary of what was discussed..."
               rows={2}
-              className="text-xs rounded-xl"
+              className="text-sm leading-relaxed rounded-xl p-3"
             />
           </Field>
 
@@ -255,7 +268,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               onChange={(e) => updateField('discussionNotes', e.target.value)}
               placeholder="Detailed notes, feedback on deliverables, client expectations..."
               rows={3}
-              className="text-xs rounded-xl"
+              className="text-sm leading-relaxed rounded-xl p-3"
             />
           </Field>
 
@@ -265,7 +278,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                 type="date"
                 value={form.meetingDate}
                 onChange={(e) => updateField('meetingDate', e.target.value)}
-                className="h-9 text-xs rounded-xl"
+                className="h-10 text-sm rounded-xl px-3.5"
               />
             </Field>
 
@@ -274,7 +287,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                 type="date"
                 value={form.nextFollowUpDate}
                 onChange={(e) => updateField('nextFollowUpDate', e.target.value)}
-                className="h-9 text-xs rounded-xl"
+                className="h-10 text-sm rounded-xl px-3.5"
               />
             </Field>
 
@@ -283,16 +296,16 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                 value={form.nextAction}
                 onChange={(e) => updateField('nextAction', e.target.value)}
                 placeholder="e.g. Send revised video draft"
-                className="h-9 text-xs rounded-xl"
+                className="h-10 text-sm rounded-xl px-3.5"
               />
             </Field>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-border">
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl text-sm h-10 px-4">
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={saving} className="rounded-xl text-xs font-bold">
+            <Button type="submit" disabled={saving} className="rounded-xl text-sm font-semibold h-10 px-6">
               {saving ? 'Saving...' : followup ? 'Save Changes' : 'Log Touchpoint'}
             </Button>
           </div>

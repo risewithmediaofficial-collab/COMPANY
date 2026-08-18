@@ -24,7 +24,7 @@ FormItem.displayName = 'FormItem';
 
 export const FormLabel = React.forwardRef(({ className, ...props }, ref) => {
   const { id } = React.useContext(FormItemContext);
-  return <label ref={ref} htmlFor={id} className={cn('text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-foreground/90', className)} {...props} />;
+  return <label ref={ref} htmlFor={id} className={cn('text-[13px] font-semibold text-foreground/85 flex items-center justify-between select-none tracking-normal', className)} {...props} />;
 });
 FormLabel.displayName = 'FormLabel';
 

@@ -119,7 +119,7 @@ DialogContent.displayName = 'DialogContent';
 export const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      'sticky top-0 bg-card/95 backdrop-blur-md z-40 -mt-5 -mx-5 px-5 pt-4 pb-3.5 sm:-mt-7 sm:-mx-7 sm:px-7 sm:pt-4 sm:pb-3.5 border-b border-border/70 space-y-1 text-left pr-24 select-none',
+      'sticky top-0 bg-card/98 backdrop-blur-md z-40 -mt-5 -mx-5 px-6 pt-5 pb-4 sm:-mt-7 sm:-mx-7 sm:px-8 sm:pt-5 sm:pb-4 border-b border-border/80 space-y-1 text-left pr-28 select-none shadow-xs mb-2',
       className
     )}
     {...props}
@@ -129,7 +129,7 @@ export const DialogHeader = ({ className, ...props }) => (
 export const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn('text-base sm:text-lg font-black text-foreground tracking-tight', className)}
+    className={cn('text-lg sm:text-xl font-bold text-foreground tracking-tight flex items-center gap-2.5', className)}
     {...props}
   />
 ));
@@ -138,7 +138,7 @@ DialogTitle.displayName = 'DialogTitle';
 export const DialogDescription = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn('text-xs text-muted-foreground leading-relaxed', className)}
+    className={cn('text-xs sm:text-[13px] text-muted-foreground leading-normal font-normal', className)}
     {...props}
   />
 ));
@@ -147,7 +147,7 @@ DialogDescription.displayName = 'DialogDescription';
 export const DialogFooter = ({ className, ...props }) => (
   <div
     className={cn(
-      'flex flex-wrap items-center justify-end gap-2 pt-4 mt-4 border-t border-border/60',
+      'flex flex-wrap items-center justify-end gap-3 pt-5 mt-6 border-t border-border/80',
       className
     )}
     {...props}
