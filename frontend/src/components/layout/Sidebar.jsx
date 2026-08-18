@@ -175,10 +175,9 @@ export default function Sidebar({ onOpenSearch }) {
           items: employeeDelivery,
         },
         {
-          title: 'TEAM & COMMS',
+          title: 'TEAM & WORKLOAD',
           items: [
             { name: 'Attendance & EOD', icon: Clock, path: '/attendance' },
-            { name: 'Team Chat', icon: MessageSquare, path: '/chat' },
           ],
         },
         {
@@ -256,10 +255,10 @@ export default function Sidebar({ onOpenSearch }) {
         ],
       },
       {
-        title: 'SYSTEM & COMMS',
+        title: 'SYSTEM & SETTINGS',
         items: [
-          { name: 'Team Chat', icon: MessageSquare, path: '/chat' },
           { name: 'Reports & Analytics', icon: BarChart3, path: '/reports' },
+          { name: 'Settings', icon: Settings, path: '/settings' },
         ],
       },
     ];

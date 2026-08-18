@@ -146,9 +146,14 @@ const ClientDetails = () => {
           </div>
 
           <div className="ml-auto flex gap-3">
-            <Link to="/chat" className="flex items-center gap-2 px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-secondary transition-colors">
-              <MessageSquare size={16}/> Message
-            </Link>
+            {client.email && (
+              <a
+                href={`mailto:${client.email}`}
+                className="flex items-center gap-2 px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                <Mail size={16}/> Email Client
+              </a>
+            )}
             {client.driveLink && (
               <a
                 href={client.driveLink}

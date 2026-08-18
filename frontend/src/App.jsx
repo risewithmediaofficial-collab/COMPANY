@@ -40,7 +40,6 @@ import CallHistoryDashboard from './pages/finance/CallHistoryDashboard';
 import HR from './pages/hr/HR';
 import Reports from './pages/reports/Reports';
 import Attendance from './pages/employee/Attendance';
-import Communication from './pages/employee/Communication';
 import ReferralDashboard from './pages/referral/ReferralDashboard';
 import Users from './pages/admin/Users';
 import DomainRenewals from './pages/admin/DomainRenewals';
@@ -346,13 +345,6 @@ const App = () => {
           <Route path="/attendance" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <Attendance />
-            </ProtectedRoute>
-          } />
-
-          {/* Chat / Communication */}
-          <Route path="/chat" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
-              <Communication />
             </ProtectedRoute>
           } />
 

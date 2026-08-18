@@ -44,44 +44,99 @@ import { AddProjectModal } from '../modals/AddProjectModal';
 import { AddClientModal } from '../modals/AddClientModal';
 import { AddLeadModal } from '../modals/AddLeadModal';
 
-// Route path to breadcrumb label mapping
-const ROUTE_LABELS = {
-  '/': ['Command Center'],
-  '/tasks': ['Delivery', 'Tasks Database'],
-  '/manager-tasks': ['Delivery', 'Manager Tasks'],
-  '/tasks/new': ['Delivery', 'Tasks', 'New Task'],
-  '/projects': ['Delivery', 'Projects'],
-  '/calendar': ['Delivery', 'Content Calendar'],
-  '/dm-calendar': ['Delivery', 'Shoots & DM Calendar'],
-  '/influencers': ['Delivery', 'Influencer Hub'],
-  '/manager-board': ['Delivery', 'Manager Board'],
-  '/pending-notes': ['Delivery', 'Pending Notes'],
-  '/clients': ['Clients', 'Clients 360'],
-  '/client-vault': ['Clients', 'Client Vault'],
-  '/client-followups': ['Clients', 'Client Follow-ups'],
-  '/crm/leads': ['Growth', 'CRM & Leads'],
-  '/proposals': ['Growth', 'Proposals'],
-  '/referral': ['Growth', 'Referral Hub'],
-  '/smm': ['Growth', 'Marketing OS'],
-  '/smm/content': ['Growth', 'Marketing', 'Content'],
-  '/smm/campaigns': ['Growth', 'Marketing', 'Campaigns'],
-  '/smm/ads': ['Growth', 'Marketing', 'Ads'],
-  '/smm/creatives': ['Growth', 'Marketing', 'Creatives'],
-  '/smm/calendar': ['Growth', 'Marketing', 'Calendar'],
-  '/smm/performance': ['Growth', 'Marketing', 'Performance'],
-  '/smm/reports': ['Growth', 'Marketing', 'Reports'],
-  '/finance': ['Business', 'Finance Status'],
-  '/call-history': ['Business', 'Call History'],
-  '/domain-renewals': ['Business', 'Domain Renewals'],
-  '/attendance': ['Team', 'Attendance & EOD'],
-  '/hr': ['Team', 'HR & Hiring'],
-  '/admin/users': ['Team', 'User Directory'],
-  '/admin/manager-assignments': ['Team', 'Manager Assignments'],
-  '/sop': ['Knowledge', 'SOP Library'],
-  '/assets': ['Knowledge', 'Asset Library'],
-  '/chat': ['System', 'Team Chat'],
-  '/reports': ['System', 'Reports & Analytics'],
-  '/settings': ['System', 'Settings'],
+// Route path to structured breadcrumbs helper with clickable links
+const getBreadcrumbs = (pathname) => {
+  const path = pathname.replace(/\/$/, '') || '/';
+
+  const exactMap = {
+    '/': [{ label: 'Command Center', path: '/' }],
+    '/tasks': [{ label: 'Delivery', path: '/tasks' }, { label: 'Tasks Database', path: '/tasks' }],
+    '/manager-tasks': [{ label: 'Delivery', path: '/tasks' }, { label: 'Manager Tasks', path: '/manager-tasks' }],
+    '/tasks/new': [{ label: 'Delivery', path: '/tasks' }, { label: 'Tasks', path: '/tasks' }, { label: 'New Task' }],
+    '/projects': [{ label: 'Delivery', path: '/projects' }, { label: 'Projects', path: '/projects' }],
+    '/calendar': [{ label: 'Delivery', path: '/tasks' }, { label: 'Content Calendar', path: '/calendar' }],
+    '/dm-calendar': [{ label: 'Delivery', path: '/tasks' }, { label: 'Shoots & DM Calendar', path: '/dm-calendar' }],
+    '/influencers': [{ label: 'Delivery', path: '/tasks' }, { label: 'Influencer Hub', path: '/influencers' }],
+    '/manager-board': [{ label: 'Delivery', path: '/tasks' }, { label: 'Manager Board', path: '/manager-board' }],
+    '/pending-notes': [{ label: 'Delivery', path: '/tasks' }, { label: 'Pending Notes', path: '/pending-notes' }],
+    '/daily-tasks': [{ label: 'Delivery', path: '/tasks' }, { label: 'Daily Calendar', path: '/daily-tasks' }],
+
+    '/clients': [{ label: 'Clients', path: '/clients' }, { label: 'Directory', path: '/clients' }],
+    '/client-vault': [{ label: 'Clients', path: '/clients' }, { label: 'Client Vault', path: '/client-vault' }],
+    '/client-followups': [{ label: 'Clients', path: '/clients' }, { label: 'Client Follow-ups', path: '/client-followups' }],
+
+    '/crm/leads': [{ label: 'Growth', path: '/crm/leads' }, { label: 'CRM & Leads', path: '/crm/leads' }],
+    '/proposals': [{ label: 'Growth', path: '/proposals' }, { label: 'Proposals', path: '/proposals' }],
+    '/proposals/new': [{ label: 'Growth', path: '/proposals' }, { label: 'Proposals', path: '/proposals' }, { label: 'New Proposal' }],
+    '/referral': [{ label: 'Growth', path: '/referral' }, { label: 'Referral Hub', path: '/referral' }],
+
+    '/smm': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing OS', path: '/smm' }],
+    '/smm/content': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Content', path: '/smm/content' }],
+    '/smm/campaigns': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Campaigns', path: '/smm/campaigns' }],
+    '/smm/leads': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'SMM Leads', path: '/smm/leads' }],
+    '/smm/adsets': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Ad Sets', path: '/smm/adsets' }],
+    '/smm/ads': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Ads', path: '/smm/ads' }],
+    '/smm/creatives': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Creative Library', path: '/smm/creatives' }],
+    '/smm/calendar': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'SMM Calendar', path: '/smm/calendar' }],
+    '/smm/performance': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Performance', path: '/smm/performance' }],
+    '/smm/reports': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'SMM Reports', path: '/smm/reports' }],
+    '/smm/team': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Team', path: '/smm/team' }],
+
+    '/finance': [{ label: 'Business', path: '/finance' }, { label: 'Finance Status', path: '/finance' }],
+    '/call-history': [{ label: 'Business', path: '/finance' }, { label: 'Call History', path: '/call-history' }],
+    '/domain-renewals': [{ label: 'Business', path: '/domain-renewals' }, { label: 'Domain Renewals', path: '/domain-renewals' }],
+
+    '/attendance': [{ label: 'Team', path: '/attendance' }, { label: 'Attendance & EOD', path: '/attendance' }],
+    '/hr': [{ label: 'Team', path: '/hr' }, { label: 'HR & Hiring', path: '/hr' }],
+    '/admin/users': [{ label: 'Team', path: '/admin/users' }, { label: 'User Directory', path: '/admin/users' }],
+    '/admin/manager-assignments': [{ label: 'Team', path: '/admin/users' }, { label: 'Manager Assignments', path: '/admin/manager-assignments' }],
+
+    '/sop': [{ label: 'Knowledge', path: '/sop' }, { label: 'SOP Library', path: '/sop' }],
+    '/assets': [{ label: 'Knowledge', path: '/assets' }, { label: 'Asset Library', path: '/assets' }],
+
+    '/reports': [{ label: 'System', path: '/reports' }, { label: 'Reports & Analytics', path: '/reports' }],
+    '/settings': [{ label: 'System', path: '/settings' }, { label: 'Settings', path: '/settings' }],
+
+    '/client/proposals': [{ label: 'Client Portal', path: '/' }, { label: 'Proposals', path: '/client/proposals' }],
+    '/portal/reports': [{ label: 'Client Portal', path: '/' }, { label: 'Reports', path: '/portal/reports' }],
+    '/portal/downloads': [{ label: 'Client Portal', path: '/' }, { label: 'Downloads', path: '/portal/downloads' }],
+    '/portal/assets': [{ label: 'Client Portal', path: '/' }, { label: 'Brand Assets', path: '/portal/assets' }],
+    '/portal/support': [{ label: 'Client Portal', path: '/' }, { label: 'Support', path: '/portal/support' }],
+    '/portal/guidelines': [{ label: 'Client Portal', path: '/' }, { label: 'Guidelines', path: '/portal/guidelines' }],
+  };
+
+  if (exactMap[path]) {
+    return exactMap[path];
+  }
+
+  // Dynamic parameterized routes
+  if (path.startsWith('/tasks/')) {
+    return [{ label: 'Delivery', path: '/tasks' }, { label: 'Tasks', path: '/tasks' }, { label: 'Task Details' }];
+  }
+  if (path.startsWith('/projects/')) {
+    return [{ label: 'Delivery', path: '/projects' }, { label: 'Projects', path: '/projects' }, { label: 'Project Details' }];
+  }
+  if (path.startsWith('/clients/')) {
+    return [{ label: 'Clients', path: '/clients' }, { label: 'Directory', path: '/clients' }, { label: 'Client Details' }];
+  }
+  if (path.startsWith('/crm/leads/')) {
+    return [{ label: 'Growth', path: '/crm/leads' }, { label: 'CRM & Leads', path: '/crm/leads' }, { label: 'Lead Details' }];
+  }
+  if (path.startsWith('/proposals/')) {
+    return [{ label: 'Growth', path: '/proposals' }, { label: 'Proposals', path: '/proposals' }, { label: 'Proposal Details' }];
+  }
+
+  // Fallback: tokenize path segments
+  const segments = path.split('/').filter(Boolean);
+  let accumulated = '';
+  return segments.map((seg, i) => {
+    accumulated += `/${seg}`;
+    const cleanLabel = seg.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    return {
+      label: cleanLabel,
+      path: i === segments.length - 1 ? undefined : accumulated,
+    };
+  });
 };
 
 const Navbar = () => {
@@ -136,18 +191,15 @@ const Navbar = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Compute breadcrumb path
-  const currentPath = location.pathname;
-  const breadcrumbs = ROUTE_LABELS[currentPath] || [
-    currentPath.split('/')[1]?.replace(/-/g, ' ') || 'Workspace'
-  ];
+  // Compute structured dynamic breadcrumbs
+  const breadcrumbs = getBreadcrumbs(location.pathname);
 
   const canCreate = ['superAdmin', 'admin', 'manager'].includes(user?.role);
 
   return (
     <>
       <header className="sticky top-0 z-40 flex h-14 min-w-0 items-center justify-between border-b border-border bg-card/90 px-3.5 backdrop-blur-md sm:px-5 select-none">
-        {/* Left: Mobile Toggle & Dynamic Breadcrumbs */}
+        {/* Left: Mobile Toggle & Dynamic Interactive Breadcrumbs */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           <button
             onClick={() => dispatch(toggleSidebar())}
@@ -157,25 +209,38 @@ const Navbar = () => {
             <Menu size={18} />
           </button>
 
-          {/* Breadcrumb Navigation */}
-          <nav className="flex items-center gap-1.5 min-w-0 text-xs text-muted-foreground">
-            <span className="font-bold text-foreground/80 hover:text-foreground transition-colors hidden sm:inline">
+          {/* Breadcrumb Navigation with Clickable Links */}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0 text-xs text-muted-foreground">
+            <Link
+              to="/"
+              className="font-bold text-foreground/80 hover:text-foreground transition-colors hidden sm:inline truncate"
+            >
               RiseWithMedia
-            </span>
-            {breadcrumbs.map((crumb, idx) => (
-              <span key={idx} className="flex items-center gap-1.5 min-w-0">
-                <ChevronRight size={12} className="text-muted-foreground/60 shrink-0" />
-                <span
-                  className={`truncate capitalize ${
-                    idx === breadcrumbs.length - 1
-                      ? 'font-semibold text-foreground'
-                      : 'text-muted-foreground hover:text-foreground transition-colors'
-                  }`}
-                >
-                  {crumb}
+            </Link>
+            {breadcrumbs.map((crumb, idx) => {
+              const isLast = idx === breadcrumbs.length - 1;
+              return (
+                <span key={idx} className="flex items-center gap-1.5 min-w-0">
+                  <ChevronRight size={12} className="text-muted-foreground/60 shrink-0" />
+                  {crumb.path && !isLast ? (
+                    <Link
+                      to={crumb.path}
+                      className="truncate text-muted-foreground hover:text-foreground transition-colors max-w-[120px] sm:max-w-[160px]"
+                    >
+                      {crumb.label}
+                    </Link>
+                  ) : (
+                    <span
+                      className={`truncate max-w-[140px] sm:max-w-[200px] ${
+                        isLast ? 'font-semibold text-foreground' : 'text-muted-foreground hover:text-foreground transition-colors'
+                      }`}
+                    >
+                      {crumb.label}
+                    </span>
+                  )}
                 </span>
-              </span>
-            ))}
+              );
+            })}
           </nav>
         </div>
 
