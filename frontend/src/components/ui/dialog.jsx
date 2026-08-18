@@ -55,7 +55,7 @@ export const DialogContent = React.forwardRef(
           >
             {/* Notion-Style Header Close Action Group */}
             {!hideCloseButton && (
-              <div className="absolute right-4 top-3.5 sm:right-6 sm:top-4 z-50 flex items-center gap-2">
+              <div className="absolute right-4 top-4 sm:right-6 sm:top-5 z-50 flex items-center gap-2">
                 <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
                   ESC
                 </kbd>
@@ -70,7 +70,7 @@ export const DialogContent = React.forwardRef(
             {noPadding ? (
               children
             ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-7 pb-12 custom-scrollbar space-y-4">
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 sm:p-8 pb-12 custom-scrollbar">
                 {children}
               </div>
             )}
@@ -119,7 +119,7 @@ DialogContent.displayName = 'DialogContent';
 export const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      'sticky top-0 bg-card/98 backdrop-blur-md z-40 -mt-5 -mx-5 px-6 pt-5 pb-4 sm:-mt-7 sm:-mx-7 sm:px-8 sm:pt-5 sm:pb-4 border-b border-border/80 space-y-1 text-left pr-28 select-none shadow-xs mb-2',
+      'flex flex-col space-y-1.5 text-left border-b border-border/80 pb-5 mb-6 pr-24 select-none shrink-0',
       className
     )}
     {...props}
