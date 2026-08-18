@@ -295,6 +295,8 @@ const Leads = () => {
   const kanbanData = kanbanQuery.data || {};
   const totalLeads = PIPELINE_STAGES.reduce((sum, stage) => sum + (kanbanData[stage]?.length || 0), 0);
   const activeLeads = totalLeads - (kanbanData.won?.length || 0) - (kanbanData.lost?.length || 0);
+  const proposalLeads = (kanbanData.proposal_sent?.length || 0) + (kanbanData.negotiation?.length || 0);
+  const hasSearch = Boolean(searchTerm?.trim()?.length > 0);
   const allKanbanLeads = PIPELINE_STAGES.flatMap((stage) => kanbanData[stage] || []);
   const totalPipelineValue = allKanbanLeads.reduce((sum, lead) => {
     if (['lost'].includes(lead.stage)) return sum;
