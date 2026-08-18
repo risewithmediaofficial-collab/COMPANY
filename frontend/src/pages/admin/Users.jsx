@@ -357,6 +357,9 @@ const Users = () => {
           isOpen={Boolean(permissionsUser)}
           onClose={() => setPermissionsUser(null)}
           user={permissionsUser}
+          onSave={async (userId, data) => {
+            await updateUser.mutateAsync({ id: userId, data });
+          }}
         />
       )}
 

@@ -59,8 +59,8 @@ const formatTime = (isoString) => {
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
   const { isDateInRange } = useDateFilter();
-  const isAdmin = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(user?.role);
-  const isSuperAdmin = user?.role === 'superAdmin';
+  const isAdmin = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(user?.role) || Boolean(user?.permissions?.canManageHR || user?.permissions?.canManageEmployees);
+  const isSuperAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
 
   const currentDate = new Date();
   const [time, setTime] = useState(new Date());

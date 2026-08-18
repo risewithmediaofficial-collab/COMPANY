@@ -17,7 +17,7 @@ import {
 const router = express.Router();
 router.use(protect);
 
-router.get('/team/today', authorize('superAdmin', 'organizationOwner', 'manager', 'accountManager'), getTeamAttendance);
+router.get('/team/today', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), getTeamAttendance);
 router.get('/eod-reports', getEodReports);
 router.get('/', getAttendance);
 router.post('/clock-in', clockIn);
@@ -25,8 +25,8 @@ router.post('/clock-out', clockOut);
 router.post('/absent', submitAbsent);
 router.post('/leave', submitLeave);
 router.post('/eod', submitEOD);
-router.post('/holiday', authorize('superAdmin', 'organizationOwner', 'manager'), assignHoliday);
+router.post('/holiday', authorize('superAdmin', 'admin', 'organizationOwner', 'manager'), assignHoliday);
 router.post('/wfh', submitWFH);
-router.put('/:id/approve', authorize('superAdmin', 'organizationOwner', 'manager', 'accountManager'), approveOrRejectAttendanceRequest);
+router.put('/:id/approve', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), approveOrRejectAttendanceRequest);
 
 export default router;

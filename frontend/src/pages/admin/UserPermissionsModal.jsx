@@ -8,6 +8,7 @@ import {
 } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
 import api from '../../api';
+import { toast } from 'sonner';
 
 const PERMISSIONS = [
   { key: 'canViewReports', label: 'View Reports' },
@@ -24,8 +25,8 @@ const PERMISSIONS = [
 ];
 
 export default function UserPermissionsModal({ user, onClose, onSave }) {
-  const [permissions, setPermissions] = useState(user.permissions || {});
-  const [assignedBrands, setAssignedBrands] = useState(user.assignedBrands || []);
+  const [permissions, setPermissions] = useState(user?.permissions || {});
+  const [assignedBrands, setAssignedBrands] = useState(user?.assignedBrands || []);
   const [allBrands, setAllBrands] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -48,10 +49,21 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
   };
 
   const handleSave = async () => {
-    setLoading(true);
-    await onSave(user._id, { permissions, assignedBrands });
-    setLoading(false);
-    onClose();
+    try {
+      setLoading(true);
+      if (typeof onSave === 'function') {
+        await onSave(user._id, { permissions, assignedBrands });
+      } else {
+        await api.put(`/users/${user._id}`, { permissions, assignedBrands });
+      }
+      toast.success('Permissions & workspace access updated');
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to update permissions');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,7 +72,7 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
         <DialogHeader>
           <DialogTitle>Access Control & Permissions</DialogTitle>
           <DialogDescription>
-            Configure granular role permissions and assigned workspaces for {user.name}
+            Configure granular role permissions and assigned workspaces for {user?.name}
           </DialogDescription>
         </DialogHeader>
 

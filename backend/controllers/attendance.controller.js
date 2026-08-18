@@ -157,7 +157,7 @@ export const submitEOD = async (req, res) => {
     try {
       const User = (await import('../models/user.model.js')).default;
       const managers = await User.find({
-        role: { $in: ['superAdmin', 'manager', 'organizationOwner', 'accountManager'] },
+        role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner', 'accountManager'] },
         isActive: true,
       }).select('_id');
 
@@ -189,7 +189,7 @@ export const getAttendance = async (req, res) => {
     const { userId, status, month, year, page = 1, limit = 1000 } = req.query;
     const filter = {};
 
-    const isPrivileged = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
+    const isPrivileged = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
 
     if (!isPrivileged || req.user.role === 'employee') {
       filter.user = req.user._id;
@@ -381,7 +381,7 @@ export const submitAbsent = async (req, res) => {
     const absentDate = date ? new Date(date) : new Date();
     absentDate.setHours(0, 0, 0, 0);
 
-    const isAdminOrManager = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
+    const isAdminOrManager = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
 
     const updateObj = {
       notes: reasonText.trim(),
@@ -409,7 +409,7 @@ export const submitAbsent = async (req, res) => {
     if (!isAdminOrManager) {
       try {
         const User = (await import('../models/user.model.js')).default;
-        const managers = await User.find({ role: { $in: ['superAdmin', 'manager', 'organizationOwner'] }, isActive: true }).select('_id');
+        const managers = await User.find({ role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner', 'accountManager'] }, isActive: true }).select('_id');
         const formattedDate = absentDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
         for (const mgr of managers) {
           await createNotification({
@@ -449,7 +449,7 @@ export const submitLeave = async (req, res) => {
     const leaveDate = date ? new Date(date) : new Date();
     leaveDate.setHours(0, 0, 0, 0);
 
-    const isAdminOrManager = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
+    const isAdminOrManager = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
 
     const updateObj = {
       notes: reasonText.trim(),
@@ -473,7 +473,7 @@ export const submitLeave = async (req, res) => {
     if (!isAdminOrManager) {
       try {
         const User = (await import('../models/user.model.js')).default;
-        const managers = await User.find({ role: { $in: ['superAdmin', 'manager', 'organizationOwner'] }, isActive: true }).select('_id');
+        const managers = await User.find({ role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner', 'accountManager'] }, isActive: true }).select('_id');
         const formattedDate = leaveDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
         for (const mgr of managers) {
           await createNotification({
@@ -512,7 +512,7 @@ export const submitWFH = async (req, res) => {
     const wfhDate = new Date(date);
     wfhDate.setHours(0, 0, 0, 0);
 
-    const isAdminOrManager = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
+    const isAdminOrManager = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
 
     const updateObj = {
       notes: reasonText.trim(),
@@ -536,7 +536,7 @@ export const submitWFH = async (req, res) => {
     if (!isAdminOrManager) {
       try {
         const User = (await import('../models/user.model.js')).default;
-        const managers = await User.find({ role: { $in: ['superAdmin', 'manager', 'organizationOwner'] }, isActive: true }).select('_id');
+        const managers = await User.find({ role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner', 'accountManager'] }, isActive: true }).select('_id');
         const formattedDate = wfhDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
         for (const mgr of managers) {
           await createNotification({
@@ -568,7 +568,7 @@ export const approveOrRejectAttendanceRequest = async (req, res) => {
     const { id } = req.params;
     const { action, rejectionReason } = req.body; // action: 'approve' | 'reject'
 
-    const isAdminOrManager = ['superAdmin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
+    const isAdminOrManager = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
     if (!isAdminOrManager) {
       return res.status(403).json({ success: false, message: 'Only Admins and Managers can approve/reject attendance requests.' });
     }
