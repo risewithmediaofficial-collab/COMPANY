@@ -31,6 +31,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
+import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { getAssetUrl } from '../../utils/assetUrl';
 import {
   Dialog,
@@ -71,6 +72,7 @@ const ProjectDetails = () => {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [taskDefaults, setTaskDefaults] = useState({});
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [accessRequests, setAccessRequests] = useState([]);
   const [isRequesting, setIsRequesting] = useState(false);
   const [hasRequested, setHasRequested] = useState(false);
@@ -444,10 +446,11 @@ const ProjectDetails = () => {
                     draggable={user?.role !== 'client'}
                     onDragStart={(e) => handleDragStart(e, task._id)}
                     onDragEnd={handleDragEnd}
-                    className={`group cursor-grab rounded-xl border border-border bg-card p-4 shadow-sm transition-all active:cursor-grabbing ${
+                    onClick={() => setSelectedTaskId(task._id)}
+                    className={`group cursor-pointer rounded-xl border border-border bg-card p-4 shadow-sm transition-all active:cursor-grabbing ${
                       draggingTaskId === task._id
                         ? 'opacity-40 scale-95 rotate-1'
-                        : 'hover:shadow-md hover:-translate-y-0.5'
+                        : 'hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40'
                     }`}
                   >
                     <div className="mb-3 flex items-start justify-between">
@@ -545,9 +548,13 @@ const ProjectDetails = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {rows.length ? rows.map((task) => (
-                <tr key={task._id} className="transition-colors hover:bg-secondary/20">
+                <tr
+                  key={task._id}
+                  onClick={() => setSelectedTaskId(task._id)}
+                  className="cursor-pointer transition-colors hover:bg-secondary/30"
+                >
                   <td className="px-6 py-4">
-                    <div className="font-semibold">{task.title}</div>
+                    <div className="font-semibold text-foreground group-hover:text-primary">{task.title}</div>
                     <div className="text-xs text-muted-foreground">{task.taskType || 'task'}</div>
                   </td>
                   <td className="px-6 py-4">
@@ -1042,6 +1049,17 @@ const ProjectDetails = () => {
           />
         </>
       )}
+
+      <TaskDetailModal
+        taskId={selectedTaskId}
+        open={Boolean(selectedTaskId)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedTaskId(null);
+            fetchProjectData();
+          }
+        }}
+      />
     </div>
   );
 };

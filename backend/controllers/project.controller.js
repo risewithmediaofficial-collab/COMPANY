@@ -26,6 +26,71 @@ const priorityMap = {
   Urgent: 'urgent',
 };
 
+const statusToColumnMap = {
+  todo: 'todo',
+  'To Do': 'todo',
+  'Task Received': 'todo',
+
+  in_progress: 'in_progress',
+  on_process: 'in_progress',
+  'In Progress': 'in_progress',
+  'On Process': 'in_progress',
+  'Work in Progress': 'in_progress',
+  rework_completed: 'in_progress',
+  'Rework Completed': 'in_progress',
+
+  review: 'review',
+  review_required: 'review',
+  waiting_for_client: 'review',
+  'In Review': 'review',
+  'Review Required': 'review',
+  'Waiting for Client': 'review',
+  rework: 'review',
+  Rework: 'review',
+
+  approved: 'approved',
+  Approved: 'approved',
+
+  rejected: 'rejected',
+  Blocked: 'rejected',
+  Rejected: 'rejected',
+
+  done: 'done',
+  completed: 'done',
+  Done: 'done',
+  Completed: 'done',
+};
+
+const serializeProjectTask = (task) => {
+  const item = task?.toObject ? task.toObject() : task;
+  if (!item) return null;
+  return {
+    ...item,
+    title: item.title || item.taskTitle || '',
+    taskTitle: item.taskTitle || item.title || '',
+    priority: {
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      urgent: 'Urgent',
+    }[item.priority] || item.priority || 'Medium',
+    status: {
+      todo: 'To Do',
+      in_progress: 'In Progress',
+      review: 'In Review',
+      approved: 'Approved',
+      rejected: 'Blocked',
+      done: 'Done',
+      on_process: 'On Process',
+      waiting_for_client: 'Waiting for Client',
+      completed: 'Completed',
+      rework: 'Rework',
+      rework_completed: 'Rework Completed',
+      review_required: 'Review Required',
+    }[item.status] || item.status || 'To Do',
+  };
+};
+
 const serializeProject = (project) => {
   const item = project.toObject ? project.toObject() : project;
   return {
@@ -63,7 +128,6 @@ const normalizeProjectPayload = (body) => {
 const assertProjectAccess = async (req, project) => {
   if (!project) return { allowed: false, status: 404, message: 'Project not found' };
   if (req.user.role === 'superAdmin') return { allowed: true };
-  // Keep detail access aligned with the project list: managers can review all projects.
   if (req.user.role === 'manager') return { allowed: true };
   if (req.user.role === 'employee' && project.team?.some((member) => member.toString() === req.user._id.toString())) return { allowed: true };
   if (req.user.role === 'client') {
@@ -120,9 +184,6 @@ export const getProjects = async (req, res) => {
       ];
     }
     
-    // SuperAdmin and Manager can see all projects (for task creation)
-    // Employee can see projects they're assigned to
-    // Client can only see their own projects
     if (req.user.role === 'employee') filter.team = req.user._id;
     if (req.user.role === 'client') {
       const clientRecord = await Client.findOne({ userId: req.user._id }).select('_id');
@@ -162,15 +223,15 @@ export const getProject = async (req, res) => {
 
     const [totalTasks, doneTasks, recentActivity, recentTasks] = await Promise.all([
       Task.countDocuments({ project: project._id }),
-      Task.countDocuments({ project: project._id, status: { $in: ['done', 'approved'] } }),
+      Task.countDocuments({ project: project._id, status: { $in: ['done', 'approved', 'completed'] } }),
       ActivityLog.find({ relatedProject: project._id })
         .populate('actor', 'name avatar role')
         .sort({ createdAt: -1 })
         .limit(20),
-      Task.find({ project: project._id, parent: null })
-        .populate('assignedTo', 'name avatar')
+      Task.find({ project: project._id, $or: [{ parent: null }, { parent: { $exists: false } }] })
+        .populate('assignedTo', 'name avatar role')
         .sort({ updatedAt: -1 })
-        .limit(10),
+        .limit(20),
     ]);
 
     const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
@@ -180,7 +241,7 @@ export const getProject = async (req, res) => {
       project: serializeProject({ ...project.toObject(), progress }),
       progress,
       recentActivity,
-      recentTasks,
+      recentTasks: recentTasks.map(serializeProjectTask),
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -294,17 +355,30 @@ export const getProjectKanban = async (req, res) => {
     }
 
     const statuses = ['todo', 'in_progress', 'review', 'approved', 'rejected', 'done'];
-    const taskFilter = { project: req.params.id, parent: null };
+    const taskFilter = {
+      project: req.params.id,
+      $or: [{ parent: null }, { parent: { $exists: false } }],
+    };
     if (req.user.role === 'client') taskFilter.isClientVisible = true;
 
     const tasks = await Task.find(taskFilter)
-      .populate('assignedTo', 'name avatar')
-      .sort({ orderIndex: 1 });
+      .populate('assignedTo', 'name avatar role')
+      .populate('scriptWriterAssigned', 'name avatar')
+      .populate('videographerAssigned', 'name avatar')
+      .populate('editorAssigned', 'name avatar')
+      .populate('publisherAssigned', 'name avatar')
+      .sort({ orderIndex: 1, createdAt: -1 });
 
     const kanban = {};
     statuses.forEach((status) => { kanban[status] = []; });
     tasks.forEach((task) => {
-      if (kanban[task.status]) kanban[task.status].push(task);
+      const col = statusToColumnMap[task.status] || 'todo';
+      const serialized = serializeProjectTask(task);
+      if (kanban[col]) {
+        kanban[col].push(serialized);
+      } else {
+        kanban.todo.push(serialized);
+      }
     });
 
     res.json({ success: true, kanban });
