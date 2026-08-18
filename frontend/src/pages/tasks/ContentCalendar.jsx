@@ -81,7 +81,8 @@ const VIEW_OPTIONS = [
   { value: 'month', label: 'Monthly', icon: LayoutGrid },
   { value: 'week', label: 'Weekly', icon: Rows3 },
   { value: 'day', label: 'Daily', icon: PanelTop },
-  { value: 'list', label: 'List', icon: List },
+  { value: 'list', label: 'Cards', icon: List },
+  { value: 'agenda', label: 'List', icon: CalendarDays },
 ];
 
 const statusTone = {
@@ -775,6 +776,133 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
     </div>
   );
 
+  const renderAgendaView = () => {
+    // Group tasks by due date
+    const grouped = new Map();
+    listTasks.forEach((task) => {
+      const key = task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : 'no-date';
+      const label = task.dueDate ? format(new Date(task.dueDate), 'EEEE, MMMM d, yyyy') : 'No Due Date';
+      if (!grouped.has(key)) grouped.set(key, { label, tasks: [] });
+      grouped.get(key).tasks.push(task);
+    });
+
+    const groups = Array.from(grouped.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+    if (!groups.length) {
+      return (
+        <EmptyState
+          title="No tasks found"
+          description="Adjust your filters or date range to see tasks."
+          action={canManageCalendar ? (
+            <Button onClick={() => navigate('/tasks/new')}>
+              <Plus size={16} className="mr-2" />
+              Create Task
+            </Button>
+          ) : null}
+        />
+      );
+    }
+
+    return (
+      <div className="space-y-1 rounded-[20px] overflow-hidden border border-border">
+        {/* Header Row */}
+        <div className="grid items-center gap-2 bg-secondary/60 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground"
+          style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}>
+          <span>Task</span>
+          <span>Client</span>
+          <span>Assigned To</span>
+          <span>Status</span>
+          <span>Priority</span>
+          <span className="text-right">Due Date</span>
+        </div>
+
+        {groups.map(([dateKey, { label, tasks: dateTasks }]) => (
+          <div key={dateKey}>
+            {/* Date Group Header */}
+            <div className={cn(
+              'sticky top-0 z-10 flex items-center gap-3 border-y border-border bg-card/95 px-4 py-2 backdrop-blur-sm',
+              dateKey !== 'no-date' && isToday(new Date(dateKey)) && 'bg-primary/5 border-primary/20',
+            )}>
+              <div className={cn(
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black',
+                dateKey !== 'no-date' && isToday(new Date(dateKey))
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-foreground',
+              )}>
+                {dateKey !== 'no-date' ? format(new Date(dateKey), 'd') : '—'}
+              </div>
+              <p className="text-xs font-bold text-foreground">{label}</p>
+              <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                {dateTasks.length} {dateTasks.length === 1 ? 'task' : 'tasks'}
+              </span>
+            </div>
+
+            {/* Task Rows */}
+            {dateTasks.map((task, idx) => {
+              const normalizedStatus = normalizeTaskStatusLabel(task.status);
+              const assignees = task.assignedTo?.map((a) => a.name).join(', ') || task.assignedPersonName || 'Unassigned';
+              return (
+                <button
+                  key={task._id}
+                  type="button"
+                  onClick={() => handleOpenTask(task)}
+                  className={cn(
+                    'w-full grid items-center gap-2 border-b border-border/50 px-4 py-3 text-left transition-all hover:bg-secondary/30',
+                    idx % 2 === 0 ? 'bg-background' : 'bg-secondary/10',
+                    task.isOverdue && 'border-l-2 border-l-rose-500',
+                  )}
+                  style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}
+                >
+                  {/* Title + Category */}
+                  <div className="min-w-0 flex items-center gap-2">
+                    <span className={cn(
+                      'h-2 w-2 shrink-0 rounded-full',
+                      task.taskCategory === 'content' ? 'bg-blue-500' : 'bg-amber-500',
+                    )} />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">{task.taskTitle || task.title}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">{formatTaskTypeLabel(task.taskType)}</p>
+                    </div>
+                    {task.isOverdue && (
+                      <span className="ml-1 shrink-0 rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-600 uppercase">Overdue</span>
+                    )}
+                  </div>
+
+                  {/* Client */}
+                  <p className="truncate text-xs text-muted-foreground">
+                    {task.client?.name || task.client?.company || task.clientName || '—'}
+                  </p>
+
+                  {/* Assignees */}
+                  <p className="truncate text-xs text-muted-foreground">{assignees}</p>
+
+                  {/* Status */}
+                  <div>
+                    <StatusBadge tone={statusTone[normalizedStatus] || 'neutral'}>
+                      {normalizedStatus}
+                    </StatusBadge>
+                  </div>
+
+                  {/* Priority */}
+                  <div>
+                    <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
+                      {task.priority || '—'}
+                    </StatusBadge>
+                  </div>
+
+                  {/* Due Date */}
+                  <p className="text-right text-xs font-semibold text-foreground">
+                    {task.dueDate ? format(new Date(task.dueDate), 'MMM d') : '—'}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderWeekOrDayView = () => (
     <div className="grid gap-4 lg:grid-cols-7">
       {daysInView.map((day) => {
@@ -825,7 +953,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           : 'Switch between monthly, weekly, daily, and list views to manage deadlines, priorities, and follow-ups.'}
         actions={(
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <div className="grid grid-cols-4 rounded-2xl border border-border bg-card p-1 shadow-sm sm:inline-flex">
+            <div className="grid grid-cols-5 rounded-2xl border border-border bg-card p-1 shadow-sm sm:inline-flex">
               {VIEW_OPTIONS.map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
@@ -1006,6 +1134,8 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               <div key={item} className="h-40 animate-pulse rounded-[24px] border border-border bg-secondary/50" />
             ))}
           </div>
+        ) : view === 'agenda' ? (
+          renderAgendaView()
         ) : view === 'list' ? (
           listTasks.length ? (
             <div className="grid gap-4 xl:grid-cols-2">
@@ -1015,7 +1145,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             </div>
           ) : (
             <EmptyState
-              title="No tasks found for this list view"
+              title="No tasks found for this view"
               description="Adjust your filters or date range to surface the tasks you want to review."
               action={canManageCalendar ? (
                 <Button onClick={() => navigate('/tasks/new')}>
