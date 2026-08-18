@@ -106,6 +106,24 @@ const uniqueIds = (items = []) => [...new Set(items.filter(Boolean).map(toIdStri
 
 const isEmployeeLikeRole = (role) => ['employee', 'intern', 'editor', 'designer', 'adsManager'].includes(role);
 
+const buildUserTaskAssignmentOr = (userId) => [
+  { assignedTo: userId },
+  { scriptWriterAssigned: userId },
+  { videographerAssigned: userId },
+  { editorAssigned: userId },
+  { publisherAssigned: userId },
+];
+
+const isTaskAssignedToUser = (task, userId) => {
+  const id = toIdString(userId);
+  const assigneeIds = toArray(task.assignedTo).map(toIdString);
+  return assigneeIds.includes(id)
+    || toIdString(task.scriptWriterAssigned) === id
+    || toIdString(task.videographerAssigned) === id
+    || toIdString(task.editorAssigned) === id
+    || toIdString(task.publisherAssigned) === id;
+};
+
 const isTaskOverdue = (item) => {
   if (!item?.dueDate) return false;
   const completedStatuses = ['approved', 'done', 'completed'];
@@ -219,13 +237,7 @@ const buildScopedTaskFilter = async (req, baseFilter = {}) => {
   }
 
   if (isEmployeeLikeRole(req.user.role)) {
-    const teamProjects = await Project.find({ team: req.user._id }).select('_id');
-    const projectIds = teamProjects.map((project) => project._id);
-    const scopedOr = [
-      { assignedTo: req.user._id },
-      { createdBy: req.user._id },
-      ...(projectIds.length ? [{ project: { $in: projectIds } }] : []),
-    ];
+    const scopedOr = buildUserTaskAssignmentOr(req.user._id);
     return baseOr ? { ...filter, $and: [{ $or: baseOr }, { $or: scopedOr }] } : { ...filter, $or: scopedOr };
   }
 
@@ -250,22 +262,12 @@ const assertTaskAccess = async (req, task) => {
   if (req.user.role === 'superAdmin') return { allowed: true };
 
   const userId = req.user._id.toString();
-  const assigneeIds = toArray(task.assignedTo).map(toIdString);
-  const isAssigned = assigneeIds.includes(userId);
+  const isAssigned = isTaskAssignedToUser(task, userId);
   const isCreator = toIdString(task.createdBy) === userId;
 
   if (isEmployeeLikeRole(req.user.role)) {
-    if (isAssigned || isCreator) {
+    if (isAssigned) {
       return { allowed: true };
-    }
-
-    const projectId = toIdString(task.project);
-    if (projectId) {
-      const project = await Project.findById(projectId).select('team');
-      const isTeamMember = toArray(project?.team).some((member) => toIdString(member) === userId);
-      if (isTeamMember) {
-        return { allowed: true };
-      }
     }
 
     return { allowed: false, status: 403, message: 'Access denied' };
