@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-  ChevronLeft,
   Settings,
   Share2,
   Plus,
@@ -32,6 +31,10 @@ import toast from 'react-hot-toast';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
+import {
+  NotionDetailPage,
+  NotionTabs,
+} from '../../components/ui/NotionDetailTemplate';
 import { getAssetUrl } from '../../utils/assetUrl';
 import {
   Dialog,
@@ -916,40 +919,21 @@ const ProjectDetails = () => {
   // ─── Main Render ──────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Project Header */}
-      <div className="overflow-hidden rounded-[24px] border border-border bg-card p-6 text-foreground shadow-none">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start space-x-4">
-            <Link to="/projects" className="mt-1 rounded-xl border border-border bg-background p-2 text-foreground transition-colors hover:bg-secondary">
-              <ChevronLeft size={20} />
-            </Link>
-            <div>
-              <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-black tracking-tight text-foreground">{project.name}</h1>
-                <span className={`rounded-lg px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${projectStatusStyles[project.status] || projectStatusStyles.Planning}`}>
-                  {project.status}
-                </span>
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center font-medium">
-                  <Briefcase size={16} className="mr-2" />
-                  {project.client?.name}
-                </span>
-                <span className="h-1 w-1 rounded-full bg-border" />
-                <span className="flex items-center">
-                  <Calendar size={16} className="mr-2" />
-                  Due {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'TBD'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <div className="mr-4 flex -space-x-2">
+      <NotionDetailPage
+        backTo="/projects"
+        backLabel="Projects"
+        title={project.name}
+        subtitle={`${project.client?.name || 'No client'} | Due ${project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'TBD'}`}
+        icon={Briefcase}
+        status={project.status}
+        statusClassName={projectStatusStyles[project.status] || projectStatusStyles.Planning}
+        actions={(
+          <>
+            <div className="mr-2 flex -space-x-2">
               {(project.team || []).map((member) => (
                 <div
                   key={member._id}
-                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-slate-900 bg-white text-xs font-bold text-slate-900 shadow-sm"
+                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-card bg-secondary text-xs font-bold text-foreground shadow-sm"
                   title={member.name}
                 >
                   {member.avatar ? <img src={getAssetUrl(member.avatar)} alt="" /> : member.name.charAt(0)}
@@ -958,7 +942,7 @@ const ProjectDetails = () => {
               {user?.role !== 'client' && (
                 <button
                   onClick={() => openTaskModal()}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-slate-900 bg-primary text-white text-xs font-bold transition-transform hover:scale-110"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary text-xs font-bold text-white transition-transform hover:scale-110"
                   title="Add task"
                 >
                   <Plus size={14} />
@@ -967,23 +951,25 @@ const ProjectDetails = () => {
             </div>
             <button
               onClick={handleShare}
-              className="rounded-xl border border-white/15 bg-white/5 p-2.5 text-slate-200 transition-colors hover:bg-white/10"
+              className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              title="Share project"
             >
               <Share2 size={18} />
             </button>
             {user?.role !== 'client' && (
               <button
                 onClick={() => setShowProjectModal(true)}
-                className="rounded-xl border border-white/15 bg-white/5 p-2.5 text-slate-200 transition-colors hover:bg-white/10"
+                className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                title="Project settings"
               >
                 <Settings size={18} />
               </button>
             )}
-          </div>
-        </div>
-
-        <div className="mt-8 flex items-center gap-2 overflow-x-auto border-t border-white/10 pt-4">
-          {[
+          </>
+        )}
+      >
+        <NotionTabs
+          tabs={[
             { id: 'board', label: 'Task Board', icon: LayoutGrid },
             { id: 'list', label: 'List View', icon: List },
             { id: 'files', label: 'Files', icon: Paperclip },
@@ -991,20 +977,12 @@ const ProjectDetails = () => {
             { id: 'proposal', label: 'Proposal', icon: FileText },
             { id: 'budget', label: 'Budget', icon: IndianRupee },
             (user.role === 'superAdmin' || user.role === 'manager') && { id: 'access', label: 'Access', icon: ShieldCheck },
-          ].filter(Boolean).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center rounded-xl px-3 py-2 text-sm font-bold transition-all ${
-                activeTab === tab.id ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <tab.icon size={16} className="mr-2" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+          ].filter(Boolean)}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          className="border-0 bg-transparent p-0"
+        />
+      </NotionDetailPage>
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">

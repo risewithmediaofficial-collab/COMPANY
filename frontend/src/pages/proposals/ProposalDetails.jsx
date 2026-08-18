@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { ChevronLeft, CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle, Building2, UserCheck } from 'lucide-react';
+import { CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle, Building2, UserCheck } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-import { StatusBadge } from '../../components/ui/page';
 import { useClients } from '../../hooks/useClients';
 import { useLeads } from '../../hooks/useLeads';
 import {
@@ -17,6 +16,7 @@ import {
 } from '../../hooks/useProposals';
 import { formatINR } from '../../utils/currency';
 import LinksEditor, { LinksList } from '../../components/ui/LinksEditor';
+import { NotionDetailPage } from '../../components/ui/NotionDetailTemplate';
 
 const SERVICE_CATEGORIES = [
   { value: 'social_media', label: 'Social Media' },
@@ -207,52 +207,47 @@ const ProposalDetails = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Link to={isClient ? '/client/proposals' : '/proposals'} className="rounded-xl p-2 hover:bg-secondary">
-            <ChevronLeft size={20} />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold">{isNew ? 'Create Proposal' : proposal?.title}</h1>
-            {proposal?.proposalNumber ? (
-              <p className="text-sm text-muted-foreground">{proposal.proposalNumber}</p>
+      <NotionDetailPage
+        backTo={isClient ? '/client/proposals' : '/proposals'}
+        backLabel="Proposals"
+        title={isNew ? 'Create Proposal' : proposal?.title}
+        subtitle={proposal?.proposalNumber || form.proposalType || 'Service proposal'}
+        icon={FileText}
+        status={proposal?.status}
+        statusClassName={proposal?.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600'}
+        actions={(
+          <>
+            {isClient && proposal?.status === 'sent' ? (
+              <>
+                <Button onClick={() => acceptProposal.mutate(id)} disabled={acceptProposal.isPending}>
+                  <CheckCircle2 size={16} className="mr-2" /> Accept
+                </Button>
+                <Button variant="outline" onClick={() => rejectProposal.mutate(id)}>
+                  <XCircle size={16} className="mr-2" /> Reject
+                </Button>
+              </>
             ) : null}
-          </div>
-          {proposal?.status ? (
-            <StatusBadge tone={proposal.status === 'accepted' ? 'success' : 'info'}>{proposal.status}</StatusBadge>
-          ) : null}
-        </div>
-        <div className="flex gap-2">
-          {isClient && proposal?.status === 'sent' ? (
-            <>
-              <Button onClick={() => acceptProposal.mutate(id)} disabled={acceptProposal.isPending}>
-                <CheckCircle2 size={16} className="mr-2" /> Accept
-              </Button>
-              <Button variant="outline" onClick={() => rejectProposal.mutate(id)}>
-                <XCircle size={16} className="mr-2" /> Reject
-              </Button>
-            </>
-          ) : null}
-          {canManage && !editing && !isNew ? <Button onClick={() => setEditing(true)}>Edit</Button> : null}
-          {canManage && editing ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setEditing(false);
-                  if (isNew) navigate('/proposals');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={createProposal.isPending || updateProposal.isPending}>Save</Button>
-            </>
-          ) : null}
-          {canManage && isNew ? (
-            <Button onClick={handleSave} disabled={createProposal.isPending}>Create Proposal</Button>
-          ) : null}
-        </div>
-      </div>
+            {canManage && !editing && !isNew ? <Button onClick={() => setEditing(true)}>Edit</Button> : null}
+            {canManage && editing ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditing(false);
+                    if (isNew) navigate('/proposals');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={createProposal.isPending || updateProposal.isPending}>Save</Button>
+              </>
+            ) : null}
+            {canManage && isNew ? (
+              <Button onClick={handleSave} disabled={createProposal.isPending}>Create Proposal</Button>
+            ) : null}
+          </>
+        )}
+      />
 
       {editing && canManage ? (
         <div className="grid gap-4 md:grid-cols-2">
