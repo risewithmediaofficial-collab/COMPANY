@@ -22,7 +22,7 @@ export const useDomainRenewals = (filters = {}) => useQuery({
   queryKey: ['domain-renewals', filters],
   queryFn: async () => {
     const response = await api.get('/domain-renewals', { params: filters });
-    return response.data;
+    return response.data?.records || (Array.isArray(response.data) ? response.data : []);
   },
   staleTime: 60 * 1000,
 });

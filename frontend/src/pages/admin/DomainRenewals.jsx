@@ -273,8 +273,14 @@ export default function DomainRenewals() {
     }
   };
 
+  const renewalsList = useMemo(() => {
+    if (Array.isArray(renewals)) return renewals;
+    if (Array.isArray(renewals?.records)) return renewals.records;
+    return [];
+  }, [renewals]);
+
   const filteredRenewals = useMemo(() => {
-    return renewals.filter((item) => {
+    return renewalsList.filter((item) => {
       const q = search.toLowerCase();
       const name = (item.itemName || '').toLowerCase();
       const client = (item.clientId?.company || item.clientId?.name || '').toLowerCase();
@@ -286,16 +292,16 @@ export default function DomainRenewals() {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [renewals, search, statusFilter, typeFilter]);
+  }, [renewalsList, search, statusFilter, typeFilter]);
 
   // Statistics
-  const total = renewals.length;
-  const activeCount = renewals.filter((r) => r.status === 'active').length;
-  const expiringSoonCount = renewals.filter((r) => {
+  const total = renewalsList.length;
+  const activeCount = renewalsList.filter((r) => r.status === 'active').length;
+  const expiringSoonCount = renewalsList.filter((r) => {
     const days = getRemainingDays(r.expiryDate);
     return days !== null && days <= 30 && days >= 0 && r.status !== 'renewed';
   }).length;
-  const totalCost = renewals.reduce((sum, r) => sum + (Number(r.renewalCost) || 0), 0);
+  const totalCost = renewalsList.reduce((sum, r) => sum + (Number(r.renewalCost) || 0), 0);
 
   // Table Columns
   const tableColumns = [
