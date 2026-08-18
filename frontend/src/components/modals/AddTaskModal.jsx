@@ -2635,7 +2635,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent size="xl" noPadding className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
-        <DialogHeader className="px-6 py-4.5 border-b border-border bg-card shrink-0 pr-14 select-none">
+        <DialogHeader className="px-6 py-4.5 border-b border-border bg-card shrink-0 pr-24 select-none">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-primary/10 text-primary border border-primary/20 text-sm font-bold">

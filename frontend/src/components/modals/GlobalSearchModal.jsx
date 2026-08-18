@@ -87,7 +87,7 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent noPadding className="max-w-2xl p-0 gap-0">
-        <div className="border-b border-border p-4">
+        <div className="border-b border-border p-4 pr-24">
           <div className="flex items-center gap-3">
             <Search size={18} className="text-muted-foreground" />
             <Input

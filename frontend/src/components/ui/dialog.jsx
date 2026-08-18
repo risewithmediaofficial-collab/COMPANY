@@ -26,8 +26,8 @@ export const DialogContent = React.forwardRef(
       sm: 'sm:max-w-md',
       default: 'sm:max-w-xl md:max-w-2xl',
       lg: 'sm:max-w-2xl md:max-w-3xl',
-      xl: 'sm:max-w-3xl md:max-w-4xl',
-      full: 'sm:max-w-[85vw]',
+      xl: 'sm:max-w-3xl md:max-w-4xl xl:max-w-5xl',
+      full: 'sm:max-w-[88vw]',
     };
 
     // For side drawers: strip any legacy max-h or rounding constraints so it spans 100% full screen
@@ -37,8 +37,8 @@ export const DialogContent = React.forwardRef(
 
     return (
       <DialogPrimitive.Portal>
-        {/* Backdrop Overlay (No Blur, Clean Transparent Dim) */}
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/25 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-200" />
+        {/* Backdrop Overlay (Clean Transparent Dim with Subtle Blur) */}
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/35 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-200" />
 
         {isSide ? (
           /* ── NOTION FULL-SCREEN HEIGHT SIDE PEEK / SLIDE-OVER FROM RIGHT ── */
@@ -53,13 +53,13 @@ export const DialogContent = React.forwardRef(
             onEscapeKeyDown={props.onEscapeKeyDown || ((e) => e.preventDefault())}
             {...props}
           >
-            {/* Minimalist Notion Close Bar */}
+            {/* Notion-Style Header Close Action Group */}
             {!hideCloseButton && (
-              <div className="absolute right-4 top-4 z-[100] flex items-center gap-1.5">
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-secondary/80 border border-border text-[10px] font-mono text-muted-foreground">
+              <div className="absolute right-4 top-3.5 sm:right-6 sm:top-4 z-50 flex items-center gap-2">
+                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
                   ESC
                 </kbd>
-                <DialogPrimitive.Close className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/60 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                <DialogPrimitive.Close className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
                   <X size={15} className="stroke-[2.5]" />
                   <span className="sr-only">Close</span>
                 </DialogPrimitive.Close>
@@ -89,18 +89,23 @@ export const DialogContent = React.forwardRef(
               onEscapeKeyDown={props.onEscapeKeyDown || ((e) => e.preventDefault())}
               {...props}
             >
+              {!hideCloseButton && (
+                <div className="absolute right-3.5 top-3.5 z-50 flex items-center gap-1.5">
+                  <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 rounded bg-secondary/80 border border-border text-[9px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                    ESC
+                  </kbd>
+                  <DialogPrimitive.Close className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-border/60 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none">
+                    <X size={14} className="stroke-[2.5]" />
+                    <span className="sr-only">Close</span>
+                  </DialogPrimitive.Close>
+                </div>
+              )}
               {noPadding ? (
                 children
               ) : (
                 <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6 custom-scrollbar">
                   {children}
                 </div>
-              )}
-              {!hideCloseButton && (
-                <DialogPrimitive.Close className="absolute right-3.5 top-3.5 flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-border/60 transition-all cursor-pointer">
-                  <X size={14} className="stroke-[2.5]" />
-                  <span className="sr-only">Close</span>
-                </DialogPrimitive.Close>
               )}
             </DialogPrimitive.Content>
           </div>
@@ -114,7 +119,7 @@ DialogContent.displayName = 'DialogContent';
 export const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      'pb-3 mb-3 border-b border-border/60 space-y-1 text-left pr-14',
+      'sticky top-0 bg-card/95 backdrop-blur-md z-40 -mt-5 -mx-5 px-5 pt-4 pb-3.5 sm:-mt-7 sm:-mx-7 sm:px-7 sm:pt-4 sm:pb-3.5 border-b border-border/70 space-y-1 text-left pr-24 select-none',
       className
     )}
     {...props}

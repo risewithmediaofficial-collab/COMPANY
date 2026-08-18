@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ProgressUpdateForm } from './ProgressUpdateForm';
 import { useAddCompletedFiles, useTask, useUpdateTaskStatus } from '../../hooks/useTasks';
 import { AddTaskModal } from '../modals/AddTaskModal';
-import { Edit, Plus } from 'lucide-react';
+import { CheckSquare, Edit, Plus } from 'lucide-react';
 import {
   formatTaskTypeLabel,
   isWebsiteTaskType,
@@ -130,18 +130,38 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isLoading ? 'Loading task...' : task?.taskTitle || task?.title || 'Task details'}</DialogTitle>
+      <DialogContent size="xl" noPadding className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
+        <DialogHeader className="px-6 py-4.5 border-b border-border bg-card/95 backdrop-blur-sm shrink-0 pr-24 select-none">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+                <CheckSquare size={17} />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-base sm:text-lg font-bold text-foreground truncate">
+                  {isLoading ? 'Loading task...' : task?.taskTitle || task?.title || 'Task Details'}
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground mt-0.5 truncate">
+                  {task?.client?.name || task?.clientName ? `Client: ${task.client?.name || task.clientName}` : 'Task overview, deliverables, files & status updates'}
+                </DialogDescription>
+              </div>
+            </div>
+            {task?.priority && (
+              <Badge variant="outline" className="hidden sm:inline-flex text-[11px] font-semibold shrink-0">
+                {task.priority} Priority
+              </Badge>
+            )}
+          </div>
         </DialogHeader>
 
-        {isLoading ? (
-          <div className="space-y-4">
-            <div className="h-32 animate-pulse rounded-3xl bg-muted/60" />
-            <div className="h-64 animate-pulse rounded-3xl bg-muted/60" />
-          </div>
-        ) : task ? (
-          <div className="space-y-6">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-7 pb-12 custom-scrollbar space-y-6">
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-32 animate-pulse rounded-3xl bg-muted/60" />
+              <div className="h-64 animate-pulse rounded-3xl bg-muted/60" />
+            </div>
+          ) : task ? (
+            <div className="space-y-6">
             <Section title="Overview">
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <Field label="Client" value={task.client?.name || task.client?.company || task.clientName} />
@@ -325,6 +345,8 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
             Task not found.
           </div>
         )}
+        </div>
+
         <AddTaskModal
           open={isEditing}
           onOpenChange={(val) => {
