@@ -322,81 +322,139 @@ const Tasks = () => {
         )}
 
         {/* Board View (Kanban by Task Status) */}
-        {currentView === 'board' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-            {KANBAN_STATUSES.map((status) => {
-              const statusTasks = normalizedTasks.filter((t) => (t.status || 'To Do') === status);
-              return (
-                <div key={status} className="bg-secondary/20 rounded-2xl border border-border/80 p-3 space-y-3">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
-                    <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
-                      {statusTasks.length}
-                    </span>
-                  </div>
+        {(currentView === 'board' || currentView === 'kanban') && (
+          <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+            <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
+              {[
+                { key: 'To Do', label: 'To Do', badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400', surface: 'border-border bg-card/60' },
+                { key: 'On Process', label: 'In Process', badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', surface: 'border-blue-500/20 bg-blue-500/5' },
+                { key: 'Waiting for Client', label: 'Waiting for Client', badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', surface: 'border-amber-500/20 bg-amber-500/5' },
+                { key: 'Review Required', label: 'Review Required', badge: 'bg-purple-500/10 text-purple-600 dark:text-purple-400', surface: 'border-purple-500/20 bg-purple-500/5' },
+                { key: 'Completed', label: 'Completed', badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', surface: 'border-emerald-500/20 bg-emerald-500/5' },
+              ].map((column) => {
+                const columnTasks = normalizedTasks.filter((t) => {
+                  const s = t.status || 'To Do';
+                  if (column.key === 'Completed') return ['Completed', 'Approved', 'done', 'completed'].includes(s);
+                  if (column.key === 'On Process') return ['On Process', 'in_progress', 'on_process'].includes(s);
+                  if (column.key === 'Waiting for Client') return ['Waiting for Client', 'waiting_for_client'].includes(s);
+                  if (column.key === 'Review Required') return ['Review Required', 'review_required', 'Rework', 'Rework Completed', 'rework'].includes(s);
+                  if (column.key === 'To Do') return ['To Do', 'todo', ''].includes(s) || (!['On Process', 'Waiting for Client', 'Review Required', 'Completed', 'Approved', 'Rework'].includes(s));
+                  return s === column.key;
+                });
 
-                  <div className="space-y-2">
-                    {statusTasks.map((task) => (
-                      <div
-                        key={task._id}
-                        onClick={() => handleRowClick(task)}
-                        className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2 group shadow-sm"
-                      >
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                            {task.taskTitle || task.title}
-                          </h4>
-                          <span className={`px-2 py-0.2 rounded-md text-[9px] font-bold uppercase ${
-                            task.priority === 'Urgent' || task.priority === 'High'
-                              ? 'bg-rose-500/10 text-rose-600'
-                              : 'bg-secondary text-muted-foreground'
-                          }`}>
-                            {task.priority || 'Med'}
-                          </span>
-                        </div>
+                return (
+                  <div
+                    key={column.key}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const taskId = e.dataTransfer.getData('taskId');
+                      if (taskId) {
+                        updateStatusMutation.mutate({ id: taskId, status: column.key });
+                      }
+                    }}
+                    className={`flex flex-col min-h-[520px] rounded-2xl border ${column.surface} p-3 space-y-3 transition-colors`}
+                  >
+                    <div className="flex items-center justify-between px-1.5 py-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wider">{column.label}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${column.badge}`}>
+                          {columnTasks.length}
+                        </span>
+                      </div>
+                      {canCreate && (
+                        <button
+                          onClick={() => setShowAddModal(true)}
+                          className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+                          title={`Add task to ${column.label}`}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      )}
+                    </div>
 
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {task.client?.name || task.clientName || 'Internal'}
-                        </p>
+                    <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] pr-0.5 custom-scrollbar">
+                      {columnTasks.map((task) => (
+                        <div
+                          key={task._id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('taskId', task._id);
+                          }}
+                          onClick={() => handleRowClick(task)}
+                          className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                              {task.taskTitle || task.title}
+                            </h4>
+                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase shrink-0 ${
+                              task.priority === 'Urgent' || task.priority === 'High'
+                                ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                : 'bg-secondary text-muted-foreground'
+                            }`}>
+                              {task.priority || 'Medium'}
+                            </span>
+                          </div>
 
-                        {/* Pipeline sub-assignees badges */}
-                        {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
-                          <div className="flex flex-wrap gap-1 text-[9px] pt-1">
-                            {task.scriptWriterAssigned && (
-                              <span className="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 font-bold">✍️ Script</span>
-                            )}
-                            {task.videographerAssigned && (
-                              <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 font-bold">🎥 Shoot</span>
-                            )}
-                            {task.editorAssigned && (
-                              <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 font-bold">✂️ Edit</span>
-                            )}
-                            {task.publisherAssigned && (
-                              <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 font-bold">📱 Post</span>
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                            <span className="truncate max-w-[150px] font-medium text-foreground/80">
+                              {task.client?.company || task.client?.name || task.clientName || 'RiseWithMedia'}
+                            </span>
+                            {task.taskType && (
+                              <span className="px-1.5 py-0.5 rounded bg-secondary text-[10px] font-semibold text-muted-foreground">
+                                {formatTaskTypeLabel(task.taskType)}
+                              </span>
                             )}
                           </div>
-                        )}
 
-                        <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                          <span>
-                            {task.dueDate ? `Due ${new Date(task.dueDate).toLocaleDateString()}` : 'No date'}
-                          </span>
-                          <span className="group-hover:text-primary flex items-center gap-0.5">
-                            Open <ArrowRight size={10} />
-                          </span>
+                          {/* Pipeline production sub-assignees badges */}
+                          {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                            <div className="flex flex-wrap gap-1 text-[9px] pt-1">
+                              {task.scriptWriterAssigned && (
+                                <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1">
+                                  ✍️ Script
+                                </span>
+                              )}
+                              {task.videographerAssigned && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                                  🎥 Shoot
+                                </span>
+                              )}
+                              {task.editorAssigned && (
+                                <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold flex items-center gap-1">
+                                  ✂️ Edit
+                                </span>
+                              )}
+                              {task.publisherAssigned && (
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                  📱 Post
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
+                            <span>
+                              {task.dueDate ? `Due ${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'No deadline'}
+                            </span>
+                            <span className="group-hover:text-primary font-semibold flex items-center gap-0.5">
+                              Open <ArrowRight size={10} />
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
 
-                    {statusTasks.length === 0 && (
-                      <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
-                        No {status} tasks
-                      </div>
-                    )}
+                      {columnTasks.length === 0 && (
+                        <div className="py-12 text-center text-xs text-muted-foreground/60 border border-dashed border-border/70 rounded-xl">
+                          No {column.label} tasks
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </DatabaseView>

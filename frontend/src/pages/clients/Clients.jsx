@@ -231,7 +231,7 @@ const Clients = () => {
         )}
 
         {/* Board View (Kanban by Client Status) */}
-        {currentView === 'board' && (
+        {(currentView === 'board' || currentView === 'kanban') && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
             {STATUS_COLUMNS.map((status) => {
               const statusClients = clients.filter((c) => (c.status || 'Prospect') === status);

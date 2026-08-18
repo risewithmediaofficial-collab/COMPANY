@@ -259,7 +259,7 @@ const Projects = () => {
         )}
 
         {/* Board View (Kanban by Project Status) */}
-        {currentView === 'board' && (
+        {(currentView === 'board' || currentView === 'kanban') && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {STATUS_COLUMNS.map((status) => {
               const statusProjects = filteredProjects.filter((p) => (p.status || 'Planning') === status);

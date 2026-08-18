@@ -25,7 +25,7 @@ const DEFAULT_VIEW_META = {
  */
 export function DatabaseView({
   viewKey,
-  views = ['table', 'kanban'],
+  views = ['table', 'board'],
   activeView: controlledActiveView,
   onViewChange,
   items = [],
@@ -54,7 +54,7 @@ export function DatabaseView({
   const [internalView, setInternalView] = useState(() => {
     if (viewKey) {
       const saved = localStorage.getItem(viewKey);
-      if (saved && normalizedViews.some((v) => v.id === saved)) {
+      if (saved && normalizedViews.some((v) => v.id === saved || (['board', 'kanban'].includes(v.id) && ['board', 'kanban'].includes(saved)))) {
         return saved;
       }
     }
@@ -87,7 +87,7 @@ export function DatabaseView({
         <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
           {normalizedViews.map((v) => {
             const Icon = v.icon;
-            const isSelected = currentView === v.id;
+            const isSelected = currentView === v.id || (['board', 'kanban'].includes(v.id) && ['board', 'kanban'].includes(currentView));
             return (
               <button
                 key={v.id}
