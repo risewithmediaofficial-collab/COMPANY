@@ -109,7 +109,7 @@ const InfluencersDashboard = () => {
           <div>
             <p className="font-bold text-foreground">{item.name}</p>
             <p className="text-[11px] text-muted-foreground">
-              {item.handle ? `@${item.handle}` : item.city || 'No handle'}
+              {item.handle ? `@${item.handle}` : item.cityLocation || 'No handle'}
             </p>
           </div>
         </div>
@@ -143,12 +143,12 @@ const InfluencersDashboard = () => {
       ),
     },
     {
-      key: 'city',
+      key: 'cityLocation',
       label: 'Location',
       render: (item) => (
         <span className="text-xs text-muted-foreground flex items-center gap-1">
           <MapPin size={11} className="text-primary" />
-          <span>{item.city || '—'}</span>
+          <span>{item.cityLocation || '—'}</span>
         </span>
       ),
     },
@@ -231,7 +231,7 @@ const InfluencersDashboard = () => {
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">City:</span>
-          <span className="font-medium text-foreground">{item.city || '—'}</span>
+          <span className="font-medium text-foreground">{item.cityLocation || '—'}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Niche:</span>
@@ -331,8 +331,11 @@ const InfluencersDashboard = () => {
 
       {showAddModal && (
         <AddEditInfluencerModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
+          open={showAddModal}
+          onOpenChange={(val) => {
+            setShowAddModal(val);
+            if (!val) setSelectedInfluencer(null);
+          }}
           influencer={selectedInfluencer}
           defaultType={activeTab !== 'analytics' ? activeTab : 'Local Influencer'}
         />
@@ -340,8 +343,10 @@ const InfluencersDashboard = () => {
 
       {showDetailModal && selectedInfluencer && (
         <InfluencerDetailModal
-          isOpen={showDetailModal}
-          onClose={() => setShowDetailModal(false)}
+          open={showDetailModal}
+          onOpenChange={(val) => {
+            setShowDetailModal(val);
+          }}
           influencer={selectedInfluencer}
           onEdit={() => {
             setShowDetailModal(false);
