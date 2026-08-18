@@ -10,8 +10,10 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { useClients } from '../../hooks/useClients';
+import { useLeads } from '../../hooks/useLeads';
 import { useCreateProposal, useUpdateProposal } from '../../hooks/useProposals';
 import LinksEditor from '../ui/LinksEditor';
+import { Building2, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SERVICE_CATEGORIES = [
@@ -27,7 +29,9 @@ const SERVICE_CATEGORIES = [
 
 const emptyForm = {
   title: '',
+  recipientType: 'client', // 'client' | 'lead'
   client: '',
+  lead: '',
   serviceCategory: 'custom',
   proposalType: '',
   description: '',
@@ -58,6 +62,7 @@ const Field = ({ label, required, children }) => (
 export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
   const [form, setForm] = useState(emptyForm);
   const { data: clients = [] } = useClients();
+  const { data: leads = [] } = useLeads();
   const createProposal = useCreateProposal();
   const updateProposal = useUpdateProposal();
   const isEditing = Boolean(proposal);
@@ -65,9 +70,12 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
 
   useEffect(() => {
     if (proposal && open) {
+      const isLead = Boolean(proposal.lead || proposal.recipientType === 'lead');
       setForm({
         title: proposal.title || '',
+        recipientType: isLead ? 'lead' : 'client',
         client: proposal.client?._id || proposal.client || '',
+        lead: proposal.lead?._id || proposal.lead || '',
         serviceCategory: proposal.serviceCategory || 'custom',
         proposalType: proposal.proposalType || '',
         description: proposal.description || '',
@@ -98,8 +106,12 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
       toast.error('Proposal title is required');
       return;
     }
-    if (!form.client) {
+    if (form.recipientType === 'client' && !form.client) {
       toast.error('Please select a client');
+      return;
+    }
+    if (form.recipientType === 'lead' && !form.lead) {
+      toast.error('Please select a lead');
       return;
     }
     if (!form.amount || Number(form.amount) <= 0) {
@@ -109,6 +121,8 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
 
     const payload = {
       ...form,
+      client: form.recipientType === 'client' ? form.client : null,
+      lead: form.recipientType === 'lead' ? form.lead : null,
       amount: Number(form.amount),
       revisionLimit: Number(form.revisionLimit) || 3,
     };
@@ -129,7 +143,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Proposal' : 'Create Proposal'}</DialogTitle>
           <DialogDescription>
-            Fill in the proposal details below. The client can view and accept it from their portal.
+            Fill in the proposal details below. Deliver directly to active clients or pitching leads.
           </DialogDescription>
         </DialogHeader>
 
@@ -143,19 +157,78 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
               />
             </Field>
 
-            <Field label="Client" required>
-              <select className="app-input w-full" value={form.client} onChange={(e) => set('client', e.target.value)}>
-                <option value="">Select client</option>
-                {clients.map((client) => (
-                  <option key={client._id} value={client._id}>
-                    {client.company || client.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {/* Choose Type: Clients or Leads */}
+            <div className="space-y-1.5">
+              <span className="text-sm font-semibold text-foreground">
+                Choose Recipient Type <span className="text-destructive">*</span>
+              </span>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-secondary/50 rounded-xl border border-border">
+                <button
+                  type="button"
+                  onClick={() => set('recipientType', 'client')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                    form.recipientType === 'client'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <Building2 size={13} />
+                  Client
+                </button>
+                <button
+                  type="button"
+                  onClick={() => set('recipientType', 'lead')}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                    form.recipientType === 'lead'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <UserCheck size={13} />
+                  Lead
+                </button>
+              </div>
+            </div>
+
+            {/* Dynamic Dropdown: Clients or Leads */}
+            {form.recipientType === 'client' ? (
+              <Field label="Select Client" required>
+                <select
+                  className="app-input w-full rounded-xl border border-border/80 bg-background px-3.5 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={form.client}
+                  onChange={(e) => set('client', e.target.value)}
+                >
+                  <option value="">Select client</option>
+                  {clients.map((client) => (
+                    <option key={client._id} value={client._id}>
+                      {client.company || client.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : (
+              <Field label="Select Lead / Prospect" required>
+                <select
+                  className="app-input w-full rounded-xl border border-border/80 bg-background px-3.5 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  value={form.lead}
+                  onChange={(e) => set('lead', e.target.value)}
+                >
+                  <option value="">Select lead</option>
+                  {leads.map((lead) => (
+                    <option key={lead._id} value={lead._id}>
+                      {lead.name} {lead.company ? `(${lead.company})` : ''} {lead.email ? `- ${lead.email}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
 
             <Field label="Service Category" required>
-              <select className="app-input w-full" value={form.serviceCategory} onChange={(e) => set('serviceCategory', e.target.value)}>
+              <select
+                className="app-input w-full rounded-xl border border-border/80 bg-background px-3.5 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                value={form.serviceCategory}
+                onChange={(e) => set('serviceCategory', e.target.value)}
+              >
                 {SERVICE_CATEGORIES.map((item) => (
                   <option key={item.value} value={item.value}>{item.label}</option>
                 ))}

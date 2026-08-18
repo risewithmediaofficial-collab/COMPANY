@@ -79,19 +79,34 @@ const Proposals = () => {
     },
     {
       key: 'client',
-      label: 'Client / Target',
-      render: (row) => (
-        <span className="font-semibold text-xs text-foreground">
-          {row.client?.company || row.client?.name || 'Prospect'}
-        </span>
-      ),
+      label: 'Recipient / Client',
+      render: (row) => {
+        if (row.recipientType === 'lead' || row.lead) {
+          return (
+            <div className="flex items-center gap-1.5">
+              <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 font-bold text-[10px]">Lead</span>
+              <span className="font-semibold text-xs text-foreground">
+                {row.lead?.name || row.lead?.company || 'Lead Prospect'}
+              </span>
+            </div>
+          );
+        }
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 font-bold text-[10px]">Client</span>
+            <span className="font-semibold text-xs text-foreground">
+              {row.client?.company || row.client?.name || 'Client Account'}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: 'totalAmount',
       label: 'Proposal Value',
       render: (row) => (
         <span className="font-bold text-xs text-foreground">
-          {row.totalAmount ? formatINR(row.totalAmount) : '—'}
+          {row.amount || row.totalAmount ? formatINR(row.amount || row.totalAmount) : '—'}
         </span>
       ),
     },
@@ -100,7 +115,7 @@ const Proposals = () => {
       label: 'Valid Until',
       render: (row) => (
         <span className="text-xs text-muted-foreground">
-          {row.validUntil ? new Date(row.validUntil).toLocaleDateString() : 'No expiry'}
+          {row.validUntil || row.endDate ? new Date(row.validUntil || row.endDate).toLocaleDateString() : 'No expiry'}
         </span>
       ),
     },
@@ -143,21 +158,23 @@ const Proposals = () => {
           {row.proposalNumber || 'PROP'}
         </span>
         <span className="text-xs font-bold text-emerald-600">
-          {row.totalAmount ? formatINR(row.totalAmount) : '—'}
+          {row.amount || row.totalAmount ? formatINR(row.amount || row.totalAmount) : '—'}
         </span>
       </div>
 
       <div>
         <h4 className="font-bold text-sm text-foreground line-clamp-1">{row.title}</h4>
         <p className="text-xs text-muted-foreground mt-0.5">
-          🏢 {row.client?.company || row.client?.name || 'Prospect'}
+          {row.recipientType === 'lead' || row.lead
+            ? `🎯 Lead: ${row.lead?.name || 'Lead'}${row.lead?.company ? ` (${row.lead.company})` : ''}`
+            : `🏢 Client: ${row.client?.company || row.client?.name || 'Client'}`}
         </p>
       </div>
 
-      {row.validUntil && (
+      {(row.validUntil || row.endDate) && (
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground pt-1.5 border-t border-border/40">
           <Calendar size={11} className="text-primary" />
-          <span>Valid till: {new Date(row.validUntil).toLocaleDateString()}</span>
+          <span>Valid till: {new Date(row.validUntil || row.endDate).toLocaleDateString()}</span>
         </div>
       )}
     </div>

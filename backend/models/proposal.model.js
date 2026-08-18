@@ -10,7 +10,13 @@ const proposalSchema = new mongoose.Schema(
     brandId: { type: mongoose.Schema.Types.ObjectId, ref: 'BrandWorkspace' },
     proposalNumber: { type: String, unique: true, sparse: true },
     title: { type: String, required: true, trim: true },
-    client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+    recipientType: {
+      type: String,
+      enum: ['client', 'lead'],
+      default: 'client',
+    },
+    client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default: null },
+    lead: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead', default: null },
     serviceCategory: {
       type: String,
       enum: ['social_media', 'website', 'branding', 'seo', 'ads', 'video_editing', 'content_creation', 'custom'],

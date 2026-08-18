@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { ChevronLeft, CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle, Building2, UserCheck } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { StatusBadge } from '../../components/ui/page';
 import { useClients } from '../../hooks/useClients';
+import { useLeads } from '../../hooks/useLeads';
 import {
   useProposal,
   useCreateProposal,
@@ -38,6 +39,7 @@ const ProposalDetails = () => {
 
   const { data: proposal, isLoading } = useProposal(isNew ? null : id);
   const { data: clients = [] } = useClients();
+  const { data: leads = [] } = useLeads();
   const createProposal = useCreateProposal();
   const updateProposal = useUpdateProposal();
   const acceptProposal = useAcceptProposal();
@@ -46,7 +48,9 @@ const ProposalDetails = () => {
   const [editing, setEditing] = useState(isNew);
   const [form, setForm] = useState({
     title: '',
+    recipientType: 'client', // 'client' | 'lead'
     client: '',
+    lead: '',
     serviceCategory: 'custom',
     proposalType: '',
     description: '',
@@ -66,9 +70,12 @@ const ProposalDetails = () => {
 
   useEffect(() => {
     if (proposal && !isNew) {
+      const isLead = Boolean(proposal.lead || proposal.recipientType === 'lead');
       setForm({
         title: proposal.title || '',
+        recipientType: isLead ? 'lead' : 'client',
         client: proposal.client?._id || proposal.client || '',
+        lead: proposal.lead?._id || proposal.lead || '',
         serviceCategory: proposal.serviceCategory || 'custom',
         proposalType: proposal.proposalType || '',
         description: proposal.description || '',
@@ -91,6 +98,8 @@ const ProposalDetails = () => {
   const handleSave = async () => {
     const payload = {
       ...form,
+      client: form.recipientType === 'client' ? form.client : null,
+      lead: form.recipientType === 'lead' ? form.lead : null,
       amount: Number(form.amount) || 0,
       revisionLimit: Number(form.revisionLimit) || 3,
     };
@@ -116,6 +125,10 @@ const ProposalDetails = () => {
     </div>
   );
 
+  const recipientLabel = proposal?.recipientType === 'lead' || proposal?.lead
+    ? `🎯 Lead: ${proposal?.lead?.name || 'Lead'}${proposal?.lead?.company ? ` (${proposal.lead.company})` : ''}`
+    : `🏢 Client: ${proposal?.client?.company || proposal?.client?.name || 'Client'}`;
+
   const proposalPages = proposal ? [
     {
       page: '01',
@@ -124,7 +137,7 @@ const ProposalDetails = () => {
       content: (
         <>
           <div className="grid gap-4 sm:grid-cols-2">
-            {paperField('Client', proposal.client?.company || proposal.client?.name)}
+            {paperField('Recipient / Target', recipientLabel)}
             {paperField('Proposal Number', proposal.proposalNumber)}
             {paperField('Service Category', proposal.serviceCategory)}
             {paperField('Project Timeline', proposal.timeline)}
@@ -244,12 +257,61 @@ const ProposalDetails = () => {
       {editing && canManage ? (
         <div className="grid gap-4 md:grid-cols-2">
           <Input placeholder="Proposal Title *" value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} />
-          <select className="app-input" value={form.client} onChange={(e) => setForm((current) => ({ ...current, client: e.target.value }))}>
-            <option value="">Select client *</option>
-            {clients.map((client) => (
-              <option key={client._id} value={client._id}>{client.company || client.name}</option>
-            ))}
-          </select>
+          
+          {/* Choose Type: Clients or Leads */}
+          <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl border border-border">
+            <button
+              type="button"
+              onClick={() => setForm((current) => ({ ...current, recipientType: 'client' }))}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                form.recipientType === 'client'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              <Building2 size={13} />
+              Client
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm((current) => ({ ...current, recipientType: 'lead' }))}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
+                form.recipientType === 'lead'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              <UserCheck size={13} />
+              Lead
+            </button>
+          </div>
+
+          {/* Dynamic Dropdown: Clients or Leads */}
+          {form.recipientType === 'client' ? (
+            <select
+              className="app-input"
+              value={form.client}
+              onChange={(e) => setForm((current) => ({ ...current, client: e.target.value }))}
+            >
+              <option value="">Select client *</option>
+              {clients.map((client) => (
+                <option key={client._id} value={client._id}>{client.company || client.name}</option>
+              ))}
+            </select>
+          ) : (
+            <select
+              className="app-input"
+              value={form.lead}
+              onChange={(e) => setForm((current) => ({ ...current, lead: e.target.value }))}
+            >
+              <option value="">Select lead *</option>
+              {leads.map((lead) => (
+                <option key={lead._id} value={lead._id}>
+                  {lead.name} {lead.company ? `(${lead.company})` : ''} {lead.email ? `- ${lead.email}` : ''}
+                </option>
+              ))}
+            </select>
+          )}
           <select className="app-input" value={form.serviceCategory} onChange={(e) => setForm((current) => ({ ...current, serviceCategory: e.target.value }))}>
             {SERVICE_CATEGORIES.map((service) => (
               <option key={service.value} value={service.value}>{service.label}</option>

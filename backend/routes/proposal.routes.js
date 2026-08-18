@@ -6,6 +6,7 @@ import express from 'express';
 import { protect } from '../middleware/auth.middleware.js';
 import Proposal from '../models/proposal.model.js';
 import Client from '../models/client.model.js';
+import Lead from '../models/lead.model.js';
 import Notification from '../models/notification.model.js';
 
 const router = express.Router();
@@ -21,11 +22,12 @@ const getClientRecordForUser = async (user) => {
 router.get('/', protect, async (req, res) => {
   try {
     const user = req.user;
-    const { client, status } = req.query;
+    const { client, lead, status } = req.query;
     const query = {};
 
     if (user.organizationId) query.organizationId = user.organizationId;
     if (client) query.client = client;
+    if (lead) query.lead = lead;
     if (status) query.status = status;
 
     if (isAdmin(user)) {
@@ -45,6 +47,7 @@ router.get('/', protect, async (req, res) => {
 
     const proposals = await Proposal.find(query)
       .populate('client', 'name email phone company')
+      .populate('lead', 'name email phone company')
       .populate('createdBy', 'name email')
       .populate('acceptedBy', 'name email')
       .sort({ createdAt: -1 });
@@ -66,6 +69,7 @@ router.get('/client/:clientId', protect, async (req, res) => {
       ...(req.user.organizationId ? { organizationId: req.user.organizationId } : {}),
     })
       .populate('client', 'name email phone company')
+      .populate('lead', 'name email phone company')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 });
 
@@ -83,6 +87,7 @@ router.get('/client/:clientId/accepted', protect, async (req, res) => {
       ...(req.user.organizationId ? { organizationId: req.user.organizationId } : {}),
     })
       .populate('client', 'name email phone company')
+      .populate('lead', 'name email phone company')
       .populate('createdBy', 'name email')
       .populate('acceptedBy', 'name email')
       .sort({ acceptedAt: -1 });
@@ -97,6 +102,7 @@ router.get('/:id', protect, async (req, res) => {
   try {
     const proposal = await Proposal.findById(req.params.id)
       .populate('client', 'name email phone company')
+      .populate('lead', 'name email phone company')
       .populate('createdBy', 'name email')
       .populate('acceptedBy', 'name email');
 
@@ -128,6 +134,7 @@ router.post('/', protect, async (req, res) => {
     });
 
     await proposal.populate('client', 'name email phone company');
+    await proposal.populate('lead', 'name email phone company');
     await proposal.populate('createdBy', 'name email');
 
     res.status(201).json({ success: true, message: 'Proposal created successfully', proposal });
@@ -151,7 +158,7 @@ router.put('/:id', protect, async (req, res) => {
 
     Object.assign(proposal, req.body, { updatedBy: user._id });
     await proposal.save();
-    await proposal.populate(['client', 'createdBy'], 'name email phone company');
+    await proposal.populate(['client', 'lead', 'createdBy'], 'name email phone company');
 
     res.json({ success: true, message: 'Proposal updated successfully', proposal });
   } catch (error) {
