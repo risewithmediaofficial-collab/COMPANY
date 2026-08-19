@@ -36,33 +36,33 @@
   }
 
   .dark {
-    --background: 220 30% 10%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 29% 14%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 7.5%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 29% 14%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 7.5%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 218 28% 18%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 218 27% 20%;
-    --muted-foreground: 215 20% 72%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 218 28% 18%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 67% 52%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 218 24% 22%;
-    --input: 218 24% 22%;
-    --ring: 214 95% 68%;
+    --border: 0 0% 14.5%;
+    --input: 0 0% 14.5%;
+    --ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -79,12 +79,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  :root body {
     background-image:
-      radial-gradient(circle at top left, hsl(var(--primary) / 0.13), transparent 26rem),
-      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--secondary) / 0.48));
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.08), transparent 26rem),
+      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--secondary) / 0.4));
+  }
+  .dark body {
+    background-image: none;
+    background-color: hsl(0 0% 4%);
   }
   ::selection {
-    background: hsl(var(--primary) / 0.18);
+    background: hsl(var(--primary) / 0.25);
     color: hsl(var(--foreground));
   }
   :focus-visible {

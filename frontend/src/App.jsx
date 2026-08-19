@@ -72,7 +72,7 @@ import SMMTeam from './pages/smm/Team';
 
 // ─── Shared Loading Screen ────────────────────────────────────────────────────
 const LoadingScreen = () => (
-  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#090a0f] text-white">
+  <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0a0a0a] text-white">
     <div className="relative flex items-center justify-center">
       <div className="h-16 w-16 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500 border-r-indigo-500" />
       <div className="absolute h-10 w-10 animate-ping rounded-full bg-indigo-500/25" />
