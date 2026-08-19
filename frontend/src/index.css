@@ -36,33 +36,33 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 220 30% 10%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222 29% 14%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 29% 14%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 218 28% 18%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 218 27% 20%;
+    --muted-foreground: 215 20% 72%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 218 28% 18%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 67% 52%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 218 24% 22%;
+    --input: 218 24% 22%;
+    --ring: 214 95% 68%;
   }
 }
 
@@ -80,8 +80,8 @@
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "rlig" 1, "calt" 1;
     background-image:
-      radial-gradient(circle at top left, hsl(var(--primary) / 0.07), transparent 26rem),
-      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--secondary) / 0.35));
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.13), transparent 26rem),
+      linear-gradient(to bottom, hsl(var(--background)), hsl(var(--secondary) / 0.48));
   }
   ::selection {
     background: hsl(var(--primary) / 0.18);
