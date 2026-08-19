@@ -202,7 +202,7 @@ export default function Sidebar({ onOpenSearch }) {
         items: [
           { name: 'CRM & Leads', icon: TrendingUp, path: '/crm/leads' },
           { name: 'Proposals', icon: FileText, path: '/proposals' },
-          { name: 'Marketing & SMM', icon: Share2, path: '/smm' },
+          { name: 'Social & Ads OS', icon: Share2, path: '/smm' },
           { name: 'Referral Hub', icon: Award, path: '/referral' },
         ],
       },

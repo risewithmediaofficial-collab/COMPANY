@@ -1,305 +1,357 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, DollarSign, Target, MousePointer, Edit3, Sliders, RefreshCw, Plus, Calendar, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import {
+  TrendingUp, DollarSign, Target, MousePointer, Edit3, Sliders, RefreshCw,
+  Plus, Calendar, Trash2, Video, Flame, Sparkles, Award, ArrowUpRight, BarChart2
+} from 'lucide-react';
 import { smmApi } from '../../api/smm';
-import { DataTable } from '../../components/ui/DataTable';
-import { PageHeader, SearchField } from '../../components/ui/page';
-import { PlatformBadge } from '../../components/smm/PlatformBadge';
-import { SMMDrawer } from '../../components/smm/SMMDrawer';
+import { PageHeader } from '../../components/ui/page';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid
+} from 'recharts';
 
 export default function Performance() {
+  const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [activeCampaignForLog, setActiveCampaignForLog] = useState(null);
-  const [isDailyLogDrawerOpen, setIsDailyLogDrawerOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState('');
+  const [clientsList, setClientsList] = useState([]);
 
-  const [dailyLogForm, setDailyLogForm] = useState({
-    date: format(new Date(), 'yyyy-MM-dd'),
-    leads: 0,
-    spend: 0,
-    revenue: 0,
-    clicks: 0,
-    impressions: 0,
-    notes: '',
-  });
+  // Decision system evaluator
+  const [evaluatorVideoId, setEvaluatorVideoId] = useState('');
 
-  const fetchCampaigns = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await smmApi.getCampaigns({ search });
-      if (res.data?.success) setCampaigns(res.data.data || []);
+      const [cRes, campRes, vRes, dashRes] = await Promise.all([
+        smmApi.getClients(),
+        smmApi.getCampaigns({ client: selectedClient || undefined }),
+        smmApi.getContents({ client: selectedClient || undefined, limit: 100 }),
+        smmApi.getDashboardStats({ client: selectedClient || undefined }),
+      ]);
+
+      if (cRes.data?.success) setClientsList(cRes.data.data || []);
+      if (campRes.data?.success) setCampaigns(campRes.data.data || []);
+      if (vRes.data?.success) {
+        setVideos(vRes.data.data || []);
+        if (vRes.data.data?.length > 0 && !evaluatorVideoId) {
+          setEvaluatorVideoId(vRes.data.data[0]._id);
+        }
+      }
+      if (dashRes.data?.success) setDashboardData(dashRes.data.data);
     } catch (err) {
-      toast.error('Failed to load performance metrics');
+      toast.error('Failed to load performance analytics');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCampaigns();
-  }, [search]);
+    fetchData();
+  }, [selectedClient]);
 
-  const openDailyLog = (camp) => {
-    setActiveCampaignForLog(camp);
-    setDailyLogForm({
-      date: format(new Date(), 'yyyy-MM-dd'),
-      leads: 0,
-      spend: 0,
-      revenue: 0,
-      clicks: 0,
-      impressions: 0,
-      notes: '',
+  const kpi = dashboardData?.kpi || {};
+  const organicVsPaid = kpi.organicVsPaid || {};
+  const platformPerf = dashboardData?.platformPerformance || [];
+  const clientHealthScore = dashboardData?.clientHealthScore || 88;
+
+  // Find evaluator selected video
+  const evaluatorVideo = videos.find((v) => v._id === evaluatorVideoId) || videos[0];
+
+  const handleCreateAd = (video) => {
+    navigate('/smm/campaigns', {
+      state: {
+        sourceContent: video,
+        client: video?.client?._id || video?.client,
+      },
     });
-    setIsDailyLogDrawerOpen(true);
   };
 
-  const handleAddDailyLog = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await smmApi.addDailyLog(activeCampaignForLog._id, dailyLogForm);
-      if (res.data?.success) {
-        toast.success('Daily lead log saved & campaign totals updated!');
-        setActiveCampaignForLog(res.data.data);
-        setDailyLogForm({
-          date: format(new Date(), 'yyyy-MM-dd'),
-          leads: 0,
-          spend: 0,
-          revenue: 0,
-          clicks: 0,
-          impressions: 0,
-          notes: '',
-        });
-        fetchCampaigns();
-      }
-    } catch (err) {
-      toast.error('Failed to add daily log entry');
-    }
-  };
-
-  const handleDeleteDailyLog = async (logId) => {
-    if (!window.confirm('Delete this daily log entry?')) return;
-    try {
-      const res = await smmApi.deleteDailyLog(activeCampaignForLog._id, logId);
-      if (res.data?.success) {
-        toast.success('Log entry deleted & campaign totals updated');
-        setActiveCampaignForLog(res.data.data);
-        fetchCampaigns();
-      }
-    } catch (err) {
-      toast.error('Failed to delete log entry');
-    }
-  };
-
-  const columns = [
+  const chartData = [
     {
-      key: 'name',
-      label: 'Campaign',
-      render: (row) => (
-        <div>
-          <span className="font-semibold text-foreground block">{row.name}</span>
-          <PlatformBadge platform={row.platform} />
-        </div>
-      ),
+      name: 'Reach',
+      Organic: organicVsPaid.reach?.organic || 0,
+      Paid: organicVsPaid.reach?.paid || 0,
     },
     {
-      key: 'leads',
-      label: 'Accumulated Leads',
-      render: (row) => (
-        <div>
-          <span className="text-xs font-bold text-emerald-600 block">{row.performance?.leads || 0} Leads</span>
-          <span className="text-[11px] text-muted-foreground">₹{row.performance?.costPerLead || 0} / Lead</span>
-        </div>
-      ),
-    },
-    {
-      key: 'spend',
-      label: 'Ad Spend',
-      render: (row) => <span className="text-xs font-mono font-bold">₹{(row.performance?.spend || 0).toLocaleString()}</span>,
-    },
-    {
-      key: 'revenue',
-      label: 'Revenue',
-      render: (row) => <span className="text-xs font-mono text-emerald-600 font-bold">₹{(row.performance?.revenue || 0).toLocaleString()}</span>,
-    },
-    {
-      key: 'roas',
-      label: 'ROAS',
-      render: (row) => <span className="text-xs font-bold text-primary">{row.performance?.roas || 0}x</span>,
-    },
-    {
-      key: 'impressions',
-      label: 'Impressions / Clicks',
-      render: (row) => (
-        <div className="text-xs">
-          <span>{(row.performance?.impressions || 0).toLocaleString()} imp</span>
-          <span className="text-muted-foreground block">{(row.performance?.clicks || 0).toLocaleString()} clicks</span>
-        </div>
-      ),
-    },
-    {
-      key: 'action',
-      label: 'Daily Lead Log',
-      render: (row) => (
-        <button onClick={() => openDailyLog(row)} className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 rounded-lg text-xs font-semibold flex items-center gap-1 border border-emerald-200">
-          <Calendar size={13} /> + Daily Lead Log
-        </button>
-      ),
+      name: 'Views',
+      Organic: organicVsPaid.views?.organic || 0,
+      Paid: organicVsPaid.views?.paid || 0,
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Live Performance & Daily Lead Tracker"
-        subtitle="Log leads got today/often, track daily entries, and auto-calculate cumulative CPL & ROAS"
-      />
+    <div className="min-h-screen bg-background p-4 md:p-8 space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+            <BarChart2 className="text-primary" size={24} />
+            Organic vs Paid Analytics & Decision Hub
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Compare organic growth against paid advertising, evaluate video boosting potential, and inspect campaign efficiency.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedClient}
+            onChange={(e) => setSelectedClient(e.target.value)}
+            className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none"
+          >
+            <option value="">All Clients</option>
+            {clientsList.map((c) => (
+              <option key={c._id} value={c._id}>{c.company || c.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       <SMMSubNav />
 
-      <div className="bg-card p-4 rounded-2xl border border-border">
-        <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search performance by campaign name..." />
-      </div>
+      {loading ? (
+        <div className="p-16 text-center text-xs text-muted-foreground animate-pulse">Loading intelligence models...</div>
+      ) : (
+        <div className="space-y-8">
+          {/* ── SECTION 1: ORGANIC VS PAID COMPARISON CARDS & GRAPH ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <TrendingUp className="text-primary" size={16} />
+                  Side-by-Side Channel Comparison
+                </h3>
+                <span className="text-xs text-muted-foreground font-semibold">Organic vs Paid Impact</span>
+              </div>
 
-      <DataTable
-        data={campaigns}
-        columns={columns}
-        loading={loading}
-        emptyTitle="No campaign performance records found"
-      />
+              {/* Comparison table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
+                    <tr>
+                      <th className="px-4 py-3">Metric</th>
+                      <th className="px-4 py-3 text-purple-600 dark:text-purple-400">ORGANIC</th>
+                      <th className="px-4 py-3 text-emerald-600 dark:text-emerald-400">PAID</th>
+                      <th className="px-4 py-3 text-right">RATIO / DELTA</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border font-semibold">
+                    <tr>
+                      <td className="px-4 py-3 text-muted-foreground">Audience Reach</td>
+                      <td className="px-4 py-3 text-purple-600 dark:text-purple-400">{(organicVsPaid.reach?.organic || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400">{(organicVsPaid.reach?.paid || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground font-mono">
+                        {organicVsPaid.reach?.paid > 0 ? `${((organicVsPaid.reach?.organic || 0) / organicVsPaid.reach?.paid).toFixed(1)}x organic multiplier` : '100% Organic'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 text-muted-foreground">Video Views</td>
+                      <td className="px-4 py-3 text-purple-600 dark:text-purple-400">{(organicVsPaid.views?.organic || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400">{(organicVsPaid.views?.paid || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground font-mono">
+                        {((organicVsPaid.views?.organic || 0) + (organicVsPaid.views?.paid || 0)).toLocaleString()} total
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 text-muted-foreground">Leads Generated</td>
+                      <td className="px-4 py-3 text-muted-foreground/60">—</td>
+                      <td className="px-4 py-3 text-emerald-500 font-bold">{organicVsPaid.leads?.paid || 0} Leads</td>
+                      <td className="px-4 py-3 text-right text-emerald-500 font-bold">{organicVsPaid.leads?.paid || 0} Direct Leads</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 text-muted-foreground">Ad Spend</td>
+                      <td className="px-4 py-3 text-muted-foreground">₹0</td>
+                      <td className="px-4 py-3 text-rose-500 font-bold">₹{(organicVsPaid.spend?.paid || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-rose-500 font-mono">₹{(organicVsPaid.spend?.paid || 0).toLocaleString()} total spend</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 text-muted-foreground">Cost Per Lead (CPL)</td>
+                      <td className="px-4 py-3 text-muted-foreground/60">—</td>
+                      <td className="px-4 py-3 text-emerald-500 font-bold">{organicVsPaid.cpl?.paid || '₹0'}</td>
+                      <td className="px-4 py-3 text-right text-emerald-500 font-bold">{organicVsPaid.cpl?.paid || '₹0'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-      {/* Daily Lead Tracker Drawer */}
-      <SMMDrawer
-        isOpen={isDailyLogDrawerOpen}
-        onClose={() => setIsDailyLogDrawerOpen(false)}
-        title={`Daily Lead Log — ${activeCampaignForLog?.name}`}
-      >
-        <div className="space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-4 gap-3">
-            <div className="p-3 bg-emerald-500/10 border border-emerald-200 rounded-xl text-center">
-              <span className="text-[11px] font-medium text-emerald-700 block">Total Leads</span>
-              <span className="text-lg font-bold text-emerald-700">{activeCampaignForLog?.performance?.leads || 0}</span>
-            </div>
-            <div className="p-3 bg-secondary/50 border border-border rounded-xl text-center">
-              <span className="text-[11px] font-medium text-muted-foreground block">Total Spend</span>
-              <span className="text-base font-bold font-mono">₹{(activeCampaignForLog?.performance?.spend || 0).toLocaleString()}</span>
-            </div>
-            <div className="p-3 bg-secondary/50 border border-border rounded-xl text-center">
-              <span className="text-[11px] font-medium text-muted-foreground block">Avg CPL</span>
-              <span className="text-base font-bold font-mono text-primary">₹{activeCampaignForLog?.performance?.costPerLead || 0}</span>
-            </div>
-            <div className="p-3 bg-secondary/50 border border-border rounded-xl text-center">
-              <span className="text-[11px] font-medium text-muted-foreground block">ROAS</span>
-              <span className="text-base font-bold font-mono text-purple-600">{activeCampaignForLog?.performance?.roas || 0}x</span>
+            {/* Client Health & Consistency Score */}
+            <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4 text-center flex flex-col justify-center">
+              <div className="w-20 h-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center mx-auto">
+                <span className="text-2xl font-black text-emerald-500">{clientHealthScore}</span>
+              </div>
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block">Client Health Score</span>
+                <h4 className="text-sm font-bold text-foreground mt-0.5">
+                  {clientHealthScore >= 80 ? '🟢 Excellent Performance' : clientHealthScore >= 60 ? '🟡 Good Consistency' : '🔴 Action Required'}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
+                  Aggregates content publishing frequency, organic engagement velocity, paid lead conversion rate, and approval turnaround.
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Add Daily Entry Form */}
-          <form onSubmit={handleAddDailyLog} className="p-4 bg-secondary/30 rounded-2xl border border-border space-y-4">
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-              <Plus size={14} className="text-primary" /> Add Daily Lead Entry
-            </h4>
+          {/* ── SECTION 2: "SHOULD WE ADVERTISE THIS VIDEO?" DECISION SYSTEM ── */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles className="text-amber-500" size={20} />
+                  <h3 className="text-base font-black text-foreground">Video Evaluation & Ad Recommendation Engine</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Internal rule-based system analyzing organic traction, engagement rate, saves, and virality to recommend boosting.
+                </p>
+              </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Entry Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={dailyLogForm.date}
-                  onChange={e => setDailyLogForm({...dailyLogForm, date: e.target.value})}
-                  className="app-input"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Leads Got Today *</label>
-                <input
-                  type="number"
-                  required
-                  value={dailyLogForm.leads}
-                  onChange={e => setDailyLogForm({...dailyLogForm, leads: Number(e.target.value)})}
-                  className="app-input font-bold text-emerald-600 text-base"
-                  placeholder="e.g. 25"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Spend Today (₹) *</label>
-                <input
-                  type="number"
-                  required
-                  value={dailyLogForm.spend}
-                  onChange={e => setDailyLogForm({...dailyLogForm, spend: Number(e.target.value)})}
-                  className="app-input font-mono"
-                  placeholder="e.g. 1500"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Revenue Today (₹)</label>
-                <input
-                  type="number"
-                  value={dailyLogForm.revenue}
-                  onChange={e => setDailyLogForm({...dailyLogForm, revenue: Number(e.target.value)})}
-                  className="app-input font-mono text-emerald-600"
-                  placeholder="e.g. 10000"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="text-xs font-semibold text-foreground mb-1 block">Daily Note / Observation</label>
-                <input
-                  type="text"
-                  value={dailyLogForm.notes}
-                  onChange={e => setDailyLogForm({...dailyLogForm, notes: e.target.value})}
-                  className="app-input"
-                  placeholder="e.g. Campaign optimized for lead form placement"
-                />
-              </div>
+              <select
+                value={evaluatorVideoId}
+                onChange={(e) => setEvaluatorVideoId(e.target.value)}
+                className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none"
+              >
+                {videos.map((v) => (
+                  <option key={v._id} value={v._id}>{v.name} ({v.contentType})</option>
+                ))}
+              </select>
             </div>
 
-            <div className="flex justify-end">
-              <button type="submit" className="bg-emerald-600 text-white font-semibold px-5 py-2 rounded-xl text-xs hover:opacity-90">
-                Log Entry & Accumulate Totals
-              </button>
-            </div>
-          </form>
+            {evaluatorVideo ? (
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
+                <div className="p-4 bg-secondary/30 rounded-2xl border border-border/70 space-y-2">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Selected Video</span>
+                  <h4 className="text-sm font-bold text-foreground">{evaluatorVideo.name}</h4>
+                  <span className="text-xs text-muted-foreground block">{evaluatorVideo.client?.company || evaluatorVideo.client?.name}</span>
+                  <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1">
+                    <div>Views: <strong>{(evaluatorVideo.performance?.views || evaluatorVideo.performance?.videoViews || 0).toLocaleString()}</strong></div>
+                    <div>Engagement: <strong>{evaluatorVideo.performance?.engagementRate || 0}%</strong></div>
+                    <div>Shares / Saves: <strong>{(evaluatorVideo.performance?.shares || 0) + (evaluatorVideo.performance?.saves || 0)}</strong></div>
+                  </div>
+                </div>
 
-          {/* History Log List */}
-          <div>
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3">Daily Lead History</h4>
-            {activeCampaignForLog?.dailyLogs?.length === 0 ? (
-              <div className="py-6 text-center text-xs text-muted-foreground italic border border-dashed border-border rounded-xl">
-                No daily lead entries logged yet. Add your first entry above!
+                <div className="p-4 bg-secondary/30 rounded-2xl border border-border/70 text-center space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Performance Score</span>
+                  <span className="text-3xl font-black text-primary block">{evaluatorVideo.performanceScore || 85} / 100</span>
+                  <span className="text-[10px] text-muted-foreground font-semibold block">Normalized Virality Index</span>
+                </div>
+
+                <div className="p-4 bg-secondary/30 rounded-2xl border border-border/70 text-center space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Recommendation</span>
+                  <span className={`text-base font-black block ${
+                    evaluatorVideo.adRecommendation === '🔥 HIGH POTENTIAL' ? 'text-amber-500' : 'text-foreground'
+                  }`}>
+                    {evaluatorVideo.adRecommendation || 'Good Organic'}
+                  </span>
+                  <p className="text-[11px] text-muted-foreground">
+                    {evaluatorVideo.adRecommendation === '🔥 HIGH POTENTIAL'
+                      ? 'High organic engagement indicates great paid ROI potential.'
+                      : 'Organic traction is stable; monitoring recommended.'}
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <button
+                    onClick={() => handleCreateAd(evaluatorVideo)}
+                    className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-2xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Megaphone size={15} />
+                    <span>Create Ad Campaign</span>
+                  </button>
+                  <span className="text-[10px] text-muted-foreground text-center">
+                    Pre-fills campaign with this video's metadata
+                  </span>
+                </div>
               </div>
             ) : (
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                {activeCampaignForLog?.dailyLogs?.slice().reverse().map((log) => (
-                  <div key={log._id} className="p-3 bg-card rounded-xl border border-border flex items-center justify-between gap-3 text-xs">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-foreground">{log.date ? format(new Date(log.date), 'dd MMM yyyy') : 'Today'}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-bold">
-                          +{log.leads} Leads
-                        </span>
-                        <span className="font-mono text-muted-foreground">₹{log.spend?.toLocaleString()} spent</span>
-                      </div>
-                      {log.notes && <p className="text-[11px] text-muted-foreground mt-0.5">{log.notes}</p>}
-                    </div>
-                    <button
-                      onClick={() => handleDeleteDailyLog(log._id)}
-                      className="p-1 rounded text-muted-foreground hover:text-rose-500 transition-colors"
-                      title="Delete Entry"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <div className="p-8 text-center text-xs text-muted-foreground">Select a video above to evaluate.</div>
             )}
           </div>
+
+          {/* ── SECTION 3: CAMPAIGN COMPARISON TABLE ── */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Award className="text-emerald-500" size={18} />
+                Campaign Efficiency Comparison
+              </h3>
+              <span className="text-xs text-muted-foreground font-semibold">{campaigns.length} Active Campaigns</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
+                  <tr>
+                    <th className="px-4 py-3">Campaign</th>
+                    <th className="px-4 py-3">Platform</th>
+                    <th className="px-4 py-3">Spend</th>
+                    <th className="px-4 py-3">Leads</th>
+                    <th className="px-4 py-3">CPL</th>
+                    <th className="px-4 py-3">ROAS</th>
+                    <th className="px-4 py-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border font-medium">
+                  {campaigns.map((c) => (
+                    <tr key={c._id} className="hover:bg-muted/20">
+                      <td className="px-4 py-3 font-bold text-foreground">{c.name}</td>
+                      <td className="px-4 py-3">{c.platform}</td>
+                      <td className="px-4 py-3 font-mono font-semibold">₹{(c.amountSpent || c.performance?.spend || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 font-bold text-emerald-500">{c.performance?.leads || 0}</td>
+                      <td className="px-4 py-3 font-bold text-foreground">₹{c.performance?.costPerLead || 0}</td>
+                      <td className="px-4 py-3 font-bold text-primary">{c.performance?.roas ? `${c.performance.roas}x` : '—'}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
+                          {c.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* ── SECTION 4: PLATFORM COMPARISON BREAKDOWN ── */}
+          <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-sm font-bold text-foreground">Platform Breakdown (Instagram, Facebook, YouTube, LinkedIn)</h3>
+              <span className="text-xs text-muted-foreground font-semibold">Cross-channel distribution</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
+                  <tr>
+                    <th className="px-4 py-3">Platform</th>
+                    <th className="px-4 py-3">Posts & Videos</th>
+                    <th className="px-4 py-3">Active Ads</th>
+                    <th className="px-4 py-3">Spend</th>
+                    <th className="px-4 py-3">Leads</th>
+                    <th className="px-4 py-3 text-right">CPL</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border font-medium">
+                  {platformPerf.map((p, idx) => (
+                    <tr key={idx} className="hover:bg-muted/20">
+                      <td className="px-4 py-3 font-bold text-foreground">{p.platform}</td>
+                      <td className="px-4 py-3">{p.posts + p.reels + p.stories} items</td>
+                      <td className="px-4 py-3">{p.ads} ads</td>
+                      <td className="px-4 py-3 font-mono font-semibold">₹{p.adSpend.toLocaleString()}</td>
+                      <td className="px-4 py-3 font-bold text-emerald-500">{p.leads}</td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground">₹{p.cpl}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </SMMDrawer>
+      )}
     </div>
   );
 }

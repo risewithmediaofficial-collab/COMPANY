@@ -1,5 +1,5 @@
 // =============================================
-// SMM AD MODEL
+// SMM AD MODEL (Linked directly to Video/Content)
 // =============================================
 import mongoose from 'mongoose';
 
@@ -7,6 +7,8 @@ const adSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     adSet: { type: mongoose.Schema.Types.ObjectId, ref: 'SmmAdSet', required: true },
+    sourceContentId: { type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' }, // Direct bridge to Video OS record
+    usedExistingVideo: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ['Draft', 'Active', 'Paused', 'Rejected', 'Completed'],
@@ -42,16 +44,20 @@ const adSchema = new mongoose.Schema(
       default: 'Pending',
     },
     approvalNotes: { type: String, default: '' },
+    
     // Performance tracking per Ad
     performance: {
       leads: { type: Number, default: 0 },
       spend: { type: Number, default: 0 },
       revenue: { type: Number, default: 0 },
+      conversions: { type: Number, default: 0 },
       impressions: { type: Number, default: 0 },
+      reach: { type: Number, default: 0 },
       clicks: { type: Number, default: 0 },
       ctr: { type: Number, default: 0 },
       cpc: { type: Number, default: 0 },
       cpl: { type: Number, default: 0 },
+      costPerConversion: { type: Number, default: 0 },
       roas: { type: Number, default: 0 },
     },
     // Future: externalAdId from Meta/Google
@@ -62,6 +68,7 @@ const adSchema = new mongoose.Schema(
 );
 
 adSchema.index({ adSet: 1 });
+adSchema.index({ sourceContentId: 1 });
 adSchema.index({ status: 1 });
 adSchema.index({ approvalStatus: 1 });
 

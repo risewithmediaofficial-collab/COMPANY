@@ -1,12 +1,13 @@
 // =============================================
-// SMM AD CONTROLLER
+// SMM AD CONTROLLER (Video OS Linked Ads)
 // =============================================
 import Ad from '../../models/smm/ad.model.js';
+import SmmContent from '../../models/smm/smmContent.model.js';
 import SmmActivityLog from '../../models/smm/smmActivityLog.model.js';
 
 export const getAds = async (req, res) => {
   try {
-    const { adSet, status, approvalStatus, creativeType, search, page = 1, limit = 50 } = req.query;
+    const { adSet, status, approvalStatus, creativeType, search, page = 1, limit = 100 } = req.query;
     const query = {};
     if (adSet) query.adSet = adSet;
     if (status) query.status = status;
@@ -17,6 +18,7 @@ export const getAds = async (req, res) => {
     const total = await Ad.countDocuments(query);
     const ads = await Ad.find(query)
       .populate('adSet', 'name campaign')
+      .populate('sourceContentId', 'name contentType platforms thumbnail mediaUpload performanceScore adRecommendation actualPostedDate')
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -30,7 +32,10 @@ export const getAds = async (req, res) => {
 
 export const getAd = async (req, res) => {
   try {
-    const ad = await Ad.findById(req.params.id).populate('adSet', 'name campaign').populate('createdBy', 'name');
+    const ad = await Ad.findById(req.params.id)
+      .populate('adSet', 'name campaign')
+      .populate('sourceContentId', 'name contentType platforms thumbnail mediaUpload performanceScore adRecommendation actualPostedDate')
+      .populate('createdBy', 'name');
     if (!ad) return res.status(404).json({ success: false, message: 'Ad not found' });
     res.json({ success: true, data: ad });
   } catch (err) {
@@ -40,15 +45,34 @@ export const getAd = async (req, res) => {
 
 export const createAd = async (req, res) => {
   try {
-    const ad = await Ad.create({ ...req.body, createdBy: req.user._id });
+    const { sourceContentId } = req.body;
+    const ad = await Ad.create({ ...req.body, createdBy: req.user?._id });
+
+    // If linked to source content, update content record's advertising info
+    if (sourceContentId) {
+      try {
+        await SmmContent.findByIdAndUpdate(sourceContentId, {
+          'advertising.usedAsAd': true,
+          'advertising.ad': ad._id,
+          'advertising.adSet': ad.adSet,
+        });
+      } catch (e) {
+        console.error('Failed to link ad to source content:', e);
+      }
+    }
+
     await SmmActivityLog.create({
       action: 'Ad Published',
       entity: 'SmmAd',
       entityId: ad._id,
       entityName: ad.name,
-      performedBy: req.user._id,
+      performedBy: req.user?._id,
     });
-    const populated = await Ad.findById(ad._id).populate('adSet', 'name');
+
+    const populated = await Ad.findById(ad._id)
+      .populate('adSet', 'name')
+      .populate('sourceContentId', 'name contentType thumbnail performanceScore');
+
     res.status(201).json({ success: true, data: populated });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -58,14 +82,16 @@ export const createAd = async (req, res) => {
 export const updateAd = async (req, res) => {
   try {
     const ad = await Ad.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
-      .populate('adSet', 'name');
+      .populate('adSet', 'name')
+      .populate('sourceContentId', 'name contentType thumbnail performanceScore');
     if (!ad) return res.status(404).json({ success: false, message: 'Ad not found' });
+    
     await SmmActivityLog.create({
       action: 'Ad Updated',
       entity: 'SmmAd',
       entityId: ad._id,
       entityName: ad.name,
-      performedBy: req.user._id,
+      performedBy: req.user?._id,
     });
     res.json({ success: true, data: ad });
   } catch (err) {
@@ -97,7 +123,7 @@ export const updateAdApproval = async (req, res) => {
       entity: 'SmmAd',
       entityId: ad._id,
       entityName: ad.name,
-      performedBy: req.user._id,
+      performedBy: req.user?._id,
       metadata: { approvalStatus, approvalNotes },
     });
     res.json({ success: true, data: ad });
@@ -120,7 +146,7 @@ export const updateAdPerformance = async (req, res) => {
       entity: 'SmmAd',
       entityId: ad._id,
       entityName: ad.name,
-      performedBy: req.user._id,
+      performedBy: req.user?._id,
       metadata: { performance: req.body },
     });
 

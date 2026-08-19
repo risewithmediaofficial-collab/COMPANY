@@ -1,5 +1,5 @@
 // =============================================
-// SMM CAMPAIGN MODEL (Paid Advertisements)
+// SMM CAMPAIGN MODEL (Paid Advertisements & Spend Ledger)
 // =============================================
 import mongoose from 'mongoose';
 
@@ -65,7 +65,7 @@ const campaignSchema = new mongoose.Schema(
     endTime: { type: String, default: '' },
     durationDays: { type: Number, default: 0 },
 
-    // Budget & Financials
+    // Budget & Financials (Amount Added vs Amount Spent)
     budgetType: {
       type: String,
       enum: ['Daily Budget', 'Lifetime Budget'],
@@ -73,9 +73,13 @@ const campaignSchema = new mongoose.Schema(
     },
     dailyBudget: { type: Number, default: 0 },
     lifetimeBudget: { type: Number, default: 0 },
+    amountAdded: { type: Number, default: 0 }, // Total funds added to campaign
     amountSpent: { type: Number, default: 0 }, // Auto-updated from daily spend tracking logs
-    remainingBalance: { type: Number, default: 0 }, // Auto-calculated (Total Budget - amountSpent)
+    remainingBalance: { type: Number, default: 0 }, // (amountAdded - amountSpent) or (lifetimeBudget - amountSpent)
     currency: { type: String, default: 'INR' },
+    
+    // Alerts triggered (e.g. ['50%', '75%', '80%', '90%', '100%'])
+    budgetAlerts: [{ type: String }],
 
     landingPage: { type: String, default: '' },
     pixelConnected: { type: Boolean, default: false },

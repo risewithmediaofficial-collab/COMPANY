@@ -1,7 +1,7 @@
 import api from './index';
 
 export const smmApi = {
-  // Dashboard
+  // Dashboard Command Center
   getDashboardStats: (params) => api.get('/smm/dashboard/stats', { params }),
 
   // Clients & Projects
@@ -10,7 +10,7 @@ export const smmApi = {
   getProjects: (params) => api.get('/smm/projects', { params }),
   getProject: (id) => api.get(`/smm/projects/${id}`),
 
-  // Organic Content
+  // Central Video & Content Object
   getContents: (params) => api.get('/smm/content', { params }),
   getContentById: (id) => api.get(`/smm/content/${id}`),
   getPublishedContentForAd: (params) => api.get('/smm/content/published-for-ad', { params }),
@@ -19,7 +19,7 @@ export const smmApi = {
   updateContentPerformance: (id, data) => api.patch(`/smm/content/${id}/performance`, data),
   deleteContent: (id) => api.delete(`/smm/content/${id}`),
 
-  // Campaigns
+  // Campaigns & Budget Ledger
   getCampaigns: (params) => api.get('/smm/campaigns', { params }),
   getCampaign: (id) => api.get(`/smm/campaigns/${id}`),
   createCampaign: (data) => api.post('/smm/campaigns', data),
@@ -27,11 +27,18 @@ export const smmApi = {
   updatePerformance: (id, data) => api.patch(`/smm/campaigns/${id}/performance`, data),
   deleteCampaign: (id) => api.delete(`/smm/campaigns/${id}`),
   bulkUpdateCampaignStatus: (data) => api.put('/smm/campaigns/bulk-status', data),
+  addDailyLog: (campaignId, data) => api.post(`/smm/campaigns/${campaignId}/daily-log`, data),
+  deleteDailyLog: (campaignId, logId) => api.delete(`/smm/campaigns/${campaignId}/daily-log/${logId}`),
 
-  // Daily Ad Spend Logging
+  // Daily Ad Spend & Cash Ledger Logging
   getAdSpendLogs: (params) => api.get('/smm/ad-spend', { params }),
   addAdSpendLog: (data) => api.post('/smm/ad-spend', data),
   deleteAdSpendLog: (id) => api.delete(`/smm/ad-spend/${id}`),
+
+  // Daily Tracking & Social Media Reports
+  getDailyReports: (params) => api.get('/smm/daily-reports', { params }),
+  getDailyReportByDate: (params) => api.get('/smm/daily-reports/by-date', { params }),
+  saveDailyReport: (data) => api.post('/smm/daily-reports', data),
 
   // Leads Tracking
   getLeads: (params) => api.get('/smm/leads', { params }),

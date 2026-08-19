@@ -1,26 +1,27 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, FileText, Megaphone, Users, Layers,
-  BarChart2, FileSpreadsheet, PlayCircle
+  LayoutDashboard, Video, Calendar, Megaphone, Layers,
+  PlayCircle, Clock, BarChart2, FileSpreadsheet
 } from 'lucide-react';
 
 const SMM_NAV_ITEMS = [
-  { name: 'Dashboard', path: '/smm', icon: LayoutDashboard, exact: true },
-  { name: 'Organic Content', path: '/smm/content', icon: FileText },
-  // ── Paid Ads Section ──
-  { name: 'Campaigns', path: '/smm/campaigns', icon: PlayCircle },
+  { name: 'Overview', path: '/smm', icon: LayoutDashboard, exact: true },
+  { name: 'Content', path: '/smm/content', icon: Video },
+  { name: 'Content Calendar', path: '/smm/calendar', icon: Calendar },
+  // ── Ads Manager Section ──
+  { name: 'Campaigns', path: '/smm/campaigns', icon: Megaphone },
   { name: 'Ad Sets', path: '/smm/adsets', icon: Layers },
-  { name: 'Ads', path: '/smm/ads', icon: Megaphone },
-  // ── Performance Section ──
-  { name: 'Leads', path: '/smm/leads', icon: Users },
+  { name: 'Ads', path: '/smm/ads', icon: PlayCircle },
+  // ── Operations & Tracking Section ──
+  { name: 'Daily Tracking', path: '/smm/daily-tracking', icon: Clock },
   { name: 'Analytics', path: '/smm/performance', icon: BarChart2 },
   { name: 'Reports', path: '/smm/reports', icon: FileSpreadsheet },
 ];
 
 const SECTION_LABELS = {
-  '/smm/campaigns': 'Paid Ads',
-  '/smm/leads': 'Performance',
+  '/smm/campaigns': 'Ads Manager',
+  '/smm/daily-tracking': 'Tracking & Intelligence',
 };
 
 export const SMMSubNav = () => {
@@ -35,7 +36,7 @@ export const SMMSubNav = () => {
             ? location.pathname === item.path
             : location.pathname === item.path || (item.path !== '/smm' && location.pathname.startsWith(item.path));
 
-          const showDivider = item.path === '/smm/campaigns' || item.path === '/smm/leads';
+          const showDivider = Boolean(SECTION_LABELS[item.path]);
 
           return (
             <React.Fragment key={item.path}>
