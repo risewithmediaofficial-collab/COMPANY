@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { smmApi } from '../../api/smm';
 import api from '../../api/index';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
-import { PageHeader } from '../../components/ui/page';
 import {
   Clock, Plus, Calendar, FileText, CheckCircle2, AlertTriangle,
   Info, TrendingUp, Megaphone, DollarSign, Download, Save,
-  Layers, Check, Sparkles, PhoneCall, MessageSquare, AlertCircle
+  Layers, Check, Sparkles, PhoneCall, MessageSquare, AlertCircle, X
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { toast } from 'react-hot-toast';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +23,7 @@ export default function DailyTracking() {
   const [clientsList, setClientsList] = useState([]);
   const [campaignsList, setCampaignsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [spendLogs, setSpendLogs] = useState([]);
 
   // Report state
@@ -36,7 +36,7 @@ export default function DailyTracking() {
     status: 'Draft',
   });
 
-  // Modals
+  // Modals & Inputs
   const [isSpendModalOpen, setIsSpendModalOpen] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [newNoteTag, setNewNoteTag] = useState('info');
@@ -109,55 +109,107 @@ export default function DailyTracking() {
     fetchDailyData();
   }, [selectedClient, selectedDate]);
 
-  const handleAddNote = (e) => {
-    e.preventDefault();
-    if (!newNoteText.trim()) return;
-    setReport((prev) => ({
-      ...prev,
-      notes: [...(prev.notes || []), { text: newNoteText.trim(), tag: newNoteTag }],
-    }));
+  // Helper to persist report state to MongoDB
+  const persistReport = async (updatedReport) => {
+    if (!selectedClient || !selectedDate) return;
+    try {
+      const clientId = typeof selectedClient === 'object' ? selectedClient._id : selectedClient;
+      const payload = {
+        client: clientId,
+        date: selectedDate,
+        contentSummary: updatedReport.contentSummary,
+        organicSummary: updatedReport.organicSummary,
+        adsSummary: updatedReport.adsSummary,
+        notes: updatedReport.notes || [],
+        activityTimeline: updatedReport.activityTimeline || [],
+        status: updatedReport.status || 'Completed',
+      };
+      await smmApi.saveDailyReport(payload);
+    } catch (err) {
+      console.error('Failed to auto-save daily report:', err);
+    }
+  };
+
+  const handleAddNote = async (e) => {
+    if (e) e.preventDefault();
+    if (!newNoteText || !newNoteText.trim()) {
+      toast.error('Please enter a note before adding');
+      return;
+    }
+
+    const updatedNotes = [
+      ...(report.notes || []),
+      { text: newNoteText.trim(), tag: newNoteTag },
+    ];
+
+    const updatedReport = {
+      ...report,
+      notes: updatedNotes,
+    };
+
+    setReport(updatedReport);
     setNewNoteText('');
-    toast.success('Note added to today\'s report');
+    toast.success('Note added & saved!');
+    await persistReport(updatedReport);
   };
 
-  const handleRemoveNote = (idx) => {
-    setReport((prev) => ({
-      ...prev,
-      notes: prev.notes.filter((_, i) => i !== idx),
-    }));
+  const handleRemoveNote = async (idx) => {
+    const updatedNotes = (report.notes || []).filter((_, i) => i !== idx);
+    const updatedReport = {
+      ...report,
+      notes: updatedNotes,
+    };
+    setReport(updatedReport);
+    toast.success('Note removed');
+    await persistReport(updatedReport);
   };
 
-  const handleAddTimeline = (e) => {
-    e.preventDefault();
-    if (!newTimelineDesc.trim()) return;
-    setReport((prev) => ({
-      ...prev,
-      activityTimeline: [
-        ...(prev.activityTimeline || []),
-        { time: newTimelineTime, description: newTimelineDesc.trim(), category: newTimelineCat },
-      ].sort((a, b) => a.time.localeCompare(b.time)),
-    }));
+  const handleAddTimeline = async (e) => {
+    if (e) e.preventDefault();
+    if (!newTimelineDesc || !newTimelineDesc.trim()) {
+      toast.error('Please enter an event description');
+      return;
+    }
+
+    const updatedTimeline = [
+      ...(report.activityTimeline || []),
+      { time: newTimelineTime, description: newTimelineDesc.trim(), category: newTimelineCat },
+    ].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+    const updatedReport = {
+      ...report,
+      activityTimeline: updatedTimeline,
+    };
+
+    setReport(updatedReport);
     setNewTimelineDesc('');
-    toast.success('Event added to daily activity timeline');
+    toast.success('Timeline event added & saved!');
+    await persistReport(updatedReport);
   };
 
-  const handleRemoveTimeline = (idx) => {
-    setReport((prev) => ({
-      ...prev,
-      activityTimeline: prev.activityTimeline.filter((_, i) => i !== idx),
-    }));
+  const handleRemoveTimeline = async (idx) => {
+    const updatedTimeline = (report.activityTimeline || []).filter((_, i) => i !== idx);
+    const updatedReport = {
+      ...report,
+      activityTimeline: updatedTimeline,
+    };
+    setReport(updatedReport);
+    toast.success('Timeline event removed');
+    await persistReport(updatedReport);
   };
 
   const handleSaveReport = async () => {
+    setSaving(true);
     try {
+      const clientId = typeof selectedClient === 'object' ? selectedClient._id : selectedClient;
       const payload = {
-        client: selectedClient,
+        client: clientId,
         date: selectedDate,
         contentSummary: report.contentSummary,
         organicSummary: report.organicSummary,
         adsSummary: report.adsSummary,
-        notes: report.notes,
-        activityTimeline: report.activityTimeline,
+        notes: report.notes || [],
+        activityTimeline: report.activityTimeline || [],
         status: 'Completed',
       };
       const res = await smmApi.saveDailyReport(payload);
@@ -167,6 +219,8 @@ export default function DailyTracking() {
       }
     } catch (err) {
       toast.error('Failed to save daily report');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -219,7 +273,7 @@ export default function DailyTracking() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsSpendModalOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-all"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-all cursor-pointer"
           >
             <DollarSign size={15} className="text-emerald-500" />
             <span>+ Log Spend / Funds</span>
@@ -227,10 +281,11 @@ export default function DailyTracking() {
 
           <button
             onClick={handleSaveReport}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs rounded-xl shadow-md shadow-primary/20 transition-all"
+            disabled={saving}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs rounded-xl shadow-md shadow-primary/20 transition-all cursor-pointer disabled:opacity-50"
           >
             <Save size={15} />
-            <span>Save Daily Report</span>
+            <span>{saving ? 'Saving...' : 'Save Daily Report'}</span>
           </button>
         </div>
       </div>
@@ -245,7 +300,7 @@ export default function DailyTracking() {
             <select
               value={selectedClient}
               onChange={(e) => setSelectedClient(e.target.value)}
-              className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none"
+              className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none text-foreground cursor-pointer"
             >
               {clientsList.map((c) => (
                 <option key={c._id} value={c._id}>{c.name} {c.company ? `(${c.company})` : ''}</option>
@@ -259,9 +314,8 @@ export default function DailyTracking() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none"
-            >
-            </input>
+              className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none text-foreground cursor-pointer"
+            />
           </div>
         </div>
 
@@ -269,8 +323,8 @@ export default function DailyTracking() {
           <span className="text-xs text-muted-foreground font-medium">Status:</span>
           <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
             report.status === 'Completed'
-              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
           }`}>
             {report.status === 'Completed' ? '✓ Saved Report' : 'Draft Generated'}
           </span>
@@ -369,26 +423,26 @@ export default function DailyTracking() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 text-center">
-                    <span className="text-[10px] text-blue-500 block font-bold">Amount Added</span>
+                    <span className="text-[10px] text-blue-400 block font-bold">Amount Added</span>
                     <span className="text-lg font-black text-foreground block mt-0.5">
                       ₹{(report.adsSummary?.amountAdded || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="p-3 bg-rose-500/10 rounded-2xl border border-rose-500/20 text-center">
-                    <span className="text-[10px] text-rose-500 block font-bold">Amount Spent</span>
-                    <span className="text-lg font-black text-rose-500 block mt-0.5">
+                    <span className="text-[10px] text-rose-400 block font-bold">Amount Spent</span>
+                    <span className="text-lg font-black text-rose-400 block mt-0.5">
                       ₹{(report.adsSummary?.amountSpent || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-center">
-                    <span className="text-[10px] text-emerald-500 block font-bold">Leads Generated</span>
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                    <span className="text-[10px] text-emerald-400 block font-bold">Leads Generated</span>
+                    <span className="text-lg font-black text-emerald-400 block mt-0.5">
                       {report.adsSummary?.leads || 0}
                     </span>
                   </div>
                   <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
                     <span className="text-[10px] text-muted-foreground block font-bold">Cost Per Lead (CPL)</span>
-                    <span className="text-lg font-black text-emerald-500 block mt-0.5">
+                    <span className="text-lg font-black text-emerald-400 block mt-0.5">
                       ₹{report.adsSummary?.cpl || 0}
                     </span>
                   </div>
@@ -429,16 +483,18 @@ export default function DailyTracking() {
                             {note.tag === 'success' ? '✓' : note.tag === 'warning' ? '⚠' : 'ℹ'}
                           </span>
                           <span className={`font-medium ${
-                            note.tag === 'success' ? 'text-emerald-500 font-semibold' : note.tag === 'warning' ? 'text-amber-500 font-semibold' : 'text-foreground'
+                            note.tag === 'success' ? 'text-emerald-400 font-semibold' : note.tag === 'warning' ? 'text-amber-400 font-semibold' : 'text-foreground'
                           }`}>
                             {note.text}
                           </span>
                         </div>
                         <button
+                          type="button"
                           onClick={() => handleRemoveNote(idx)}
-                          className="text-muted-foreground hover:text-rose-500"
+                          className="text-muted-foreground hover:text-rose-400 p-1 cursor-pointer"
+                          title="Remove note"
                         >
-                          ✕
+                          <X size={14} />
                         </button>
                       </div>
                     ))
@@ -450,7 +506,7 @@ export default function DailyTracking() {
                   <select
                     value={newNoteTag}
                     onChange={(e) => setNewNoteTag(e.target.value)}
-                    className="h-9 px-2.5 bg-secondary/40 border border-border rounded-xl text-xs font-bold outline-none"
+                    className="h-9 px-2.5 bg-secondary/40 border border-border rounded-xl text-xs font-bold outline-none text-foreground cursor-pointer shrink-0"
                   >
                     <option value="success">✓ Success</option>
                     <option value="warning">⚠ Warning</option>
@@ -461,11 +517,18 @@ export default function DailyTracking() {
                     placeholder="e.g. Reel #42 performed strongly with 7.9% engagement..."
                     value={newNoteText}
                     onChange={(e) => setNewNoteText(e.target.value)}
-                    className="flex-1 h-9 px-3 bg-secondary/40 border border-border rounded-xl text-xs outline-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddNote();
+                      }
+                    }}
+                    className="flex-1 h-9 px-3 bg-secondary/40 border border-border rounded-xl text-xs outline-none text-foreground placeholder:text-muted-foreground"
                   />
                   <button
-                    type="submit"
-                    className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl text-xs"
+                    type="button"
+                    onClick={handleAddNote}
+                    className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shrink-0 cursor-pointer shadow-xs"
                   >
                     + Add Note
                   </button>
@@ -494,10 +557,12 @@ export default function DailyTracking() {
                           <span className="font-semibold text-foreground">{item.description}</span>
                         </div>
                         <button
+                          type="button"
                           onClick={() => handleRemoveTimeline(idx)}
-                          className="text-muted-foreground hover:text-rose-500 text-[10px]"
+                          className="text-muted-foreground hover:text-rose-400 p-1 cursor-pointer"
+                          title="Remove event"
                         >
-                          ✕
+                          <X size={13} />
                         </button>
                       </div>
                     ))
@@ -510,18 +575,25 @@ export default function DailyTracking() {
                     type="time"
                     value={newTimelineTime}
                     onChange={(e) => setNewTimelineTime(e.target.value)}
-                    className="h-9 px-2 bg-secondary/40 border border-border rounded-xl text-xs font-mono font-bold outline-none"
+                    className="h-9 px-2 bg-secondary/40 border border-border rounded-xl text-xs font-mono font-bold outline-none text-foreground cursor-pointer shrink-0"
                   />
                   <input
                     type="text"
                     placeholder="e.g. Campaign #3 budget increased to ₹5,000"
                     value={newTimelineDesc}
                     onChange={(e) => setNewTimelineDesc(e.target.value)}
-                    className="flex-1 h-9 px-3 bg-secondary/40 border border-border rounded-xl text-xs outline-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTimeline();
+                      }
+                    }}
+                    className="flex-1 h-9 px-3 bg-secondary/40 border border-border rounded-xl text-xs outline-none text-foreground placeholder:text-muted-foreground"
                   />
                   <button
-                    type="submit"
-                    className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-bold rounded-xl text-xs"
+                    type="button"
+                    onClick={handleAddTimeline}
+                    className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-bold rounded-xl text-xs shrink-0 cursor-pointer border border-border"
                   >
                     + Add Event
                   </button>
@@ -542,8 +614,10 @@ export default function DailyTracking() {
                   <span className="text-[11px] text-muted-foreground">Amount Added vs Spent Balance</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setIsSpendModalOpen(true)}
-                  className="p-1.5 bg-primary text-primary-foreground rounded-lg"
+                  className="p-1.5 bg-primary text-primary-foreground rounded-lg cursor-pointer hover:bg-primary/90"
+                  title="Log spend or funds"
                 >
                   <Plus size={14} />
                 </button>
@@ -560,8 +634,8 @@ export default function DailyTracking() {
                         <span className="font-mono text-[10px] text-muted-foreground">{new Date(log.date).toLocaleDateString()}</span>
                       </div>
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-emerald-500 font-semibold">+₹{(log.amountAdded || 0).toLocaleString()} added</span>
-                        <span className="text-rose-500 font-semibold">-₹{(log.amountSpent || 0).toLocaleString()} spent</span>
+                        <span className="text-emerald-400 font-semibold">+₹{(log.amountAdded || 0).toLocaleString()} added</span>
+                        <span className="text-rose-400 font-semibold">-₹{(log.amountSpent || 0).toLocaleString()} spent</span>
                       </div>
                       {log.leadsGenerated > 0 && (
                         <div className="pt-1 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
@@ -570,7 +644,7 @@ export default function DailyTracking() {
                         </div>
                       )}
                       {log.isAnomaly && (
-                        <div className="text-[10px] font-bold text-rose-500 bg-rose-500/10 p-1 rounded-md mt-1">
+                        <div className="text-[10px] font-bold text-rose-400 bg-rose-500/10 p-1 rounded-md mt-1">
                           {log.anomalyReason}
                         </div>
                       )}
@@ -600,7 +674,7 @@ export default function DailyTracking() {
                 required
                 value={spendForm.campaign}
                 onChange={(e) => setSpendForm({ ...spendForm, campaign: e.target.value })}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
               >
                 <option value="">-- Choose Campaign --</option>
                 {campaignsList.map((c) => (
@@ -617,41 +691,41 @@ export default function DailyTracking() {
                   required
                   value={spendForm.date}
                   onChange={(e) => setSpendForm({ ...spendForm, date: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
                 />
               </div>
               <div>
-                <label className="font-semibold text-blue-500 block mb-1">Amount Added (₹)</label>
+                <label className="font-semibold text-blue-400 block mb-1">Amount Added (₹)</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.amountAdded}
                   onChange={(e) => setSpendForm({ ...spendForm, amountAdded: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-rose-500 block mb-1">Amount Spent Today (₹) *</label>
+                <label className="font-semibold text-rose-400 block mb-1">Amount Spent Today (₹) *</label>
                 <input
                   type="number"
                   required
                   placeholder="0"
                   value={spendForm.amountSpent}
                   onChange={(e) => setSpendForm({ ...spendForm, amountSpent: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
                 />
               </div>
               <div>
-                <label className="font-semibold text-emerald-500 block mb-1">Leads Generated</label>
+                <label className="font-semibold text-emerald-400 block mb-1">Leads Generated</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.leadsGenerated}
                   onChange={(e) => setSpendForm({ ...spendForm, leadsGenerated: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
                 />
               </div>
             </div>
@@ -664,7 +738,7 @@ export default function DailyTracking() {
                   placeholder="0"
                   value={spendForm.messages}
                   onChange={(e) => setSpendForm({ ...spendForm, messages: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
                 />
               </div>
               <div>
@@ -674,7 +748,7 @@ export default function DailyTracking() {
                   placeholder="0"
                   value={spendForm.calls}
                   onChange={(e) => setSpendForm({ ...spendForm, calls: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
                 />
               </div>
             </div>
@@ -686,7 +760,7 @@ export default function DailyTracking() {
                 placeholder="e.g. Targeting changed today resulting in lower CPL..."
                 value={spendForm.notes}
                 onChange={(e) => setSpendForm({ ...spendForm, notes: e.target.value })}
-                className="w-full p-2.5 bg-background border border-border rounded-xl outline-none text-xs"
+                className="w-full p-2.5 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
               />
             </div>
 
@@ -694,13 +768,13 @@ export default function DailyTracking() {
               <button
                 type="button"
                 onClick={() => setIsSpendModalOpen(false)}
-                className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-semibold rounded-xl text-xs"
+                className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-semibold rounded-xl text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shadow-md shadow-primary/20"
+                className="px-5 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shadow-md shadow-primary/20 cursor-pointer"
               >
                 Save Spend Entry
               </button>
