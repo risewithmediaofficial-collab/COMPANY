@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react';
 import { useFavorites } from '../../hooks/useFavorites';
+import { AppTooltip } from './tooltip';
 
 /**
  * Reusable FavoriteButton component
@@ -28,16 +29,17 @@ const FavoriteButton = ({
   };
 
   return (
-    <button
-      onClick={handleClick}
-      className={`p-2 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground ${
-        isFav ? 'text-yellow-500 bg-yellow-500/10' : ''
-      } ${className}`}
-      title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-    >
-      <Star size={20} className={isFav ? 'fill-yellow-500 text-yellow-500' : ''} />
-      {showLabel && <span className="text-xs ml-1">{isFav ? 'Favorited' : 'Favorite'}</span>}
-    </button>
+    <AppTooltip content={isFav ? 'Remove from favorites' : 'Add to favorites'}>
+      <button
+        onClick={handleClick}
+        className={`p-2 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground ${
+          isFav ? 'text-yellow-500 bg-yellow-500/10' : ''
+        } ${className}`}
+      >
+        <Star size={20} className={isFav ? 'fill-yellow-500 text-yellow-500' : ''} />
+        {showLabel && <span className="text-xs ml-1">{isFav ? 'Favorited' : 'Favorite'}</span>}
+      </button>
+    </AppTooltip>
   );
 };
 

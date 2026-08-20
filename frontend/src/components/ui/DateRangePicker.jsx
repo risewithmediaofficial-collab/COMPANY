@@ -1,5 +1,6 @@
 import { Calendar, Filter, X, RotateCcw } from 'lucide-react';
 import { useDateFilter } from '../../context/DateFilterContext';
+import { AppTooltip } from './tooltip';
 
 export const DateRangePicker = ({
   fromDate: propFromDate,
@@ -104,30 +105,36 @@ export const DateRangePicker = ({
           <span className="hidden sm:inline">Dates:</span>
         </div>
         <div className="flex items-center gap-1">
-          <input
-            type="date"
-            value={fromDate || ''}
-            onChange={handleFromChange}
-            placeholder="From"
-            className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-          />
+          <AppTooltip content="Filter records starting from this date">
+            <input
+              type="date"
+              value={fromDate || ''}
+              onChange={handleFromChange}
+              placeholder="From"
+              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+            />
+          </AppTooltip>
           <span className="text-muted-foreground font-bold text-[10px]">to</span>
-          <input
-            type="date"
-            value={toDate || ''}
-            onChange={handleToChange}
-            placeholder="To"
-            className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-          />
+          <AppTooltip content="Filter records ending at this date">
+            <input
+              type="date"
+              value={toDate || ''}
+              onChange={handleToChange}
+              placeholder="To"
+              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+            />
+          </AppTooltip>
         </div>
         {isFiltered && (
-          <button
-            onClick={handleReset}
-            title="Reset Date Filter"
-            className="p-1 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-          >
-            <X size={13} />
-          </button>
+          <AppTooltip content="Clear active date filters">
+            <button
+              onClick={handleReset}
+              title="Reset Date Filter"
+              className="p-1 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+            >
+              <X size={13} />
+            </button>
+          </AppTooltip>
         )}
       </div>
     );

@@ -9,6 +9,7 @@ import {
   Layers,
   ChevronRight,
 } from 'lucide-react';
+import { AppTooltip } from './tooltip';
 
 const DEFAULT_VIEW_META = {
   table: { label: 'Table', icon: TableIcon },
@@ -89,28 +90,29 @@ export function DatabaseView({
             const Icon = v.icon;
             const isSelected = currentView === v.id || (['board', 'kanban'].includes(v.id) && ['board', 'kanban'].includes(currentView));
             return (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => handleViewSelect(v.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                  isSelected
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                }`}
-              >
-                {Icon && <Icon size={14} />}
-                <span>{v.label}</span>
-                {v.count !== undefined && (
-                  <span
-                    className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${
-                      isSelected ? 'bg-white/20 text-white' : 'bg-secondary text-muted-foreground'
-                    }`}
-                  >
-                    {v.count}
-                  </span>
-                )}
-              </button>
+              <AppTooltip key={v.id} content={`Switch to ${v.label} View`}>
+                <button
+                  type="button"
+                  onClick={() => handleViewSelect(v.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                    isSelected
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`}
+                >
+                  {Icon && <Icon size={14} />}
+                  <span>{v.label}</span>
+                  {v.count !== undefined && (
+                    <span
+                      className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-secondary text-muted-foreground'
+                      }`}
+                    >
+                      {v.count}
+                    </span>
+                  )}
+                </button>
+              </AppTooltip>
             );
           })}
         </div>
@@ -132,9 +134,11 @@ export function DatabaseView({
           {actions}
 
           {totalCount !== undefined && (
-            <span className="hidden sm:inline-block text-xs font-semibold text-muted-foreground px-2.5 py-1 bg-secondary/50 rounded-xl whitespace-nowrap">
-              {totalCount} {totalCount === 1 ? 'record' : 'records'}
-            </span>
+            <AppTooltip content="Total items in this dataset">
+              <span className="hidden sm:inline-block text-xs font-semibold text-muted-foreground px-2.5 py-1 bg-secondary/50 rounded-xl whitespace-nowrap cursor-default">
+                {totalCount} {totalCount === 1 ? 'record' : 'records'}
+              </span>
+            </AppTooltip>
           )}
         </div>
       </div>

@@ -39,6 +39,7 @@ import {
 import GlobalSearchModal from '../modals/GlobalSearchModal';
 import FavoritesPanel from '../modals/FavoritesPanel';
 import { DateRangePicker } from '../ui/DateRangePicker';
+import { AppTooltip } from '../ui/tooltip';
 import { AddTaskModal } from '../modals/AddTaskModal';
 import { AddProjectModal } from '../modals/AddProjectModal';
 import { AddClientModal } from '../modals/AddClientModal';
@@ -246,25 +247,29 @@ const Navbar = () => {
 
         {/* Center/Right: Quick Search Bar */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border/80 bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all text-xs"
-            title="Search Workspace (Cmd+K)"
-          >
-            <Search size={14} />
-            <span className="text-xs text-muted-foreground">Search...</span>
-            <kbd className="px-1.5 py-0.2 rounded bg-background border border-border text-[10px] font-mono text-muted-foreground">
-              ⌘K
-            </kbd>
-          </button>
+          <AppTooltip content="Search Workspace (Ctrl+K / Cmd+K)">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border/80 bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all text-xs"
+              title="Search Workspace (Cmd+K)"
+            >
+              <Search size={14} />
+              <span className="text-xs text-muted-foreground">Search...</span>
+              <kbd className="px-1.5 py-0.2 rounded bg-background border border-border text-[10px] font-mono text-muted-foreground">
+                ⌘K
+              </kbd>
+            </button>
+          </AppTooltip>
 
           {/* Quick Create Action Dropdown (+ New) */}
           {canCreate && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 shadow-sm transition-all">
-                <Plus size={14} className="stroke-[2.5]" />
-                <span className="hidden sm:inline">New</span>
-              </DropdownMenuTrigger>
+              <AppTooltip content="Quick Create Task, Project, Client, or Lead">
+                <DropdownMenuTrigger className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 shadow-sm transition-all">
+                  <Plus size={14} className="stroke-[2.5]" />
+                  <span className="hidden sm:inline">New</span>
+                </DropdownMenuTrigger>
+              </AppTooltip>
               <DropdownMenuContent align="end" className="w-48 mt-2">
                 <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-muted-foreground">Quick Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -297,24 +302,28 @@ const Navbar = () => {
           <FavoritesPanel />
 
           {/* Theme Toggle */}
-          <button
-            onClick={() => dispatch(toggleDarkMode())}
-            className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-            title="Toggle Dark Mode"
-          >
-            {darkMode ? <Sun size={17} /> : <Moon size={17} />}
-          </button>
+          <AppTooltip content={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}>
+            <button
+              onClick={() => dispatch(toggleDarkMode())}
+              className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+              title="Toggle Dark Mode"
+            >
+              {darkMode ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+          </AppTooltip>
 
           {/* Notifications Dropdown */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
-              <Bell size={17} />
-              {notificationData?.unreadCount > 0 && (
-                <span className="absolute top-0.5 right-0.5 min-w-3.5 h-3.5 px-0.5 bg-primary text-white rounded-full border border-card text-[9px] font-bold flex items-center justify-center">
-                  {Math.min(notificationData.unreadCount, 9)}
-                </span>
-              )}
-            </DropdownMenuTrigger>
+            <AppTooltip content="Notifications & Activity Alerts">
+              <DropdownMenuTrigger className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
+                <Bell size={17} />
+                {notificationData?.unreadCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 min-w-3.5 h-3.5 px-0.5 bg-primary text-white rounded-full border border-card text-[9px] font-bold flex items-center justify-center">
+                    {Math.min(notificationData.unreadCount, 9)}
+                  </span>
+                )}
+              </DropdownMenuTrigger>
+            </AppTooltip>
             <DropdownMenuContent align="end" className="w-80 mt-2">
               <DropdownMenuLabel className="flex items-center justify-between text-xs">
                 <span>Notifications</span>

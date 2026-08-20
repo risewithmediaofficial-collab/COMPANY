@@ -45,6 +45,7 @@ import { toggleSidebar } from '../../store/slices/uiSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
+import { AppTooltip } from '../ui/tooltip';
 
 const badgePaths = {
   'Portal Manager': 'accessRequests',
@@ -439,56 +440,60 @@ export default function Sidebar({ onOpenSearch }) {
                     const isPinned = pinnedPaths.includes(item.path);
 
                     return (
-                      <Link
+                      <AppTooltip
                         key={item.path}
-                        to={item.path}
-                        onClick={() => isMobile && dispatch(toggleSidebar())}
-                        title={!sidebarOpen && !isMobile ? item.name : undefined}
-                        className={`group relative flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                        }`}
+                        content={!sidebarOpen && !isMobile ? item.name : undefined}
+                        side="right"
                       >
-                        <div className="relative shrink-0 flex items-center justify-center">
-                          <item.icon
-                            size={16}
-                            className={`${
-                              isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
-                            } transition-transform group-hover:scale-105`}
-                          />
-                          {!sidebarOpen && !isMobile && count > 0 && (
-                            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500" />
-                          )}
-                        </div>
-
-                        {(sidebarOpen || isMobile) && (
-                          <>
-                            <span className="ml-2.5 truncate flex-1">{item.name}</span>
-
-                            {/* Badge count if pending */}
-                            {count > 0 && (
-                              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                                isActive ? 'bg-white/20 text-white' : 'bg-red-500 text-white'
-                              }`}>
-                                {count}
-                              </span>
+                        <Link
+                          to={item.path}
+                          onClick={() => isMobile && dispatch(toggleSidebar())}
+                          className={`group relative flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                            isActive
+                              ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                              : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                          }`}
+                        >
+                          <div className="relative shrink-0 flex items-center justify-center">
+                            <item.icon
+                              size={16}
+                              className={`${
+                                isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
+                              } transition-transform group-hover:scale-105`}
+                            />
+                            {!sidebarOpen && !isMobile && count > 0 && (
+                              <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500" />
                             )}
+                          </div>
 
-                            {/* Pin / Star Toggle Icon */}
-                            <button
-                              type="button"
-                              onClick={(e) => togglePin(e, item.path)}
-                              className={`p-0.5 transition-opacity ${
-                                isPinned ? 'opacity-100 text-amber-400' : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-amber-400'
-                              }`}
-                              title={isPinned ? 'Unpin from favorites' : 'Pin to favorites'}
-                            >
-                              <Star size={12} className={isPinned ? 'fill-amber-400' : ''} />
-                            </button>
-                          </>
-                        )}
-                      </Link>
+                          {(sidebarOpen || isMobile) && (
+                            <>
+                              <span className="ml-2.5 truncate flex-1">{item.name}</span>
+
+                              {/* Badge count if pending */}
+                              {count > 0 && (
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                  isActive ? 'bg-white/20 text-white' : 'bg-red-500 text-white'
+                                }`}>
+                                  {count}
+                                </span>
+                              )}
+
+                              {/* Pin / Star Toggle Icon */}
+                              <button
+                                type="button"
+                                onClick={(e) => togglePin(e, item.path)}
+                                className={`p-0.5 transition-opacity ${
+                                  isPinned ? 'opacity-100 text-amber-400' : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-amber-400'
+                                }`}
+                                title={isPinned ? 'Unpin from favorites' : 'Pin to favorites'}
+                              >
+                                <Star size={12} className={isPinned ? 'fill-amber-400' : ''} />
+                              </button>
+                            </>
+                          )}
+                        </Link>
+                      </AppTooltip>
                     );
                   })}
                 </div>
@@ -499,34 +504,38 @@ export default function Sidebar({ onOpenSearch }) {
 
         {/* Footer / Settings & Collapse Toggle */}
         <div className="p-2.5 border-t border-border bg-card shrink-0 space-y-1">
-          <Link
-            to="/settings"
-            onClick={() => isMobile && dispatch(toggleSidebar())}
-            className={`flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
-              location.pathname === '/settings'
-                ? 'bg-primary/10 text-primary font-semibold'
-                : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-            }`}
-          >
-            <Settings size={16} />
-            {(sidebarOpen || isMobile) && <span className="ml-2.5">Settings</span>}
-          </Link>
+          <AppTooltip content={!sidebarOpen && !isMobile ? 'Settings' : undefined} side="right">
+            <Link
+              to="/settings"
+              onClick={() => isMobile && dispatch(toggleSidebar())}
+              className={`flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                location.pathname === '/settings'
+                  ? 'bg-primary/10 text-primary font-semibold'
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
+            >
+              <Settings size={16} />
+              {(sidebarOpen || isMobile) && <span className="ml-2.5">Settings</span>}
+            </Link>
+          </AppTooltip>
 
           {!isMobile && (
-            <button
-              onClick={() => dispatch(toggleSidebar())}
-              className="w-full flex items-center justify-center p-1.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors text-xs"
-              title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
-            >
-              {sidebarOpen ? (
-                <div className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-                  <ChevronLeft size={14} />
-                  <span>Collapse</span>
-                </div>
-              ) : (
-                <ChevronRight size={16} />
-              )}
-            </button>
+            <AppTooltip content={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'} side="right">
+              <button
+                onClick={() => dispatch(toggleSidebar())}
+                className="w-full flex items-center justify-center p-1.5 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors text-xs"
+                title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+              >
+                {sidebarOpen ? (
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
+                    <ChevronLeft size={14} />
+                    <span>Collapse</span>
+                  </div>
+                ) : (
+                  <ChevronRight size={16} />
+                )}
+              </button>
+            </AppTooltip>
           )}
         </div>
       </motion.aside>
