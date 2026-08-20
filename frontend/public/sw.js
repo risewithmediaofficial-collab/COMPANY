@@ -1,4 +1,16 @@
-// Progressive Web Push Service Worker for Browser Notifications
+// Progressive Web App (PWA) & Push Service Worker
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
+
+self.addEventListener('fetch', (event) => {
+  // Let the browser handle standard requests
+});
+
 self.addEventListener('push', (event) => {
   let data = {};
   if (event.data) {

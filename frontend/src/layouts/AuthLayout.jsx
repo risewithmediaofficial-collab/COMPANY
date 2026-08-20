@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import MobileAppInstallButton from '../components/ui/MobileAppInstallButton';
 
 const AuthLayout = () => {
   return (
@@ -22,6 +23,9 @@ const AuthLayout = () => {
         </div>
         <Outlet />
       </div>
+
+      {/* Floating PWA Download / Install App Button (Mobile Only) */}
+      <MobileAppInstallButton />
     </div>
   );
 };

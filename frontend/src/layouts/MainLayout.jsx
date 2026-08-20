@@ -5,6 +5,7 @@ import Navbar from '../components/layout/Navbar';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearchModal from '../components/modals/GlobalSearchModal';
+import MobileAppInstallButton from '../components/ui/MobileAppInstallButton';
 
 const MainLayout = () => {
   const { sidebarOpen } = useSelector((state) => state.ui);
@@ -38,6 +39,9 @@ const MainLayout = () => {
 
       {/* Global Search Modal */}
       <GlobalSearchModal open={globalSearchOpen} onOpenChange={setGlobalSearchOpen} />
+
+      {/* Floating PWA Download / Install App Button (Mobile Only) */}
+      <MobileAppInstallButton />
     </div>
   );
 };
