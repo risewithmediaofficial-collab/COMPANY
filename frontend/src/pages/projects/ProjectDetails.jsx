@@ -71,7 +71,7 @@ const ProjectDetails = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [recentTasks, setRecentTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('board');
+  const [activeTab, setActiveTab] = useState('list');
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [taskDefaults, setTaskDefaults] = useState({});
@@ -392,7 +392,7 @@ const ProjectDetails = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="flex h-[calc(100vh-320px)] space-x-6 overflow-x-auto pb-6 scrollbar-hide">
+      <div className="flex h-[calc(100vh-300px)] space-x-6 overflow-x-auto pb-6 custom-scrollbar">
         {statuses.map((status) => {
           const isDragOver = dragOverStatus === status;
           const columnDotColor =
@@ -431,7 +431,7 @@ const ProjectDetails = () => {
                 onDragOver={(e) => handleDragOver(e, status)}
                 onDragLeave={() => setDragOverStatus(null)}
                 onDrop={(e) => handleDrop(e, status)}
-                className={`flex-1 space-y-3 overflow-y-auto rounded-2xl border-2 p-3 transition-all duration-150 ${
+                className={`flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar rounded-2xl border-2 p-3 transition-all duration-150 ${
                   isDragOver
                     ? 'border-primary bg-primary/5 shadow-inner'
                     : 'border-dashed border-border bg-secondary/20'
@@ -538,10 +538,10 @@ const ProjectDetails = () => {
             </button>
           )}
         </div>
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] custom-scrollbar">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
+            <thead className="sticky top-0 z-10 bg-card">
+              <tr className="border-b border-border text-left text-muted-foreground bg-card">
                 <th className="px-6 py-4">Task</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Priority</th>
@@ -970,8 +970,8 @@ const ProjectDetails = () => {
       >
         <NotionTabs
           tabs={[
-            { id: 'board', label: 'Task Board', icon: LayoutGrid },
             { id: 'list', label: 'List View', icon: List },
+            { id: 'board', label: 'Task Board', icon: LayoutGrid },
             { id: 'files', label: 'Files', icon: Paperclip },
             { id: 'activity', label: 'Activity', icon: Clock },
             { id: 'proposal', label: 'Proposal', icon: FileText },

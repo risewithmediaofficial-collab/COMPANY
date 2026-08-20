@@ -147,12 +147,12 @@ export function DatabaseView({
           {/* 1. TABLE VIEW */}
           {currentView === 'table' && (
             <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-              <div className="overflow-x-auto custom-scrollbar">
+              <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] custom-scrollbar">
                 <table className="w-full text-left text-xs border-collapse">
-                  <thead>
+                  <thead className="sticky top-0 z-10 bg-card">
                     <tr className="border-b border-border bg-secondary/40 text-muted-foreground font-bold">
                       {columns.map((col, idx) => (
-                        <th key={col.key || idx} className="py-3 px-4 whitespace-nowrap">
+                        <th key={col.key || idx} className="py-3 px-4 whitespace-nowrap bg-secondary/40">
                           {col.label}
                         </th>
                       ))}
@@ -209,51 +209,53 @@ export function DatabaseView({
 
           {/* 3. KANBAN BOARD VIEW */}
           {(currentView === 'kanban' || currentView === 'board') && (
-            <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-              {kanbanColumns.map((col) => {
-                const colItems = items.filter((item) => {
-                  const val = item[groupBy];
-                  return val === col.key || (typeof val === 'string' && val.toLowerCase() === col.key.toLowerCase());
-                });
+            <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+              <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
+                {kanbanColumns.map((col) => {
+                  const colItems = items.filter((item) => {
+                    const val = item[groupBy];
+                    return val === col.key || (typeof val === 'string' && val.toLowerCase() === col.key.toLowerCase());
+                  });
 
-                return (
-                  <div
-                    key={col.key}
-                    className="w-72 sm:w-80 shrink-0 flex flex-col rounded-2xl border border-border bg-secondary/20 p-3 space-y-3"
-                  >
-                    {/* Column Header */}
-                    <div className="flex items-center justify-between px-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-foreground uppercase tracking-wider">{col.label}</span>
-                        <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
-                          {colItems.length}
-                        </span>
+                  return (
+                    <div
+                      key={col.key}
+                      className="flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border border-border bg-secondary/20 p-3 space-y-3"
+                    >
+                      {/* Column Header */}
+                      <div className="flex items-center justify-between px-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-foreground uppercase tracking-wider">{col.label}</span>
+                          <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
+                            {colItems.length}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Column Cards */}
+                      <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5">
+                        {colItems.map((item, idx) => (
+                          <div
+                            key={item._id || item.id || idx}
+                            className="p-3.5 rounded-xl border border-border bg-card hover:border-primary/40 shadow-sm transition-all"
+                          >
+                            {renderKanbanCard
+                              ? renderKanbanCard(item, idx)
+                              : renderCard
+                              ? renderCard(item, idx)
+                              : item.title || item.name}
+                          </div>
+                        ))}
+                        {colItems.length === 0 && (
+                          <div className="py-8 text-center text-xs text-muted-foreground/60 border border-dashed border-border/60 rounded-xl">
+                            Empty
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    {/* Column Cards */}
-                    <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[70vh] custom-scrollbar pr-0.5">
-                      {colItems.map((item, idx) => (
-                        <div
-                          key={item._id || item.id || idx}
-                          className="p-3.5 rounded-xl border border-border bg-card hover:border-primary/40 shadow-sm transition-all"
-                        >
-                          {renderKanbanCard
-                            ? renderKanbanCard(item, idx)
-                            : renderCard
-                            ? renderCard(item, idx)
-                            : item.title || item.name}
-                        </div>
-                      ))}
-                      {colItems.length === 0 && (
-                        <div className="py-8 text-center text-xs text-muted-foreground/60 border border-dashed border-border/60 rounded-xl">
-                          Empty
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

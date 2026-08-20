@@ -11,6 +11,7 @@ import {
   ClipboardList,
   LayoutGrid,
   List,
+  Table as TableIcon,
   Edit2,
   Trash2,
   Target,
@@ -510,7 +511,7 @@ const Leads = () => {
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto pb-4">
+        <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
           <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-5 pr-1">
             {PIPELINE_STAGES.map((stage) => {
               const stageInfo = STAGE_META[stage];
@@ -519,9 +520,9 @@ const Leads = () => {
               return (
                 <section
                   key={stage}
-                  className={`flex min-h-[520px] flex-col rounded-[28px] border bg-card/90 shadow-sm backdrop-blur-sm ${stageInfo.surface}`}
+                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] border bg-card/90 shadow-sm backdrop-blur-sm ${stageInfo.surface}`}
                 >
-                  <div className="border-b border-border/70 px-4 py-4">
+                  <div className="border-b border-border/70 px-4 py-4 shrink-0">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
@@ -535,7 +536,7 @@ const Leads = () => {
                   </div>
 
                   <div
-                    className="flex min-h-0 flex-1 flex-col gap-3 p-4"
+                    className="flex min-h-0 flex-1 flex-col gap-3 p-4 overflow-y-auto max-h-[calc(100vh-370px)] custom-scrollbar pr-1"
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => handleDrop(e, stage)}
                   >
@@ -703,8 +704,8 @@ const Leads = () => {
     >
       <DatabaseView
         views={[
+          { id: 'list', label: 'Table', icon: TableIcon },
           { id: 'kanban', label: 'Board', icon: LayoutGrid },
-          { id: 'list', label: 'List', icon: List },
         ]}
         activeView={view}
         onViewChange={setView}

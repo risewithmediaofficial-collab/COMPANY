@@ -260,76 +260,78 @@ const Projects = () => {
 
         {/* Board View (Kanban by Project Status) */}
         {(currentView === 'board' || currentView === 'kanban') && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {STATUS_COLUMNS.map((status) => {
-              const statusProjects = filteredProjects.filter((p) => (p.status || 'Planning') === status);
-              return (
-                <div key={status} className="bg-secondary/20 rounded-2xl border border-border/80 p-3 space-y-3">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
-                    <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
-                      {statusProjects.length}
-                    </span>
-                  </div>
+          <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+            <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
+              {STATUS_COLUMNS.map((status) => {
+                const statusProjects = filteredProjects.filter((p) => (p.status || 'Planning') === status);
+                return (
+                  <div key={status} className="flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border border-border/80 bg-secondary/20 p-3 space-y-3">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
+                      <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
+                        {statusProjects.length}
+                      </span>
+                    </div>
 
-                  <div className="space-y-2">
-                    {statusProjects.map((project) => (
-                      <div
-                        key={project._id}
-                        onClick={() => navigate(`/projects/${project._id}`)}
-                        className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2.5 group shadow-sm"
-                      >
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                            {project.name}
-                          </h4>
-                          <span className={`px-2 py-0.2 rounded-md text-[9px] font-bold uppercase ${
-                            project.priority === 'Critical' || project.priority === 'High'
-                              ? 'bg-rose-500/10 text-rose-600'
-                              : 'bg-secondary text-muted-foreground'
-                          }`}>
-                            {project.priority || 'Med'}
-                          </span>
-                        </div>
-
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {project.client?.name ? `🏢 ${project.client.name}` : 'Internal'}
-                        </p>
-
-                        {/* Progress Bar */}
-                        <div className="space-y-1 pt-1">
-                          <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
-                            <span>Progress</span>
-                            <span>{project.progress || 0}%</span>
+                    <div className="space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5 flex-1">
+                      {statusProjects.map((project) => (
+                        <div
+                          key={project._id}
+                          onClick={() => navigate(`/projects/${project._id}`)}
+                          className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2.5 group shadow-sm"
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                              {project.name}
+                            </h4>
+                            <span className={`px-2 py-0.2 rounded-md text-[9px] font-bold uppercase ${
+                              project.priority === 'Critical' || project.priority === 'High'
+                                ? 'bg-rose-500/10 text-rose-600'
+                                : 'bg-secondary text-muted-foreground'
+                            }`}>
+                              {project.priority || 'Med'}
+                            </span>
                           </div>
-                          <div className="h-1 w-full rounded-full bg-secondary overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full transition-all"
-                              style={{ width: `${Math.min(project.progress || 0, 100)}%` }}
-                            />
+
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {project.client?.name ? `🏢 ${project.client.name}` : 'Internal'}
+                          </p>
+
+                          {/* Progress Bar */}
+                          <div className="space-y-1 pt-1">
+                            <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
+                              <span>Progress</span>
+                              <span>{project.progress || 0}%</span>
+                            </div>
+                            <div className="h-1 w-full rounded-full bg-secondary overflow-hidden">
+                              <div
+                                className="h-full bg-primary rounded-full transition-all"
+                                style={{ width: `${Math.min(project.progress || 0, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
+                            <span>
+                              {project.endDate ? `Due ${new Date(project.endDate).toLocaleDateString()}` : 'Ongoing'}
+                            </span>
+                            <span className="group-hover:text-primary flex items-center gap-0.5">
+                              Open <ArrowRight size={10} />
+                            </span>
                           </div>
                         </div>
+                      ))}
 
-                        <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                          <span>
-                            {project.endDate ? `Due ${new Date(project.endDate).toLocaleDateString()}` : 'Ongoing'}
-                          </span>
-                          <span className="group-hover:text-primary flex items-center gap-0.5">
-                            Open <ArrowRight size={10} />
-                          </span>
+                      {statusProjects.length === 0 && (
+                        <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
+                          No {status} projects
                         </div>
-                      </div>
-                    ))}
-
-                    {statusProjects.length === 0 && (
-                      <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
-                        No {status} projects
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </DatabaseView>

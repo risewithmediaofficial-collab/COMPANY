@@ -353,7 +353,7 @@ const Tasks = () => {
                         updateStatusMutation.mutate({ id: taskId, status: column.key });
                       }
                     }}
-                    className={`flex flex-col min-h-[520px] rounded-2xl border ${column.surface} p-3 space-y-3 transition-colors`}
+                    className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border ${column.surface} p-3 space-y-3 transition-colors`}
                   >
                     <div className="flex items-center justify-between px-1.5 py-1">
                       <div className="flex items-center gap-2">

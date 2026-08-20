@@ -232,58 +232,60 @@ const Clients = () => {
 
         {/* Board View (Kanban by Client Status) */}
         {(currentView === 'board' || currentView === 'kanban') && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-            {STATUS_COLUMNS.map((status) => {
-              const statusClients = clients.filter((c) => (c.status || 'Prospect') === status);
-              return (
-                <div key={status} className="bg-secondary/20 rounded-2xl border border-border/80 p-3 space-y-3">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
-                    <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
-                      {statusClients.length}
-                    </span>
-                  </div>
+          <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+            <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
+              {STATUS_COLUMNS.map((status) => {
+                const statusClients = clients.filter((c) => (c.status || 'Prospect') === status);
+                return (
+                  <div key={status} className="flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border border-border/80 bg-secondary/20 p-3 space-y-3">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
+                      <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
+                        {statusClients.length}
+                      </span>
+                    </div>
 
-                  <div className="space-y-2">
-                    {statusClients.map((client) => (
-                      <div
-                        key={client._id}
-                        onClick={() => navigate(`/clients/${client._id}`)}
-                        className="p-3 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2 group shadow-sm"
-                      >
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                            {client.name}
-                          </h4>
-                          {client.monthlyRetainer ? (
-                            <span className="text-[11px] font-bold text-emerald-600">
-                              {formatINR(client.monthlyRetainer)}
+                    <div className="space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5 flex-1">
+                      {statusClients.map((client) => (
+                        <div
+                          key={client._id}
+                          onClick={() => navigate(`/clients/${client._id}`)}
+                          className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2 group shadow-sm"
+                        >
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                              {client.name}
+                            </h4>
+                            {client.monthlyRetainer ? (
+                              <span className="text-[11px] font-bold text-emerald-600">
+                                {formatINR(client.monthlyRetainer)}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {client.company || client.email || 'No company'}
+                          </p>
+
+                          <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
+                            <span>{client.service || 'Retainer'}</span>
+                            <span className="group-hover:text-primary flex items-center gap-0.5">
+                              Open <ArrowRight size={10} />
                             </span>
-                          ) : null}
+                          </div>
                         </div>
+                      ))}
 
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {client.company || client.email || 'No company'}
-                        </p>
-
-                        <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                          <span>{client.service || 'Retainer'}</span>
-                          <span className="group-hover:text-primary flex items-center gap-0.5">
-                            Open <ArrowRight size={10} />
-                          </span>
+                      {statusClients.length === 0 && (
+                        <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
+                          No {status} clients
                         </div>
-                      </div>
-                    ))}
-
-                    {statusClients.length === 0 && (
-                      <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
-                        No {status} clients
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </DatabaseView>

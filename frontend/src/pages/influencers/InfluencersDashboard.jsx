@@ -320,7 +320,7 @@ const InfluencersDashboard = () => {
 
       <DatabaseView
         viewKey="rwm_influencers_view_v1"
-        views={['cards', 'table']}
+        views={['table', 'cards']}
         items={influencers}
         totalCount={influencers.length}
         searchPlaceholder="Search creators by name, handle, city, or niche..."
