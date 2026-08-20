@@ -41,31 +41,50 @@ import { toast } from 'sonner';
 
 const DRAFT_KEY = 'draft:project-modal';
 
-const projectFormSchema = z.object({
-  name: z.string().min(2, 'Project name is required'),
-  description: z.string().optional(),
-  category: z.string().min(1, 'Project type is required'),
-  client: z.string().min(1, 'Client is required'),
-  status: z.enum(['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled']).default('Planning'),
-  priority: z.enum(['Low', 'Medium', 'High', 'Critical']).default('Medium'),
-  startDate: z.string().optional().or(z.literal('')),
-  endDate: z.string().optional().or(z.literal('')),
-  budget: z.number().optional(),
-  quotedAmount: z.number().optional(),
-  currency: z.string().default('INR'),
-  acceptedProposalId: z.string().optional(),
-  marketingAmount: z.number().optional(),
-  adsAmount: z.number().optional(),
-  contentAmount: z.number().optional(),
-  designAmount: z.number().optional(),
-  developmentAmount: z.number().optional(),
-  printingAmount: z.number().optional(),
-  otherExpenses: z.number().optional(),
-  totalBudget: z.number().optional(),
-  amountReceived: z.number().optional(),
-  paymentStatus: z.enum(['pending', 'partial', 'paid']).optional(),
-  budgetNotes: z.string().optional(),
-});
+const projectFormSchema = z
+  .object({
+    name: z.string().min(2, 'Project name is required'),
+    description: z.string().optional(),
+    category: z.string().min(1, 'Project type is required'),
+    client: z.string().optional().or(z.literal('')),
+    isInternal: z.boolean().default(false),
+    status: z.enum(['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled']).default('Planning'),
+    priority: z.enum(['Low', 'Medium', 'High', 'Critical']).default('Medium'),
+    startDate: z.string().optional().or(z.literal('')),
+    endDate: z.string().optional().or(z.literal('')),
+    budget: z.number().optional(),
+    quotedAmount: z.number().optional(),
+    currency: z.string().default('INR'),
+    acceptedProposalId: z.string().optional(),
+    marketingAmount: z.number().optional(),
+    adsAmount: z.number().optional(),
+    contentAmount: z.number().optional(),
+    designAmount: z.number().optional(),
+    developmentAmount: z.number().optional(),
+    printingAmount: z.number().optional(),
+    otherExpenses: z.number().optional(),
+    totalBudget: z.number().optional(),
+    amountReceived: z.number().optional(),
+    paymentStatus: z.enum(['pending', 'partial', 'paid']).optional(),
+    budgetNotes: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      const isSaasOrInternal =
+        data.isInternal ||
+        data.category === 'saas_product' ||
+        data.category === 'saas' ||
+        data.category === 'internal_tool' ||
+        data.category === 'internal_product';
+
+      if (isSaasOrInternal) return true;
+      return Boolean(data.client && data.client.trim().length > 0);
+    },
+    {
+      message: 'Client is required for client projects (or select SaaS Product type)',
+      path: ['client'],
+    }
+  );
 
 
 export const AddProjectModal = ({ open, onOpenChange, project = null, defaultClientId = '' }) => {
@@ -76,6 +95,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
       description: '',
       category: '',
       client: defaultClientId || '',
+      isInternal: false,
       status: 'Planning',
       priority: 'Medium',
       startDate: '',
@@ -99,6 +119,12 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   });
 
   const selectedClientId = form.watch('client');
+  const selectedCategory = form.watch('category');
+  const isInternalValue = form.watch('isInternal');
+  const isSaasOrInternal =
+    isInternalValue ||
+    ['saas_product', 'saas', 'internal_tool', 'internal_product'].includes(selectedCategory);
+
   const { data: acceptedProposals = [] } = useAcceptedProposals(selectedClientId);
   const { data: clients = [] } = useClients();
   const createProject = useCreateProject();
@@ -293,44 +319,37 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="client"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Client *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
-                          <SelectValue placeholder="Select client" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {clients.map((client) => (
-                          <SelectItem key={client._id} value={client._id}>
-                            {client.name} - {client.company}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+              {/* Project Type / Category Selection */}
               <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-xs font-semibold text-foreground/90">Project Type *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        if (['saas_product', 'saas', 'internal_tool', 'internal_product'].includes(val)) {
+                          form.setValue('isInternal', true);
+                          if (!form.getValues('client')) {
+                            form.setValue('client', '');
+                          }
+                        }
+                      }}
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
                           <SelectValue placeholder="Select project type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="saas_product" className="font-semibold text-primary">
+                          🚀 SaaS Product / Platform (No Client)
+                        </SelectItem>
+                        <SelectItem value="internal_tool" className="font-semibold text-indigo-500">
+                          🛠️ Internal Software / Tool (No Client)
+                        </SelectItem>
                         <SelectItem value="web_development">Web Development</SelectItem>
                         <SelectItem value="web_design">Web Design</SelectItem>
                         <SelectItem value="mobile_app">Mobile App</SelectItem>
@@ -346,6 +365,60 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   </FormItem>
                 )}
               />
+
+              {/* Client Selection (Optional for SaaS / Internal Projects) */}
+              <FormField
+                control={form.control}
+                name="client"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="text-xs font-semibold text-foreground/90">
+                        Client {isSaasOrInternal ? (
+                          <span className="text-[11px] font-bold text-emerald-500 ml-1">(Optional for SaaS)</span>
+                        ) : (
+                          <span className="text-destructive">*</span>
+                        )}
+                      </FormLabel>
+                    </div>
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val === 'none' ? '' : val);
+                      }}
+                      value={field.value || (isSaasOrInternal ? 'none' : '')}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                          <SelectValue placeholder={isSaasOrInternal ? 'None (Internal SaaS Product)' : 'Select client'} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isSaasOrInternal && (
+                          <SelectItem value="none" className="text-muted-foreground font-medium">
+                            🏢 None (Internal SaaS Product)
+                          </SelectItem>
+                        )}
+                        {clients.map((client) => (
+                          <SelectItem key={client._id} value={client._id}>
+                            {client.name} - {client.company}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* SaaS Mode Helpful Notice */}
+              {isSaasOrInternal && (
+                <div className="md:col-span-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-2 animate-in fade-in duration-200">
+                  <span>🚀</span>
+                  <span className="font-semibold">
+                    SaaS Product Mode Active: You can create and build this SaaS platform without adding an external client.
+                  </span>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

@@ -122,6 +122,24 @@ const normalizeProjectPayload = (body) => {
   }
   if (payload.team && !Array.isArray(payload.team)) payload.team = [payload.team];
   if (!payload.currency) payload.currency = 'INR';
+
+  // Support SaaS & Internal Products without Client
+  if (
+    payload.category === 'saas_product' ||
+    payload.category === 'saas' ||
+    payload.category === 'internal_product' ||
+    payload.category === 'internal_tool' ||
+    payload.isInternal
+  ) {
+    payload.isInternal = true;
+    payload.productType = payload.productType || 'saas_product';
+  }
+
+  // Remove empty client reference
+  if (!payload.client || payload.client === '' || payload.client === 'none' || payload.client === 'null') {
+    delete payload.client;
+  }
+
   return payload;
 };
 
@@ -267,12 +285,14 @@ export const createProject = async (req, res) => {
       }, req.app.get('io'));
     }
 
-    await Client.findByIdAndUpdate(project.client, {
-      $set: {
-        'onboardingSteps.projectCreated': true,
-        lastActivityDate: new Date(),
-      },
-    });
+    if (project.client) {
+      await Client.findByIdAndUpdate(project.client, {
+        $set: {
+          'onboardingSteps.projectCreated': true,
+          lastActivityDate: new Date(),
+        },
+      });
+    }
 
     await createActivityLog({
       actor: req.user,

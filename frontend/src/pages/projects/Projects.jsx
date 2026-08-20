@@ -108,7 +108,7 @@ const Projects = () => {
             {row.name}
           </div>
           <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
-            {row.client?.name ? `🏢 ${row.client.name}` : 'Internal Agency Project'}
+            {row.client?.name ? `🏢 ${row.client.name}` : row.category === 'saas_product' ? '🚀 SaaS Product' : '🏢 Internal Project'}
           </div>
         </div>
       ),
@@ -292,7 +292,7 @@ const Projects = () => {
                           </div>
 
                           <p className="text-[11px] text-muted-foreground truncate">
-                            {project.client?.name ? `🏢 ${project.client.name}` : 'Internal'}
+                            {project.client?.name ? `🏢 ${project.client.name}` : project.category === 'saas_product' ? '🚀 SaaS Product' : '🏢 Internal Project'}
                           </p>
 
                           {/* Progress Bar */}
