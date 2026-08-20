@@ -18,6 +18,9 @@ import {
   User,
   ArrowRight,
   Filter,
+  Eye,
+  X,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
@@ -43,6 +46,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useDateFilter } from '../../context/DateFilterContext';
 
 const emptyForm = {
   client: '',
@@ -81,6 +85,13 @@ const typeIcons = {
   email: Mail,
 };
 
+const channelColors = {
+  call: 'bg-blue-500/10 text-blue-600',
+  meeting: 'bg-violet-500/10 text-violet-600',
+  whatsapp: 'bg-emerald-500/10 text-emerald-600',
+  email: 'bg-amber-500/10 text-amber-600',
+};
+
 const formatDate = (value) => {
   if (!value) return 'Not set';
   return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
@@ -89,7 +100,7 @@ const formatDate = (value) => {
 const labelize = (value) => String(value || '').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
 const Field = ({ label, required, helper, children, className }) => (
-  <div className={cn("space-y-1.5", className)}>
+  <div className={cn('space-y-1.5', className)}>
     {label && (
       <label className="text-[13px] font-medium text-foreground/90 flex items-center justify-between select-none">
         <span>
@@ -103,6 +114,138 @@ const Field = ({ label, required, helper, children, className }) => (
   </div>
 );
 
+// ─── View-Only Modal for Follow-up Details ─────────────────────────────────
+const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) => {
+  if (!followup) return null;
+  const Icon = typeIcons[followup.type] || PhoneCall;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent size="lg" className="bg-card border border-border p-0 overflow-hidden">
+        {/* Colored header stripe */}
+        <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b border-border px-6 py-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <Icon size={20} />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-foreground leading-snug truncate">{followup.subject || 'Untitled Follow-up'}</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  🏢 {followup.client?.company || followup.client?.name || 'Unknown Client'}
+                  {followup.contactPerson && ` · ${followup.contactPerson}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusTone[followup.status] || statusTone.open}`}>
+                {labelize(followup.status)}
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${priorityTone[followup.priority] || priorityTone.medium}`}>
+                {labelize(followup.priority)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
+          {/* Channel + Dates */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="rounded-xl border border-border bg-secondary/30 p-3 space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Channel</p>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${channelColors[followup.type] || 'bg-secondary text-foreground'}`}>
+                <Icon size={13} />
+                {labelize(followup.type)}
+              </span>
+            </div>
+            <div className="rounded-xl border border-border bg-secondary/30 p-3 space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Meeting Date</p>
+              <p className="text-sm font-semibold text-foreground">{formatDate(followup.meetingDate)}</p>
+            </div>
+            <div className="rounded-xl border border-border bg-secondary/30 p-3 space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next Follow-up</p>
+              <p className={`text-sm font-semibold ${followup.nextFollowUpDate ? 'text-primary' : 'text-muted-foreground'}`}>
+                {formatDate(followup.nextFollowUpDate)}
+              </p>
+            </div>
+          </div>
+
+          {/* Project */}
+          {followup.project && (
+            <div className="rounded-xl border border-border bg-secondary/20 px-4 py-2.5 flex items-center gap-2.5">
+              <ClipboardList size={14} className="text-primary shrink-0" />
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Related Project</p>
+                <p className="text-xs font-semibold text-foreground">{followup.project?.name || followup.project}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Summary */}
+          {followup.summary && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Meeting Summary</p>
+              <p className="text-sm text-foreground leading-relaxed bg-secondary/20 rounded-xl px-4 py-3 border border-border/60">
+                {followup.summary}
+              </p>
+            </div>
+          )}
+
+          {/* Discussion Notes */}
+          {followup.discussionNotes && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Detailed Notes & Feedback</p>
+              <p className="text-sm text-foreground leading-relaxed bg-secondary/20 rounded-xl px-4 py-3 border border-border/60 whitespace-pre-wrap">
+                {followup.discussionNotes}
+              </p>
+            </div>
+          )}
+
+          {/* Outcome */}
+          {followup.outcome && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Outcome</p>
+              <p className="text-sm text-foreground leading-relaxed bg-emerald-500/5 border border-emerald-500/20 rounded-xl px-4 py-3">
+                {followup.outcome}
+              </p>
+            </div>
+          )}
+
+          {/* Next Action */}
+          {followup.nextAction && (
+            <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 flex items-center gap-2.5">
+              <ArrowRight size={14} className="text-primary shrink-0" />
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-primary/70">Next Action Item</p>
+                <p className="text-sm font-semibold text-foreground">{followup.nextAction}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="border-t border-border px-6 py-4 flex items-center justify-between bg-secondary/10">
+          <button
+            onClick={() => { onDelete && onDelete(followup._id); onOpenChange(false); }}
+            className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 px-3 py-2 rounded-xl hover:bg-rose-500/10 transition-colors"
+          >
+            <Trash2 size={14} /> Delete
+          </button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="rounded-xl text-xs h-9" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+            <Button size="sm" className="rounded-xl text-xs h-9 gap-1.5" onClick={() => { onEdit && onEdit(followup); onOpenChange(false); }}>
+              <Pencil size={13} /> Edit Follow-up
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// ─── Edit / Create Follow-up Dialog ────────────────────────────────────────
 const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSave, saving }) => {
   const [form, setForm] = useState(emptyForm);
   const clientProjects = form.client
@@ -148,7 +291,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg" className="bg-card border border-border">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
             <PhoneCall size={20} className="text-primary" />
             {followup ? 'Edit Client Follow-up' : 'Log New Client Touchpoint'}
           </DialogTitle>
@@ -156,7 +299,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
             Record communication logs, meetings, notes, and action items for this client account.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-5 pt-1">
+        <form onSubmit={handleSubmit} className="space-y-5 pt-1 max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Client *">
               <select
@@ -272,6 +415,15 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
             />
           </Field>
 
+          <Field label="Outcome">
+            <Input
+              value={form.outcome}
+              onChange={(e) => updateField('outcome', e.target.value)}
+              placeholder="e.g. Client approved Q3 content plan"
+              className="h-10 text-sm rounded-xl px-3.5"
+            />
+          </Field>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Field label="Meeting Date">
               <Input
@@ -319,8 +471,12 @@ export default function ClientFollowups() {
   const [search, setSearch] = useState('');
   const [channelFilter, setChannelFilter] = useState('all');
   const [openDialog, setOpenDialog] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
   const [selectedFollowup, setSelectedFollowup] = useState(null);
+  const [viewFollowup, setViewFollowup] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+
+  const { isDateInRange, filterByDateRange } = useDateFilter();
 
   const { data: clients = [] } = useClients();
   const { data: projects = [] } = useProjects();
@@ -345,11 +501,14 @@ export default function ClientFollowups() {
       const summary = (item.summary || '').toLowerCase();
       const matchesSearch = !q || clientName.includes(q) || subject.includes(q) || summary.includes(q);
       const matchesChannel = channelFilter === 'all' || item.type === channelFilter;
-      return matchesSearch && matchesChannel;
+      // Date filter: check meetingDate or createdAt
+      const dateToCheck = item.meetingDate || item.nextFollowUpDate || item.createdAt;
+      const matchesDate = isDateInRange(dateToCheck);
+      return matchesSearch && matchesChannel && matchesDate;
     });
-  }, [followups, search, channelFilter]);
+  }, [followups, search, channelFilter, isDateInRange]);
 
-  // Statistics properties
+  // Statistics
   const total = followups.length;
   const openCount = followups.filter((f) => f.status === 'open').length;
   const waitingCount = followups.filter((f) => f.status === 'waiting').length;
@@ -363,18 +522,31 @@ export default function ClientFollowups() {
     return diffDays >= 0 && diffDays <= 7;
   }).length;
 
+  const openViewModal = (item) => {
+    setViewFollowup(item);
+    setViewOpen(true);
+  };
+
+  const openEditModal = (item) => {
+    setSelectedFollowup(item);
+    setOpenDialog(true);
+  };
+
   // Table Columns
   const tableColumns = [
     {
       key: 'client',
       label: 'Client / Company',
       render: (item) => (
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+        <div
+          className="flex items-center gap-2.5 cursor-pointer group"
+          onClick={() => openViewModal(item)}
+        >
+          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
             {(item.client?.company || item.client?.name || 'C').charAt(0)}
           </div>
           <div>
-            <p className="font-bold text-foreground">{item.client?.company || item.client?.name || 'Unnamed Client'}</p>
+            <p className="font-bold text-foreground group-hover:text-primary transition-colors">{item.client?.company || item.client?.name || 'Unnamed Client'}</p>
             {item.contactPerson && <p className="text-[11px] text-muted-foreground">{item.contactPerson}</p>}
           </div>
         </div>
@@ -386,8 +558,8 @@ export default function ClientFollowups() {
       render: (item) => {
         const Icon = typeIcons[item.type] || PhoneCall;
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground capitalize">
-            <Icon size={12} className="text-muted-foreground" />
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${channelColors[item.type] || 'bg-secondary text-foreground'}`}>
+            <Icon size={12} />
             {item.type}
           </span>
         );
@@ -397,8 +569,8 @@ export default function ClientFollowups() {
       key: 'subject',
       label: 'Subject & Notes',
       render: (item) => (
-        <div className="max-w-md">
-          <p className="font-bold text-foreground">{item.subject}</p>
+        <div className="max-w-md cursor-pointer" onClick={() => openViewModal(item)}>
+          <p className="font-bold text-foreground hover:text-primary transition-colors">{item.subject}</p>
           {item.summary && <p className="text-xs text-muted-foreground line-clamp-1">{item.summary}</p>}
         </div>
       ),
@@ -437,18 +609,22 @@ export default function ClientFollowups() {
       render: (item) => (
         <div className="flex items-center justify-end gap-1">
           <button
-            onClick={() => {
-              setSelectedFollowup(item);
-              setOpenDialog(true);
-            }}
-            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+            onClick={() => openViewModal(item)}
+            className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+            title="View Details"
+          >
+            <Eye size={14} />
+          </button>
+          <button
+            onClick={() => openEditModal(item)}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
             title="Edit"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => setDeleteId(item._id)}
-            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -463,27 +639,28 @@ export default function ClientFollowups() {
     const Icon = typeIcons[item.type] || PhoneCall;
     return (
       <div
-        onClick={() => {
-          setSelectedFollowup(item);
-          setOpenDialog(true);
-        }}
+        onClick={() => openViewModal(item)}
         className="space-y-2 cursor-pointer"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${channelColors[item.type] || 'bg-secondary text-foreground'}`}>
             {item.type}
           </span>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${priorityTone[item.priority] || priorityTone.medium}`}>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${priorityTone[item.priority] || priorityTone.medium}`}>
             {item.priority}
           </span>
         </div>
 
         <div>
-          <h4 className="font-bold text-xs text-foreground line-clamp-1">{item.subject}</h4>
+          <h4 className="font-bold text-xs text-foreground line-clamp-2">{item.subject}</h4>
           <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
             🏢 {item.client?.company || item.client?.name || 'Unnamed Client'}
           </p>
         </div>
+
+        {item.summary && (
+          <p className="text-[11px] text-muted-foreground line-clamp-2">{item.summary}</p>
+        )}
 
         {item.nextFollowUpDate && (
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1.5 border-t border-border/40">
@@ -491,6 +668,21 @@ export default function ClientFollowups() {
             <span>Next: {formatDate(item.nextFollowUpDate)}</span>
           </div>
         )}
+
+        {item.nextAction && (
+          <p className="text-[11px] text-primary/80 font-medium">👉 {item.nextAction}</p>
+        )}
+
+        {/* Quick edit in card */}
+        <div className="flex items-center justify-end pt-1 border-t border-border/30">
+          <button
+            onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
+            className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title="Quick Edit"
+          >
+            <Pencil size={11} />
+          </button>
+        </div>
       </div>
     );
   };
@@ -548,8 +740,8 @@ export default function ClientFollowups() {
       </div>
 
       <DatabaseView
-        viewKey="rwm_followups_view_v1"
-        views={['table', 'kanban']}
+        viewKey="rwm_followups_view_v2"
+        views={['kanban', 'table']}
         items={filteredFollowups}
         totalCount={filteredFollowups.length}
         searchPlaceholder="Search by client, discussion subject, or takeaways..."
@@ -560,6 +752,16 @@ export default function ClientFollowups() {
         onSearchChange={setSearch}
       />
 
+      {/* View-Only Modal */}
+      <FollowupViewModal
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        followup={viewFollowup}
+        onEdit={(item) => { openEditModal(item); }}
+        onDelete={(id) => setDeleteId(id)}
+      />
+
+      {/* Edit / Create Dialog */}
       <FollowupDialog
         open={openDialog}
         onOpenChange={setOpenDialog}

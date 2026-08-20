@@ -553,7 +553,7 @@ export default function ClientVault() {
 
       <DatabaseView
         viewKey="rwm_vault_view_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredCredentials}
         totalCount={filteredCredentials.length}
         searchPlaceholder="Search by account title, client name, username, or tags..."

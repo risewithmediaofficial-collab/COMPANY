@@ -260,7 +260,7 @@ const HR = () => {
 
       <DatabaseView
         viewKey="rwm_hr_view_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredEmployees}
         totalCount={filteredEmployees.length}
         searchPlaceholder="Search employees by name, department, or email..."

@@ -63,7 +63,7 @@ const Projects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
-  const [currentView, setCurrentView] = useState('table'); // 'table' | 'board'
+  const [currentView, setCurrentView] = useState('board'); // 'table' | 'board'
 
   const filters = {
     search: searchTerm,

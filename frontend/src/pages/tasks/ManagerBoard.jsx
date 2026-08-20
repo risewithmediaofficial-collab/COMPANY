@@ -333,7 +333,7 @@ export default function ManagerBoard() {
 
       <DatabaseView
         viewKey="rwm_manager_board_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredNotes}
         totalCount={filteredNotes.length}
         searchPlaceholder="Search notes by title, client, or team member..."

@@ -342,7 +342,7 @@ const Users = () => {
 
       <DatabaseView
         viewKey="rwm_users_view_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredUsers}
         totalCount={filteredUsers.length}
         searchPlaceholder="Search team members by name, email, role, or department..."

@@ -225,7 +225,7 @@ const Automations = () => {
     >
       <DatabaseView
         viewKey="rwm_automations_view_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredAutomations}
         totalCount={filteredAutomations.length}
         searchPlaceholder="Search automations by workflow name, trigger, or action..."

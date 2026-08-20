@@ -488,7 +488,7 @@ export default function DomainRenewals() {
 
       <DatabaseView
         viewKey="rwm_renewals_view_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredRenewals}
         totalCount={filteredRenewals.length}
         searchPlaceholder="Search by asset name, client, or registrar..."

@@ -37,7 +37,6 @@ import {
 import { toggleSidebar } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
-import WorkspaceSwitcher from './WorkspaceSwitcher';
 import { AppTooltip } from '../ui/tooltip';
 
 const badgePaths = {
@@ -323,10 +322,7 @@ export default function Sidebar({ onOpenSearch }) {
           )}
         </div>
 
-        {/* Workspace Switcher */}
-        <div className="border-b border-border/60">
-          <WorkspaceSwitcher sidebarOpen={true} />
-        </div>
+
 
         {/* Navigation Scrollable Body */}
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">

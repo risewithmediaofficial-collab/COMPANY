@@ -354,7 +354,7 @@ export default function PendingNotes() {
 
       <DatabaseView
         viewKey="rwm_pending_notes_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredNotes}
         totalCount={filteredNotes.length}
         searchPlaceholder="Search your notes..."

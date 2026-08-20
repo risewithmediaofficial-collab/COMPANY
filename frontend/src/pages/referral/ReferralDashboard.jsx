@@ -238,7 +238,7 @@ const ReferralDashboard = () => {
     >
       <DatabaseView
         viewKey="rwm_referrals_view_v1"
-        views={['table', 'cards']}
+        views={['cards', 'table']}
         items={filteredReferrals}
         totalCount={filteredReferrals.length}
         searchPlaceholder="Search referred leads by name, company, or email..."

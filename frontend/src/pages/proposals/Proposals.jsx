@@ -232,7 +232,7 @@ const Proposals = () => {
 
       <DatabaseView
         viewKey="rwm_proposals_view_v1"
-        views={['table', 'kanban']}
+        views={['kanban', 'table']}
         items={filteredProposals}
         totalCount={filteredProposals.length}
         searchPlaceholder="Search proposals by title, client, or number..."
