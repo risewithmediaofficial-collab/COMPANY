@@ -246,7 +246,7 @@ export const Campaigns = () => {
           className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all scale-[1.01]"
         >
           <Plus size={16} />
-          <span>+ Create Ad Campaign</span>
+          <span>Create Ad Campaign</span>
         </button>
       </div>
 

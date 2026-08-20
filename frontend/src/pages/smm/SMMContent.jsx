@@ -286,7 +286,7 @@ export const SMMContent = () => {
           className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
         >
           <Plus size={16} />
-          <span>+ Add Video / Content</span>
+          <span>Add Video / Content</span>
         </button>
       </div>
 

@@ -276,7 +276,7 @@ export default function DailyTracking() {
             className="flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-all cursor-pointer"
           >
             <DollarSign size={15} className="text-emerald-500" />
-            <span>+ Log Spend / Funds</span>
+            <span>Log Spend / Funds</span>
           </button>
 
           <button

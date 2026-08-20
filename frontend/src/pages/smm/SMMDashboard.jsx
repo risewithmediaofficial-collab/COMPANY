@@ -140,7 +140,7 @@ export const SMMDashboard = () => {
             className="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
           >
             <Plus size={15} />
-            <span>+ Add Video</span>
+            <span>Add Video</span>
           </button>
         </div>
       </div>

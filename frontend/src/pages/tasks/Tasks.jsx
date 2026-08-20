@@ -306,23 +306,122 @@ const Tasks = () => {
         onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
         totalCount={normalizedTasks.length}
       >
-        {/* Table View */}
+        {/* Table View (Desktop DataTable + Responsive Mobile Card List) */}
         {currentView === 'table' && (
-          <DataTable
-            data={normalizedTasks}
-            columns={columns}
-            loading={isLoading}
-            onRowClick={handleRowClick}
-            onDelete={canCreate ? (id) => setDeleteTaskId(id) : undefined}
-            emptyTitle="No tasks found"
-            emptyDescription="Create a task to assign scripting, filming, editing, or publishing deliverables."
-          />
+          <div>
+            {/* Desktop / Tablet Table */}
+            <div className="hidden md:block">
+              <DataTable
+                data={normalizedTasks}
+                columns={columns}
+                loading={isLoading}
+                onRowClick={handleRowClick}
+                onDelete={canCreate ? (id) => setDeleteTaskId(id) : undefined}
+                emptyTitle="No tasks found"
+                emptyDescription="Create a task to assign scripting, filming, editing, or publishing deliverables."
+              />
+            </div>
+
+            {/* Mobile Touch-Friendly Card List */}
+            <div className="md:hidden space-y-3">
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="h-28 rounded-2xl bg-card border border-border animate-pulse p-4" />
+                  ))}
+                </div>
+              ) : normalizedTasks.length === 0 ? (
+                <div className="p-8 text-center bg-card rounded-2xl border border-border text-xs text-muted-foreground">
+                  No tasks found. Click "New Task" to create one.
+                </div>
+              ) : (
+                normalizedTasks.map((task) => (
+                  <div
+                    key={task._id}
+                    onClick={() => handleRowClick(task)}
+                    className="p-4 rounded-2xl border border-border bg-card shadow-xs hover:border-primary/50 transition-all space-y-3 cursor-pointer active:scale-[0.99]"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-foreground text-sm leading-snug">
+                          {task.taskTitle || task.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {task.client?.company || task.client?.name || task.clientName || 'Internal Task'}
+                        </p>
+                      </div>
+                      <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
+                        {task.priority || 'Medium'}
+                      </StatusBadge>
+                    </div>
+
+                    {/* Assignees & Sub-roles */}
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-foreground/90">
+                      <span className="font-semibold text-muted-foreground">Assignee:</span>
+                      <span>
+                        {Array.isArray(task.assignedTo) && task.assignedTo.length
+                          ? task.assignedTo.map((a) => a.name).join(', ')
+                          : task.assignedPersonName || 'Unassigned'}
+                      </span>
+                    </div>
+
+                    {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                      <div className="flex flex-wrap gap-1 text-[10px]">
+                        {task.scriptWriterAssigned && (
+                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold">
+                            ✍️ {task.scriptWriterAssigned.name || task.scriptWriterName}
+                          </span>
+                        )}
+                        {task.videographerAssigned && (
+                          <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">
+                            🎥 {task.videographerAssigned.name || task.videographerName}
+                          </span>
+                        )}
+                        {task.editorAssigned && (
+                          <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold">
+                            ✂️ {task.editorAssigned.name || task.editorName}
+                          </span>
+                        )}
+                        {task.publisherAssigned && (
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
+                            📱 {task.publisherAssigned.name || task.publisherName}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Status Select & Due Date */}
+                    <div className="flex items-center justify-between pt-2.5 border-t border-border/60 gap-2">
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <select
+                          value={task.status}
+                          onChange={(e) => updateStatusMutation.mutate({ id: task._id, status: e.target.value })}
+                          className="rounded-xl border border-border bg-background px-2.5 py-1 text-xs font-bold text-foreground outline-none transition-all focus:border-primary"
+                        >
+                          {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
+                        <Clock size={12} className="text-primary" />
+                        <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No deadline'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         )}
 
-        {/* Board View (Kanban by Task Status) */}
+        {/* Board View (Responsive Kanban by Task Status with Snap Scroll) */}
         {(currentView === 'board' || currentView === 'kanban') && (
-          <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
-            <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
+          <div className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
+            <div className="grid w-max min-w-full auto-cols-[minmax(275px,85vw)] sm:auto-cols-[minmax(280px,320px)] grid-flow-col gap-3.5 sm:gap-4">
               {[
                 { key: 'To Do', label: 'To Do', badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400', surface: 'border-border bg-card/60' },
                 { key: 'On Process', label: 'In Process', badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', surface: 'border-blue-500/20 bg-blue-500/5' },
@@ -351,7 +450,7 @@ const Tasks = () => {
                         updateStatusMutation.mutate({ id: taskId, status: column.key });
                       }
                     }}
-                    className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border ${column.surface} p-3 space-y-3 transition-colors`}
+                    className={`flex flex-col min-h-[440px] max-h-[calc(100vh-280px)] rounded-2xl border ${column.surface} p-3 space-y-3 transition-colors snap-center sm:snap-align-none`}
                   >
                     <div className="flex items-center justify-between px-1.5 py-1">
                       <div className="flex items-center gap-2">
@@ -371,7 +470,7 @@ const Tasks = () => {
                       )}
                     </div>
 
-                    <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] pr-0.5 custom-scrollbar">
+                    <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-340px)] pr-0.5 custom-scrollbar">
                       {columnTasks.map((task) => (
                         <div
                           key={task._id}
@@ -380,7 +479,7 @@ const Tasks = () => {
                             e.dataTransfer.setData('taskId', task._id);
                           }}
                           onClick={() => handleRowClick(task)}
-                          className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5"
+                          className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
