@@ -283,8 +283,6 @@ export const AssetLibraryWorkspace = ({
           <MetricCard label="Files" value={metrics.files} helper="Files stored across all assets" icon={FileText} tone="warning" />
           <MetricCard label="Categories" value={metrics.categories} helper="Asset types represented here" icon={Tag} tone="neutral" />
         </MetricGrid>
-
-        <DateRangePicker title="Assets Date Filter (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
       <PageToolbar>

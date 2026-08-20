@@ -298,8 +298,6 @@ const Tasks = () => {
         </>
       }
     >
-      <DateRangePicker title="Filter Tasks by Date Window" />
-
       {/* Database View Engine (Table + Kanban Board) */}
       <DatabaseView
         activeView={currentView}

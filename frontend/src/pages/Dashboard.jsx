@@ -303,9 +303,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Date Period Filter Bar */}
-        <DateRangePicker title="Filter Command Center Analytics Range" />
-
         {/* ── TAB 1: FULL DATA-DRIVEN COMMAND CENTER ─────────────────────────── */}
         {activeTab === 'command' && (
           <div className="space-y-6">

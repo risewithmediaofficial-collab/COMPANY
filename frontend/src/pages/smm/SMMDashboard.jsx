@@ -147,7 +147,6 @@ export const SMMDashboard = () => {
 
       <SMMSubNav />
       <SMMFilterBar filters={filters} onFilterChange={handleFilterChange} onReset={handleResetFilters} />
-      <DateRangePicker title="Filter Performance by Custom Date Range" className="my-2" />
 
       {/* ── ALERTS SECTION (Budget Alerts & Spend Anomalies) ── */}
       {(budgetAlerts.length > 0 || spendAnomalies.length > 0) && (

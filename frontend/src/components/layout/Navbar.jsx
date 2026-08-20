@@ -288,12 +288,10 @@ const Navbar = () => {
             </DropdownMenu>
           )}
 
-          {/* Date Filter for Managers/Admins */}
-          {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
-            <div className="hidden 2xl:block">
-              <DateRangePicker compact />
-            </div>
-          )}
+          {/* Global Date Filter in Navbar */}
+          <div className="hidden lg:flex items-center">
+            <DateRangePicker compact />
+          </div>
 
           {/* Favorites Panel */}
           <FavoritesPanel />

@@ -185,8 +185,6 @@ const Clients = () => {
         </>
       }
     >
-      <DateRangePicker title="Filter Clients by Creation Range" />
-
       {/* Notion-Style Multi-View Database Engine */}
       <DatabaseView
         activeView={currentView}

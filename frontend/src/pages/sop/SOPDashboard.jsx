@@ -257,8 +257,6 @@ const SOPDashboard = () => {
         </>
       }
     >
-      <DateRangePicker title="Filter SOPs by Update Date" />
-
       {/* Notion-Style Multi-View Database Engine */}
       <DatabaseView
         views={[

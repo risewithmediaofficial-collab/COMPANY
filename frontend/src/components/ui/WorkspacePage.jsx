@@ -53,29 +53,6 @@ export function WorkspacePage({
 
   return (
     <div className={`space-y-5 animate-in fade-in duration-300 ${className}`}>
-      {/* Top Breadcrumb Navigation */}
-      {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground select-none">
-          <Link to="/" className="hover:text-foreground transition-colors font-medium">
-            Agency OS
-          </Link>
-          {breadcrumbs.map((crumb, idx) => (
-            <span key={idx} className="flex items-center gap-1.5 min-w-0">
-              <ChevronRight size={12} className="text-muted-foreground/60 shrink-0" />
-              {typeof crumb === 'object' && crumb.path ? (
-                <Link to={crumb.path} className="hover:text-foreground transition-colors truncate">
-                  {crumb.name}
-                </Link>
-              ) : (
-                <span className="font-semibold text-foreground truncate">
-                  {typeof crumb === 'object' ? crumb.name : crumb}
-                </span>
-              )}
-            </span>
-          ))}
-        </nav>
-      )}
-
       {/* Workspace Header Block */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-border/60">
         <div className="flex items-center gap-3 min-w-0">

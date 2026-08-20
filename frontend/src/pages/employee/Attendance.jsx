@@ -577,8 +577,6 @@ const Attendance = () => {
         </div>
       </div>
 
-      <DateRangePicker title="Attendance Date Filter (From Date to To Date)" />
-
       {/* Admin / Manager Navigation Tabs & Overview Cards */}
       {isAdmin && (
         <div className="space-y-6">

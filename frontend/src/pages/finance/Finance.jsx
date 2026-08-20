@@ -579,7 +579,6 @@ const Finance = () => {
           <MetricCard label="Open Invoices" value={metrics.openInvoices} helper="Draft, sent, viewed, or partial" icon={Receipt} tone="info" />
           <MetricCard label="Overdue" value={metrics.overdue} helper="Finance records past due date" icon={FileText} tone={metrics.overdue ? 'danger' : 'neutral'} />
         </div>
-        <DateRangePicker title="Finance Date Filter (From Date to To Date)" className="mt-4" />
       </div>
 
       {tabs.length > 1 && (

@@ -409,8 +409,6 @@ const Reports = () => {
         </div>
       </div>
 
-      <DateRangePicker title="Reports Date Filter (From Date to To Date)" />
-
       {/* Tab Switcher */}
       <div className="border-b border-border flex items-center gap-6">
         <button

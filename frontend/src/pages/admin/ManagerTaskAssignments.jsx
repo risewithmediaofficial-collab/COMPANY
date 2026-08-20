@@ -281,8 +281,6 @@ const ManagerTaskAssignments = () => {
           <MetricCard label="Completed" value={taskMetrics.done} helper="Work finished or approved" icon={CheckCircle2} tone="success" />
           <MetricCard label="Overdue" value={taskMetrics.overdue} helper="Needs attention now" icon={TimerReset} tone={taskMetrics.overdue > 0 ? 'danger' : 'neutral'} />
         </MetricGrid>
-
-        <DateRangePicker title="Assignments Date Filter (From Date to To Date)" className="mt-4" />
       </PageHeader>
 
       {/* ── Project Briefs Panel ── */}

@@ -757,8 +757,6 @@ const Leads = () => {
           </div>
         }
       >
-        <DateRangePicker title="Filter Leads Range" className="mb-4" />
-
       {isLoading ? (
         <TableSkeleton columns={5} rows={6} dark={false} />
       ) : (

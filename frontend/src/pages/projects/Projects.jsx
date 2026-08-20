@@ -216,8 +216,6 @@ const Projects = () => {
         </>
       }
     >
-      <DateRangePicker title="Filter Projects by Timeline" />
-
       {/* Notion-Style Multi-View Database Engine */}
       <DatabaseView
         activeView={currentView}
