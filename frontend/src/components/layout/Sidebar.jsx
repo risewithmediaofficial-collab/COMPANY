@@ -45,7 +45,7 @@ const badgePaths = {
   'User Directory': 'pendingUsers',
 };
 
-const SECTIONS_STORAGE_KEY = 'rwm_sidebar_open_sections_v3';
+const SECTIONS_STORAGE_KEY = 'rwm_sidebar_open_sections_v4';
 const PINNED_STORAGE_KEY = 'rwm_sidebar_pinned_v2';
 
 export default function Sidebar({ onOpenSearch }) {
@@ -64,7 +64,7 @@ export default function Sidebar({ onOpenSearch }) {
     }
   });
 
-  // Track open sections: by default user-expanded or active sections are open
+  // Track open sections: closed by default initially
   const [openSections, setOpenSections] = useState(() => {
     try {
       const saved = localStorage.getItem(SECTIONS_STORAGE_KEY);
@@ -378,10 +378,7 @@ export default function Sidebar({ onOpenSearch }) {
 
           {/* Workspace Hierarchical Sections */}
           {navSections.map((section) => {
-            const hasActiveRoute = section.items.some((item) => item.path === location.pathname);
-            const isOpen = openSections[section.title] !== undefined
-              ? Boolean(openSections[section.title])
-              : hasActiveRoute;
+            const isOpen = Boolean(openSections[section.title]);
 
             return (
               <div key={section.title} className="space-y-0.5">
