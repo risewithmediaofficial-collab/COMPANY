@@ -140,9 +140,33 @@ export const SelectDropdown = ({
   }, [isOpen, updateCoords]);
 
   const handleSelect = (optValue, optLabel) => {
+    // If clicking the already selected option, toggle/deselect it!
+    const isCurrentlySelected =
+      !isCustomMode &&
+      value !== undefined &&
+      value !== null &&
+      value !== '' &&
+      String(optValue) === String(value);
+
+    if (isCurrentlySelected) {
+      setIsCustomMode(false);
+      setCustomText('');
+      if (onChange) onChange('');
+      setIsOpen(false);
+      return;
+    }
+
     const isOther = String(optValue).toLowerCase() === 'other' || String(optLabel).toLowerCase() === 'other';
 
     if (isOther && allowCustom) {
+      if (isCustomMode) {
+        // Toggle custom mode off if already in custom mode
+        setIsCustomMode(false);
+        setCustomText('');
+        if (onChange) onChange('');
+        setIsOpen(false);
+        return;
+      }
       setIsCustomMode(true);
       setCustomText('');
       if (onChange) onChange('Other');
