@@ -86,7 +86,25 @@ export default function ContentCalendar() {
     
     return [
       ...dayCamps.map((c) => ({ id: c._id, title: `🚀 Launch: ${c.name}`, type: 'Launch', color: 'bg-emerald-500 text-white' })),
-      ...dayTasks.map((t) => ({ id: t._id, title: t.title, type: 'Deadline', color: 'bg-amber-500 text-white' })),
+      ...dayTasks.map((t) => {
+        const isUrgent = t.priority === 'Urgent' || t.priority === 'urgent';
+        const isHigh = t.priority === 'High' || t.priority === 'high';
+        const isApproved = t.status === 'Completed' || t.status === 'Approved' || t.status === 'approved';
+        const isReview = t.status === 'Review Required' || t.status === 'review';
+
+        let color = 'bg-blue-500 text-white';
+        if (isUrgent) color = 'bg-rose-600 text-white font-black ring-1 ring-rose-700 animate-pulse';
+        else if (isApproved) color = 'bg-emerald-600 text-white font-semibold';
+        else if (isReview) color = 'bg-purple-600 text-white font-semibold';
+        else if (isHigh) color = 'bg-amber-600 text-white font-semibold';
+
+        return {
+          id: t._id,
+          title: `${isUrgent ? '🔴 ' : ''}${t.title}`,
+          type: isUrgent ? 'Urgent' : 'Deadline',
+          color,
+        };
+      }),
     ];
   };
 
@@ -123,13 +141,23 @@ export default function ContentCalendar() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 text-xs">
-          {EVENT_TYPES.map((type) => (
-            <div key={type.id} className="flex items-center gap-1.5">
-              <span className={`w-2.5 h-2.5 rounded-full ${type.color}`} />
-              <span className="text-muted-foreground font-medium">{type.label}</span>
-            </div>
-          ))}
+        <div className="flex flex-wrap items-center gap-3 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping" />
+            <span className="text-foreground font-bold">🔴 Urgent Priority</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+            <span className="text-muted-foreground font-medium">In Process / Post</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
+            <span className="text-muted-foreground font-medium">Review Needed</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <span className="text-muted-foreground font-medium">Approved / Launch</span>
+          </div>
         </div>
       </div>
 

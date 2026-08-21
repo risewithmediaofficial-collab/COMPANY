@@ -33,6 +33,8 @@ import {
   Plus,
   Rows3,
   TimerReset,
+  X,
+  Palette,
 } from 'lucide-react';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { ClientTaskResponsePanel } from '../../components/tasks/ClientTaskResponsePanel';
@@ -84,6 +86,100 @@ const VIEW_OPTIONS = [
   { value: 'list', label: 'Cards', icon: List },
   { value: 'agenda', label: 'List', icon: CalendarDays },
 ];
+
+export const TASK_STATUS_COLORS = {
+  'To Do': {
+    label: 'To Do / Scheduled',
+    dot: 'bg-slate-400',
+    border: 'border-slate-300 dark:border-slate-700',
+    bg: 'bg-slate-500/10 hover:bg-slate-500/20 text-slate-800 dark:text-slate-200',
+    badge: 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+    sign: '⚪ To Do',
+  },
+  'On Process': {
+    label: 'In Process / Active',
+    dot: 'bg-blue-500',
+    border: 'border-blue-400/70 dark:border-blue-600/70',
+    bg: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-900 dark:text-blue-200',
+    badge: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-400/40',
+    sign: '🔵 In Process',
+  },
+  'Waiting for Client': {
+    label: 'Waiting for Client',
+    dot: 'bg-amber-500',
+    border: 'border-amber-400/70 dark:border-amber-600/70',
+    bg: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 dark:text-amber-200',
+    badge: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-400/40',
+    sign: '🟡 Waiting Client',
+  },
+  'Review Required': {
+    label: 'Review Required',
+    dot: 'bg-purple-500',
+    border: 'border-purple-400/70 dark:border-purple-600/70',
+    bg: 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-900 dark:text-purple-200',
+    badge: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-400/40',
+    sign: '🟣 Review Needed',
+  },
+  'Rework': {
+    label: 'Rework Required',
+    dot: 'bg-rose-500',
+    border: 'border-rose-400/70 dark:border-rose-600/70',
+    bg: 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-900 dark:text-rose-200',
+    badge: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-400/40',
+    sign: '🟠 Rework',
+  },
+  'Completed': {
+    label: 'Completed / Approved',
+    dot: 'bg-emerald-500',
+    border: 'border-emerald-400/70 dark:border-emerald-600/70',
+    bg: 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-900 dark:text-emerald-200',
+    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40',
+    sign: '🟢 Completed',
+  },
+  'Approved': {
+    label: 'Approved',
+    dot: 'bg-emerald-500',
+    border: 'border-emerald-400/70 dark:border-emerald-600/70',
+    bg: 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-900 dark:text-emerald-200',
+    badge: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/40',
+    sign: '🟢 Approved',
+  },
+};
+
+export const TASK_PRIORITY_COLORS = {
+  Urgent: {
+    label: 'Urgent',
+    dot: 'bg-rose-500',
+    badge: 'bg-rose-500 text-white font-black shadow-xs ring-1 ring-rose-600',
+    pill: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-400/40',
+    sign: '🔴 Urgent',
+    borderLeft: 'border-l-4 border-l-rose-500',
+  },
+  High: {
+    label: 'High',
+    dot: 'bg-amber-500',
+    badge: 'bg-amber-500 text-white font-bold',
+    pill: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-400/40',
+    sign: '🟠 High',
+    borderLeft: 'border-l-3 border-l-amber-500',
+  },
+  Medium: {
+    label: 'Medium',
+    dot: 'bg-blue-500',
+    badge: 'bg-blue-500 text-white font-semibold',
+    pill: 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-400/40',
+    sign: '🔵 Medium',
+    borderLeft: '',
+  },
+  Low: {
+    label: 'Low',
+    dot: 'bg-slate-400',
+    badge: 'bg-slate-500 text-white font-medium',
+    pill: 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-400/40',
+    sign: '🟢 Low',
+    borderLeft: '',
+  },
+};
 
 const statusTone = {
   'To Do': 'neutral',
@@ -451,54 +547,84 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
 
 const TaskSummaryCard = ({ task, onOpen }) => {
   const normalizedStatus = normalizeTaskStatusLabel(task.status);
+  const statusTheme = TASK_STATUS_COLORS[normalizedStatus] || TASK_STATUS_COLORS['To Do'];
+  const priorityTheme = TASK_PRIORITY_COLORS[task.priority] || TASK_PRIORITY_COLORS['Medium'];
+  const isUrgent = task.priority === 'Urgent';
+  const isHigh = task.priority === 'High';
 
   return (
     <button
       type="button"
       onClick={() => onOpen(task)}
-      className="w-full rounded-[24px] border border-border bg-card p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+      className={cn(
+        "w-full rounded-[24px] border p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md relative overflow-hidden",
+        statusTheme.border,
+        statusTheme.bg,
+        isUrgent && "ring-2 ring-rose-500/50 border-l-6 border-l-rose-500 bg-rose-500/10 shadow-rose-500/10",
+        isHigh && !isUrgent && "border-l-4 border-l-amber-500",
+        task.isOverdue && "border-rose-500 bg-rose-500/15"
+      )}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className={cn('px-2.5 py-0.5 rounded-lg text-[11px] font-bold border flex items-center gap-1', statusTheme.badge)}>
+              <span className={cn('h-2 w-2 rounded-full', statusTheme.dot)} />
+              <span>{normalizedStatus}</span>
+            </span>
+
+            {isUrgent ? (
+              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-rose-500 text-white shadow-xs animate-pulse flex items-center gap-1">
+                <span>🔴</span>
+                <span>URGENT PRIORITY</span>
+              </span>
+            ) : isHigh ? (
+              <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                🟠 High Priority
+              </span>
+            ) : task.priority ? (
+              <span className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-secondary text-muted-foreground border border-border">
+                {priorityTheme.sign || task.priority}
+              </span>
+            ) : null}
+
             <StatusBadge tone={categoryTone[task.taskCategory] || 'neutral'}>
               {task.taskCategory === 'non_content' ? 'Non-Content' : 'Content'}
             </StatusBadge>
-            <StatusBadge tone={statusTone[normalizedStatus] || 'neutral'}>
-              {normalizedStatus}
-            </StatusBadge>
-            <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
-              {task.priority}
-            </StatusBadge>
+
             {task.isOverdue ? <StatusBadge tone="danger">Overdue</StatusBadge> : null}
           </div>
-          <h3 className="mt-3 text-base font-bold text-foreground">{task.taskTitle || task.title}</h3>
-          <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+
+          <h3 className="mt-3 text-base font-bold text-foreground hover:text-primary transition-colors">
+            {task.taskTitle || task.title}
+          </h3>
+          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
             {task.description || task.websiteRequirements || task.scriptText || 'No requirements added yet.'}
           </p>
         </div>
-        <div className="rounded-2xl bg-secondary px-3 py-2 text-right">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Due</p>
-          <p className="mt-1 text-sm font-semibold text-foreground">
+
+        <div className="rounded-2xl bg-card border border-border px-3 py-2 text-right shadow-2xs">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Due Date</p>
+          <p className="mt-0.5 text-xs font-black text-foreground">
             {task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : 'No date'}
           </p>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
-        <div className="rounded-2xl border border-border bg-secondary/20 px-3 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Client</p>
-          <p className="mt-2 text-sm font-semibold text-foreground">{task.client?.name || task.client?.company || task.clientName || 'No client linked'}</p>
+      <div className="mt-3.5 grid gap-2.5 md:grid-cols-3">
+        <div className="rounded-xl border border-border/80 bg-background/80 px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Client</p>
+          <p className="mt-0.5 text-xs font-semibold text-foreground truncate">{task.client?.name || task.client?.company || task.clientName || 'No client linked'}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-secondary/20 px-3 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Assigned To</p>
-          <p className="mt-2 text-sm font-semibold text-foreground">
+        <div className="rounded-xl border border-border/80 bg-background/80 px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Assigned To</p>
+          <p className="mt-0.5 text-xs font-semibold text-foreground truncate">
             {task.assignedPersonName || task.assignedTo?.map((item) => item.name).join(', ') || 'Unassigned'}
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-secondary/20 px-3 py-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Project</p>
-          <p className="mt-2 text-sm font-semibold text-foreground">{task.project?.name || task.projectName || 'No project linked'}</p>
+        <div className="rounded-xl border border-border/80 bg-background/80 px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Project</p>
+          <p className="mt-0.5 text-xs font-semibold text-foreground truncate">{task.project?.name || task.projectName || 'No project linked'}</p>
         </div>
       </div>
     </button>
@@ -741,31 +867,65 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                 ) : null}
               </div>
 
-              <div className="mt-3 space-y-2">
-                {dayTasks.slice(0, 3).map((task) => (
-                  <div
-                    key={task._id}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleOpenTask(task);
-                    }}
-                    className="rounded-2xl border border-border bg-background/90 px-2.5 py-2 text-left shadow-sm transition-all hover:border-primary/30 hover:bg-background"
-                  >
-                    <p className="truncate text-xs font-semibold text-foreground">{task.taskTitle || task.title}</p>
-                    <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                      {task.client?.name || task.clientName || formatTaskTypeLabel(task.taskType)}
-                    </p>
-                  </div>
-                ))}
+              <div className="mt-2.5 space-y-1.5">
+                {dayTasks.slice(0, 3).map((task) => {
+                  const normalizedStatus = normalizeTaskStatusLabel(task.status);
+                  const statusTheme = TASK_STATUS_COLORS[normalizedStatus] || TASK_STATUS_COLORS['To Do'];
+                  const isUrgent = task.priority === 'Urgent';
+                  const isHigh = task.priority === 'High';
+
+                  return (
+                    <div
+                      key={task._id}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleOpenTask(task);
+                      }}
+                      className={cn(
+                        'group/task relative rounded-xl border p-2 text-left shadow-2xs transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer',
+                        statusTheme.border,
+                        statusTheme.bg,
+                        isUrgent && 'border-l-4 border-l-rose-500 ring-1 ring-rose-500/50 bg-rose-500/10 shadow-rose-500/10',
+                        isHigh && !isUrgent && 'border-l-3 border-l-amber-500',
+                        task.isOverdue && 'border-rose-500/80 bg-rose-500/15',
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', statusTheme.dot, isUrgent && 'animate-pulse')} />
+                          <p className="truncate text-xs font-bold text-foreground group-hover/task:text-primary transition-colors">
+                            {task.taskTitle || task.title}
+                          </p>
+                        </div>
+                        {isUrgent ? (
+                          <span className="shrink-0 px-1 py-0.2 rounded text-[8px] font-black bg-rose-500 text-white shadow-2xs">
+                            URGENT
+                          </span>
+                        ) : isHigh ? (
+                          <span className="shrink-0 px-1 py-0.2 rounded text-[8px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                            HIGH
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-0.5 flex items-center justify-between text-[10px] text-muted-foreground">
+                        <span className="truncate max-w-[110px]">
+                          {task.client?.name || task.clientName || formatTaskTypeLabel(task.taskType)}
+                        </span>
+                        <span className="font-semibold capitalize opacity-80 text-[9px]">
+                          {normalizedStatus}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {dayTasks.length > 3 ? (
-                  <div className="text-xs font-semibold text-primary">+{dayTasks.length - 3} more tasks</div>
+                  <div className="text-[11px] font-bold text-primary px-1">+{dayTasks.length - 3} more tasks</div>
                 ) : null}
 
                 {!dayTasks.length ? (
-                  <div className="pt-6 text-xs leading-5 text-muted-foreground">
-                   
-                  </div>
+                  <div className="pt-4 text-xs leading-5 text-muted-foreground" />
                 ) : null}
               </div>
             </button>
@@ -1109,7 +1269,91 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
         </div>
       </CollapsibleFilterBar>
 
+      {/* ── Interactive Color Signs & Status Legend Bar ── */}
+      <div className="bg-card rounded-2xl border border-border p-3.5 shadow-sm space-y-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/50 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <Palette size={14} className="text-primary" />
+              <span>Color Signs & Urgency Indicators:</span>
+            </span>
+            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+              Click any sign below to filter calendar tasks in real-time
+            </span>
+          </div>
 
+          {(filters.status || filters.priority) && (
+            <button
+              type="button"
+              onClick={() => setFilters((current) => ({ ...current, status: '', priority: '' }))}
+              className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto"
+            >
+              <span>Clear Color Filters</span>
+              <X size={12} />
+            </button>
+          )}
+        </div>
+
+        {/* Color signs pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Status Color Signs */}
+          {Object.entries(TASK_STATUS_COLORS).filter(([key]) => key !== 'Approved').map(([statusKey, meta]) => {
+            const isSelected = filters.status === statusKey;
+            const count = tasks.filter((t) => t.status === statusKey || (statusKey === 'Completed' && ['Completed', 'Approved'].includes(t.status))).length;
+
+            return (
+              <button
+                key={statusKey}
+                type="button"
+                onClick={() => setFilters((current) => ({ ...current, status: isSelected ? '' : statusKey }))}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs',
+                  meta.badge,
+                  isSelected
+                    ? 'ring-2 ring-primary ring-offset-1 scale-105 shadow-sm'
+                    : 'hover:opacity-90 hover:scale-[1.02]'
+                )}
+              >
+                <span className={cn('h-2 w-2 rounded-full shrink-0', meta.dot)} />
+                <span>{meta.label}</span>
+                <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-white/10">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+
+          <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
+
+          {/* Priority Signs (Urgent, High, Med, Low) */}
+          {Object.entries(TASK_PRIORITY_COLORS).map(([prioKey, meta]) => {
+            const isSelected = filters.priority === prioKey;
+            const count = tasks.filter((t) => t.priority === prioKey).length;
+
+            return (
+              <button
+                key={prioKey}
+                type="button"
+                onClick={() => setFilters((current) => ({ ...current, priority: isSelected ? '' : prioKey }))}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs',
+                  meta.pill,
+                  prioKey === 'Urgent' && 'border-rose-500/50',
+                  isSelected
+                    ? 'ring-2 ring-primary ring-offset-1 scale-105 shadow-sm'
+                    : 'hover:opacity-90 hover:scale-[1.02]'
+                )}
+              >
+                <span className={cn('h-2 w-2 rounded-full shrink-0', meta.dot, prioKey === 'Urgent' && 'animate-ping')} />
+                <span>{meta.sign}</span>
+                <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-white/10">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <SectionCard
         title={toolbarTitle}
