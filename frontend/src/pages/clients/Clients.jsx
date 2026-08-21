@@ -18,7 +18,7 @@ import {
   Edit2,
   Trash2,
 } from 'lucide-react';
-import { useClients, useDeleteClient } from '../../hooks/useClients';
+import { useClients, useDeleteClient, useUpdateClient } from '../../hooks/useClients';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { formatINR } from '../../utils/currency';
 import { DataTable } from '../../components/ui/DataTable';
@@ -58,6 +58,9 @@ const Clients = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
+  const [draggingClientId, setDraggingClientId] = useState(null);
+  const [dragOverStatus, setDragOverStatus] = useState(null);
+  const [dragOverClientIndex, setDragOverClientIndex] = useState(null);
   const { startDate, endDate, isDateInRange } = useDateFilter();
 
   const filters = {
@@ -77,6 +80,7 @@ const Clients = () => {
     setServiceFilter('');
   };
   const deleteClientMutation = useDeleteClient();
+  const updateClientMutation = useUpdateClient();
 
   const activeClients = clients.filter((client) => client.status === 'Active').length;
   const prospectClients = clients.filter((client) => client.status === 'Prospect').length;
@@ -234,8 +238,38 @@ const Clients = () => {
             <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
               {STATUS_COLUMNS.map((status) => {
                 const statusClients = clients.filter((c) => (c.status || 'Prospect') === status);
+                const isColActive = dragOverStatus === status;
+
                 return (
-                  <div key={status} className="flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border border-border/80 bg-secondary/20 p-3 space-y-3">
+                  <div
+                    key={status}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (dragOverStatus !== status) setDragOverStatus(status);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) {
+                        if (dragOverStatus === status) setDragOverStatus(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const clientId = e.dataTransfer.getData('clientId');
+                      if (clientId) {
+                        updateClientMutation.mutate({ id: clientId, data: { status } });
+                      }
+                      setDraggingClientId(null);
+                      setDragOverStatus(null);
+                      setDragOverClientIndex(null);
+                    }}
+                    className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border transition-all p-3 space-y-3 ${
+                      isColActive
+                        ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
+                        : 'border-border/80 bg-secondary/20'
+                    }`}
+                  >
                     <div className="flex items-center justify-between px-1">
                       <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
                       <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
@@ -244,39 +278,88 @@ const Clients = () => {
                     </div>
 
                     <div className="space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5 flex-1">
-                      {statusClients.map((client) => (
-                        <div
-                          key={client._id}
-                          onClick={() => navigate(`/clients/${client._id}`)}
-                          className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-pointer space-y-2 group shadow-sm"
-                        >
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                              {client.name}
-                            </h4>
-                            {client.monthlyRetainer ? (
-                              <span className="text-[11px] font-bold text-emerald-600">
-                                {formatINR(client.monthlyRetainer)}
-                              </span>
-                            ) : null}
-                          </div>
+                      {statusClients.map((client, idx) => {
+                        const isBeingDragged = draggingClientId === client._id;
+                        const showDropIndicatorBefore = isColActive && dragOverClientIndex === idx && !isBeingDragged;
 
-                          <p className="text-[11px] text-muted-foreground truncate">
-                            {client.company || client.email || 'No company'}
-                          </p>
+                        return (
+                          <React.Fragment key={client._id}>
+                            {showDropIndicatorBefore && (
+                              <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                            )}
+                            <div
+                              draggable
+                              onDragStart={(e) => {
+                                setDraggingClientId(client._id);
+                                e.dataTransfer.setData('clientId', client._id);
+                                e.dataTransfer.effectAllowed = 'move';
+                              }}
+                              onDragEnd={() => {
+                                setDraggingClientId(null);
+                                setDragOverStatus(null);
+                                setDragOverClientIndex(null);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'move';
+                                setDragOverStatus(status);
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const midY = rect.top + rect.height / 2;
+                                setDragOverClientIndex(e.clientY < midY ? idx : idx + 1);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const clientId = e.dataTransfer.getData('clientId');
+                                if (clientId) {
+                                  updateClientMutation.mutate({ id: clientId, data: { status } });
+                                }
+                                setDraggingClientId(null);
+                                setDragOverStatus(null);
+                                setDragOverClientIndex(null);
+                              }}
+                              onClick={() => navigate(`/clients/${client._id}`)}
+                              className={`p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-grab active:cursor-grabbing space-y-2 group shadow-sm ${
+                                isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : 'hover:shadow-md hover:-translate-y-0.5'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                                  {client.name}
+                                </h4>
+                                {client.monthlyRetainer ? (
+                                  <span className="text-[11px] font-bold text-emerald-600">
+                                    {formatINR(client.monthlyRetainer)}
+                                  </span>
+                                ) : null}
+                              </div>
 
-                          <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                            <span>{client.service || 'Retainer'}</span>
-                            <span className="group-hover:text-primary flex items-center gap-0.5">
-                              Open <ArrowRight size={10} />
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                              <p className="text-[11px] text-muted-foreground truncate">
+                                {client.company || client.email || 'No company'}
+                              </p>
+
+                              <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
+                                <span>{client.service || 'Retainer'}</span>
+                                <span className="group-hover:text-primary flex items-center gap-0.5">
+                                  Open <ArrowRight size={10} />
+                                </span>
+                              </div>
+                            </div>
+                          </React.Fragment>
+                        );
+                      })}
+
+                      {/* Drop indicator at the bottom of the column */}
+                      {isColActive && dragOverClientIndex >= statusClients.length && (
+                        <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                      )}
 
                       {statusClients.length === 0 && (
-                        <div className="p-4 text-center text-[11px] text-muted-foreground border border-dashed border-border/60 rounded-xl">
-                          No {status} clients
+                        <div className={`p-8 text-center text-xs border border-dashed rounded-xl transition-all ${
+                          isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'border-border/60 text-muted-foreground'
+                        }`}>
+                          {isColActive ? `Drop here to set status to ${status}` : `No ${status} clients`}
                         </div>
                       )}
                     </div>

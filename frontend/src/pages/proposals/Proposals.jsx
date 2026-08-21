@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { AddProposalModal } from '../../components/modals/AddProposalModal';
-import { useProposals } from '../../hooks/useProposals';
+import { useProposals, useUpdateProposal } from '../../hooks/useProposals';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
 import { formatINR } from '../../utils/currency';
@@ -39,6 +39,7 @@ const Proposals = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState(null);
+  const updateProposalMutation = useUpdateProposal();
 
   const { data: proposals = [], isLoading } = useProposals(statusFilter !== 'all' ? { status: statusFilter } : {});
 
@@ -241,6 +242,9 @@ const Proposals = () => {
         groupBy="status"
         renderKanbanCard={renderKanbanCard}
         onSearchChange={setSearch}
+        onStatusChange={(proposalId, newStatus) => {
+          updateProposalMutation.mutate({ id: proposalId, data: { status: newStatus } });
+        }}
       />
 
       <AddProposalModal

@@ -85,6 +85,7 @@ const ProjectDetails = () => {
   // Drag & drop state
   const [draggingTaskId, setDraggingTaskId] = useState(null);
   const [dragOverStatus, setDragOverStatus] = useState(null);
+  const [dragOverTaskIndex, setDragOverTaskIndex] = useState(null);
   const [pendingDrop, setPendingDrop] = useState(null);
 
   const updateProject = useUpdateProject();
@@ -129,6 +130,7 @@ const ProjectDetails = () => {
   const handleDragEnd = () => {
     setDraggingTaskId(null);
     setDragOverStatus(null);
+    setDragOverTaskIndex(null);
   };
 
   const handleDragOver = (e, status) => {
@@ -137,17 +139,20 @@ const ProjectDetails = () => {
     setDragOverStatus(status);
   };
 
-  const handleDrop = (e, targetStatus) => {
+  const handleDrop = (e, targetStatus, dropIdx = null) => {
     e.preventDefault();
+    e.stopPropagation();
     const taskId = e.dataTransfer.getData('taskId');
+    const targetIdx = dropIdx !== null ? dropIdx : dragOverTaskIndex;
     setDraggingTaskId(null);
     setDragOverStatus(null);
+    setDragOverTaskIndex(null);
 
     const currentStatus = Object.keys(kanban).find((s) =>
       (kanban[s] || []).some((t) => t._id === taskId)
     );
 
-    if (!taskId || !targetStatus || currentStatus === targetStatus) return;
+    if (!taskId || !targetStatus) return;
 
     const confirmStatuses = ['approved', 'done'];
     const confirmMessages = {
@@ -155,14 +160,14 @@ const ProjectDetails = () => {
       done: 'Are you sure you want to mark this task as Done / Completed?',
     };
 
-    if (confirmStatuses.includes(targetStatus)) {
-      setPendingDrop({ taskId, targetStatus, message: confirmMessages[targetStatus] });
+    if (confirmStatuses.includes(targetStatus) && currentStatus !== targetStatus) {
+      setPendingDrop({ taskId, targetStatus, dropIdx: targetIdx, message: confirmMessages[targetStatus] });
     } else {
-      executeDrop(taskId, targetStatus);
+      executeDrop(taskId, targetStatus, targetIdx);
     }
   };
 
-  const executeDrop = async (taskId, targetStatus) => {
+  const executeDrop = async (taskId, targetStatus, dropIdx = null) => {
     try {
       // Optimistic UI update
       setKanban((prev) => {
@@ -177,10 +182,14 @@ const ProjectDetails = () => {
           }
         }
         if (movedTask) {
-          next[targetStatus] = [
-            ...(next[targetStatus] || []),
-            { ...movedTask, status: targetStatus },
-          ];
+          const targetList = [...(next[targetStatus] || [])];
+          const updated = { ...movedTask, status: targetStatus };
+          if (dropIdx !== null && dropIdx !== undefined && dropIdx <= targetList.length) {
+            targetList.splice(dropIdx, 0, updated);
+          } else {
+            targetList.push(updated);
+          }
+          next[targetStatus] = targetList;
         }
         return next;
       });
@@ -429,7 +438,11 @@ const ProjectDetails = () => {
               {/* Drop Zone */}
               <div
                 onDragOver={(e) => handleDragOver(e, status)}
-                onDragLeave={() => setDragOverStatus(null)}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    if (dragOverStatus === status) setDragOverStatus(null);
+                  }
+                }}
                 onDrop={(e) => handleDrop(e, status)}
                 className={`flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar rounded-2xl border-2 p-3 transition-all duration-150 ${
                   isDragOver
@@ -437,80 +450,100 @@ const ProjectDetails = () => {
                     : 'border-dashed border-border bg-secondary/20'
                 }`}
               >
-                {isDragOver && (
-                  <div className="flex h-12 items-center justify-center rounded-xl border border-dashed border-primary/40 bg-primary/5 text-xs font-semibold text-primary">
-                    Drop here
-                  </div>
-                )}
+                {(kanban[status] || []).map((task, idx) => {
+                  const isBeingDragged = draggingTaskId === task._id;
+                  const showDropIndicatorBefore = isDragOver && dragOverTaskIndex === idx && !isBeingDragged;
 
-                {(kanban[status] || []).map((task) => (
-                  <div
-                    key={task._id}
-                    draggable={user?.role !== 'client'}
-                    onDragStart={(e) => handleDragStart(e, task._id)}
-                    onDragEnd={handleDragEnd}
-                    onClick={() => setSelectedTaskId(task._id)}
-                    className={`group cursor-pointer rounded-xl border border-border bg-card p-4 shadow-sm transition-all active:cursor-grabbing ${
-                      draggingTaskId === task._id
-                        ? 'opacity-40 scale-95 rotate-1'
-                        : 'hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40'
-                    }`}
-                  >
-                    <div className="mb-3 flex items-start justify-between">
-                      <div className="flex flex-wrap gap-1">
-                        {(task.tags || []).length ? task.tags.map((tag) => (
-                          <span key={tag} className="rounded bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">
-                            {tag}
-                          </span>
-                        )) : (
-                          <span className="rounded bg-secondary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-tighter text-muted-foreground">
-                            {task.taskType || 'Task'}
-                          </span>
+                  return (
+                    <React.Fragment key={task._id}>
+                      {showDropIndicatorBefore && (
+                        <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                      )}
+                      <div
+                        draggable={user?.role !== 'client'}
+                        onDragStart={(e) => handleDragStart(e, task._id)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          e.dataTransfer.dropEffect = 'move';
+                          setDragOverStatus(status);
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const midY = rect.top + rect.height / 2;
+                          setDragOverTaskIndex(e.clientY < midY ? idx : idx + 1);
+                        }}
+                        onDrop={(e) => handleDrop(e, status, idx)}
+                        onClick={() => setSelectedTaskId(task._id)}
+                        className={`group cursor-pointer rounded-xl border border-border bg-card p-4 shadow-sm transition-all active:cursor-grabbing ${
+                          isBeingDragged
+                            ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40'
+                            : 'hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40'
+                        }`}
+                      >
+                        <div className="mb-3 flex items-start justify-between">
+                          <div className="flex flex-wrap gap-1">
+                            {(task.tags || []).length ? task.tags.map((tag) => (
+                              <span key={tag} className="rounded bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">
+                                {tag}
+                              </span>
+                            )) : (
+                              <span className="rounded bg-secondary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-tighter text-muted-foreground">
+                                {task.taskType || 'Task'}
+                              </span>
+                            )}
+                          </div>
+                          <button className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                            <MoreHorizontal size={14} />
+                          </button>
+                        </div>
+
+                        <h4 className="line-clamp-2 text-sm font-bold leading-tight">{task.title}</h4>
+
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex items-center space-x-3 text-[10px] text-muted-foreground">
+                            <span className="flex items-center">
+                              <MessageSquare size={12} className="mr-1" /> {task.comments?.length || 0}
+                            </span>
+                            <span className="flex items-center">
+                              <Paperclip size={12} className="mr-1" /> {task.attachments?.length || 0}
+                            </span>
+                          </div>
+                          <div className="flex -space-x-1.5">
+                            {(task.assignedTo || []).map((member) => (
+                              <div
+                                key={member._id}
+                                className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border-2 border-card bg-secondary text-[8px] font-bold shadow-sm"
+                                title={member.name}
+                              >
+                                {member.avatar ? <img src={getAssetUrl(member.avatar)} alt="" /> : member.name?.charAt(0)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {task.dueDate && (
+                          <div className={`mt-3 flex items-center text-[10px] font-bold ${
+                            new Date(task.dueDate) < new Date() && status !== 'done' ? 'text-destructive' : 'text-muted-foreground'
+                          }`}>
+                            <Clock size={10} className="mr-1" />
+                            {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          </div>
                         )}
                       </div>
-                      <button className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                        <MoreHorizontal size={14} />
-                      </button>
-                    </div>
+                    </React.Fragment>
+                  );
+                })}
 
-                    <h4 className="line-clamp-2 text-sm font-bold leading-tight">{task.title}</h4>
+                {/* Drop indicator at the bottom of the column */}
+                {isDragOver && dragOverTaskIndex >= (kanban[status] || []).length && (
+                  <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                )}
 
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center space-x-3 text-[10px] text-muted-foreground">
-                        <span className="flex items-center">
-                          <MessageSquare size={12} className="mr-1" /> {task.comments?.length || 0}
-                        </span>
-                        <span className="flex items-center">
-                          <Paperclip size={12} className="mr-1" /> {task.attachments?.length || 0}
-                        </span>
-                      </div>
-                      <div className="flex -space-x-1.5">
-                        {(task.assignedTo || []).map((member) => (
-                          <div
-                            key={member._id}
-                            className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border-2 border-card bg-secondary text-[8px] font-bold shadow-sm"
-                            title={member.name}
-                          >
-                            {member.avatar ? <img src={getAssetUrl(member.avatar)} alt="" /> : member.name?.charAt(0)}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {task.dueDate && (
-                      <div className={`mt-3 flex items-center text-[10px] font-bold ${
-                        new Date(task.dueDate) < new Date() && status !== 'done' ? 'text-destructive' : 'text-muted-foreground'
-                      }`}>
-                        <Clock size={10} className="mr-1" />
-                        {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {(kanban[status] || []).length === 0 && !isDragOver && (
-                  <div className="flex h-20 items-center justify-center text-xs italic text-muted-foreground">
-                    No tasks here.
+                {(kanban[status] || []).length === 0 && (
+                  <div className={`flex h-20 items-center justify-center text-xs rounded-xl border border-dashed transition-all ${
+                    isDragOver ? 'border-primary bg-primary/10 text-primary font-semibold' : 'text-muted-foreground italic border-border/60'
+                  }`}>
+                    {isDragOver ? `Drop here to move to ${statusLabels[status]}` : 'No tasks here.'}
                   </div>
                 )}
               </div>

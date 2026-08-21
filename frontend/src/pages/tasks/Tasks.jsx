@@ -78,6 +78,9 @@ const Tasks = () => {
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
+  const [draggingTaskId, setDraggingTaskId] = useState(null);
+  const [dragOverColKey, setDragOverColKey] = useState(null);
+  const [dragOverTaskIndex, setDragOverTaskIndex] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     client: '',
@@ -439,18 +442,35 @@ const Tasks = () => {
                   return s === column.key;
                 });
 
+                const isColActive = dragOverColKey === column.key;
+
                 return (
                   <div
                     key={column.key}
-                    onDragOver={(e) => e.preventDefault()}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (dragOverColKey !== column.key) setDragOverColKey(column.key);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) {
+                        if (dragOverColKey === column.key) setDragOverColKey(null);
+                      }
+                    }}
                     onDrop={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       const taskId = e.dataTransfer.getData('taskId');
                       if (taskId) {
                         updateStatusMutation.mutate({ id: taskId, status: column.key });
                       }
+                      setDraggingTaskId(null);
+                      setDragOverColKey(null);
+                      setDragOverTaskIndex(null);
                     }}
-                    className={`flex flex-col min-h-[440px] max-h-[calc(100vh-280px)] rounded-2xl border ${column.surface} p-3 space-y-3 transition-colors snap-center sm:snap-align-none`}
+                    className={`flex flex-col min-h-[440px] max-h-[calc(100vh-280px)] rounded-2xl border ${column.surface} p-3 space-y-3 transition-all snap-center sm:snap-align-none ${
+                      isColActive ? 'ring-2 ring-primary/40 border-primary bg-primary/5 shadow-md' : ''
+                    }`}
                   >
                     <div className="flex items-center justify-between px-1.5 py-1">
                       <div className="flex items-center gap-2">
@@ -471,80 +491,125 @@ const Tasks = () => {
                     </div>
 
                     <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-340px)] pr-0.5 custom-scrollbar">
-                      {columnTasks.map((task) => (
-                        <div
-                          key={task._id}
-                          draggable
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData('taskId', task._id);
-                          }}
-                          onClick={() => handleRowClick(task)}
-                          className="p-3.5 bg-card rounded-xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                              {task.taskTitle || task.title}
-                            </h4>
-                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase shrink-0 ${
-                              task.priority === 'Urgent' || task.priority === 'High'
-                                ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                                : 'bg-secondary text-muted-foreground'
-                            }`}>
-                              {task.priority || 'Medium'}
-                            </span>
-                          </div>
+                      {columnTasks.map((task, idx) => {
+                        const isBeingDragged = draggingTaskId === task._id;
+                        const showDropIndicatorBefore = isColActive && dragOverTaskIndex === idx && !isBeingDragged;
 
-                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                            <span className="truncate max-w-[150px] font-medium text-foreground/80">
-                              {task.client?.company || task.client?.name || task.clientName || 'RiseWithMedia'}
-                            </span>
-                            {task.taskType && (
-                              <span className="px-1.5 py-0.5 rounded bg-secondary text-[10px] font-semibold text-muted-foreground">
-                                {formatTaskTypeLabel(task.taskType)}
-                              </span>
+                        return (
+                          <React.Fragment key={task._id}>
+                            {showDropIndicatorBefore && (
+                              <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
                             )}
-                          </div>
+                            <div
+                              draggable
+                              onDragStart={(e) => {
+                                setDraggingTaskId(task._id);
+                                e.dataTransfer.setData('taskId', task._id);
+                                e.dataTransfer.effectAllowed = 'move';
+                              }}
+                              onDragEnd={() => {
+                                setDraggingTaskId(null);
+                                setDragOverColKey(null);
+                                setDragOverTaskIndex(null);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'move';
+                                setDragOverColKey(column.key);
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const midY = rect.top + rect.height / 2;
+                                setDragOverTaskIndex(e.clientY < midY ? idx : idx + 1);
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const taskId = e.dataTransfer.getData('taskId');
+                                if (taskId) {
+                                  updateStatusMutation.mutate({ id: taskId, status: column.key });
+                                }
+                                setDraggingTaskId(null);
+                                setDragOverColKey(null);
+                                setDragOverTaskIndex(null);
+                              }}
+                              onClick={() => handleRowClick(task)}
+                              className={`p-3.5 bg-card rounded-xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] ${
+                                isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                                  {task.taskTitle || task.title}
+                                </h4>
+                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase shrink-0 ${
+                                  task.priority === 'Urgent' || task.priority === 'High'
+                                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                    : 'bg-secondary text-muted-foreground'
+                                }`}>
+                                  {task.priority || 'Medium'}
+                                </span>
+                              </div>
 
-                          {/* Pipeline production sub-assignees badges */}
-                          {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
-                            <div className="flex flex-wrap gap-1 text-[9px] pt-1">
-                              {task.scriptWriterAssigned && (
-                                <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1">
-                                  ✍️ Script
+                              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                                <span className="truncate max-w-[150px] font-medium text-foreground/80">
+                                  {task.client?.company || task.client?.name || task.clientName || 'RiseWithMedia'}
                                 </span>
+                                {task.taskType && (
+                                  <span className="px-1.5 py-0.5 rounded bg-secondary text-[10px] font-semibold text-muted-foreground">
+                                    {formatTaskTypeLabel(task.taskType)}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Pipeline production sub-assignees badges */}
+                              {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                                <div className="flex flex-wrap gap-1 text-[9px] pt-1">
+                                  {task.scriptWriterAssigned && (
+                                    <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1">
+                                      ✍️ Script
+                                    </span>
+                                  )}
+                                  {task.videographerAssigned && (
+                                    <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
+                                      🎥 Shoot
+                                    </span>
+                                  )}
+                                  {task.editorAssigned && (
+                                    <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold flex items-center gap-1">
+                                      ✂️ Edit
+                                    </span>
+                                  )}
+                                  {task.publisherAssigned && (
+                                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                      📱 Post
+                                    </span>
+                                  )}
+                                </div>
                               )}
-                              {task.videographerAssigned && (
-                                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                                  🎥 Shoot
+
+                              <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
+                                <span>
+                                  {task.dueDate ? `Due ${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'No deadline'}
                                 </span>
-                              )}
-                              {task.editorAssigned && (
-                                <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold flex items-center gap-1">
-                                  ✂️ Edit
+                                <span className="group-hover:text-primary font-semibold flex items-center gap-0.5">
+                                  Open <ArrowRight size={10} />
                                 </span>
-                              )}
-                              {task.publisherAssigned && (
-                                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                                  📱 Post
-                                </span>
-                              )}
+                              </div>
                             </div>
-                          )}
+                          </React.Fragment>
+                        );
+                      })}
 
-                          <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
-                            <span>
-                              {task.dueDate ? `Due ${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'No deadline'}
-                            </span>
-                            <span className="group-hover:text-primary font-semibold flex items-center gap-0.5">
-                              Open <ArrowRight size={10} />
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                      {/* Drop indicator at the bottom of the column */}
+                      {isColActive && dragOverTaskIndex >= columnTasks.length && (
+                        <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                      )}
 
                       {columnTasks.length === 0 && (
-                        <div className="py-12 text-center text-xs text-muted-foreground/60 border border-dashed border-border/70 rounded-xl">
-                          No {column.label} tasks
+                        <div className={`py-12 text-center text-xs border border-dashed rounded-xl transition-all ${
+                          isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/60 border-border/70'
+                        }`}>
+                          {isColActive ? `Drop here to move to ${column.label}` : `No ${column.label} tasks`}
                         </div>
                       )}
                     </div>

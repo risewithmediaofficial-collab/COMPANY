@@ -41,6 +41,8 @@ export function DatabaseView({
   renderKanbanCard,
   kanbanColumns = [],
   groupBy = 'status',
+  onItemMove,
+  onStatusChange,
   children,
 }) {
   // Normalize views array
@@ -78,6 +80,71 @@ export function DatabaseView({
   const handleSearchChange = (val) => {
     setLocalSearch(val);
     if (onSearchChange) onSearchChange(val);
+  };
+
+  // Drag & drop state for Kanban
+  const [draggingId, setDraggingId] = useState(null);
+  const [dragOverColumn, setDragOverColumn] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+
+  const handleDragStart = (e, item) => {
+    const id = item._id || item.id;
+    setDraggingId(id);
+    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      id,
+      fromStatus: item[groupBy],
+    }));
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggingId(null);
+    setDragOverColumn(null);
+    setDragOverIndex(null);
+  };
+
+  const handleColumnDragOver = (e, colKey) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverColumn !== colKey) {
+      setDragOverColumn(colKey);
+    }
+  };
+
+  const handleItemDragOver = (e, colKey, idx) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverColumn(colKey);
+    
+    // Determine if cursor is in top half or bottom half of the card
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const targetIdx = e.clientY < midY ? idx : idx + 1;
+    setDragOverIndex(targetIdx);
+  };
+
+  const handleDrop = (e, colKey, dropIdx = null) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const itemId = e.dataTransfer.getData('text/plain');
+    if (!itemId) {
+      handleDragEnd();
+      return;
+    }
+
+    if (onItemMove) {
+      onItemMove({
+        id: itemId,
+        targetStatus: colKey,
+        targetIndex: dropIdx !== null ? dropIdx : dragOverIndex,
+      });
+    } else if (onStatusChange) {
+      onStatusChange(itemId, colKey);
+    }
+
+    handleDragEnd();
   };
 
   return (
@@ -211,7 +278,7 @@ export function DatabaseView({
             </div>
           )}
 
-          {/* 3. KANBAN BOARD VIEW */}
+          {/* 3. KANBAN BOARD VIEW (With Smooth Click & Drag Between Columns & Up/Down Reordering) */}
           {(currentView === 'kanban' || currentView === 'board') && (
             <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
               <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
@@ -220,11 +287,23 @@ export function DatabaseView({
                     const val = item[groupBy];
                     return val === col.key || (typeof val === 'string' && val.toLowerCase() === col.key.toLowerCase());
                   });
+                  const isColActive = dragOverColumn === col.key;
 
                   return (
                     <div
                       key={col.key}
-                      className="flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border border-border bg-secondary/20 p-3 space-y-3"
+                      onDragOver={(e) => handleColumnDragOver(e, col.key)}
+                      onDragLeave={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget)) {
+                          if (dragOverColumn === col.key) setDragOverColumn(null);
+                        }
+                      }}
+                      onDrop={(e) => handleDrop(e, col.key)}
+                      className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border transition-all p-3 space-y-3 ${
+                        isColActive
+                          ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
+                          : 'border-border bg-secondary/20'
+                      }`}
                     >
                       {/* Column Header */}
                       <div className="flex items-center justify-between px-1">
@@ -238,21 +317,54 @@ export function DatabaseView({
 
                       {/* Column Cards */}
                       <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5">
-                        {colItems.map((item, idx) => (
-                          <div
-                            key={item._id || item.id || idx}
-                            className="p-3.5 rounded-xl border border-border bg-card hover:border-primary/40 shadow-sm transition-all"
-                          >
-                            {renderKanbanCard
-                              ? renderKanbanCard(item, idx)
-                              : renderCard
-                              ? renderCard(item, idx)
-                              : item.title || item.name}
-                          </div>
-                        ))}
+                        {colItems.map((item, idx) => {
+                          const itemId = item._id || item.id || idx;
+                          const isBeingDragged = draggingId === itemId;
+                          const showDropIndicatorBefore = isColActive && dragOverIndex === idx && !isBeingDragged;
+
+                          return (
+                            <React.Fragment key={itemId}>
+                              {showDropIndicatorBefore && (
+                                <div className="h-2 my-1 rounded-full bg-primary/60 animate-pulse transition-all shadow-xs" />
+                              )}
+                              <div
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, item)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => handleItemDragOver(e, col.key, idx)}
+                                onDrop={(e) => handleDrop(e, col.key, idx)}
+                                className={`p-3.5 rounded-xl border border-border bg-card hover:border-primary/40 shadow-sm transition-all cursor-grab active:cursor-grabbing ${
+                                  isBeingDragged
+                                    ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40'
+                                    : 'hover:shadow-md hover:-translate-y-0.5'
+                                }`}
+                              >
+                                {renderKanbanCard
+                                  ? renderKanbanCard(item, idx)
+                                  : renderCard
+                                  ? renderCard(item, idx)
+                                  : item.title || item.name}
+                              </div>
+                            </React.Fragment>
+                          );
+                        })}
+
+                        {/* Drop indicator at the bottom of the list */}
+                        {isColActive && dragOverIndex >= colItems.length && (
+                          <div className="h-2 my-1 rounded-full bg-primary/60 animate-pulse transition-all shadow-xs" />
+                        )}
+
                         {colItems.length === 0 && (
-                          <div className="py-8 text-center text-xs text-muted-foreground/60 border border-dashed border-border/60 rounded-xl">
-                            Empty
+                          <div
+                            onDragOver={(e) => handleColumnDragOver(e, col.key)}
+                            onDrop={(e) => handleDrop(e, col.key, 0)}
+                            className={`py-8 text-center text-xs border border-dashed rounded-xl transition-all ${
+                              isColActive
+                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                : 'text-muted-foreground/60 border-border/60'
+                            }`}
+                          >
+                            {isColActive ? 'Drop here to move to ' + col.label : 'Empty'}
                           </div>
                         )}
                       </div>

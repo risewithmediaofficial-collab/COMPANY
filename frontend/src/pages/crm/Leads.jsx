@@ -272,6 +272,9 @@ const Leads = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [deleteLeadId, setDeleteLeadId] = useState(null);
+  const [draggingLeadId, setDraggingLeadId] = useState(null);
+  const [dragOverStage, setDragOverStage] = useState(null);
+  const [dragOverLeadIndex, setDragOverLeadIndex] = useState(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [followUpFilter, setFollowUpFilter] = useState('');
   const [activityLead, setActivityLead] = useState(null);
@@ -488,12 +491,17 @@ const Leads = () => {
     if (!open) setSelectedLead(null);
   };
 
-  const handleDrop = async (e, stage) => {
+  const handleDrop = async (e, stage, dropIdx = null) => {
     e.preventDefault();
+    e.stopPropagation();
     const leadId = e.dataTransfer.getData('leadId');
     if (leadId) {
       await updateStageMutation.mutateAsync({ id: leadId, stage });
     }
+    setDraggingLeadId(null);
+    setDragOverStage(null);
+    setDragOverLeadIndex(null);
+    dragLeadRef.current = false;
   };
 
   const renderKanban = () => {
@@ -516,11 +524,25 @@ const Leads = () => {
             {PIPELINE_STAGES.map((stage) => {
               const stageInfo = STAGE_META[stage];
               const stageLeads = filteredKanbanData[stage] || [];
+              const isColActive = dragOverStage === stage;
 
               return (
                 <section
                   key={stage}
-                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] border bg-card/90 shadow-sm backdrop-blur-sm ${stageInfo.surface}`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (dragOverStage !== stage) setDragOverStage(stage);
+                  }}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget)) {
+                      if (dragOverStage === stage) setDragOverStage(null);
+                    }
+                  }}
+                  onDrop={(e) => handleDrop(e, stage)}
+                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] border bg-card/90 shadow-sm backdrop-blur-sm transition-all ${stageInfo.surface} ${
+                    isColActive ? 'ring-2 ring-primary/40 border-primary bg-primary/5 shadow-md' : ''
+                  }`}
                 >
                   <div className="border-b border-border/70 px-4 py-4 shrink-0">
                     <div className="flex items-start justify-between gap-3">
@@ -537,36 +559,59 @@ const Leads = () => {
 
                   <div
                     className="flex min-h-0 flex-1 flex-col gap-3 p-4 overflow-y-auto max-h-[calc(100vh-370px)] custom-scrollbar pr-1"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleDrop(e, stage)}
                   >
                     {stageLeads.length > 0 ? (
-                      stageLeads.map((lead) => {
+                      <>
+                        {stageLeads.map((lead, idx) => {
                         const leadValue = getLeadValue(lead);
+                        const isBeingDragged = draggingLeadId === lead._id;
+                        const showDropIndicatorBefore = isColActive && dragOverLeadIndex === idx && !isBeingDragged;
 
                         return (
-                          <motion.article
-                            layoutId={lead._id}
-                            key={lead._id}
-                            draggable
-                            onDragStart={(e) => {
-                              dragLeadRef.current = true;
-                              e.dataTransfer.setData('leadId', lead._id);
-                            }}
-                            onDragEnd={() => { dragLeadRef.current = false; }}
-                            onClick={() => {
-                              if (!dragLeadRef.current) navigate(`/crm/leads/${lead._id}`);
-                            }}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                navigate(`/crm/leads/${lead._id}`);
-                              }
-                            }}
-                            role="button"
-                            tabIndex={0}
-                            className="group cursor-pointer rounded-2xl border border-border/80 bg-background/95 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 active:cursor-grabbing"
-                          >
+                          <React.Fragment key={lead._id}>
+                            {showDropIndicatorBefore && (
+                              <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                            )}
+                            <motion.article
+                              layoutId={lead._id}
+                              draggable
+                              onDragStart={(e) => {
+                                dragLeadRef.current = true;
+                                setDraggingLeadId(lead._id);
+                                e.dataTransfer.setData('leadId', lead._id);
+                                e.dataTransfer.effectAllowed = 'move';
+                              }}
+                              onDragEnd={() => {
+                                dragLeadRef.current = false;
+                                setDraggingLeadId(null);
+                                setDragOverStage(null);
+                                setDragOverLeadIndex(null);
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'move';
+                                setDragOverStage(stage);
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const midY = rect.top + rect.height / 2;
+                                setDragOverLeadIndex(e.clientY < midY ? idx : idx + 1);
+                              }}
+                              onDrop={(e) => handleDrop(e, stage, idx)}
+                              onClick={() => {
+                                if (!dragLeadRef.current) navigate(`/crm/leads/${lead._id}`);
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  navigate(`/crm/leads/${lead._id}`);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              className={`group cursor-pointer rounded-2xl border border-border/80 bg-background/95 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 active:cursor-grabbing ${
+                                isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
+                              }`}
+                            >
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${PRIORITY_META[lead.priority] || PRIORITY_META.medium}`}>
@@ -657,15 +702,22 @@ const Leads = () => {
                               </div>
                             </div>
                           </motion.article>
-                        );
-                      })
-                    ) : (
-                      <div className="flex flex-1 items-center justify-center rounded-[24px] border border-dashed border-border bg-background/80 p-6 text-center">
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">No leads in {stageInfo.label.toLowerCase()}</p>
-                        </div>
-                      </div>
+                        </React.Fragment>
+                      );
+                    })}
+                    {isColActive && dragOverLeadIndex >= stageLeads.length && (
+                      <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
                     )}
+                    </>
+                  ) : (
+                    <div className={`flex flex-1 items-center justify-center rounded-[24px] border border-dashed p-6 text-center transition-all ${
+                      isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'border-border bg-background/80 text-muted-foreground'
+                    }`}>
+                      <div>
+                        <p className="text-sm font-semibold">{isColActive ? `Drop here to move to ${stageInfo.label}` : `No leads in ${stageInfo.label.toLowerCase()}`}</p>
+                      </div>
+                    </div>
+                  )}
                   </div>
                 </section>
               );

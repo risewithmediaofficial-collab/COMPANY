@@ -750,6 +750,9 @@ export default function ClientFollowups() {
         groupBy="status"
         renderKanbanCard={renderKanbanCard}
         onSearchChange={setSearch}
+        onStatusChange={(followupId, newStatus) => {
+          updateMutation.mutate({ id: followupId, status: newStatus });
+        }}
       />
 
       {/* View-Only Modal */}
