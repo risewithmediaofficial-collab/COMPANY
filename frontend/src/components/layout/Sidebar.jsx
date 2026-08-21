@@ -149,7 +149,7 @@ export default function Sidebar({ onOpenSearch }) {
       const employeeDelivery = [
         { name: 'My Tasks', icon: CheckSquare, path: '/tasks' },
         { name: 'Daily Calendar', icon: Calendar, path: '/daily-tasks' },
-        { name: 'Pending Notes', icon: StickyNote, path: '/pending-notes' },
+        { name: 'Task Notes & Logs', icon: StickyNote, path: '/pending-notes' },
         { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
       ];
       if (p.canAccessSmm) {
@@ -216,7 +216,7 @@ export default function Sidebar({ onOpenSearch }) {
           { name: 'Shoots & DM Calendar', icon: Video, path: '/dm-calendar' },
           { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },
           { name: 'Manager Board', icon: ClipboardList, path: '/manager-board' },
-          { name: 'Pending Notes', icon: StickyNote, path: '/pending-notes' },
+          { name: 'Task Notes & Logs', icon: StickyNote, path: '/pending-notes' },
         ],
       },
       {

@@ -66,6 +66,7 @@ import { AddProjectModal } from '../components/modals/AddProjectModal';
 import { AddClientModal } from '../components/modals/AddClientModal';
 import { useEodReports } from '../hooks/useEodReports';
 import { AttendanceWidget } from '../components/attendance/AttendanceWidget';
+import { NotesWidget } from '../components/notes/NotesWidget';
 import api from '../api';
 import { formatINR } from '../utils/currency';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -941,6 +942,9 @@ const Dashboard = () => {
             )}
           </div>
         )}
+
+        {/* Team Task Notes & Change Logs Widget */}
+        <NotesWidget isEmployee={false} user={user} />
       </div>
     );
   };
@@ -949,7 +953,7 @@ const Dashboard = () => {
   // 2. EMPLOYEE DASHBOARD
   // ─────────────────────────────────────────────────────────────────────────────
   const renderEmployeeStats = () => {
-    const assignedTasks = data.assignedTasks || [];
+    const assignedTasks = data?.assignedTasks || [];
     const pendingTasks = assignedTasks.filter((t) => t.status !== 'completed' && t.status !== 'Approved');
 
     return (
@@ -1004,6 +1008,9 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Employee Task Change Notes & Quick Scratchpad */}
+        <NotesWidget isEmployee={true} user={user} />
       </div>
     );
   };

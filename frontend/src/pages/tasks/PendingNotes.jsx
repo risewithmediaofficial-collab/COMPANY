@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Plus,
@@ -14,11 +14,41 @@ import {
   Calendar,
   Pencil,
   Search,
+  Pin,
+  CheckSquare,
+  Sparkles,
+  Tag,
+  ArrowRight,
+  Filter,
+  UserCheck,
+  FolderKanban,
+  FileText,
+  SlidersHorizontal,
 } from 'lucide-react';
-import { useMyNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../../hooks/useTaskNotes';
+import {
+  useMyNotes,
+  useAllNotes,
+  useCreateNote,
+  useUpdateNote,
+  useDeleteNote,
+  useToggleNotePin,
+  useToggleNoteChecklist,
+  useAssignNote,
+  useDismissNote,
+} from '../../hooks/useTaskNotes';
 import { Button } from '../../components/ui/button';
-import WorkspacePage from '../../components/ui/WorkspacePage';
-import DatabaseView from '../../components/ui/DatabaseView';
+import { WorkspacePage } from '../../components/ui/WorkspacePage';
+import { DatabaseView } from '../../components/ui/DatabaseView';
+import { TaskNoteModal, NOTE_TEMPLATES, NOTE_COLORS } from '../../components/modals/TaskNoteModal';
+import { AppTooltip } from '../../components/ui/tooltip';
+import { useUsers } from '../../hooks/useUsers';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,358 +59,627 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'urgent'];
-
-const priorityTone = {
-  low: 'bg-slate-500/10 text-slate-600',
-  medium: 'bg-blue-500/10 text-blue-600',
-  high: 'bg-amber-500/10 text-amber-600',
-  urgent: 'bg-rose-500/10 text-rose-600',
+const PRIORITY_TONE = {
+  low: 'bg-slate-500/10 text-slate-600 dark:text-slate-400',
+  medium: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  high: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  urgent: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
 };
 
-const statusTone = {
-  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  assigned: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  dismissed: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+const CATEGORY_META = {
+  task_change: { label: 'Task Change', icon: '📝', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+  revision: { label: 'Revision', icon: '🔄', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+  client_feedback: { label: 'Client Feedback', icon: '💬', color: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' },
+  bug_fix: { label: 'Bug Fix', icon: '🐛', color: 'bg-rose-500/10 text-rose-600 border-rose-500/20' },
+  feature_request: { label: 'Feature Request', icon: '✨', color: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
+  meeting_notes: { label: 'Meeting Note', icon: '📋', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  scratchpad: { label: 'Scratchpad', icon: '⚡', color: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
+  general: { label: 'General Note', icon: '📌', color: 'bg-secondary text-muted-foreground border-border' },
 };
 
-// ── Inline form for create / edit ─────────────────────────────────────────────
-const NoteForm = ({ initial = {}, onSubmit, onCancel, loading }) => {
-  const [form, setForm] = useState({
-    title: initial.title || '',
-    content: initial.content || initial.description || '',
-    priority: initial.priority || 'medium',
-  });
-
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.title.trim()) return;
-    onSubmit(form);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3 p-4 rounded-2xl border border-border bg-card shadow-sm">
-      <div>
-        <label className="block text-xs font-semibold text-foreground mb-1">Task Requirement / Title *</label>
-        <input
-          autoFocus
-          value={form.title}
-          onChange={set('title')}
-          placeholder="What needs to be done?"
-          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs"
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-semibold text-foreground mb-1">Detailed Notes / Requirements</label>
-        <textarea
-          value={form.content}
-          onChange={set('content')}
-          rows={3}
-          placeholder="Client notes, references, or instructions..."
-          className="w-full rounded-xl border border-border bg-background p-3 text-xs"
-        />
-      </div>
-
-      <div className="flex items-center justify-between pt-1">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-semibold text-muted-foreground">Priority:</span>
-          {PRIORITY_OPTIONS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, priority: p }))}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold capitalize transition-all ${
-                form.priority === p
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-secondary text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="rounded-xl border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary"
-            >
-              Cancel
-            </button>
-          )}
-          <Button type="submit" size="sm" disabled={loading || !form.title.trim()} className="rounded-xl text-xs font-bold gap-1">
-            <Send size={12} />
-            <span>{loading ? 'Submitting...' : initial._id ? 'Update Note' : 'Submit for Review'}</span>
-          </Button>
-        </div>
-      </div>
-    </form>
-  );
+const COLOR_MAP = {
+  default: 'bg-card border-border',
+  amber: 'bg-amber-500/5 border-amber-500/30 hover:border-amber-500/50',
+  emerald: 'bg-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50',
+  blue: 'bg-blue-500/5 border-blue-500/30 hover:border-blue-500/50',
+  purple: 'bg-purple-500/5 border-purple-500/30 hover:border-purple-500/50',
+  rose: 'bg-rose-500/5 border-rose-500/30 hover:border-rose-500/50',
 };
+
+const KANBAN_COLUMNS = [
+  { key: 'pending', label: 'Pending Review / Draft' },
+  { key: 'assigned', label: 'Assigned / In Progress' },
+  { key: 'dismissed', label: 'Resolved / Archived' },
+];
 
 export default function PendingNotes() {
   const { user } = useSelector((state) => state.auth);
-  const [isCreating, setIsCreating] = useState(false);
+  const isManagerOrAdmin = ['superAdmin', 'admin', 'manager'].includes(user?.role);
+
+  const [activeTab, setActiveTab] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedPriority, setSelectedPriority] = useState('all');
+  const [showModal, setShowModal] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [tab, setTab] = useState('pending');
-  const [search, setSearch] = useState('');
+  const [assigningNote, setAssigningNote] = useState(null);
+  const [assignedToUserId, setAssignedToUserId] = useState('');
+  const [managerInstruction, setManagerInstruction] = useState('');
 
-  const { data: notes = [], isLoading } = useMyNotes();
+  // Queries
+  const myNotesQuery = useMyNotes();
+  const allNotesQuery = useAllNotes();
+  const notesQuery = isManagerOrAdmin ? allNotesQuery : myNotesQuery;
+
+  const notes = notesQuery.data || [];
+  const { data: users = [] } = useUsers();
+
+  // Mutations
   const createMutation = useCreateNote();
   const updateMutation = useUpdateNote();
   const deleteMutation = useDeleteNote();
+  const pinMutation = useToggleNotePin();
+  const checklistMutation = useToggleNoteChecklist();
+  const assignMutation = useAssignNote();
+  const dismissMutation = useDismissNote();
 
-  const pendingNotes = useMemo(() => notes.filter((n) => n.status === 'pending'), [notes]);
-  const assignedNotes = useMemo(() => notes.filter((n) => n.status === 'assigned'), [notes]);
-  const dismissedNotes = useMemo(() => notes.filter((n) => n.status === 'dismissed'), [notes]);
-
+  // Filtered Notes
   const filteredNotes = useMemo(() => {
-    const list = tab === 'pending' ? pendingNotes : tab === 'assigned' ? assignedNotes : dismissedNotes;
-    if (!search.trim()) return list;
-    const q = search.toLowerCase();
-    return list.filter((n) => {
-      const title = (n.title || '').toLowerCase();
-      const content = (n.content || '').toLowerCase();
-      return title.includes(q) || content.includes(q);
+    return notes.filter((n) => {
+      if (activeTab !== 'all' && n.status !== activeTab) return false;
+      if (selectedCategory !== 'all' && n.category !== selectedCategory) return false;
+      if (selectedPriority !== 'all' && n.priority !== selectedPriority) return false;
+      return true;
     });
-  }, [tab, pendingNotes, assignedNotes, dismissedNotes, search]);
+  }, [notes, activeTab, selectedCategory, selectedPriority]);
 
-  const handleCreate = async (data) => {
-    await createMutation.mutateAsync(data);
-    setIsCreating(false);
+  // Metrics
+  const metrics = useMemo(() => {
+    const total = notes.length;
+    const taskChanges = notes.filter((n) => n.category === 'task_change' || n.category === 'revision').length;
+    const pinned = notes.filter((n) => n.isPinned).length;
+    const pending = notes.filter((n) => n.status === 'pending').length;
+    const assigned = notes.filter((n) => n.status === 'assigned').length;
+
+    return [
+      { label: 'Total Notes', value: total, tone: 'neutral', icon: StickyNote },
+      { label: 'Task Changes & Revisions', value: taskChanges, tone: 'info', icon: Sparkles },
+      { label: 'Pinned Notes', value: pinned, tone: 'warning', icon: Pin },
+      { label: 'Pending Review', value: pending, tone: pending > 0 ? 'warning' : 'neutral', icon: Clock },
+      { label: 'Assigned / In Progress', value: assigned, tone: 'success', icon: CheckCircle2 },
+    ];
+  }, [notes]);
+
+  const handleCreateOrUpdate = (payload) => {
+    if (editingNote && editingNote._id) {
+      updateMutation.mutate(
+        { id: editingNote._id, data: payload },
+        {
+          onSuccess: () => {
+            setShowModal(false);
+            setEditingNote(null);
+          },
+        }
+      );
+    } else {
+      createMutation.mutate(payload, {
+        onSuccess: () => {
+          setShowModal(false);
+          setEditingNote(null);
+        },
+      });
+    }
   };
 
-  const handleUpdate = async (data) => {
-    await updateMutation.mutateAsync({ noteId: editingNote._id, data });
-    setEditingNote(null);
+  const handleOpenTemplate = (template) => {
+    setEditingNote({
+      title: template.defaultTitle,
+      description: template.defaultDesc,
+      category: template.category,
+      color: template.color,
+      priority: template.priority,
+      changeScope: template.scope,
+      checklists: template.defaultChecklist.map((text) => ({ text, completed: false })),
+    });
+    setShowModal(true);
   };
 
-  // Table Columns
+  const handleAssignSubmit = (e) => {
+    e.preventDefault();
+    if (!assigningNote || !assignedToUserId) return;
+
+    assignMutation.mutate(
+      {
+        id: assigningNote._id,
+        data: {
+          assignedTo: assignedToUserId,
+          managerNote: managerInstruction,
+        },
+      },
+      {
+        onSuccess: () => {
+          setAssigningNote(null);
+          setAssignedToUserId('');
+          setManagerInstruction('');
+        },
+      }
+    );
+  };
+
+  const handleStatusMove = (noteId, targetStatus) => {
+    if (isManagerOrAdmin) {
+      if (targetStatus === 'dismissed') {
+        dismissMutation.mutate({ id: noteId, status: 'dismissed' });
+      } else {
+        updateMutation.mutate({ id: noteId, data: { status: targetStatus } });
+      }
+    }
+  };
+
+  // ── Card Renderer ────────────────────────────────────────────────────────────
+  const renderNoteCard = (note) => {
+    const colorClass = COLOR_MAP[note.color] || COLOR_MAP.default;
+    const categoryMeta = CATEGORY_META[note.category] || CATEGORY_META.general;
+    const totalChecklists = note.checklists?.length || 0;
+    const completedChecklists = note.checklists?.filter((c) => c.completed).length || 0;
+
+    return (
+      <div className={`p-4 rounded-2xl border transition-all space-y-3 group relative shadow-xs hover:shadow-md ${colorClass}`}>
+        {/* Top Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${categoryMeta.color}`}>
+              {categoryMeta.icon} {categoryMeta.label}
+            </span>
+            {note.isPinned && (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 text-[10px] font-bold">
+                <Pin size={10} className="fill-amber-600" />
+                <span>Pinned</span>
+              </span>
+            )}
+            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold capitalize ${PRIORITY_TONE[note.priority] || PRIORITY_TONE.medium}`}>
+              {note.priority}
+            </span>
+          </div>
+
+          {/* Quick Action buttons */}
+          <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+            <AppTooltip content={note.isPinned ? 'Unpin' : 'Pin to top'}>
+              <button
+                type="button"
+                onClick={() => pinMutation.mutate(note._id)}
+                className={`p-1 rounded-lg hover:bg-secondary transition-colors ${
+                  note.isPinned ? 'text-amber-500' : 'text-muted-foreground'
+                }`}
+              >
+                <Pin size={13} className={note.isPinned ? 'fill-current' : ''} />
+              </button>
+            </AppTooltip>
+
+            <AppTooltip content="Edit Note">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingNote(note);
+                  setShowModal(true);
+                }}
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Edit3 size={13} />
+              </button>
+            </AppTooltip>
+
+            <AppTooltip content="Delete Note">
+              <button
+                type="button"
+                onClick={() => setDeleteId(note._id)}
+                className="p-1 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <Trash2 size={13} />
+              </button>
+            </AppTooltip>
+          </div>
+        </div>
+
+        {/* Title & Description */}
+        <div>
+          <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+            {note.title}
+          </h3>
+          {note.description && (
+            <p className="text-xs text-muted-foreground mt-1.5 whitespace-pre-wrap leading-relaxed">
+              {note.description}
+            </p>
+          )}
+        </div>
+
+        {/* Linked Task & Project Tags */}
+        {(note.task || note.client || note.project) && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {note.task && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] font-bold">
+                <CheckSquare size={11} />
+                <span className="truncate max-w-[200px]">{note.task.title || note.task.taskTitle}</span>
+              </span>
+            )}
+            {note.client && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-secondary text-muted-foreground text-[10px] font-semibold">
+                <Building2 size={11} />
+                <span>{note.client.name}</span>
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Interactive Checklist */}
+        {totalChecklists > 0 && (
+          <div className="space-y-1.5 pt-1.5 border-t border-border/50">
+            <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <CheckSquare size={12} className="text-primary" />
+                <span>Checklist Items</span>
+              </span>
+              <span>{completedChecklists}/{totalChecklists} done</span>
+            </div>
+            <div className="space-y-1">
+              {note.checklists.map((item, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => checklistMutation.mutate({ id: note._id, itemIndex: idx })}
+                  className="flex items-center gap-2 text-xs cursor-pointer p-1 rounded-md hover:bg-secondary/50 transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    readOnly
+                    className="rounded border-border text-primary cursor-pointer h-3.5 w-3.5 pointer-events-none"
+                  />
+                  <span className={`flex-1 text-xs ${item.completed ? 'line-through text-muted-foreground font-normal' : 'text-foreground font-medium'}`}>
+                    {item.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Manager Action Note */}
+        {note.managerNote && (
+          <div className="p-2 rounded-xl bg-primary/5 border border-primary/20 text-xs space-y-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Manager Note:</span>
+            <p className="text-foreground/90">{note.managerNote}</p>
+          </div>
+        )}
+
+        {/* Footer Meta & Manager Action Buttons */}
+        <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px] text-muted-foreground">
+          <span>
+            {new Date(note.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            {note.submittedBy?.name ? ` by ${note.submittedBy.name}` : ''}
+          </span>
+
+          <div className="flex items-center gap-1.5">
+            {isManagerOrAdmin && note.status === 'pending' && (
+              <button
+                type="button"
+                onClick={() => setAssigningNote(note)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary text-primary-foreground text-[10px] font-bold hover:bg-primary/90 shadow-xs"
+              >
+                <UserCheck size={11} />
+                <span>Assign Task</span>
+              </button>
+            )}
+
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-secondary text-muted-foreground">
+              {note.status === 'assigned' ? 'Assigned' : note.status === 'dismissed' ? 'Resolved' : 'Pending'}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Table Columns ────────────────────────────────────────────────────────────
   const tableColumns = [
     {
       key: 'title',
-      label: 'Note Title',
-      render: (note) => (
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-            <StickyNote size={14} />
+      label: 'Note / Change Title',
+      render: (row) => {
+        const categoryMeta = CATEGORY_META[row.category] || CATEGORY_META.general;
+        return (
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              {row.isPinned && <Pin size={11} className="text-amber-500 fill-amber-500 shrink-0" />}
+              <span className="font-bold text-foreground hover:text-primary transition-colors">{row.title}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold border ${categoryMeta.color}`}>
+                {categoryMeta.label}
+              </span>
+              {row.task && (
+                <span className="text-[10px] text-muted-foreground truncate">
+                  ↳ Task: {row.task.title || row.task.taskTitle}
+                </span>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="font-bold text-foreground">{note.title}</p>
-            <p className="text-xs text-muted-foreground line-clamp-1">{note.content}</p>
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'priority',
       label: 'Priority',
-      render: (note) => (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${priorityTone[note.priority] || priorityTone.medium}`}>
-          {note.priority || 'medium'}
+      render: (row) => (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${PRIORITY_TONE[row.priority] || PRIORITY_TONE.medium}`}>
+          {row.priority}
         </span>
       ),
     },
     {
       key: 'status',
       label: 'Status',
-      render: (note) => (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${statusTone[note.status] || statusTone.pending}`}>
-          {note.status}
+      render: (row) => (
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold capitalize bg-secondary text-muted-foreground">
+          {row.status}
         </span>
       ),
     },
     {
-      key: 'createdAt',
-      label: 'Date',
-      render: (note) => (
-        <span className="text-xs text-muted-foreground">
-          {new Date(note.createdAt).toLocaleDateString()}
-        </span>
+      key: 'checklists',
+      label: 'Checklist Progress',
+      render: (row) => {
+        const total = row.checklists?.length || 0;
+        const done = row.checklists?.filter((c) => c.completed).length || 0;
+        if (!total) return <span className="text-muted-foreground text-[11px]">—</span>;
+        return (
+          <span className="text-xs font-semibold text-foreground">
+            {done}/{total} ({Math.round((done / total) * 100)}%)
+          </span>
+        );
+      },
+    },
+    {
+      key: 'submittedBy',
+      label: 'Author',
+      render: (row) => (
+        <span className="text-xs text-muted-foreground">{row.submittedBy?.name || 'You'}</span>
       ),
     },
     {
       key: 'actions',
-      label: '',
-      render: (note) => (
-        <div className="flex items-center justify-end gap-1">
-          {note.status === 'pending' && (
-            <button
-              onClick={() => setEditingNote(note)}
-              className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
-              title="Edit"
-            >
-              <Pencil size={14} />
-            </button>
-          )}
+      label: 'Actions',
+      render: (row) => (
+        <div className="flex items-center gap-1">
           <button
-            onClick={() => setDeleteId(note._id)}
-            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
-            title="Delete"
+            type="button"
+            onClick={() => pinMutation.mutate(row._id)}
+            className={`p-1 rounded-lg hover:bg-secondary ${row.isPinned ? 'text-amber-500' : 'text-muted-foreground'}`}
           >
-            <Trash2 size={14} />
+            <Pin size={12} className={row.isPinned ? 'fill-current' : ''} />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setEditingNote(row);
+              setShowModal(true);
+            }}
+            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+          >
+            <Edit3 size={12} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeleteId(row._id)}
+            className="p-1 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 size={12} />
           </button>
         </div>
       ),
     },
   ];
 
-  // Cards Render
-  const renderCard = (note) => (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${priorityTone[note.priority] || priorityTone.medium}`}>
-          {note.priority || 'medium'}
-        </span>
-        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border capitalize ${statusTone[note.status] || statusTone.pending}`}>
-          {note.status}
-        </span>
-      </div>
-
-      <div>
-        <h4 className="font-bold text-sm text-foreground">{note.title}</h4>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Created: {new Date(note.createdAt).toLocaleDateString()}
-        </p>
-      </div>
-
-      {note.content && (
-        <p className="text-xs text-foreground/80 bg-secondary/30 p-2.5 rounded-xl border border-border/40 line-clamp-3">
-          {note.content}
-        </p>
-      )}
-
-      {note.managerNote && (
-        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 space-y-1">
-          <p className="font-bold">Manager Feedback:</p>
-          <p>{note.managerNote}</p>
-        </div>
-      )}
-
-      {note.status === 'pending' && (
-        <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/40">
-          <button
-            onClick={() => setEditingNote(note)}
-            className="p-1 rounded hover:bg-secondary text-muted-foreground text-xs flex items-center gap-1 font-semibold"
-          >
-            <Pencil size={12} />
-            <span>Edit</span>
-          </button>
-          <button
-            onClick={() => setDeleteId(note._id)}
-            className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 text-xs flex items-center gap-1 font-semibold"
-          >
-            <Trash2 size={12} />
-            <span>Delete</span>
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <WorkspacePage
-      breadcrumbs={['RiseWithMedia', 'Delivery', 'Pending Notes']}
-      title="Pending Task Notes Queue"
-      subtitle="Submit ideas, client requests, and ad-hoc task requirements for manager assignment and execution."
-      icon="📝"
-      properties={[
-        { label: 'Pending Review', value: pendingNotes.length, tone: pendingNotes.length > 0 ? 'warning' : 'neutral', icon: Clock },
-        { label: 'Assigned', value: assignedNotes.length, tone: 'success', icon: CheckCircle2 },
-        { label: 'Dismissed', value: dismissedNotes.length, tone: 'neutral' },
-      ]}
-      actions={
-        !isCreating && (
-          <Button
-            size="sm"
-            onClick={() => setIsCreating(true)}
-            className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
-          >
-            <Plus size={14} className="stroke-[2.5]" />
-            <span>New Note</span>
-          </Button>
-        )
+      title="Task Change Notes & Ideas Hub"
+      description="Capture revisions, client feedback, task changes, action checklists, and team project briefs."
+      metrics={metrics}
+      actionButton={
+        <Button
+          onClick={() => {
+            setEditingNote(null);
+            setShowModal(true);
+          }}
+          className="rounded-2xl gap-2 font-bold shadow-sm"
+        >
+          <Plus size={16} />
+          <span>New Task Note</span>
+        </Button>
       }
     >
-      {/* Create Note Drawer */}
-      {isCreating && (
-        <div className="mb-6">
-          <NoteForm
-            onSubmit={handleCreate}
-            onCancel={() => setIsCreating(false)}
-            loading={createMutation.isPending}
-          />
-        </div>
-      )}
+      <div className="space-y-4">
+        {/* 1. Quick Template Launcher Bar */}
+        <div className="bg-card rounded-2xl border border-border p-4 shadow-sm space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+              <Sparkles size={14} className="text-primary" />
+              <span>1-Click Task Note Templates:</span>
+            </span>
+            <span className="text-[11px] text-muted-foreground">Pick a template to start drafting instantly</span>
+          </div>
 
-      {/* Edit Note Drawer */}
-      {editingNote && (
-        <div className="mb-6">
-          <NoteForm
-            initial={editingNote}
-            onSubmit={handleUpdate}
-            onCancel={() => setEditingNote(null)}
-            loading={updateMutation.isPending}
-          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            {NOTE_TEMPLATES.map((tmpl) => (
+              <button
+                key={tmpl.id}
+                type="button"
+                onClick={() => handleOpenTemplate(tmpl)}
+                className="flex flex-col p-3 rounded-xl border border-border bg-secondary/30 hover:bg-secondary hover:border-primary/40 text-left transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">{tmpl.icon}</span>
+                  <span className="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Draft →
+                  </span>
+                </div>
+                <span className="text-xs font-bold text-foreground mt-2">{tmpl.label}</span>
+                <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                  {tmpl.category === 'task_change' ? 'Task revision checklist' : tmpl.category === 'client_feedback' ? 'Client comments log' : 'Quick notes & ideas'}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      )}
 
-      {/* Quick Filter Tabs */}
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-        {[
-          { id: 'pending', label: `Pending (${pendingNotes.length})` },
-          { id: 'assigned', label: `Assigned (${assignedNotes.length})` },
-          { id: 'dismissed', label: `Dismissed (${dismissedNotes.length})` },
-        ].map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`px-3.5 py-1 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-              tab === t.id
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+        {/* 2. Category & Priority Filter Tabs */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-card rounded-2xl border border-border">
+          <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
+            {['all', 'task_change', 'revision', 'client_feedback', 'bug_fix', 'scratchpad', 'meeting_notes'].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all whitespace-nowrap ${
+                  selectedCategory === cat
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                }`}
+              >
+                {cat === 'all' ? 'All Categories' : cat.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedPriority}
+              onChange={(e) => setSelectedPriority(e.target.value)}
+              className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground outline-none"
+            >
+              <option value="all">All Priorities</option>
+              <option value="urgent">🔴 Urgent</option>
+              <option value="high">🟠 High</option>
+              <option value="medium">🔵 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* 3. Database Multi-View (Cards, Board, Table) */}
+        <DatabaseView
+          viewKey="task_notes_view_preference"
+          views={[
+            { id: 'cards', label: 'Cards Grid', icon: StickyNote },
+            { id: 'board', label: 'Status Board', icon: FolderKanban },
+            { id: 'table', label: 'Table List', icon: FileText },
+          ]}
+          items={filteredNotes}
+          columns={tableColumns}
+          totalCount={filteredNotes.length}
+          searchPlaceholder="Search notes by title, task, client, tags..."
+          renderCard={(note) => renderNoteCard(note)}
+          renderKanbanCard={(note) => renderNoteCard(note)}
+          kanbanColumns={KANBAN_COLUMNS}
+          groupBy="status"
+          onStatusChange={handleStatusMove}
+        />
       </div>
 
-      <DatabaseView
-        viewKey="rwm_pending_notes_v1"
-        views={['cards', 'table']}
-        items={filteredNotes}
-        totalCount={filteredNotes.length}
-        searchPlaceholder="Search your notes..."
-        columns={tableColumns}
-        renderCard={renderCard}
-        onSearchChange={setSearch}
+      {/* Task Note Create / Edit Modal */}
+      <TaskNoteModal
+        open={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setEditingNote(null);
+        }}
+        initial={editingNote}
+        onSubmit={handleCreateOrUpdate}
+        loading={createMutation.isPending || updateMutation.isPending}
       />
 
-      <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent className="bg-card border border-border">
+      {/* Manager Assign Note Modal */}
+      <Dialog open={Boolean(assigningNote)} onOpenChange={(open) => { if (!open) setAssigningNote(null); }}>
+        <DialogContent size="md">
+          <DialogHeader>
+            <DialogTitle>Assign Task Note to Team Member</DialogTitle>
+            <DialogDescription>
+              Assign this task change request or brief to an employee with manager notes.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleAssignSubmit} className="space-y-4 pt-2">
+            <div className="p-3 rounded-xl bg-secondary/30 border border-border text-xs">
+              <span className="font-bold text-foreground block">{assigningNote?.title}</span>
+              <span className="text-muted-foreground mt-0.5 block">{assigningNote?.description}</span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-foreground mb-1">Assign to Employee *</label>
+              <select
+                required
+                value={assignedToUserId}
+                onChange={(e) => setAssignedToUserId(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
+              >
+                <option value="">-- Select Team Member --</option>
+                {users.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u.name} ({u.role} {u.department ? `• ${u.department}` : ''})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-foreground mb-1">Manager Instructions (Optional)</label>
+              <textarea
+                rows={3}
+                value={managerInstruction}
+                onChange={(e) => setManagerInstruction(e.target.value)}
+                placeholder="Add specific directives or deadline notes for the assignee..."
+                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:border-primary"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setAssigningNote(null)}
+                className="px-4 py-2 rounded-xl border border-border text-xs font-bold hover:bg-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!assignedToUserId || assignMutation.isPending}
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm disabled:opacity-50"
+              >
+                {assignMutation.isPending ? 'Assigning...' : 'Confirm Assignment'}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => { if (!open) setDeleteId(null); }}>
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base font-bold">Delete Note?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              This note will be permanently removed.
+            <AlertDialogTitle>Delete this Task Note?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently remove this note? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="flex justify-end gap-2 pt-2">
-            <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+          <div className="flex justify-end gap-2 pt-3">
+            <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deleteId) deleteMutation.mutate(deleteId);
                 setDeleteId(null);
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold"
             >
-              Delete
+              Delete Note
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

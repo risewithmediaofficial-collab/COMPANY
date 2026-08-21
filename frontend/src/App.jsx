@@ -292,9 +292,14 @@ const App = () => {
           } />
           <Route path="/daily_tasks" element={<Navigate to="/daily-tasks" replace />} />
 
-          {/* Pending Notes – employee writes notes to send to manager */}
+          {/* Task Change Notes & Ideas Hub */}
           <Route path="/pending-notes" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee']}>
+              <PendingNotes />
+            </ProtectedRoute>
+          } />
+          <Route path="/notes" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee']}>
               <PendingNotes />
             </ProtectedRoute>
           } />
