@@ -47,6 +47,7 @@ const statusLabels = {
 
 const priorityMap = {
   Low: 'low',
+
   Medium: 'medium',
   High: 'high',
   Urgent: 'urgent',
@@ -76,17 +77,31 @@ const normalizeStringArray = (value) => {
 };
 
 const normalizeFiles = (value) => {
-  if (!Array.isArray(value)) return [];
-  return value
+  if (!value) return [];
+  const list = Array.isArray(value) ? value : [value];
+  return list
     .filter(Boolean)
-    .map((file) => ({
-      name: file.name || file.originalname || 'Attachment',
-      url: file.url || '',
-      type: file.type || '',
-      size: Number(file.size) || 0,
-      uploadedBy: file.uploadedBy || undefined,
-      uploadedAt: file.uploadedAt || undefined,
-    }))
+    .map((file) => {
+      if (typeof file === 'string') {
+        const name = file.split('/').pop() || 'Attachment';
+        return {
+          name,
+          url: file,
+          type: '',
+          size: 0,
+          uploadedBy: undefined,
+          uploadedAt: new Date(),
+        };
+      }
+      return {
+        name: file.name || file.originalname || 'Attachment',
+        url: file.url || '',
+        type: file.type || '',
+        size: Number(file.size) || 0,
+        uploadedBy: file.uploadedBy || undefined,
+        uploadedAt: file.uploadedAt || new Date(),
+      };
+    })
     .filter((file) => file.url);
 };
 

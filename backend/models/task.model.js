@@ -4,10 +4,23 @@
 
 import mongoose from 'mongoose';
 
+const fileAttachmentSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    url: { type: String, required: true },
+    type: { type: String, default: '' },
+    fileType: { type: String, default: '' },
+    size: { type: Number, default: 0 },
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    uploadedAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const commentSchema = new mongoose.Schema({
   content: { type: String, required: true },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  attachments: [{ name: String, url: String }],
+  attachments: [fileAttachmentSchema],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
@@ -19,7 +32,7 @@ const progressUpdateSchema = new mongoose.Schema({
   completedAt: { type: Date, default: Date.now }, // when this progress was logged
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // who logged this
   workNotes: { type: String, default: '' },
-  attachments: [{ name: String, url: String, type: String, size: Number }],
+  attachments: [fileAttachmentSchema],
 });
 
 const taskSchema = new mongoose.Schema(
@@ -197,16 +210,7 @@ const taskSchema = new mongoose.Schema(
     clientVisibleNotes: { type: String, default: '' },
     tags: [{ type: String }],
     comments: [commentSchema],
-    attachments: [
-      {
-        name: String,
-        url: String,
-        type: String,
-        size: Number,
-        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        uploadedAt: { type: Date, default: Date.now },
-      },
-    ],
+    attachments: [fileAttachmentSchema],
     orderIndex: { type: Number, default: 0 },
     isPersonalTask: { type: Boolean, default: false },
     isRecurring: { type: Boolean, default: false },
@@ -238,16 +242,7 @@ const taskSchema = new mongoose.Schema(
         date: { type: Date, default: Date.now },
       },
     ],
-    completedFiles: [
-      {
-        name: String,
-        url: String,
-        type: String,
-        size: Number,
-        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        uploadedAt: { type: Date, default: Date.now },
-      },
-    ],
+    completedFiles: [fileAttachmentSchema],
     progressUpdates: [progressUpdateSchema],
   },
   { timestamps: true }

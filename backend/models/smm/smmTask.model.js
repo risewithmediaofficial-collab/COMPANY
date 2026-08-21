@@ -9,6 +9,16 @@ const commentSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+const smmAttachmentSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    url: { type: String, required: true },
+    type: { type: String, default: '' },
+    uploadedAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const smmTaskSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
@@ -27,12 +37,7 @@ const smmTaskSchema = new mongoose.Schema(
       enum: ['Todo', 'In Progress', 'Review', 'Done', 'Cancelled'],
       default: 'Todo',
     },
-    attachments: [{
-      name: String,
-      url: String,
-      type: String,
-      uploadedAt: { type: Date, default: Date.now },
-    }],
+    attachments: [smmAttachmentSchema],
     comments: [commentSchema],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },

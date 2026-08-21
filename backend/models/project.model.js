@@ -4,6 +4,18 @@
 
 import mongoose from 'mongoose';
 
+const projectFileSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: '' },
+    url: { type: String, required: true },
+    type: { type: String, default: '' },
+    size: { type: Number, default: 0 },
+    uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    uploadedAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const milestoneSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
@@ -99,16 +111,7 @@ const projectSchema = new mongoose.Schema(
     progress: { type: Number, default: 0, min: 0, max: 100 },
     revisionCount: { type: Number, default: 0 },
     maxRevisions: { type: Number, default: 3 },
-    files: [
-      {
-        name: String,
-        url: String,
-        type: String,
-        size: Number,
-        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        uploadedAt: { type: Date, default: Date.now },
-      },
-    ],
+    files: [projectFileSchema],
     isTemplate: { type: Boolean, default: false },
     templateName: { type: String },
   },
