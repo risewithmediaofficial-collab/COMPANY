@@ -438,7 +438,7 @@ export const submitAbsent = async (req, res) => {
 
 export const submitLeave = async (req, res) => {
   try {
-    const { userId, date, notes, reason } = req.body;
+    const { userId, date, startDate, endDate, notes, reason } = req.body;
     const targetUserId = userId || req.user._id;
     const reasonText = notes || reason;
 
@@ -446,10 +446,24 @@ export const submitLeave = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Reason for leave is required' });
     }
 
-    const leaveDate = date ? new Date(date) : new Date();
-    leaveDate.setHours(0, 0, 0, 0);
-
     const isAdminOrManager = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
+
+    // Compute dates list (single date or date range)
+    const datesToApply = [];
+    if (startDate && endDate) {
+      const cur = new Date(startDate);
+      cur.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(0, 0, 0, 0);
+      while (cur <= end) {
+        datesToApply.push(new Date(cur));
+        cur.setDate(cur.getDate() + 1);
+      }
+    } else {
+      const singleDate = date ? new Date(date) : new Date();
+      singleDate.setHours(0, 0, 0, 0);
+      datesToApply.push(singleDate);
+    }
 
     const updateObj = {
       notes: reasonText.trim(),
@@ -461,27 +475,46 @@ export const submitLeave = async (req, res) => {
 
     if (isAdminOrManager) {
       updateObj.status = 'leave';
+      updateObj.clockIn = null;
+      updateObj.clockOut = null;
+      updateObj.totalHours = 0;
+      updateObj.sessions = [];
     }
 
-    const attendance = await Attendance.findOneAndUpdate(
-      { user: targetUserId, date: leaveDate },
-      { $set: updateObj },
-      { upsert: true, new: true }
-    ).populate('user', 'name avatar department position role email');
+    const results = await Promise.all(
+      datesToApply.map((d) =>
+        Attendance.findOneAndUpdate(
+          { user: targetUserId, date: d },
+          { $set: updateObj },
+          { upsert: true, new: true }
+        ).populate('user', 'name avatar department position role email').populate('approvedBy', 'name role')
+      )
+    );
+
+    const attendance = results[0];
 
     // Notify managers & admins if requested by an employee
     if (!isAdminOrManager) {
       try {
         const User = (await import('../models/user.model.js')).default;
-        const managers = await User.find({ role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner', 'accountManager'] }, isActive: true }).select('_id');
-        const formattedDate = leaveDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        const managers = await User.find({
+          role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner', 'accountManager'] },
+          isActive: true,
+        }).select('_id');
+
+        let dateStr = datesToApply[0].toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        if (datesToApply.length > 1) {
+          const lastDateStr = datesToApply[datesToApply.length - 1].toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+          dateStr = `${dateStr} to ${lastDateStr} (${datesToApply.length} days)`;
+        }
+
         for (const mgr of managers) {
           await createNotification({
             recipient: mgr._id,
             sender: req.user._id,
             type: 'attendance',
             title: 'Leave Request Pending Approval 🏖️',
-            message: `${req.user.name} requested leave for ${formattedDate}: "${reasonText.trim()}"`,
+            message: `${req.user.name} applied for leave for ${dateStr}: "${reasonText.trim()}"`,
             link: '/attendance',
           });
         }
@@ -492,8 +525,11 @@ export const submitLeave = async (req, res) => {
 
     res.json({
       success: true,
-      message: isAdminOrManager ? 'Leave marked successfully' : 'Leave request submitted for Admin/Manager approval',
+      message: isAdminOrManager
+        ? `Leave marked successfully for ${datesToApply.length} day(s)`
+        : `Leave application submitted for Admin/Manager approval (${datesToApply.length} day(s))`,
       attendance,
+      count: datesToApply.length,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -599,6 +635,8 @@ export const approveOrRejectAttendanceRequest = async (req, res) => {
     }
 
     await attendance.save();
+    await attendance.populate('user', 'name avatar email department position role');
+    await attendance.populate('approvedBy', 'name role');
 
     // Send notification to employee
     const statusLabel = (attendance.requestedStatus || attendance.status).replace(/_/g, ' ');
