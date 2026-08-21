@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Briefcase,
@@ -19,6 +19,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useClients, useDeleteClient, useUpdateClient } from '../../hooks/useClients';
+import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { formatINR } from '../../utils/currency';
 import { DataTable } from '../../components/ui/DataTable';
@@ -61,6 +62,10 @@ const Clients = () => {
   const [draggingClientId, setDraggingClientId] = useState(null);
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const [dragOverClientIndex, setDragOverClientIndex] = useState(null);
+  const clientsBoardRef = useRef(null);
+
+  // Smooth side auto-scroll while dragging clients
+  useAutoScrollOnDrag(clientsBoardRef, Boolean(draggingClientId));
   const { startDate, endDate, isDateInRange } = useDateFilter();
 
   const filters = {
@@ -234,7 +239,7 @@ const Clients = () => {
 
         {/* Board View (Kanban by Client Status) */}
         {(currentView === 'board' || currentView === 'kanban') && (
-          <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+          <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
             <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
               {STATUS_COLUMNS.map((status) => {
                 const statusClients = clients.filter((c) => (c.status || 'Prospect') === status);

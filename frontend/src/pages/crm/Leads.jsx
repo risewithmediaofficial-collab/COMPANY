@@ -26,6 +26,7 @@ import { TableSkeleton } from '../../components/ui/Skeleton';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
+import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import {
   Dialog,
   DialogContent,
@@ -275,6 +276,11 @@ const Leads = () => {
   const [draggingLeadId, setDraggingLeadId] = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
   const [dragOverLeadIndex, setDragOverLeadIndex] = useState(null);
+  const leadsBoardRef = useRef(null);
+
+  // Smooth side auto-scroll while dragging leads
+  useAutoScrollOnDrag(leadsBoardRef, Boolean(draggingLeadId));
+
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [followUpFilter, setFollowUpFilter] = useState('');
   const [activityLead, setActivityLead] = useState(null);
@@ -519,7 +525,7 @@ const Leads = () => {
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+        <div ref={leadsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
           <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-5 pr-1">
             {PIPELINE_STAGES.map((stage) => {
               const stageInfo = STAGE_META[stage];

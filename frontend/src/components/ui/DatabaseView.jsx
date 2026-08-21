@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Table as TableIcon,
   LayoutGrid,
@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { AppTooltip } from './tooltip';
+import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 
 const DEFAULT_VIEW_META = {
   table: { label: 'Table', icon: TableIcon },
@@ -86,6 +87,10 @@ export function DatabaseView({
   const [draggingId, setDraggingId] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const kanbanScrollRef = useRef(null);
+
+  // Smooth side auto-scroll while dragging cards
+  useAutoScrollOnDrag(kanbanScrollRef, Boolean(draggingId));
 
   const handleDragStart = (e, item) => {
     const id = item._id || item.id;
@@ -280,7 +285,7 @@ export function DatabaseView({
 
           {/* 3. KANBAN BOARD VIEW (With Smooth Click & Drag Between Columns & Up/Down Reordering) */}
           {(currentView === 'kanban' || currentView === 'board') && (
-            <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+            <div ref={kanbanScrollRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
               <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
                 {kanbanColumns.map((col) => {
                   const colItems = items.filter((item) => {

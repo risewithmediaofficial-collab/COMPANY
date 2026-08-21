@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -37,6 +37,7 @@ import {
 import { useClients } from '../../hooks/useClients';
 import { useDeleteTask, useTasks, useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useUsers } from '../../hooks/useUsers';
+import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import PortalTasks from '../portal/sections/PortalTasks';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
@@ -100,6 +101,10 @@ const Tasks = () => {
   const { data: users = [] } = useUsers({ enabled: !isEmployee });
   const deleteTaskMutation = useDeleteTask();
   const updateStatusMutation = useUpdateTaskStatus();
+  const taskBoardRef = useRef(null);
+
+  // Smooth side auto-scroll while dragging tasks
+  useAutoScrollOnDrag(taskBoardRef, Boolean(draggingTaskId));
 
   const { isDateInRange } = useDateFilter();
 
@@ -423,7 +428,7 @@ const Tasks = () => {
 
         {/* Board View (Responsive Kanban by Task Status with Snap Scroll) */}
         {(currentView === 'board' || currentView === 'kanban') && (
-          <div className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
+          <div ref={taskBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
             <div className="grid w-max min-w-full auto-cols-[minmax(275px,85vw)] sm:auto-cols-[minmax(280px,320px)] grid-flow-col gap-3.5 sm:gap-4">
               {[
                 { key: 'To Do', label: 'To Do', badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400', surface: 'border-border bg-card/60' },

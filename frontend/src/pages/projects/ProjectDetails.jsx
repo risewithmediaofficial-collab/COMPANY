@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -25,6 +25,7 @@ import {
 import { formatINR } from '../../utils/currency';
 import { useUpdateProject } from '../../hooks/useProjects';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
+import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import api from '../../api';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -87,6 +88,10 @@ const ProjectDetails = () => {
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const [dragOverTaskIndex, setDragOverTaskIndex] = useState(null);
   const [pendingDrop, setPendingDrop] = useState(null);
+  const projectDetailsBoardRef = useRef(null);
+
+  // Smooth side auto-scroll while dragging tasks in project board
+  useAutoScrollOnDrag(projectDetailsBoardRef, Boolean(draggingTaskId));
 
   const updateProject = useUpdateProject();
   const updateTaskStatus = useUpdateTaskStatus();
@@ -401,7 +406,7 @@ const ProjectDetails = () => {
         </DialogContent>
       </Dialog>
 
-      <div className="flex h-[calc(100vh-300px)] space-x-6 overflow-x-auto pb-6 custom-scrollbar">
+      <div ref={projectDetailsBoardRef} className="flex h-[calc(100vh-300px)] space-x-6 overflow-x-auto pb-6 custom-scrollbar">
         {statuses.map((status) => {
           const isDragOver = dragOverStatus === status;
           const columnDotColor =

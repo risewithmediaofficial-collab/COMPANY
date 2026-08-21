@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useMemo } from 'react';
+import React, { Fragment, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -17,6 +17,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useProjects, useDeleteProject, useUpdateProject } from '../../hooks/useProjects';
+import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
@@ -67,6 +68,10 @@ const Projects = () => {
   const [draggingProjectId, setDraggingProjectId] = useState(null);
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const [dragOverProjectIndex, setDragOverProjectIndex] = useState(null);
+  const projectsBoardRef = useRef(null);
+
+  // Smooth side auto-scroll while dragging projects
+  useAutoScrollOnDrag(projectsBoardRef, Boolean(draggingProjectId));
 
   const filters = {
     search: searchTerm,
@@ -262,7 +267,7 @@ const Projects = () => {
 
         {/* Board View (Kanban by Project Status) */}
         {(currentView === 'board' || currentView === 'kanban') && (
-          <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+          <div ref={projectsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
             <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
               {STATUS_COLUMNS.map((status) => {
                 const statusProjects = filteredProjects.filter((p) => (p.status || 'Planning') === status);
