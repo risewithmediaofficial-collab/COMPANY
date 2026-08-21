@@ -77,7 +77,7 @@ const Tasks = () => {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
-  const [currentView, setCurrentView] = useState('table'); // 'table' | 'board'
+  const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [filters, setFilters] = useState({
     search: '',
     client: '',

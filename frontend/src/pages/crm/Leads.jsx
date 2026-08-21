@@ -268,7 +268,7 @@ const Leads = () => {
   const navigate = useNavigate();
   const dragLeadRef = useRef(false);
   const [searchParams] = useSearchParams();
-  const [view, setView] = useState('list');
+  const [view, setView] = useState('kanban');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [deleteLeadId, setDeleteLeadId] = useState(null);
@@ -704,8 +704,8 @@ const Leads = () => {
     >
       <DatabaseView
         views={[
-          { id: 'list', label: 'Table', icon: TableIcon },
           { id: 'kanban', label: 'Board', icon: LayoutGrid },
+          { id: 'list', label: 'Table', icon: TableIcon },
         ]}
         activeView={view}
         onViewChange={setView}

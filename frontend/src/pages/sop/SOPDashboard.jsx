@@ -84,7 +84,7 @@ const SOPDashboard = () => {
   const [editing, setEditing] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [form, setForm] = useState(emptyForm);
-  const [currentView, setCurrentView] = useState('table'); // 'table' | 'grid'
+  const [currentView, setCurrentView] = useState('grid'); // 'grid' | 'table'
   const [selectedType, setSelectedType] = useState('all');
 
   const { isDateInRange } = useDateFilter();
@@ -260,8 +260,8 @@ const SOPDashboard = () => {
       {/* Notion-Style Multi-View Database Engine */}
       <DatabaseView
         views={[
-          { id: 'table', label: 'Table', icon: ListOrdered },
           { id: 'grid', label: 'Cards', icon: BookOpen },
+          { id: 'table', label: 'Table', icon: ListOrdered },
         ]}
         activeView={currentView}
         onViewChange={setCurrentView}

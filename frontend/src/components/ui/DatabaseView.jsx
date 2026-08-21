@@ -26,7 +26,7 @@ const DEFAULT_VIEW_META = {
  */
 export function DatabaseView({
   viewKey,
-  views = ['table', 'board'],
+  views = ['board', 'table'],
   activeView: controlledActiveView,
   onViewChange,
   items = [],
@@ -59,7 +59,7 @@ export function DatabaseView({
         return saved;
       }
     }
-    return normalizedViews[0]?.id || 'table';
+    return normalizedViews[0]?.id || 'board';
   });
 
   const currentView = controlledActiveView !== undefined ? controlledActiveView : internalView;

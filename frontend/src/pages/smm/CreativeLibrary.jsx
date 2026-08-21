@@ -12,7 +12,7 @@ export default function CreativeLibrary() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('grid');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -103,11 +103,11 @@ export default function CreativeLibrary() {
         </div>
 
         <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl border border-border">
-          <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground'}`}>
-            <List size={18} />
-          </button>
           <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground'}`}>
             <Grid size={18} />
+          </button>
+          <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground'}`}>
+            <List size={18} />
           </button>
         </div>
       </div>

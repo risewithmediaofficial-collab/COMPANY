@@ -71,7 +71,7 @@ const ProjectDetails = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [recentTasks, setRecentTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('list');
+  const [activeTab, setActiveTab] = useState('board');
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [taskDefaults, setTaskDefaults] = useState({});
@@ -970,8 +970,8 @@ const ProjectDetails = () => {
       >
         <NotionTabs
           tabs={[
-            { id: 'list', label: 'List View', icon: List },
             { id: 'board', label: 'Task Board', icon: LayoutGrid },
+            { id: 'list', label: 'List View', icon: List },
             { id: 'files', label: 'Files', icon: Paperclip },
             { id: 'activity', label: 'Activity', icon: Clock },
             { id: 'proposal', label: 'Proposal', icon: FileText },

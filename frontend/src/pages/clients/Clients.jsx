@@ -57,7 +57,7 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
-  const [currentView, setCurrentView] = useState('table'); // 'table' | 'board'
+  const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const { startDate, endDate, isDateInRange } = useDateFilter();
 
   const filters = {
