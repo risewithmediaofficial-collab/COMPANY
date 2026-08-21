@@ -36,6 +36,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 
@@ -175,18 +176,48 @@
   background: rgba(148, 163, 184, 0.6);
 }
 
-/* Fix date & datetime-local input text clipping/truncation */
+/* Fix date, datetime, time, month & week input text clipping/truncation */
 input[type="date"],
-input[type="datetime-local"] {
-  min-width: 145px;
+input[type="datetime-local"],
+input[type="time"],
+input[type="month"],
+input[type="week"] {
+  min-width: 140px;
   padding-right: 0.5rem !important;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   padding: 0;
   margin-left: 2px;
+}
+
+/* Change date/time calendar picker icon to crisp white in dark mode for all inputs */
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.dark input[type="time"]::-webkit-calendar-picker-indicator,
+.dark input[type="month"]::-webkit-calendar-picker-indicator,
+.dark input[type="week"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.dark-theme input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(100%);
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+.dark input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+.dark input[type="time"]::-webkit-calendar-picker-indicator:hover,
+.dark input[type="month"]::-webkit-calendar-picker-indicator:hover,
+.dark input[type="week"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  filter: invert(1) brightness(125%);
 }
 
 /* Modal and dialog touch scrolling enhancements */

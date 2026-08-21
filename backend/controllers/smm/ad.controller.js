@@ -85,7 +85,7 @@ export const updateAd = async (req, res) => {
       .populate('adSet', 'name')
       .populate('sourceContentId', 'name contentType thumbnail performanceScore');
     if (!ad) return res.status(404).json({ success: false, message: 'Ad not found' });
-    
+
     await SmmActivityLog.create({
       action: 'Ad Updated',
       entity: 'SmmAd',
@@ -140,7 +140,7 @@ export const updateAdPerformance = async (req, res) => {
       { new: true, runValidators: true }
     ).populate('adSet', 'name');
     if (!ad) return res.status(404).json({ success: false, message: 'Ad not found' });
-    
+
     await SmmActivityLog.create({
       action: 'Ad Metrics Updated',
       entity: 'SmmAd',
