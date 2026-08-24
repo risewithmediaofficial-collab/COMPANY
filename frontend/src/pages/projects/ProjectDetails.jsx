@@ -26,6 +26,7 @@ import { formatINR } from '../../utils/currency';
 import { useUpdateProject } from '../../hooks/useProjects';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
+import { useSocket } from '../../context/SocketContext';
 import api from '../../api';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -52,8 +53,8 @@ const statusLabels = {
   in_progress: 'In Progress',
   review: 'In Review',
   approved: 'Approved',
-  rejected: 'Blocked',
-  done: 'Done',
+  rejected: 'Changes Needed',
+  done: 'Completed',
 };
 
 const projectStatusStyles = {
@@ -67,6 +68,7 @@ const projectStatusStyles = {
 const ProjectDetails = () => {
   const { id } = useParams();
   const { user } = useSelector((state) => state.auth);
+  const socket = useSocket();
   const [project, setProject] = useState(null);
   const [kanban, setKanban] = useState({});
   const [recentActivity, setRecentActivity] = useState([]);
@@ -97,9 +99,9 @@ const ProjectDetails = () => {
   const updateTaskStatus = useUpdateTaskStatus();
 
   // ─── Data Fetching ───────────────────────────────────────────────────────────
-  const fetchProjectData = async () => {
+  const fetchProjectData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const [projectRes, kanbanRes] = await Promise.all([
         api.get(`/projects/${id}`),
         api.get(`/projects/${id}/kanban`),
@@ -115,15 +117,52 @@ const ProjectDetails = () => {
         setAccessRequests(requestsRes.data.requests || []);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load project');
+      if (showLoading) {
+        toast.error(error.response?.data?.message || 'Failed to load project');
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
+  // Live polling every 3 seconds for continuous live updates without manual refresh
   useEffect(() => {
-    fetchProjectData();
-  }, [id]);
+    fetchProjectData(true);
+
+    const interval = setInterval(() => {
+      fetchProjectData(false);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [id, user?.role]);
+
+  // Real-time WebSocket room listener for immediate sync
+  useEffect(() => {
+    if (!socket || !id) return;
+
+    socket.emit('joinProject', id);
+
+    const handleRealtimeUpdate = () => {
+      fetchProjectData(false);
+    };
+
+    socket.on('projectUpdated', handleRealtimeUpdate);
+    socket.on('taskCreated', handleRealtimeUpdate);
+    socket.on('taskUpdated', handleRealtimeUpdate);
+    socket.on('taskDeleted', handleRealtimeUpdate);
+    socket.on('taskMoved', handleRealtimeUpdate);
+    socket.on('accessRequestCreated', handleRealtimeUpdate);
+
+    return () => {
+      socket.emit('leaveProject', id);
+      socket.off('projectUpdated', handleRealtimeUpdate);
+      socket.off('taskCreated', handleRealtimeUpdate);
+      socket.off('taskUpdated', handleRealtimeUpdate);
+      socket.off('taskDeleted', handleRealtimeUpdate);
+      socket.off('taskMoved', handleRealtimeUpdate);
+      socket.off('accessRequestCreated', handleRealtimeUpdate);
+    };
+  }, [socket, id]);
 
   // ─── Drag & Drop ─────────────────────────────────────────────────────────────
   const handleDragStart = (e, taskId) => {

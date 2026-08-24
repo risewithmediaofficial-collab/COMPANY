@@ -24,9 +24,9 @@ export default function SMMProjects() {
     budget: 0, currency: 'INR', startDate: '', endDate: '', description: ''
   });
 
-  const fetchData = async () => {
+  const fetchData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const [projRes, clientRes] = await Promise.all([
         smmApi.getProjects({ search, status: statusFilter }),
         smmApi.getClients({ limit: 100 }),
@@ -34,14 +34,18 @@ export default function SMMProjects() {
       if (projRes.data?.success) setProjects(projRes.data.data);
       if (clientRes.data?.success) setClients(clientRes.data.data);
     } catch (err) {
-      toast.error('Failed to load projects');
+      if (showLoading) toast.error('Failed to load projects');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
+    const interval = setInterval(() => {
+      fetchData(false);
+    }, 3500);
+    return () => clearInterval(interval);
   }, [search, statusFilter]);
 
   const handleSave = async (e) => {

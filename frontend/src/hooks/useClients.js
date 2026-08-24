@@ -13,7 +13,6 @@ export const useClients = (filters = {}, options = {}) => {
       const response = await api.get('/clients', { params: filters });
       return response.data.clients;
     },
-    staleTime: 5 * 60 * 1000,
     ...options,
   });
 };

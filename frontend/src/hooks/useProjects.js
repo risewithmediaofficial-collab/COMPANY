@@ -13,7 +13,6 @@ export const useProjects = (filters = {}, options = {}) => {
       const response = await api.get('/projects', { params: filters });
       return response.data.projects;
     },
-    staleTime: 5 * 60 * 1000,
     ...options,
   });
 };

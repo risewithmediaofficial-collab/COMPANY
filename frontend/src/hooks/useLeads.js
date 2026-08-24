@@ -14,7 +14,6 @@ export const useLeads = (filters = {}) => {
       const response = await api.get('/leads', { params: filters });
       return response.data.leads;
     },
-    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -26,7 +25,6 @@ export const useLeadsKanban = () => {
       const response = await api.get('/leads/kanban');
       return response.data.kanban;
     },
-    staleTime: 5 * 60 * 1000,
   });
 };
 

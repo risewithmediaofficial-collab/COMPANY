@@ -9,7 +9,6 @@ export const useProposals = (filters = {}) => {
       const response = await api.get('/proposals', { params: filters });
       return response.data.proposals || [];
     },
-    staleTime: 2 * 60 * 1000,
   });
 };
 

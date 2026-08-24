@@ -13,7 +13,6 @@ export const useTasks = (filters = {}, options = {}) => {
       const response = await api.get('/tasks', { params: filters });
       return response.data.tasks;
     },
-    staleTime: 5 * 60 * 1000,
     ...options,
   });
 };
@@ -38,7 +37,6 @@ export const useTaskCalendar = (filters = {}) => {
       const response = await api.get('/tasks/calendar', { params: filters });
       return response.data;
     },
-    staleTime: 2 * 60 * 1000,
   });
 };
 

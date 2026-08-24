@@ -12,7 +12,10 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchInterval: 3500, // Live poll every 3.5 seconds across the website so all pages reflect changes live
+      staleTime: 1000,
     },
   },
 })
