@@ -172,14 +172,37 @@ const ManagerTaskAssignments = () => {
     [tasks, isDateInRange],
   );
 
+  const isTaskOverdue = (task) => {
+    if (!task.dueDate) return false;
+    const due = new Date(task.dueDate);
+    if (Number.isNaN(due.getTime())) return false;
+    return due < new Date() && !['Completed', 'Approved', 'done', 'completed'].includes(task.status);
+  };
+
   const taskMetrics = {
     total: normalizedTasks.length,
-    inProgress: normalizedTasks.filter((task) => task.status === 'On Process').length,
-    done: normalizedTasks.filter((task) => ['Completed', 'Approved'].includes(task.status)).length,
-    overdue: normalizedTasks.filter(
-      (task) => task.dueDate && new Date(task.dueDate) < new Date() && !['Completed', 'Approved'].includes(task.status),
-    ).length,
+    inProgress: normalizedTasks.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status)).length,
+    done: normalizedTasks.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status)).length,
+    overdue: normalizedTasks.filter(isTaskOverdue).length,
   };
+
+  const [quickFilter, setQuickFilter] = useState('all'); // 'all' | 'inProgress' | 'done' | 'overdue'
+
+  const handleQuickFilterChange = (filterType) => {
+    setQuickFilter((prev) => (prev === filterType ? 'all' : filterType));
+  };
+
+  const displayedTasks = useMemo(() => {
+    let result = normalizedTasks;
+    if (quickFilter === 'inProgress') {
+      result = result.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status));
+    } else if (quickFilter === 'done') {
+      result = result.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status));
+    } else if (quickFilter === 'overdue') {
+      result = result.filter(isTaskOverdue);
+    }
+    return result;
+  }, [normalizedTasks, quickFilter]);
 
   const columns = [
     {
@@ -276,10 +299,18 @@ const ManagerTaskAssignments = () => {
         )}
       >
         <MetricGrid>
-          <MetricCard label="Total Tasks" value={taskMetrics.total} helper="Tasks currently visible" icon={ListChecks} tone="info" />
-          <MetricCard label="In Progress" value={taskMetrics.inProgress} helper="Work currently active" icon={Clock} tone="warning" />
-          <MetricCard label="Completed" value={taskMetrics.done} helper="Work finished or approved" icon={CheckCircle2} tone="success" />
-          <MetricCard label="Overdue" value={taskMetrics.overdue} helper="Needs attention now" icon={TimerReset} tone={taskMetrics.overdue > 0 ? 'danger' : 'neutral'} />
+          <div onClick={() => handleQuickFilterChange('all')} className="cursor-pointer transition-transform active:scale-[0.98]">
+            <MetricCard label="Total Tasks" value={taskMetrics.total} helper="Click to view all" icon={ListChecks} tone={quickFilter === 'all' ? 'info' : 'neutral'} />
+          </div>
+          <div onClick={() => handleQuickFilterChange('inProgress')} className="cursor-pointer transition-transform active:scale-[0.98]">
+            <MetricCard label="In Progress" value={taskMetrics.inProgress} helper="Click to filter" icon={Clock} tone={quickFilter === 'inProgress' ? 'warning' : 'neutral'} />
+          </div>
+          <div onClick={() => handleQuickFilterChange('done')} className="cursor-pointer transition-transform active:scale-[0.98]">
+            <MetricCard label="Completed" value={taskMetrics.done} helper="Click to filter" icon={CheckCircle2} tone={quickFilter === 'done' ? 'success' : 'neutral'} />
+          </div>
+          <div onClick={() => handleQuickFilterChange('overdue')} className="cursor-pointer transition-transform active:scale-[0.98]">
+            <MetricCard label="Overdue" value={taskMetrics.overdue} helper="Click to view overdue" icon={TimerReset} tone={quickFilter === 'overdue' || taskMetrics.overdue > 0 ? 'danger' : 'neutral'} />
+          </div>
         </MetricGrid>
       </PageHeader>
 
@@ -403,7 +434,7 @@ const ManagerTaskAssignments = () => {
         </PageToolbar>
 
         <DataTable
-          data={normalizedTasks}
+          data={displayedTasks}
           columns={columns}
           loading={isLoading}
           onRowClick={(task) => navigate(`/tasks/${task._id}`)}

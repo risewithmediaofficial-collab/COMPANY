@@ -17,6 +17,7 @@ import {
   Scissors,
   FileEdit,
   Share2,
+  X,
 } from 'lucide-react';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
@@ -121,26 +122,53 @@ const Tasks = () => {
     [tasks, isDateInRange],
   );
 
+  const isTaskOverdue = (task) => {
+    if (!task.dueDate) return false;
+    const due = new Date(task.dueDate);
+    if (Number.isNaN(due.getTime())) return false;
+    const isDone = ['Completed', 'Approved', 'done', 'completed'].includes(task.status);
+    return due < new Date() && !isDone;
+  };
+
   const taskMetrics = {
     total: normalizedTasks.length,
-    inProgress: normalizedTasks.filter((task) => task.status === 'On Process').length,
-    done: normalizedTasks.filter((task) => ['Completed', 'Approved'].includes(task.status)).length,
-    overdue: normalizedTasks.filter(
-      (task) =>
-        task.dueDate &&
-        new Date(task.dueDate) < new Date() &&
-        !['Completed', 'Approved'].includes(task.status),
-    ).length,
+    inProgress: normalizedTasks.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status)).length,
+    done: normalizedTasks.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status)).length,
+    overdue: normalizedTasks.filter(isTaskOverdue).length,
     overTarget: normalizedTasks.filter((task) => task.isOverTarget).length,
+  };
+
+  const [quickFilter, setQuickFilter] = useState('all'); // 'all' | 'inProgress' | 'done' | 'overdue' | 'overTarget'
+
+  const handleQuickFilterChange = (filterType) => {
+    setQuickFilter((prev) => (prev === filterType ? 'all' : filterType));
   };
 
   const displayedTasks = useMemo(() => {
     let result = normalizedTasks;
-    if (filters.overTarget) {
+
+    if (quickFilter === 'inProgress') {
+      result = result.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status));
+    } else if (quickFilter === 'done') {
+      result = result.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status));
+    } else if (quickFilter === 'overdue') {
+      result = result.filter(isTaskOverdue);
+    } else if (quickFilter === 'overTarget' || filters.overTarget) {
       result = result.filter((task) => task.isOverTarget);
     }
+
+    if (filters.search?.trim()) {
+      const q = filters.search.toLowerCase().trim();
+      result = result.filter((task) =>
+        (task.taskTitle || task.title || '').toLowerCase().includes(q) ||
+        (task.client?.name || task.client?.company || task.clientName || '').toLowerCase().includes(q) ||
+        (task.description || '').toLowerCase().includes(q) ||
+        (task.status || '').toLowerCase().includes(q)
+      );
+    }
+
     return result;
-  }, [normalizedTasks, filters.overTarget]);
+  }, [normalizedTasks, quickFilter, filters.overTarget, filters.search]);
 
   const columns = [
     {
@@ -270,11 +298,21 @@ const Tasks = () => {
     {
       key: 'dueDate',
       label: 'Due Date',
-      render: (row) => (
-        <span className="text-[11px] text-muted-foreground">
-          {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '—'}
-        </span>
-      ),
+      render: (row) => {
+        const overdue = isTaskOverdue(row);
+        return (
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[11px] font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
+              {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '—'}
+            </span>
+            {overdue && (
+              <span className="px-1.5 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-[9px] font-extrabold text-rose-600 dark:text-rose-400 shrink-0">
+                Overdue
+              </span>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -332,40 +370,93 @@ const Tasks = () => {
         )
       }
       properties={
-        <>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-card rounded-lg border border-border/80 text-foreground font-semibold">
-            <CheckSquare size={13} className="text-primary" />
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Total Tasks */}
+          <button
+            type="button"
+            onClick={() => handleQuickFilterChange('all')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+              quickFilter === 'all'
+                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/25'
+                : 'bg-card border-border/80 text-foreground hover:bg-secondary/80 hover:border-border'
+            }`}
+          >
+            <CheckSquare size={13} className={quickFilter === 'all' ? 'text-primary-foreground' : 'text-primary'} />
             <span>Total Tasks: {taskMetrics.total}</span>
-          </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 rounded-lg font-semibold">
+          </button>
+
+          {/* In Process */}
+          <button
+            type="button"
+            onClick={() => handleQuickFilterChange('inProgress')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+              quickFilter === 'inProgress'
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs ring-2 ring-blue-500/25'
+                : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20'
+            }`}
+          >
             <Clock size={13} />
             <span>In Process: {taskMetrics.inProgress}</span>
-          </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-lg font-semibold">
+          </button>
+
+          {/* Completed */}
+          <button
+            type="button"
+            onClick={() => handleQuickFilterChange('done')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+              quickFilter === 'done'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-500/25'
+                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+            }`}
+          >
             <CheckCircle2 size={13} />
             <span>Completed: {taskMetrics.done}</span>
-          </div>
-          {taskMetrics.overdue > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-600 rounded-lg font-semibold">
-              <AlertTriangle size={13} />
-              <span>Overdue: {taskMetrics.overdue}</span>
-            </div>
-          )}
+          </button>
+
+          {/* Overdue */}
+          <button
+            type="button"
+            onClick={() => handleQuickFilterChange('overdue')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+              quickFilter === 'overdue'
+                ? 'bg-rose-600 text-white border-rose-600 shadow-xs ring-2 ring-rose-500/25'
+                : taskMetrics.overdue > 0
+                ? 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                : 'bg-card border-border/80 text-muted-foreground hover:bg-secondary/80'
+            }`}
+          >
+            <AlertTriangle size={13} className={taskMetrics.overdue > 0 || quickFilter === 'overdue' ? 'text-rose-500 dark:text-rose-400' : 'text-muted-foreground'} />
+            <span>Overdue: {taskMetrics.overdue}</span>
+          </button>
+
+          {/* Over Target */}
           {taskMetrics.overTarget > 0 && (
             <button
               type="button"
-              onClick={() => setFilters((prev) => ({ ...prev, overTarget: !prev.overTarget }))}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                filters.overTarget
-                  ? 'bg-rose-600 text-white shadow-xs'
-                  : 'bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+              onClick={() => handleQuickFilterChange('overTarget')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none ${
+                quickFilter === 'overTarget'
+                  ? 'bg-amber-600 text-white border-amber-600 shadow-xs ring-2 ring-amber-500/25'
+                  : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
               }`}
             >
               <AlertTriangle size={13} />
               <span>Over Target: {taskMetrics.overTarget}</span>
             </button>
           )}
-        </>
+
+          {/* Clear Filter pill if filtered */}
+          {quickFilter !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setQuickFilter('all')}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary/80 hover:bg-secondary border border-border transition-all cursor-pointer"
+            >
+              <X size={13} />
+              <span>Clear Filter</span>
+            </button>
+          )}
+        </div>
       }
     >
       {/* Database View Engine (Table + Kanban Board) */}
@@ -511,10 +602,15 @@ const Tasks = () => {
                         </select>
                       </div>
 
-                      <div className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
-                        <Clock size={12} className="text-primary" />
-                        <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No deadline'}</span>
-                      </div>
+                      {(() => {
+                        const overdue = isTaskOverdue(task);
+                        return (
+                          <div className={`text-[11px] flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
+                            {overdue ? <AlertTriangle size={12} className="text-rose-500 shrink-0" /> : <Clock size={12} className="text-primary shrink-0" />}
+                            <span>{task.dueDate ? `${overdue ? 'Overdue: ' : ''}${new Date(task.dueDate).toLocaleDateString()}` : 'No deadline'}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))
@@ -739,11 +835,19 @@ const Tasks = () => {
                                 </div>
                               )}
 
-                              <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
-                                <span>
-                                  {task.dueDate ? `Due ${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'No deadline'}
-                                </span>
-                                <span className="group-hover:text-primary font-semibold flex items-center gap-0.5">
+                              <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px]">
+                                {(() => {
+                                  const overdue = isTaskOverdue(task);
+                                  return (
+                                    <span className={`flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
+                                      {overdue && <AlertTriangle size={11} className="shrink-0 text-rose-500 dark:text-rose-400" />}
+                                      <span>
+                                        {task.dueDate ? `${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'No deadline'}
+                                      </span>
+                                    </span>
+                                  );
+                                })()}
+                                <span className="group-hover:text-primary font-semibold flex items-center gap-0.5 text-muted-foreground">
                                   Open <ArrowRight size={10} />
                                 </span>
                               </div>
@@ -761,7 +865,13 @@ const Tasks = () => {
                         <div className={`py-12 text-center text-xs border border-dashed rounded-xl transition-all ${
                           isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/60 border-border/70'
                         }`}>
-                          {isColActive ? `Drop here to move to ${column.label}` : `No ${column.label} tasks`}
+                          {isColActive
+                            ? `Drop here to move to ${column.label}`
+                            : quickFilter === 'overdue'
+                            ? `No overdue tasks in ${column.label}`
+                            : quickFilter !== 'all'
+                            ? `No matching tasks in ${column.label}`
+                            : `No ${column.label} tasks`}
                         </div>
                       )}
                     </div>
