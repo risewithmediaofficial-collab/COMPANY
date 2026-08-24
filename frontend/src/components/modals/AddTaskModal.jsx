@@ -302,6 +302,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         taskType: category === 'content' ? 'poster' : 'website_development',
         contentType: category === 'content' ? 'posts' : '',
         videoType: category === 'content' ? 'reels' : '',
+        publisherAssigned: category === 'non_content' ? '' : next[index].publisherAssigned,
       };
       return next;
     });
@@ -692,7 +693,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         )}
       />
 
-      {/* Notion-Style Multi-Role Workflow Sub-Assignments & Production Details */}
+      {/* Notion-Style Multi-Role Workflow Sub-Assignments & Production Details (Content Tasks Only) */}
+      {taskCategory === 'content' && (
       <div className="md:col-span-2 rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-4 my-2">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
@@ -918,6 +920,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           </div>
         </div>
       </div>
+      )}
 
       <FormField
         control={form.control}
@@ -1956,27 +1959,76 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                         </div>
 
                         <div className="p-5 space-y-5">
-                          {/* Row 1: Title + Category */}
-                          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <div className="md:col-span-2 space-y-1.5">
-                              <label className="text-xs font-bold text-foreground">Task Title <span className="text-rose-500">*</span></label>
-                              <Input
-                                placeholder={isPoster ? 'e.g. June Week 1 – Offer Poster' : isVideo ? 'e.g. Product Launch Reel' : 'Enter task title'}
-                                className="rounded-xl font-medium"
-                                value={taskItem.taskTitle}
-                                onChange={(e) => updateTaskField(index, 'taskTitle', e.target.value)}
-                              />
+                          {/* Step 1: Select Category FIRST */}
+                          <div className="space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                <span>🎯 Task Category</span>
+                                <span className="text-rose-500">*</span>
+                              </label>
+                              <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                                Choose Type First
+                              </span>
                             </div>
-                            <div className="space-y-1.5">
-                              <label className="text-xs font-bold text-foreground">Category <span className="text-rose-500">*</span></label>
-                              <Select value={taskItem.taskCategory} onValueChange={(v) => handleCategoryChange(index, v)}>
-                                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                                <SelectContent>{TASK_CATEGORY_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                              </Select>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <button
+                                type="button"
+                                onClick={() => handleCategoryChange(index, 'content')}
+                                className={`p-3 rounded-xl border text-left transition-all flex items-start gap-3 ${
+                                  taskItem.taskCategory === 'content'
+                                    ? 'border-primary bg-primary/15 ring-2 ring-primary/25 shadow-sm text-foreground'
+                                    : 'border-border/80 bg-background hover:bg-secondary/40 text-muted-foreground'
+                                }`}
+                              >
+                                <span className="p-2 rounded-lg bg-primary/10 text-primary text-base shrink-0">🎨</span>
+                                <div>
+                                  <p className={`text-xs font-bold ${taskItem.taskCategory === 'content' ? 'text-primary' : 'text-foreground'}`}>
+                                    Content Task
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                                    Reels, videos, posters, graphics, creatives & social media publishing
+                                  </p>
+                                </div>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleCategoryChange(index, 'non_content')}
+                                className={`p-3 rounded-xl border text-left transition-all flex items-start gap-3 ${
+                                  taskItem.taskCategory === 'non_content'
+                                    ? 'border-amber-500 bg-amber-500/15 ring-2 ring-amber-500/25 shadow-sm text-foreground'
+                                    : 'border-border/80 bg-background hover:bg-secondary/40 text-muted-foreground'
+                                }`}
+                              >
+                                <span className="p-2 rounded-lg bg-amber-500/10 text-amber-600 text-base shrink-0">⚙️</span>
+                                <div>
+                                  <p className={`text-xs font-bold ${taskItem.taskCategory === 'non_content' ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
+                                    Non-Content Task
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                                    Web development, SEO, design assets, bug fixes & operations (No publisher)
+                                  </p>
+                                </div>
+                              </button>
                             </div>
                           </div>
 
-                          {/* Row 2: Format + Content Type + Video Type */}
+                          {/* Step 2: Task Title */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-foreground">Task Title <span className="text-rose-500">*</span></label>
+                            <Input
+                              placeholder={
+                                taskItem.taskCategory === 'content'
+                                  ? (isPoster ? 'e.g. June Week 1 – Offer Poster' : isVideo ? 'e.g. Product Launch Reel' : 'Enter content title')
+                                  : 'e.g. Website Landing Page / Feature Development / Bug Fix'
+                              }
+                              className="rounded-xl font-medium"
+                              value={taskItem.taskTitle}
+                              onChange={(e) => updateTaskField(index, 'taskTitle', e.target.value)}
+                            />
+                          </div>
+
+                          {/* Step 3: Format & Type Options */}
                           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div className="space-y-1.5">
                               <label className="text-xs font-bold text-foreground">Task Format <span className="text-rose-500">*</span></label>
@@ -2012,28 +2064,30 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                             )}
                           </div>
 
-                          {/* Smart Assignment Section */}
+                          {/* Step 4: Role Assignment Section */}
                           <div className="rounded-2xl border p-4 space-y-3"
                             style={{
-                              borderColor: isPoster ? 'rgba(167,139,250,0.4)' : isVideo ? 'rgba(56,189,248,0.4)' : 'hsl(var(--border))',
-                              background: isPoster ? 'rgba(167,139,250,0.06)' : isVideo ? 'rgba(56,189,248,0.06)' : 'hsl(var(--secondary)/0.2)',
+                              borderColor: taskItem.taskCategory === 'content' ? (isPoster ? 'rgba(167,139,250,0.4)' : isVideo ? 'rgba(56,189,248,0.4)' : 'hsl(var(--border))') : 'hsl(var(--border))',
+                              background: taskItem.taskCategory === 'content' ? (isPoster ? 'rgba(167,139,250,0.06)' : isVideo ? 'rgba(56,189,248,0.06)' : 'hsl(var(--secondary)/0.2)') : 'hsl(var(--secondary)/0.2)',
                             }}>
                             <div className="flex items-center gap-2">
-                              <Users size={13} className={isPoster ? 'text-violet-500' : isVideo ? 'text-sky-500' : 'text-amber-500'} />
+                              <Users size={13} className={taskItem.taskCategory === 'content' ? (isPoster ? 'text-violet-500' : isVideo ? 'text-sky-500' : 'text-primary') : 'text-amber-500'} />
                               <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-                                {roleHint.icon} Assign — {roleHint.label}
+                                {taskItem.taskCategory === 'content' ? `${roleHint.icon} Assign — ${roleHint.label}` : '👤 Team Member Assignment'}
                               </span>
                               <span className="ml-auto text-[10px] text-rose-500 font-semibold">Required *</span>
                             </div>
                             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                               <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-foreground">
-                                  {isPoster ? '🎨 Designer (Assigned To)' : isVideo ? '🎬 Video Person (Assigned To)' : '👤 Assigned To'}
+                                  {taskItem.taskCategory === 'content'
+                                    ? (isPoster ? '🎨 Designer (Assigned To)' : isVideo ? '🎬 Video Person (Assigned To)' : '👤 Main Assignee')
+                                    : '👤 Main Assignee (Assigned To)'}
                                   <span className="text-rose-500 ml-1">*</span>
                                 </label>
                                 <Select value={taskItem.assignedTo || '_none'} onValueChange={(v) => updateTaskField(index, 'assignedTo', v === '_none' ? '' : v)}>
                                   <SelectTrigger className="rounded-xl bg-background">
-                                    <SelectValue placeholder={isPoster ? 'Select Designer' : isVideo ? 'Select Video Editor' : 'Select Team Member'} />
+                                    <SelectValue placeholder={taskItem.taskCategory === 'content' ? (isPoster ? 'Select Designer' : isVideo ? 'Select Video Editor' : 'Select Team Member') : 'Select Team Member'} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="_none">— Select Person —</SelectItem>
@@ -2042,7 +2096,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 </Select>
                               </div>
 
-                              {isVideo && (
+                              {taskItem.taskCategory === 'content' && isVideo && (
                                 <div className="space-y-1.5">
                                   <label className="text-xs font-semibold text-foreground">✍️ Script Writer</label>
                                   <Select value={taskItem.scriptWriterAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'scriptWriterAssigned', v === '_none' ? '' : v)}>
@@ -2055,7 +2109,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 </div>
                               )}
 
-                              {isVideo && (
+                              {taskItem.taskCategory === 'content' && isVideo && (
                                 <div className="space-y-1.5">
                                   <label className="text-xs font-semibold text-foreground">🎥 Videographer</label>
                                   <Select value={taskItem.videographerAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'videographerAssigned', v === '_none' ? '' : v)}>
@@ -2068,7 +2122,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 </div>
                               )}
 
-                              {isPoster && (
+                              {taskItem.taskCategory === 'content' && isPoster && (
                                 <div className="space-y-1.5">
                                   <label className="text-xs font-semibold text-foreground">✂️ Revision / Editor</label>
                                   <Select value={taskItem.editorAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'editorAssigned', v === '_none' ? '' : v)}>
@@ -2081,16 +2135,19 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 </div>
                               )}
 
-                              <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-foreground">📱 Publisher / Poster</label>
-                                <Select value={taskItem.publisherAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'publisherAssigned', v === '_none' ? '' : v)}>
-                                  <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Select Publisher" /></SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="_none">Unassigned</SelectItem>
-                                    {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
-                                  </SelectContent>
-                                </Select>
-                              </div>
+                              {/* Publisher / Poster – Shown ONLY for Content Tasks */}
+                              {taskItem.taskCategory === 'content' && (
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-semibold text-foreground">📱 Publisher / Poster</label>
+                                  <Select value={taskItem.publisherAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'publisherAssigned', v === '_none' ? '' : v)}>
+                                    <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Select Publisher" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="_none">Unassigned</SelectItem>
+                                      {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
                             </div>
                           </div>
 
