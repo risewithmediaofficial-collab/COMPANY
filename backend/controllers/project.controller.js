@@ -116,9 +116,27 @@ const normalizeProjectPayload = (body) => {
   const payload = { ...body };
   if (payload.status) payload.status = projectStatusMap[payload.status] || payload.status;
   if (payload.priority) payload.priority = priorityMap[payload.priority] || payload.priority;
-  if (payload.endDate) {
-    payload.dueDate = payload.endDate;
+  if (payload.endDate !== undefined) {
+    if (payload.endDate && typeof payload.endDate === 'string' && payload.endDate.trim() !== '') {
+      payload.dueDate = new Date(payload.endDate);
+    } else if (payload.endDate instanceof Date) {
+      payload.dueDate = payload.endDate;
+    } else {
+      payload.dueDate = null;
+    }
     delete payload.endDate;
+  }
+  if (payload.startDate !== undefined) {
+    if (payload.startDate && typeof payload.startDate === 'string' && payload.startDate.trim() !== '') {
+      payload.startDate = new Date(payload.startDate);
+    } else if (payload.startDate instanceof Date) {
+      // keep date
+    } else {
+      payload.startDate = null;
+    }
+  }
+  if (payload.budget !== undefined) {
+    payload.budget = Number(payload.budget) || 0;
   }
   if (payload.team && !Array.isArray(payload.team)) payload.team = [payload.team];
   if (!payload.currency) payload.currency = 'INR';
@@ -145,7 +163,7 @@ const normalizeProjectPayload = (body) => {
 
 const assertProjectAccess = async (req, project) => {
   if (!project) return { allowed: false, status: 404, message: 'Project not found' };
-  if (req.user.role === 'superAdmin') return { allowed: true };
+  if (req.user.role === 'superAdmin' || req.user.role === 'admin') return { allowed: true };
   if (req.user.role === 'manager') return { allowed: true };
   if (req.user.role === 'employee' && project.team?.some((member) => member.toString() === req.user._id.toString())) return { allowed: true };
   if (req.user.role === 'client') {

@@ -52,7 +52,7 @@ const hydrateAsset = (assetId) => Asset.findById(assetId)
 
 const assertAssetAccess = async (req, asset) => {
   if (!asset) return { allowed: false, status: 404, message: 'Asset not found' };
-  if (req.user.role === 'superAdmin') return { allowed: true };
+  if (req.user.role === 'superAdmin' || req.user.role === 'admin') return { allowed: true };
 
   if (req.user.role === 'client') {
     const client = await Client.findOne({ userId: req.user._id }).select('_id');

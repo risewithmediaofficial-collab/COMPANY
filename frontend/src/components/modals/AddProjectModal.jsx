@@ -52,19 +52,19 @@ const projectFormSchema = z
     priority: z.enum(['Low', 'Medium', 'High', 'Critical']).default('Medium'),
     startDate: z.string().optional().or(z.literal('')),
     endDate: z.string().optional().or(z.literal('')),
-    budget: z.number().optional(),
-    quotedAmount: z.number().optional(),
+    budget: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    quotedAmount: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
     currency: z.string().default('INR'),
-    acceptedProposalId: z.string().optional(),
-    marketingAmount: z.number().optional(),
-    adsAmount: z.number().optional(),
-    contentAmount: z.number().optional(),
-    designAmount: z.number().optional(),
-    developmentAmount: z.number().optional(),
-    printingAmount: z.number().optional(),
-    otherExpenses: z.number().optional(),
-    totalBudget: z.number().optional(),
-    amountReceived: z.number().optional(),
+    acceptedProposalId: z.string().optional().or(z.literal('')),
+    marketingAmount: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    adsAmount: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    contentAmount: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    designAmount: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    developmentAmount: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    printingAmount: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    otherExpenses: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    totalBudget: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
+    amountReceived: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
     paymentStatus: z.enum(['pending', 'partial', 'paid']).optional(),
     budgetNotes: z.string().optional(),
   })
@@ -226,13 +226,16 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
       data.marketingAmount, data.adsAmount, data.contentAmount, data.designAmount,
       data.developmentAmount, data.printingAmount, data.otherExpenses,
     ].reduce((sum, val) => sum + (Number(val) || 0), 0);
-    const quotedAmount = Number(data.quotedAmount) || Number(data.budget) || subtotal || 0;
+    const parsedBudget = data.budget !== undefined && data.budget !== null && data.budget !== '' && !isNaN(Number(data.budget)) ? Number(data.budget) : undefined;
+    const quotedAmount = Number(data.quotedAmount) || parsedBudget || subtotal || 0;
     const totalBudget = Number(data.totalBudget) || subtotal || quotedAmount || 0;
     const amountReceived = Number(data.amountReceived) || 0;
 
     const payload = {
       ...data,
-      budget: quotedAmount || totalBudget || undefined,
+      startDate: data.startDate?.trim() ? data.startDate : null,
+      endDate: data.endDate?.trim() ? data.endDate : null,
+      budget: parsedBudget !== undefined ? parsedBudget : (quotedAmount || totalBudget || 0),
       currency: data.currency || 'INR',
       acceptedProposalId: data.acceptedProposalId || undefined,
       budgetDetails: {
@@ -474,7 +477,9 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 name="startDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Start Date *</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">
+                      Start Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -491,7 +496,9 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 name="endDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">End Date *</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">
+                      End Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -508,15 +515,18 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 name="budget"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Budget (₹ INR)</FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">
+                      Budget (₹ INR) <span className="text-muted-foreground font-normal">(Optional)</span>
+                    </FormLabel>
                     <FormControl>
                       <div className="relative">
                         <IndianRupee className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           type="number"
-                          placeholder="50000"
+                          placeholder="e.g. 50000 (optional)"
                           className="h-9 rounded-xl border-border bg-background pl-9 text-xs focus:ring-2 focus:ring-primary/20"
                           {...field}
+                          value={field.value ?? ''}
                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                         />
                       </div>

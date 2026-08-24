@@ -26,7 +26,7 @@ const assertCredentialAccess = (req, credential) => {
     return { allowed: false, status: 404, message: 'Credential not found' };
   }
 
-  if (req.user.role === 'superAdmin') return { allowed: true };
+  if (req.user.role === 'superAdmin' || req.user.role === 'admin') return { allowed: true };
 
   if (req.user.role === 'manager') {
     // Managers can only access credentials for clients they manage

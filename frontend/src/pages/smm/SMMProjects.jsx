@@ -47,11 +47,17 @@ export default function SMMProjects() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        startDate: formData.startDate ? formData.startDate : null,
+        endDate: formData.endDate ? formData.endDate : null,
+        budget: Number(formData.budget) || 0,
+      };
       if (editingProject) {
-        await smmApi.updateProject(editingProject._id, formData);
+        await smmApi.updateProject(editingProject._id, payload);
         toast.success('Project updated');
       } else {
-        await smmApi.createProject(formData);
+        await smmApi.createProject(payload);
         toast.success('Project created');
       }
       setIsDrawerOpen(false);
@@ -215,8 +221,10 @@ export default function SMMProjects() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Budget (₹)</label>
-                <input type="number" value={formData.budget} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} className="app-input" />
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Budget (₹) <span className="text-muted-foreground font-normal">(Optional)</span>
+                </label>
+                <input type="number" placeholder="0" value={formData.budget || ''} onChange={e => setFormData({...formData, budget: e.target.value ? Number(e.target.value) : ''})} className="app-input" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">Status</label>
@@ -228,11 +236,15 @@ export default function SMMProjects() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">Start Date</label>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Start Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                </label>
                 <input type="date" value={formData.startDate ? formData.startDate.substring(0,10) : ''} onChange={e => setFormData({...formData, startDate: e.target.value})} className="app-input" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">End Date</label>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  End Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                </label>
                 <input type="date" value={formData.endDate ? formData.endDate.substring(0,10) : ''} onChange={e => setFormData({...formData, endDate: e.target.value})} className="app-input" />
               </div>
             </div>

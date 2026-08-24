@@ -237,7 +237,7 @@ const buildScopedTaskFilter = async (req, baseFilter = {}) => {
   const baseOr = filter.$or;
   if (baseOr) delete filter.$or;
 
-  if (req.user.role === 'superAdmin') return baseOr ? { ...filter, $or: baseOr } : filter;
+  if (req.user.role === 'superAdmin' || req.user.role === 'admin') return baseOr ? { ...filter, $or: baseOr } : filter;
 
   if (req.user.role === 'manager') {
     const { projectIds, clientIds } = await getManagedScope(req.user._id);
@@ -274,7 +274,7 @@ const buildScopedTaskFilter = async (req, baseFilter = {}) => {
 
 const assertTaskAccess = async (req, task) => {
   if (!task) return { allowed: false, status: 404, message: 'Task not found' };
-  if (req.user.role === 'superAdmin') return { allowed: true };
+  if (req.user.role === 'superAdmin' || req.user.role === 'admin') return { allowed: true };
 
   const userId = req.user._id.toString();
   const isAssigned = isTaskAssignedToUser(task, userId);

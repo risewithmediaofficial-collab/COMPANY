@@ -110,7 +110,7 @@ const ProjectDetails = () => {
       setRecentTasks(projectRes.data.recentTasks || []);
       setKanban(kanbanRes.data.kanban || {});
 
-      if (user?.role === 'superAdmin' || user?.role === 'manager') {
+      if (user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') {
         const requestsRes = await api.get(`/access-requests/project/${id}`);
         setAccessRequests(requestsRes.data.requests || []);
       }
@@ -282,7 +282,7 @@ const ProjectDetails = () => {
 
   const isTeamMember = useMemo(() => {
     if (!user) return false;
-    if (user.role === 'superAdmin' || user.role === 'manager') return true;
+    if (user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager') return true;
     return (project?.team || []).some((member) => member._id === user._id) || project?.manager?._id === user._id;
   }, [project?.manager?._id, project?.team, user]);
 
@@ -712,7 +712,7 @@ const ProjectDetails = () => {
         </div>
       </div>
 
-      {(user.role === 'superAdmin' || user.role === 'manager') && accessRequests.length > 0 && (
+      {(user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager') && accessRequests.length > 0 && (
         <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-bold">Pending Requests</h2>
           <div className="space-y-3">
@@ -1014,7 +1014,7 @@ const ProjectDetails = () => {
             { id: 'activity', label: 'Activity', icon: Clock },
             { id: 'proposal', label: 'Proposal', icon: FileText },
             { id: 'budget', label: 'Budget', icon: IndianRupee },
-            (user.role === 'superAdmin' || user.role === 'manager') && { id: 'access', label: 'Access', icon: ShieldCheck },
+            (user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager') && { id: 'access', label: 'Access', icon: ShieldCheck },
           ].filter(Boolean)}
           activeTab={activeTab}
           onTabChange={setActiveTab}

@@ -12,8 +12,8 @@ const router = express.Router();
 router.use(protect);
 
 router.post('/', createRequest);
-router.get('/', authorize('superAdmin', 'manager'), getAllRequests);
-router.get('/project/:projectId', authorize('superAdmin', 'manager'), getProjectRequests);
-router.put('/:id', authorize('superAdmin', 'manager'), handleRequest);
+router.get('/', authorize('superAdmin', 'admin', 'manager'), getAllRequests);
+router.get('/project/:projectId', authorize('superAdmin', 'admin', 'manager'), getProjectRequests);
+router.put('/:id', authorize('superAdmin', 'admin', 'manager'), handleRequest);
 
 export default router;
