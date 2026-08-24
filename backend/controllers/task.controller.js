@@ -5,12 +5,14 @@
 import Task from '../models/task.model.js';
 import Client from '../models/client.model.js';
 import Project from '../models/project.model.js';
+import ProjectMonthlyDeliverable from '../models/projectMonthlyDeliverable.model.js';
 import ActivityLog from '../models/activityLog.model.js';
 import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
 import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
+import { matchesContentType, getMonthDateRange } from './projectMonthlyDeliverable.controller.js';
 
 const taskStatusMap = {
   'To Do': 'todo',
@@ -163,6 +165,8 @@ const serializeTask = (task) => {
       || (Array.isArray(item.assignedTo) ? item.assignedTo.map((user) => user?.name).filter(Boolean).join(', ') : ''),
     assignedManagerName: item.assignedManager?.name || '',
     isOverdue: isTaskOverdue(item),
+    isOverTarget: Boolean(item.isOverTarget),
+    targetExceededBy: Number(item.targetExceededBy) || 0,
   };
 };
 
@@ -693,6 +697,42 @@ export const createTask = async (req, res) => {
 
       for (let i = 0; i < duplicateCount; i++) {
         const taskTitle = duplicateCount > 1 ? `${payload.title} - ${i + 1}` : payload.title;
+        let isOverTarget = false;
+        let targetExceededBy = 0;
+
+        if (payload.project) {
+          const taskDate = payload.dueDate || payload.deadline || new Date();
+          const m = new Date(taskDate).getMonth() + 1;
+          const y = new Date(taskDate).getFullYear();
+          const targets = await ProjectMonthlyDeliverable.find({
+            projectId: payload.project,
+            month: m,
+            year: y,
+          });
+
+          if (targets && targets.length > 0) {
+            const matchingTarget = targets.find((t) => matchesContentType(payload, t.contentType));
+            if (matchingTarget) {
+              const { start, end } = getMonthDateRange(m, y);
+              const existingMatchingTasks = await Task.find({
+                project: payload.project,
+                status: { $nin: ['rejected', 'cancelled'] },
+                $or: [
+                  { dueDate: { $gte: start, $lte: end } },
+                  { dueDate: { $exists: false }, postingScheduleDate: { $gte: start, $lte: end } },
+                  { dueDate: { $exists: false }, postingScheduleDate: { $exists: false }, createdAt: { $gte: start, $lte: end } },
+                ],
+              }).select('taskType contentType videoType');
+
+              const matchedCount = existingMatchingTasks.filter((t) => matchesContentType(t, matchingTarget.contentType)).length + i;
+              if (matchedCount >= matchingTarget.targetQuantity) {
+                isOverTarget = true;
+                targetExceededBy = matchedCount + 1 - matchingTarget.targetQuantity;
+              }
+            }
+          }
+        }
+
         const currentPayload = {
           ...payload,
           title: taskTitle,
@@ -701,6 +741,8 @@ export const createTask = async (req, res) => {
 
         const task = await Task.create({
           ...currentPayload,
+          isOverTarget,
+          targetExceededBy,
           dueDate: currentPayload.dueDate || currentPayload.deadline || new Date(),
           organizationId: req.user.organizationId,
           brandId: req.user.brandId,
@@ -814,6 +856,43 @@ export const updateTask = async (req, res) => {
     }
     await syncTaskDerivedFields(task);
     updateCompletionState(task);
+
+    if (task.project) {
+      const taskDate = task.dueDate || task.deadline || task.createdAt || new Date();
+      const m = new Date(taskDate).getMonth() + 1;
+      const y = new Date(taskDate).getFullYear();
+      const targets = await ProjectMonthlyDeliverable.find({
+        projectId: task.project,
+        month: m,
+        year: y,
+      });
+      if (targets && targets.length > 0) {
+        const matchingTarget = targets.find((t) => matchesContentType(task, t.contentType));
+        if (matchingTarget) {
+          const { start, end } = getMonthDateRange(m, y);
+          const existingTasks = await Task.find({
+            project: task.project,
+            _id: { $ne: task._id },
+            status: { $nin: ['rejected', 'cancelled'] },
+            $or: [
+              { dueDate: { $gte: start, $lte: end } },
+              { dueDate: { $exists: false }, postingScheduleDate: { $gte: start, $lte: end } },
+              { dueDate: { $exists: false }, postingScheduleDate: { $exists: false }, createdAt: { $gte: start, $lte: end } },
+            ],
+          }).select('taskType contentType videoType');
+          const matchedCount = existingTasks.filter((t) => matchesContentType(t, matchingTarget.contentType)).length;
+          task.isOverTarget = matchedCount >= matchingTarget.targetQuantity;
+          task.targetExceededBy = task.isOverTarget ? (matchedCount + 1 - matchingTarget.targetQuantity) : 0;
+        } else {
+          task.isOverTarget = false;
+          task.targetExceededBy = 0;
+        }
+      } else {
+        task.isOverTarget = false;
+        task.targetExceededBy = 0;
+      }
+    }
+
     await task.save();
 
     if (payload.status && ['done', 'approved'].includes(task.status)) {

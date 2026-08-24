@@ -37,6 +37,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateProject, useUpdateProject } from '../../hooks/useProjects';
 import { useClients } from '../../hooks/useClients';
+import {
+  useProjectMonthlyDeliverables,
+  useBatchSaveProjectMonthlyDeliverables,
+} from '../../hooks/useMonthlyDeliverables';
+import MonthlyDeliverablesSection from '../projects/MonthlyDeliverablesSection';
 import { toast } from 'sonner';
 
 const DRAFT_KEY = 'draft:project-modal';
@@ -129,7 +134,32 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   const { data: clients = [] } = useClients();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
-  const isLoading = createProject.isPending || updateProject.isPending;
+  const batchSaveDeliverables = useBatchSaveProjectMonthlyDeliverables();
+  const isLoading = createProject.isPending || updateProject.isPending || batchSaveDeliverables.isPending;
+
+  const [deliverableMonth, setDeliverableMonth] = useState(new Date().getMonth() + 1);
+  const [deliverableYear, setDeliverableYear] = useState(new Date().getFullYear());
+  const [monthlyDeliverables, setMonthlyDeliverables] = useState([]);
+
+  const { data: existingDeliverablesData } = useProjectMonthlyDeliverables(
+    project?._id,
+    deliverableMonth,
+    deliverableYear
+  );
+
+  useEffect(() => {
+    if (existingDeliverablesData?.deliverables) {
+      setMonthlyDeliverables(
+        existingDeliverablesData.deliverables.map((d) => ({
+          _id: d._id,
+          contentType: d.contentType,
+          targetQuantity: d.targetQuantity,
+        }))
+      );
+    } else if (!project) {
+      setMonthlyDeliverables([]);
+    }
+  }, [existingDeliverablesData, project]);
 
   useEffect(() => {
     if (project) {
@@ -266,14 +296,30 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
     delete payload.paymentStatus;
     delete payload.budgetNotes;
 
+    let savedProject;
     if (project) {
-      await updateProject.mutateAsync({ id: project._id, data: payload });
+      savedProject = await updateProject.mutateAsync({ id: project._id, data: payload });
     } else {
-      await createProject.mutateAsync(payload);
+      savedProject = await createProject.mutateAsync(payload);
+    }
+
+    const targetProjectId = project?._id || savedProject?._id || savedProject?.project?._id;
+    if (targetProjectId && monthlyDeliverables !== undefined) {
+      try {
+        await batchSaveDeliverables.mutateAsync({
+          projectId: targetProjectId,
+          month: deliverableMonth,
+          year: deliverableYear,
+          deliverables: monthlyDeliverables,
+        });
+      } catch (err) {
+        console.error('Failed to save monthly deliverables in project modal', err);
+      }
     }
 
     if (!createProject.isError && !updateProject.isError) {
       form.reset();
+      setMonthlyDeliverables([]);
       localStorage.removeItem(DRAFT_KEY);
       onOpenChange(false);
     }
@@ -549,6 +595,16 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            {/* Monthly Deliverables & Targets Section */}
+            <MonthlyDeliverablesSection
+              deliverables={monthlyDeliverables}
+              onChange={setMonthlyDeliverables}
+              month={deliverableMonth}
+              year={deliverableYear}
+              onMonthChange={setDeliverableMonth}
+              onYearChange={setDeliverableYear}
             />
 
             {/* Budget & Payment Section */}

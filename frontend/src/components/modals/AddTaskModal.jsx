@@ -51,12 +51,46 @@ import {
   normalizeTaskStatusLabel,
   uploadFiles,
 } from '../../utils/taskFields';
-import { Trash2, Plus, Video, Image, ChevronDown, ChevronUp, Users } from 'lucide-react';
+import { Trash2, Plus, Video, Image, ChevronDown, ChevronUp, Users, Target, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useProjectMonthlyDeliverables } from '../../hooks/useMonthlyDeliverables';
+import { MONTH_NAMES } from '../projects/MonthlyDeliverablesSection';
 import { toast } from 'sonner';
 
 const TASK_DRAFT_KEY = 'draft:task-modal';
 
 const EMPTY_INITIAL_VALUES = {};
+
+const normalizeDeliverableName = (s = '') => s.toString().trim().toLowerCase().replace(/[\s_-]+/g, '');
+
+const findMatchingDeliverableTarget = (taskType, contentType, videoType, deliverables = []) => {
+  if (!deliverables || deliverables.length === 0) return null;
+  const nTaskType = normalizeDeliverableName(taskType);
+  const nContentType = normalizeDeliverableName(contentType);
+  const nVideoType = normalizeDeliverableName(videoType);
+
+  const synonyms = {
+    video: ['video', 'videos', 'videocontent', 'youtube', 'longvideo'],
+    reel: ['reel', 'reels', 'shorts'],
+    poster: ['poster', 'posters', 'posts', 'socialmediapost', 'designs', 'design', 'graphicdesign', 'adcreative'],
+    story: ['story', 'stories'],
+    carousel: ['carousel', 'carouselpost'],
+    blog: ['blog', 'blogs'],
+  };
+
+  return deliverables.find((d) => {
+    const nTarget = normalizeDeliverableName(d.contentType);
+    if (nTarget === nTaskType || nTarget === nContentType || nTarget === nVideoType) return true;
+
+    for (const [groupKey, groupSyns] of Object.entries(synonyms)) {
+      if (nTarget === groupKey || groupSyns.includes(nTarget)) {
+        if (groupSyns.includes(nTaskType) || groupSyns.includes(nContentType) || groupSyns.includes(nVideoType)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  });
+};
 
 // Task type categorisation
 const POSTER_TASK_TYPES = ['poster', 'social_media_post', 'ad_creative', 'story', 'carousel_post'];
@@ -69,9 +103,9 @@ const taskTypeBadgeCls = (taskType) => {
   return 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300';
 };
 const getRoleHint = (taskType) => {
-  if (isPosterTask(taskType)) return { label: 'Designer / Graphics Person', icon: '\ud83c\udfa8' };
-  if (isVideoTask(taskType))  return { label: 'Video Editor / Creator', icon: '\ud83c\udfac' };
-  return { label: 'Team Member', icon: '\ud83d\udc64' };
+  if (isPosterTask(taskType)) return { label: 'Designer / Graphics Person', icon: '🎨' };
+  if (isVideoTask(taskType))  return { label: 'Video Editor / Creator', icon: '🎬' };
+  return { label: 'Team Member', icon: '👤' };
 };
 
 const BLANK_TASK_TEMPLATE = {
@@ -352,10 +386,96 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
   const selectedProject = form.watch('project');
   const isVideoReelFlow = taskCategory === 'content' && contentType === 'videos';
 
+  const formDueDate = form.watch('dueDate');
+  const formPostingDate = form.watch('postingScheduleDate');
+  const targetDate = formDueDate ? new Date(formDueDate) : formPostingDate ? new Date(formPostingDate) : new Date();
+  const taskMonth = !isNaN(targetDate.getTime()) ? targetDate.getMonth() + 1 : new Date().getMonth() + 1;
+  const taskYear = !isNaN(targetDate.getTime()) ? targetDate.getFullYear() : new Date().getFullYear();
+
+  const { data: projectDeliverablesData } = useProjectMonthlyDeliverables(
+    selectedProject,
+    taskMonth,
+    taskYear
+  );
+  const projectDeliverables = projectDeliverablesData?.deliverables || [];
+
   const filteredProjects = useMemo(() => {
     if (!selectedClientId) return projects;
     return projects.filter((project) => (project.client?._id || project.client) === selectedClientId);
   }, [projects, selectedClientId]);
+
+  const renderDeliverableTargetBanner = (taskItem, index = 0) => {
+    if (!projectDeliverables || projectDeliverables.length === 0) return null;
+
+    const matchedTarget = findMatchingDeliverableTarget(
+      taskItem.taskType,
+      taskItem.contentType,
+      taskItem.videoType,
+      projectDeliverables
+    );
+
+    if (!matchedTarget) return null;
+
+    const currentList = task ? [taskItem] : tasksList;
+    const batchMatches = currentList
+      .slice(0, index + 1)
+      .filter((t) => findMatchingDeliverableTarget(t.taskType, t.contentType, t.videoType, projectDeliverables)?._id === matchedTarget._id).length;
+
+    const currentCount = matchedTarget.currentCount || 0;
+    const targetQuantity = matchedTarget.targetQuantity || 1;
+    const prospectiveCount = currentCount + Math.max(1, batchMatches);
+    const isOver = prospectiveCount > targetQuantity;
+    const exceededBy = prospectiveCount - targetQuantity;
+    const remaining = Math.max(0, targetQuantity - prospectiveCount);
+
+    if (isOver) {
+      return (
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-rose-700 dark:text-rose-300 space-y-1.5 my-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+            <AlertTriangle size={14} className="shrink-0" />
+            <span>⚠ OVER TASK — Monthly Target Exceeded</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-semibold pt-0.5">
+            <div>
+              <span className="text-[10px] text-muted-foreground block uppercase">Deliverable</span>
+              <span className="font-bold text-foreground">{matchedTarget.contentType}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-muted-foreground block uppercase">Monthly Target</span>
+              <span className="font-bold text-foreground">{targetQuantity}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-muted-foreground block uppercase">Current + This Task</span>
+              <span className="font-extrabold text-rose-600 dark:text-rose-400">{prospectiveCount} / {targetQuantity}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-muted-foreground block uppercase">Exceeded By</span>
+              <span className="font-extrabold text-rose-600 dark:text-rose-400">+{exceededBy} Over</span>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            Notice: Task creation is allowed and will be marked as an over-target deliverable.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-emerald-800 dark:text-emerald-300 my-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 font-bold">
+            <Target size={14} className="text-emerald-600 dark:text-emerald-400" />
+            <span>{matchedTarget.contentType} Target:</span>
+            <span className="text-foreground">{currentCount} / {targetQuantity}</span>
+            <span className="text-muted-foreground font-normal">({prospectiveCount} / {targetQuantity} after this task)</span>
+          </div>
+          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+            {remaining === 0 ? '🎯 Target Reached After Task' : `✨ ${remaining} Remaining`}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   const [hasDraft, setHasDraft] = useState(false);
 
@@ -692,6 +812,16 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           </FormItem>
         )}
       />
+
+      {selectedProject && (
+        <div className="md:col-span-2">
+          {renderDeliverableTargetBanner({
+            taskType: form.watch('taskType'),
+            contentType: form.watch('contentType'),
+            videoType: form.watch('videoType'),
+          })}
+        </div>
+      )}
 
       {/* Notion-Style Multi-Role Workflow Sub-Assignments & Production Details (Content Tasks Only) */}
       {taskCategory === 'content' && (
@@ -1915,6 +2045,52 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                   </span>
                 </div>
 
+                {/* Project Monthly Deliverables Quotas Summary Banner */}
+                {projectDeliverables.length > 0 && (
+                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                      <span className="flex items-center gap-1.5 text-primary">
+                        <Target size={15} /> Project Monthly Targets ({MONTH_NAMES[taskMonth - 1]} {taskYear})
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-semibold">
+                        {projectDeliverables.reduce((a, b) => a + b.currentCount, 0)} / {projectDeliverables.reduce((a, b) => a + b.targetQuantity, 0)} Total Created
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {projectDeliverables.map((d) => {
+                        const isOver = d.currentCount > d.targetQuantity;
+                        const isReached = d.currentCount === d.targetQuantity;
+                        return (
+                          <div
+                            key={d._id || d.contentType}
+                            className={`rounded-xl border p-2.5 text-xs space-y-1 transition-all ${
+                              isOver
+                                ? 'border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                                : isReached
+                                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                                : 'border-border/70 bg-card text-foreground'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between font-bold">
+                              <span className="truncate">{d.contentType}</span>
+                              <span className={isOver ? 'text-rose-600 dark:text-rose-400 font-extrabold' : ''}>
+                                {d.currentCount}/{d.targetQuantity}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {isOver
+                                ? `🔴 Over by ${d.currentCount - d.targetQuantity}`
+                                : isReached
+                                ? '🎯 Target Reached'
+                                : `${d.remaining} remaining`}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Task Cards */}
                 <div className="space-y-5">
                   {tasksList.map((taskItem, index) => {
@@ -2063,6 +2239,9 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                               </div>
                             )}
                           </div>
+
+                          {/* Live Deliverable Target & Over-Task Banner */}
+                          {renderDeliverableTargetBanner(taskItem, index)}
 
                           {/* Step 4: Role Assignment Section */}
                           <div className="rounded-2xl border p-4 space-y-3"

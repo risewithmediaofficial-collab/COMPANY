@@ -244,6 +244,8 @@ const taskSchema = new mongoose.Schema(
     ],
     completedFiles: [fileAttachmentSchema],
     progressUpdates: [progressUpdateSchema],
+    isOverTarget: { type: Boolean, default: false },
+    targetExceededBy: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

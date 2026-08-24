@@ -191,6 +191,11 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
             </div>
 
             <div className="hidden sm:flex items-center gap-2 shrink-0">
+              {task?.isOverTarget && (
+                <span className="rounded-lg bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[11px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
+                  🔴 Over Task
+                </span>
+              )}
               {task?.priority && (
                 <span className={`px-2 py-0.5 rounded-lg border text-[11px] font-semibold ${PRIORITY_TONES[task.priority] || PRIORITY_TONES.Medium}`}>
                   {task.priority}
@@ -220,6 +225,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
             </div>
           ) : task ? (
             <>
+              {task?.isOverTarget && (
+                <div className="flex items-center gap-2 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs font-bold text-rose-600 dark:text-rose-400">
+                  <span>🔴 Over Target Task — This deliverable exceeded the configured monthly quota.</span>
+                </div>
+              )}
+
               {/* ── Notion Property Matrix Card ── */}
               <div className="rounded-2xl border border-border bg-background/70 p-4 shadow-2xs space-y-1">
                 {!isClient && (

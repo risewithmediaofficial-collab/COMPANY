@@ -137,8 +137,13 @@ const Tasks = () => {
       label: 'Task Title',
       render: (row) => (
         <div className="min-w-0">
-          <div className="font-bold text-foreground text-xs hover:text-primary transition-colors">
-            {row.taskTitle || row.title}
+          <div className="flex items-center gap-1.5 font-bold text-foreground text-xs hover:text-primary transition-colors">
+            <span>{row.taskTitle || row.title}</span>
+            {row.isOverTarget && (
+              <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-rose-600 dark:text-rose-400 shrink-0">
+                🔴 Over Task
+              </span>
+            )}
           </div>
           <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
             {row.client?.name || row.client?.company || row.clientName || 'Internal Task'}
@@ -543,9 +548,16 @@ const Tasks = () => {
                               }`}
                             >
                               <div className="flex items-start justify-between gap-2">
-                                <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                                  {task.taskTitle || task.title}
-                                </h4>
+                                <div className="space-y-1 min-w-0">
+                                  {task.isOverTarget && (
+                                    <span className="inline-flex items-center gap-1 rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
+                                      🔴 Over Task
+                                    </span>
+                                  )}
+                                  <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                                    {task.taskTitle || task.title}
+                                  </h4>
+                                </div>
                                 <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase shrink-0 ${
                                   task.priority === 'Urgent' || task.priority === 'High'
                                     ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'

@@ -33,6 +33,7 @@ import toast from 'react-hot-toast';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
+import ProjectMonthlyDeliverablesCard from '../../components/projects/ProjectMonthlyDeliverablesCard';
 import {
   NotionDetailPage,
   NotionTabs,
@@ -525,7 +526,12 @@ const ProjectDetails = () => {
                         }`}
                       >
                         <div className="mb-3 flex items-start justify-between">
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap items-center gap-1">
+                            {task.isOverTarget && (
+                              <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
+                                🔴 Over Task
+                              </span>
+                            )}
                             {(task.tags || []).length ? task.tags.map((tag) => (
                               <span key={tag} className="rounded bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">
                                 {tag}
@@ -634,7 +640,14 @@ const ProjectDetails = () => {
                   className="cursor-pointer transition-colors hover:bg-secondary/30"
                 >
                   <td className="px-6 py-4">
-                    <div className="font-semibold text-foreground group-hover:text-primary">{task.title}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-semibold text-foreground group-hover:text-primary">{task.title}</div>
+                      {task.isOverTarget && (
+                        <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[9px] font-extrabold uppercase text-rose-600 dark:text-rose-400 shrink-0">
+                          🔴 Over Task
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">{task.taskType || 'task'}</div>
                   </td>
                   <td className="px-6 py-4">
@@ -1060,6 +1073,12 @@ const ProjectDetails = () => {
           className="border-0 bg-transparent p-0"
         />
       </NotionDetailPage>
+
+      {/* Monthly Deliverables & Targets Overview */}
+      <ProjectMonthlyDeliverablesCard
+        project={project}
+        canManage={user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager'}
+      />
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">
