@@ -129,7 +129,16 @@ const Tasks = () => {
         new Date(task.dueDate) < new Date() &&
         !['Completed', 'Approved'].includes(task.status),
     ).length,
+    overTarget: normalizedTasks.filter((task) => task.isOverTarget).length,
   };
+
+  const displayedTasks = useMemo(() => {
+    let result = normalizedTasks;
+    if (filters.overTarget) {
+      result = result.filter((task) => task.isOverTarget);
+    }
+    return result;
+  }, [normalizedTasks, filters.overTarget]);
 
   const columns = [
     {
@@ -308,6 +317,20 @@ const Tasks = () => {
               <span>Overdue: {taskMetrics.overdue}</span>
             </div>
           )}
+          {taskMetrics.overTarget > 0 && (
+            <button
+              type="button"
+              onClick={() => setFilters((prev) => ({ ...prev, overTarget: !prev.overTarget }))}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                filters.overTarget
+                  ? 'bg-rose-600 text-white shadow-xs'
+                  : 'bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+              }`}
+            >
+              <AlertTriangle size={13} />
+              <span>Over Target: {taskMetrics.overTarget}</span>
+            </button>
+          )}
         </>
       }
     >
@@ -317,7 +340,7 @@ const Tasks = () => {
         onViewChange={setCurrentView}
         searchQuery={filters.search}
         onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
-        totalCount={normalizedTasks.length}
+        totalCount={displayedTasks.length}
       >
         {/* Table View (Desktop DataTable + Responsive Mobile Card List) */}
         {currentView === 'table' && (
@@ -325,7 +348,7 @@ const Tasks = () => {
             {/* Desktop / Tablet Table */}
             <div className="hidden md:block">
               <DataTable
-                data={normalizedTasks}
+                data={displayedTasks}
                 columns={columns}
                 loading={isLoading}
                 onRowClick={handleRowClick}
@@ -343,12 +366,12 @@ const Tasks = () => {
                     <div key={n} className="h-28 rounded-2xl bg-card border border-border animate-pulse p-4" />
                   ))}
                 </div>
-              ) : normalizedTasks.length === 0 ? (
+              ) : displayedTasks.length === 0 ? (
                 <div className="p-8 text-center bg-card rounded-2xl border border-border text-xs text-muted-foreground">
                   No tasks found. Click "New Task" to create one.
                 </div>
               ) : (
-                normalizedTasks.map((task) => (
+                displayedTasks.map((task) => (
                   <div
                     key={task._id}
                     onClick={() => handleRowClick(task)}
@@ -442,7 +465,7 @@ const Tasks = () => {
                 { key: 'Review Required', label: 'Review Required', badge: 'bg-purple-500/10 text-purple-600 dark:text-purple-400', surface: 'border-purple-500/20 bg-purple-500/5' },
                 { key: 'Completed', label: 'Completed', badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', surface: 'border-emerald-500/20 bg-emerald-500/5' },
               ].map((column) => {
-                const columnTasks = normalizedTasks.filter((t) => {
+                const columnTasks = displayedTasks.filter((t) => {
                   const s = t.status || 'To Do';
                   if (column.key === 'Completed') return ['Completed', 'Approved', 'done', 'completed'].includes(s);
                   if (column.key === 'On Process') return ['On Process', 'in_progress', 'on_process'].includes(s);

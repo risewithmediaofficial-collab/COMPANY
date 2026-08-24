@@ -281,6 +281,11 @@ export const TaskDetails = () => {
                   {task.taskCategory === 'non_content' ? 'Non-Content Task' : 'Content Task'}
                 </Badge>
               )}
+              {task.isOverTarget && (
+                <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-xs font-extrabold uppercase text-rose-600 dark:text-rose-400 flex items-center gap-1.5 shadow-2xs">
+                  🔴 Over Target Deliverable
+                </span>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
               {task.taskTitle || task.title}
@@ -310,6 +315,20 @@ export const TaskDetails = () => {
             </p>
           </div>
         </div>
+
+        {task.isOverTarget && (
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3.5 sm:p-4 text-rose-700 dark:text-rose-300 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 font-bold">
+              <span className="text-base">🔴</span>
+              <span>This task exceeded the configured monthly deliverable quota for this project.</span>
+            </div>
+            {task.targetExceededBy > 0 && (
+              <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-700 dark:text-rose-300 font-extrabold text-[11px] border border-rose-500/30">
+                +{task.targetExceededBy} Exceeded Over Target
+              </span>
+            )}
+          </div>
+        )}
 
         {/* ── Notion Property Matrix ── */}
         <div className="border-t border-border/70 pt-4 grid gap-1 sm:grid-cols-2">
