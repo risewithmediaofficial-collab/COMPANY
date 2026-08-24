@@ -45,7 +45,11 @@ import {
   ArrowRight,
   Layers,
   CheckCheck,
+  RefreshCw,
+  SlidersHorizontal,
+  Radio,
 } from 'lucide-react';
+import { getPersonColor, PersonAssigneeBadge } from '../utils/personColors';
 import {
   AreaChart,
   Area,
@@ -81,7 +85,9 @@ const Dashboard = () => {
   const queryClient = useQueryClient();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('command'); // 'command' | 'operations' | 'team'
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastSynced, setLastSynced] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('command'); // 'command' | 'metrics' | 'operations' | 'team'
 
   // Modals
   const [showEodModal, setShowEodModal] = useState(false);
@@ -94,6 +100,8 @@ const Dashboard = () => {
   const [eodSearch, setEodSearch] = useState('');
   const [eodDays, setEodDays] = useState(7);
   const [showFinance, setShowFinance] = useState(true);
+  const [userMetricSearch, setUserMetricSearch] = useState('');
+  const [userMetricRoleFilter, setUserMetricRoleFilter] = useState('all');
 
   const socket = useSocket();
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager';
@@ -115,8 +123,9 @@ const Dashboard = () => {
     return name.includes(query) || dept.includes(query) || summary.includes(query);
   });
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchStats = async (showLoader = true) => {
+    if (showLoader) setLoading(true);
+    setIsRefreshing(true);
     try {
       const endpoint = user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager'
         ? '/reports/admin'
@@ -135,46 +144,53 @@ const Dashboard = () => {
 
       const res = await api.get(endpoint, { params });
       setData(res.data);
+      setLastSynced(new Date());
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   useEffect(() => {
     if (!user?.role) return;
-    fetchStats();
+    fetchStats(true);
   }, [user?.role, period, startDate, endDate]);
 
+  // Live Auto-Refresh Polling Interval (Every 12s)
+  useEffect(() => {
+    if (!user?.role) return;
+    const interval = setInterval(() => {
+      fetchStats(false);
+    }, 12000);
+    return () => clearInterval(interval);
+  }, [user?.role, period, startDate, endDate]);
+
+  // Live Real-Time Socket Event Listeners for All Users
   useEffect(() => {
     if (!socket) return;
 
     const handleUpdate = () => {
-      fetchStats();
+      fetchStats(false);
       queryClient.invalidateQueries({ queryKey: ['eod-reports'] });
     };
 
-    socket.on('userCreated', handleUpdate);
-    socket.on('clientCreated', handleUpdate);
-    socket.on('projectCreated', handleUpdate);
-    socket.on('taskCreated', handleUpdate);
-    socket.on('invoicePaid', handleUpdate);
-    socket.on('expenseApproved', handleUpdate);
-    socket.on('leadUpdated', handleUpdate);
-    socket.on('eodSubmitted', handleUpdate);
+    const liveEvents = [
+      'userCreated', 'userUpdated',
+      'clientCreated', 'clientUpdated',
+      'projectCreated', 'projectUpdated', 'projectDeleted',
+      'taskCreated', 'taskUpdated', 'taskDeleted', 'taskStatusUpdated',
+      'invoicePaid', 'expenseApproved', 'leadUpdated',
+      'eodSubmitted', 'attendanceUpdated', 'deliverableTargetUpdated',
+    ];
+
+    liveEvents.forEach((evt) => socket.on(evt, handleUpdate));
 
     return () => {
-      socket.off('userCreated', handleUpdate);
-      socket.off('clientCreated', handleUpdate);
-      socket.off('projectCreated', handleUpdate);
-      socket.off('taskCreated', handleUpdate);
-      socket.off('invoicePaid', handleUpdate);
-      socket.off('expenseApproved', handleUpdate);
-      socket.off('leadUpdated', handleUpdate);
-      socket.off('eodSubmitted', handleUpdate);
+      liveEvents.forEach((evt) => socket.off(evt, handleUpdate));
     };
-  }, [socket, queryClient]);
+  }, [socket, queryClient, period, startDate, endDate]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -276,31 +292,50 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex items-center gap-1 mt-6 pt-4 border-t border-border/60 overflow-x-auto custom-scrollbar">
-            {[
-              { id: 'command', label: 'Agency Command Center', icon: Activity },
-              { id: 'operations', label: 'My Focus & Deliverables', icon: Target },
-              { id: 'team', label: 'Team Workload & EOD', icon: Users },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-                  }`}
-                >
-                  <Icon size={14} />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+          {/* Tab Navigation & Live Sync Status */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-6 pt-4 border-t border-border/60">
+            <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
+              {[
+                { id: 'command', label: 'Command Center', icon: Activity },
+                { id: 'metrics', label: 'All Metrics & Analytics', icon: BarChart3 },
+                { id: 'operations', label: 'My Focus & Deliverables', icon: Target },
+                { id: 'team', label: 'Team Workload & EOD', icon: Users },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    }`}
+                  >
+                    <Icon size={14} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20 shadow-2xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Real-Time Sync
+              </span>
+              <button
+                type="button"
+                onClick={() => fetchStats(false)}
+                title={`Last synced: ${lastSynced.toLocaleTimeString()}`}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border bg-background hover:bg-secondary text-muted-foreground hover:text-foreground text-[10px] font-semibold transition-all"
+              >
+                <RefreshCw size={11} className={isRefreshing ? 'animate-spin text-primary' : ''} />
+                <span>Sync</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -817,74 +852,292 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* ── TAB 2: MY FOCUS & DELIVERABLES ──────────────────────────────────── */}
-        {activeTab === 'operations' && (
+        {/* ── TAB: ALL METRICS & COMPANY ANALYTICS ──────────────────────────── */}
+        {activeTab === 'metrics' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <AttendanceWidget />
+            {/* 1. All Metrics Summary KPIs Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+              <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Projects</span>
+                <div className="text-xl sm:text-2xl font-black text-foreground">{stats.totalProjects || 0}</div>
+                <div className="text-[10px] text-emerald-600 font-semibold">{stats.activeProjects || 0} Active</div>
               </div>
 
-              <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+              <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Active Tasks</span>
+                <div className="text-xl sm:text-2xl font-black text-foreground">{stats.totalTasks || 0}</div>
+                <div className="text-[10px] text-primary font-semibold">{taskDist['On Process'] || 0} In Process</div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5 shadow-xs space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600">Over-Target Tasks</span>
+                <div className="text-xl sm:text-2xl font-black text-rose-600">{stats.totalOverTargetTasks || 0}</div>
+                <div className="text-[10px] text-rose-600/80 font-bold">🔴 Monthly Quota Exceeded</div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 shadow-xs space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Overdue Deliverables</span>
+                <div className="text-xl sm:text-2xl font-black text-amber-600">{stats.overdueTasks || 0}</div>
+                <div className="text-[10px] text-amber-600/80 font-semibold">Requires Attention</div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Completed Deliverables</span>
+                <div className="text-xl sm:text-2xl font-black text-emerald-600">{taskDist['Completed'] || 0}</div>
+                <div className="text-[10px] text-muted-foreground">Archived & Published</div>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Active Team</span>
+                <div className="text-xl sm:text-2xl font-black text-foreground">{stats.totalUsers || (viz.allUserMetrics || []).length}</div>
+                <div className="text-[10px] text-primary font-semibold">Logged Team Size</div>
+              </div>
+            </div>
+
+            {/* 2. All Users Live Performance & Workload Matrix */}
+            <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <Users size={18} className="text-primary" />
+                    Cross-User Performance & Workload Matrix
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Live real-time workload, task completion rates, in-process tasks, and over-target deliverables for every team member.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative">
+                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search member name..."
+                      value={userMetricSearch}
+                      onChange={(e) => setUserMetricSearch(e.target.value)}
+                      className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:border-primary outline-none"
+                    />
+                  </div>
+
+                  <select
+                    value={userMetricRoleFilter}
+                    onChange={(e) => setUserMetricRoleFilter(e.target.value)}
+                    className="px-3 py-1.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground focus:border-primary outline-none cursor-pointer"
+                  >
+                    <option value="all">All Roles</option>
+                    <option value="employee">Employees</option>
+                    <option value="manager">Managers</option>
+                    <option value="admin">Admins</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* User Metric Rows / Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border/70 text-muted-foreground font-bold uppercase text-[10px]">
+                      <th className="py-2.5 px-3">Team Member</th>
+                      <th className="py-2.5 px-3">Role / Dept</th>
+                      <th className="py-2.5 px-3 text-center">Active Tasks</th>
+                      <th className="py-2.5 px-3 text-center">In Process</th>
+                      <th className="py-2.5 px-3 text-center">Completed</th>
+                      <th className="py-2.5 px-3 text-center">Over-Target</th>
+                      <th className="py-2.5 px-3 text-center">Overdue</th>
+                      <th className="py-2.5 px-3">Workload Capacity</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {((viz.allUserMetrics || viz.teamWorkload || []).filter((u) => {
+                      if (userMetricRoleFilter !== 'all' && u.role !== userMetricRoleFilter) return false;
+                      if (!userMetricSearch.trim()) return true;
+                      const q = userMetricSearch.toLowerCase();
+                      return (u.name || '').toLowerCase().includes(q) || (u.department || '').toLowerCase().includes(q);
+                    })).map((member) => {
+                      return (
+                        <tr key={member.userId} className="hover:bg-secondary/25 transition-colors">
+                          <td className="py-3 px-3">
+                            <PersonAssigneeBadge person={member} size="sm" />
+                          </td>
+                          <td className="py-3 px-3 text-muted-foreground font-medium capitalize">
+                            {member.department || member.position || member.role}
+                          </td>
+                          <td className="py-3 px-3 text-center font-bold text-foreground">
+                            {member.activeTasks || 0}
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[11px]">
+                              {member.inProgressTasks || 0}
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
+                              {member.completedTasks || 0} ({member.completionRate || 0}%)
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            {member.overTargetTasks > 0 ? (
+                              <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 font-extrabold text-[11px] border border-rose-500/30">
+                                🔴 {member.overTargetTasks} Over
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground/60">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-center">
+                            {member.overdueTasks > 0 ? (
+                              <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 font-bold text-[11px]">
+                                ⚠️ {member.overdueTasks}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground/60">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 min-w-[140px]">
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10px]">
+                                <span className="text-muted-foreground font-medium">Capacity</span>
+                                <span className="font-bold text-foreground">{member.workloadPercent || 0}%</span>
+                              </div>
+                              <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    (member.workloadPercent || 0) >= 90
+                                      ? 'bg-rose-500'
+                                      : (member.workloadPercent || 0) >= 70
+                                      ? 'bg-amber-500'
+                                      : 'bg-primary'
+                                  }`}
+                                  style={{ width: `${member.workloadPercent || 0}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 3. Monthly Project Deliverables Quotas & Real-Time Activity Feed */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Project Deliverable Quotas Tracker */}
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                  <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-primary" />
-                    My Deliverables & Priority Tasks
-                  </h2>
-                  <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">
-                    All Tasks →
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Target size={16} className="text-primary" />
+                      Project Monthly Deliverable Quotas
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Configured target deliverables vs actual fulfillment this month.</p>
+                  </div>
+                  <Link to="/projects" className="text-xs font-semibold text-primary hover:underline">
+                    Projects →
                   </Link>
                 </div>
 
-                <div className="divide-y divide-border/60">
-                  {(data.recentTasks || data.myTasks || []).length > 0 ? (
-                    (data.recentTasks || data.myTasks || []).slice(0, 8).map((task) => (
-                      <div key={task._id} className="py-3 flex items-center justify-between gap-3 group hover:bg-secondary/20 px-2 rounded-xl transition-colors">
-                        <div className="space-y-1">
-                          <p
-                            onClick={() => navigate('/tasks')}
-                            className="text-xs font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer"
-                          >
-                            {task.title || task.taskTitle}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground">
-                            {task.client?.name || task.client?.company || task.clientName ? (
-                              <span className="font-medium text-foreground/75">
-                                🏢 {task.client?.company || task.client?.name || task.clientName}
-                              </span>
-                            ) : null}
-                            {task.project?.name || task.projectName ? (
-                              <span className="font-medium text-foreground/75">
-                                📁 {task.project?.name || task.projectName}
-                              </span>
-                            ) : null}
-                            {task.createdAt && (
-                              <span className="inline-flex items-center gap-1 text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-md">
-                                📅 Created: {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                              </span>
-                            )}
-                            <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
-                              ⏰ Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing / TBD'}
+                <div className="space-y-3 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
+                  {(viz.activeProjectDeliverables || []).length > 0 ? (
+                    (viz.activeProjectDeliverables || []).map((target) => (
+                      <div
+                        key={target._id}
+                        onClick={() => navigate(`/projects/${target.projectId}`)}
+                        className="p-3.5 rounded-xl border border-border bg-secondary/15 hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer space-y-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="text-xs font-bold text-foreground hover:text-primary transition-colors">
+                              {target.projectName}
+                            </h4>
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase">
+                              {target.contentType} Deliverables
                             </span>
                           </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground capitalize">
-                            {task.status?.replace(/_/g, ' ') || 'Todo'}
-                          </span>
-                          {task.priority && (
-                            <span className={`text-[10px] font-semibold capitalize ${
-                              task.priority === 'urgent' || task.priority === 'high' ? 'text-red-500 font-bold' : 'text-muted-foreground'
-                            }`}>
-                              {task.priority}
+                          {target.isOver ? (
+                            <span className="px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 font-extrabold text-[10px]">
+                              🔴 +{target.exceededBy} Over Target
+                            </span>
+                          ) : target.currentCount >= target.targetQuantity ? (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                              ✅ Target Reached
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
+                              ⚡ {target.remaining} Remaining
                             </span>
                           )}
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-muted-foreground">Fulfillment</span>
+                            <span className="font-bold text-foreground">
+                              {target.currentCount} / {target.targetQuantity} ({target.progressPercent}%)
+                            </span>
+                          </div>
+                          <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                target.isOver ? 'bg-rose-500' : target.progressPercent >= 100 ? 'bg-emerald-500' : 'bg-primary'
+                              }`}
+                              style={{ width: `${Math.min(100, target.progressPercent)}%` }}
+                            />
+                          </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="py-8 text-center text-xs text-muted-foreground">
-                      No active tasks found in your priority queue.
+                    <div className="p-8 text-center text-xs text-muted-foreground">
+                      No monthly deliverable quotas configured for current active projects.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Real-Time Live Activity Stream */}
+              <div className="bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Activity size={16} className="text-emerald-600" />
+                      Live Agency Activity Stream
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Real-time log of updates made across all logins and workflows.</p>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Stream
+                  </span>
+                </div>
+
+                <div className="space-y-2.5 max-h-[380px] overflow-y-auto custom-scrollbar pr-1 divide-y divide-border/40">
+                  {(data.activityLogs || []).length > 0 ? (
+                    (data.activityLogs || []).map((log, idx) => (
+                      <div key={log._id || idx} className="pt-2.5 first:pt-0 flex items-start gap-2.5 text-xs">
+                        <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                          {log.actor?.avatar ? (
+                            <img src={getAssetUrl(log.actor.avatar)} alt="" className="h-full w-full rounded-full object-cover" />
+                          ) : (
+                            log.actor?.name?.charAt(0) || 'U'
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-0.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-foreground truncate">{log.actor?.name || 'System'}</span>
+                            <span className="text-[10px] text-muted-foreground shrink-0">
+                              {log.createdAt ? new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            <span className="font-semibold text-foreground">{log.action || 'Updated'}</span>: {log.description || log.title || 'Action recorded'}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-xs text-muted-foreground">
+                      No recent activity logs recorded yet.
                     </div>
                   )}
                 </div>
@@ -898,27 +1151,40 @@ const Dashboard = () => {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border">
               <div>
-                <h2 className="text-sm font-bold text-foreground">Team Daily Work Reports (EOD)</h2>
-                <p className="text-xs text-muted-foreground">Daily progress logs submitted by your project and production team.</p>
+                <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Users size={16} className="text-primary" />
+                  Team EOD Submissions & Reports
+                </h2>
+                <p className="text-xs text-muted-foreground">Review daily summaries and logs submitted across departments.</p>
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input
                     type="text"
+                    placeholder="Filter by name or dept..."
                     value={eodSearch}
                     onChange={(e) => setEodSearch(e.target.value)}
-                    placeholder="Search by name, summary..."
-                    className="pl-8 pr-3 py-1.5 rounded-xl border border-border text-xs bg-background w-48 sm:w-64"
+                    className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:border-primary outline-none"
                   />
                 </div>
+
+                <select
+                  value={eodDays}
+                  onChange={(e) => setEodDays(Number(e.target.value))}
+                  className="px-3 py-1.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground focus:border-primary outline-none cursor-pointer"
+                >
+                  <option value={1}>Today</option>
+                  <option value={7}>Last 7 Days</option>
+                  <option value={14}>Last 14 Days</option>
+                  <option value={30}>Last 30 Days</option>
+                </select>
               </div>
             </div>
 
-            {/* EOD Reports Grid */}
             {eodReports.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {eodReports.map((report) => (
                   <div
                     key={report._id}
@@ -926,24 +1192,24 @@ const Dashboard = () => {
                       setSelectedEodRecord(report);
                       setShowEodDetailModal(true);
                     }}
-                    className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 transition-all cursor-pointer space-y-3 group shadow-sm"
+                    className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 transition-all cursor-pointer shadow-xs space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                          {report.user?.name?.charAt(0) || 'U'}
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                          {report.user?.avatar ? (
+                            <img src={getAssetUrl(report.user.avatar)} alt="" className="h-full w-full rounded-full object-cover" />
+                          ) : (
+                            report.user?.name?.charAt(0) || 'U'
+                          )}
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                            {report.user?.name || 'Team Member'}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground capitalize">
-                            {report.user?.department || report.user?.role || 'Employee'}
-                          </p>
+                          <p className="text-xs font-bold text-foreground leading-none">{report.user?.name}</p>
+                          <p className="text-[10px] text-muted-foreground capitalize mt-0.5">{report.user?.department || report.user?.role}</p>
                         </div>
                       </div>
-                      <span className="text-[10px] text-muted-foreground">
-                        {new Date(report.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <span className="text-[10px] font-semibold text-muted-foreground">
+                        {new Date(report.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
 
@@ -990,17 +1256,64 @@ const Dashboard = () => {
       <div className="space-y-6">
         <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">Employee Workspace</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Real-Time Workspace
+              </span>
+              <span className="text-xs text-muted-foreground">• {currentDateStr}</span>
+            </div>
             <h1 className="text-2xl font-black text-foreground mt-0.5">{getGreeting()}, {user.name} 👋</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Here is your daily agenda, assigned deliverables, and attendance log.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Here is your daily live agenda, assigned deliverables, and attendance metrics.</p>
           </div>
-          <button
-            onClick={() => setShowEodModal(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm"
-          >
-            <CheckCircle2 size={15} />
-            <span>Submit Daily EOD Report</span>
-          </button>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fetchStats(false)}
+              title={`Last synced: ${lastSynced.toLocaleTimeString()}`}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border bg-background hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-semibold shadow-2xs transition-all"
+            >
+              <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-primary' : ''} />
+              <span>Sync</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowEodModal(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm transition-all"
+            >
+              <CheckCircle2 size={15} />
+              <span>Submit Daily EOD</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Employee Metric Badges */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">My Active Tasks</span>
+            <div className="text-xl sm:text-2xl font-black text-foreground">{pendingTasks.length}</div>
+            <div className="text-[10px] text-primary font-semibold">Priority Queue</div>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">In Progress</span>
+            <div className="text-xl sm:text-2xl font-black text-blue-600">{data?.inProgressTasks || 0}</div>
+            <div className="text-[10px] text-muted-foreground">Currently Producing</div>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Completed (Week)</span>
+            <div className="text-xl sm:text-2xl font-black text-emerald-600">{data?.completedThisWeek || 0}</div>
+            <div className="text-[10px] text-emerald-600 font-semibold">✓ Delivered</div>
+          </div>
+
+          <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5 shadow-xs space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600">Over-Target Tasks</span>
+            <div className="text-xl sm:text-2xl font-black text-rose-600">{data?.overTargetTasks || 0}</div>
+            <div className="text-[10px] text-rose-600/80 font-bold">🔴 Over Quota</div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -12,6 +12,7 @@ import SOP from '../models/sop.model.js';
 import ActivityLog from '../models/activityLog.model.js';
 import TaskNote from '../models/taskNote.model.js';
 import DmVideoShoot from '../models/dmVideoShoot.model.js';
+import ProjectMonthlyDeliverable from '../models/projectMonthlyDeliverable.model.js';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -248,26 +249,85 @@ export const getAdminDashboard = async (req, res) => {
       else atRiskClients++;
     });
 
-    // 7. Team Workload Calculation
-    const teamWorkload = allUsers.map((u) => {
+    // 7. All Users Performance, Workload & Metrics Matrix
+    const currentMonthNum = now.getMonth() + 1;
+    const currentYearNum = now.getFullYear();
+
+    const monthlyDeliverablesList = await ProjectMonthlyDeliverable.find({
+      month: currentMonthNum,
+      year: currentYearNum,
+    }).populate('projectId', 'name client status').lean();
+
+    const allUserMetrics = allUsers.map((u) => {
+      const uId = String(u._id);
       const userTasks = allTasks.filter((t) => {
-        const isAssigned = Array.isArray(t.assignedTo) && t.assignedTo.some((a) => String(a._id || a) === String(u._id));
-        const notDone = !['Completed', 'Approved', 'done'].includes(t.status);
-        return isAssigned && notDone;
+        const isAssigned = (Array.isArray(t.assignedTo) && t.assignedTo.some((a) => String(a._id || a) === uId))
+          || String(t.scriptWriterAssigned?._id || t.scriptWriterAssigned) === uId
+          || String(t.videographerAssigned?._id || t.videographerAssigned) === uId
+          || String(t.editorAssigned?._id || t.editorAssigned) === uId
+          || String(t.publisherAssigned?._id || t.publisherAssigned) === uId;
+        return isAssigned;
       });
-      const activeCount = userTasks.length;
-      // Workload normalized to standard 8-10 task capacity
-      const percent = Math.min(Math.round((activeCount / 8) * 100), 100);
+
+      const totalAssigned = userTasks.length;
+      const completed = userTasks.filter((t) => ['Completed', 'Approved', 'done', 'completed'].includes(t.status)).length;
+      const inProgress = userTasks.filter((t) => ['On Process', 'in_progress', 'on_process'].includes(t.status)).length;
+      const todo = userTasks.filter((t) => ['To Do', 'todo', 'pending'].includes(t.status) || !t.status).length;
+      const overdue = userTasks.filter((t) => t.dueDate && new Date(t.dueDate) < now && !['Completed', 'Approved', 'done', 'completed'].includes(t.status)).length;
+      const overTarget = userTasks.filter((t) => t.isOverTarget).length;
+      const completionRate = totalAssigned > 0 ? Math.round((completed / totalAssigned) * 100) : 0;
+      const activeCount = totalAssigned - completed;
+
       return {
         userId: u._id,
         name: u.name,
+        email: u.email,
         role: u.role,
         department: u.department || u.position || u.role,
         avatar: u.avatar,
+        totalTasks: totalAssigned,
+        completedTasks: completed,
+        inProgressTasks: inProgress,
+        todoTasks: todo,
+        overdueTasks: overdue,
+        overTargetTasks: overTarget,
         activeTasks: activeCount,
-        workloadPercent: percent,
+        completionRate,
+        workloadPercent: Math.min(Math.round((activeCount / 8) * 100), 100),
       };
-    }).sort((a, b) => b.activeTasks - a.activeTasks).slice(0, 6);
+    }).sort((a, b) => b.activeTasks - a.activeTasks);
+
+    const teamWorkload = allUserMetrics.slice(0, 8);
+
+    // Active monthly project deliverables quota progress
+    const activeProjectDeliverables = monthlyDeliverablesList.map((target) => {
+      const projId = String(target.projectId?._id || target.projectId);
+      const projName = target.projectId?.name || 'Project';
+      const matchingTasks = allTasks.filter((t) => {
+        const tProj = String(t.project?._id || t.project);
+        if (tProj !== projId) return false;
+        const taskType = (t.taskType || '').toLowerCase();
+        const contentType = (t.contentType || '').toLowerCase();
+        const targetType = (target.contentType || '').toLowerCase();
+        return taskType.includes(targetType) || contentType.includes(targetType) || targetType.includes(taskType);
+      });
+      const currentCount = matchingTasks.length;
+      const targetQty = target.targetQuantity || 1;
+      return {
+        _id: target._id,
+        projectId: projId,
+        projectName: projName,
+        contentType: target.contentType,
+        targetQuantity: targetQty,
+        currentCount,
+        remaining: Math.max(0, targetQty - currentCount),
+        isOver: currentCount > targetQty,
+        exceededBy: Math.max(0, currentCount - targetQty),
+        progressPercent: Math.min(100, Math.round((currentCount / targetQty) * 100)),
+      };
+    });
+
+    const totalOverTargetTasks = allTasks.filter((t) => t.isOverTarget).length;
 
     // 8. Content Production Pipeline
     const contentPipeline = {
@@ -314,7 +374,7 @@ export const getAdminDashboard = async (req, res) => {
     const recentActivityLogs = await ActivityLog.find()
       .populate('actor', 'name email avatar role')
       .sort({ createdAt: -1 })
-      .limit(10);
+      .limit(15);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -336,6 +396,7 @@ export const getAdminDashboard = async (req, res) => {
         activeProjects,
         totalTasks,
         overdueTasks,
+        totalOverTargetTasks,
         pendingApprovals,
         totalPending: pendingBalance,
         grossAmount: thisMonthRev,
@@ -366,6 +427,8 @@ export const getAdminDashboard = async (req, res) => {
           breakdown: clientStatusBreakdown,
         },
         teamWorkload,
+        allUserMetrics,
+        activeProjectDeliverables,
         contentPipeline,
         platformCounts,
         salesFunnel,
@@ -434,7 +497,19 @@ export const getEmployeeDashboard = async (req, res) => {
       { publisherAssigned: req.user._id },
     ];
 
-    const [myTasks, overdueTasks, todayAttendance, completedThisWeek, weeklyLoggedUpdates, personalTasksThisWeek, recentEodReports, sops] = await Promise.all([
+    const [
+      myTasks,
+      overdueTasks,
+      todayAttendance,
+      completedThisWeek,
+      weeklyLoggedUpdates,
+      personalTasksThisWeek,
+      recentEodReports,
+      sops,
+      inProgressCount,
+      overTargetCount,
+      allAssignedCount,
+    ] = await Promise.all([
       Task.find({
         $or: userTaskOr,
         status: { $nin: ['done', 'completed', 'approved'] },
@@ -481,12 +556,26 @@ export const getEmployeeDashboard = async (req, res) => {
         .populate('createdBy', 'name email')
         .sort({ createdAt: -1 })
         .limit(6),
+      Task.countDocuments({
+        $or: userTaskOr,
+        status: { $in: ['On Process', 'in_progress', 'on_process'] },
+      }),
+      Task.countDocuments({
+        $or: userTaskOr,
+        isOverTarget: true,
+      }),
+      Task.countDocuments({
+        $or: userTaskOr,
+      }),
     ]);
 
     res.json({
       success: true,
       myTasks,
       assignedTasks: myTasks,
+      totalAssignedTasks: allAssignedCount,
+      inProgressTasks: inProgressCount,
+      overTargetTasks: overTargetCount,
       overdueTasks,
       todayAttendance,
       completedThisWeek,
