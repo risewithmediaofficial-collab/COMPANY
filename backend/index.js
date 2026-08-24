@@ -113,6 +113,7 @@ initSocket(io);
 initCronJobs(io);
 
 app.set('io', io);
+global.io = io;
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(mongoSanitize());

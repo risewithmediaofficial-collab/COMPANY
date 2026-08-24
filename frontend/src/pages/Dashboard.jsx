@@ -183,6 +183,7 @@ const Dashboard = () => {
       'taskCreated', 'taskUpdated', 'taskDeleted', 'taskStatusUpdated',
       'invoicePaid', 'expenseApproved', 'leadUpdated',
       'eodSubmitted', 'attendanceUpdated', 'deliverableTargetUpdated',
+      'activityLogged', 'metricsUpdated',
     ];
 
     liveEvents.forEach((evt) => socket.on(evt, handleUpdate));
