@@ -155,7 +155,7 @@ const taskFormSchema = z.object({
   videoType: z.string().optional(),
   contentTitle: z.string().optional(),
   taskType: z.string().optional(),
-  client: z.string().min(1, 'Client is required'),
+  client: z.string().optional(),
   project: z.string().min(1, 'Select a project first'),
   assignedTo: z.string().optional(),
   assignedManager: z.string().optional(),
@@ -401,6 +401,15 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
 
   const filteredProjects = useMemo(() => {
     if (!selectedClientId) return projects;
+    if (selectedClientId === '__saas_internal__') {
+      return projects.filter(
+        (project) =>
+          project.isInternal ||
+          project.productType === 'saas_product' ||
+          project.productType === 'internal_tool' ||
+          !project.client
+      );
+    }
     return projects.filter((project) => (project.client?._id || project.client) === selectedClientId);
   }, [projects, selectedClientId]);
 
@@ -587,6 +596,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
 
   const onSubmit = async (data) => {
     const uploadedAttachments = await uploadFiles(attachmentFiles);
+    const resolvedClient = (data.client && data.client !== '__saas_internal__') ? data.client : undefined;
 
     if (task) {
       // Edit Mode manual validation
@@ -599,6 +609,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         ...data,
         title: data.taskTitle,
         taskTitle: data.taskTitle,
+        client: resolvedClient,
         project: data.project || undefined,
         attachments: [...existingAttachments, ...uploadedAttachments],
         dueDate: data.dueDate || undefined,
@@ -627,7 +638,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           ...t,
           title: t.taskTitle,
           taskTitle: t.taskTitle,
-          client: data.client || task.client?._id || task.client,
+          client: resolvedClient || task.client?._id || task.client,
           project: data.project || task.project?._id || task.project,
           assignedTo: t.assignedTo || data.assignedTo,
           assignedManager: data.assignedManager || undefined,
@@ -660,7 +671,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         ...t,
         title: t.taskTitle,
         project: data.project || undefined,
-        client: data.client || undefined,
+        client: resolvedClient,
         attachments: [...existingAttachments, ...uploadedAttachments],
         dueDate: data.dueDate || undefined,
         deadline: data.dueDate || undefined,
@@ -715,14 +726,17 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         name="client"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Client *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <FormLabel>Client / Scope</FormLabel>
+            <Select onValueChange={(v) => { field.onChange(v); form.setValue('project', ''); }} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select client" />
+                  <SelectValue placeholder="Select client or SaaS/Internal" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
+                <SelectItem key="__saas_internal__" value="__saas_internal__" className="font-semibold text-primary">
+                  🚀 SaaS & Internal Agency Projects (No Client)
+                </SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client._id} value={client._id}>
                     {client.name} {client.company ? `- ${client.company}` : ''}
@@ -1945,10 +1959,25 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <FormField control={form.control} name="client" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Client <span className="text-rose-500">*</span></FormLabel>
+                    <FormLabel className="text-xs font-semibold text-foreground/90">
+                      Client / Scope {field.value !== '__saas_internal__' && <span className="text-muted-foreground text-[10px] font-normal">(Optional for SaaS / Internal)</span>}
+                    </FormLabel>
                     <Select onValueChange={(v) => { field.onChange(v); form.setValue('project', ''); }} value={field.value}>
-                      <FormControl><SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border"><SelectValue placeholder="Select client" /></SelectTrigger></FormControl>
-                      <SelectContent>{clients.map((c) => <SelectItem key={c._id} value={c._id}>{c.name}{c.company ? ` — ${c.company}` : ''}</SelectItem>)}</SelectContent>
+                      <FormControl>
+                        <SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border">
+                          <SelectValue placeholder="Select client or SaaS/Internal" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem key="__saas_internal__" value="__saas_internal__" className="font-semibold text-primary">
+                          🚀 SaaS & Internal Agency Projects (No Client)
+                        </SelectItem>
+                        {clients.map((c) => (
+                          <SelectItem key={c._id} value={c._id}>
+                            {c.name}{c.company ? ` — ${c.company}` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
@@ -1959,13 +1988,17 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                     <Select onValueChange={field.onChange} value={field.value || undefined} disabled={!selectedClientId}>
                       <FormControl>
                         <SelectTrigger className="rounded-xl h-9 text-xs bg-background border-border disabled:opacity-50">
-                          <SelectValue placeholder={selectedClientId ? 'Select project' : 'Select client first'} />
+                          <SelectValue placeholder={selectedClientId ? (selectedClientId === '__saas_internal__' ? 'Select SaaS / Internal project' : 'Select project') : 'Select client / scope first'} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {filteredProjects.length === 0
-                          ? <SelectItem value="_empty" disabled>No projects for this client</SelectItem>
-                          : filteredProjects.map((p) => <SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>)}
+                          ? <SelectItem value="_empty" disabled>No projects found</SelectItem>
+                          : filteredProjects.map((p) => (
+                              <SelectItem key={p._id} value={p._id}>
+                                {p.name} {p.isInternal || p.productType === 'saas_product' || p.productType === 'internal_tool' ? '• [SaaS/Internal]' : ''}
+                              </SelectItem>
+                            ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -2016,8 +2049,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
               </div>
             </div>
 
-            {/* Step 2: Task Cards – shown only after client + project selected */}
-            {selectedClientId && selectedProject ? (
+            {/* Step 2: Task Cards – shown whenever project is selected */}
+            {(selectedClientId || selectedProject) && selectedProject ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
                   <div className="flex items-center gap-2.5">

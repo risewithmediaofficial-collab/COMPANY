@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 export const Select = React.forwardRef(({ value, defaultValue, ...props }, ref) => {
@@ -27,14 +27,52 @@ export const SelectTrigger = React.forwardRef(({ className, children, ...props }
 ));
 SelectTrigger.displayName = 'SelectTrigger';
 
-export const SelectContent = React.forwardRef(({ className, children, ...props }, ref) => (
+export const SelectScrollUpButton = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn('flex cursor-default items-center justify-center py-1 text-muted-foreground hover:text-foreground', className)}
+    {...props}
+  >
+    <ChevronUp size={14} />
+  </SelectPrimitive.ScrollUpButton>
+));
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
+
+export const SelectScrollDownButton = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn('flex cursor-default items-center justify-center py-1 text-muted-foreground hover:text-foreground', className)}
+    {...props}
+  >
+    <ChevronDown size={14} />
+  </SelectPrimitive.ScrollDownButton>
+));
+SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
+
+export const SelectContent = React.forwardRef(({ className, children, position = 'popper', ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
-      className={cn('z-[99999] min-w-[8rem] overflow-hidden rounded-2xl border border-slate-200/90 dark:border-border bg-white/98 dark:bg-card/98 p-1.5 shadow-2xl backdrop-blur-xl space-y-0.5 custom-scrollbar', className)}
+      position={position}
+      className={cn(
+        'z-[99999] min-w-[8rem] max-h-[320px] overflow-hidden rounded-2xl border border-slate-200/90 dark:border-border bg-white/98 dark:bg-card/98 p-1.5 shadow-2xl backdrop-blur-xl',
+        position === 'popper' &&
+          'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
+        className
+      )}
       {...props}
     >
-      <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          'p-1 max-h-[260px] overflow-y-auto custom-scrollbar',
+          position === 'popper' &&
+            'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
 ));
