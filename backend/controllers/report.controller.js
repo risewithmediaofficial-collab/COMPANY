@@ -426,16 +426,36 @@ export const getEmployeeDashboard = async (req, res) => {
 
     const userPos = req.user.position ? req.user.position.toLowerCase() : null;
 
+    const userTaskOr = [
+      { assignedTo: req.user._id },
+      { scriptWriterAssigned: req.user._id },
+      { videographerAssigned: req.user._id },
+      { editorAssigned: req.user._id },
+      { publisherAssigned: req.user._id },
+    ];
+
     const [myTasks, overdueTasks, todayAttendance, completedThisWeek, weeklyLoggedUpdates, personalTasksThisWeek, recentEodReports, sops] = await Promise.all([
-      Task.find({ assignedTo: req.user._id, status: { $nin: ['done'] }, parent: null })
+      Task.find({
+        $or: userTaskOr,
+        status: { $nin: ['done', 'completed', 'approved'] },
+      })
         .populate('project', 'name')
-        .sort({ dueDate: 1 })
-        .limit(10),
-      Task.countDocuments({ assignedTo: req.user._id, dueDate: { $lt: new Date() }, status: { $nin: ['done', 'approved'] } }),
-      Attendance.findOne({ user: req.user._id, date: today }),
-      Task.countDocuments({ assignedTo: req.user._id, status: 'done', completedAt: { $gte: weekStart } }),
+        .populate('client', 'name company logo')
+        .sort({ createdAt: -1 })
+        .limit(20),
       Task.countDocuments({
-        assignedTo: req.user._id,
+        $or: userTaskOr,
+        dueDate: { $lt: new Date() },
+        status: { $nin: ['done', 'completed', 'approved'] },
+      }),
+      Attendance.findOne({ user: req.user._id, date: today }),
+      Task.countDocuments({
+        $or: userTaskOr,
+        status: { $in: ['done', 'completed', 'approved'] },
+        updatedAt: { $gte: weekStart },
+      }),
+      Task.countDocuments({
+        $or: userTaskOr,
         'progressUpdates.workDate': { $gte: weekStart },
       }),
       Task.countDocuments({
@@ -466,6 +486,7 @@ export const getEmployeeDashboard = async (req, res) => {
     res.json({
       success: true,
       myTasks,
+      assignedTasks: myTasks,
       overdueTasks,
       todayAttendance,
       completedThisWeek,

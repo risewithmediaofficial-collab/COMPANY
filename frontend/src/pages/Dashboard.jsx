@@ -837,21 +837,49 @@ const Dashboard = () => {
                 </div>
 
                 <div className="divide-y divide-border/60">
-                  {(data.recentTasks || []).length > 0 ? (
-                    data.recentTasks.slice(0, 6).map((task) => (
-                      <div key={task._id} className="py-3 flex items-center justify-between gap-3 group">
-                        <div>
-                          <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                  {(data.recentTasks || data.myTasks || []).length > 0 ? (
+                    (data.recentTasks || data.myTasks || []).slice(0, 8).map((task) => (
+                      <div key={task._id} className="py-3 flex items-center justify-between gap-3 group hover:bg-secondary/20 px-2 rounded-xl transition-colors">
+                        <div className="space-y-1">
+                          <p
+                            onClick={() => navigate('/tasks')}
+                            className="text-xs font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer"
+                          >
                             {task.title || task.taskTitle}
                           </p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
-                            {task.clientName ? `🏢 ${task.clientName} • ` : ''}
-                            Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground">
+                            {task.client?.name || task.client?.company || task.clientName ? (
+                              <span className="font-medium text-foreground/75">
+                                🏢 {task.client?.company || task.client?.name || task.clientName}
+                              </span>
+                            ) : null}
+                            {task.project?.name || task.projectName ? (
+                              <span className="font-medium text-foreground/75">
+                                📁 {task.project?.name || task.projectName}
+                              </span>
+                            ) : null}
+                            {task.createdAt && (
+                              <span className="inline-flex items-center gap-1 text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-md">
+                                📅 Created: {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </span>
+                            )}
+                            <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                              ⏰ Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing / TBD'}
+                            </span>
+                          </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground capitalize">
-                          {task.status?.replace(/_/g, ' ') || 'Todo'}
-                        </span>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground capitalize">
+                            {task.status?.replace(/_/g, ' ') || 'Todo'}
+                          </span>
+                          {task.priority && (
+                            <span className={`text-[10px] font-semibold capitalize ${
+                              task.priority === 'urgent' || task.priority === 'high' ? 'text-red-500 font-bold' : 'text-muted-foreground'
+                            }`}>
+                              {task.priority}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -953,8 +981,10 @@ const Dashboard = () => {
   // 2. EMPLOYEE DASHBOARD
   // ─────────────────────────────────────────────────────────────────────────────
   const renderEmployeeStats = () => {
-    const assignedTasks = data?.assignedTasks || [];
-    const pendingTasks = assignedTasks.filter((t) => t.status !== 'completed' && t.status !== 'Approved');
+    const assignedTasks = data?.assignedTasks || data?.myTasks || [];
+    const pendingTasks = assignedTasks.filter(
+      (t) => t.status !== 'completed' && t.status !== 'done' && t.status !== 'approved' && t.status !== 'Approved'
+    );
 
     return (
       <div className="space-y-6">
@@ -980,24 +1010,57 @@ const Dashboard = () => {
 
           <div className="lg:col-span-2 bg-card rounded-2xl border border-border p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h2 className="text-sm font-bold text-foreground">My Assigned Tasks ({pendingTasks.length})</h2>
+              <div className="flex items-center gap-2">
+                <CheckSquare size={16} className="text-primary" />
+                <h2 className="text-sm font-bold text-foreground">My Assigned Tasks ({pendingTasks.length})</h2>
+              </div>
               <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">View All Tasks →</Link>
             </div>
 
             <div className="divide-y divide-border/60">
               {pendingTasks.length > 0 ? (
-                pendingTasks.slice(0, 6).map((task) => (
-                  <div key={task._id} className="py-3 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold text-foreground">{task.title || task.taskTitle}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {task.clientName ? `🏢 ${task.clientName} • ` : ''}
-                        Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}
+                pendingTasks.slice(0, 10).map((task) => (
+                  <div key={task._id} className="py-3 flex items-center justify-between gap-3 hover:bg-secondary/20 px-2 rounded-xl transition-colors">
+                    <div className="space-y-1">
+                      <p
+                        onClick={() => navigate('/tasks')}
+                        className="text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        {task.title || task.taskTitle}
                       </p>
+                      <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground">
+                        {task.client?.name || task.client?.company || task.clientName ? (
+                          <span className="font-medium text-foreground/75">
+                            🏢 {task.client?.company || task.client?.name || task.clientName}
+                          </span>
+                        ) : null}
+                        {task.project?.name || task.projectName ? (
+                          <span className="font-medium text-foreground/75">
+                            📁 {task.project?.name || task.projectName}
+                          </span>
+                        ) : null}
+                        {task.createdAt && (
+                          <span className="inline-flex items-center gap-1 text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-md">
+                            📅 Created: {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                          ⏰ Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing / TBD'}
+                        </span>
+                      </div>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground capitalize">
-                      {task.status?.replace(/_/g, ' ') || 'Todo'}
-                    </span>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground capitalize">
+                        {task.status?.replace(/_/g, ' ') || 'Todo'}
+                      </span>
+                      {task.priority && (
+                        <span className={`text-[10px] font-semibold capitalize ${
+                          task.priority === 'urgent' || task.priority === 'high' ? 'text-red-500 font-bold' : 'text-muted-foreground'
+                        }`}>
+                          {task.priority}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))
               ) : (
