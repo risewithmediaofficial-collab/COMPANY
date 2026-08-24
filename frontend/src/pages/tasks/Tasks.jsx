@@ -187,7 +187,7 @@ const Tasks = () => {
                 <span className="text-xs text-muted-foreground italic">Unassigned</span>
               )}
             </div>
-            {(row.scriptWriterAssigned || row.videographerAssigned || row.editorAssigned || row.publisherAssigned) && (
+            {(row.scriptWriterAssigned || row.voiceArtistAssigned || row.videographerAssigned || row.editorAssigned || row.publisherAssigned) && (
               <div className="flex flex-wrap gap-1 text-[10px]">
                 {row.scriptWriterAssigned && (() => {
                   const name = row.scriptWriterAssigned.name || row.scriptWriterName || 'Writer';
@@ -195,6 +195,15 @@ const Tasks = () => {
                   return (
                     <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
                       ✍️ {name}
+                    </span>
+                  );
+                })()}
+                {row.voiceArtistAssigned && (() => {
+                  const name = row.voiceArtistAssigned.name || row.voiceArtistName || 'RJ / Voice';
+                  const c = getPersonColor(name);
+                  return (
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      🎙️ {name}
                     </span>
                   );
                 })()}
@@ -433,7 +442,7 @@ const Tasks = () => {
                             )}
                           </div>
 
-                          {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                          {(task.scriptWriterAssigned || task.voiceArtistAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
                             <div className="flex flex-wrap gap-1 text-[10px]">
                               {task.scriptWriterAssigned && (() => {
                                 const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
@@ -441,6 +450,15 @@ const Tasks = () => {
                                 return (
                                   <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
                                     ✍️ {name}
+                                  </span>
+                                );
+                              })()}
+                              {task.voiceArtistAssigned && (() => {
+                                const name = task.voiceArtistAssigned.name || task.voiceArtistName || 'RJ / Voice';
+                                const c = getPersonColor(name);
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    🎙️ {name}
                                   </span>
                                 );
                               })()}
@@ -671,7 +689,7 @@ const Tasks = () => {
                               </div>
 
                               {/* Pipeline production sub-assignees with names and colors */}
-                              {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                              {(task.scriptWriterAssigned || task.voiceArtistAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
                                 <div className="flex flex-wrap gap-1 text-[9px] pt-1">
                                   {task.scriptWriterAssigned && (() => {
                                     const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
@@ -679,6 +697,15 @@ const Tasks = () => {
                                     return (
                                       <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
                                         ✍️ Script: <span className="font-bold">{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.voiceArtistAssigned && (() => {
+                                    const name = task.voiceArtistAssigned.name || task.voiceArtistName || 'RJ / Voice';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
+                                        🎙️ RJ: <span className="font-bold">{name}</span>
                                       </span>
                                     );
                                   })()}

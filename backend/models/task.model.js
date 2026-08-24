@@ -105,8 +105,14 @@ const taskSchema = new mongoose.Schema(
     scriptWriterAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     scriptWriterName: { type: String, default: '' },
 
+    voiceArtistAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    voiceArtistName: { type: String, default: '' },
+    voiceScriptText: { type: String, default: '' },
+    voiceInstructions: { type: String, default: '' },
+
     videographerAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     videographerName: { type: String, default: '' },
+    videographerContentNeeded: { type: String, default: '' },
 
     editorAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     editorName: { type: String, default: '' },
@@ -124,6 +130,11 @@ const taskSchema = new mongoose.Schema(
     publishingTime: { type: String, default: '' },
 
     // Role Workflow Sub-statuses
+    voiceStatus: {
+      type: String,
+      enum: ['pending', 'in_progress', 'completed', 'not_applicable'],
+      default: 'pending',
+    },
     shootStatus: {
       type: String,
       enum: ['pending', 'in_progress', 'completed', 'not_applicable'],

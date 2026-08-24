@@ -196,9 +196,12 @@ export const TaskDetails = () => {
   const assigneesList = Array.isArray(task.assignedTo) ? task.assignedTo : (task.assignedTo ? [task.assignedTo] : []);
   const hasPipeline = Boolean(
     task.scriptWriterAssigned ||
+    task.voiceArtistAssigned ||
     task.videographerAssigned ||
     task.editorAssigned ||
     task.publisherAssigned ||
+    task.voiceScriptText ||
+    task.videographerContentNeeded ||
     task.shootDate ||
     (task.postingPlatforms && task.postingPlatforms.length > 0)
   );
@@ -438,7 +441,7 @@ export const TaskDetails = () => {
             )}
           </div>
 
-          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-5">
             {/* 1. Script Writer */}
             <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -450,10 +453,21 @@ export const TaskDetails = () => {
               <span className="text-xs text-muted-foreground block">{task.scriptWriterAssigned?.role || 'Copywriter'}</span>
             </div>
 
-            {/* 2. Videographer */}
+            {/* 2. RJ / Voice Artist */}
             <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                🎥 2. Videographer
+                🎙️ 2. RJ / Voice Artist
+              </span>
+              <p className="font-bold text-foreground text-sm truncate">
+                {task.voiceArtistAssigned?.name || task.voiceArtistName || 'Unassigned'}
+              </p>
+              <span className="text-xs text-muted-foreground block">{task.voiceArtistAssigned?.role || 'Voice Artist'}</span>
+            </div>
+
+            {/* 3. Videographer */}
+            <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                🎥 3. Videographer
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.videographerAssigned?.name || task.videographerName || 'Unassigned'}
@@ -461,10 +475,10 @@ export const TaskDetails = () => {
               <span className="text-xs text-muted-foreground block">{task.videographerAssigned?.role || 'Shoot Specialist'}</span>
             </div>
 
-            {/* 3. Editor */}
+            {/* 4. Editor */}
             <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                ✂️ 3. Video Editor
+                ✂️ 4. Video Editor
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.editorAssigned?.name || task.editorName || 'Unassigned'}
@@ -472,10 +486,10 @@ export const TaskDetails = () => {
               <span className="text-xs text-muted-foreground block">{task.editorAssigned?.role || 'Post-Production'}</span>
             </div>
 
-            {/* 4. Publisher */}
+            {/* 5. Publisher */}
             <div className="p-4 rounded-2xl bg-card border border-border shadow-2xs space-y-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                📱 4. Publisher / Socials
+                📱 5. Publisher / Socials
               </span>
               <p className="font-bold text-foreground text-sm truncate">
                 {task.publisherAssigned?.name || task.publisherName || 'Unassigned'}
@@ -483,6 +497,39 @@ export const TaskDetails = () => {
               <span className="text-xs text-muted-foreground block">{task.publisherAssigned?.role || 'Distribution'}</span>
             </div>
           </div>
+
+          {/* 🎙️ RJ / Voice Script & Instructions Card */}
+          {(task.voiceScriptText || task.voiceInstructions) && (
+            <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-4 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
+                🎙️ RJ / Voice-Over Script & Brief
+              </span>
+              {task.voiceScriptText && (
+                <div className="rounded-xl bg-background/80 p-3 border border-border/60">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">Voice Script / Lines</span>
+                  <p className="text-sm font-medium text-foreground whitespace-pre-line mt-1">{task.voiceScriptText}</p>
+                </div>
+              )}
+              {task.voiceInstructions && (
+                <div className="rounded-xl bg-background/80 p-3 border border-border/60">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">Voice Instructions (Tone / Pace / Dialect)</span>
+                  <p className="text-xs font-medium text-foreground mt-0.5">{task.voiceInstructions}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 🎥 Videographer Content Requirements Card */}
+          {task.videographerContentNeeded && (
+            <div className="rounded-2xl bg-sky-500/5 border border-sky-500/20 p-4 space-y-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
+                🎥 What Content / Shots Needed for Videographer
+              </span>
+              <div className="rounded-xl bg-background/80 p-3 border border-border/60">
+                <p className="text-sm font-medium text-foreground whitespace-pre-line">{task.videographerContentNeeded}</p>
+              </div>
+            </div>
+          )}
 
           {/* Shoot & Footage Details Row */}
           {(task.shootDate || task.shootLocation || task.rawFootageLink) && (

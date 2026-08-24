@@ -137,7 +137,11 @@ const BLANK_TASK_TEMPLATE = {
   adminCredentials: '',
   requiredFeatures: '',
   scriptWriterAssigned: '',
+  voiceArtistAssigned: '',
+  voiceScriptText: '',
+  voiceInstructions: '',
   videographerAssigned: '',
+  videographerContentNeeded: '',
   editorAssigned: '',
   publisherAssigned: '',
   shootDate: '',
@@ -160,7 +164,11 @@ const taskFormSchema = z.object({
   assignedTo: z.string().optional(),
   assignedManager: z.string().optional(),
   scriptWriterAssigned: z.string().optional(),
+  voiceArtistAssigned: z.string().optional(),
+  voiceScriptText: z.string().optional(),
+  voiceInstructions: z.string().optional(),
   videographerAssigned: z.string().optional(),
+  videographerContentNeeded: z.string().optional(),
   editorAssigned: z.string().optional(),
   publisherAssigned: z.string().optional(),
   shootDate: z.string().optional(),
@@ -213,7 +221,11 @@ const buildDefaultValues = (initialValues = {}) => ({
   assignedTo: '',
   assignedManager: '',
   scriptWriterAssigned: '',
+  voiceArtistAssigned: '',
+  voiceScriptText: '',
+  voiceInstructions: '',
   videographerAssigned: '',
+  videographerContentNeeded: '',
   editorAssigned: '',
   publisherAssigned: '',
   shootDate: '',
@@ -503,7 +515,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         assignedTo: Array.isArray(task.assignedTo) ? task.assignedTo[0]?._id || task.assignedTo[0] || '' : task.assignedTo || '',
         assignedManager: task.assignedManager?._id || task.assignedManager || '',
         scriptWriterAssigned: task.scriptWriterAssigned?._id || task.scriptWriterAssigned || '',
+        voiceArtistAssigned: task.voiceArtistAssigned?._id || task.voiceArtistAssigned || '',
+        voiceScriptText: task.voiceScriptText || '',
+        voiceInstructions: task.voiceInstructions || '',
         videographerAssigned: task.videographerAssigned?._id || task.videographerAssigned || '',
+        videographerContentNeeded: task.videographerContentNeeded || '',
         editorAssigned: task.editorAssigned?._id || task.editorAssigned || '',
         publisherAssigned: task.publisherAssigned?._id || task.publisherAssigned || '',
         shootDate: task.shootDate ? new Date(task.shootDate).toISOString().split('T')[0] : '',
@@ -684,7 +700,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         isClientVisible: data.isClientVisible,
         approvalRequired: data.approvalRequired,
         scriptWriterAssigned: t.scriptWriterAssigned || undefined,
+        voiceArtistAssigned: t.voiceArtistAssigned || undefined,
+        voiceScriptText: t.voiceScriptText || '',
+        voiceInstructions: t.voiceInstructions || '',
         videographerAssigned: t.videographerAssigned || undefined,
+        videographerContentNeeded: t.videographerContentNeeded || '',
         editorAssigned: t.editorAssigned || undefined,
         publisherAssigned: t.publisherAssigned || undefined,
       }));
@@ -849,8 +869,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           </span>
         </div>
 
-        {/* 4 Workflow Roles */}
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+        {/* 5 Workflow Roles */}
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-5">
           {/* Script By (Writer) */}
           <FormField
             control={form.control}
@@ -858,11 +878,35 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  ✍️ Script By (Writer)
+                  ✍️ Script By
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
-                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Script Writer" /></SelectTrigger>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Script Writer" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="_none">Unassigned</SelectItem>
+                    {assignableUsers.map((user) => (
+                      <SelectItem key={user._id} value={user._id}>{user.name} ({user.role})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          {/* RJ / Voice Artist */}
+          <FormField
+            control={form.control}
+            name="voiceArtistAssigned"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  🎙️ RJ / Voice Artist
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="RJ / Voice" /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="_none">Unassigned</SelectItem>
@@ -882,11 +926,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  🎥 Shoot By (Videographer)
+                  🎥 Videographer
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
-                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Videographer" /></SelectTrigger>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Videographer" /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="_none">Unassigned</SelectItem>
@@ -906,11 +950,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  ✂️ Editing By (Editor)
+                  ✂️ Editor
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
-                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Editor" /></SelectTrigger>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Editor" /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="_none">Unassigned</SelectItem>
@@ -930,11 +974,11 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  📱 Posting By (Publisher)
+                  📱 Publisher
                 </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value || undefined}>
                   <FormControl>
-                    <SelectTrigger className="bg-background"><SelectValue placeholder="Select Publisher" /></SelectTrigger>
+                    <SelectTrigger className="bg-background"><SelectValue placeholder="Publisher" /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="_none">Unassigned</SelectItem>
@@ -948,46 +992,108 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           />
         </div>
 
-        {/* Production Details (Shoot Date, Location, Raw Footage Link) */}
-        <div className="grid gap-3 md:grid-cols-3 pt-2 border-t border-border/40">
-          <FormField
-            control={form.control}
-            name="shootDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-bold text-foreground">📅 Shoot Scheduled Date & Time</FormLabel>
-                <FormControl>
-                  <Input type="datetime-local" className="bg-background" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+        {/* 🎙️ RJ / Voice Script & Voiceover Guidance */}
+        <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-3.5 space-y-3">
+          <p className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+            🎙️ RJ / Voice-Over Artist Script & Requirements
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="voiceScriptText"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel className="text-xs font-bold text-foreground">Voice Script / RJ Dialogue Lines</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Type or paste the exact script / lines for the RJ / Voice Artist..." className="bg-background min-h-[65px] resize-none" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="voiceInstructions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold text-foreground">Voice Instructions (Tone / Pace / Dialect)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="E.g., High energy, conversational tone, clear diction" className="bg-background" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="audioReference"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold text-foreground">Audio / Music Reference Link</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Track link / audio sample reference" className="bg-background" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
 
+        {/* 🎥 Videographer Content Requirements & Shoot Details */}
+        <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3.5 space-y-3">
+          <p className="text-xs font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+            🎥 Videographer Required Content & Shoot Details
+          </p>
           <FormField
             control={form.control}
-            name="shootLocation"
+            name="videographerContentNeeded"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-bold text-foreground">📍 Shoot Location / Studio</FormLabel>
+                <FormLabel className="text-xs font-bold text-foreground">What Content / Shots Needed for Videographer</FormLabel>
                 <FormControl>
-                  <Input placeholder="E.g., Studio 2, Client Office" className="bg-background" {...field} />
+                  <Textarea placeholder="Specify exact shot list, angles, B-roll needed, product closeups, lighting requirements..." className="bg-background min-h-[65px] resize-none" {...field} />
                 </FormControl>
               </FormItem>
             )}
           />
+          <div className="grid gap-3 md:grid-cols-3">
+            <FormField
+              control={form.control}
+              name="shootDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold text-foreground">📅 Shoot Scheduled Date & Time</FormLabel>
+                  <FormControl>
+                    <Input type="datetime-local" className="bg-background" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="rawFootageLink"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-bold text-foreground">📁 Raw Footage Drive Link</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://drive.google.com/..." className="bg-background" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="shootLocation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold text-foreground">📍 Shoot Location / Studio</FormLabel>
+                  <FormControl>
+                    <Input placeholder="E.g., Studio 2, Client Office" className="bg-background" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="rawFootageLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs font-bold text-foreground">📁 Raw Footage Drive Link</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://drive.google.com/..." className="bg-background" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         {/* Target Posting Platforms & Schedule Date */}
@@ -2308,11 +2414,24 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 </Select>
                               </div>
 
-                              {taskItem.taskCategory === 'content' && isVideo && (
+                              {taskItem.taskCategory === 'content' && (
                                 <div className="space-y-1.5">
                                   <label className="text-xs font-semibold text-foreground">✍️ Script Writer</label>
                                   <Select value={taskItem.scriptWriterAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'scriptWriterAssigned', v === '_none' ? '' : v)}>
                                     <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Script Writer" /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="_none">Unassigned</SelectItem>
+                                      {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+
+                              {taskItem.taskCategory === 'content' && (
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-semibold text-foreground">🎙️ RJ / Voice Artist</label>
+                                  <Select value={taskItem.voiceArtistAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'voiceArtistAssigned', v === '_none' ? '' : v)}>
+                                    <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="RJ / Voice" /></SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="_none">Unassigned</SelectItem>
                                       {assignableUsers.map((u) => <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>)}
@@ -2334,9 +2453,9 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 </div>
                               )}
 
-                              {taskItem.taskCategory === 'content' && isPoster && (
+                              {taskItem.taskCategory === 'content' && (
                                 <div className="space-y-1.5">
-                                  <label className="text-xs font-semibold text-foreground">✂️ Revision / Editor</label>
+                                  <label className="text-xs font-semibold text-foreground">✂️ Editor / Designer</label>
                                   <Select value={taskItem.editorAssigned || '_none'} onValueChange={(v) => updateTaskField(index, 'editorAssigned', v === '_none' ? '' : v)}>
                                     <SelectTrigger className="rounded-xl bg-background"><SelectValue placeholder="Select Editor" /></SelectTrigger>
                                     <SelectContent>
@@ -2399,28 +2518,75 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                                 </div>
                               </div>
 
-                              {/* Video production fields */}
+                              {/* 🎙️ RJ / Voice-Over Artist & Voice Script Details */}
+                              <div className="rounded-xl border border-indigo-200/60 bg-indigo-50/40 dark:bg-indigo-950/20 dark:border-indigo-800/40 p-4 space-y-3">
+                                <p className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  🎙️ RJ / Voice-Over Artist Script & Requirements
+                                </p>
+                                <div className="space-y-3">
+                                  <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-foreground">Voice Script / RJ Dialogue Lines</label>
+                                    <Textarea className="min-h-[60px] rounded-xl bg-background resize-none"
+                                      placeholder="Type or paste the exact script / lines for the RJ / Voice Artist..."
+                                      value={taskItem.voiceScriptText || ''}
+                                      onChange={(e) => updateTaskField(index, 'voiceScriptText', e.target.value)} />
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-semibold text-foreground">Voice Instructions (Tone / Pace / Dialect)</label>
+                                      <Input placeholder="E.g., High energy, warm, fast pace, regional dialect..."
+                                        className="rounded-xl bg-background"
+                                        value={taskItem.voiceInstructions || ''}
+                                        onChange={(e) => updateTaskField(index, 'voiceInstructions', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      <label className="text-xs font-semibold text-foreground">Audio / Music Reference Link</label>
+                                      <Input placeholder="Track or voice sample link..."
+                                        className="rounded-xl bg-background"
+                                        value={taskItem.audioReference || ''}
+                                        onChange={(e) => updateTaskField(index, 'audioReference', e.target.value)} />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* 🎥 Videographer & Shoot Content Requirements */}
                               {(isVideo || taskItem.contentType === 'videos') && (
                                 <div className="rounded-xl border border-sky-200/60 bg-sky-50/40 dark:bg-sky-950/20 dark:border-sky-800/40 p-4 space-y-3">
                                   <p className="text-xs font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
-                                    <Video size={12} /> Video Production Details
+                                    <Video size={12} /> 🎥 Videographer Content Requirements & Shoot
                                   </p>
-                                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                  <div className="space-y-3">
                                     <div className="space-y-1.5">
-                                      <label className="text-xs font-semibold text-foreground">📅 Shoot Date & Time</label>
-                                      <Input type="datetime-local" className="rounded-xl bg-background text-xs"
-                                        value={taskItem.shootDate || ''}
-                                        onChange={(e) => updateTaskField(index, 'shootDate', e.target.value)} />
+                                      <label className="text-xs font-semibold text-foreground">What Content / Shots Needed for Videographer</label>
+                                      <Textarea className="min-h-[60px] rounded-xl bg-background resize-none"
+                                        placeholder="Specify exact shot list, angles, B-roll needed, product closeups, lighting requirements..."
+                                        value={taskItem.videographerContentNeeded || ''}
+                                        onChange={(e) => updateTaskField(index, 'videographerContentNeeded', e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-foreground">📅 Shoot Date & Time</label>
+                                        <Input type="datetime-local" className="rounded-xl bg-background text-xs"
+                                          value={taskItem.shootDate || ''}
+                                          onChange={(e) => updateTaskField(index, 'shootDate', e.target.value)} />
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-foreground">📍 Shoot Location</label>
+                                        <Input placeholder="Studio / Client location" className="rounded-xl bg-background"
+                                          value={taskItem.shootLocation || ''}
+                                          onChange={(e) => updateTaskField(index, 'shootLocation', e.target.value)} />
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-foreground">📁 Raw Footage Drive Link</label>
+                                        <Input placeholder="https://drive.google.com/..." className="rounded-xl bg-background"
+                                          value={taskItem.rawFootageLink || ''}
+                                          onChange={(e) => updateTaskField(index, 'rawFootageLink', e.target.value)} />
+                                      </div>
                                     </div>
                                     <div className="space-y-1.5">
-                                      <label className="text-xs font-semibold text-foreground">📍 Shoot Location</label>
-                                      <Input placeholder="Studio / Client location" className="rounded-xl bg-background"
-                                        value={taskItem.shootLocation || ''}
-                                        onChange={(e) => updateTaskField(index, 'shootLocation', e.target.value)} />
-                                    </div>
-                                    <div className="space-y-1.5 md:col-span-2">
                                       <label className="text-xs font-semibold text-foreground">Content Idea / Hook</label>
-                                      <Textarea className="min-h-[55px] rounded-xl bg-background resize-none"
+                                      <Textarea className="min-h-[50px] rounded-xl bg-background resize-none"
                                         placeholder="Core idea, hook, angle for the video..."
                                         value={taskItem.contentIdea || ''}
                                         onChange={(e) => updateTaskField(index, 'contentIdea', e.target.value)} />

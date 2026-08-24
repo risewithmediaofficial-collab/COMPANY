@@ -126,6 +126,7 @@ const isEmployeeLikeRole = (role) => ['employee', 'intern', 'editor', 'designer'
 const buildUserTaskAssignmentOr = (userId) => [
   { assignedTo: userId },
   { scriptWriterAssigned: userId },
+  { voiceArtistAssigned: userId },
   { videographerAssigned: userId },
   { editorAssigned: userId },
   { publisherAssigned: userId },
@@ -136,6 +137,7 @@ const isTaskAssignedToUser = (task, userId) => {
   const assigneeIds = toArray(task.assignedTo).map(toIdString);
   return assigneeIds.includes(id)
     || toIdString(task.scriptWriterAssigned) === id
+    || toIdString(task.voiceArtistAssigned) === id
     || toIdString(task.videographerAssigned) === id
     || toIdString(task.editorAssigned) === id
     || toIdString(task.publisherAssigned) === id;
@@ -327,6 +329,7 @@ const hydrateTask = async (taskId) => Task.findById(taskId)
   .populate('assignedManager', 'name email avatar role')
   .populate('createdBy', 'name email avatar role')
   .populate('scriptWriterAssigned', 'name email avatar role')
+  .populate('voiceArtistAssigned', 'name email avatar role')
   .populate('videographerAssigned', 'name email avatar role')
   .populate('editorAssigned', 'name email avatar role')
   .populate('publisherAssigned', 'name email avatar role')
@@ -350,6 +353,10 @@ const syncTaskDerivedFields = async (task) => {
     const swUser = await User.findById(task.scriptWriterAssigned).select('name');
     if (swUser) task.scriptWriterName = swUser.name;
   }
+  if (task.voiceArtistAssigned) {
+    const vaUser = await User.findById(task.voiceArtistAssigned).select('name');
+    if (vaUser) task.voiceArtistName = vaUser.name;
+  }
   if (task.videographerAssigned) {
     const vUser = await User.findById(task.videographerAssigned).select('name');
     if (vUser) task.videographerName = vUser.name;
@@ -366,6 +373,7 @@ const syncTaskDerivedFields = async (task) => {
   const allSubAssignees = [
     ...toArray(task.assignedTo),
     task.scriptWriterAssigned,
+    task.voiceArtistAssigned,
     task.videographerAssigned,
     task.editorAssigned,
     task.publisherAssigned,
@@ -585,6 +593,11 @@ export const getTasks = async (req, res) => {
       .populate('assignedTo', 'name avatar')
       .populate('assignedManager', 'name avatar')
       .populate('createdBy', 'name avatar')
+      .populate('scriptWriterAssigned', 'name avatar')
+      .populate('voiceArtistAssigned', 'name avatar')
+      .populate('videographerAssigned', 'name avatar')
+      .populate('editorAssigned', 'name avatar')
+      .populate('publisherAssigned', 'name avatar')
       .populate('project', 'name')
       .populate('client', 'name company')
       .sort({ dueDate: 1, orderIndex: 1, createdAt: -1 })
@@ -692,6 +705,7 @@ export const createTask = async (req, res) => {
       if (!payload.isClientVisible && payload.clientVisibleNotes?.trim()) {
         payload.isClientVisible = true;
       }
+
 
       const duplicateCount = Math.max(1, Number(taskData.duplicateCount) || 1);
 

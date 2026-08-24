@@ -155,9 +155,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
   const normalizedStatus = normalizeTaskStatusLabel(task?.status);
   const hasPipeline = Boolean(
     task?.scriptWriterAssigned ||
+    task?.voiceArtistAssigned ||
     task?.videographerAssigned ||
     task?.editorAssigned ||
     task?.publisherAssigned ||
+    task?.voiceScriptText ||
+    task?.videographerContentNeeded ||
     task?.shootDate ||
     (task?.postingPlatforms && task.postingPlatforms.length > 0)
   );
@@ -319,11 +322,18 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                     )}
                   </div>
 
-                  <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-4">
+                  <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-5">
                     <div className="p-2.5 rounded-xl bg-card border border-border space-y-1">
                       <span className="text-[9px] font-bold uppercase text-muted-foreground block">✍️ Script</span>
                       <p className="font-bold text-foreground text-xs truncate">
                         {task.scriptWriterAssigned?.name || task.scriptWriterName || 'Unassigned'}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-card border border-border space-y-1">
+                      <span className="text-[9px] font-bold uppercase text-muted-foreground block">🎙️ RJ / Voice</span>
+                      <p className="font-bold text-foreground text-xs truncate">
+                        {task.voiceArtistAssigned?.name || task.voiceArtistName || 'Unassigned'}
                       </p>
                     </div>
 
@@ -420,6 +430,40 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                           <ExternalLink size={11} />
                         </a>
                       )}
+                    </div>
+                  )}
+
+                  {/* 🎙️ RJ / Voice-Over Script & Instructions */}
+                  {task.taskCategory === 'content' && (task.voiceScriptText || task.voiceInstructions) && (
+                    <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-4 shadow-2xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                          🎙️ RJ / Voice-Over Script & Brief
+                        </span>
+                        {task.voiceScriptText && <CopyButton text={task.voiceScriptText} label="Copy Script" />}
+                      </div>
+                      {task.voiceScriptText && (
+                        <div className="rounded-xl border border-border bg-background p-3 text-xs text-foreground whitespace-pre-wrap leading-relaxed">
+                          {task.voiceScriptText}
+                        </div>
+                      )}
+                      {task.voiceInstructions && (
+                        <p className="text-xs text-muted-foreground pt-1">
+                          <span className="font-bold text-foreground">Instructions: </span>{task.voiceInstructions}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 🎥 Videographer Content Requirements */}
+                  {task.videographerContentNeeded && (
+                    <div className="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-4 shadow-2xs space-y-2">
+                      <span className="text-xs font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1.5">
+                        🎥 What Content / Shots Needed for Videographer
+                      </span>
+                      <div className="rounded-xl border border-border bg-background p-3 text-xs text-foreground whitespace-pre-wrap leading-relaxed">
+                        {task.videographerContentNeeded}
+                      </div>
                     </div>
                   )}
 
