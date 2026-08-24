@@ -39,6 +39,7 @@ import {
   NotionTabs,
 } from '../../components/ui/NotionDetailTemplate';
 import { getAssetUrl } from '../../utils/assetUrl';
+import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import {
   Dialog,
   DialogContent,
@@ -498,6 +499,8 @@ const ProjectDetails = () => {
                 {(kanban[status] || []).map((task, idx) => {
                   const isBeingDragged = draggingTaskId === task._id;
                   const showDropIndicatorBefore = isDragOver && dragOverTaskIndex === idx && !isBeingDragged;
+                  const assignees = extractTaskAssignees(task);
+                  const primaryColor = assignees.length > 0 ? getPersonColor(assignees[0].name) : null;
 
                   return (
                     <React.Fragment key={task._id}>
@@ -519,7 +522,9 @@ const ProjectDetails = () => {
                         }}
                         onDrop={(e) => handleDrop(e, status, idx)}
                         onClick={() => setSelectedTaskId(task._id)}
-                        className={`group cursor-pointer rounded-xl border border-border bg-card p-4 shadow-sm transition-all active:cursor-grabbing ${
+                        className={`group cursor-pointer rounded-2xl border border-border bg-card p-4 shadow-xs transition-all active:cursor-grabbing ${
+                          primaryColor ? `border-l-[3.5px] ${primaryColor.accentBorder}` : ''
+                        } ${
                           isBeingDragged
                             ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40'
                             : 'hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40'
@@ -549,8 +554,21 @@ const ProjectDetails = () => {
 
                         <h4 className="line-clamp-2 text-sm font-bold leading-tight">{task.title}</h4>
 
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex items-center space-x-3 text-[10px] text-muted-foreground">
+                        {/* Color-coded Assignee(s) with Name */}
+                        <div className="mt-3 flex flex-wrap items-center gap-1">
+                          {assignees.length > 0 ? (
+                            assignees.map((person, pIdx) => (
+                              <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
+                            ))
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-medium bg-secondary text-muted-foreground border border-border/80">
+                              Unassigned
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground">
+                          <div className="flex items-center space-x-3">
                             <span className="flex items-center">
                               <MessageSquare size={12} className="mr-1" /> {task.comments?.length || 0}
                             </span>
@@ -558,27 +576,16 @@ const ProjectDetails = () => {
                               <Paperclip size={12} className="mr-1" /> {task.attachments?.length || 0}
                             </span>
                           </div>
-                          <div className="flex -space-x-1.5">
-                            {(task.assignedTo || []).map((member) => (
-                              <div
-                                key={member._id}
-                                className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border-2 border-card bg-secondary text-[8px] font-bold shadow-sm"
-                                title={member.name}
-                              >
-                                {member.avatar ? <img src={getAssetUrl(member.avatar)} alt="" /> : member.name?.charAt(0)}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
 
-                        {task.dueDate && (
-                          <div className={`mt-3 flex items-center text-[10px] font-bold ${
-                            new Date(task.dueDate) < new Date() && status !== 'done' ? 'text-destructive' : 'text-muted-foreground'
-                          }`}>
-                            <Clock size={10} className="mr-1" />
-                            {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                          </div>
-                        )}
+                          {task.dueDate && (
+                            <div className={`flex items-center font-bold ${
+                              new Date(task.dueDate) < new Date() && status !== 'done' ? 'text-destructive' : 'text-muted-foreground'
+                            }`}>
+                              <Clock size={10} className="mr-1" />
+                              {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </React.Fragment>
                   );

@@ -12,11 +12,13 @@ import {
   ArrowRight,
   Filter,
   Users,
+  User,
   Video,
   Scissors,
   FileEdit,
   Share2,
 } from 'lucide-react';
+import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
@@ -172,39 +174,62 @@ const Tasks = () => {
     {
       key: 'assignedTo',
       label: 'Production Assignees',
-      render: (row) => (
-        <div className="space-y-1">
-          <div className="text-xs font-semibold text-foreground">
-            {Array.isArray(row.assignedTo) && row.assignedTo.length
-              ? row.assignedTo.map((a) => a.name).join(', ')
-              : row.assignedPersonName || 'Unassigned'}
-          </div>
-          {(row.scriptWriterAssigned || row.videographerAssigned || row.editorAssigned || row.publisherAssigned) && (
-            <div className="flex flex-wrap gap-1 text-[10px]">
-              {row.scriptWriterAssigned && (
-                <span className="px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-600 font-semibold">
-                  ✍️ {row.scriptWriterAssigned.name || row.scriptWriterName}
-                </span>
-              )}
-              {row.videographerAssigned && (
-                <span className="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 font-semibold">
-                  🎥 {row.videographerAssigned.name || row.videographerName}
-                </span>
-              )}
-              {row.editorAssigned && (
-                <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 font-semibold">
-                  ✂️ {row.editorAssigned.name || row.editorName}
-                </span>
-              )}
-              {row.publisherAssigned && (
-                <span className="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 font-semibold">
-                  📱 {row.publisherAssigned.name || row.publisherName}
-                </span>
+      render: (row) => {
+        const assignees = extractTaskAssignees(row);
+        return (
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-1">
+              {assignees.length > 0 ? (
+                assignees.map((person, idx) => (
+                  <PersonAssigneeBadge key={idx} person={person} size="sm" />
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground italic">Unassigned</span>
               )}
             </div>
-          )}
-        </div>
-      ),
+            {(row.scriptWriterAssigned || row.videographerAssigned || row.editorAssigned || row.publisherAssigned) && (
+              <div className="flex flex-wrap gap-1 text-[10px]">
+                {row.scriptWriterAssigned && (() => {
+                  const name = row.scriptWriterAssigned.name || row.scriptWriterName || 'Writer';
+                  const c = getPersonColor(name);
+                  return (
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      ✍️ {name}
+                    </span>
+                  );
+                })()}
+                {row.videographerAssigned && (() => {
+                  const name = row.videographerAssigned.name || row.videographerName || 'Videographer';
+                  const c = getPersonColor(name);
+                  return (
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      🎥 {name}
+                    </span>
+                  );
+                })()}
+                {row.editorAssigned && (() => {
+                  const name = row.editorAssigned.name || row.editorName || 'Editor';
+                  const c = getPersonColor(name);
+                  return (
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      ✂️ {name}
+                    </span>
+                  );
+                })()}
+                {row.publisherAssigned && (() => {
+                  const name = row.publisherAssigned.name || row.publisherName || 'Publisher';
+                  const c = getPersonColor(name);
+                  return (
+                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                      📱 {name}
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: 'status',
@@ -392,39 +417,65 @@ const Tasks = () => {
                     </div>
 
                     {/* Assignees & Sub-roles */}
-                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-foreground/90">
-                      <span className="font-semibold text-muted-foreground">Assignee:</span>
-                      <span>
-                        {Array.isArray(task.assignedTo) && task.assignedTo.length
-                          ? task.assignedTo.map((a) => a.name).join(', ')
-                          : task.assignedPersonName || 'Unassigned'}
-                      </span>
-                    </div>
+                    {(() => {
+                      const assignees = extractTaskAssignees(task);
+                      return (
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {assignees.length > 0 ? (
+                              assignees.map((person, pIdx) => (
+                                <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
+                              ))
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-secondary text-muted-foreground border border-border/80">
+                                <User size={10} /> Unassigned
+                              </span>
+                            )}
+                          </div>
 
-                    {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
-                      <div className="flex flex-wrap gap-1 text-[10px]">
-                        {task.scriptWriterAssigned && (
-                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold">
-                            ✍️ {task.scriptWriterAssigned.name || task.scriptWriterName}
-                          </span>
-                        )}
-                        {task.videographerAssigned && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">
-                            🎥 {task.videographerAssigned.name || task.videographerName}
-                          </span>
-                        )}
-                        {task.editorAssigned && (
-                          <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold">
-                            ✂️ {task.editorAssigned.name || task.editorName}
-                          </span>
-                        )}
-                        {task.publisherAssigned && (
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
-                            📱 {task.publisherAssigned.name || task.publisherName}
-                          </span>
-                        )}
-                      </div>
-                    )}
+                          {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                            <div className="flex flex-wrap gap-1 text-[10px]">
+                              {task.scriptWriterAssigned && (() => {
+                                const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
+                                const c = getPersonColor(name);
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    ✍️ {name}
+                                  </span>
+                                );
+                              })()}
+                              {task.videographerAssigned && (() => {
+                                const name = task.videographerAssigned.name || task.videographerName || 'Videographer';
+                                const c = getPersonColor(name);
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    🎥 {name}
+                                  </span>
+                                );
+                              })()}
+                              {task.editorAssigned && (() => {
+                                const name = task.editorAssigned.name || task.editorName || 'Editor';
+                                const c = getPersonColor(name);
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    ✂️ {name}
+                                  </span>
+                                );
+                              })()}
+                              {task.publisherAssigned && (() => {
+                                const name = task.publisherAssigned.name || task.publisherName || 'Publisher';
+                                const c = getPersonColor(name);
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-md border font-semibold flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                    📱 {name}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Status Select & Due Date */}
                     <div className="flex items-center justify-between pt-2.5 border-t border-border/60 gap-2">
@@ -527,6 +578,8 @@ const Tasks = () => {
                       {columnTasks.map((task, idx) => {
                         const isBeingDragged = draggingTaskId === task._id;
                         const showDropIndicatorBefore = isColActive && dragOverTaskIndex === idx && !isBeingDragged;
+                        const assignees = extractTaskAssignees(task);
+                        const primaryColor = assignees.length > 0 ? getPersonColor(assignees[0].name) : null;
 
                         return (
                           <React.Fragment key={task._id}>
@@ -557,6 +610,7 @@ const Tasks = () => {
                               onDrop={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                e.dataTransfer.dropEffect = 'move';
                                 const taskId = e.dataTransfer.getData('taskId');
                                 if (taskId) {
                                   updateStatusMutation.mutate({ id: taskId, status: column.key });
@@ -566,7 +620,9 @@ const Tasks = () => {
                                 setDragOverTaskIndex(null);
                               }}
                               onClick={() => handleRowClick(task)}
-                              className={`p-3.5 bg-card rounded-xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] ${
+                              className={`p-3.5 bg-card rounded-2xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] ${
+                                primaryColor ? `border-l-[3.5px] ${primaryColor.accentBorder}` : ''
+                              } ${
                                 isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
                               }`}
                             >
@@ -601,29 +657,58 @@ const Tasks = () => {
                                 )}
                               </div>
 
-                              {/* Pipeline production sub-assignees badges */}
+                              {/* Primary Assigned Person(s) with Individual Color Badges */}
+                              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                {assignees.length > 0 ? (
+                                  assignees.map((person, pIdx) => (
+                                    <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
+                                  ))
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-secondary text-muted-foreground border border-border/80">
+                                    <User size={10} /> Unassigned
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Pipeline production sub-assignees with names and colors */}
                               {(task.scriptWriterAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
                                 <div className="flex flex-wrap gap-1 text-[9px] pt-1">
-                                  {task.scriptWriterAssigned && (
-                                    <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold flex items-center gap-1">
-                                      ✍️ Script
-                                    </span>
-                                  )}
-                                  {task.videographerAssigned && (
-                                    <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                                      🎥 Shoot
-                                    </span>
-                                  )}
-                                  {task.editorAssigned && (
-                                    <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold flex items-center gap-1">
-                                      ✂️ Edit
-                                    </span>
-                                  )}
-                                  {task.publisherAssigned && (
-                                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                                      📱 Post
-                                    </span>
-                                  )}
+                                  {task.scriptWriterAssigned && (() => {
+                                    const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
+                                        ✍️ Script: <span className="font-bold">{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.videographerAssigned && (() => {
+                                    const name = task.videographerAssigned.name || task.videographerName || 'Videographer';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
+                                        🎥 Shoot: <span className="font-bold">{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.editorAssigned && (() => {
+                                    const name = task.editorAssigned.name || task.editorName || 'Editor';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
+                                        ✂️ Edit: <span className="font-bold">{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.publisherAssigned && (() => {
+                                    const name = task.publisherAssigned.name || task.publisherName || 'Publisher';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
+                                        📱 Post: <span className="font-bold">{name}</span>
+                                      </span>
+                                    );
+                                  })()}
                                 </div>
                               )}
 
