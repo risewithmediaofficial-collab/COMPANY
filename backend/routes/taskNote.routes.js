@@ -23,8 +23,8 @@ router.delete('/:id', authorize('superAdmin', 'admin', 'manager', 'employee'), d
 router.patch('/:id/pin', authorize('superAdmin', 'admin', 'manager', 'employee'), toggleNotePin);
 router.patch('/:id/checklist', authorize('superAdmin', 'admin', 'manager', 'employee'), toggleChecklistItem);
 
-// Manager / Admin / SuperAdmin routes
-router.get('/', authorize('superAdmin', 'admin', 'manager'), getAllNotes);
+// Manager / Admin / SuperAdmin / Employee routes
+router.get('/', authorize('superAdmin', 'admin', 'manager', 'employee'), getAllNotes);
 router.patch('/:id/assign', authorize('superAdmin', 'admin', 'manager'), assignNote);
 router.patch('/:id/dismiss', authorize('superAdmin', 'admin', 'manager'), dismissNote);
 

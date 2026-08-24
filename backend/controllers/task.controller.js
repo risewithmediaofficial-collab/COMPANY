@@ -706,7 +706,6 @@ export const createTask = async (req, res) => {
         payload.isClientVisible = true;
       }
 
-
       const duplicateCount = Math.max(1, Number(taskData.duplicateCount) || 1);
 
       for (let i = 0; i < duplicateCount; i++) {
@@ -714,7 +713,7 @@ export const createTask = async (req, res) => {
         let isOverTarget = false;
         let targetExceededBy = 0;
 
-        if (payload.project) {
+        if (payload.project && payload.taskCategory === 'content') {
           const taskDate = payload.dueDate || payload.deadline || new Date();
           const m = new Date(taskDate).getMonth() + 1;
           const y = new Date(taskDate).getFullYear();
@@ -730,13 +729,14 @@ export const createTask = async (req, res) => {
               const { start, end } = getMonthDateRange(m, y);
               const existingMatchingTasks = await Task.find({
                 project: payload.project,
+                taskCategory: 'content',
                 status: { $nin: ['rejected', 'cancelled'] },
                 $or: [
                   { dueDate: { $gte: start, $lte: end } },
                   { dueDate: { $exists: false }, postingScheduleDate: { $gte: start, $lte: end } },
                   { dueDate: { $exists: false }, postingScheduleDate: { $exists: false }, createdAt: { $gte: start, $lte: end } },
                 ],
-              }).select('taskType contentType videoType');
+              }).select('taskType contentType videoType taskCategory');
 
               const matchedCount = existingMatchingTasks.filter((t) => matchesContentType(t, matchingTarget.contentType)).length + i;
               if (matchedCount >= matchingTarget.targetQuantity) {

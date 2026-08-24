@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,15 +33,20 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
     },
   });
   const submitEOD = useSubmitEOD();
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    form.reset({
-      date: report?.date ? new Date(report.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      summary: report?.summary || '',
-      tasksCompleted: report?.tasksCompleted?.join(', ') || '',
-      blockers: report?.blockers || '',
-    });
-  }, [form, open, report]);
+    // Only reset form values when modal transitions from closed to open
+    if (open && !wasOpenRef.current) {
+      form.reset({
+        date: report?.date ? new Date(report.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        summary: report?.summary || '',
+        tasksCompleted: Array.isArray(report?.tasksCompleted) ? report.tasksCompleted.join(', ') : (report?.tasksCompleted || ''),
+        blockers: report?.blockers || '',
+      });
+    }
+    wasOpenRef.current = open;
+  }, [open, report, form]);
 
   const onSubmit = async (data) => {
     await submitEOD.mutateAsync({

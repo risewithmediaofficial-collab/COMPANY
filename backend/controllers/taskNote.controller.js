@@ -196,10 +196,13 @@ export const deleteNote = async (req, res) => {
   }
 };
 
-// ── Manager / SuperAdmin: List all notes ──────────────────────────────────────
+// ── Manager / SuperAdmin / Employee: List notes ─────────────────────────────
 export const getAllNotes = async (req, res) => {
   try {
     const filter = { organizationId: req.user.organizationId };
+    if (req.user.role === 'employee') {
+      filter.submittedBy = req.user._id;
+    }
     if (req.query.status && req.query.status !== 'all') {
       filter.status = req.query.status;
     }
@@ -209,7 +212,7 @@ export const getAllNotes = async (req, res) => {
     if (req.query.task) {
       filter.task = req.query.task;
     }
-    if (req.query.submittedBy) {
+    if (req.query.submittedBy && req.user.role !== 'employee') {
       filter.submittedBy = req.query.submittedBy;
     }
 

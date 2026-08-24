@@ -56,8 +56,8 @@ export function NotesWidget({ isEmployee = true, user = null, maxItems = 6, show
   const [editingNote, setEditingNote] = useState(null);
 
   // Queries & Mutations
-  const myNotesQuery = useMyNotes();
-  const allNotesQuery = useAllNotes();
+  const myNotesQuery = useMyNotes({}, { enabled: isEmployee });
+  const allNotesQuery = useAllNotes({}, { enabled: !isEmployee });
   const notesQuery = isEmployee ? myNotesQuery : allNotesQuery;
 
   const notes = notesQuery.data || [];

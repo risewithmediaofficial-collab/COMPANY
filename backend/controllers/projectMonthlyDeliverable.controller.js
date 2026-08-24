@@ -18,6 +18,22 @@ export const normalizeContentTypeName = (type = '') => {
  * Checks if a task matches a target content type
  */
 export const matchesContentType = (task, targetContentType) => {
+  if (!task) return false;
+  if (
+    task.taskCategory === 'non_content' ||
+    task.taskCategory === 'Non-Content Task' ||
+    task.taskType === 'non_content' ||
+    task.taskType === 'website_development' ||
+    task.taskType === 'web_dev' ||
+    task.taskType === 'app_development' ||
+    task.taskType === 'software_development' ||
+    task.taskType === 'seo' ||
+    task.taskType === 'maintenance' ||
+    task.taskType === 'general'
+  ) {
+    return false;
+  }
+
   const normTarget = normalizeContentTypeName(targetContentType);
   if (!normTarget) return false;
 

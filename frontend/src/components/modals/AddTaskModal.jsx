@@ -426,6 +426,10 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
   }, [projects, selectedClientId]);
 
   const renderDeliverableTargetBanner = (taskItem, index = 0) => {
+    const effectiveCategory = taskItem?.taskCategory || taskCategory;
+    if (effectiveCategory === 'non_content' || isWebsiteTaskType(taskItem?.taskType) || taskItem?.taskType === 'non_content') {
+      return null;
+    }
     if (!projectDeliverables || projectDeliverables.length === 0) return null;
 
     const matchedTarget = findMatchingDeliverableTarget(
@@ -847,12 +851,13 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         )}
       />
 
-      {selectedProject && (
+      {taskCategory === 'content' && selectedProject && (
         <div className="md:col-span-2">
           {renderDeliverableTargetBanner({
             taskType: form.watch('taskType'),
             contentType: form.watch('contentType'),
             videoType: form.watch('videoType'),
+            taskCategory: 'content',
           })}
         </div>
       )}
@@ -2184,8 +2189,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                   </span>
                 </div>
 
-                {/* Project Monthly Deliverables Quotas Summary Banner */}
-                {projectDeliverables.length > 0 && (
+                {/* Project Monthly Deliverables Quotas Summary Banner (Content Tasks Only) */}
+                {taskCategory === 'content' && projectDeliverables.length > 0 && (
                   <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5 space-y-2.5">
                     <div className="flex items-center justify-between text-xs font-bold text-foreground">
                       <span className="flex items-center gap-1.5 text-primary">
