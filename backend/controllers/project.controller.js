@@ -93,15 +93,23 @@ const serializeProjectTask = (task) => {
 
 const serializeProject = (project) => {
   const item = project.toObject ? project.toObject() : project;
+  const status = {
+    planning: 'Planning',
+    active: 'In Progress',
+    on_hold: 'On Hold',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+  }[item.status] || item.status;
+
+  let progress = item.progress !== undefined ? Number(item.progress) : 0;
+  if ((status === 'Completed' || item.status === 'completed') && progress === 0) {
+    progress = 100;
+  }
+
   return {
     ...item,
-    status: {
-      planning: 'Planning',
-      active: 'In Progress',
-      on_hold: 'On Hold',
-      completed: 'Completed',
-      cancelled: 'Cancelled',
-    }[item.status] || item.status,
+    status,
+    progress,
     priority: {
       low: 'Low',
       medium: 'Medium',
@@ -238,7 +246,52 @@ export const getProjects = async (req, res) => {
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 
-    res.json({ success: true, total, projects: projects.map(serializeProject) });
+    const projectIds = projects.map((p) => p._id);
+    const taskStats = await Task.aggregate([
+      { $match: { project: { $in: projectIds } } },
+      {
+        $group: {
+          _id: '$project',
+          totalTasks: { $sum: 1 },
+          doneTasks: {
+            $sum: {
+              $cond: [
+                { $in: ['$status', ['done', 'approved', 'completed', 'Completed', 'Done', 'Approved']] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const taskStatsMap = {};
+    taskStats.forEach((stat) => {
+      taskStatsMap[stat._id.toString()] = stat;
+    });
+
+    const serializedProjects = projects.map((project) => {
+      const pObj = project.toObject ? project.toObject() : project;
+      const stat = taskStatsMap[project._id.toString()];
+      let progress = 0;
+      if (pObj.status === 'completed' || pObj.status === 'Completed') {
+        progress = 100;
+      } else if (stat && stat.totalTasks > 0) {
+        progress = Math.round((stat.doneTasks / stat.totalTasks) * 100);
+      } else if (pObj.progress) {
+        progress = Number(pObj.progress);
+      }
+
+      return serializeProject({
+        ...pObj,
+        progress,
+        totalTasks: stat?.totalTasks || 0,
+        doneTasks: stat?.doneTasks || 0,
+      });
+    });
+
+    res.json({ success: true, total, projects: serializedProjects });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -259,7 +312,10 @@ export const getProject = async (req, res) => {
 
     const [totalTasks, doneTasks, recentActivity, recentTasks] = await Promise.all([
       Task.countDocuments({ project: project._id }),
-      Task.countDocuments({ project: project._id, status: { $in: ['done', 'approved', 'completed'] } }),
+      Task.countDocuments({
+        project: project._id,
+        status: { $in: ['done', 'approved', 'completed', 'Completed', 'Done', 'Approved'] },
+      }),
       ActivityLog.find({ relatedProject: project._id })
         .populate('actor', 'name avatar role')
         .sort({ createdAt: -1 })
@@ -270,7 +326,10 @@ export const getProject = async (req, res) => {
         .limit(20),
     ]);
 
-    const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+    let progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : (project.progress || 0);
+    if (project.status === 'completed' || project.status === 'Completed') {
+      progress = 100;
+    }
 
     res.json({
       success: true,

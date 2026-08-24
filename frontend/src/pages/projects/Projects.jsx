@@ -378,12 +378,22 @@ const Projects = () => {
                               <div className="space-y-1 pt-1">
                                 <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
                                   <span>Progress</span>
-                                  <span>{project.progress || 0}%</span>
+                                  <span className={`font-bold ${(project.progress || 0) >= 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>
+                                    {project.progress || 0}%
+                                  </span>
                                 </div>
-                                <div className="h-1 w-full rounded-full bg-secondary overflow-hidden">
+                                <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
                                   <div
-                                    className="h-full bg-primary rounded-full transition-all"
-                                    style={{ width: `${Math.min(project.progress || 0, 100)}%` }}
+                                    className={`h-full rounded-full transition-all ${
+                                      (project.progress || 0) >= 100
+                                        ? 'bg-emerald-500'
+                                        : (project.progress || 0) >= 50
+                                        ? 'bg-primary'
+                                        : (project.progress || 0) > 0
+                                        ? 'bg-amber-500'
+                                        : 'bg-muted-foreground/30'
+                                    }`}
+                                    style={{ width: `${Math.max(0, Math.min(project.progress || 0, 100))}%` }}
                                   />
                                 </div>
                               </div>
