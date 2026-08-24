@@ -5,7 +5,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, CalendarDays, IndianRupee, Briefcase } from 'lucide-react';
 import { useAcceptedProposals } from '../../hooks/useProposals';
