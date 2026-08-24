@@ -44,7 +44,7 @@ export default function SMMProjects() {
     fetchData(true);
     const interval = setInterval(() => {
       fetchData(false);
-    }, 3500);
+    }, 15000);
     return () => clearInterval(interval);
   }, [search, statusFilter]);
 

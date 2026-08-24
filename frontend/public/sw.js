@@ -7,9 +7,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
-  // Let the browser handle standard requests
-});
+
 
 self.addEventListener('push', (event) => {
   let data = {};

@@ -134,17 +134,17 @@ const ProtectedRoute = ({ isAuthenticated, user, loading, allowedRoles, children
 // ─── App ──────────────────────────────────────────────────────────────────────
 const App = () => {
   const dispatch = useDispatch();
-  const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, loading, authChecked } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    // Fetch user profile once: token present, no user object, not already loading
-    if (isAuthenticated && !user && !loading) {
+    // Fetch user profile once: token present, no user object, not already loading, and not yet checked
+    if (isAuthenticated && !user && !loading && !authChecked) {
       dispatch(fetchMe());
     }
-  }, [dispatch, isAuthenticated, user, loading]);
+  }, [dispatch, isAuthenticated, user, loading, authChecked]);
 
   // Global boot-screen while the very first /me call is in-flight
-  if (loading && !user && isAuthenticated) return null;
+  if (loading && !user && isAuthenticated && !authChecked) return null;
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

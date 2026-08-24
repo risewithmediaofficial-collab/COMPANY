@@ -120,7 +120,13 @@ app.use(cors(corsOptions));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 500,
+  max: env.isProduction ? 50000 : 100000,
+  skip: (req) => {
+    // Skip rate limiting for authenticated CRM users and health checks
+    return req.path === '/health' || Boolean(req.headers.authorization);
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
 });
 app.use('/api', limiter);

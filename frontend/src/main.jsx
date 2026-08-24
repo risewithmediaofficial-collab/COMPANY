@@ -14,8 +14,7 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
-      refetchInterval: 3500, // Live poll every 3.5 seconds across the website so all pages reflect changes live
-      staleTime: 1000,
+      staleTime: 5000,
     },
   },
 })

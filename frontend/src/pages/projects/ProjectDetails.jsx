@@ -125,13 +125,13 @@ const ProjectDetails = () => {
     }
   };
 
-  // Live polling every 3 seconds for continuous live updates without manual refresh
+  // Live polling fallback for continuous live updates without manual refresh
   useEffect(() => {
     fetchProjectData(true);
 
     const interval = setInterval(() => {
       fetchProjectData(false);
-    }, 3000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [id, user?.role]);

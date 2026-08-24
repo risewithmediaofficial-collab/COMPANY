@@ -75,6 +75,7 @@ const authSlice = createSlice({
     accessToken: localStorage.getItem('accessToken') || null,
     activeWorkspace: localStorage.getItem('activeWorkspace') || null,
     loading: false,
+    authChecked: false,
     error: null,
     isAuthenticated: Boolean(localStorage.getItem('accessToken') && localStorage.getItem('refreshToken')),
   },
@@ -85,6 +86,7 @@ const authSlice = createSlice({
       state.activeWorkspace = null;
       state.isAuthenticated = false;
       state.loading = false;
+      state.authChecked = true;
       state.error = null;
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -94,6 +96,7 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.accessToken;
       state.isAuthenticated = true;
+      state.authChecked = true;
       state.error = null;
     },
     updateCurrentUser: (state, action) => {
@@ -125,10 +128,12 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.accessToken = action.payload.accessToken;
         state.isAuthenticated = true;
+        state.authChecked = true;
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
+        state.authChecked = true;
         state.error = action.payload?.message || 'Login failed';
       })
       // ── Fetch Me ──
@@ -140,10 +145,12 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.isAuthenticated = true;
+        state.authChecked = true;
         state.error = null;
       })
       .addCase(fetchMe.rejected, (state, action) => {
         state.loading = false;
+        state.authChecked = true;
         if (action.payload?.isAuthError) {
           state.user = null;
           state.accessToken = null;
