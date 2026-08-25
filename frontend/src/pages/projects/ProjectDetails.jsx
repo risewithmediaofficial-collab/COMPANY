@@ -635,6 +635,7 @@ const ProjectDetails = () => {
                 <th className="px-6 py-4">Task</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Priority</th>
+                <th className="px-6 py-4">Created</th>
                 <th className="px-6 py-4">Due Date</th>
                 <th className="px-6 py-4">Assignees</th>
               </tr>
@@ -663,7 +664,10 @@ const ProjectDetails = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">{task.priority || 'Medium'}</td>
-                  <td className="px-6 py-4 text-muted-foreground">
+                  <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">
+                    {task.createdAt ? new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                  </td>
+                  <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">
                     {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
                   </td>
                   <td className="px-6 py-4">
@@ -1020,7 +1024,11 @@ const ProjectDetails = () => {
         backTo="/projects"
         backLabel="Projects"
         title={project.name}
-        subtitle={`${project.client?.name || 'No client'} | Due ${project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'TBD'}`}
+        subtitle={[
+          project.client?.name || 'Internal Project',
+          project.createdAt ? `Created ${new Date(project.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}` : null,
+          `Due ${project.dueDate || project.endDate ? new Date(project.dueDate || project.endDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}`,
+        ].filter(Boolean).join(' | ')}
         icon={Briefcase}
         status={project.status}
         statusClassName={projectStatusStyles[project.status] || projectStatusStyles.Planning}

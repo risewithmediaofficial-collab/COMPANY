@@ -121,6 +121,20 @@ const Proposals = () => {
       ),
     },
     {
+      key: 'createdAt',
+      label: 'Created Date',
+      render: (row) => (
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap">
+          <Calendar size={11} className="text-muted-foreground/70" />
+          <span>
+            {row.createdAt
+              ? new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+              : '—'}
+          </span>
+        </div>
+      ),
+    },
+    {
       key: 'status',
       label: 'Status',
       render: (row) => (
@@ -172,12 +186,15 @@ const Proposals = () => {
         </p>
       </div>
 
-      {(row.validUntil || row.endDate) && (
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground pt-1.5 border-t border-border/40">
-          <Calendar size={11} className="text-primary" />
-          <span>Valid till: {new Date(row.validUntil || row.endDate).toLocaleDateString()}</span>
-        </div>
-      )}
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 border-t border-border/40">
+        <span className="flex items-center gap-1">
+          <Calendar size={11} className="text-muted-foreground/70" />
+          <span>{row.createdAt ? `Created ${new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : ''}</span>
+        </span>
+        {(row.validUntil || row.endDate) && (
+          <span>Valid: {new Date(row.validUntil || row.endDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+        )}
+      </div>
     </div>
   );
 

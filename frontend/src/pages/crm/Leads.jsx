@@ -628,6 +628,12 @@ const Leads = () => {
                                     {lead.source}
                                   </span>
                                 )}
+                                {lead.createdAt && (
+                                  <span className="rounded-full bg-secondary/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                                    <Clock size={10} />
+                                    {new Date(lead.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                  </span>
+                                )}
                               </div>
                               <div className="flex gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                                 <button
@@ -840,6 +846,7 @@ const Leads = () => {
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Interest</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Value</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Follow-up</th>
+                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Created</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Stage</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Owner</th>
                       <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6 text-right">Actions</th>
@@ -878,6 +885,9 @@ const Leads = () => {
                             {lead.refollowDate ? (
                               <div className="mt-1 text-xs text-orange-700">Refollow {formatDate(lead.refollowDate)}</div>
                             ) : null}
+                          </td>
+                          <td className="px-4 py-4 sm:px-6 text-xs text-muted-foreground whitespace-nowrap">
+                            {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                           </td>
                           <td className="px-4 py-4 sm:px-6">
                             <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${stageInfo.badge}`}>

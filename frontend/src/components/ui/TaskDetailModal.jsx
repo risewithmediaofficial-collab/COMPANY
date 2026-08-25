@@ -189,6 +189,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                       <span>{task.project.name}</span>
                     </>
                   )}
+                  {task?.createdAt && (
+                    <>
+                      <span>•</span>
+                      <span>Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </>
+                  )}
                 </DialogDescription>
               </div>
             </div>
@@ -293,6 +299,13 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
 
                 <NotionPropertyRow icon={Tag} label="Task Type">
                   <span className="font-semibold text-foreground text-xs">{formatTaskTypeLabel(task.taskType)}</span>
+                </NotionPropertyRow>
+
+                {/* Created Date */}
+                <NotionPropertyRow icon={Calendar} label="Created Date">
+                  <span className="text-foreground font-semibold text-xs">
+                    {task.createdAt ? new Date(task.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+                  </span>
                 </NotionPropertyRow>
 
                 <NotionPropertyRow icon={Clock} label="Due Date">

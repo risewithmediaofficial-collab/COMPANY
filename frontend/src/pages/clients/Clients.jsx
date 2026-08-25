@@ -17,6 +17,7 @@ import {
   MoreVertical,
   Edit2,
   Trash2,
+  Calendar,
 } from 'lucide-react';
 import { useClients, useDeleteClient, useUpdateClient } from '../../hooks/useClients';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -143,6 +144,20 @@ const Clients = () => {
         <StatusBadge tone={clientStatusTone[row.status] || 'neutral'}>
           {row.status}
         </StatusBadge>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: 'Created Date',
+      render: (row) => (
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap">
+          <Calendar size={11} className="text-muted-foreground/70" />
+          <span>
+            {row.createdAt
+              ? new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+              : '—'}
+          </span>
+        </div>
       ),
     },
   ];
@@ -345,8 +360,15 @@ const Clients = () => {
                               </p>
 
                               <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                                <span>{client.service || 'Retainer'}</span>
-                                <span className="group-hover:text-primary flex items-center gap-0.5">
+                                <span className="flex items-center gap-1">
+                                  <Calendar size={10} className="text-primary/70 shrink-0" />
+                                  <span>
+                                    {client.createdAt
+                                      ? `Created ${new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}`
+                                      : client.service || 'Retainer'}
+                                  </span>
+                                </span>
+                                <span className="group-hover:text-primary flex items-center gap-0.5 font-semibold">
                                   Open <ArrowRight size={10} />
                                 </span>
                               </div>

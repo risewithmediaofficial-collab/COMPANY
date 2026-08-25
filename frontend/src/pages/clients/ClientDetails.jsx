@@ -6,7 +6,7 @@ import api from '../../api';
 import {
   Building2, Phone, Mail, IndianRupee,
   Briefcase, CheckCircle2, Clock, AlertCircle, Users,
-  FileText, TrendingUp, Edit2, FolderOpen
+  FileText, TrendingUp, Edit2, FolderOpen, Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AddClientModal } from '../../components/modals/AddClientModal';
@@ -28,11 +28,11 @@ const onboardingStepLabels = {
 };
 
 const statusStyles = {
-  Active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  Inactive: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
-  Churned: 'bg-red-500/10 text-red-600 border-red-500/20',
-  Prospect: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  Renew: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  Active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
+  Prospect: 'bg-blue-500/10 text-blue-600 border-blue-500/30',
+  Churned: 'bg-red-500/10 text-red-600 border-red-500/30',
+  Inactive: 'bg-secondary text-muted-foreground border-border',
+  Renew: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/30',
 };
 
 const ClientDetails = () => {
@@ -42,24 +42,25 @@ const ClientDetails = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['client', id],
     queryFn: async () => {
-      const [clientRes, projectsRes, invoicesRes, financeRes, callRes, referralRes] = await Promise.all([
+      const [clientRes, projectsRes, invoicesRes, financeRes, callRes, referralRes] = await Promise.allSettled([
         api.get(`/clients/${id}`),
-        api.get(`/projects?client=${id}&limit=10`),
-        api.get(`/finance/invoices?client=${id}&limit=10`),
-        api.get(`/finance/records/client/${id}`),
-        api.get(`/finance/call-history/client/${id}`),
-        api.get(`/referrals/client/${id}`),
+        api.get(`/projects?client=${id}`),
+        api.get(`/finance/invoices?client=${id}`),
+        api.get(`/finance?client=${id}`),
+        api.get(`/call-history?clientId=${id}`),
+        api.get(`/referrals?client=${id}`),
       ]);
+
       return {
-        client: clientRes.data.client,
-        projects: projectsRes.data.projects || [],
-        invoices: invoicesRes.data.invoices || [],
-        financeRecords: financeRes?.data?.records || [],
-        callHistory: callRes?.data?.calls || [],
-        referrals: referralRes?.data?.referrals || [],
+        client: clientRes.status === 'fulfilled' ? clientRes.value.data.client : null,
+        projects: projectsRes.status === 'fulfilled' ? (projectsRes.value.data.projects || projectsRes.value.data || []) : [],
+        invoices: invoicesRes.status === 'fulfilled' ? invoicesRes.value.data.invoices || [] : [],
+        financeRecords: financeRes.status === 'fulfilled' ? financeRes.value.data.records || [] : [],
+        callHistory: callRes.status === 'fulfilled' ? callRes.value.data.calls || [] : [],
+        referrals: referralRes.status === 'fulfilled' ? referralRes.value.data.referrals || [] : [],
       };
     },
   });
@@ -98,6 +99,7 @@ const ClientDetails = () => {
       { label: 'Total Revenue', value: formatINR(totalRevenue), icon: IndianRupee, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     ] : []),
     { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length, icon: Briefcase, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Account Created', value: client.createdAt ? new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—', icon: Calendar, color: 'text-violet-500', bg: 'bg-violet-500/10' },
     ...(isFinanceVisible ? [
       { label: 'Paid Invoices', value: paidInvoices.length, icon: CheckCircle2, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
       { label: 'Pending Invoices', value: pendingInvoices.length, icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
@@ -123,7 +125,12 @@ const ClientDetails = () => {
         backTo="/clients"
         backLabel="Clients"
         title={client.company || client.name}
-        subtitle={[client.email, client.phone, client.website].filter(Boolean).join(' | ')}
+        subtitle={[
+          client.email,
+          client.phone,
+          client.website,
+          client.createdAt ? `Created ${new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}` : null,
+        ].filter(Boolean).join(' | ')}
         icon={Building2}
         status={client.status}
         statusClassName={`border ${statusStyles[client.status] || statusStyles.Active}`}

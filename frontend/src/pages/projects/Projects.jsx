@@ -176,6 +176,20 @@ const Projects = () => {
         </div>
       ),
     },
+    {
+      key: 'createdAt',
+      label: 'Created Date',
+      render: (row) => (
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap">
+          <Calendar size={11} className="text-muted-foreground/70" />
+          <span>
+            {row.createdAt
+              ? new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+              : '—'}
+          </span>
+        </div>
+      ),
+    },
   ];
 
   const handleDelete = async () => {
@@ -399,10 +413,20 @@ const Projects = () => {
                               </div>
 
                               <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                                <span>
-                                  {project.endDate ? `Due ${new Date(project.endDate).toLocaleDateString()}` : 'Ongoing'}
-                                </span>
-                                <span className="group-hover:text-primary flex items-center gap-0.5">
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar size={10} className="text-primary/70 shrink-0" />
+                                    <span>
+                                      {project.createdAt
+                                        ? `Created ${new Date(project.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}`
+                                        : ''}
+                                    </span>
+                                  </span>
+                                  {project.endDate && (
+                                    <span>• Due {new Date(project.endDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                                  )}
+                                </div>
+                                <span className="group-hover:text-primary flex items-center gap-0.5 font-semibold shrink-0">
                                   Open <ArrowRight size={10} />
                                 </span>
                               </div>

@@ -307,6 +307,14 @@ export const TaskDetails = () => {
                   </span>
                 </>
               )}
+              {task.createdAt && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Calendar size={13} /> Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </>
+              )}
               {task.dueDate && (
                 <>
                   <span>•</span>
@@ -401,6 +409,13 @@ export const TaskDetails = () => {
               </span>
             </NotionPropertyRow>
           )}
+
+          {/* Created Date */}
+          <NotionPropertyRow icon={Calendar} label="Created Date">
+            <span className="text-foreground font-semibold">
+              {task.createdAt ? new Date(task.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+            </span>
+          </NotionPropertyRow>
 
           {/* Due Date & Time */}
           <NotionPropertyRow icon={Clock} label="Due Date">

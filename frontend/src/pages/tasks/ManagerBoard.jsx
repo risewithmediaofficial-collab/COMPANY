@@ -219,6 +219,16 @@ export default function ManagerBoard() {
       ),
     },
     {
+      key: 'createdAt',
+      label: 'Created Date',
+      render: (note) => (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+          <Calendar size={11} className="text-muted-foreground/70" />
+          <span>{note.createdAt ? new Date(note.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</span>
+        </div>
+      ),
+    },
+    {
       key: 'actions',
       label: '',
       render: (note) =>

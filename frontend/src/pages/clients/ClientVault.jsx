@@ -403,6 +403,15 @@ export default function ClientVault() {
         ),
     },
     {
+      key: 'createdAt',
+      label: 'Created Date',
+      render: (item) => (
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {item.createdAt ? new Date(item.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+        </span>
+      ),
+    },
+    {
       key: 'actions',
       label: '',
       render: (item) => (

@@ -18,6 +18,7 @@ import {
   FileEdit,
   Share2,
   X,
+  Calendar,
 } from 'lucide-react';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
@@ -314,6 +315,20 @@ const Tasks = () => {
         );
       },
     },
+    {
+      key: 'createdAt',
+      label: 'Created Date',
+      render: (row) => (
+        <div className="flex items-center gap-1 text-[11px] text-muted-foreground whitespace-nowrap">
+          <Calendar size={11} className="text-muted-foreground/70" />
+          <span>
+            {row.createdAt
+              ? new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+              : '—'}
+          </span>
+        </div>
+      ),
+    },
   ];
 
   const handleDeleteTask = async () => {
@@ -602,15 +617,23 @@ const Tasks = () => {
                         </select>
                       </div>
 
-                      {(() => {
-                        const overdue = isTaskOverdue(task);
-                        return (
-                          <div className={`text-[11px] flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
-                            {overdue ? <AlertTriangle size={12} className="text-rose-500 shrink-0" /> : <Clock size={12} className="text-primary shrink-0" />}
-                            <span>{task.dueDate ? `${overdue ? 'Overdue: ' : ''}${new Date(task.dueDate).toLocaleDateString()}` : 'No deadline'}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {task.createdAt && (
+                          <div className="text-[11px] flex items-center gap-1 text-muted-foreground">
+                            <Calendar size={11} className="text-primary/70 shrink-0" />
+                            <span>Created {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                           </div>
-                        );
-                      })()}
+                        )}
+                        {(() => {
+                          const overdue = isTaskOverdue(task);
+                          return (
+                            <div className={`text-[11px] flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
+                              {overdue ? <AlertTriangle size={12} className="text-rose-500 shrink-0" /> : <Clock size={12} className="text-primary shrink-0" />}
+                              <span>{task.dueDate ? `${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString()}` : 'No deadline'}</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 ))
@@ -836,18 +859,26 @@ const Tasks = () => {
                               )}
 
                               <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px]">
-                                {(() => {
-                                  const overdue = isTaskOverdue(task);
-                                  return (
-                                    <span className={`flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
-                                      {overdue && <AlertTriangle size={11} className="shrink-0 text-rose-500 dark:text-rose-400" />}
-                                      <span>
-                                        {task.dueDate ? `${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'No deadline'}
-                                      </span>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {task.createdAt && (
+                                    <span className="flex items-center gap-1 text-muted-foreground">
+                                      <Calendar size={10} className="text-primary/70 shrink-0" />
+                                      <span>Created {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                                     </span>
-                                  );
-                                })()}
-                                <span className="group-hover:text-primary font-semibold flex items-center gap-0.5 text-muted-foreground">
+                                  )}
+                                  {(() => {
+                                    const overdue = isTaskOverdue(task);
+                                    return (
+                                      <span className={`flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
+                                        {overdue && <AlertTriangle size={11} className="shrink-0 text-rose-500 dark:text-rose-400" />}
+                                        <span>
+                                          {task.dueDate ? `• ${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : ''}
+                                        </span>
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                                <span className="group-hover:text-primary font-semibold flex items-center gap-0.5 text-muted-foreground shrink-0">
                                   Open <ArrowRight size={10} />
                                 </span>
                               </div>
