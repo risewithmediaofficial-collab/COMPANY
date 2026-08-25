@@ -17,6 +17,7 @@ import {
   Target,
   TrendingUp,
   MessageSquarePlus,
+  Clock,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAddLeadActivity, useLeadsKanban, useLeads, useUpdateLeadStage, useDeleteLead } from '../../hooks/useLeads';
