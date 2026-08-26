@@ -30,6 +30,12 @@ import {
   Clock,
   Briefcase,
   Layers,
+  Banknote,
+  Coins,
+  Printer,
+  Table as TableIcon,
+  LayoutGrid,
+  Zap,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import {
@@ -47,6 +53,8 @@ import { ShareInvoiceModal } from '../../components/modals/ShareInvoiceModal';
 import { AddExpenseModal } from '../../components/modals/AddExpenseModal';
 import { AddAdsCampaignModal } from '../../components/modals/AddAdsCampaignModal';
 import { MonthlyExpenseReportModal } from '../../components/modals/MonthlyExpenseReportModal';
+import { AddSalaryModal } from '../../components/modals/AddSalaryModal';
+import { PayslipModal } from '../../components/modals/PayslipModal';
 import { exportInvoiceToPDF } from '../../utils/pdfExport';
 import { DataTable } from '../../components/ui/DataTable';
 import { useDateFilter } from '../../context/DateFilterContext';
@@ -77,6 +85,13 @@ import {
   useApproveExpense,
   useDeleteExpense,
 } from '../../hooks/useFinance';
+import {
+  useSalaries,
+  useSalarySummary,
+  useUpdateSalaryStatus,
+  useDeleteSalary,
+  useGenerateMonthlyPayroll,
+} from '../../hooks/useSalary';
 
 const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -108,6 +123,29 @@ const invoiceStatusTone = {
   cancelled: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
 };
 
+const salaryStatusTone = {
+  paid: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  processing: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  hold: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+  draft: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+};
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
 export default function Finance() {
   const { user } = useSelector((state) => state.auth);
   const isManager = user?.role === 'manager';
@@ -120,6 +158,7 @@ export default function Finance() {
       return [
         { id: 'invoices', label: 'Invoices & Billing', icon: FileText },
         { id: 'expenses', label: 'Expenses & Profits', icon: Receipt },
+        { id: 'salaries', label: 'Employee Salaries', icon: Banknote },
         { id: 'referrals', label: 'Referral Payouts', icon: Users2 },
       ];
     }
@@ -136,6 +175,23 @@ export default function Finance() {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showAdsCampaignModal, setShowAdsCampaignModal] = useState(false);
   const [showMonthlyReportModal, setShowMonthlyReportModal] = useState(false);
+
+  // Salary module states
+  const [showSalaryModal, setShowSalaryModal] = useState(false);
+  const [selectedSalary, setSelectedSalary] = useState(null);
+  const [showPayslipModal, setShowPayslipModal] = useState(false);
+  const [payslipSalary, setPayslipSalary] = useState(null);
+  const [deleteSalaryId, setDeleteSalaryId] = useState(null);
+
+  const currentDate = new Date();
+  const currentMonthName = MONTH_NAMES[currentDate.getMonth()];
+  const currentYear = currentDate.getFullYear();
+
+  const [salaryMonthFilter, setSalaryMonthFilter] = useState(currentMonthName);
+  const [salaryYearFilter, setSalaryYearFilter] = useState(currentYear.toString());
+  const [salaryStatusFilter, setSalaryStatusFilter] = useState('all');
+  const [salaryDeptFilter, setSalaryDeptFilter] = useState('all');
+  const [salaryView, setSalaryView] = useState('table'); // 'table' | 'cards' | 'board'
 
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState('all');
   const [expenseTypeFilter, setExpenseTypeFilter] = useState('all');
@@ -169,6 +225,30 @@ export default function Finance() {
     { enabled: canViewFinanceOverview }
   );
 
+  // Salary Queries
+  const { data: rawSalaries = [], isLoading: salariesLoading } = useSalaries(
+    {
+      month: salaryMonthFilter !== 'all' ? salaryMonthFilter : undefined,
+      year: salaryYearFilter !== 'all' ? Number(salaryYearFilter) : undefined,
+      status: salaryStatusFilter !== 'all' ? salaryStatusFilter : undefined,
+      department: salaryDeptFilter !== 'all' ? salaryDeptFilter : undefined,
+      search,
+    },
+    { enabled: canViewFinanceOverview }
+  );
+
+  const { data: salarySummary = {} } = useSalarySummary(
+    {
+      month: salaryMonthFilter !== 'all' ? salaryMonthFilter : undefined,
+      year: salaryYearFilter !== 'all' ? Number(salaryYearFilter) : undefined,
+    },
+    { enabled: canViewFinanceOverview }
+  );
+
+  const updateSalaryStatus = useUpdateSalaryStatus();
+  const deleteSalary = useDeleteSalary();
+  const generateMonthlyPayroll = useGenerateMonthlyPayroll();
+
   // Client-side date filter refinement
   const invoices = useMemo(() => {
     return rawInvoices.filter((i) => {
@@ -188,6 +268,19 @@ export default function Finance() {
       return matchesDate;
     });
   }, [rawExpenses, isDateInRange]);
+
+  const salaries = useMemo(() => {
+    return rawSalaries.filter((s) => {
+      if (salaryStatusFilter !== 'all' && s.status !== salaryStatusFilter) return false;
+      if (salaryDeptFilter !== 'all' && (s.employee?.department || '').toLowerCase() !== salaryDeptFilter.toLowerCase()) return false;
+      return true;
+    });
+  }, [rawSalaries, salaryStatusFilter, salaryDeptFilter]);
+
+  const departments = useMemo(() => {
+    const set = new Set(rawSalaries.map((s) => s.employee?.department).filter(Boolean));
+    return ['all', ...Array.from(set)];
+  }, [rawSalaries]);
 
   const approveExpense = useApproveExpense();
   const deleteExpense = useDeleteExpense();
@@ -248,6 +341,7 @@ export default function Finance() {
   const openInvoicesCount = invoices.filter((item) => !['Paid', 'Cancelled', 'paid', 'cancelled'].includes(item.status)).length;
   const overdueCount = invoices.filter((item) => item.status?.toLowerCase() === 'overdue' || (new Date(item.dueDate) < new Date() && !['paid', 'cancelled'].includes(item.status?.toLowerCase()))).length;
 
+  // Invoices Columns
   const invoiceColumns = [
     {
       key: 'invoiceNumber',
@@ -354,6 +448,7 @@ export default function Finance() {
     },
   ];
 
+  // Expense Columns
   const expenseColumns = [
     {
       key: 'title',
@@ -432,11 +527,223 @@ export default function Finance() {
     },
   ];
 
+  // Employee Salary Columns (Notion Agency OS Table View)
+  const salaryColumns = [
+    {
+      key: 'employee',
+      label: 'Team Member',
+      render: (row) => {
+        const emp = row.employee || {};
+        return (
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+              {emp.name?.charAt(0) || 'E'}
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-foreground text-xs truncate">{emp.name || 'Unknown Employee'}</div>
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <span>{emp.position || 'Team Member'}</span>
+                <span>•</span>
+                <span className="font-semibold text-primary/80">{emp.department || 'General'}</span>
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'baseSalary',
+      label: 'Base Pay',
+      render: (row) => (
+        <div className="text-xs font-semibold text-foreground">
+          {currency.format(Number(row.baseSalary || 0))}
+        </div>
+      ),
+    },
+    {
+      key: 'incentive',
+      label: 'Incentive',
+      render: (row) => {
+        const inc = Number(row.incentive || 0);
+        return (
+          <div className="text-xs">
+            {inc > 0 ? (
+              <div className="flex flex-col">
+                <span className="font-bold text-amber-600 flex items-center gap-0.5">
+                  <Sparkles size={11} />
+                  +{currency.format(inc)}
+                </span>
+                {row.incentiveReason && (
+                  <span className="text-[10px] text-muted-foreground truncate max-w-[120px]" title={row.incentiveReason}>
+                    {row.incentiveReason}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="text-muted-foreground/60">₹0</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'ots',
+      label: 'OTS (Overtime)',
+      render: (row) => {
+        const ots = Number(row.ots || 0);
+        return (
+          <div className="text-xs">
+            {ots > 0 ? (
+              <div className="flex flex-col">
+                <span className="font-bold text-purple-600 flex items-center gap-0.5">
+                  <Clock size={11} />
+                  +{currency.format(ots)}
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">
+                  {row.otsHours ? `${row.otsHours} hrs` : ''} {row.otsReason ? `(${row.otsReason})` : ''}
+                </span>
+              </div>
+            ) : (
+              <span className="text-muted-foreground/60">₹0</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'otherAllowances',
+      label: 'Other Perks',
+      render: (row) => {
+        const oth = Number(row.otherAllowances || 0);
+        return (
+          <div className="text-xs">
+            {oth > 0 ? (
+              <div className="flex flex-col">
+                <span className="font-bold text-emerald-600">+{currency.format(oth)}</span>
+                {row.otherAllowancesReason && (
+                  <span className="text-[10px] text-muted-foreground truncate max-w-[120px]" title={row.otherAllowancesReason}>
+                    {row.otherAllowancesReason}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="text-muted-foreground/60">₹0</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'deductions',
+      label: 'Deductions',
+      render: (row) => {
+        const ded = Number(row.deductions || 0);
+        return (
+          <div className="text-xs">
+            {ded > 0 ? (
+              <div className="flex flex-col">
+                <span className="font-bold text-rose-600">-{currency.format(ded)}</span>
+                {row.deductionReason && (
+                  <span className="text-[10px] text-muted-foreground truncate max-w-[120px]" title={row.deductionReason}>
+                    {row.deductionReason}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="text-muted-foreground/60">₹0</span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'netSalary',
+      label: 'Net Take-Home',
+      render: (row) => {
+        const net = Number(row.netSalary || 0);
+        return (
+          <div className="text-xs font-black text-foreground bg-primary/10 px-2.5 py-1 rounded-xl inline-block border border-primary/20">
+            {currency.format(net)}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (row) => (
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${salaryStatusTone[row.status] || salaryStatusTone.pending}`}>
+          {row.status}
+        </span>
+      ),
+    },
+    {
+      key: 'paymentMethod',
+      label: 'Payment Info',
+      render: (row) => (
+        <div className="text-xs space-y-0.5">
+          <div className="font-semibold text-foreground">{row.paymentMethod || 'Bank Transfer'}</div>
+          {row.paymentDate && (
+            <div className="text-[10px] text-muted-foreground">{new Date(row.paymentDate).toLocaleDateString()}</div>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      label: '',
+      render: (row) => (
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={() => {
+              setPayslipSalary(row);
+              setShowPayslipModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            title="View & Download Payslip"
+          >
+            <FileText size={13} />
+          </button>
+          {row.status !== 'paid' && canManage && (
+            <button
+              onClick={() => updateSalaryStatus.mutate({ id: row._id, status: 'paid' })}
+              className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 text-xs font-bold transition-colors"
+              title="Mark as Settled / Paid"
+            >
+              Pay
+            </button>
+          )}
+          {canManage && (
+            <button
+              onClick={() => {
+                setSelectedSalary(row);
+                setShowSalaryModal(true);
+              }}
+              className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+              title="Edit Salary"
+            >
+              <Pencil size={13} />
+            </button>
+          )}
+          {canManage && (
+            <button
+              onClick={() => setDeleteSalaryId(row._id)}
+              className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
+              title="Delete Record"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Business & Finance', 'Finance Operations']}
       title="Finance & Revenue Hub"
-      subtitle="Complete Notion-style command center for client billings, accounts receivable, agency spend, and net margins."
+      subtitle="Complete Notion-style command center for client billings, accounts receivable, agency spend, employee salaries, and net margins."
       icon="💰"
       properties={[
         { label: 'Collected', value: currency.format(totalCollected), tone: 'success' },
@@ -448,26 +755,59 @@ export default function Finance() {
         <div className="flex items-center gap-2">
           {canManage && (
             <>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowExpenseModal(true)}
-                className="rounded-xl text-xs font-bold gap-1.5 h-9"
-              >
-                <Receipt size={14} />
-                <span>+ Record Spend</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  setSelectedInvoice(null);
-                  setShowInvoiceModal(true);
-                }}
-                className="rounded-xl text-xs font-bold gap-1.5 h-9 shadow-sm"
-              >
-                <Plus size={14} className="stroke-[2.5]" />
-                <span>Create Invoice</span>
-              </Button>
+              {activeTab === 'salaries' ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      generateMonthlyPayroll.mutate({
+                        month: salaryMonthFilter !== 'all' ? salaryMonthFilter : currentMonthName,
+                        year: salaryYearFilter !== 'all' ? Number(salaryYearFilter) : currentYear,
+                      })
+                    }
+                    disabled={generateMonthlyPayroll.isPending}
+                    className="rounded-xl text-xs font-bold gap-1.5 h-9"
+                  >
+                    <Zap size={14} className="text-amber-500 fill-amber-500" />
+                    <span>Auto-Generate ({salaryMonthFilter !== 'all' ? salaryMonthFilter : currentMonthName})</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setSelectedSalary(null);
+                      setShowSalaryModal(true);
+                    }}
+                    className="rounded-xl text-xs font-bold gap-1.5 h-9 shadow-sm"
+                  >
+                    <Plus size={14} className="stroke-[2.5]" />
+                    <span>+ Add Salary Entry</span>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowExpenseModal(true)}
+                    className="rounded-xl text-xs font-bold gap-1.5 h-9"
+                  >
+                    <Receipt size={14} />
+                    <span>+ Record Spend</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setSelectedInvoice(null);
+                      setShowInvoiceModal(true);
+                    }}
+                    className="rounded-xl text-xs font-bold gap-1.5 h-9 shadow-sm"
+                  >
+                    <Plus size={14} className="stroke-[2.5]" />
+                    <span>Create Invoice</span>
+                  </Button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -638,7 +978,358 @@ export default function Finance() {
         </div>
       )}
 
-      {/* Tab 3: Referral Hub */}
+      {/* Tab 3: Employee Salaries & Payroll (Notion Agency OS Hub) */}
+      {activeTab === 'salaries' && (
+        <div className="space-y-4">
+          {/* Notion Agency OS Payroll KPI Matrix */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-2xl bg-card border border-border space-y-1 shadow-xs">
+              <div className="flex items-center justify-between text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                <span>Total Net Payroll</span>
+                <Banknote size={14} className="text-primary" />
+              </div>
+              <div className="text-lg sm:text-xl font-black text-foreground">
+                {currency.format(salarySummary.totalPayroll || 0)}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                {salarySummary.totalEmployees || salaries.length} team members
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-border space-y-1 shadow-xs">
+              <div className="flex items-center justify-between text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                <span>Base Salaries</span>
+                <CreditCard size={14} className="text-blue-500" />
+              </div>
+              <div className="text-lg sm:text-xl font-black text-foreground">
+                {currency.format(salarySummary.totalBaseSalary || 0)}
+              </div>
+              <div className="text-[11px] text-muted-foreground">Contracted fixed pay</div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-border space-y-1 shadow-xs">
+              <div className="flex items-center justify-between text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                <span>Incentives & OTS</span>
+                <Sparkles size={14} className="text-amber-500" />
+              </div>
+              <div className="text-lg sm:text-xl font-black text-amber-600">
+                +{currency.format(Number(salarySummary.totalIncentive || 0) + Number(salarySummary.totalOts || 0))}
+              </div>
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <span>Inc: {currency.format(salarySummary.totalIncentive || 0)}</span>
+                <span>•</span>
+                <span>OTS: {currency.format(salarySummary.totalOts || 0)}</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-card border border-border space-y-1 shadow-xs">
+              <div className="flex items-center justify-between text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                <span>Pending Disbursals</span>
+                <Clock size={14} className="text-rose-500" />
+              </div>
+              <div className="text-lg sm:text-xl font-black text-rose-600">
+                {currency.format(salarySummary.totalPending || 0)}
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                {salarySummary.pendingCount || 0} unpaid entries
+              </div>
+            </div>
+          </div>
+
+          {/* Month & Period Filter Bar + View Switcher */}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 p-2 bg-secondary/30 rounded-2xl border border-border">
+            {/* Months Selector */}
+            <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 lg:pb-0">
+              <span className="text-[11px] font-bold text-muted-foreground px-2 uppercase">Period:</span>
+              <select
+                value={salaryMonthFilter}
+                onChange={(e) => setSalaryMonthFilter(e.target.value)}
+                className="h-8 px-2.5 text-xs font-bold rounded-xl border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">All Months</option>
+                {MONTH_NAMES.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={salaryYearFilter}
+                onChange={(e) => setSalaryYearFilter(e.target.value)}
+                className="h-8 px-2.5 text-xs font-bold rounded-xl border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">All Years</option>
+                {[currentYear - 1, currentYear, currentYear + 1].map((y) => (
+                  <option key={y} value={y.toString()}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <div className="hidden sm:flex items-center gap-1 ml-2 pl-2 border-l border-border">
+                {['all', 'pending', 'paid', 'processing'].map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setSalaryStatusFilter(st)}
+                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold capitalize transition-all whitespace-nowrap ${
+                      salaryStatusFilter === st
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Department Quick Filter & View Switcher */}
+            <div className="flex items-center gap-2 self-end lg:self-auto">
+              <select
+                value={salaryDeptFilter}
+                onChange={(e) => setSalaryDeptFilter(e.target.value)}
+                className="h-8 px-2.5 text-xs font-bold rounded-xl border border-border bg-card text-foreground capitalize focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">All Departments</option>
+                {departments.filter((d) => d !== 'all').map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+
+              {/* View Switcher (Table / Cards / Board) */}
+              <div className="flex items-center p-0.5 rounded-xl bg-card border border-border">
+                <button
+                  onClick={() => setSalaryView('table')}
+                  className={`p-1.5 rounded-lg text-xs transition-all ${
+                    salaryView === 'table' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Table View"
+                >
+                  <TableIcon size={14} />
+                </button>
+                <button
+                  onClick={() => setSalaryView('cards')}
+                  className={`p-1.5 rounded-lg text-xs transition-all ${
+                    salaryView === 'cards' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Cards Grid View"
+                >
+                  <LayoutGrid size={14} />
+                </button>
+                <button
+                  onClick={() => setSalaryView('board')}
+                  className={`p-1.5 rounded-lg text-xs transition-all ${
+                    salaryView === 'board' ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Status Board View"
+                >
+                  <Layers size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* View 1: Notion Table View */}
+          {salaryView === 'table' && (
+            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+              <DataTable
+                data={salaries}
+                columns={salaryColumns}
+                loading={salariesLoading}
+                emptyTitle="No salary records found"
+                emptyDescription="Generate monthly payroll or add custom employee salary records with incentives and OTS."
+              />
+            </div>
+          )}
+
+          {/* View 2: Notion Cards Grid View */}
+          {salaryView === 'cards' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {salaries.map((row) => {
+                const emp = row.employee || {};
+                return (
+                  <div
+                    key={row._id}
+                    className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-3 hover:border-primary/40 transition-all flex flex-col justify-between"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-secondary uppercase tracking-wider text-muted-foreground">
+                          {row.month} {row.year}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${salaryStatusTone[row.status] || salaryStatusTone.pending}`}>
+                          {row.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-sm">
+                          {emp.name?.charAt(0) || 'E'}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-black text-sm text-foreground truncate">{emp.name || 'Team Member'}</h4>
+                          <p className="text-xs text-muted-foreground truncate">{emp.position || 'Employee'} • {emp.department || 'General'}</p>
+                        </div>
+                      </div>
+
+                      {/* Itemized Chips */}
+                      <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1.5 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Base Pay:</span>
+                          <span className="font-semibold text-foreground">{currency.format(Number(row.baseSalary || 0))}</span>
+                        </div>
+                        {Number(row.incentive || 0) > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-amber-600 font-medium">Incentive:</span>
+                            <span className="font-bold text-amber-600">+{currency.format(Number(row.incentive))}</span>
+                          </div>
+                        )}
+                        {Number(row.ots || 0) > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-purple-600 font-medium">OTS Allowance:</span>
+                            <span className="font-bold text-purple-600">+{currency.format(Number(row.ots))}</span>
+                          </div>
+                        )}
+                        {Number(row.otherAllowances || 0) > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-emerald-600 font-medium">Other Perks:</span>
+                            <span className="font-bold text-emerald-600">+{currency.format(Number(row.otherAllowances))}</span>
+                          </div>
+                        )}
+                        {Number(row.deductions || 0) > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-rose-600 font-medium">Deductions:</span>
+                            <span className="font-bold text-rose-600">-{currency.format(Number(row.deductions))}</span>
+                          </div>
+                        )}
+                        <div className="pt-1 border-t border-border/60 flex justify-between items-center">
+                          <span className="font-bold text-foreground">Net Pay:</span>
+                          <span className="font-black text-sm text-foreground text-primary">{currency.format(Number(row.netSalary || 0))}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                      <button
+                        onClick={() => {
+                          setPayslipSalary(row);
+                          setShowPayslipModal(true);
+                        }}
+                        className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1"
+                      >
+                        <FileText size={13} />
+                        <span>Payslip</span>
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {row.status !== 'paid' && canManage && (
+                          <button
+                            onClick={() => updateSalaryStatus.mutate({ id: row._id, status: 'paid' })}
+                            className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 text-xs font-bold transition-colors"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                        {canManage && (
+                          <button
+                            onClick={() => {
+                              setSelectedSalary(row);
+                              setShowSalaryModal(true);
+                            }}
+                            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                        )}
+                        {canManage && (
+                          <button
+                            onClick={() => setDeleteSalaryId(row._id)}
+                            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* View 3: Notion Kanban Status Board */}
+          {salaryView === 'board' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              {['pending', 'processing', 'paid'].map((statusKey) => {
+                const columnItems = salaries.filter((s) => s.status === statusKey);
+                const columnTotal = columnItems.reduce((sum, s) => sum + Number(s.netSalary || 0), 0);
+                return (
+                  <div key={statusKey} className="p-3.5 rounded-2xl bg-secondary/20 border border-border space-y-3">
+                    <div className="flex items-center justify-between pb-1 border-b border-border">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold border capitalize ${salaryStatusTone[statusKey]}`}>
+                          {statusKey}
+                        </span>
+                        <span className="text-xs font-bold text-muted-foreground">({columnItems.length})</span>
+                      </div>
+                      <span className="text-xs font-extrabold text-foreground">{currency.format(columnTotal)}</span>
+                    </div>
+
+                    <div className="space-y-2.5 min-h-[160px]">
+                      {columnItems.length === 0 ? (
+                        <div className="text-center py-8 text-xs text-muted-foreground/60">No entries in {statusKey}</div>
+                      ) : (
+                        columnItems.map((item) => {
+                          const emp = item.employee || {};
+                          return (
+                            <div
+                              key={item._id}
+                              className="p-3 rounded-xl bg-card border border-border shadow-xs space-y-2 hover:border-primary/40 transition-all"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-xs text-foreground">{emp.name}</span>
+                                <span className="text-[11px] font-black text-primary">{currency.format(Number(item.netSalary || 0))}</span>
+                              </div>
+                              <div className="text-[10px] text-muted-foreground">{emp.position} • {emp.department}</div>
+                              <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px]">
+                                <span className="text-muted-foreground">{item.month}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setPayslipSalary(item);
+                                      setShowPayslipModal(true);
+                                    }}
+                                    className="text-primary hover:underline font-bold"
+                                  >
+                                    Slip
+                                  </button>
+                                  {statusKey !== 'paid' && canManage && (
+                                    <button
+                                      onClick={() => updateSalaryStatus.mutate({ id: item._id, status: 'paid' })}
+                                      className="text-emerald-600 font-bold hover:underline"
+                                    >
+                                      Pay
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 4: Referral Hub */}
       {activeTab === 'referrals' && (
         <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
           <DataTable
@@ -700,6 +1391,24 @@ export default function Finance() {
         />
       )}
 
+      {showSalaryModal && (
+        <AddSalaryModal
+          open={showSalaryModal}
+          onOpenChange={setShowSalaryModal}
+          salary={selectedSalary}
+          initialMonth={salaryMonthFilter !== 'all' ? salaryMonthFilter : currentMonthName}
+          initialYear={salaryYearFilter !== 'all' ? Number(salaryYearFilter) : currentYear}
+        />
+      )}
+
+      {showPayslipModal && (
+        <PayslipModal
+          open={showPayslipModal}
+          onOpenChange={setShowPayslipModal}
+          salary={payslipSalary}
+        />
+      )}
+
       {showShareModal && (
         <ShareInvoiceModal
           open={showShareModal}
@@ -708,7 +1417,7 @@ export default function Finance() {
         />
       )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Invoice Confirmation */}
       <AlertDialog open={Boolean(deleteInvoiceId)} onOpenChange={(open) => !open && setDeleteInvoiceId(null)}>
         <AlertDialogContent className="bg-card border border-border">
           <AlertDialogHeader>
@@ -723,6 +1432,54 @@ export default function Finance() {
               onClick={() => {
                 if (deleteInvoiceId) deleteInvoice.mutate(deleteInvoiceId);
                 setDeleteInvoiceId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Expense Confirmation */}
+      <AlertDialog open={Boolean(deleteExpenseId)} onOpenChange={(open) => !open && setDeleteExpenseId(null)}>
+        <AlertDialogContent className="bg-card border border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold">Delete Expense Record?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              This expense entry will be permanently removed from finance calculations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteExpenseId) deleteExpense.mutate(deleteExpenseId);
+                setDeleteExpenseId(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Salary Confirmation */}
+      <AlertDialog open={Boolean(deleteSalaryId)} onOpenChange={(open) => !open && setDeleteSalaryId(null)}>
+        <AlertDialogContent className="bg-card border border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold">Delete Salary Record?</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
+              This employee compensation record and any linked expense will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-2 pt-2">
+            <AlertDialogCancel className="rounded-xl text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteSalaryId) deleteSalary.mutate(deleteSalaryId);
+                setDeleteSalaryId(null);
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl text-xs font-bold"
             >
