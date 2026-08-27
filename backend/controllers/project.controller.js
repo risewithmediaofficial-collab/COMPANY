@@ -185,7 +185,11 @@ export const getProjects = async (req, res) => {
   try {
     const {
       status,
+      category,
+      priority,
       client,
+      manager,
+      isInternal,
       search,
       startDateFrom,
       startDateTo,
@@ -194,12 +198,30 @@ export const getProjects = async (req, res) => {
       createdFrom,
       createdTo,
       page = 1,
-      limit = 20,
+      limit = 1000,
     } = req.query;
     const filter = {};
 
     if (status) filter.status = projectStatusMap[status] || status;
+    if (category && category !== 'all') {
+      if (category === 'saas_product' || category === 'saas') {
+        filter.category = { $in: ['saas_product', 'saas'] };
+      } else if (category === 'internal_tool' || category === 'internal_product') {
+        filter.category = { $in: ['internal_tool', 'internal_product'] };
+      } else if (category === 'web_development' || category === 'website') {
+        filter.category = { $in: ['web_development', 'web_design'] };
+      } else if (category === 'video_content' || category === 'video') {
+        filter.category = { $in: ['video_content', 'video'] };
+      } else {
+        filter.category = category;
+      }
+    }
+    if (priority) filter.priority = priorityMap[priority] || priority;
     if (client) filter.client = client;
+    if (manager) filter.manager = manager;
+    if (isInternal !== undefined && isInternal !== '') {
+      filter.isInternal = isInternal === 'true' || isInternal === true;
+    }
     if (startDateFrom || startDateTo) {
       filter.startDate = {};
       if (startDateFrom) filter.startDate.$gte = new Date(startDateFrom);
@@ -224,6 +246,9 @@ export const getProjects = async (req, res) => {
       }).select('_id');
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } },
+        { tags: { $regex: search, $options: 'i' } },
         { client: { $in: matchingClients.map((item) => item._id) } },
       ];
     }

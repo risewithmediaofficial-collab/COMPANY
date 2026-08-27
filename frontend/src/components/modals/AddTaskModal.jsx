@@ -616,7 +616,8 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
 
   const onSubmit = async (data) => {
     const uploadedAttachments = await uploadFiles(attachmentFiles);
-    const resolvedClient = (data.client && data.client !== '__saas_internal__') ? data.client : undefined;
+    const resolvedClient = (data.client && data.client !== '__saas_internal__' && data.client !== '_none') ? data.client : undefined;
+    const sanitizeId = (val) => (val && val !== '_none' && val !== '__saas_internal__' && val !== 'none' ? val : undefined);
 
     if (task) {
       // Edit Mode manual validation
@@ -630,12 +631,17 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         title: data.taskTitle,
         taskTitle: data.taskTitle,
         client: resolvedClient,
-        project: data.project || undefined,
+        project: sanitizeId(data.project),
         attachments: [...existingAttachments, ...uploadedAttachments],
         dueDate: data.dueDate || undefined,
         deadline: data.dueDate || undefined,
-        assignedTo: data.assignedTo,
-        assignedManager: data.assignedManager || undefined,
+        assignedTo: sanitizeId(data.assignedTo),
+        assignedManager: sanitizeId(data.assignedManager),
+        scriptWriterAssigned: sanitizeId(data.scriptWriterAssigned),
+        voiceArtistAssigned: sanitizeId(data.voiceArtistAssigned),
+        videographerAssigned: sanitizeId(data.videographerAssigned),
+        editorAssigned: sanitizeId(data.editorAssigned),
+        publisherAssigned: sanitizeId(data.publisherAssigned),
         pagesNeeded: data.pagesNeeded || [],
       };
       await updateTask.mutateAsync({ id: task._id, data: payload });
@@ -658,10 +664,15 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
           ...t,
           title: t.taskTitle,
           taskTitle: t.taskTitle,
-          client: resolvedClient || task.client?._id || task.client,
-          project: data.project || task.project?._id || task.project,
-          assignedTo: t.assignedTo || data.assignedTo,
-          assignedManager: data.assignedManager || undefined,
+          client: resolvedClient || sanitizeId(task.client?._id) || sanitizeId(task.client),
+          project: sanitizeId(data.project) || sanitizeId(task.project?._id) || sanitizeId(task.project),
+          assignedTo: sanitizeId(t.assignedTo) || sanitizeId(data.assignedTo),
+          assignedManager: sanitizeId(data.assignedManager),
+          scriptWriterAssigned: sanitizeId(t.scriptWriterAssigned),
+          voiceArtistAssigned: sanitizeId(t.voiceArtistAssigned),
+          videographerAssigned: sanitizeId(t.videographerAssigned),
+          editorAssigned: sanitizeId(t.editorAssigned),
+          publisherAssigned: sanitizeId(t.publisherAssigned),
           priority: data.priority,
           status: 'To Do',
           dueDate: data.dueDate || undefined,
@@ -690,27 +701,27 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
       const tasksPayload = tasksList.map((t) => ({
         ...t,
         title: t.taskTitle,
-        project: data.project || undefined,
+        project: sanitizeId(data.project),
         client: resolvedClient,
         attachments: [...existingAttachments, ...uploadedAttachments],
         dueDate: data.dueDate || undefined,
         deadline: data.dueDate || undefined,
-        assignedTo: t.assignedTo,
-        assignedManager: data.assignedManager || undefined,
+        assignedTo: sanitizeId(t.assignedTo),
+        assignedManager: sanitizeId(data.assignedManager),
         priority: data.priority,
         status: data.status,
         internalNotes: data.internalNotes,
         clientVisibleNotes: data.clientVisibleNotes,
         isClientVisible: data.isClientVisible,
         approvalRequired: data.approvalRequired,
-        scriptWriterAssigned: t.scriptWriterAssigned || undefined,
-        voiceArtistAssigned: t.voiceArtistAssigned || undefined,
+        scriptWriterAssigned: sanitizeId(t.scriptWriterAssigned),
+        voiceArtistAssigned: sanitizeId(t.voiceArtistAssigned),
         voiceScriptText: t.voiceScriptText || '',
         voiceInstructions: t.voiceInstructions || '',
-        videographerAssigned: t.videographerAssigned || undefined,
+        videographerAssigned: sanitizeId(t.videographerAssigned),
         videographerContentNeeded: t.videographerContentNeeded || '',
-        editorAssigned: t.editorAssigned || undefined,
-        publisherAssigned: t.publisherAssigned || undefined,
+        editorAssigned: sanitizeId(t.editorAssigned),
+        publisherAssigned: sanitizeId(t.publisherAssigned),
       }));
 
       await createTask.mutateAsync({

@@ -2,6 +2,7 @@
 // TASK CONTROLLER
 // =============================================
 
+import mongoose from 'mongoose';
 import Task from '../models/task.model.js';
 import Client from '../models/client.model.js';
 import Project from '../models/project.model.js';
@@ -119,7 +120,22 @@ const toIdString = (value) => {
   return value.toString();
 };
 
-const uniqueIds = (items = []) => [...new Set(items.filter(Boolean).map(toIdString))];
+const toObjectIdOrNull = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'object' && value._id) value = value._id;
+  const str = value.toString().trim();
+  if (!str || str === 'null' || str === 'undefined' || str === 'none' || str === '_none' || str === '__saas_internal__') return null;
+  if (mongoose.Types.ObjectId.isValid(str)) return new mongoose.Types.ObjectId(str);
+  return null;
+};
+
+const uniqueIds = (items = []) => {
+  const ids = items
+    .map(toIdString)
+    .map((id) => (mongoose.Types.ObjectId.isValid(id) ? id : null))
+    .filter(Boolean);
+  return [...new Set(ids)];
+};
 
 const isEmployeeLikeRole = (role) => ['employee', 'intern', 'editor', 'designer', 'adsManager'].includes(role);
 
@@ -177,8 +193,24 @@ const normalizeTaskPayload = (body = {}) => {
 
   if (payload.status) payload.status = taskStatusMap[payload.status] || payload.status;
   if (payload.priority) payload.priority = priorityMap[payload.priority] || payload.priority;
-  if (payload.assignedTo !== undefined) payload.assignedTo = uniqueIds(toArray(payload.assignedTo));
-  if (payload.assignedManager !== undefined) payload.assignedManager = toIdString(payload.assignedManager) || undefined;
+  if (payload.assignedTo !== undefined) {
+    const list = toArray(payload.assignedTo)
+      .map(toObjectIdOrNull)
+      .filter(Boolean);
+    payload.assignedTo = [...new Set(list.map((id) => id.toString()))].map((id) => new mongoose.Types.ObjectId(id));
+  }
+  if (payload.assignedManager !== undefined) payload.assignedManager = toObjectIdOrNull(payload.assignedManager);
+  if (payload.scriptWriterAssigned !== undefined) payload.scriptWriterAssigned = toObjectIdOrNull(payload.scriptWriterAssigned);
+  if (payload.voiceArtistAssigned !== undefined) payload.voiceArtistAssigned = toObjectIdOrNull(payload.voiceArtistAssigned);
+  if (payload.videographerAssigned !== undefined) payload.videographerAssigned = toObjectIdOrNull(payload.videographerAssigned);
+  if (payload.editorAssigned !== undefined) payload.editorAssigned = toObjectIdOrNull(payload.editorAssigned);
+  if (payload.publisherAssigned !== undefined) payload.publisherAssigned = toObjectIdOrNull(payload.publisherAssigned);
+  if (payload.client !== undefined) payload.client = toObjectIdOrNull(payload.client);
+  if (payload.project !== undefined) payload.project = toObjectIdOrNull(payload.project);
+  if (payload.parent !== undefined) payload.parent = toObjectIdOrNull(payload.parent);
+  if (payload.brandId !== undefined) payload.brandId = toObjectIdOrNull(payload.brandId);
+  if (payload.organizationId !== undefined) payload.organizationId = toObjectIdOrNull(payload.organizationId);
+
   if (payload.tags !== undefined) payload.tags = Array.isArray(payload.tags)
     ? payload.tags.filter(Boolean)
     : payload.tags
@@ -200,10 +232,6 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.scriptLink !== undefined) payload.scriptLink = normalizeLink(payload.scriptLink);
   if (payload.pagesNeeded !== undefined) payload.pagesNeeded = normalizeStringArray(payload.pagesNeeded);
   if (payload.attachments !== undefined) payload.attachments = normalizeFiles(payload.attachments);
-  if (payload.scriptWriterAssigned !== undefined) payload.scriptWriterAssigned = toIdString(payload.scriptWriterAssigned) || undefined;
-  if (payload.videographerAssigned !== undefined) payload.videographerAssigned = toIdString(payload.videographerAssigned) || undefined;
-  if (payload.editorAssigned !== undefined) payload.editorAssigned = toIdString(payload.editorAssigned) || undefined;
-  if (payload.publisherAssigned !== undefined) payload.publisherAssigned = toIdString(payload.publisherAssigned) || undefined;
   if (payload.shootDate !== undefined) payload.shootDate = payload.shootDate ? new Date(payload.shootDate) : undefined;
   if (payload.shootLocation !== undefined) payload.shootLocation = payload.shootLocation ? payload.shootLocation.trim() : '';
   if (payload.rawFootageLink !== undefined) payload.rawFootageLink = normalizeLink(payload.rawFootageLink);
@@ -351,23 +379,33 @@ const syncTaskDerivedFields = async (task) => {
 
   if (task.scriptWriterAssigned) {
     const swUser = await User.findById(task.scriptWriterAssigned).select('name');
-    if (swUser) task.scriptWriterName = swUser.name;
+    task.scriptWriterName = swUser ? swUser.name : '';
+  } else {
+    task.scriptWriterName = '';
   }
   if (task.voiceArtistAssigned) {
     const vaUser = await User.findById(task.voiceArtistAssigned).select('name');
-    if (vaUser) task.voiceArtistName = vaUser.name;
+    task.voiceArtistName = vaUser ? vaUser.name : '';
+  } else {
+    task.voiceArtistName = '';
   }
   if (task.videographerAssigned) {
     const vUser = await User.findById(task.videographerAssigned).select('name');
-    if (vUser) task.videographerName = vUser.name;
+    task.videographerName = vUser ? vUser.name : '';
+  } else {
+    task.videographerName = '';
   }
   if (task.editorAssigned) {
     const eUser = await User.findById(task.editorAssigned).select('name');
-    if (eUser) task.editorName = eUser.name;
+    task.editorName = eUser ? eUser.name : '';
+  } else {
+    task.editorName = '';
   }
   if (task.publisherAssigned) {
     const pUser = await User.findById(task.publisherAssigned).select('name');
-    if (pUser) task.publisherName = pUser.name;
+    task.publisherName = pUser ? pUser.name : '';
+  } else {
+    task.publisherName = '';
   }
 
   const allSubAssignees = [

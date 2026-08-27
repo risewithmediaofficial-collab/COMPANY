@@ -40,6 +40,8 @@ import {
 } from '../../components/ui/NotionDetailTemplate';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
+import { getProjectCategoryMeta } from '../../utils/projectCategories';
+import { getCategoryTheme } from '../../utils/categoryColors';
 import {
   Dialog,
   DialogContent,
@@ -522,8 +524,8 @@ const ProjectDetails = () => {
                         }}
                         onDrop={(e) => handleDrop(e, status, idx)}
                         onClick={() => setSelectedTaskId(task._id)}
-                        className={`group cursor-pointer rounded-2xl border border-border bg-card p-4 shadow-xs transition-all active:cursor-grabbing ${
-                          primaryColor ? `border-l-[3.5px] ${primaryColor.accentBorder}` : ''
+                        className={`group cursor-pointer rounded-2xl border border-border bg-card p-4 shadow-xs transition-all active:cursor-grabbing border-l-[4px] ${
+                          getCategoryTheme(task.taskType || task.taskCategory).accentBorder
                         } ${
                           isBeingDragged
                             ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40'
@@ -531,25 +533,35 @@ const ProjectDetails = () => {
                         }`}
                       >
                         <div className="mb-3 flex items-start justify-between">
-                          <div className="flex flex-wrap items-center gap-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             {task.isOverTarget && (
                               <span className="rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
                                 🔴 Over Task
                               </span>
                             )}
-                            {(task.tags || []).length ? task.tags.map((tag) => (
+                            {(() => {
+                              const catTheme = getCategoryTheme(task.taskType || task.taskCategory);
+                              const Icon = catTheme.icon;
+                              return (
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-bold border ${catTheme.badgeClass}`}>
+                                  <Icon size={10} className="shrink-0" />
+                                  <span>{catTheme.shortLabel || task.taskType || 'Task'}</span>
+                                </span>
+                              );
+                            })()}
+                            {(task.tags || []).length > 0 && task.tags.map((tag) => (
                               <span key={tag} className="rounded bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-primary">
                                 {tag}
                               </span>
-                            )) : (
-                              <span className="rounded bg-secondary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-tighter text-muted-foreground">
-                                {task.taskType || 'Task'}
-                              </span>
-                            )}
+                            ))}
                           </div>
-                          <button className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                            <MoreHorizontal size={14} />
-                          </button>
+                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${
+                            task.priority === 'Urgent' || task.priority === 'High'
+                              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                              : 'bg-secondary text-muted-foreground'
+                          }`}>
+                            {task.priority || 'Med'}
+                          </span>
                         </div>
 
                         <h4 className="line-clamp-2 text-sm font-bold leading-tight">{task.title}</h4>
@@ -1030,8 +1042,23 @@ const ProjectDetails = () => {
           `Due ${project.dueDate || project.endDate ? new Date(project.dueDate || project.endDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}`,
         ].filter(Boolean).join(' | ')}
         icon={Briefcase}
-        status={project.status}
-        statusClassName={projectStatusStyles[project.status] || projectStatusStyles.Planning}
+        status={
+          <div className="flex items-center gap-2 flex-wrap">
+            {project.category && (
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getProjectCategoryMeta(project.category).badgeClass}`}>
+                {React.createElement(getProjectCategoryMeta(project.category).icon, { size: 13, className: 'shrink-0' })}
+                <span>{getProjectCategoryMeta(project.category).label}</span>
+              </span>
+            )}
+            <span
+              className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
+                projectStatusStyles[project.status] || projectStatusStyles.Planning
+              }`}
+            >
+              {project.status}
+            </span>
+          </div>
+        }
         actions={(
           <>
             <div className="mr-2 flex -space-x-2">

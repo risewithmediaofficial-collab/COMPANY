@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { AppTooltip } from './tooltip';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
+import { getCategoryTheme } from '../../utils/categoryColors';
 
 const DEFAULT_VIEW_META = {
   table: { label: 'Table', icon: TableIcon },
@@ -155,9 +156,9 @@ export function DatabaseView({
   return (
     <div className="space-y-4">
       {/* Database Controls Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-card rounded-2xl border border-border shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-card rounded-2xl border border-border shadow-xs">
         {/* View Switchers */}
-        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
+        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar shrink-0">
           {normalizedViews.map((v) => {
             const Icon = v.icon;
             const isSelected = currentView === v.id || (['board', 'kanban'].includes(v.id) && ['board', 'kanban'].includes(currentView));
@@ -166,9 +167,9 @@ export function DatabaseView({
                 <button
                   type="button"
                   onClick={() => handleViewSelect(v.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                     isSelected
-                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                   }`}
                 >
@@ -190,30 +191,36 @@ export function DatabaseView({
         </div>
 
         {/* Search & Action Bar */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 sm:flex-initial">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+          <div className="relative min-w-[200px] w-full sm:w-64">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={activeSearch}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder={searchPlaceholder}
-              className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full sm:w-60 transition-all"
+              className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full transition-all"
             />
           </div>
 
-          {filters}
           {actions}
 
           {totalCount !== undefined && (
             <AppTooltip content="Total items in this dataset">
-              <span className="hidden sm:inline-block text-xs font-semibold text-muted-foreground px-2.5 py-1 bg-secondary/50 rounded-xl whitespace-nowrap cursor-default">
+              <span className="hidden sm:inline-flex items-center text-xs font-semibold text-muted-foreground px-2.5 py-1 bg-secondary/50 rounded-xl whitespace-nowrap cursor-default">
                 {totalCount} {totalCount === 1 ? 'record' : 'records'}
               </span>
             </AppTooltip>
           )}
         </div>
       </div>
+
+      {/* Dedicated Filters Toolbar */}
+      {filters && (
+        <div className="flex items-center gap-2.5 flex-wrap p-2.5 bg-card/70 rounded-2xl border border-border/80 shadow-xs">
+          {filters}
+        </div>
+      )}
 
       {/* View Content Renderer */}
       {children ? (
@@ -338,7 +345,9 @@ export function DatabaseView({
                                 onDragEnd={handleDragEnd}
                                 onDragOver={(e) => handleItemDragOver(e, col.key, idx)}
                                 onDrop={(e) => handleDrop(e, col.key, idx)}
-                                className={`p-3.5 rounded-xl border border-border bg-card hover:border-primary/40 shadow-sm transition-all cursor-grab active:cursor-grabbing ${
+                                className={`p-3.5 rounded-2xl border border-border bg-card hover:border-primary/50 shadow-xs transition-all cursor-grab active:cursor-grabbing border-l-[4px] ${
+                                  getCategoryTheme(item.category || item.taskCategory || item.taskType || item.type).accentBorder
+                                } ${
                                   isBeingDragged
                                     ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40'
                                     : 'hover:shadow-md hover:-translate-y-0.5'

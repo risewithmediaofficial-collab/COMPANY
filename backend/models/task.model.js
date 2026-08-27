@@ -95,29 +95,29 @@ const taskSchema = new mongoose.Schema(
     },
     clientName: { type: String, default: '' },
     assignedPersonName: { type: String, default: '' },
-    assignedManager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedManager: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
-    client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
+    client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default: null },
     parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Task', default: null },
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
     // Multi-Role Sub-Assignments (Notion / ClickUp style)
-    scriptWriterAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    scriptWriterAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     scriptWriterName: { type: String, default: '' },
 
-    voiceArtistAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    voiceArtistAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     voiceArtistName: { type: String, default: '' },
     voiceScriptText: { type: String, default: '' },
     voiceInstructions: { type: String, default: '' },
 
-    videographerAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    videographerAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     videographerName: { type: String, default: '' },
     videographerContentNeeded: { type: String, default: '' },
 
-    editorAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    editorAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     editorName: { type: String, default: '' },
 
-    publisherAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    publisherAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     publisherName: { type: String, default: '' },
 
     shootDate: { type: Date },

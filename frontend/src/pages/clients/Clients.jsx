@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useRef } from 'react';
+import React, { Fragment, useState, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Briefcase,
@@ -18,6 +18,16 @@ import {
   Edit2,
   Trash2,
   Calendar,
+  Filter,
+  ArrowUpDown,
+  RotateCcw,
+  Sparkles,
+  Globe,
+  Share2,
+  Palette,
+  Video,
+  Megaphone,
+  FileEdit,
 } from 'lucide-react';
 import { useClients, useDeleteClient, useUpdateClient } from '../../hooks/useClients';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -31,6 +41,7 @@ import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
+import { getCategoryTheme } from '../../utils/categoryColors';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +62,28 @@ const clientStatusTone = {
 
 const STATUS_COLUMNS = ['Active', 'Prospect', 'Renew', 'Inactive', 'Churned'];
 
+export const CLIENT_CATEGORY_PILLS = [
+  { key: 'all', label: 'All Accounts', icon: Users },
+  { key: 'social_media', label: 'Social Media', icon: Share2 },
+  { key: 'web_development', label: 'Website / Dev', icon: Globe },
+  { key: 'branding', label: 'Branding & Design', icon: Palette },
+  { key: 'seo', label: 'SEO & Search', icon: Sparkles },
+  { key: 'paid_ads', label: 'Paid Ads', icon: Megaphone },
+  { key: 'video_content', label: 'Video Production', icon: Video },
+  { key: 'content', label: 'Content Creation', icon: FileEdit },
+  { key: 'other', label: 'Custom Retainer', icon: Briefcase },
+];
+
+export const CLIENT_SORT_OPTIONS = [
+  { value: 'name_asc', label: '🏢 Company Name: A to Z' },
+  { value: 'name_desc', label: '🏢 Company Name: Z to A' },
+  { value: 'retainer_desc', label: '💰 Retainer: High to Low' },
+  { value: 'retainer_asc', label: '💰 Retainer: Low to High' },
+  { value: 'status_active', label: '📊 Status: Active First' },
+  { value: 'newest', label: '🕒 Recently Added' },
+  { value: 'oldest', label: '🕒 Oldest Added' },
+];
+
 const Clients = () => {
   const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -59,6 +92,8 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('name_asc');
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [draggingClientId, setDraggingClientId] = useState(null);
   const [dragOverStatus, setDragOverStatus] = useState(null);
@@ -80,11 +115,125 @@ const Clients = () => {
   const { data: rawClients = [], isLoading } = useClients(filters);
   const clients = rawClients.filter((c) => isDateInRange(c.createdAt));
 
-  const clearFilters = () => {
-    setSearchTerm('');
+  // Category counts
+  const categoryCounts = useMemo(() => {
+    const counts = { all: clients.length };
+    clients.forEach((c) => {
+      const s = String(c.service || '').toLowerCase().replace(/[-\s]+/g, '_');
+      if (s.includes('social')) counts['social_media'] = (counts['social_media'] || 0) + 1;
+      else if (s.includes('web') || s.includes('site')) counts['web_development'] = (counts['web_development'] || 0) + 1;
+      else if (s.includes('brand') || s.includes('design')) counts['branding'] = (counts['branding'] || 0) + 1;
+      else if (s.includes('seo')) counts['seo'] = (counts['seo'] || 0) + 1;
+      else if (s.includes('ad')) counts['paid_ads'] = (counts['paid_ads'] || 0) + 1;
+      else if (s.includes('video')) counts['video_content'] = (counts['video_content'] || 0) + 1;
+      else if (s.includes('content') || s.includes('script')) counts['content'] = (counts['content'] || 0) + 1;
+      else counts['other'] = (counts['other'] || 0) + 1;
+    });
+    return counts;
+  }, [clients]);
+
+  const activeCategoryPills = useMemo(() => {
+    return CLIENT_CATEGORY_PILLS.map((pill) => ({
+      ...pill,
+      count: pill.key === 'all' ? clients.length : (categoryCounts[pill.key] || 0),
+    }));
+  }, [clients, categoryCounts]);
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (categoryFilter !== 'all') count++;
+    if (statusFilter) count++;
+    if (serviceFilter) count++;
+    if (searchTerm) count++;
+    return count;
+  }, [categoryFilter, statusFilter, serviceFilter, searchTerm]);
+
+  const clearAllFilters = () => {
+    setCategoryFilter('all');
     setStatusFilter('');
     setServiceFilter('');
+    setSearchTerm('');
+    setSortBy('name_asc');
   };
+
+  const displayedClients = useMemo(() => {
+    let result = [...clients];
+
+    // Category Filter
+    if (categoryFilter !== 'all') {
+      result = result.filter((c) => {
+        const s = String(c.service || '').toLowerCase().replace(/[-\s]+/g, '_');
+        if (categoryFilter === 'social_media') return s.includes('social');
+        if (categoryFilter === 'web_development') return s.includes('web') || s.includes('site');
+        if (categoryFilter === 'branding') return s.includes('brand') || s.includes('design');
+        if (categoryFilter === 'seo') return s.includes('seo');
+        if (categoryFilter === 'paid_ads') return s.includes('ad');
+        if (categoryFilter === 'video_content') return s.includes('video');
+        if (categoryFilter === 'content') return s.includes('content') || s.includes('script');
+        if (categoryFilter === 'other') return !['social', 'web', 'site', 'brand', 'design', 'seo', 'ad', 'video', 'content', 'script'].some((k) => s.includes(k));
+        return s === categoryFilter;
+      });
+    }
+
+    // Status Filter
+    if (statusFilter) {
+      result = result.filter((c) => (c.status || 'Prospect') === statusFilter);
+    }
+
+    // Service Dropdown Filter
+    if (serviceFilter) {
+      result = result.filter((c) => (c.service || '').toLowerCase().includes(serviceFilter.toLowerCase()));
+    }
+
+    // Search
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      result = result.filter((c) =>
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.company || '').toLowerCase().includes(q) ||
+        (c.email || '').toLowerCase().includes(q) ||
+        (c.phone || '').toLowerCase().includes(q) ||
+        (c.service || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Sorting
+    result.sort((a, b) => {
+      if (sortBy === 'name_asc') {
+        const nameA = (a.company || a.name || '').toLowerCase();
+        const nameB = (b.company || b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      }
+      if (sortBy === 'name_desc') {
+        const nameA = (a.company || a.name || '').toLowerCase();
+        const nameB = (b.company || b.name || '').toLowerCase();
+        return nameB.localeCompare(nameA);
+      }
+      if (sortBy === 'retainer_desc') {
+        return (b.monthlyRetainer || 0) - (a.monthlyRetainer || 0);
+      }
+      if (sortBy === 'retainer_asc') {
+        return (a.monthlyRetainer || 0) - (b.monthlyRetainer || 0);
+      }
+      if (sortBy === 'status_active') {
+        if (a.status === 'Active' && b.status !== 'Active') return -1;
+        if (b.status === 'Active' && a.status !== 'Active') return 1;
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      if (sortBy === 'oldest') {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      }
+      // default: newest
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+
+    return result;
+  }, [clients, categoryFilter, statusFilter, serviceFilter, searchTerm, sortBy]);
+
   const deleteClientMutation = useDeleteClient();
   const updateClientMutation = useUpdateClient();
 
@@ -98,16 +247,25 @@ const Clients = () => {
     {
       key: 'name',
       label: 'Client / Company',
-      render: (row) => (
-        <div className="min-w-0">
-          <div className="font-bold text-foreground text-xs hover:text-primary transition-colors">
-            {row.name}
+      render: (row) => {
+        const theme = getCategoryTheme(row.service);
+        const CatIcon = theme.icon || Building2;
+        return (
+          <div className="min-w-0 flex items-start gap-2.5">
+            <div className={`p-2 rounded-xl border shrink-0 mt-0.5 ${theme.badgeClass}`}>
+              <CatIcon size={14} />
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-foreground text-xs hover:text-primary transition-colors cursor-pointer">
+                {row.name}
+              </div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
+                {row.company || row.email || 'No company specified'}
+              </div>
+            </div>
           </div>
-          <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
-            {row.company || row.email || 'No company specified'}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'contact',
@@ -122,11 +280,16 @@ const Clients = () => {
     {
       key: 'service',
       label: 'Primary Service',
-      render: (row) => (
-        <span className="px-2 py-0.5 rounded-lg bg-secondary/80 text-[11px] font-medium text-foreground">
-          {row.service || 'General Retainer'}
-        </span>
-      ),
+      render: (row) => {
+        const theme = getCategoryTheme(row.service);
+        const CatIcon = theme.icon || Briefcase;
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border ${theme.badgeClass}`}>
+            <CatIcon size={11} />
+            <span>{row.service || 'General Retainer'}</span>
+          </span>
+        );
+      },
     },
     {
       key: 'monthlyRetainer',
@@ -209,194 +372,282 @@ const Clients = () => {
         </>
       }
     >
-      {/* Notion-Style Multi-View Database Engine */}
-      <DatabaseView
-        activeView={currentView}
-        onViewChange={setCurrentView}
-        searchQuery={searchTerm}
-        onSearchChange={setSearchTerm}
-        totalCount={clients.length}
-        filters={
-          <div className="flex items-center gap-2">
-            <SelectDropdown
-              className="w-36 text-xs"
-              value={statusFilter}
-              onChange={(val) => setStatusFilter(val)}
-              options={['Active', 'Prospect', 'Inactive', 'Churned', 'Renew']}
-              allOptionLabel="All statuses"
-            />
-            <SelectDropdown
-              className="w-36 text-xs"
-              value={serviceFilter}
-              onChange={(val) => setServiceFilter(val)}
-              options={['Social Media', 'Website', 'Branding', 'SEO', 'Ads', 'Video Editing', 'Content Creation', 'Custom']}
-              allOptionLabel="All services"
-            />
+      <div className="space-y-4">
+        {/* 1-CLICK CLIENT CATEGORY FILTER PILL RIBBON */}
+        <div className="bg-card rounded-2xl border border-border p-2.5 shadow-xs space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Filter size={13} className="text-primary" />
+              <span>Filter by Client Service / Category:</span>
+            </span>
+            {categoryFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setCategoryFilter('all')}
+                className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <RotateCcw size={11} />
+                <span>Show All Accounts</span>
+              </button>
+            )}
           </div>
-        }
-      >
-        {/* Table View */}
-        {currentView === 'table' && (
-          <DataTable
-            data={clients}
-            columns={columns}
-            loading={isLoading}
-            onRowClick={(client) => navigate(`/clients/${client._id}`)}
-            onEdit={(client) => {
-              setSelectedClient(client);
-              setShowAddModal(true);
-            }}
-            onDelete={(id) => setDeleteClientId(id)}
-            emptyTitle="No clients found"
-            emptyDescription="Try adjusting your filter or create a new client to start building the relationship database."
-          />
-        )}
 
-        {/* Board View (Kanban by Client Status) */}
-        {(currentView === 'board' || currentView === 'kanban') && (
-          <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
-            <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
-              {STATUS_COLUMNS.map((status) => {
-                const statusClients = clients.filter((c) => (c.status || 'Prospect') === status);
-                const isColActive = dragOverStatus === status;
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 custom-scrollbar">
+            {activeCategoryPills.map((pill) => {
+              const Icon = pill.icon;
+              const isSelected = categoryFilter === pill.key;
+              const count = pill.count !== undefined ? pill.count : 0;
 
-                return (
-                  <div
-                    key={status}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = 'move';
-                      if (dragOverStatus !== status) setDragOverStatus(status);
-                    }}
-                    onDragLeave={(e) => {
-                      if (!e.currentTarget.contains(e.relatedTarget)) {
-                        if (dragOverStatus === status) setDragOverStatus(null);
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const clientId = e.dataTransfer.getData('clientId');
-                      if (clientId) {
-                        updateClientMutation.mutate({ id: clientId, data: { status } });
-                      }
-                      setDraggingClientId(null);
-                      setDragOverStatus(null);
-                      setDragOverClientIndex(null);
-                    }}
-                    className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border transition-all p-3 space-y-3 ${
-                      isColActive
-                        ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
-                        : 'border-border/80 bg-secondary/20'
+              return (
+                <button
+                  key={pill.key}
+                  type="button"
+                  onClick={() => setCategoryFilter(pill.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border shrink-0 ${
+                    isSelected
+                      ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20 font-bold'
+                      : 'bg-secondary/40 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <Icon size={13} className={isSelected ? 'text-primary-foreground' : 'text-muted-foreground'} />
+                  <span>{pill.label}</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      isSelected
+                        ? 'bg-white/20 text-white'
+                        : 'bg-card text-foreground border border-border/60'
                     }`}
                   >
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
-                      <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-secondary text-muted-foreground">
-                        {statusClients.length}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5 flex-1">
-                      {statusClients.map((client, idx) => {
-                        const isBeingDragged = draggingClientId === client._id;
-                        const showDropIndicatorBefore = isColActive && dragOverClientIndex === idx && !isBeingDragged;
-
-                        return (
-                          <React.Fragment key={client._id}>
-                            {showDropIndicatorBefore && (
-                              <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
-                            )}
-                            <div
-                              draggable
-                              onDragStart={(e) => {
-                                setDraggingClientId(client._id);
-                                e.dataTransfer.setData('clientId', client._id);
-                                e.dataTransfer.effectAllowed = 'move';
-                              }}
-                              onDragEnd={() => {
-                                setDraggingClientId(null);
-                                setDragOverStatus(null);
-                                setDragOverClientIndex(null);
-                              }}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.dataTransfer.dropEffect = 'move';
-                                setDragOverStatus(status);
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const midY = rect.top + rect.height / 2;
-                                setDragOverClientIndex(e.clientY < midY ? idx : idx + 1);
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const clientId = e.dataTransfer.getData('clientId');
-                                if (clientId) {
-                                  updateClientMutation.mutate({ id: clientId, data: { status } });
-                                }
-                                setDraggingClientId(null);
-                                setDragOverStatus(null);
-                                setDragOverClientIndex(null);
-                              }}
-                              onClick={() => navigate(`/clients/${client._id}`)}
-                              className={`p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 transition-all cursor-grab active:cursor-grabbing space-y-2 group shadow-sm ${
-                                isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : 'hover:shadow-md hover:-translate-y-0.5'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                                  {client.name}
-                                </h4>
-                                {client.monthlyRetainer ? (
-                                  <span className="text-[11px] font-bold text-emerald-600">
-                                    {formatINR(client.monthlyRetainer)}
-                                  </span>
-                                ) : null}
-                              </div>
-
-                              <p className="text-[11px] text-muted-foreground truncate">
-                                {client.company || client.email || 'No company'}
-                              </p>
-
-                              <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Calendar size={10} className="text-primary/70 shrink-0" />
-                                  <span>
-                                    {client.createdAt
-                                      ? `Created ${new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}`
-                                      : client.service || 'Retainer'}
-                                  </span>
-                                </span>
-                                <span className="group-hover:text-primary flex items-center gap-0.5 font-semibold">
-                                  Open <ArrowRight size={10} />
-                                </span>
-                              </div>
-                            </div>
-                          </React.Fragment>
-                        );
-                      })}
-
-                      {/* Drop indicator at the bottom of the column */}
-                      {isColActive && dragOverClientIndex >= statusClients.length && (
-                        <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
-                      )}
-
-                      {statusClients.length === 0 && (
-                        <div className={`p-8 text-center text-xs border border-dashed rounded-xl transition-all ${
-                          isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'border-border/60 text-muted-foreground'
-                        }`}>
-                          {isColActive ? `Drop here to set status to ${status}` : `No ${status} clients`}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        )}
-      </DatabaseView>
+        </div>
+
+        {/* Database View Engine */}
+        <DatabaseView
+          activeView={currentView}
+          onViewChange={setCurrentView}
+          searchQuery={searchTerm}
+          onSearchChange={setSearchTerm}
+          totalCount={displayedClients.length}
+          filters={
+            <div className="flex items-center justify-between gap-3 w-full flex-wrap">
+              {/* Dropdown Filters Group */}
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                <SelectDropdown
+                  className="w-40 text-xs"
+                  value={statusFilter}
+                  onChange={(val) => setStatusFilter(val)}
+                  options={['Active', 'Prospect', 'Inactive', 'Churned', 'Renew']}
+                  allOptionLabel="All Statuses"
+                />
+                <SelectDropdown
+                  className="w-44 text-xs"
+                  value={serviceFilter}
+                  onChange={(val) => setServiceFilter(val)}
+                  options={['Social Media', 'Website', 'Branding', 'SEO', 'Ads', 'Video Editing', 'Content Creation', 'Custom']}
+                  allOptionLabel="All Services"
+                />
+                {/* Sorting Filter Dropdown */}
+                <SelectDropdown
+                  className="w-52 text-xs font-semibold"
+                  value={sortBy}
+                  onChange={(val) => setSortBy(val || 'name_asc')}
+                  options={CLIENT_SORT_OPTIONS}
+                />
+              </div>
+
+              {/* Reset Button */}
+              {activeFiltersCount > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={clearAllFilters}
+                  className="h-8 px-2.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
+                  title="Clear all active filters"
+                >
+                  <RotateCcw size={12} />
+                  <span>Reset ({activeFiltersCount})</span>
+                </Button>
+              )}
+            </div>
+          }
+        >
+          {/* Table View */}
+          {currentView === 'table' && (
+            <DataTable
+              data={displayedClients}
+              columns={columns}
+              loading={isLoading}
+              onRowClick={(client) => navigate(`/clients/${client._id}`)}
+              onEdit={(client) => {
+                setSelectedClient(client);
+                setShowAddModal(true);
+              }}
+              onDelete={(id) => setDeleteClientId(id)}
+              emptyTitle="No clients found"
+              emptyDescription="Try adjusting your filter or create a new client to start building the relationship database."
+            />
+          )}
+
+          {/* Board View (Kanban by Client Status) */}
+          {(currentView === 'board' || currentView === 'kanban') && (
+            <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
+                {STATUS_COLUMNS.map((status) => {
+                  const statusClients = displayedClients.filter((c) => (c.status || 'Prospect') === status);
+                  const isColActive = dragOverStatus === status;
+
+                  return (
+                    <div
+                      key={status}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        if (dragOverStatus !== status) setDragOverStatus(status);
+                      }}
+                      onDragLeave={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget)) {
+                          if (dragOverStatus === status) setDragOverStatus(null);
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const clientId = e.dataTransfer.getData('clientId');
+                        if (clientId) {
+                          updateClientMutation.mutate({ id: clientId, data: { status } });
+                        }
+                        setDraggingClientId(null);
+                        setDragOverStatus(null);
+                        setDragOverClientIndex(null);
+                      }}
+                      className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border transition-all p-3 space-y-3 w-full ${
+                        isColActive
+                          ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
+                          : 'border-border/80 bg-secondary/15'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
+                        <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-card border border-border text-foreground shadow-xs">
+                          {statusClients.length}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5 flex-1">
+                        {statusClients.map((client, idx) => {
+                          const isBeingDragged = draggingClientId === client._id;
+                          const showDropIndicatorBefore = isColActive && dragOverClientIndex === idx && !isBeingDragged;
+                          const theme = getCategoryTheme(client.service);
+                          const CatIcon = theme.icon || Briefcase;
+
+                          return (
+                            <React.Fragment key={client._id}>
+                              {showDropIndicatorBefore && (
+                                <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                              )}
+                              <div
+                                draggable
+                                onDragStart={(e) => {
+                                  setDraggingClientId(client._id);
+                                  e.dataTransfer.setData('clientId', client._id);
+                                  e.dataTransfer.effectAllowed = 'move';
+                                }}
+                                onDragEnd={() => {
+                                  setDraggingClientId(null);
+                                  setDragOverStatus(null);
+                                  setDragOverClientIndex(null);
+                                }}
+                                onDragOver={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.dataTransfer.dropEffect = 'move';
+                                  setDragOverStatus(status);
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const midY = rect.top + rect.height / 2;
+                                  setDragOverClientIndex(e.clientY < midY ? idx : idx + 1);
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const clientId = e.dataTransfer.getData('clientId');
+                                  if (clientId) {
+                                    updateClientMutation.mutate({ id: clientId, data: { status } });
+                                  }
+                                  setDraggingClientId(null);
+                                  setDragOverStatus(null);
+                                  setDragOverClientIndex(null);
+                                }}
+                                onClick={() => navigate(`/clients/${client._id}`)}
+                                className={`p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 border-l-[4px] ${theme.accentBorder} transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs ${
+                                  isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : 'hover:shadow-md hover:-translate-y-0.5'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-1.5">
+                                  <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                                    {client.name}
+                                  </h4>
+                                  {client.monthlyRetainer ? (
+                                    <span className="text-[11px] font-black text-emerald-600 shrink-0">
+                                      {formatINR(client.monthlyRetainer)}
+                                    </span>
+                                  ) : null}
+                                </div>
+
+                                <p className="text-[11px] text-muted-foreground truncate">
+                                  {client.company || client.email || 'No company specified'}
+                                </p>
+
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${theme.badgeClass}`}>
+                                    <CatIcon size={10} />
+                                    <span>{client.service || 'Retainer'}</span>
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-1.5 border-t border-border/50 text-[10px] text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar size={10} className="text-muted-foreground/70 shrink-0" />
+                                    <span>
+                                      {client.createdAt
+                                        ? new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+                                        : 'Active'}
+                                    </span>
+                                  </span>
+                                  <span className="group-hover:text-primary flex items-center gap-0.5 font-bold transition-colors">
+                                    Open <ArrowRight size={10} />
+                                  </span>
+                                </div>
+                              </div>
+                            </React.Fragment>
+                          );
+                        })}
+
+                        {/* Drop indicator at the bottom of the column */}
+                        {isColActive && dragOverClientIndex >= statusClients.length && (
+                          <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                        )}
+
+                        {statusClients.length === 0 && (
+                          <div className={`p-8 text-center text-xs border border-dashed rounded-xl transition-all ${
+                            isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'border-border/60 text-muted-foreground'
+                          }`}>
+                            {isColActive ? `Drop here to set status to ${status}` : `No ${status} clients`}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </DatabaseView>
+      </div>
 
       <AddClientModal
         open={showAddModal}

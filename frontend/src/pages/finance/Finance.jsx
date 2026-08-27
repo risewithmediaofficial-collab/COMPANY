@@ -62,6 +62,7 @@ import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import WorkspacePage from '../../components/ui/WorkspacePage';
+import { getCategoryTheme } from '../../utils/categoryColors';
 import {
   useAddInternalFinanceNote,
   useAddPartialPayment,
@@ -194,6 +195,7 @@ export default function Finance() {
   const [salaryView, setSalaryView] = useState('table'); // 'table' | 'cards' | 'board'
 
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState('all');
+  const [expenseApprovalFilter, setExpenseApprovalFilter] = useState('all'); // 'all' | 'approved' | 'pending'
   const [expenseTypeFilter, setExpenseTypeFilter] = useState('all');
   const [expenseSort, setExpenseSort] = useState('date_desc');
 
@@ -265,9 +267,20 @@ export default function Finance() {
   const expenses = useMemo(() => {
     return rawExpenses.filter((e) => {
       const matchesDate = isDateInRange(e.date || e.createdAt);
-      return matchesDate;
+      if (!matchesDate) return false;
+      if (expenseCategoryFilter !== 'all' && e.category !== expenseCategoryFilter) return false;
+      if (expenseApprovalFilter === 'approved' && e.status !== 'approved') return false;
+      if (expenseApprovalFilter === 'pending' && e.status === 'approved') return false;
+      if (search?.trim()) {
+        const q = search.toLowerCase();
+        const titleMatch = (e.title || e.description || '').toLowerCase().includes(q);
+        const notesMatch = (e.notes || e.vendor || '').toLowerCase().includes(q);
+        const catMatch = (e.category || '').toLowerCase().includes(q);
+        if (!titleMatch && !notesMatch && !catMatch) return false;
+      }
+      return true;
     });
-  }, [rawExpenses, isDateInRange]);
+  }, [rawExpenses, isDateInRange, expenseCategoryFilter, expenseApprovalFilter, search]);
 
   const salaries = useMemo(() => {
     return rawSalaries.filter((s) => {
@@ -348,7 +361,10 @@ export default function Finance() {
       label: 'Invoice #',
       render: (row) => (
         <div className="min-w-0">
-          <span className="font-bold text-foreground hover:text-primary transition-colors text-xs">{row.invoiceNumber}</span>
+          <span className="font-bold text-foreground hover:text-primary transition-colors text-xs flex items-center gap-1.5">
+            <FileText size={13} className="text-primary" />
+            <span>{row.invoiceNumber}</span>
+          </span>
           <div className="text-[11px] text-muted-foreground truncate">{row.project?.name || row.projectName || 'General Billing'}</div>
         </div>
       ),
@@ -357,8 +373,9 @@ export default function Finance() {
       key: 'client',
       label: 'Client / Business',
       render: (row) => (
-        <div className="font-semibold text-foreground text-xs">
-          {row.client?.company || row.client?.name || row.clientDetails?.businessName || row.clientDetails?.name || 'Unnamed Client'}
+        <div className="font-semibold text-foreground text-xs flex items-center gap-1.5">
+          <Building size={12} className="text-muted-foreground/70 shrink-0" />
+          <span className="truncate">{row.client?.company || row.client?.name || row.clientDetails?.businessName || row.clientDetails?.name || 'Unnamed Client'}</span>
         </div>
       ),
     },
@@ -383,20 +400,56 @@ export default function Finance() {
     },
     {
       key: 'status',
-      label: 'Status',
-      render: (row) => (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${invoiceStatusTone[row.status] || invoiceStatusTone.draft}`}>
-          {row.status}
-        </span>
-      ),
+      label: 'Payment Status',
+      render: (row) => {
+        const st = (row.status || 'draft').toLowerCase();
+        if (st === 'paid') {
+          return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/25 shadow-xs">
+              <CheckCircle2 size={13} className="text-emerald-600" />
+              <span>Paid</span>
+            </span>
+          );
+        }
+        if (st === 'partially_paid') {
+          return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 border border-amber-500/25 shadow-xs">
+              <Clock size={13} className="text-amber-600" />
+              <span>Partially Paid</span>
+            </span>
+          );
+        }
+        if (st === 'overdue') {
+          return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-rose-500/15 text-rose-600 border border-rose-500/30 shadow-xs animate-pulse">
+              <AlertCircle size={13} className="text-rose-600" />
+              <span>Overdue</span>
+            </span>
+          );
+        }
+        if (st === 'sent') {
+          return (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-600 border border-blue-500/25 shadow-xs">
+              <Send size={13} className="text-blue-600" />
+              <span>Sent</span>
+            </span>
+          );
+        }
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-slate-500/10 text-slate-600 border border-slate-500/25 shadow-xs">
+            <FileText size={13} className="text-slate-600" />
+            <span>Draft</span>
+          </span>
+        );
+      },
     },
     {
       key: 'dueDate',
       label: 'Dates',
       render: (row) => (
         <div className="text-xs space-y-0.5">
-          <div className="text-foreground font-medium">Issued: {row.issueDate ? new Date(row.issueDate).toLocaleDateString() : 'N/A'}</div>
-          <div className="text-[11px] text-muted-foreground">Due: {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : 'N/A'}</div>
+          <div className="text-foreground font-medium">Issued: {row.issueDate ? new Date(row.issueDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</div>
+          <div className="text-[11px] text-muted-foreground">Due: {row.dueDate ? new Date(row.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</div>
         </div>
       ),
     },
@@ -404,7 +457,18 @@ export default function Finance() {
       key: 'actions',
       label: '',
       render: (row) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5">
+          {String(row.status).toLowerCase() !== 'paid' && canManage && (
+            <button
+              onClick={() => markInvoicePaid.mutate(row._id)}
+              disabled={markInvoicePaid.isPending}
+              className="px-2.5 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-500/20 text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
+              title="Mark invoice as fully Paid"
+            >
+              <CheckCircle size={12} />
+              <span>Mark Paid</span>
+            </button>
+          )}
           <button
             onClick={() => exportInvoiceToPDF(row)}
             className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
@@ -448,33 +512,62 @@ export default function Finance() {
     },
   ];
 
-  // Expense Columns
+  // Expense Columns - Modern Structured UI with Action Buttons
   const expenseColumns = [
     {
       key: 'title',
-      label: 'Expense / Description',
-      render: (row) => (
-        <div className="min-w-0">
-          <div className="font-bold text-foreground text-xs">{row.title || row.description}</div>
-          <div className="text-[11px] text-muted-foreground truncate">{row.notes || row.vendor || 'General expense'}</div>
-        </div>
-      ),
+      label: 'Expense Details',
+      render: (row) => {
+        const catTheme = getCategoryTheme(row.category);
+        const CatIcon = catTheme.icon;
+
+        return (
+          <div className="flex items-start gap-3 min-w-0">
+            <div className={`p-2 rounded-xl border shrink-0 mt-0.5 ${catTheme.badgeClass}`}>
+              <CatIcon size={15} />
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-foreground text-xs">{row.title || row.description}</div>
+              <div className="text-[11px] text-muted-foreground truncate max-w-[280px]">
+                {row.notes || row.vendor || 'General expense'}
+              </div>
+              {row.project && (
+                <div className="text-[10px] text-primary/80 font-semibold mt-0.5 flex items-center gap-1">
+                  <span>📁 {row.project?.name || 'Project Expense'}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      },
     },
     {
       key: 'category',
       label: 'Category',
-      render: (row) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground capitalize">
-          {categoryLabels[row.category] || row.category || 'Misc'}
-        </span>
-      ),
+      render: (row) => {
+        const catTheme = getCategoryTheme(row.category);
+        const Icon = catTheme.icon;
+
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border ${catTheme.badgeClass}`}>
+            <Icon size={12} className="shrink-0" />
+            <span className="capitalize">{categoryLabels[row.category] || catTheme.shortLabel || row.category || 'Misc'}</span>
+          </span>
+        );
+      },
     },
     {
       key: 'amount',
-      label: 'Amount',
+      label: 'Amount & Method',
       render: (row) => (
-        <div className="text-xs font-extrabold text-foreground">
-          {currency.format(Number(row.amount || 0))}
+        <div className="space-y-0.5">
+          <div className="text-xs font-black text-foreground">
+            {currency.format(Number(row.amount || 0))}
+          </div>
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-semibold">
+            <CreditCard size={10} className="text-muted-foreground/70" />
+            <span className="capitalize">{row.paymentMethod || 'Direct / Bank'}</span>
+          </div>
         </div>
       ),
     },
@@ -482,41 +575,49 @@ export default function Finance() {
       key: 'date',
       label: 'Date',
       render: (row) => (
-        <span className="text-xs text-muted-foreground font-medium">
-          {row.date ? new Date(row.date).toLocaleDateString() : 'N/A'}
-        </span>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+          <Calendar size={12} className="text-muted-foreground/70" />
+          <span>{row.date ? new Date(row.date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</span>
+        </div>
       ),
     },
     {
       key: 'status',
-      label: 'Approval',
-      render: (row) => (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-          row.status === 'approved'
-            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-            : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-        }`}>
-          {row.status === 'approved' ? 'Approved' : 'Pending Approval'}
-        </span>
-      ),
+      label: 'Approval Status',
+      render: (row) => {
+        const isApproved = row.status === 'approved';
+        return isApproved ? (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/25 shadow-xs">
+            <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+            <span>Approved</span>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (canManage) approveExpense.mutate(row._id);
+            }}
+            disabled={!canManage || approveExpense.isPending}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all shadow-xs cursor-pointer group"
+            title={canManage ? "Click to Approve this expense" : "Pending manager approval"}
+          >
+            <Clock size={13} className="group-hover:hidden text-amber-600 shrink-0" />
+            <CheckCircle size={13} className="hidden group-hover:inline-block shrink-0" />
+            <span>Pending (Approve)</span>
+          </button>
+        );
+      },
     },
     {
       key: 'actions',
       label: '',
       render: (row) => (
         <div className="flex items-center justify-end gap-1">
-          {row.status !== 'approved' && canManage && (
-            <button
-              onClick={() => approveExpense.mutate(row._id)}
-              className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 text-xs font-bold transition-colors"
-            >
-              Approve
-            </button>
-          )}
           {canManage && (
             <button
               onClick={() => setDeleteExpenseId(row._id)}
-              className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors cursor-pointer"
               title="Delete Expense"
             >
               <Trash2 size={13} />
@@ -942,28 +1043,91 @@ export default function Finance() {
       {/* Tab 2: Expenses & Profits */}
       {activeTab === 'expenses' && (
         <div className="space-y-4">
-          {/* Quick Expense Categories */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2.5">
-            {['all', 'ads_campaign', 'salary', 'video_shoot', 'tools', 'office'].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setExpenseCategoryFilter(cat)}
-                className={`p-2.5 rounded-xl border text-left transition-all ${
-                  expenseCategoryFilter === cat
-                    ? 'border-primary bg-primary/5 text-primary font-bold shadow-xs'
-                    : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`}
-              >
-                <p className="text-[10px] uppercase font-bold tracking-wider">{cat === 'all' ? 'All Spend' : categoryLabels[cat] || cat}</p>
-                <p className="text-xs font-extrabold text-foreground mt-0.5">
-                  {currency.format(
-                    expenses
-                      .filter((e) => cat === 'all' || e.category === cat)
-                      .reduce((sum, e) => sum + Number(e.amount || 0), 0)
-                  )}
-                </p>
-              </button>
-            ))}
+          {/* Quick Expense Category Filter Cards with Icons & Numbers */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            {[
+              { id: 'all', label: 'All Spend', icon: Receipt },
+              { id: 'ads_campaign', label: 'Ads Spend', icon: Megaphone },
+              { id: 'salary', label: 'Salary', icon: Banknote },
+              { id: 'video_shoot', label: 'Video Shoot', icon: Video },
+              { id: 'tools', label: 'Software Tools', icon: Wrench },
+              { id: 'office', label: 'Office & Rent', icon: Building },
+              { id: 'travel', label: 'Travel & Food', icon: ShoppingBag },
+              { id: 'rj', label: 'RJ / Voice', icon: Sparkles },
+            ].map((cat) => {
+              const catTheme = getCategoryTheme(cat.id);
+              const Icon = cat.icon || catTheme.icon;
+              const isSelected = expenseCategoryFilter === cat.id;
+              const matchingExpenses = rawExpenses.filter((e) => {
+                if (!isDateInRange(e.date || e.createdAt)) return false;
+                return cat.id === 'all' || e.category === cat.id;
+              });
+              const totalCatAmount = matchingExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setExpenseCategoryFilter(cat.id)}
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-1.5 group shadow-xs ${
+                    isSelected
+                      ? 'border-primary bg-primary/10 text-primary font-bold ring-2 ring-primary/20 shadow-sm'
+                      : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-secondary/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold tracking-wider truncate max-w-[90px]">{cat.label}</span>
+                    <div className={`p-1 rounded-lg border shrink-0 ${isSelected ? 'bg-primary text-white border-primary' : catTheme.badgeClass}`}>
+                      <Icon size={12} />
+                    </div>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-1">
+                    <span className="text-xs font-black text-foreground">{currency.format(totalCatAmount)}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground px-1.5 py-0.2 rounded-md bg-secondary">
+                      {matchingExpenses.length}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Approval Status Filter & Action Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2 bg-secondary/30 rounded-2xl border border-border">
+            <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+              <span className="text-[11px] font-bold text-muted-foreground px-2 uppercase">Approval:</span>
+              {[
+                { id: 'all', label: 'All Status' },
+                { id: 'approved', label: 'Approved' },
+                { id: 'pending', label: 'Pending Approval' },
+              ].map((st) => (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => setExpenseApprovalFilter(st.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    expenseApprovalFilter === st.id
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            {canManage && (
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <Button
+                  size="sm"
+                  onClick={() => setShowExpenseModal(true)}
+                  className="bg-primary text-primary-foreground h-8 text-xs font-bold rounded-xl gap-1.5 shadow-xs"
+                >
+                  <Plus size={13} className="stroke-[2.5]" />
+                  <span>Log Expense</span>
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
@@ -971,8 +1135,8 @@ export default function Finance() {
               data={expenses}
               columns={expenseColumns}
               loading={expensesLoading}
-              emptyTitle="No expenses found"
-              emptyDescription="Record agency expenses, team travel, voiceovers, and ads spend."
+              emptyTitle="No matching expenses found"
+              emptyDescription="Record agency operating costs, video shoot expenses, and marketing spend."
             />
           </div>
         </div>

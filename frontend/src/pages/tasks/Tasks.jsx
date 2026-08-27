@@ -19,6 +19,13 @@ import {
   Share2,
   X,
   Calendar,
+  ArrowUpDown,
+  RotateCcw,
+  Sparkles,
+  Globe,
+  Palette,
+  Film,
+  Megaphone,
 } from 'lucide-react';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
@@ -29,6 +36,7 @@ import { Button } from '../../components/ui/button';
 import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
+import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +62,31 @@ import {
   formatTaskTypeLabel,
   normalizeTaskStatusLabel,
 } from '../../utils/taskFields';
+import { getCategoryTheme } from '../../utils/categoryColors';
+
+export const TASK_CATEGORY_PILLS = [
+  { key: 'all', label: 'All Deliverables', icon: CheckSquare },
+  { key: 'video_content', label: 'Video Production', icon: Video },
+  { key: 'reel', label: 'Reels / Shorts', icon: Film },
+  { key: 'social_media_post', label: 'Social Posts', icon: Share2 },
+  { key: 'poster', label: 'Graphic / Poster', icon: Palette },
+  { key: 'web_development', label: 'Website / Dev', icon: Globe },
+  { key: 'seo_work', label: 'SEO Work', icon: Sparkles },
+  { key: 'ads_campaign', label: 'Paid Ads', icon: Megaphone },
+  { key: 'content', label: 'Content / Script', icon: FileEdit },
+];
+
+export const TASK_SORT_OPTIONS = [
+  { value: 'dueDate_asc', label: '📅 Due Date: Earliest First' },
+  { value: 'dueDate_desc', label: '📅 Due Date: Latest First' },
+  { value: 'priority_desc', label: '⚡ Priority: High to Low' },
+  { value: 'priority_asc', label: '⚡ Priority: Low to High' },
+  { value: 'client_asc', label: '🏢 Client: A to Z' },
+  { value: 'client_desc', label: '🏢 Client: Z to A' },
+  { value: 'category_asc', label: '📁 Category: A to Z' },
+  { value: 'newest', label: '🕒 Recently Created' },
+  { value: 'oldest', label: '🕒 Oldest Created' },
+];
 
 const statusTone = {
   'To Do': 'neutral',
@@ -83,6 +116,8 @@ const Tasks = () => {
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('dueDate_asc');
   const [draggingTaskId, setDraggingTaskId] = useState(null);
   const [dragOverColKey, setDragOverColKey] = useState(null);
   const [dragOverTaskIndex, setDragOverTaskIndex] = useState(null);
@@ -145,9 +180,118 @@ const Tasks = () => {
     setQuickFilter((prev) => (prev === filterType ? 'all' : filterType));
   };
 
-  const displayedTasks = useMemo(() => {
-    let result = normalizedTasks;
+  // Category counts
+  const categoryCounts = useMemo(() => {
+    const counts = { all: normalizedTasks.length };
+    normalizedTasks.forEach((t) => {
+      const typeKey = String(t.taskType || t.taskCategory || '').toLowerCase().replace(/[-\s]+/g, '_');
+      if (typeKey.includes('video')) counts['video_content'] = (counts['video_content'] || 0) + 1;
+      else if (typeKey.includes('reel') || typeKey.includes('short')) counts['reel'] = (counts['reel'] || 0) + 1;
+      else if (typeKey.includes('post') || typeKey.includes('social')) counts['social_media_post'] = (counts['social_media_post'] || 0) + 1;
+      else if (typeKey.includes('poster') || typeKey.includes('graphic') || typeKey.includes('design')) counts['poster'] = (counts['poster'] || 0) + 1;
+      else if (typeKey.includes('web') || typeKey.includes('site')) counts['web_development'] = (counts['web_development'] || 0) + 1;
+      else if (typeKey.includes('seo')) counts['seo_work'] = (counts['seo_work'] || 0) + 1;
+      else if (typeKey.includes('ad')) counts['ads_campaign'] = (counts['ads_campaign'] || 0) + 1;
+      else if (typeKey.includes('script') || typeKey.includes('content') || typeKey.includes('copy')) counts['content'] = (counts['content'] || 0) + 1;
+    });
+    return counts;
+  }, [normalizedTasks]);
 
+  const activeCategoryPills = useMemo(() => {
+    return TASK_CATEGORY_PILLS.map((pill) => ({
+      ...pill,
+      count: pill.key === 'all' ? normalizedTasks.length : (categoryCounts[pill.key] || 0),
+    }));
+  }, [normalizedTasks, categoryCounts]);
+
+  const clientOptions = useMemo(() => {
+    return clients.map((c) => ({
+      value: c._id,
+      label: c.company ? `${c.name} (${c.company})` : c.name,
+    }));
+  }, [clients]);
+
+  const userOptions = useMemo(() => {
+    return users.map((u) => ({
+      value: u.name,
+      label: u.name,
+    }));
+  }, [users]);
+
+  // Active filters counter
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (categoryFilter !== 'all') count++;
+    if (filters.client) count++;
+    if (filters.priority) count++;
+    if (filters.status) count++;
+    if (filters.assignedTo) count++;
+    if (filters.search) count++;
+    if (quickFilter !== 'all') count++;
+    return count;
+  }, [categoryFilter, filters, quickFilter]);
+
+  const clearAllFilters = () => {
+    setCategoryFilter('all');
+    setQuickFilter('all');
+    setSortBy('dueDate_asc');
+    setFilters({
+      search: '',
+      client: '',
+      assignedTo: '',
+      status: '',
+      taskType: '',
+      priority: '',
+      dueDate: '',
+    });
+  };
+
+  const displayedTasks = useMemo(() => {
+    let result = [...normalizedTasks];
+
+    // Category filter
+    if (categoryFilter !== 'all') {
+      result = result.filter((task) => {
+        const catKey = String(task.taskCategory || task.taskType || '').toLowerCase().replace(/[-\s]+/g, '_');
+        if (categoryFilter === 'video_content') return catKey.includes('video');
+        if (categoryFilter === 'reel') return catKey.includes('reel') || catKey.includes('short');
+        if (categoryFilter === 'social_media_post') return catKey.includes('post') || catKey.includes('social');
+        if (categoryFilter === 'poster') return catKey.includes('poster') || catKey.includes('graphic') || catKey.includes('design');
+        if (categoryFilter === 'web_development') return catKey.includes('web') || catKey.includes('site');
+        if (categoryFilter === 'seo_work') return catKey.includes('seo');
+        if (categoryFilter === 'ads_campaign') return catKey.includes('ad');
+        if (categoryFilter === 'content') return catKey.includes('content') || catKey.includes('script') || catKey.includes('copy');
+        return catKey === categoryFilter;
+      });
+    }
+
+    // Client filter
+    if (filters.client) {
+      result = result.filter((task) => {
+        const cId = task.client?._id || task.client;
+        return String(cId) === String(filters.client);
+      });
+    }
+
+    // Priority filter
+    if (filters.priority) {
+      result = result.filter((task) => (task.priority || 'Medium') === filters.priority);
+    }
+
+    // Assigned To filter
+    if (filters.assignedTo) {
+      result = result.filter((task) => {
+        const assignees = extractTaskAssignees(task);
+        return assignees.some((p) => p.name === filters.assignedTo || p._id === filters.assignedTo);
+      });
+    }
+
+    // Status filter
+    if (filters.status) {
+      result = result.filter((task) => task.status === filters.status);
+    }
+
+    // Quick metric filters
     if (quickFilter === 'inProgress') {
       result = result.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status));
     } else if (quickFilter === 'done') {
@@ -158,6 +302,7 @@ const Tasks = () => {
       result = result.filter((task) => task.isOverTarget);
     }
 
+    // Search query
     if (filters.search?.trim()) {
       const q = filters.search.toLowerCase().trim();
       result = result.filter((task) =>
@@ -168,8 +313,53 @@ const Tasks = () => {
       );
     }
 
+    // Sorting
+    const priorityWeights = { Critical: 4, Urgent: 4, High: 3, Medium: 2, Low: 1 };
+    result.sort((a, b) => {
+      if (sortBy === 'dueDate_asc') {
+        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+        return dateA - dateB;
+      }
+      if (sortBy === 'dueDate_desc') {
+        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : -Infinity;
+        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : -Infinity;
+        return dateB - dateA;
+      }
+      if (sortBy === 'priority_desc') {
+        return (priorityWeights[b.priority] || 2) - (priorityWeights[a.priority] || 2);
+      }
+      if (sortBy === 'priority_asc') {
+        return (priorityWeights[a.priority] || 2) - (priorityWeights[b.priority] || 2);
+      }
+      if (sortBy === 'client_asc') {
+        const nameA = (a.client?.company || a.client?.name || a.clientName || '').toLowerCase();
+        const nameB = (b.client?.company || b.client?.name || b.clientName || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      }
+      if (sortBy === 'client_desc') {
+        const nameA = (a.client?.company || a.client?.name || a.clientName || '').toLowerCase();
+        const nameB = (b.client?.company || b.client?.name || b.clientName || '').toLowerCase();
+        return nameB.localeCompare(nameA);
+      }
+      if (sortBy === 'category_asc') {
+        const catA = (a.taskCategory || a.taskType || '').toLowerCase();
+        const catB = (b.taskCategory || b.taskType || '').toLowerCase();
+        return catA.localeCompare(catB);
+      }
+      if (sortBy === 'oldest') {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      }
+      // default: newest
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+
     return result;
-  }, [normalizedTasks, quickFilter, filters.overTarget, filters.search]);
+  }, [normalizedTasks, categoryFilter, filters, quickFilter, sortBy]);
 
   const columns = [
     {
@@ -474,14 +664,136 @@ const Tasks = () => {
         </div>
       }
     >
-      {/* Database View Engine (Table + Kanban Board) */}
-      <DatabaseView
-        activeView={currentView}
-        onViewChange={setCurrentView}
-        searchQuery={filters.search}
-        onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
-        totalCount={displayedTasks.length}
-      >
+      <div className="space-y-4">
+        {/* 1-CLICK TASK CATEGORY FILTER PILL RIBBON */}
+        <div className="bg-card rounded-2xl border border-border p-2.5 shadow-xs space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Filter size={13} className="text-primary" />
+              <span>Filter by Task Category:</span>
+            </span>
+            {categoryFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setCategoryFilter('all')}
+                className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <RotateCcw size={11} />
+                <span>Show All Deliverables</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 custom-scrollbar">
+            {activeCategoryPills.map((pill) => {
+              const Icon = pill.icon;
+              const isSelected = categoryFilter === pill.key;
+              const count = pill.count !== undefined ? pill.count : 0;
+
+              return (
+                <button
+                  key={pill.key}
+                  type="button"
+                  onClick={() => setCategoryFilter(pill.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border shrink-0 ${
+                    isSelected
+                      ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20 font-bold'
+                      : 'bg-secondary/40 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <Icon size={13} className={isSelected ? 'text-primary-foreground' : 'text-muted-foreground'} />
+                  <span>{pill.label}</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      isSelected
+                        ? 'bg-white/20 text-white'
+                        : 'bg-card text-foreground border border-border/60'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Database View Engine (Table + Kanban Board) */}
+        <DatabaseView
+          activeView={currentView}
+          onViewChange={setCurrentView}
+          searchQuery={filters.search}
+          onSearchChange={(val) => setFilters((prev) => ({ ...prev, search: val }))}
+          totalCount={displayedTasks.length}
+          filters={
+            <div className="flex items-center justify-between gap-3 w-full flex-wrap">
+              {/* Filter Dropdowns Group */}
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                {/* Client Filter */}
+                <SelectDropdown
+                  className="w-48 text-xs"
+                  value={filters.client}
+                  onChange={(val) => setFilters((prev) => ({ ...prev, client: val }))}
+                  options={clientOptions}
+                  placeholder="Filter by Client"
+                  allOptionLabel="All Clients"
+                />
+
+                {/* Status Filter */}
+                <SelectDropdown
+                  className="w-40 text-xs"
+                  value={filters.status}
+                  onChange={(val) => setFilters((prev) => ({ ...prev, status: val }))}
+                  options={isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS}
+                  allOptionLabel="All Statuses"
+                />
+
+                {/* Priority Filter */}
+                <SelectDropdown
+                  className="w-36 text-xs"
+                  value={filters.priority}
+                  onChange={(val) => setFilters((prev) => ({ ...prev, priority: val }))}
+                  options={['Critical', 'High', 'Medium', 'Low']}
+                  allOptionLabel="All Priorities"
+                />
+
+                {/* Assignee Filter */}
+                {!isEmployee && (
+                  <SelectDropdown
+                    className="w-44 text-xs"
+                    value={filters.assignedTo}
+                    onChange={(val) => setFilters((prev) => ({ ...prev, assignedTo: val }))}
+                    options={userOptions}
+                    placeholder="Filter by Assignee"
+                    allOptionLabel="All Assignees"
+                  />
+                )}
+
+                {/* Sorting Filter Dropdown */}
+                <SelectDropdown
+                  className="w-52 text-xs font-semibold"
+                  value={sortBy}
+                  onChange={(val) => setSortBy(val || 'dueDate_asc')}
+                  options={TASK_SORT_OPTIONS}
+                />
+              </div>
+
+              {/* Reset Button */}
+              {activeFiltersCount > 0 && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={clearAllFilters}
+                  className="h-8 px-2.5 text-xs text-rose-600 hover:text-rose-700 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer"
+                  title="Clear all active filters"
+                >
+                  <RotateCcw size={12} />
+                  <span>Reset ({activeFiltersCount})</span>
+                </Button>
+              )}
+            </div>
+          }
+        >
         {/* Table View (Desktop DataTable + Responsive Mobile Card List) */}
         {currentView === 'table' && (
           <div>
@@ -757,8 +1069,8 @@ const Tasks = () => {
                                 setDragOverTaskIndex(null);
                               }}
                               onClick={() => handleRowClick(task)}
-                              className={`p-3.5 bg-card rounded-2xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] ${
-                                primaryColor ? `border-l-[3.5px] ${primaryColor.accentBorder}` : ''
+                              className={`p-3.5 bg-card rounded-2xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] border-l-[4px] ${
+                                getCategoryTheme(task.taskType || task.taskCategory).accentBorder
                               } ${
                                 isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
                               }`}
@@ -783,15 +1095,20 @@ const Tasks = () => {
                                 </span>
                               </div>
 
-                              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <div className="flex items-center justify-between text-[11px] text-muted-foreground gap-1.5">
                                 <span className="truncate max-w-[150px] font-medium text-foreground/80">
                                   {task.client?.company || task.client?.name || task.clientName || 'RiseWithMedia'}
                                 </span>
-                                {task.taskType && (
-                                  <span className="px-1.5 py-0.5 rounded bg-secondary text-[10px] font-semibold text-muted-foreground">
-                                    {formatTaskTypeLabel(task.taskType)}
-                                  </span>
-                                )}
+                                {(() => {
+                                  const catTheme = getCategoryTheme(task.taskType || task.taskCategory);
+                                  const Icon = catTheme.icon;
+                                  return (
+                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border shrink-0 ${catTheme.badgeClass}`}>
+                                      <Icon size={10} className="shrink-0" />
+                                      <span className="truncate max-w-[110px]">{formatTaskTypeLabel(task.taskType)}</span>
+                                    </span>
+                                  );
+                                })()}
                               </div>
 
                               {/* Primary Assigned Person(s) with Individual Color Badges */}
@@ -913,6 +1230,7 @@ const Tasks = () => {
           </div>
         )}
       </DatabaseView>
+      </div>
 
       <AddTaskModal
         open={showAddModal}

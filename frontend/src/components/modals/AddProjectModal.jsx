@@ -399,15 +399,18 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         <SelectItem value="internal_tool" className="font-semibold text-indigo-500">
                           🛠️ Internal Software / Tool (No Client)
                         </SelectItem>
-                        <SelectItem value="web_development">Web Development</SelectItem>
-                        <SelectItem value="web_design">Web Design</SelectItem>
-                        <SelectItem value="mobile_app">Mobile App</SelectItem>
-                        <SelectItem value="e_commerce">E-commerce</SelectItem>
-                        <SelectItem value="video_content">Video Content</SelectItem>
-                        <SelectItem value="social_media">Social Media</SelectItem>
-                        <SelectItem value="content">Content Creation</SelectItem>
-                        <SelectItem value="graphic_design">Graphic Design</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="web_development">🌐 Website / Web Development</SelectItem>
+                        <SelectItem value="web_design">💻 Web Design / UI-UX</SelectItem>
+                        <SelectItem value="social_media">📱 Social Media Marketing</SelectItem>
+                        <SelectItem value="seo">🔍 Search Engine Optimization (SEO)</SelectItem>
+                        <SelectItem value="paid_ads">🎯 Paid Ads & Performance Marketing</SelectItem>
+                        <SelectItem value="branding">🎨 Branding & Identity</SelectItem>
+                        <SelectItem value="graphic_design">🖌️ Graphic Design & Creatives</SelectItem>
+                        <SelectItem value="video_content">🎬 Video Production & Content</SelectItem>
+                        <SelectItem value="mobile_app">📲 Mobile App Development</SelectItem>
+                        <SelectItem value="e_commerce">🛒 E-Commerce Solutions</SelectItem>
+                        <SelectItem value="content">✍️ Content Creation & Copywriting</SelectItem>
+                        <SelectItem value="other">📁 Other Services</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
