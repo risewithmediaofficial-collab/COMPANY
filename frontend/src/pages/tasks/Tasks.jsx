@@ -960,8 +960,8 @@ const Tasks = () => {
           <div className="space-y-3.5 w-full">
             {/* Category Color Definition Guide */}
             <CategoryColorLegend
-              selectedCategory={taskCategoryFilter}
-              onSelectCategory={setTaskCategoryFilter}
+              selectedCategory={categoryFilter}
+              onSelectCategory={setCategoryFilter}
               title="Deliverable Color Code Index"
               description="Card left-border accent identifies task category (click any color pill to filter)"
             />
