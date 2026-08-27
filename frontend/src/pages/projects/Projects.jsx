@@ -127,10 +127,10 @@ const Projects = () => {
   // 1. Base date-filtered projects (used for category count badges)
   const baseDateFilteredProjects = useMemo(() => {
     return rawProjects.filter((project) => {
-      const rawDate = project.startDate || project.createdAt;
-      if (!isDateInRange(rawDate)) return false;
+      const rawDates = [project.startDate, project.createdAt, project.endDate];
+      if (!isDateInRange(rawDates)) return false;
       if (monthFilter !== '') {
-        const projectDate = rawDate ? new Date(rawDate) : new Date();
+        const projectDate = (project.startDate || project.createdAt) ? new Date(project.startDate || project.createdAt) : new Date();
         if (projectDate.getMonth() !== Number(monthFilter)) return false;
       }
       return true;

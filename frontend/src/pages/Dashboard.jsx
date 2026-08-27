@@ -135,12 +135,9 @@ const Dashboard = () => {
             ? '/referrals'
             : '/reports/employee';
 
-      const params = { period };
-      if (startDate && endDate) {
-        params.startDate = startDate;
-        params.endDate = endDate;
-        params.period = 'custom';
-      }
+      const params = { period: (startDate || endDate) ? 'custom' : (period || 'allTime') };
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
 
       const res = await api.get(endpoint, { params });
       setData(res.data);

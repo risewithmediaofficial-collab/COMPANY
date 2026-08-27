@@ -114,7 +114,7 @@ const Clients = () => {
   };
 
   const { data: rawClients = [], isLoading } = useClients(filters);
-  const clients = rawClients.filter((c) => isDateInRange(c.createdAt));
+  const clients = rawClients.filter((c) => isDateInRange([c.createdAt, c.updatedAt, c.onboardingDate]));
 
   // Category counts
   const categoryCounts = useMemo(() => {

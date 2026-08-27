@@ -88,20 +88,44 @@ export const DateFilterProvider = ({ children }) => {
   }, []);
 
   const isDateInRange = useCallback((dateValue) => {
-    if (!dateValue) return true;
     if (!startDate && !endDate) return true;
-    
-    const targetDate = new Date(dateValue);
-    if (Number.isNaN(targetDate.getTime())) return true;
-    
-    if (startDate) {
-      const start = new Date(startDate + 'T00:00:00');
-      if (targetDate < start) return false;
+    if (!dateValue) return true;
+
+    // Support array of fallback dates (e.g. [dueDate, startDate, createdAt])
+    if (Array.isArray(dateValue)) {
+      const validDates = dateValue.filter(Boolean);
+      if (validDates.length === 0) return true;
+      return validDates.some((d) => isDateInRange(d));
     }
-    if (endDate) {
-      const end = new Date(endDate + 'T23:59:59.999');
-      if (targetDate > end) return false;
+
+    // Extract YYYY-MM-DD from target date
+    let targetStr = '';
+    if (typeof dateValue === 'string') {
+      if (dateValue.includes('T')) {
+        targetStr = dateValue.split('T')[0];
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue.trim())) {
+        targetStr = dateValue.trim();
+      } else {
+        const d = new Date(dateValue);
+        if (!Number.isNaN(d.getTime())) {
+          targetStr = d.toISOString().split('T')[0];
+        }
+      }
+    } else if (dateValue instanceof Date) {
+      if (!Number.isNaN(dateValue.getTime())) {
+        targetStr = dateValue.toISOString().split('T')[0];
+      }
+    } else if (typeof dateValue === 'number') {
+      const d = new Date(dateValue);
+      if (!Number.isNaN(d.getTime())) {
+        targetStr = d.toISOString().split('T')[0];
+      }
     }
+
+    if (!targetStr) return true;
+
+    if (startDate && targetStr < startDate) return false;
+    if (endDate && targetStr > endDate) return false;
     return true;
   }, [startDate, endDate]);
 

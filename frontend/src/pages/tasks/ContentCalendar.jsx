@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useDateFilter } from '../../context/DateFilterContext';
 import {
   addDays,
   addMonths,
@@ -667,15 +668,27 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   const canLogDailyUpdates = EMPLOYEE_ROLES.includes(user?.role);
   const canDownloadWeeklyReport = canLogDailyUpdates || canManageCalendar;
 
+  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange } = useDateFilter();
+
+  // Auto-sync calendar view date when global navbar date changes
+  useEffect(() => {
+    if (globalStartDate) {
+      const parsed = new Date(globalStartDate);
+      if (!Number.isNaN(parsed.getTime())) {
+        setCurrentDate(parsed);
+      }
+    }
+  }, [globalStartDate]);
+
   const visibleRange = useMemo(() => getRangeForView(currentDate, view), [currentDate, view]);
 
   const queryFilters = useMemo(() => ({
     ...filters,
     search,
     parent: 'all',
-    startDate: filters.startDate || format(visibleRange.start, 'yyyy-MM-dd'),
-    endDate: filters.endDate || format(visibleRange.end, 'yyyy-MM-dd'),
-  }), [filters, search, visibleRange]);
+    startDate: filters.startDate || globalStartDate || format(visibleRange.start, 'yyyy-MM-dd'),
+    endDate: filters.endDate || globalEndDate || format(visibleRange.end, 'yyyy-MM-dd'),
+  }), [filters, search, globalStartDate, globalEndDate, visibleRange]);
 
   const { data: calendarData, isLoading, refetch } = useTaskCalendar(queryFilters);
   const { data: employeeTasks = [] } = useTasks(
@@ -687,8 +700,10 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   const { data: users = [] } = useUsers({ enabled: canFilterAssignee });
 
   const tasks = useMemo(
-    () => (calendarData?.tasks || []).map((task) => ({ ...task, status: normalizeTaskStatusLabel(task.status) })),
-    [calendarData],
+    () => (calendarData?.tasks || [])
+      .filter((task) => isDateInRange(task.dueDate || task.startDate || task.createdAt))
+      .map((task) => ({ ...task, status: normalizeTaskStatusLabel(task.status) })),
+    [calendarData, isDateInRange],
   );
 
   const summary = calendarData?.summary || {
