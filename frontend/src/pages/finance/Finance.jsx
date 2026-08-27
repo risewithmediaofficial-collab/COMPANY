@@ -40,6 +40,8 @@ import {
   Video,
   Wrench,
   ShoppingBag,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import {
@@ -208,6 +210,7 @@ export default function Finance() {
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [deleteInvoiceId, setDeleteInvoiceId] = useState(null);
   const [deleteExpenseId, setDeleteExpenseId] = useState(null);
+  const [showFinancials, setShowFinancials] = useState(false);
 
   const { startDate, endDate, isDateInRange } = useDateFilter();
 
@@ -851,13 +854,26 @@ export default function Finance() {
       subtitle="Complete Notion-style command center for client billings, accounts receivable, agency spend, employee salaries, and net margins."
       icon="💰"
       properties={[
-        { label: 'Collected', value: currency.format(totalCollected), tone: 'success' },
-        { label: 'Outstanding', value: currency.format(totalReceivable), tone: totalReceivable > 0 ? 'warning' : 'neutral' },
-        { label: 'Total Expenses', value: currency.format(totalExpenses), tone: 'danger' },
-        { label: 'Net Profit', value: currency.format(netProfit), tone: netProfit >= 0 ? 'success' : 'danger' },
+        { label: 'Collected', value: showFinancials ? currency.format(totalCollected) : '••••••••', tone: 'success' },
+        { label: 'Outstanding', value: showFinancials ? currency.format(totalReceivable) : '••••••••', tone: totalReceivable > 0 ? 'warning' : 'neutral' },
+        { label: 'Total Expenses', value: showFinancials ? currency.format(totalExpenses) : '••••••••', tone: 'danger' },
+        { label: 'Net Profit', value: showFinancials ? currency.format(netProfit) : '••••••••', tone: netProfit >= 0 ? 'success' : 'danger' },
       ]}
       actions={
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowFinancials((v) => !v)}
+            className={`rounded-xl text-xs font-bold gap-1.5 h-9 cursor-pointer transition-all ${
+              !showFinancials
+                ? 'border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
+                : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
+            }`}
+          >
+            {showFinancials ? <EyeOff size={14} /> : <Eye size={14} />}
+            <span>{showFinancials ? 'Hide Financials' : 'Unhide Financials'}</span>
+          </Button>
           {canManage && (
             <>
               {activeTab === 'salaries' ? (
@@ -924,11 +940,34 @@ export default function Finance() {
         <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-2 hover:border-primary/30 transition-all">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold uppercase tracking-wider">Collected Cash</span>
-            <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-              <CheckCircle2 size={15} />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowFinancials((v) => !v)}
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                title={showFinancials ? "Hide" : "Unhide"}
+              >
+                {showFinancials ? <EyeOff size={13} /> : <Eye size={13} className="text-emerald-600" />}
+              </button>
+              <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <CheckCircle2 size={15} />
+              </div>
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-foreground">{currency.format(totalCollected)}</div>
+          <div className="flex items-baseline justify-between gap-1">
+            <div className="text-xl sm:text-2xl font-black text-foreground">
+              {showFinancials ? currency.format(totalCollected) : <span className="text-muted-foreground/50 tracking-widest text-lg select-none">••••••••</span>}
+            </div>
+            {!showFinancials && (
+              <button
+                type="button"
+                onClick={() => setShowFinancials(true)}
+                className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-md transition-all cursor-pointer shrink-0"
+              >
+                Unhide
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold">
             <ArrowUpRight size={13} />
             <span>{invoices.filter((i) => String(i.status).toLowerCase() === 'paid').length} fully settled invoices</span>
@@ -939,11 +978,34 @@ export default function Finance() {
         <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-2 hover:border-primary/30 transition-all">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold uppercase tracking-wider">Receivables Due</span>
-            <div className="h-7 w-7 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-              <Clock size={15} />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowFinancials((v) => !v)}
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                title={showFinancials ? "Hide" : "Unhide"}
+              >
+                {showFinancials ? <EyeOff size={13} /> : <Eye size={13} className="text-amber-600" />}
+              </button>
+              <div className="h-7 w-7 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <Clock size={15} />
+              </div>
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-foreground">{currency.format(totalReceivable)}</div>
+          <div className="flex items-baseline justify-between gap-1">
+            <div className="text-xl sm:text-2xl font-black text-foreground">
+              {showFinancials ? currency.format(totalReceivable) : <span className="text-muted-foreground/50 tracking-widest text-lg select-none">••••••••</span>}
+            </div>
+            {!showFinancials && (
+              <button
+                type="button"
+                onClick={() => setShowFinancials(true)}
+                className="text-[10px] font-bold text-amber-600 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded-md transition-all cursor-pointer shrink-0"
+              >
+                Unhide
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 text-[11px] text-amber-600 font-semibold">
             <span>{openInvoicesCount} open invoice balances</span>
           </div>
@@ -953,11 +1015,34 @@ export default function Finance() {
         <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-2 hover:border-primary/30 transition-all">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold uppercase tracking-wider">Operating Spend</span>
-            <div className="h-7 w-7 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
-              <ArrowDownRight size={15} />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowFinancials((v) => !v)}
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                title={showFinancials ? "Hide" : "Unhide"}
+              >
+                {showFinancials ? <EyeOff size={13} /> : <Eye size={13} className="text-rose-600" />}
+              </button>
+              <div className="h-7 w-7 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+                <ArrowDownRight size={15} />
+              </div>
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-foreground">{currency.format(totalExpenses)}</div>
+          <div className="flex items-baseline justify-between gap-1">
+            <div className="text-xl sm:text-2xl font-black text-foreground">
+              {showFinancials ? currency.format(totalExpenses) : <span className="text-muted-foreground/50 tracking-widest text-lg select-none">••••••••</span>}
+            </div>
+            {!showFinancials && (
+              <button
+                type="button"
+                onClick={() => setShowFinancials(true)}
+                className="text-[10px] font-bold text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 px-2 py-0.5 rounded-md transition-all cursor-pointer shrink-0"
+              >
+                Unhide
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 text-[11px] text-rose-600 font-semibold">
             <span>{expenses.length} logged expense items</span>
           </div>
@@ -967,11 +1052,34 @@ export default function Finance() {
         <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-2 hover:border-primary/30 transition-all">
           <div className="flex items-center justify-between text-muted-foreground">
             <span className="text-xs font-bold uppercase tracking-wider">Net Profit & Margin</span>
-            <div className="h-7 w-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <PieChart size={15} />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowFinancials((v) => !v)}
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                title={showFinancials ? "Hide" : "Unhide"}
+              >
+                {showFinancials ? <EyeOff size={13} /> : <Eye size={13} className="text-primary" />}
+              </button>
+              <div className="h-7 w-7 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                <PieChart size={15} />
+              </div>
             </div>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-foreground">{currency.format(netProfit)}</div>
+          <div className="flex items-baseline justify-between gap-1">
+            <div className="text-xl sm:text-2xl font-black text-foreground">
+              {showFinancials ? currency.format(netProfit) : <span className="text-muted-foreground/50 tracking-widest text-lg select-none">••••••••</span>}
+            </div>
+            {!showFinancials && (
+              <button
+                type="button"
+                onClick={() => setShowFinancials(true)}
+                className="text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded-md transition-all cursor-pointer shrink-0"
+              >
+                Unhide
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-primary">
             <span>{profitMargin}% net agency margin</span>
           </div>

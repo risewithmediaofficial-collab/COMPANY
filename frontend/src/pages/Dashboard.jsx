@@ -99,7 +99,7 @@ const Dashboard = () => {
 
   const [eodSearch, setEodSearch] = useState('');
   const [eodDays, setEodDays] = useState(7);
-  const [showFinance, setShowFinance] = useState(true);
+  const [showFinance, setShowFinance] = useState(false);
   const [userMetricSearch, setUserMetricSearch] = useState('');
   const [userMetricRoleFilter, setUserMetricRoleFilter] = useState('all');
 
@@ -263,14 +263,14 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setShowFinance((v) => !v)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                     showFinance
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600'
-                      : 'border-border bg-background text-muted-foreground hover:bg-secondary'
+                      : 'border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
                   }`}
                 >
-                  {showFinance ? <Eye size={14} /> : <EyeOff size={14} />}
-                  <span>{showFinance ? 'Financials Visible' : 'Financials Hidden'}</span>
+                  {showFinance ? <EyeOff size={14} /> : <Eye size={14} />}
+                  <span>{showFinance ? 'Hide Revenue' : 'Unhide Revenue'}</span>
                 </button>
               )}
 
@@ -347,19 +347,46 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
               {/* Revenue */}
               <div
-                onClick={() => navigate('/finance')}
-                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all cursor-pointer shadow-sm group space-y-1.5"
+                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all shadow-sm group space-y-1.5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Revenue</span>
-                  <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                    <IndianRupee size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Overall Revenue</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowFinance((v) => !v)}
+                      className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                      title={showFinance ? "Hide Revenue" : "Unhide Revenue"}
+                    >
+                      {showFinance ? <EyeOff size={13} /> : <Eye size={13} className="text-emerald-600" />}
+                    </button>
+                    <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                      <IndianRupee size={14} />
+                    </div>
                   </div>
                 </div>
-                <div className="text-xl sm:text-2xl font-black text-foreground">
-                  {!showFinance ? '•••••' : formatINR(stats.grossAmount || 0)}
+                <div className="flex items-baseline justify-between gap-1">
+                  <div className="text-xl sm:text-2xl font-black text-foreground">
+                    {!showFinance ? (
+                      <span className="text-muted-foreground/50 tracking-widest text-lg select-none">••••••••</span>
+                    ) : (
+                      formatINR(stats.grossAmount || 0)
+                    )}
+                  </div>
+                  {!showFinance && (
+                    <button
+                      type="button"
+                      onClick={() => setShowFinance(true)}
+                      className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-md transition-all cursor-pointer shrink-0"
+                    >
+                      Unhide
+                    </button>
+                  )}
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
+                <div
+                  onClick={() => navigate('/finance')}
+                  className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors cursor-pointer pt-0.5"
+                >
                   <span>View ledger</span>
                   <ArrowRight size={10} />
                 </div>
