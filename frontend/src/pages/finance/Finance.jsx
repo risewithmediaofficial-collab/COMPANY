@@ -36,6 +36,10 @@ import {
   Table as TableIcon,
   LayoutGrid,
   Zap,
+  Megaphone,
+  Video,
+  Wrench,
+  ShoppingBag,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import {
