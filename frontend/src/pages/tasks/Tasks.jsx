@@ -666,59 +666,6 @@ const Tasks = () => {
       }
     >
       <div className="space-y-4">
-        {/* 1-CLICK TASK CATEGORY FILTER PILL RIBBON */}
-        <div className="bg-card rounded-2xl border border-border p-2.5 shadow-xs space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <Filter size={13} className="text-primary" />
-              <span>Filter by Task Category:</span>
-            </span>
-            {categoryFilter !== 'all' && (
-              <button
-                type="button"
-                onClick={() => setCategoryFilter('all')}
-                className="text-[11px] font-bold text-primary hover:underline cursor-pointer flex items-center gap-1"
-              >
-                <RotateCcw size={11} />
-                <span>Show All Deliverables</span>
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 custom-scrollbar">
-            {activeCategoryPills.map((pill) => {
-              const Icon = pill.icon;
-              const isSelected = categoryFilter === pill.key;
-              const count = pill.count !== undefined ? pill.count : 0;
-
-              return (
-                <button
-                  key={pill.key}
-                  type="button"
-                  onClick={() => setCategoryFilter(pill.key)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border shrink-0 ${
-                    isSelected
-                      ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20 font-bold'
-                      : 'bg-secondary/40 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  <Icon size={13} className={isSelected ? 'text-primary-foreground' : 'text-muted-foreground'} />
-                  <span>{pill.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      isSelected
-                        ? 'bg-white/20 text-white'
-                        : 'bg-card text-foreground border border-border/60'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Database View Engine (Table + Kanban Board) */}
         <DatabaseView
           activeView={currentView}
@@ -730,6 +677,15 @@ const Tasks = () => {
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Filter Dropdowns Group */}
               <div className="flex items-center gap-2 flex-wrap min-w-0">
+                {/* Category Filter Dropdown */}
+                <SelectDropdown
+                  className="w-44 text-xs"
+                  value={categoryFilter}
+                  onChange={(val) => setCategoryFilter(val || 'all')}
+                  options={TASK_CATEGORY_PILLS.map((p) => ({ value: p.key, label: p.label }))}
+                  allOptionLabel="All Categories"
+                />
+
                 {/* Client Filter */}
                 <SelectDropdown
                   className="w-48 text-xs"
