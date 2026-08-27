@@ -50,6 +50,7 @@ import { Button } from '../../components/ui/button';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { StatusBadge } from '../../components/ui/page';
+import { CategoryColorLegend } from '../../components/ui/CategoryColorLegend';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -819,14 +820,23 @@ const Projects = () => {
 
           {/* 2. BOARD (KANBAN) VIEW */}
           {(currentView === 'board' || currentView === 'kanban') && (
-            <div ref={projectsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
-              <div
-                className={
-                  boardGroupBy === 'status' && boardColumns.length <= 4
-                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full'
-                    : 'flex gap-4 w-max min-w-full'
-                }
-              >
+            <div className="space-y-3.5 w-full">
+              {/* Category Color Definition Guide */}
+              <CategoryColorLegend
+                selectedCategory={categoryFilter}
+                onSelectCategory={setCategoryFilter}
+                title="Project Category Color Index"
+                description="Card left-border accent indicates project discipline (click any color pill to filter)"
+              />
+
+              <div ref={projectsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
+                <div
+                  className={
+                    boardGroupBy === 'status' && boardColumns.length <= 4
+                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full'
+                      : 'flex gap-4 w-max min-w-full'
+                  }
+                >
                 {boardColumns.map((col) => {
                   const colKey = col.key;
                   const colProjects = filteredProjects.filter((p) => {
@@ -1073,7 +1083,8 @@ const Projects = () => {
                 })}
               </div>
             </div>
-          )}
+          </div>
+        )}
         </DatabaseView>
       </div>
 

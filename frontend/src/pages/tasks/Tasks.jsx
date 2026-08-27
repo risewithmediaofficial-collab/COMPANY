@@ -37,6 +37,8 @@ import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
+import { CategoryColorLegend } from '../../components/ui/CategoryColorLegend';
+import { getCategoryTheme } from '../../utils/categoryColors';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +64,6 @@ import {
   formatTaskTypeLabel,
   normalizeTaskStatusLabel,
 } from '../../utils/taskFields';
-import { getCategoryTheme } from '../../utils/categoryColors';
 
 export const TASK_CATEGORY_PILLS = [
   { key: 'all', label: 'All Deliverables', icon: CheckSquare },
@@ -956,8 +957,17 @@ const Tasks = () => {
 
         {/* Board View (Responsive Kanban by Task Status with Snap Scroll) */}
         {(currentView === 'board' || currentView === 'kanban') && (
-          <div ref={taskBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
-            <div className="grid w-max min-w-full auto-cols-[minmax(275px,85vw)] sm:auto-cols-[minmax(280px,320px)] grid-flow-col gap-3.5 sm:gap-4">
+          <div className="space-y-3.5 w-full">
+            {/* Category Color Definition Guide */}
+            <CategoryColorLegend
+              selectedCategory={taskCategoryFilter}
+              onSelectCategory={setTaskCategoryFilter}
+              title="Deliverable Color Code Index"
+              description="Card left-border accent identifies task category (click any color pill to filter)"
+            />
+
+            <div ref={taskBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
+              <div className="grid w-max min-w-full auto-cols-[minmax(275px,85vw)] sm:auto-cols-[minmax(280px,320px)] grid-flow-col gap-3.5 sm:gap-4">
               {[
                 { key: 'To Do', label: 'To Do', badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400', surface: 'border-border bg-card/60' },
                 { key: 'On Process', label: 'In Process', badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', surface: 'border-blue-500/20 bg-blue-500/5' },
@@ -1227,6 +1237,7 @@ const Tasks = () => {
                 );
               })}
             </div>
+          </div>
           </div>
         )}
       </DatabaseView>

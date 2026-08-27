@@ -42,6 +42,7 @@ import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import { getCategoryTheme } from '../../utils/categoryColors';
+import { CategoryColorLegend } from '../../components/ui/CategoryColorLegend';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -495,8 +496,17 @@ const Clients = () => {
 
           {/* Board View (Kanban by Client Status) */}
           {(currentView === 'board' || currentView === 'kanban') && (
-            <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
+            <div className="space-y-3.5 w-full">
+              {/* Category Color Definition Guide */}
+              <CategoryColorLegend
+                selectedCategory={categoryFilter}
+                onSelectCategory={setCategoryFilter}
+                title="Client Service Color Code Index"
+                description="Card left-border accent indicates client service retainer (click any color pill to filter)"
+              />
+
+              <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
                 {STATUS_COLUMNS.map((status) => {
                   const statusClients = displayedClients.filter((c) => (c.status || 'Prospect') === status);
                   const isColActive = dragOverStatus === status;
@@ -645,7 +655,8 @@ const Clients = () => {
                 })}
               </div>
             </div>
-          )}
+          </div>
+        )}
         </DatabaseView>
       </div>
 
