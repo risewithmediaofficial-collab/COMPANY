@@ -39,6 +39,7 @@ import {
   ArrowUpRight,
   Flame,
   ShieldCheck,
+  ChevronDown,
 } from 'lucide-react';
 import {
   formatTaskTypeLabel,
@@ -80,8 +81,8 @@ const getCategoryIcon = (category, type) => {
 };
 
 const NotionPropertyRow = ({ icon: Icon, label, children }) => (
-  <div className="flex items-start gap-3 py-2 px-2.5 rounded-xl hover:bg-secondary/40 transition-colors">
-    <div className="flex items-center gap-2 w-32 sm:w-40 shrink-0 text-xs font-semibold text-muted-foreground select-none">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 py-2 px-2.5 rounded-xl hover:bg-secondary/40 transition-colors">
+    <div className="flex items-center gap-2 w-auto sm:w-36 md:w-40 shrink-0 text-xs font-semibold text-muted-foreground select-none">
       <Icon size={13} className="shrink-0 text-muted-foreground/70" />
       <span className="truncate">{label}</span>
     </div>
@@ -169,24 +170,24 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="xl" noPadding className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
         {/* ── Sticky Pinned Header ── */}
-        <DialogHeader className="px-6 py-4 border-b border-border bg-card/95 backdrop-blur-md shrink-0 pr-24 select-none">
+        <DialogHeader className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border bg-card/95 backdrop-blur-md shrink-0 pr-14 sm:pr-24 select-none mb-0 pb-3.5 sm:pb-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/80 border border-border shrink-0">
                 {task ? getCategoryIcon(task.taskCategory, task.taskType) : <CheckSquare size={17} />}
               </div>
               <div className="min-w-0">
-                <DialogTitle className="text-base sm:text-lg font-black text-foreground truncate">
+                <DialogTitle className="text-sm sm:text-lg font-black text-foreground truncate">
                   {isLoading ? 'Loading task...' : task?.taskTitle || task?.title || 'Task Details'}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground mt-0.5 truncate flex items-center gap-1.5">
+                <DialogDescription className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 truncate flex items-center gap-1.5 flex-wrap">
                   {task?.client?.name && (
                     <span className="font-semibold text-foreground">{task.client.name}</span>
                   )}
                   {task?.project?.name && (
                     <>
                       <span>•</span>
-                      <span>{task.project.name}</span>
+                      <span className="truncate max-w-[120px] sm:max-w-none">{task.project.name}</span>
                     </>
                   )}
                   {task?.createdAt && (
@@ -199,14 +200,14 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
               </div>
             </div>
 
-            <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {task?.isOverTarget && (
-                <span className="rounded-lg bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[11px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
+                <span className="rounded-lg bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
                   🔴 Over Task
                 </span>
               )}
               {task?.priority && (
-                <span className={`px-2 py-0.5 rounded-lg border text-[11px] font-semibold ${PRIORITY_TONES[task.priority] || PRIORITY_TONES.Medium}`}>
+                <span className={`px-2 py-0.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold ${PRIORITY_TONES[task.priority] || PRIORITY_TONES.Medium}`}>
                   {task.priority}
                 </span>
               )}
@@ -215,10 +216,10 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                   size="sm"
                   variant="outline"
                   onClick={() => setIsEditing(true)}
-                  className="h-8 px-2.5 rounded-xl border-border text-xs font-bold hover:bg-secondary flex items-center gap-1.5"
+                  className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-xl border-border text-xs font-bold hover:bg-secondary flex items-center gap-1.5"
                 >
                   <Edit size={12} />
-                  <span>Edit</span>
+                  <span className="hidden sm:inline">Edit</span>
                 </Button>
               )}
             </div>
@@ -226,7 +227,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
         </DialogHeader>
 
         {/* ── Scrollable Body ── */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6 pb-12 custom-scrollbar space-y-5">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-12 custom-scrollbar space-y-4 sm:space-y-5 overflow-x-hidden">
           {isLoading ? (
             <div className="space-y-4 animate-pulse">
               <div className="h-32 rounded-3xl bg-secondary/50 border border-border" />
@@ -241,22 +242,25 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
               )}
 
               {/* ── Notion Property Matrix Card ── */}
-              <div className="rounded-2xl border border-border bg-background/70 p-4 shadow-2xs space-y-1">
+              <div className="rounded-2xl border border-border bg-background/70 p-3 sm:p-4 shadow-2xs space-y-1">
                 {!isClient && (
                   <NotionPropertyRow icon={ShieldCheck} label="Status">
-                    <div className="flex items-center gap-2">
+                    <div className="relative inline-flex items-center">
                       <select
                         value={normalizedStatus}
                         onChange={(e) => updateStatus.mutate({ id: task._id, status: e.target.value })}
-                        className="bg-transparent text-xs sm:text-sm font-bold text-foreground border-b border-border/80 pb-0.5 outline-none hover:border-primary focus:border-primary transition-colors cursor-pointer"
+                        className={`appearance-none cursor-pointer pl-3 pr-8 py-1 rounded-lg border text-xs font-bold transition-all outline-none focus:ring-2 focus:ring-primary/20 hover:brightness-105 shadow-2xs ${
+                          STATUS_TONES[normalizedStatus] || STATUS_TONES['To Do']
+                        }`}
+                        title="Change Task Status"
                       >
                         {allowedStatusOptions.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
+                          <option key={opt} value={opt} className="bg-card text-foreground font-semibold py-1">
+                            {opt}
+                          </option>
                         ))}
                       </select>
-                      <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold ${STATUS_TONES[normalizedStatus] || STATUS_TONES['To Do']}`}>
-                        {normalizedStatus}
-                      </span>
+                      <ChevronDown size={13} className="absolute right-2.5 pointer-events-none opacity-60 shrink-0" />
                     </div>
                   </NotionPropertyRow>
                 )}
@@ -323,7 +327,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
 
               {/* ── Production Pipeline Workflow ── */}
               {hasPipeline && (
-                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 shadow-2xs space-y-3">
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4 shadow-2xs space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
                       <Flame size={14} className="text-primary" /> Multi-Role Sub-Assignments
@@ -335,7 +339,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                     )}
                   </div>
 
-                  <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-5">
+                  <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                     <div className="p-2.5 rounded-xl bg-card border border-border space-y-1">
                       <span className="text-[9px] font-bold uppercase text-muted-foreground block">✍️ Script</span>
                       <p className="font-bold text-foreground text-xs truncate">
@@ -385,7 +389,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
               )}
 
               {/* ── Drawer Tabs ── */}
-              <div className="flex items-center gap-2 border-b border-border">
+              <div className="flex items-center gap-1.5 border-b border-border overflow-x-auto no-scrollbar py-0.5">
                 {[
                   { id: 'brief', label: 'Brief & Scope', icon: FileText },
                   { id: 'deliverables', label: `Files (${(task.attachments?.length || 0) + (task.completedFiles?.length || 0)})`, icon: FolderArchive },
@@ -395,13 +399,13 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold border-b-2 transition-all cursor-pointer select-none ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap shrink-0 transition-all cursor-pointer select-none rounded-t-lg ${
                       activeTab === tab.id
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                        ? 'border-primary text-primary bg-primary/5'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40'
                     }`}
                   >
-                    <tab.icon size={13} />
+                    <tab.icon size={13} className="shrink-0" />
                     <span>{tab.label}</span>
                   </button>
                 ))}

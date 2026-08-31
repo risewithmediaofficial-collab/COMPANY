@@ -35,6 +35,7 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Flame,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -81,12 +82,12 @@ const getCategoryIcon = (category, type) => {
 };
 
 const NotionPropertyRow = ({ icon: Icon, label, children }) => (
-  <div className="flex items-start gap-4 py-2.5 px-3 rounded-xl hover:bg-secondary/40 transition-colors">
-    <div className="flex items-center gap-2 w-36 sm:w-44 shrink-0 text-xs font-semibold text-muted-foreground select-none">
+  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 py-2.5 px-3 rounded-xl hover:bg-secondary/40 transition-colors">
+    <div className="flex items-center gap-2 w-auto sm:w-36 md:w-44 shrink-0 text-xs font-semibold text-muted-foreground select-none">
       <Icon size={14} className="shrink-0 text-muted-foreground/70" />
       <span className="truncate">{label}</span>
     </div>
-    <div className="flex-1 min-w-0 text-sm font-medium text-foreground">
+    <div className="flex-1 min-w-0 text-xs sm:text-sm font-medium text-foreground flex items-center justify-start">
       {children}
     </div>
   </div>
@@ -346,15 +347,23 @@ export const TaskDetails = () => {
           {/* Status Changer */}
           {!isClient && (
             <NotionPropertyRow icon={ShieldCheck} label="Status">
-              <select
-                value={normalizedStatus}
-                onChange={(e) => updateStatus.mutate({ id: task._id, status: e.target.value })}
-                className="bg-transparent text-sm font-bold text-foreground border-b border-border/80 pb-0.5 outline-none hover:border-primary focus:border-primary transition-colors cursor-pointer"
-              >
-                {allowedStatusOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <div className="relative inline-flex items-center">
+                <select
+                  value={normalizedStatus}
+                  onChange={(e) => updateStatus.mutate({ id: task._id, status: e.target.value })}
+                  className={`appearance-none cursor-pointer pl-3 pr-8 py-1 rounded-lg border text-xs font-bold transition-all outline-none focus:ring-2 focus:ring-primary/20 hover:brightness-105 shadow-2xs ${
+                    STATUS_TONES[normalizedStatus] || STATUS_TONES['To Do']
+                  }`}
+                  title="Change Task Status"
+                >
+                  {allowedStatusOptions.map((opt) => (
+                    <option key={opt} value={opt} className="bg-card text-foreground font-semibold py-1">
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={13} className="absolute right-2.5 pointer-events-none opacity-60 shrink-0" />
+              </div>
             </NotionPropertyRow>
           )}
 
@@ -588,7 +597,7 @@ export const TaskDetails = () => {
       )}
 
       {/* ── Navigation Workspace Tabs ── */}
-      <div className="flex items-center gap-2 border-b border-border">
+      <div className="flex items-center gap-1.5 border-b border-border overflow-x-auto no-scrollbar py-0.5">
         {[
           { id: 'brief', label: 'Brief & Content Scope', icon: FileText },
           { id: 'deliverables', label: `Deliverables & Files (${(task.attachments?.length || 0) + (task.completedFiles?.length || 0)})`, icon: FolderArchive },
@@ -598,13 +607,13 @@ export const TaskDetails = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer select-none ${
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold border-b-2 whitespace-nowrap shrink-0 transition-all cursor-pointer select-none rounded-t-lg ${
               activeTab === tab.id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'border-primary text-primary bg-primary/5'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40'
             }`}
           >
-            <tab.icon size={15} />
+            <tab.icon size={13} className="shrink-0" />
             <span>{tab.label}</span>
           </button>
         ))}
