@@ -331,12 +331,12 @@ export const getAdminDashboard = async (req, res) => {
 
     // 8. Content Production Pipeline
     const contentPipeline = {
-      ideas: allTasks.filter((t) => (t.taskCategory === 'content' || !t.taskCategory) && (t.status === 'To Do' || t.status === 'todo')).length,
-      shoot: allVideoShoots.filter((s) => s.status !== 'completed').length || allTasks.filter((t) => t.shootStatus === 'in_progress').length,
-      editing: allTasks.filter((t) => t.editingStatus === 'in_progress' || t.status === 'On Process').length,
-      review: allTasks.filter((t) => t.status === 'Review Required' || t.reviewStatus === 'review_ready').length,
+      ideas: allTasks.filter((t) => t.status === 'To Do' || t.status === 'todo' || t.status === 'pending').length,
+      shoot: allVideoShoots.filter((s) => s.status !== 'completed').length || allTasks.filter((t) => t.shootStatus === 'in_progress' || t.shootStatus === 'pending').length,
+      editing: allTasks.filter((t) => t.editingStatus === 'in_progress' || t.editingStatus === 'pending' || (t.status === 'On Process' && (t.taskCategory === 'video_content' || t.taskCategory === 'reel' || t.taskType?.toLowerCase().includes('video') || t.taskType?.toLowerCase().includes('reel')))).length,
+      review: allTasks.filter((t) => t.status === 'Review Required' || t.reviewStatus === 'review_ready' || t.reviewStatus === 'in_review').length,
       approval: allTasks.filter((t) => t.status === 'Waiting for Client').length,
-      published: allTasks.filter((t) => t.status === 'Completed' || t.postingStatus === 'published').length,
+      published: allTasks.filter((t) => t.status === 'Completed' || t.status === 'Approved' || t.postingStatus === 'published').length,
     };
 
     // Platform distribution

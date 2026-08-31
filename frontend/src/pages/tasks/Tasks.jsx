@@ -146,17 +146,18 @@ const Tasks = () => {
   // Smooth side auto-scroll while dragging tasks
   useAutoScrollOnDrag(taskBoardRef, Boolean(draggingTaskId));
 
-  const { isDateInRange } = useDateFilter();
+  // Note: we intentionally do NOT apply the global date filter to the Tasks workspace.
+  // The global date filter is used by Dashboard analytics only.
+  // Tasks workspace shows all tasks from the API (already scoped by user role).
+
 
   const normalizedTasks = useMemo(
     () =>
-      tasks
-        .filter((task) => isDateInRange(task.startDate || task.dueDate || task.createdAt))
-        .map((task) => ({
-          ...task,
-          status: normalizeTaskStatusLabel(task.status),
-        })),
-    [tasks, isDateInRange],
+      tasks.map((task) => ({
+        ...task,
+        status: normalizeTaskStatusLabel(task.status),
+      })),
+    [tasks],
   );
 
   const isTaskOverdue = (task) => {

@@ -119,23 +119,27 @@ const Projects = () => {
   // Queries
   const { data: rawProjects = [], isLoading } = useProjects();
   const { data: clients = [] } = useClients();
-  const { isDateInRange } = useDateFilter();
+  // Note: we intentionally do NOT apply global date filter to the Projects board
+  // The global date filter is for Dashboard analytics. Projects workspace shows all projects.
 
   const deleteProjectMutation = useDeleteProject();
   const updateProjectMutation = useUpdateProject();
 
-  // 1. Base date-filtered projects (used for category count badges)
+  // 1. Base projects — show all by default; only apply local monthFilter if set
   const baseDateFilteredProjects = useMemo(() => {
     return rawProjects.filter((project) => {
-      const rawDates = [project.startDate, project.createdAt, project.endDate];
-      if (!isDateInRange(rawDates)) return false;
       if (monthFilter !== '') {
-        const projectDate = (project.startDate || project.createdAt) ? new Date(project.startDate || project.createdAt) : new Date();
-        if (projectDate.getMonth() !== Number(monthFilter)) return false;
+        const projectDate = project.createdAt
+          ? new Date(project.createdAt)
+          : project.startDate
+          ? new Date(project.startDate)
+          : null;
+        if (!projectDate || projectDate.getMonth() !== Number(monthFilter)) return false;
       }
       return true;
     });
-  }, [rawProjects, monthFilter, isDateInRange]);
+  }, [rawProjects, monthFilter]);
+
 
   // 2. Compute dynamic project counts per category
   const categoryCounts = useMemo(() => {

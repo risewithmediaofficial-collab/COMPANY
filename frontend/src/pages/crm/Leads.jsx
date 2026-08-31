@@ -580,7 +580,6 @@ const Leads = () => {
                               <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
                             )}
                             <motion.article
-                              layoutId={lead._id}
                               draggable
                               onDragStart={(e) => {
                                 dragLeadRef.current = true;
@@ -589,7 +588,7 @@ const Leads = () => {
                                 e.dataTransfer.effectAllowed = 'move';
                               }}
                               onDragEnd={() => {
-                                dragLeadRef.current = false;
+                                setTimeout(() => { dragLeadRef.current = false; }, 50);
                                 setDraggingLeadId(null);
                                 setDragOverStage(null);
                                 setDragOverLeadIndex(null);
@@ -615,7 +614,7 @@ const Leads = () => {
                               }}
                               role="button"
                               tabIndex={0}
-                              className={`group cursor-pointer rounded-2xl border border-border/80 bg-background/95 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 active:cursor-grabbing ${
+                              className={`group cursor-grab rounded-2xl border border-border/80 bg-background/95 p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60 active:cursor-grabbing ${
                                 isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
                               }`}
                             >
