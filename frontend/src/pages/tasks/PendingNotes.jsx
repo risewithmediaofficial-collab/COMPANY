@@ -107,12 +107,12 @@ export default function PendingNotes() {
   const [managerInstruction, setManagerInstruction] = useState('');
 
   // Queries
-  const myNotesQuery = useMyNotes();
-  const allNotesQuery = useAllNotes();
+  const myNotesQuery = useMyNotes({}, { enabled: !isManagerOrAdmin });
+  const allNotesQuery = useAllNotes({}, { enabled: isManagerOrAdmin });
   const notesQuery = isManagerOrAdmin ? allNotesQuery : myNotesQuery;
 
   const notes = notesQuery.data || [];
-  const { data: users = [] } = useUsers();
+  const { data: users = [] } = useUsers({ enabled: isManagerOrAdmin });
 
   // Mutations
   const createMutation = useCreateNote();

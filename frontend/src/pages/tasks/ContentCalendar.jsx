@@ -662,9 +662,9 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   const [showDailyTaskDialog, setShowDailyTaskDialog] = useState(false);
 
   const isClient = user?.role === 'client';
-  const canManageCalendar = ['superAdmin', 'manager'].includes(user?.role);
-  const canFilterAssignee = ['superAdmin', 'manager'].includes(user?.role);
-  const canFilterClientProject = ['superAdmin', 'manager', 'employee'].includes(user?.role);
+  const canManageCalendar = ['superAdmin', 'admin', 'manager'].includes(user?.role);
+  const canFilterAssignee = ['superAdmin', 'admin', 'manager'].includes(user?.role);
+  const canFilterClientProject = ['superAdmin', 'admin', 'manager', 'employee'].includes(user?.role);
   const canLogDailyUpdates = EMPLOYEE_ROLES.includes(user?.role);
   const canDownloadWeeklyReport = canLogDailyUpdates || canManageCalendar;
 

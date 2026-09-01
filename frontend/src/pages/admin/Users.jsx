@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import {
   CheckCircle2,
   Clock,
+  Eye,
+  EyeOff,
   KeyRound,
   RefreshCw,
   Search,
@@ -70,6 +72,7 @@ const Users = () => {
   const [passwordUser, setPasswordUser] = useState(null);
   const [deleteUserTarget, setDeleteUserTarget] = useState(null);
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [showPasswordFields, setShowPasswordFields] = useState({ newPassword: false, confirmPassword: false });
 
   const filteredUsers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -375,26 +378,46 @@ const Users = () => {
           <form onSubmit={handlePasswordSubmit} className="space-y-3 pt-2">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">New Password</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                placeholder="At least 6 characters"
-                className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs"
-              />
+              <div className="relative">
+                <input
+                  type={showPasswordFields.newPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  placeholder="At least 6 characters"
+                  className="w-full h-9 rounded-xl border border-border bg-background px-3 pr-9 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordFields((prev) => ({ ...prev, newPassword: !prev.newPassword }))}
+                  className="absolute inset-y-0 right-0 flex items-center pr-2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPasswordFields.newPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPasswordFields.newPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1">Confirm Password</label>
-              <input
-                type="password"
-                required
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                placeholder="Re-enter password"
-                className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs"
-              />
+              <div className="relative">
+                <input
+                  type={showPasswordFields.confirmPassword ? 'text' : 'password'}
+                  required
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  placeholder="Re-enter password"
+                  className="w-full h-9 rounded-xl border border-border bg-background px-3 pr-9 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordFields((prev) => ({ ...prev, confirmPassword: !prev.confirmPassword }))}
+                  className="absolute inset-y-0 right-0 flex items-center pr-2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPasswordFields.confirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPasswordFields.confirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" size="sm" onClick={() => setPasswordUser(null)} className="rounded-xl text-xs">

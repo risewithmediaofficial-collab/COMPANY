@@ -135,8 +135,8 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
     name: 'expensesList',
   });
 
-  const { data: clients = [] } = useClients();
-  const { data: users = [] } = useUsers();
+  const { data: clients = [] } = useClients({}, { enabled: open });
+  const { data: users = [] } = useUsers({ enabled: open });
 
   const createShoot = useCreateVideoShoot();
   const updateShoot = useUpdateVideoShoot();

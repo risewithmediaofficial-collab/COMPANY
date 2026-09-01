@@ -74,7 +74,7 @@ export default function Sidebar({ onOpenSearch }) {
     }
   });
 
-  const canViewBadges = ['superAdmin', 'manager'].includes(user?.role);
+  const canViewBadges = ['superAdmin', 'admin', 'manager'].includes(user?.role);
   const { data: badgeCounts } = useSidebarBadges(canViewBadges);
 
   useEffect(() => {

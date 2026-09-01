@@ -16,6 +16,10 @@ export const useUsers = (options = {}) => {
     staleTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: 'always',
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) return false;
+      return failureCount < 2;
+    },
     ...options,
   });
 };

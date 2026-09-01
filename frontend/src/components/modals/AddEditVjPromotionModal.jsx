@@ -100,8 +100,8 @@ export const AddEditVjPromotionModal = ({ open, onOpenChange, promotion = null }
     name: 'expensesList',
   });
 
-  const { data: clients = [] } = useClients();
-  const { data: users = [] } = useUsers();
+  const { data: clients = [] } = useClients({}, { enabled: open });
+  const { data: users = [] } = useUsers({ enabled: open });
 
   const createVj = useCreateVjPromotion();
   const updateVj = useUpdateVjPromotion();

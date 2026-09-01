@@ -7,7 +7,7 @@ import api from '../api';
 import { toast } from 'sonner';
 
 // ── Employee / User: fetch own notes ──────────────────────────────────────────
-export const useMyNotes = (params = {}) =>
+export const useMyNotes = (params = {}, options = {}) =>
   useQuery({
     queryKey: ['task-notes', 'mine', params],
     queryFn: async () => {
@@ -16,10 +16,11 @@ export const useMyNotes = (params = {}) =>
     },
     staleTime: 0,
     refetchOnMount: 'always',
+    ...options,
   });
 
 // ── Manager / Admin: fetch all notes ──────────────────────────────────────────
-export const useAllNotes = (params = {}) => {
+export const useAllNotes = (params = {}, options = {}) => {
   const queryParams = typeof params === 'string' ? { status: params } : params;
   return useQuery({
     queryKey: ['task-notes', 'all', queryParams],
@@ -29,6 +30,7 @@ export const useAllNotes = (params = {}) => {
     },
     staleTime: 0,
     refetchOnMount: 'always',
+    ...options,
   });
 };
 

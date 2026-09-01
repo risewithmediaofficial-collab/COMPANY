@@ -116,9 +116,9 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
   const [checklists, setChecklists] = useState([]);
   const [newChecklistText, setNewChecklistText] = useState('');
 
-  const { data: tasks = [] } = useTasks();
-  const { data: clients = [] } = useClients();
-  const { data: projects = [] } = useProjects();
+  const { data: tasks = [] } = useTasks({}, { enabled: open });
+  const { data: clients = [] } = useClients({}, { enabled: open });
+  const { data: projects = [] } = useProjects({}, { enabled: open });
 
   useEffect(() => {
     if (initial) {
