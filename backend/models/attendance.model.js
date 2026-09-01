@@ -8,6 +8,11 @@ const sessionSchema = new mongoose.Schema({
   clockIn: { type: Date, required: true },
   clockOut: { type: Date },
   durationHours: { type: Number, default: 0 },
+  // Location data for this session
+  latitude: { type: Number },
+  longitude: { type: Number },
+  locationVerified: { type: Boolean, default: false },
+  distanceFromOffice: { type: Number }, // in meters
 });
 
 const attendanceSchema = new mongoose.Schema(
@@ -34,6 +39,16 @@ const attendanceSchema = new mongoose.Schema(
       default: 'none',
     },
     location: { type: String, default: '' },
+    // Location verification fields
+    locationVerified: { type: Boolean, default: false }, // Overall location verified for the day
+    locationVerificationStatus: {
+      type: String,
+      enum: ['none', 'pending', 'verified', 'failed'],
+      default: 'none',
+    },
+    wfhApprovedForDate: { type: Boolean, default: false }, // Whether WFH was approved for this date
+    wfhRequestId: { type: mongoose.Schema.Types.ObjectId, ref: 'WFHRequest' }, // Link to WFH request
+    locationVerificationReason: { type: String, default: '' }, // Why location verification failed/passed
     notes: { type: String, default: '' },
     isApproved: { type: Boolean, default: false },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
