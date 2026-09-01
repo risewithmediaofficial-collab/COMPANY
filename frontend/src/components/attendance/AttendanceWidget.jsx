@@ -126,7 +126,12 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
 
   const status = todayRecord?.status;
   const approvalStatus = todayRecord?.approvalStatus;
-  const isPresent = status === 'present' || Boolean(todayRecord?.clockIn) || presentSelected;
+  const isApprovedWFH = status === 'work_from_home' && (
+    approvalStatus === 'approved' ||
+    todayRecord?.isApproved ||
+    todayRecord?.wfhApprovedForDate
+  );
+  const isPresent = status === 'present' || isApprovedWFH || Boolean(todayRecord?.clockIn) || presentSelected;
   const isAbsent = status === 'absent' || todayRecord?.requestedStatus === 'absent';
   const isLeave = status === 'leave' || todayRecord?.requestedStatus === 'leave';
   const isWFH = status === 'work_from_home';
@@ -138,6 +143,11 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   };
 
   const handleClockInClick = () => {
+    if (isApprovedWFH) {
+      clockIn.mutate();
+      return;
+    }
+
     if (!navigator.geolocation) {
       toast.error('Location access is not available in this browser. Please use a GPS-enabled browser/device.');
       return;
@@ -392,6 +402,8 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                   ? 'Checking Location...'
                   : clockIn.isPending
                   ? 'Clocking In...'
+                  : isApprovedWFH
+                  ? 'Clock In WFH'
                   : todayRecord?.clockIn
                   ? 'Clock In / Resume Shift'
                   : 'Clock In Now'}

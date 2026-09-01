@@ -29,9 +29,28 @@ export const checkWFHApprovalForDate = async (userId, date) => {
       status: 'approved',
     });
 
+    if (wfhRequest) {
+      return {
+        isApproved: true,
+        wfhRequest,
+      };
+    }
+
+    const attendanceWFH = await Attendance.findOne({
+      user: userId,
+      date: targetDate,
+      status: 'work_from_home',
+      $or: [
+        { approvalStatus: 'approved' },
+        { isApproved: true },
+        { wfhApprovedForDate: true },
+      ],
+    });
+
     return {
-      isApproved: !!wfhRequest,
-      wfhRequest: wfhRequest,
+      isApproved: !!attendanceWFH,
+      wfhRequest: attendanceWFH?.wfhRequestId ? { _id: attendanceWFH.wfhRequestId } : null,
+      attendance: attendanceWFH,
     };
   } catch (error) {
     console.error('Error checking WFH approval:', error);
