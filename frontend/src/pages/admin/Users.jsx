@@ -116,7 +116,7 @@ const Users = () => {
     }
     try {
       await adminChangeUserPassword.mutateAsync({
-        userId: passwordUser._id,
+        id: passwordUser._id,
         newPassword: passwordForm.newPassword,
       });
       toast.success(`Password updated for ${passwordUser.name}`);

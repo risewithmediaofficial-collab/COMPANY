@@ -141,7 +141,7 @@ router.put('/:id', authorize('superAdmin'), async (req, res) => {
   }
 });
 
-router.put('/:id/password', authorize('superAdmin'), async (req, res) => {
+router.put('/:id/password', authorize('superAdmin', 'admin'), async (req, res) => {
   try {
     const { newPassword } = req.body;
 
