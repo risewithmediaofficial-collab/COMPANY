@@ -89,6 +89,21 @@ const projectPriorityTone = {
 
 const STATUS_COLUMNS = ['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled'];
 
+export const PROJECT_SORT_OPTIONS = [
+  { value: 'dueDate_asc', label: '📅 Due Date: Earliest First' },
+  { value: 'dueDate_desc', label: '📅 Due Date: Latest First' },
+  { value: 'priority_desc', label: '⚡ Priority: High to Low' },
+  { value: 'priority_asc', label: '⚡ Priority: Low to High' },
+  { value: 'name_asc', label: '📁 Project: A to Z' },
+  { value: 'name_desc', label: '📁 Project: Z to A' },
+  { value: 'budget_desc', label: '💰 Budget: High to Low' },
+  { value: 'budget_asc', label: '💰 Budget: Low to High' },
+  { value: 'progress_desc', label: '📊 Progress: High to Low' },
+  { value: 'progress_asc', label: '📊 Progress: Low to High' },
+  { value: 'newest', label: '🕒 Recently Created' },
+  { value: 'oldest', label: '🕒 Oldest Created' },
+];
+
 const Projects = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
@@ -105,6 +120,7 @@ const Projects = () => {
   const [priorityFilter, setPriorityFilter] = useState('');
   const [clientFilter, setClientFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
+  const [sortBy, setSortBy] = useState('dueDate_asc');
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [boardGroupBy, setBoardGroupBy] = useState('status'); // 'status' | 'category'
 
@@ -220,6 +236,60 @@ const Projects = () => {
 
       return true;
     });
+
+    // Sorting
+    const priorityWeights = { Critical: 4, Urgent: 4, High: 3, Medium: 2, Low: 1 };
+    result.sort((a, b) => {
+      if (sortBy === 'dueDate_asc') {
+        const dateA = a.endDate ? new Date(a.endDate).getTime() : Infinity;
+        const dateB = b.endDate ? new Date(b.endDate).getTime() : Infinity;
+        return dateA - dateB;
+      }
+      if (sortBy === 'dueDate_desc') {
+        const dateA = a.endDate ? new Date(a.endDate).getTime() : -Infinity;
+        const dateB = b.endDate ? new Date(b.endDate).getTime() : -Infinity;
+        return dateB - dateA;
+      }
+      if (sortBy === 'priority_desc') {
+        return (priorityWeights[b.priority] || 2) - (priorityWeights[a.priority] || 2);
+      }
+      if (sortBy === 'priority_asc') {
+        return (priorityWeights[a.priority] || 2) - (priorityWeights[b.priority] || 2);
+      }
+      if (sortBy === 'name_asc') {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      if (sortBy === 'name_desc') {
+        return (b.name || '').localeCompare(a.name || '');
+      }
+      if (sortBy === 'budget_desc') {
+        const valA = a.budget || a.budgetDetails?.totalBudget || a.budgetDetails?.quotedAmount || 0;
+        const valB = b.budget || b.budgetDetails?.totalBudget || b.budgetDetails?.quotedAmount || 0;
+        return valB - valA;
+      }
+      if (sortBy === 'budget_asc') {
+        const valA = a.budget || a.budgetDetails?.totalBudget || a.budgetDetails?.quotedAmount || 0;
+        const valB = b.budget || b.budgetDetails?.totalBudget || b.budgetDetails?.quotedAmount || 0;
+        return valA - valB;
+      }
+      if (sortBy === 'progress_desc') {
+        return (b.progress || 0) - (a.progress || 0);
+      }
+      if (sortBy === 'progress_asc') {
+        return (a.progress || 0) - (b.progress || 0);
+      }
+      if (sortBy === 'oldest') {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      }
+      // default: newest
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+
+    return result;
   }, [
     baseDateFilteredProjects,
     categoryFilter,
@@ -227,6 +297,7 @@ const Projects = () => {
     priorityFilter,
     clientFilter,
     searchTerm,
+    sortBy,
   ]);
 
   // Active filters count
@@ -248,6 +319,7 @@ const Projects = () => {
     setPriorityFilter('');
     setClientFilter('');
     setMonthFilter('');
+    setSortBy('dueDate_asc');
   };
 
   // Metric counts and calculations
@@ -684,6 +756,14 @@ const Projects = () => {
                   onChange={(val) => setClientFilter(val)}
                   options={clientOptions}
                   placeholder="Filter by Client"
+                />
+
+                {/* Sorting Filter Dropdown */}
+                <SelectDropdown
+                  className="w-52 text-xs font-semibold"
+                  value={sortBy}
+                  onChange={(val) => setSortBy(val || 'dueDate_asc')}
+                  options={PROJECT_SORT_OPTIONS}
                 />
               </div>
 

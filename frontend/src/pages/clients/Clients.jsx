@@ -81,6 +81,7 @@ export const CLIENT_SORT_OPTIONS = [
   { value: 'retainer_desc', label: '💰 Retainer: High to Low' },
   { value: 'retainer_asc', label: '💰 Retainer: Low to High' },
   { value: 'status_active', label: '📊 Status: Active First' },
+  { value: 'service_asc', label: '📁 Service: A to Z' },
   { value: 'newest', label: '🕒 Recently Added' },
   { value: 'oldest', label: '🕒 Oldest Added' },
 ];
@@ -207,9 +208,14 @@ const Clients = () => {
         return (a.monthlyRetainer || 0) - (b.monthlyRetainer || 0);
       }
       if (sortBy === 'status_active') {
-        if (a.status === 'Active' && b.status !== 'Active') return -1;
-        if (b.status === 'Active' && a.status !== 'Active') return 1;
-        return (a.name || '').localeCompare(b.name || '');
+        const order = { Active: 1, Renew: 2, Prospect: 3, Inactive: 4, Churned: 5 };
+        const orderA = order[a.status] || 99;
+        const orderB = order[b.status] || 99;
+        if (orderA !== orderB) return orderA - orderB;
+        return (a.company || a.name || '').localeCompare(b.company || b.name || '');
+      }
+      if (sortBy === 'service_asc') {
+        return (a.service || '').localeCompare(b.service || '');
       }
       if (sortBy === 'oldest') {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -375,6 +381,14 @@ const Clients = () => {
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Dropdown Filters Group */}
               <div className="flex items-center gap-2 flex-wrap min-w-0">
+                {/* Category Dropdown Filter */}
+                <SelectDropdown
+                  className="w-44 text-xs"
+                  value={categoryFilter}
+                  onChange={(val) => setCategoryFilter(val || 'all')}
+                  options={CLIENT_CATEGORY_PILLS.map((p) => ({ value: p.key, label: p.label }))}
+                  allOptionLabel="All Categories"
+                />
                 <SelectDropdown
                   className="w-40 text-xs"
                   value={statusFilter}
