@@ -5,14 +5,30 @@
 import Attendance from '../models/attendance.model.js';
 import { processClockInWithLocation } from '../services/attendanceLocation.service.js';
 
+const formatApproxDistanceKm = (distanceKm) => {
+  if (!Number.isFinite(distanceKm)) return null;
+  if (distanceKm < 1) return `${Math.round(distanceKm * 1000)} m`;
+  if (distanceKm < 10) return `${distanceKm.toFixed(1)} km`;
+  return `${Math.round(distanceKm / 5) * 5} km`;
+};
+
+const formatAccuracyText = (accuracyMeters) => {
+  if (!Number.isFinite(accuracyMeters) || accuracyMeters <= 0) return '';
+  if (accuracyMeters >= 1000) {
+    return ` Browser location accuracy is about ${formatApproxDistanceKm(accuracyMeters / 1000)}, so the distance may vary.`;
+  }
+  return ` GPS accuracy is about ${Math.round(accuracyMeters)} m.`;
+};
+
 /**
  * Clock in with location verification
  */
 export const clockInWithLocation = async (req, res) => {
   try {
-    const { latitude, longitude, locationName } = req.body;
+    const { latitude, longitude, accuracy, locationName } = req.body;
     const parsedLatitude = latitude === undefined || latitude === null || latitude === '' ? undefined : Number(latitude);
     const parsedLongitude = longitude === undefined || longitude === null || longitude === '' ? undefined : Number(longitude);
+    const parsedAccuracy = accuracy === undefined || accuracy === null || accuracy === '' ? undefined : Number(accuracy);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -27,9 +43,10 @@ export const clockInWithLocation = async (req, res) => {
     const locationVerified = locationResult.locationVerification?.verified || false;
     if (locationResult.requiresLocationVerification && !locationVerified) {
       const closestLocation = locationResult.locationVerification?.closestLocation;
+      const approximateDistance = formatApproxDistanceKm(closestLocation?.distance);
       const reason = locationResult.locationVerification?.error ||
         (closestLocation
-          ? `You are ${closestLocation.distance} km from ${closestLocation.name}. Please clock in from an approved office location.`
+          ? `You are about ${approximateDistance} from ${closestLocation.name}. Please clock in from an approved office location.${formatAccuracyText(parsedAccuracy)}`
           : 'Location verification is required to clock in.');
 
       return res.status(403).json({
