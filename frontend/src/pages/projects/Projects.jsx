@@ -50,7 +50,8 @@ import { Button } from '../../components/ui/button';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { StatusBadge } from '../../components/ui/page';
-import { CategoryColorLegend } from '../../components/ui/CategoryColorLegend';
+import { CategoryColorLegend, BOARD_CATEGORY_DEFINITIONS } from '../../components/ui/CategoryColorLegend';
+import { isCategoryMatch } from '../../utils/categoryColors';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -144,27 +145,18 @@ const Projects = () => {
   // 2. Compute dynamic project counts per category
   const categoryCounts = useMemo(() => {
     const counts = { all: baseDateFilteredProjects.length };
-    
-    // Initialize standard categories
-    Object.keys(PROJECT_CATEGORIES).forEach((key) => {
-      counts[key] = 0;
-    });
 
     baseDateFilteredProjects.forEach((project) => {
-      const meta = getProjectCategoryMeta(project.category);
-      const catKey = meta.key;
-      counts[catKey] = (counts[catKey] || 0) + 1;
-
-      // Also support grouping aliases
-      if (['saas_product', 'saas'].includes(catKey)) {
-        counts['saas_product'] = (counts['saas_product'] || 0) + 1;
-      }
-      if (['internal_tool', 'internal_product'].includes(catKey)) {
-        counts['internal_tool'] = (counts['internal_tool'] || 0) + 1;
-      }
-      if (['web_development', 'web_design'].includes(catKey)) {
-        counts['web_development'] = (counts['web_development'] || 0) + 1;
-      }
+      CATEGORY_FILTER_PILLS.forEach((pill) => {
+        if (pill.key !== 'all' && isCategoryMatch(project.category, pill.key, project.name)) {
+          counts[pill.key] = (counts[pill.key] || 0) + 1;
+        }
+      });
+      BOARD_CATEGORY_DEFINITIONS.forEach((def) => {
+        if (counts[def.key] === undefined && isCategoryMatch(project.category, def.key, project.name)) {
+          counts[def.key] = (counts[def.key] || 0) + 1;
+        }
+      });
     });
 
     return counts;
@@ -183,16 +175,7 @@ const Projects = () => {
     return baseDateFilteredProjects.filter((project) => {
       // Category filter
       if (categoryFilter && categoryFilter !== 'all') {
-        const meta = getProjectCategoryMeta(project.category);
-        if (categoryFilter === 'saas_product') {
-          if (!['saas_product', 'saas'].includes(meta.key)) return false;
-        } else if (categoryFilter === 'internal_tool') {
-          if (!['internal_tool', 'internal_product'].includes(meta.key)) return false;
-        } else if (categoryFilter === 'web_development') {
-          if (!['web_development', 'web_design'].includes(meta.key)) return false;
-        } else if (categoryFilter === 'video_content') {
-          if (!['video_content', 'video'].includes(meta.key)) return false;
-        } else if (meta.key !== categoryFilter) {
+        if (!isCategoryMatch(project.category, categoryFilter, project.name)) {
           return false;
         }
       }
@@ -294,8 +277,11 @@ const Projects = () => {
       });
 
       // Include currently selected category if any
-      if (categoryFilter !== 'all' && PROJECT_CATEGORIES[categoryFilter]) {
-        catMap[categoryFilter] = PROJECT_CATEGORIES[categoryFilter];
+      if (categoryFilter !== 'all') {
+        const selMeta = getProjectCategoryMeta(categoryFilter);
+        if (selMeta && selMeta.key) {
+          catMap[selMeta.key] = selMeta;
+        }
       }
 
       const cols = Object.values(catMap);

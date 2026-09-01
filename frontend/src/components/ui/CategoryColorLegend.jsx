@@ -27,7 +27,8 @@ import {
 
 export const BOARD_CATEGORY_DEFINITIONS = [
   {
-    key: 'website',
+    key: 'web_development',
+    aliases: ['website', 'web_design', 'web', 'website_development', 'website_update', 'landing_page', 'website_dev'],
     label: 'Website / Web Dev',
     description: 'Web development, redesigns, landing pages & CMS',
     icon: Globe,
@@ -38,6 +39,7 @@ export const BOARD_CATEGORY_DEFINITIONS = [
   },
   {
     key: 'social_media',
+    aliases: ['social_media_post', 'social', 'smm', 'reel', 'story', 'carousel_post', 'instagram'],
     label: 'Social Media / SMM',
     description: 'Instagram, Reels, Carousel posts & content calendar',
     icon: Share2,
@@ -47,7 +49,8 @@ export const BOARD_CATEGORY_DEFINITIONS = [
     swatchClass: 'bg-purple-500',
   },
   {
-    key: 'video_production',
+    key: 'video_content',
+    aliases: ['video_production', 'video', 'video_shoot', 'shorts', 'youtube', 'shoot'],
     label: 'Video Production',
     description: 'Shooting, reels editing, YouTube & promo videos',
     icon: Video,
@@ -58,6 +61,7 @@ export const BOARD_CATEGORY_DEFINITIONS = [
   },
   {
     key: 'branding',
+    aliases: ['graphic_design', 'poster', 'logo', 'design', 'brand'],
     label: 'Branding & Design',
     description: 'Logos, brand identities, graphic designs & posters',
     icon: Palette,
@@ -68,6 +72,7 @@ export const BOARD_CATEGORY_DEFINITIONS = [
   },
   {
     key: 'paid_ads',
+    aliases: ['ads_campaign', 'ads_setup', 'ads', 'ppc', 'meta_ads', 'google_ads'],
     label: 'Paid Ads / Meta & Google',
     description: 'Meta Ads, PPC campaigns, creatives & lead gen',
     icon: Megaphone,
@@ -78,6 +83,7 @@ export const BOARD_CATEGORY_DEFINITIONS = [
   },
   {
     key: 'seo',
+    aliases: ['seo_work', 'search', 'seo_optimization'],
     label: 'SEO & Search Optimization',
     description: 'Keywords, backlinks, audits & Google search rankings',
     icon: Search,
@@ -88,6 +94,7 @@ export const BOARD_CATEGORY_DEFINITIONS = [
   },
   {
     key: 'saas_product',
+    aliases: ['saas', 'internal_tool', 'internal_product', 'software', 'platform', 'crm', 'app', 'mobile_app'],
     label: 'SaaS Platform / Software',
     description: 'In-house SaaS products, web portals & engineering',
     icon: Rocket,
@@ -98,6 +105,7 @@ export const BOARD_CATEGORY_DEFINITIONS = [
   },
   {
     key: 'content',
+    aliases: ['content_writing', 'script', 'blog', 'copy', 'article'],
     label: 'Content Writing & Scripts',
     description: 'Scriptwriting, blogs, copy & caption drafting',
     icon: FileText,
@@ -170,7 +178,9 @@ export const CategoryColorLegend = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-1 border-t border-border/50">
           {BOARD_CATEGORY_DEFINITIONS.map((item) => {
             const Icon = item.icon;
-            const isSelected = selectedCategory === item.key;
+            const isSelected =
+              selectedCategory === item.key ||
+              (item.aliases && item.aliases.includes(selectedCategory));
             return (
               <div
                 key={item.key}

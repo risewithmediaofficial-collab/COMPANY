@@ -46,6 +46,32 @@ export const CATEGORY_THEMES = {
     dotClass: 'bg-blue-500',
     colorName: 'blue',
   },
+  website: {
+    key: 'web_development',
+    label: 'Website / Web Dev',
+    shortLabel: 'Web Dev',
+    icon: Globe,
+    accentBorder: 'border-l-blue-500 dark:border-l-blue-400',
+    borderClass: 'border-blue-500/20',
+    badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25',
+    bgLight: 'bg-blue-500/5',
+    text: 'text-blue-600 dark:text-blue-400',
+    dotClass: 'bg-blue-500',
+    colorName: 'blue',
+  },
+  website_dev: {
+    key: 'web_development',
+    label: 'Website / Web Dev',
+    shortLabel: 'Web Dev',
+    icon: Globe,
+    accentBorder: 'border-l-blue-500 dark:border-l-blue-400',
+    borderClass: 'border-blue-500/20',
+    badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25',
+    bgLight: 'bg-blue-500/5',
+    text: 'text-blue-600 dark:text-blue-400',
+    dotClass: 'bg-blue-500',
+    colorName: 'blue',
+  },
   web_design: {
     key: 'web_design',
     label: 'Web Design / UI-UX',
@@ -264,8 +290,21 @@ export const CATEGORY_THEMES = {
     dotClass: 'bg-rose-500',
     colorName: 'rose',
   },
+  video_production: {
+    key: 'video_content',
+    label: 'Video Production',
+    shortLabel: 'Video',
+    icon: Video,
+    accentBorder: 'border-l-rose-500 dark:border-l-rose-400',
+    borderClass: 'border-rose-500/20',
+    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
+    bgLight: 'bg-rose-500/5',
+    text: 'text-rose-600 dark:text-rose-400',
+    dotClass: 'bg-rose-500',
+    colorName: 'rose',
+  },
   video: {
-    key: 'video',
+    key: 'video_content',
     label: 'Video Production',
     shortLabel: 'Video',
     icon: Video,
@@ -521,3 +560,143 @@ export const getCategoryTheme = (rawKey) => {
     colorName: 'zinc',
   };
 };
+
+/**
+ * Universal category & deliverable filter matcher
+ * Handles aliased keys, composite keys, substrings, and metadata mapping
+ */
+export const isCategoryMatch = (itemCategoryOrType, filterKey, itemTitle = '') => {
+  if (!filterKey || filterKey === 'all') return true;
+
+  const rawKey = String(itemCategoryOrType || '').toLowerCase().trim().replace(/[-\s]+/g, '_');
+  const title = String(itemTitle || '').toLowerCase();
+  const filter = String(filterKey).toLowerCase().trim().replace(/[-\s]+/g, '_');
+
+  if (rawKey === filter) return true;
+
+  // Website & Web Development
+  if (['web_development', 'website', 'web_design', 'web', 'website_development', 'website_update', 'landing_page', 'website_dev'].includes(filter)) {
+    return (
+      rawKey.includes('web') ||
+      rawKey.includes('site') ||
+      rawKey.includes('landing') ||
+      rawKey.includes('domain') ||
+      rawKey.includes('hosting') ||
+      rawKey.includes('frontend') ||
+      rawKey.includes('backend') ||
+      title.includes('website') ||
+      title.includes('web dev') ||
+      title.includes('landing page') ||
+      title.includes('web app')
+    );
+  }
+
+  // Social Media & SMM
+  if (['social_media', 'social_media_post', 'social', 'smm', 'instagram', 'facebook', 'post'].includes(filter)) {
+    return (
+      rawKey.includes('social') ||
+      rawKey.includes('smm') ||
+      rawKey.includes('instagram') ||
+      rawKey.includes('post') ||
+      rawKey.includes('story') ||
+      rawKey.includes('carousel') ||
+      rawKey.includes('reel') ||
+      rawKey.includes('short')
+    );
+  }
+
+  // Reels & Shorts specific
+  if (['reel', 'shorts', 'short'].includes(filter)) {
+    return rawKey.includes('reel') || rawKey.includes('short') || title.includes('reel') || title.includes('short');
+  }
+
+  // Video Production
+  if (['video_content', 'video_production', 'video', 'video_shoot', 'youtube', 'shoot'].includes(filter)) {
+    return (
+      rawKey.includes('video') ||
+      rawKey.includes('shoot') ||
+      rawKey.includes('film') ||
+      rawKey.includes('youtube') ||
+      rawKey.includes('motion') ||
+      title.includes('video') ||
+      title.includes('shoot')
+    );
+  }
+
+  // Branding & Graphic Design
+  if (['branding', 'poster', 'graphic_design', 'design', 'logo'].includes(filter)) {
+    return (
+      rawKey.includes('brand') ||
+      rawKey.includes('design') ||
+      rawKey.includes('graphic') ||
+      rawKey.includes('poster') ||
+      rawKey.includes('logo') ||
+      rawKey.includes('identity') ||
+      rawKey.includes('creative')
+    );
+  }
+
+  // Paid Ads
+  if (['paid_ads', 'ads_campaign', 'ads', 'ads_setup', 'ad_creative', 'meta_ads', 'google_ads', 'ppc'].includes(filter)) {
+    return (
+      rawKey.includes('ad') ||
+      rawKey.includes('campaign') ||
+      rawKey.includes('ppc') ||
+      rawKey.includes('meta') ||
+      title.includes('ad') ||
+      title.includes('campaign')
+    );
+  }
+
+  // SEO & Search Optimization
+  if (['seo', 'seo_work', 'search'].includes(filter)) {
+    return (
+      rawKey.includes('seo') ||
+      rawKey.includes('search') ||
+      rawKey.includes('keyword') ||
+      rawKey.includes('rank') ||
+      rawKey.includes('backlink') ||
+      title.includes('seo')
+    );
+  }
+
+  // SaaS & Platforms / Software
+  if (['saas_product', 'saas', 'internal_tool', 'internal_product', 'software', 'platform', 'crm', 'app', 'mobile_app'].includes(filter)) {
+    return (
+      rawKey.includes('saas') ||
+      rawKey.includes('software') ||
+      rawKey.includes('tool') ||
+      rawKey.includes('product') ||
+      rawKey.includes('platform') ||
+      rawKey.includes('crm') ||
+      rawKey.includes('portal') ||
+      rawKey.includes('app') ||
+      title.includes('saas') ||
+      title.includes('crm') ||
+      title.includes('software') ||
+      title.includes('app')
+    );
+  }
+
+  // Content Writing & Script
+  if (['content', 'content_writing', 'script', 'blog', 'copy', 'article'].includes(filter)) {
+    return (
+      rawKey.includes('content') ||
+      rawKey.includes('script') ||
+      rawKey.includes('blog') ||
+      rawKey.includes('copy') ||
+      rawKey.includes('write') ||
+      rawKey.includes('article') ||
+      rawKey.includes('caption') ||
+      title.includes('script') ||
+      title.includes('content') ||
+      title.includes('blog')
+    );
+  }
+
+  // Direct theme comparison fallback
+  const itemTheme = getCategoryTheme(itemCategoryOrType).key;
+  const filterTheme = getCategoryTheme(filterKey).key;
+  return itemTheme === filterTheme || rawKey.includes(filter) || filter.includes(rawKey);
+};
+

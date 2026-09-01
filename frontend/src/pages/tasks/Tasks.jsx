@@ -37,8 +37,8 @@ import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
-import { CategoryColorLegend } from '../../components/ui/CategoryColorLegend';
-import { getCategoryTheme } from '../../utils/categoryColors';
+import { CategoryColorLegend, BOARD_CATEGORY_DEFINITIONS } from '../../components/ui/CategoryColorLegend';
+import { getCategoryTheme, isCategoryMatch } from '../../utils/categoryColors';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,13 +67,15 @@ import {
 
 export const TASK_CATEGORY_PILLS = [
   { key: 'all', label: 'All Deliverables', icon: CheckSquare },
-  { key: 'video_content', label: 'Video Production', icon: Video },
-  { key: 'reel', label: 'Reels / Shorts', icon: Film },
-  { key: 'social_media_post', label: 'Social Posts', icon: Share2 },
-  { key: 'poster', label: 'Graphic / Poster', icon: Palette },
   { key: 'web_development', label: 'Website / Dev', icon: Globe },
-  { key: 'seo_work', label: 'SEO Work', icon: Sparkles },
-  { key: 'ads_campaign', label: 'Paid Ads', icon: Megaphone },
+  { key: 'social_media', label: 'Social Media / SMM', icon: Share2 },
+  { key: 'reel', label: 'Reels / Shorts', icon: Film },
+  { key: 'video_content', label: 'Video Production', icon: Video },
+  { key: 'branding', label: 'Branding & Design', icon: Palette },
+  { key: 'poster', label: 'Graphic / Poster', icon: Palette },
+  { key: 'paid_ads', label: 'Paid Ads', icon: Megaphone },
+  { key: 'seo', label: 'SEO & Search', icon: Sparkles },
+  { key: 'saas_product', label: 'SaaS / Software', icon: Sparkles },
   { key: 'content', label: 'Content / Script', icon: FileEdit },
 ];
 
@@ -186,15 +188,16 @@ const Tasks = () => {
   const categoryCounts = useMemo(() => {
     const counts = { all: normalizedTasks.length };
     normalizedTasks.forEach((t) => {
-      const typeKey = String(t.taskType || t.taskCategory || '').toLowerCase().replace(/[-\s]+/g, '_');
-      if (typeKey.includes('video')) counts['video_content'] = (counts['video_content'] || 0) + 1;
-      else if (typeKey.includes('reel') || typeKey.includes('short')) counts['reel'] = (counts['reel'] || 0) + 1;
-      else if (typeKey.includes('post') || typeKey.includes('social')) counts['social_media_post'] = (counts['social_media_post'] || 0) + 1;
-      else if (typeKey.includes('poster') || typeKey.includes('graphic') || typeKey.includes('design')) counts['poster'] = (counts['poster'] || 0) + 1;
-      else if (typeKey.includes('web') || typeKey.includes('site')) counts['web_development'] = (counts['web_development'] || 0) + 1;
-      else if (typeKey.includes('seo')) counts['seo_work'] = (counts['seo_work'] || 0) + 1;
-      else if (typeKey.includes('ad')) counts['ads_campaign'] = (counts['ads_campaign'] || 0) + 1;
-      else if (typeKey.includes('script') || typeKey.includes('content') || typeKey.includes('copy')) counts['content'] = (counts['content'] || 0) + 1;
+      TASK_CATEGORY_PILLS.forEach((pill) => {
+        if (pill.key !== 'all' && isCategoryMatch(t.taskType || t.taskCategory, pill.key, t.taskTitle || t.title)) {
+          counts[pill.key] = (counts[pill.key] || 0) + 1;
+        }
+      });
+      BOARD_CATEGORY_DEFINITIONS.forEach((def) => {
+        if (counts[def.key] === undefined && isCategoryMatch(t.taskType || t.taskCategory, def.key, t.taskTitle || t.title)) {
+          counts[def.key] = (counts[def.key] || 0) + 1;
+        }
+      });
     });
     return counts;
   }, [normalizedTasks]);
@@ -252,19 +255,10 @@ const Tasks = () => {
     let result = [...normalizedTasks];
 
     // Category filter
-    if (categoryFilter !== 'all') {
-      result = result.filter((task) => {
-        const catKey = String(task.taskCategory || task.taskType || '').toLowerCase().replace(/[-\s]+/g, '_');
-        if (categoryFilter === 'video_content') return catKey.includes('video');
-        if (categoryFilter === 'reel') return catKey.includes('reel') || catKey.includes('short');
-        if (categoryFilter === 'social_media_post') return catKey.includes('post') || catKey.includes('social');
-        if (categoryFilter === 'poster') return catKey.includes('poster') || catKey.includes('graphic') || catKey.includes('design');
-        if (categoryFilter === 'web_development') return catKey.includes('web') || catKey.includes('site');
-        if (categoryFilter === 'seo_work') return catKey.includes('seo');
-        if (categoryFilter === 'ads_campaign') return catKey.includes('ad');
-        if (categoryFilter === 'content') return catKey.includes('content') || catKey.includes('script') || catKey.includes('copy');
-        return catKey === categoryFilter;
-      });
+    if (categoryFilter && categoryFilter !== 'all') {
+      result = result.filter((task) =>
+        isCategoryMatch(task.taskType || task.taskCategory, categoryFilter, task.taskTitle || task.title)
+      );
     }
 
     // Client filter

@@ -41,8 +41,8 @@ import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
-import { getCategoryTheme } from '../../utils/categoryColors';
-import { CategoryColorLegend } from '../../components/ui/CategoryColorLegend';
+import { getCategoryTheme, isCategoryMatch } from '../../utils/categoryColors';
+import { CategoryColorLegend, BOARD_CATEGORY_DEFINITIONS } from '../../components/ui/CategoryColorLegend';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -65,8 +65,8 @@ const STATUS_COLUMNS = ['Active', 'Prospect', 'Renew', 'Inactive', 'Churned'];
 
 export const CLIENT_CATEGORY_PILLS = [
   { key: 'all', label: 'All Accounts', icon: Users },
-  { key: 'social_media', label: 'Social Media', icon: Share2 },
   { key: 'web_development', label: 'Website / Dev', icon: Globe },
+  { key: 'social_media', label: 'Social Media', icon: Share2 },
   { key: 'branding', label: 'Branding & Design', icon: Palette },
   { key: 'seo', label: 'SEO & Search', icon: Sparkles },
   { key: 'paid_ads', label: 'Paid Ads', icon: Megaphone },
@@ -120,15 +120,16 @@ const Clients = () => {
   const categoryCounts = useMemo(() => {
     const counts = { all: clients.length };
     clients.forEach((c) => {
-      const s = String(c.service || '').toLowerCase().replace(/[-\s]+/g, '_');
-      if (s.includes('social')) counts['social_media'] = (counts['social_media'] || 0) + 1;
-      else if (s.includes('web') || s.includes('site')) counts['web_development'] = (counts['web_development'] || 0) + 1;
-      else if (s.includes('brand') || s.includes('design')) counts['branding'] = (counts['branding'] || 0) + 1;
-      else if (s.includes('seo')) counts['seo'] = (counts['seo'] || 0) + 1;
-      else if (s.includes('ad')) counts['paid_ads'] = (counts['paid_ads'] || 0) + 1;
-      else if (s.includes('video')) counts['video_content'] = (counts['video_content'] || 0) + 1;
-      else if (s.includes('content') || s.includes('script')) counts['content'] = (counts['content'] || 0) + 1;
-      else counts['other'] = (counts['other'] || 0) + 1;
+      CLIENT_CATEGORY_PILLS.forEach((pill) => {
+        if (pill.key !== 'all' && isCategoryMatch(c.service, pill.key, c.company || c.name)) {
+          counts[pill.key] = (counts[pill.key] || 0) + 1;
+        }
+      });
+      BOARD_CATEGORY_DEFINITIONS.forEach((def) => {
+        if (counts[def.key] === undefined && isCategoryMatch(c.service, def.key, c.company || c.name)) {
+          counts[def.key] = (counts[def.key] || 0) + 1;
+        }
+      });
     });
     return counts;
   }, [clients]);
@@ -161,19 +162,8 @@ const Clients = () => {
     let result = [...clients];
 
     // Category Filter
-    if (categoryFilter !== 'all') {
-      result = result.filter((c) => {
-        const s = String(c.service || '').toLowerCase().replace(/[-\s]+/g, '_');
-        if (categoryFilter === 'social_media') return s.includes('social');
-        if (categoryFilter === 'web_development') return s.includes('web') || s.includes('site');
-        if (categoryFilter === 'branding') return s.includes('brand') || s.includes('design');
-        if (categoryFilter === 'seo') return s.includes('seo');
-        if (categoryFilter === 'paid_ads') return s.includes('ad');
-        if (categoryFilter === 'video_content') return s.includes('video');
-        if (categoryFilter === 'content') return s.includes('content') || s.includes('script');
-        if (categoryFilter === 'other') return !['social', 'web', 'site', 'brand', 'design', 'seo', 'ad', 'video', 'content', 'script'].some((k) => s.includes(k));
-        return s === categoryFilter;
-      });
+    if (categoryFilter && categoryFilter !== 'all') {
+      result = result.filter((c) => isCategoryMatch(c.service, categoryFilter, c.company || c.name));
     }
 
     // Status Filter
