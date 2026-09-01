@@ -7,6 +7,14 @@ import WFHRequest from '../models/wfhRequest.model.js';
 import OfficeLocation from '../models/officeLocation.model.js';
 import { verifyLocationWithinRadius, isValidCoordinates } from '../utils/locationVerification.js';
 
+const defaultOfficeLocation = {
+  name: 'Rise With Media - Main Office',
+  latitude: 12.5188125,
+  longitude: 78.2333125,
+  radiusKm: 0.5,
+  address: '320/1, Thiruvannamalai Rd, near Maharishi School last building, Giddampatti, Tamil Nadu 635001',
+};
+
 /**
  * Check if WFH is approved for a specific date
  */
@@ -47,17 +55,13 @@ export const verifyAttendanceLocation = async (userId, latitude, longitude, orga
 
     // Get office locations. Global locations with organization=null are valid for every organization.
     const organizationFilter = organizationId ? { $in: [organizationId, null] } : null;
-    const officeLocations = await OfficeLocation.find({
+    let officeLocations = await OfficeLocation.find({
       isActive: true,
       organization: organizationFilter,
     });
 
     if (officeLocations.length === 0) {
-      return {
-        success: false,
-        verified: false,
-        error: 'No office locations configured for your organization',
-      };
+      officeLocations = [defaultOfficeLocation];
     }
 
     // Check if user is within any office location
