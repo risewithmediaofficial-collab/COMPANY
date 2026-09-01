@@ -45,10 +45,11 @@ export const verifyAttendanceLocation = async (userId, latitude, longitude, orga
       };
     }
 
-    // Get office locations
+    // Get office locations. Global locations with organization=null are valid for every organization.
+    const organizationFilter = organizationId ? { $in: [organizationId, null] } : null;
     const officeLocations = await OfficeLocation.find({
       isActive: true,
-      organization: organizationId,
+      organization: organizationFilter,
     });
 
     if (officeLocations.length === 0) {

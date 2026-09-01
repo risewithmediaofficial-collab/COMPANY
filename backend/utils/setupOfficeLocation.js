@@ -9,6 +9,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const officeLocationData = {
+  name: 'Main Office',
+  latitude: 12.5188125,
+  longitude: 78.2333125,
+  radiusKm: 0.5,
+  address: '320/1, Thiruvannamalai Rd, near Maharishi School last building, Giddampatti, Tamil Nadu 635001',
+  city: 'Giddampatti',
+  country: 'India (Tamil Nadu)',
+  organization: null, // Global fallback for all organizations
+};
+
 const seedOfficeLocation = async () => {
   try {
     // Connect to MongoDB
@@ -19,27 +30,28 @@ const seedOfficeLocation = async () => {
     const existing = await OfficeLocation.findOne({ name: 'Main Office' });
     if (existing) {
       console.log('ℹ Office location already exists. Updating...');
-      existing.latitude = 12.517304;
-      existing.longitude = 78.232888;
-      existing.radiusKm = 0.5; // 500 meters
-      existing.address = 'unnamed road, Krishnagiri';
-      existing.city = 'Vettiyampatti';
-      existing.country = 'India';
+      existing.latitude = officeLocationData.latitude;
+      existing.longitude = officeLocationData.longitude;
+      existing.radiusKm = officeLocationData.radiusKm; // 500 meters
+      existing.address = officeLocationData.address;
+      existing.city = officeLocationData.city;
+      existing.country = officeLocationData.country;
+      existing.organization = officeLocationData.organization;
       existing.isActive = true;
       await existing.save();
       console.log('✓ Office location updated');
     } else {
       // Create new office location
       const officeLocation = new OfficeLocation({
-        name: 'Main Office',
-        latitude: 12.517304,
-        longitude: 78.232888,
-        radiusKm: 0.5, // 500 meters - adjust if needed
-        address: 'unnamed road, Krishnagiri',
-        city: 'Vettiyampatti',
-        country: 'India (Tamil Nadu)',
+        name: officeLocationData.name,
+        latitude: officeLocationData.latitude,
+        longitude: officeLocationData.longitude,
+        radiusKm: officeLocationData.radiusKm, // 500 meters - adjust if needed
+        address: officeLocationData.address,
+        city: officeLocationData.city,
+        country: officeLocationData.country,
         isActive: true,
-        organization: null, // Will work for all organizations
+        organization: officeLocationData.organization,
       });
 
       await officeLocation.save();
@@ -49,9 +61,10 @@ const seedOfficeLocation = async () => {
     console.log('\n📍 OFFICE LOCATION DETAILS:');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`Name: Main Office`);
-    console.log(`Latitude: 12.517304`);
-    console.log(`Longitude: 78.232888`);
-    console.log(`Address: Krishnagiri, Vettiyampatti`);
+    console.log(`Latitude: ${officeLocationData.latitude}`);
+    console.log(`Longitude: ${officeLocationData.longitude}`);
+    console.log(`Address: ${officeLocationData.address}`);
+    console.log(`Plus Code: G69M+G8 Giddampatti, Tamil Nadu`);
     console.log(`Allowed Radius: 500 meters`);
     console.log(`Status: Active`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
