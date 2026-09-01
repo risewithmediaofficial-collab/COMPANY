@@ -43,6 +43,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   const [presentSelected, setPresentSelected] = useState(false);
   const [showAbsentModal, setShowAbsentModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
@@ -137,7 +138,40 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   };
 
   const handleClockInClick = () => {
-    clockIn.mutate();
+    if (!navigator.geolocation) {
+      toast.error('Location access is not available in this browser. Please use a GPS-enabled browser/device.');
+      return;
+    }
+
+    setIsGettingLocation(true);
+    toast.info('Checking your current location...');
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        clockIn.mutate(
+          { latitude, longitude, accuracy, locationName: 'GPS Location' },
+          {
+            onSettled: () => setIsGettingLocation(false),
+          }
+        );
+      },
+      (error) => {
+        setIsGettingLocation(false);
+        const message =
+          error.code === error.PERMISSION_DENIED
+            ? 'Location permission is required to clock in. Please allow location access and try again.'
+            : error.code === error.POSITION_UNAVAILABLE
+            ? 'Unable to detect your location. Please turn on GPS/location services and try again.'
+            : 'Location check timed out. Please try again.';
+        toast.error(message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
   };
 
   const handleClockOutClick = () => {
@@ -350,11 +384,17 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               <button
                 type="button"
                 onClick={handleClockInClick}
-                disabled={clockIn.isPending}
+                disabled={clockIn.isPending || isGettingLocation}
                 className="w-full py-4 rounded-2xl bg-primary text-white font-black text-base shadow-xl shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Timer size={20} className={clockIn.isPending ? 'animate-spin' : ''} />
-                {clockIn.isPending ? 'Clocking In...' : todayRecord?.clockIn ? 'Clock In / Resume Shift' : 'Clock In Now'}
+                <Timer size={20} className={clockIn.isPending || isGettingLocation ? 'animate-spin' : ''} />
+                {isGettingLocation
+                  ? 'Checking Location...'
+                  : clockIn.isPending
+                  ? 'Clocking In...'
+                  : todayRecord?.clockIn
+                  ? 'Clock In / Resume Shift'
+                  : 'Clock In Now'}
               </button>
             )}
 

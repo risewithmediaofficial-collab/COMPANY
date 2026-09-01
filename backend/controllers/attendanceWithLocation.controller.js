@@ -3,11 +3,7 @@
 // =============================================
 
 import Attendance from '../models/attendance.model.js';
-import {
-  processClockInWithLocation,
-  saveLocationToSession,
-} from '../services/attendanceLocation.service.js';
-import { createNotification } from '../utils/notification.js';
+import { processClockInWithLocation } from '../services/attendanceLocation.service.js';
 
 /**
  * Clock in with location verification
@@ -15,16 +11,38 @@ import { createNotification } from '../utils/notification.js';
 export const clockInWithLocation = async (req, res) => {
   try {
     const { latitude, longitude, locationName } = req.body;
+    const parsedLatitude = latitude === undefined || latitude === null || latitude === '' ? undefined : Number(latitude);
+    const parsedLongitude = longitude === undefined || longitude === null || longitude === '' ? undefined : Number(longitude);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Process location verification
     const locationResult = await processClockInWithLocation(
       req.user._id,
-      latitude,
-      longitude,
+      parsedLatitude,
+      parsedLongitude,
       req.user.organizationId
     );
+
+    const locationVerified = locationResult.locationVerification?.verified || false;
+    if (locationResult.requiresLocationVerification && !locationVerified) {
+      const closestLocation = locationResult.locationVerification?.closestLocation;
+      const reason = locationResult.locationVerification?.error ||
+        (closestLocation
+          ? `You are ${closestLocation.distance} km from ${closestLocation.name}. Please clock in from an approved office location.`
+          : 'Location verification is required to clock in.');
+
+      return res.status(403).json({
+        success: false,
+        message: reason,
+        locationVerification: {
+          wfhApproved: false,
+          locationVerified: false,
+          closestLocation,
+          allVerifications: locationResult.locationVerification?.allVerifications || [],
+        },
+      });
+    }
 
     let attendance = await Attendance.findOne({ user: req.user._id, date: today });
     const now = new Date();
@@ -39,8 +57,8 @@ export const clockInWithLocation = async (req, res) => {
           clockIn: now,
           clockOut: null,
           durationHours: 0,
-          latitude: latitude || null,
-          longitude: longitude || null,
+          latitude: parsedLatitude ?? null,
+          longitude: parsedLongitude ?? null,
           locationVerified: locationResult.locationVerification?.verified || false,
           distanceFromOffice: locationResult.locationVerification?.closestLocation?.distanceMeters || null,
         }],
@@ -87,8 +105,8 @@ export const clockInWithLocation = async (req, res) => {
         clockIn: now,
         clockOut: null,
         durationHours: 0,
-        latitude: latitude || null,
-        longitude: longitude || null,
+        latitude: parsedLatitude ?? null,
+        longitude: parsedLongitude ?? null,
         locationVerified: locationResult.locationVerification?.verified || false,
         distanceFromOffice: locationResult.locationVerification?.closestLocation?.distanceMeters || null,
       });

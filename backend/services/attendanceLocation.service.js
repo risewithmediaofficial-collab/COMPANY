@@ -133,7 +133,7 @@ export const processClockInWithLocation = async (userId, latitude, longitude, or
       // WFH approved - no location verification needed
       requiresLocationVerification = false;
       wfhApprovedForDate = true;
-    } else if (latitude && longitude) {
+    } else if (latitude !== undefined && latitude !== null && longitude !== undefined && longitude !== null) {
       // Normal office day - verify location
       locationVerification = await verifyAttendanceLocation(userId, latitude, longitude, organizationId);
     }

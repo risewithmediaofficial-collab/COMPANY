@@ -1,7 +1,6 @@
 import express from 'express';
 import { authorize, protect } from '../middleware/auth.middleware.js';
 import {
-  clockIn,
   clockOut,
   getAttendance,
   getEodReports,
@@ -13,6 +12,7 @@ import {
   submitWFH,
   approveOrRejectAttendanceRequest,
 } from '../controllers/attendance.controller.js';
+import { clockInWithLocation as clockIn } from '../controllers/attendanceWithLocation.controller.js';
 
 const router = express.Router();
 router.use(protect);

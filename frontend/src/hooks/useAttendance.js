@@ -26,16 +26,17 @@ export const useTeamTodayAttendance = (options = {}) => {
 export const useClockIn = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      const response = await api.post('/attendance/clock-in');
+    mutationFn: async (locationData = {}) => {
+      const response = await api.post('/attendance/clock-in', locationData);
       return response.data.attendance;
     },
-    onSuccess: () => {
+    onSuccess: (attendance) => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
       queryClient.invalidateQueries({ queryKey: ['hr-employees'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
-      toast.success('Clocked in successfully');
+      const verified = attendance?.locationVerification?.locationVerified || attendance?.locationVerified;
+      toast.success(verified ? 'Clocked in with location verified' : 'Clocked in successfully');
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Clock in failed'),
   });
