@@ -121,13 +121,14 @@ const Clients = () => {
   const categoryCounts = useMemo(() => {
     const counts = { all: clients.length };
     clients.forEach((c) => {
+      const serviceTarget = [c.service, ...(Array.isArray(c.services) ? c.services : [])].filter(Boolean).join(' ');
       CLIENT_CATEGORY_PILLS.forEach((pill) => {
-        if (pill.key !== 'all' && isCategoryMatch(c.service, pill.key, c.company || c.name)) {
+        if (pill.key !== 'all' && isCategoryMatch(serviceTarget, pill.key, c.company || c.name)) {
           counts[pill.key] = (counts[pill.key] || 0) + 1;
         }
       });
       BOARD_CATEGORY_DEFINITIONS.forEach((def) => {
-        if (counts[def.key] === undefined && isCategoryMatch(c.service, def.key, c.company || c.name)) {
+        if (counts[def.key] === undefined && isCategoryMatch(serviceTarget, def.key, c.company || c.name)) {
           counts[def.key] = (counts[def.key] || 0) + 1;
         }
       });
@@ -164,7 +165,10 @@ const Clients = () => {
 
     // Category Filter
     if (categoryFilter && categoryFilter !== 'all') {
-      result = result.filter((c) => isCategoryMatch(c.service, categoryFilter, c.company || c.name));
+      result = result.filter((c) => {
+        const serviceTarget = [c.service, ...(Array.isArray(c.services) ? c.services : [])].filter(Boolean).join(' ');
+        return isCategoryMatch(serviceTarget, categoryFilter, c.company || c.name);
+      });
     }
 
     // Status Filter

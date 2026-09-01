@@ -36,17 +36,38 @@ export const useUpdateClientFollowup = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }) => {
-      const response = await api.put(`/client-followups/${id}`, data);
+    mutationFn: async (payload) => {
+      const { id, data, ...rest } = payload;
+      const body = data !== undefined ? data : rest;
+      const response = await api.put(`/client-followups/${id}`, body);
       return response.data.followup;
     },
-    onSuccess: () => {
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ['client-followups'] });
+      const previousFollowups = queryClient.getQueryData(['client-followups']) || [];
+
+      const { id, data, ...rest } = payload;
+      const updates = data !== undefined ? data : rest;
+
+      queryClient.setQueriesData({ queryKey: ['client-followups'] }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((item) => (item._id === id ? { ...item, ...updates } : item));
+      });
+
+      return { previousFollowups };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousFollowups) {
+        queryClient.setQueriesData({ queryKey: ['client-followups'] }, context.previousFollowups);
+      }
+      toast.error(error.response?.data?.message || 'Failed to update follow-up');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['client-followups'] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
-      toast.success('Follow-up updated');
     },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update follow-up');
+    onSuccess: () => {
+      toast.success('Follow-up updated');
     },
   });
 };
