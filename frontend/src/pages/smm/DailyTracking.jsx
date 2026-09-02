@@ -303,7 +303,7 @@ export default function DailyTracking() {
               className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none text-foreground cursor-pointer"
             >
               {clientsList.map((c) => (
-                <option key={c._id} value={c._id}>{c.name} {c.company ? `(${c.company})` : ''}</option>
+                <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>
               ))}
             </select>
           </div>

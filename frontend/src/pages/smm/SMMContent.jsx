@@ -593,7 +593,7 @@ export const SMMContent = () => {
                 >
                   <option value="">-- Choose Client --</option>
                   {clientsList.map((c) => (
-                    <option key={c._id} value={c._id}>{c.name} {c.company ? `(${c.company})` : ''}</option>
+                    <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>
                   ))}
                 </select>
               </div>

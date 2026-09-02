@@ -111,7 +111,8 @@ export default function Reports() {
               onChange={e => setFilters({...filters, client: e.target.value})}
               className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none"
             >
-              {crmClients.map(c => <option key={c._id} value={c._id}>{c.name} {c.company ? `(${c.company})` : ''}</option>)}
+              <option value="">All Clients</option>
+              {crmClients.map(c => <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>)}
             </select>
           </div>
 

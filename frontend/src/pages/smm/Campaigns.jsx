@@ -474,7 +474,7 @@ export default function Campaigns() {
                 className="app-select"
               >
                 <option value="">Select Client</option>
-                {crmClients.map(c => <option key={c._id} value={c._id}>{c.name} {c.company ? `(${c.company})` : ''}</option>)}
+                {crmClients.map(c => <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>)}
               </select>
             </div>
             <div>
