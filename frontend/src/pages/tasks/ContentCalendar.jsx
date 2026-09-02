@@ -766,7 +766,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   );
 
   const assignableUsers = useMemo(
-    () => users.filter((person) => ['superAdmin', 'manager', 'employee'].includes(person.role)),
+    () => users.filter((person) => ['superAdmin', 'admin', 'manager', 'employee'].includes(person.role)),
     [users],
   );
 

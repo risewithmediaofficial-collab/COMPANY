@@ -890,10 +890,10 @@ export const updateTask = async (req, res) => {
       }
     }
 
-    if (req.user.role === 'superAdmin' && payload.assignedManager) {
+    if (['superAdmin', 'admin'].includes(req.user.role) && payload.assignedManager) {
       const manager = await User.findById(payload.assignedManager).select('role');
-      if (!manager || manager.role !== 'manager') {
-        return res.status(400).json({ success: false, message: 'Assigned manager must be a manager user' });
+      if (!manager || !['manager', 'admin', 'superAdmin'].includes(manager.role)) {
+        return res.status(400).json({ success: false, message: 'Assigned manager must be a manager or admin user' });
       }
     }
 

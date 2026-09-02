@@ -130,7 +130,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
 
   const isEmployee = user?.role === 'employee';
   const isClient = user?.role === 'client';
-  const canEdit = ['superAdmin', 'manager'].includes(user?.role);
+  const canEdit = ['superAdmin', 'admin', 'manager'].includes(user?.role);
   const allowedStatusOptions = isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS;
 
   const assigneesList = useMemo(() => {

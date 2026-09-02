@@ -65,9 +65,36 @@ export const getCampaign = async (req, res) => {
   }
 };
 
+const normalizeCampaignPayload = (body = {}) => {
+  const payload = { ...body };
+
+  if (payload.client && typeof payload.client === 'object' && payload.client._id) {
+    payload.client = payload.client._id;
+  }
+  if (payload.project && typeof payload.project === 'object' && payload.project._id) {
+    payload.project = payload.project._id;
+  }
+
+  if (!payload.sourceContentId) delete payload.sourceContentId;
+  if (!payload.startDate) delete payload.startDate;
+  if (!payload.endDate) delete payload.endDate;
+
+  if (payload.team && typeof payload.team === 'object') {
+    const cleanTeam = {};
+    if (payload.team.campaignManager) cleanTeam.campaignManager = payload.team.campaignManager;
+    if (payload.team.performanceMarketer) cleanTeam.performanceMarketer = payload.team.performanceMarketer;
+    if (payload.team.designer) cleanTeam.designer = payload.team.designer;
+    if (payload.team.copywriter) cleanTeam.copywriter = payload.team.copywriter;
+    payload.team = cleanTeam;
+  }
+
+  return payload;
+};
+
 export const createCampaign = async (req, res) => {
   try {
-    const { client, project, name, platform, objective, startDate, endDate, dailyBudget, lifetimeBudget, budgetType, adSource, sourceContentId } = req.body;
+    const payload = normalizeCampaignPayload(req.body);
+    const { client, project, name, platform, objective, startDate, endDate, dailyBudget, lifetimeBudget, budgetType, adSource, sourceContentId } = payload;
 
     if (!client || !project) {
       return res.status(400).json({
@@ -100,17 +127,17 @@ export const createCampaign = async (req, res) => {
     // Calculate initial remaining budget
     const totalBudget = budgetType === 'Daily Budget'
       ? (Number(dailyBudget) || 0) * (durationDays || 30)
-      : (Number(lifetimeBudget) || 0);
+      : (Number(lifetimeBudget) || Number(payload.amountAdded) || 0);
 
-    const payload = {
-      ...req.body,
+    const campaignPayload = {
+      ...payload,
       durationDays,
       amountSpent: 0,
       remainingBalance: totalBudget,
       createdBy: req.user?._id,
     };
 
-    const campaign = await Campaign.create(payload);
+    const campaign = await Campaign.create(campaignPayload);
 
     // If linked to an organic post, append campaign ID to SmmContent
     if (sourceContentId) {
@@ -139,7 +166,7 @@ export const updateCampaign = async (req, res) => {
     const prevCampaign = await Campaign.findById(req.params.id);
     if (!prevCampaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
 
-    const updates = { ...req.body };
+    const updates = normalizeCampaignPayload(req.body);
 
     if (updates.startDate && updates.endDate) {
       const diffMs = new Date(updates.endDate) - new Date(updates.startDate);

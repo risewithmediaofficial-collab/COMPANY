@@ -1321,7 +1321,10 @@ export const getPayments = async (req, res) => {
 
 export const getCallHistory = async (req, res) => {
   try {
-    const { clientId, leadId, projectId, callPurpose, callDate, addedBy } = req.query;
+    const clientId = req.query.clientId || req.query.client;
+    const leadId = req.query.leadId || req.query.lead;
+    const projectId = req.query.projectId || req.query.project;
+    const { callPurpose, callDate, addedBy } = req.query;
     const filter = {};
     if (clientId) filter.clientId = clientId;
     if (leadId) filter.leadId = leadId;

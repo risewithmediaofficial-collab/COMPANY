@@ -180,8 +180,13 @@ export const Campaigns = () => {
       return;
     }
 
+    const cleanPayload = { ...formData };
+    if (!cleanPayload.sourceContentId) delete cleanPayload.sourceContentId;
+    if (!cleanPayload.startDate) delete cleanPayload.startDate;
+    if (!cleanPayload.endDate) delete cleanPayload.endDate;
+
     try {
-      const res = await smmApi.createCampaign(formData);
+      const res = await smmApi.createCampaign(cleanPayload);
       if (res.data?.success) {
         toast.success('Ad Campaign created successfully!');
         setIsCreateModalOpen(false);

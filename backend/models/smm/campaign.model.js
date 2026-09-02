@@ -30,12 +30,12 @@ const campaignSchema = new mongoose.Schema(
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
     platform: {
       type: String,
-      enum: ['Meta', 'Google', 'LinkedIn', 'YouTube', 'TikTok', 'Instagram', 'Twitter', 'Other'],
+      enum: ['Meta', 'Google', 'LinkedIn', 'YouTube', 'TikTok', 'Instagram', 'Twitter', 'Facebook', 'Meta Ads', 'Google Ads', 'LinkedIn Ads', 'YouTube Ads', 'X Ads', 'TikTok Ads', 'Other'],
       required: true,
     },
     adSource: {
       type: String,
-      enum: ['Existing Posted Content', 'Manual Ad'],
+      enum: ['Existing Posted Content', 'Manual Ad', 'existing', 'manual'],
       default: 'Manual Ad',
     },
     sourceContentId: { type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' },
@@ -49,12 +49,12 @@ const campaignSchema = new mongoose.Schema(
 
     objective: {
       type: String,
-      enum: ['Lead Generation', 'Website Traffic', 'Engagement', 'Awareness', 'Reach', 'Video Views', 'Conversions', 'Messages', 'Other'],
+      enum: ['Lead Generation', 'Leads', 'Website Traffic', 'Traffic', 'Engagement', 'Awareness', 'Reach', 'Video Views', 'Conversions', 'Sales', 'Messages', 'Other'],
       required: true,
     },
     status: {
       type: String,
-      enum: ['Draft', 'Scheduled', 'Running', 'Paused', 'Stopped', 'Completed'],
+      enum: ['Draft', 'Scheduled', 'Running', 'Active', 'Paused', 'Stopped', 'Completed', 'Archived'],
       default: 'Draft',
     },
     
@@ -68,7 +68,7 @@ const campaignSchema = new mongoose.Schema(
     // Budget & Financials (Amount Added vs Amount Spent)
     budgetType: {
       type: String,
-      enum: ['Daily Budget', 'Lifetime Budget'],
+      enum: ['Daily Budget', 'Lifetime Budget', 'daily', 'lifetime'],
       default: 'Daily Budget',
     },
     dailyBudget: { type: Number, default: 0 },

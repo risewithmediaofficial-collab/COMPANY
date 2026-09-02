@@ -27,7 +27,7 @@ export default function Campaigns() {
   const [activeCampaignForLog, setActiveCampaignForLog] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: '', client: '', project: '', sourceContentId: '', objective: 'Leads', campaignType: 'New Campaign',
+    name: '', client: '', project: '', sourceContentId: '', objective: 'Lead Generation', campaignType: 'New Campaign',
     status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: 1000,
     lifetimeBudget: 30000, amountAdded: 30000, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
@@ -101,18 +101,27 @@ export default function Campaigns() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!formData.name || !formData.client || !formData.project) {
+      toast.error('Campaign Name, Client, and Project are required');
+      return;
+    }
+    const cleanPayload = { ...formData };
+    if (!cleanPayload.sourceContentId) delete cleanPayload.sourceContentId;
+    if (!cleanPayload.startDate) delete cleanPayload.startDate;
+    if (!cleanPayload.endDate) delete cleanPayload.endDate;
+
     try {
       if (editingCampaign) {
-        await smmApi.updateCampaign(editingCampaign._id, formData);
+        await smmApi.updateCampaign(editingCampaign._id, cleanPayload);
         toast.success('Campaign updated');
       } else {
-        await smmApi.createCampaign(formData);
+        await smmApi.createCampaign(cleanPayload);
         toast.success('Campaign created and added to ledger');
       }
       setIsDrawerOpen(false);
       fetchData();
     } catch (err) {
-      toast.error('Failed to save campaign');
+      toast.error(err.response?.data?.message || 'Failed to save campaign');
     }
   };
 
@@ -504,11 +513,13 @@ export default function Campaigns() {
                 onChange={e => setFormData({...formData, objective: e.target.value})}
                 className="app-select"
               >
-                <option value="Leads">Lead Generation</option>
-                <option value="Sales">Conversions / Sales</option>
-                <option value="Traffic">Website Traffic</option>
+                <option value="Lead Generation">Lead Generation</option>
+                <option value="Conversions">Conversions / Sales</option>
+                <option value="Website Traffic">Website Traffic</option>
                 <option value="Engagement">Engagement</option>
                 <option value="Messages">Direct Messages</option>
+                <option value="Awareness">Brand Awareness</option>
+                <option value="Video Views">Video Views</option>
               </select>
             </div>
           </div>

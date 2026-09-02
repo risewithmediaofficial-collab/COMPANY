@@ -171,8 +171,12 @@ export const createSmmContent = async (req, res) => {
 
     const payload = {
       ...req.body,
+      shootDate: req.body.shootDate ? new Date(req.body.shootDate) : new Date(),
       createdBy: req.user?._id,
     };
+
+    if (payload.scheduledDate === '') delete payload.scheduledDate;
+    if (payload.actualPostedDate === '') delete payload.actualPostedDate;
 
     // Auto-calculate performance score & recommendation
     if (performance) {

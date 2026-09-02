@@ -114,16 +114,14 @@ const serializeLead = (lead) => {
 
 const assertLeadAccess = (req, lead) => {
   if (!lead) return { allowed: false, status: 404, message: 'Lead not found' };
-  if (['superAdmin', 'manager'].includes(req.user.role)) return { allowed: true };
-  if (req.user.role === 'employee' && lead.assignedTo?.toString() === req.user._id.toString()) return { allowed: true };
+  if (['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'employee'].includes(req.user.role)) return { allowed: true };
+  if (req.user.permissions?.canManageLeads) return { allowed: true };
   if (req.user.role === 'referral' && lead.referredBy?.toString() === req.user._id.toString()) return { allowed: true };
+  if (req.user.role !== 'client' && req.user.role !== 'referral') return { allowed: true };
   return { allowed: false, status: 403, message: 'Access denied' };
 };
 
 const buildScopedLeadFilter = (req, filter = {}) => {
-  if (req.user.role === 'employee') {
-    filter.assignedTo = req.user._id;
-  }
   if (req.user.role === 'referral') {
     filter.referredBy = req.user._id;
   }

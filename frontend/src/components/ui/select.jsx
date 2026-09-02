@@ -4,8 +4,10 @@ import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 export const Select = React.forwardRef(({ value, defaultValue, ...props }, ref) => {
-  const controlledProps = 'value' in props || value !== undefined ? { value: value ?? '' } : {};
-  return <SelectPrimitive.Root ref={ref} defaultValue={defaultValue} {...props} {...controlledProps} />;
+  if (defaultValue !== undefined && value === undefined) {
+    return <SelectPrimitive.Root ref={ref} defaultValue={defaultValue} {...props} />;
+  }
+  return <SelectPrimitive.Root ref={ref} value={value ?? ''} {...props} />;
 });
 Select.displayName = 'Select';
 export const SelectValue = SelectPrimitive.Value;

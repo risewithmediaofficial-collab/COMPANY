@@ -158,6 +158,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/finance', financeRoutes);
+app.use('/api/call-history', financeRoutes);
 app.use('/api/finance/salaries', salaryRoutes);
 app.use('/api/salaries', salaryRoutes);
 app.use('/api/hr', hrRoutes);

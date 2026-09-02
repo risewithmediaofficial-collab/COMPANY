@@ -146,14 +146,13 @@ export const addAdSpendLog = async (req, res) => {
       }
     }
 
-    const resolvedContentId = sourceContentId || campaign.sourceContentId;
+    const resolvedContentId = (sourceContentId && sourceContentId !== '') ? sourceContentId : (campaign.sourceContentId || undefined);
 
-    const spendLog = await SmmAdSpend.create({
+    const logPayload = {
       ...req.body,
       client: campaign.client,
       project: campaign.project,
       campaign: campaign._id,
-      sourceContentId: resolvedContentId,
       dailyBudget: campaign.dailyBudget,
       cpl,
       cpc,
@@ -161,7 +160,14 @@ export const addAdSpendLog = async (req, res) => {
       anomalyReason,
       sentiment: isAnomaly ? 'warning' : (leadsGenerated > 0 ? 'positive' : 'info'),
       loggedBy: req.user?._id,
-    });
+    };
+    if (resolvedContentId) {
+      logPayload.sourceContentId = resolvedContentId;
+    } else {
+      delete logPayload.sourceContentId;
+    }
+
+    const spendLog = await SmmAdSpend.create(logPayload);
 
     await recalculateCampaignSpend(campaignId);
 

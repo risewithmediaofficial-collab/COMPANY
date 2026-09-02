@@ -50,7 +50,7 @@ const ClientDetails = () => {
         api.get(`/projects?client=${id}`),
         api.get(`/finance/invoices?client=${id}`),
         api.get(`/finance?client=${id}`),
-        api.get(`/call-history?clientId=${id}`),
+        api.get(`/finance/call-history?clientId=${id}`),
         api.get(`/referrals?client=${id}`),
       ]);
 

@@ -69,7 +69,7 @@ export const SMMContent = () => {
     thumbnail: '',
     postingStatus: 'Draft',
     notPostedReason: 'Not Scheduled',
-    shootDate: '',
+    shootDate: new Date().toISOString().split('T')[0],
     scheduledDate: '',
     scheduledTime: '10:00',
   });
@@ -176,6 +176,7 @@ export const SMMContent = () => {
     try {
       const payload = {
         ...formData,
+        shootDate: formData.shootDate || new Date().toISOString().split('T')[0],
         hashtags: formData.hashtags ? (Array.isArray(formData.hashtags) ? formData.hashtags : formData.hashtags.split(' ').map((t) => t.trim())) : [],
       };
       const res = await smmApi.createContent(payload);
@@ -196,7 +197,7 @@ export const SMMContent = () => {
           thumbnail: '',
           postingStatus: 'Draft',
           notPostedReason: 'Not Scheduled',
-          shootDate: '',
+          shootDate: new Date().toISOString().split('T')[0],
           scheduledDate: '',
           scheduledTime: '10:00',
         });
@@ -426,7 +427,7 @@ export const SMMContent = () => {
                                 ? `Posted: ${new Date(item.actualPostedDate).toLocaleDateString()}`
                                 : item.scheduledDate
                                 ? `Scheduled: ${new Date(item.scheduledDate).toLocaleDateString()}`
-                                : 'Not scheduled'}
+                                : `Shoot: ${item.shootDate ? new Date(item.shootDate).toLocaleDateString() : new Date().toLocaleDateString()}`}
                             </span>
                           </div>
                         </div>
@@ -672,10 +673,13 @@ export const SMMContent = () => {
               )}
 
               <div>
-                <label className="font-semibold text-foreground block mb-1">Shoot Date</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-semibold text-foreground">Shoot Date</label>
+                  <span className="text-[10px] text-muted-foreground font-medium">Auto-filled (Today)</span>
+                </div>
                 <input
                   type="date"
-                  value={formData.shootDate}
+                  value={formData.shootDate || new Date().toISOString().split('T')[0]}
                   onChange={(e) => setFormData({ ...formData, shootDate: e.target.value })}
                   className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
                 />
@@ -855,7 +859,7 @@ export const SMMContent = () => {
 
             <div className="space-y-5 text-xs">
               {/* Top Overview */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">Client</span>
                   <span className="font-bold text-foreground text-xs">{selectedContent.client?.company || selectedContent.client?.name}</span>
@@ -863,6 +867,12 @@ export const SMMContent = () => {
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">Platform</span>
                   <span className="font-bold text-foreground text-xs">{selectedContent.platforms?.join(', ')}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[10px] uppercase font-bold">Shoot Date</span>
+                  <span className="font-bold text-foreground text-xs">
+                    {selectedContent.shootDate ? new Date(selectedContent.shootDate).toLocaleDateString('en-IN') : 'Today'}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">Status</span>
