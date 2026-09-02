@@ -27,6 +27,19 @@ export const getSmmTasks = async (req, res) => {
   }
 };
 
+export const getSmmTask = async (req, res) => {
+  try {
+    const task = await SmmTask.findById(req.params.id)
+      .populate('assignedTo', 'name')
+      .populate('campaign', 'name')
+      .populate('createdBy', 'name');
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+    res.json({ success: true, data: task });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 export const createSmmTask = async (req, res) => {
   try {
     const task = await SmmTask.create({ ...req.body, createdBy: req.user._id });
