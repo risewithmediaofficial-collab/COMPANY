@@ -47,6 +47,7 @@ export default function DailyTracking() {
   // Spend form
   const [spendForm, setSpendForm] = useState({
     campaign: '',
+    sourceContentId: '',
     date: format(new Date(), 'yyyy-MM-dd'),
     amountAdded: 0,
     amountSpent: 0,
@@ -673,7 +674,7 @@ export default function DailyTracking() {
               <select
                 required
                 value={spendForm.campaign}
-                onChange={(e) => setSpendForm({ ...spendForm, campaign: e.target.value })}
+                onChange={(e) => setSpendForm({ ...spendForm, campaign: e.target.value, sourceContentId: '' })}
                 className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
               >
                 <option value="">-- Choose Campaign --</option>
@@ -682,6 +683,24 @@ export default function DailyTracking() {
                 ))}
               </select>
             </div>
+
+            {spendForm.campaign && (
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Select Video in Campaign (Optional)</label>
+                <select
+                  value={spendForm.sourceContentId}
+                  onChange={(e) => setSpendForm({ ...spendForm, sourceContentId: e.target.value })}
+                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                >
+                  <option value="">-- Entire Campaign Level --</option>
+                  {(campaignsList.find(c => String(c._id) === String(spendForm.campaign))?.sourceContentIds || []).map((v) => (
+                    <option key={v._id || v} value={v._id || v}>
+                      🎥 {v.name || 'Video'} ({v.contentType || 'Video'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>

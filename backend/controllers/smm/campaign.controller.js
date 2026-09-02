@@ -13,6 +13,7 @@ const populateCampaign = (query) =>
     .populate('client', 'name company email logo')
     .populate('project', 'name category status client')
     .populate('sourceContentId', 'name contentType platforms thumbnail mediaUpload actualPostedDate')
+    .populate('sourceContentIds', 'name contentType platforms thumbnail mediaUpload actualPostedDate')
     .populate('team.campaignManager', 'name')
     .populate('team.performanceMarketer', 'name')
     .populate('team.designer', 'name')
@@ -163,11 +164,17 @@ export const createCampaign = async (req, res) => {
 
     const campaign = await Campaign.create(campaignPayload);
 
-    // If linked to an organic post, append campaign ID to SmmContent
-    if (sourceContentId) {
-      await SmmContent.findByIdAndUpdate(sourceContentId, {
-        $addToSet: { linkedAdCampaignIds: campaign._id },
-      });
+    // If linked to organic post(s), append campaign ID to SmmContent
+    const allLinkedIds = [
+      ...(sourceContentId ? [sourceContentId] : []),
+      ...(Array.isArray(payload.sourceContentIds) ? payload.sourceContentIds : [])
+    ].filter(Boolean);
+
+    if (allLinkedIds.length > 0) {
+      await SmmContent.updateMany(
+        { _id: { $in: allLinkedIds } },
+        { $addToSet: { linkedAdCampaignIds: campaign._id } }
+      );
     }
 
     await SmmActivityLog.create({

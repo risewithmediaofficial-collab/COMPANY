@@ -14,7 +14,16 @@ export const getAdSets = async (req, res) => {
 
     const total = await AdSet.countDocuments(query);
     const adSets = await AdSet.find(query)
-      .populate('campaign', 'name platform status')
+      .populate({
+        path: 'campaign',
+        select: 'name platform status objective client project sourceContentId sourceContentIds lifetimeBudget dailyBudget',
+        populate: [
+          { path: 'client', select: 'name company logo' },
+          { path: 'project', select: 'name' },
+          { path: 'sourceContentIds', select: 'name contentType thumbnail' },
+        ],
+      })
+      .populate('sourceContentIds', 'name contentType thumbnail')
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -29,7 +38,16 @@ export const getAdSets = async (req, res) => {
 export const getAdSet = async (req, res) => {
   try {
     const adSet = await AdSet.findById(req.params.id)
-      .populate('campaign', 'name platform status project');
+      .populate({
+        path: 'campaign',
+        select: 'name platform status objective client project sourceContentId sourceContentIds lifetimeBudget dailyBudget',
+        populate: [
+          { path: 'client', select: 'name company logo' },
+          { path: 'project', select: 'name' },
+          { path: 'sourceContentIds', select: 'name contentType thumbnail' },
+        ],
+      })
+      .populate('sourceContentIds', 'name contentType thumbnail');
     if (!adSet) return res.status(404).json({ success: false, message: 'Ad Set not found' });
     res.json({ success: true, data: adSet });
   } catch (err) {

@@ -39,6 +39,7 @@ const campaignSchema = new mongoose.Schema(
       default: 'Manual Ad',
     },
     sourceContentId: { type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' },
+    sourceContentIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' }],
     
     // Manual Ad Fields if not linked to post
     adDescription: { type: String, default: '' },

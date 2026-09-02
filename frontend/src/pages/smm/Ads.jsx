@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { Plus, Check, X, FileText, ExternalLink, Image as ImageIcon, Video, Layers, MessageSquare, TrendingUp, Target, DollarSign, Edit3, Sparkles } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Plus, Check, X, FileText, ExternalLink, Image as ImageIcon, Video, Layers, MessageSquare, TrendingUp, Target, DollarSign, Edit3, Sparkles, Play, Pause, ArrowRight, Film } from 'lucide-react';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
 import { PageHeader, SearchField } from '../../components/ui/page';
 import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 
 export default function Ads() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [ads, setAds] = useState([]);
   const [adSets, setAdSets] = useState([]);
   const [videoList, setVideoList] = useState([]);
@@ -21,13 +26,14 @@ export default function Ads() {
   const [selectedAdForLog, setSelectedAdForLog] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: '', adSet: '', sourceContentId: '', usedExistingVideo: false, status: 'Draft', creativeType: 'Video',
+    name: '', adSet: '', sourceContentId: '', usedExistingVideo: false, status: 'Active', creativeType: 'Video',
     primaryImage: '', videoUrl: '', thumbnail: '', headline: '',
     primaryText: '', description: '', cta: 'Learn More', destinationUrl: '',
-    whatsappNumber: '', utmParameters: '', pixelEvent: '', approvalStatus: 'Pending'
+    whatsappNumber: '', utmParameters: '', pixelEvent: '', approvalStatus: 'Approved'
   });
 
   const [adMetrics, setAdMetrics] = useState({
+    date: format(new Date(), 'yyyy-MM-dd'),
     leads: 0, spend: 0, revenue: 0, conversions: 0, impressions: 0, clicks: 0, ctr: 0, cpc: 0, cpl: 0, roas: 0
   });
 
@@ -53,6 +59,60 @@ export default function Ads() {
     fetchData();
   }, [search, approvalFilter]);
 
+  // If navigated from AdSets with location.state.adSet, pre-fill and open drawer
+  useEffect(() => {
+    if (location.state?.adSet && adSets.length > 0) {
+      const adSet = location.state.adSet;
+      const campaign = location.state.campaign || adSet.campaign;
+      const attachedVideoIds = adSet.sourceContentIds || campaign?.sourceContentIds || [];
+      const firstVidId = attachedVideoIds[0]?._id || attachedVideoIds[0] || campaign?.sourceContentId?._id || campaign?.sourceContentId;
+      const firstVid = videoList.find(v => String(v._id) === String(firstVidId));
+
+      setEditingAd(null);
+      setFormData({
+        name: firstVid ? `${firstVid.name} - Running Ad` : `${adSet.name} - Ad #1`,
+        adSet: adSet._id,
+        sourceContentId: firstVid?._id || '',
+        usedExistingVideo: Boolean(firstVid),
+        status: 'Active',
+        creativeType: firstVid?.contentType === 'Post' ? 'Image' : 'Video',
+        primaryImage: firstVid?.thumbnail || '',
+        videoUrl: firstVid?.contentUrl || '',
+        thumbnail: firstVid?.thumbnail || '',
+        headline: firstVid?.name || '',
+        primaryText: firstVid?.caption || '',
+        description: '',
+        cta: adSet.formType === 'WhatsApp' ? 'WhatsApp' : 'Learn More',
+        destinationUrl: '',
+        whatsappNumber: '',
+        utmParameters: '',
+        pixelEvent: '',
+        approvalStatus: 'Approved',
+      });
+      setIsDrawerOpen(true);
+    }
+  }, [location.state, adSets, videoList]);
+
+  const selectedAdSet = useMemo(() => {
+    return adSets.find(s => String(s._id) === String(formData.adSet));
+  }, [adSets, formData.adSet]);
+
+  const campaignVideos = useMemo(() => {
+    if (!selectedAdSet) return videoList;
+    const camp = selectedAdSet.campaign;
+    const attachedIds = [
+      ...(selectedAdSet.sourceContentIds || []),
+      ...(camp?.sourceContentIds || []),
+      ...(camp?.sourceContentId ? [camp.sourceContentId] : [])
+    ].map(v => String(v._id || v));
+
+    if (attachedIds.length > 0) {
+      const matched = videoList.filter(v => attachedIds.includes(String(v._id)));
+      if (matched.length > 0) return matched;
+    }
+    return videoList;
+  }, [selectedAdSet, videoList]);
+
   const handleApproval = async (id, status) => {
     try {
       await smmApi.updateAdApproval(id, { approvalStatus: status });
@@ -60,6 +120,17 @@ export default function Ads() {
       fetchData();
     } catch (err) {
       toast.error('Failed to update approval status');
+    }
+  };
+
+  const handleToggleStatus = async (ad) => {
+    const newStatus = ad.status === 'Active' ? 'Paused' : 'Active';
+    try {
+      await smmApi.updateAd(ad._id, { status: newStatus });
+      toast.success(`Ad is now ${newStatus}`);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to update status');
     }
   };
 
@@ -84,24 +155,29 @@ export default function Ads() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!formData.name || !formData.adSet) {
+      toast.error('Ad Name and Ad Set are required');
+      return;
+    }
     try {
       if (editingAd) {
         await smmApi.updateAd(editingAd._id, formData);
-        toast.success('Ad updated');
+        toast.success('Ad updated successfully');
       } else {
         await smmApi.createAd(formData);
-        toast.success('Ad created and connected to Video Database');
+        toast.success('Ad launched and running!');
       }
       setIsDrawerOpen(false);
       fetchData();
     } catch (err) {
-      toast.error('Failed to save Ad');
+      toast.error(err.response?.data?.message || 'Failed to save Ad');
     }
   };
 
   const openLogMetrics = (ad) => {
     setSelectedAdForLog(ad);
     setAdMetrics({
+      date: format(new Date(), 'yyyy-MM-dd'),
       leads: ad.performance?.leads || 0,
       spend: ad.performance?.spend || 0,
       revenue: ad.performance?.revenue || 0,
@@ -141,7 +217,7 @@ export default function Ads() {
       };
 
       await smmApi.updateAdPerformance(selectedAdForLog._id, calculated);
-      toast.success('Ad lead performance logged successfully!');
+      toast.success('Ad spend & lead results logged successfully!');
       setIsLogDrawerOpen(false);
       fetchData();
     } catch (err) {
@@ -151,11 +227,26 @@ export default function Ads() {
 
   const openAdd = () => {
     setEditingAd(null);
+    const firstSet = adSets[0];
     setFormData({
-      name: '', adSet: adSets[0]?._id || '', sourceContentId: '', usedExistingVideo: false, status: 'Draft', creativeType: 'Video',
-      primaryImage: '', videoUrl: '', thumbnail: '', headline: '',
-      primaryText: '', description: '', cta: 'Learn More', destinationUrl: '',
-      whatsappNumber: '', utmParameters: '', pixelEvent: '', approvalStatus: 'Pending'
+      name: '',
+      adSet: firstSet?._id || '',
+      sourceContentId: '',
+      usedExistingVideo: false,
+      status: 'Active',
+      creativeType: 'Video',
+      primaryImage: '',
+      videoUrl: '',
+      thumbnail: '',
+      headline: '',
+      primaryText: '',
+      description: '',
+      cta: 'Learn More',
+      destinationUrl: '',
+      whatsappNumber: '',
+      utmParameters: '',
+      pixelEvent: '',
+      approvalStatus: 'Approved',
     });
     setIsDrawerOpen(true);
   };
@@ -224,8 +315,23 @@ export default function Ads() {
     },
     {
       key: 'status',
-      label: 'Status',
-      render: (row) => <StatusBadgeSmm status={row.status} />,
+      label: 'Status & Delivery',
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <StatusBadgeSmm status={row.status} />
+          <button
+            onClick={() => handleToggleStatus(row)}
+            className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-all ${
+              row.status === 'Active'
+                ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
+                : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
+            }`}
+          >
+            {row.status === 'Active' ? <Pause size={10} /> : <Play size={10} fill="currentColor" />}
+            {row.status === 'Active' ? 'Running' : 'Resume'}
+          </button>
+        </div>
+      ),
     },
     {
       key: 'approval',
@@ -248,13 +354,13 @@ export default function Ads() {
     },
     {
       key: 'logPerformance',
-      label: 'Log Leads',
+      label: 'Log Results',
       render: (row) => (
         <button
           onClick={() => openLogMetrics(row)}
           className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-lg text-xs font-bold flex items-center gap-1 border border-emerald-200 dark:border-emerald-800"
         >
-          <Target size={13} /> Log Leads
+          <Target size={13} /> Log Leads & Spend
         </button>
       ),
     },
@@ -307,17 +413,17 @@ export default function Ads() {
       <SMMDrawer
         isOpen={isLogDrawerOpen}
         onClose={() => setIsLogDrawerOpen(false)}
-        title={`Log Leads & ROAS — ${selectedAdForLog?.name}`}
+        title={`Log Leads & Spend — ${selectedAdForLog?.name}`}
       >
-        <form onSubmit={handleSaveAdPerformance} className="space-y-4">
+        <form onSubmit={handleSaveAdPerformance} className="space-y-4 text-xs">
           <div className="p-4 bg-emerald-500/10 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-1">
-            <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Direct Lead & ROAS Log</h4>
-            <p className="text-xs text-emerald-600 dark:text-emerald-500">Enter leads generated, actual spend, and revenue for this ad</p>
+            <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Direct Lead & Spend Log</h4>
+            <p className="text-xs text-emerald-600 dark:text-emerald-500">Record daily leads, spend, and conversions for this specific video ad</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Leads Generated *</label>
+              <label className="font-semibold text-foreground mb-1 block">Leads Generated *</label>
               <input
                 type="number"
                 required
@@ -328,17 +434,17 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Ad Spend Amount (₹)</label>
+              <label className="font-semibold text-rose-500 mb-1 block">Ad Spend Amount (₹)</label>
               <input
                 type="number"
                 value={adMetrics.spend}
                 onChange={e => setAdMetrics({...adMetrics, spend: Number(e.target.value)})}
-                className="app-input font-mono"
+                className="app-input font-mono font-bold"
                 placeholder="e.g. 2500"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Revenue Generated (₹)</label>
+              <label className="font-semibold text-foreground mb-1 block">Revenue Generated (₹)</label>
               <input
                 type="number"
                 value={adMetrics.revenue}
@@ -348,7 +454,7 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Conversions / Sales</label>
+              <label className="font-semibold text-foreground mb-1 block">Conversions / Sales</label>
               <input
                 type="number"
                 value={adMetrics.conversions}
@@ -358,7 +464,7 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Clicks Count</label>
+              <label className="font-semibold text-foreground mb-1 block">Clicks Count</label>
               <input
                 type="number"
                 value={adMetrics.clicks}
@@ -368,7 +474,7 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Impressions Count</label>
+              <label className="font-semibold text-foreground mb-1 block">Impressions Count</label>
               <input
                 type="number"
                 value={adMetrics.impressions}
@@ -390,11 +496,11 @@ export default function Ads() {
       <SMMDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        title={editingAd ? 'Edit Ad' : 'Create New Ad'}
+        title={editingAd ? 'Edit Ad' : 'Create & Launch Ad (Step 3 of 3)'}
       >
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-4 text-xs">
           <div>
-            <label className="text-xs font-semibold text-foreground mb-1 block">Select Ad Set *</label>
+            <label className="font-semibold text-foreground mb-1 block">Select Ad Set *</label>
             <select
               required
               value={formData.adSet}
@@ -402,31 +508,38 @@ export default function Ads() {
               className="app-select"
             >
               <option value="">Select Ad Set</option>
-              {adSets.map(s => <option key={s._id} value={s._id}>{s.name} ({s.campaign?.name})</option>)}
+              {adSets.map(s => <option key={s._id} value={s._id}>{s.name} ({s.campaign?.name || 'Campaign'})</option>)}
             </select>
           </div>
 
-          {/* Connect to Existing Video from Central Video Database */}
+          {/* Select Video from Campaign / Database */}
           <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-2">
-            <label className="text-xs font-bold text-purple-600 dark:text-purple-400 block flex items-center gap-1.5">
-              <Sparkles size={14} /> Creative Type: Select from Video Database
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                <Sparkles size={14} /> Select Video from Campaign to Run
+              </label>
+              {formData.sourceContentId && (
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  ✓ Video Selected
+                </span>
+              )}
+            </div>
             <select
               value={formData.sourceContentId}
               onChange={e => handleSelectExistingVideo(e.target.value)}
               className="app-select text-xs bg-background"
             >
-              <option value="">-- Or Create Ad with Custom Creative --</option>
-              {videoList.map(v => (
+              <option value="">-- Choose Campaign Video / Reel to Run Ad --</option>
+              {campaignVideos.map(v => (
                 <option key={v._id} value={v._id}>
-                  {v.name} ({v.contentType}) {v.adRecommendation === '🔥 HIGH POTENTIAL' ? '🔥 HIGH POTENTIAL' : ''}
+                  🎥 {v.name} ({v.contentType}) {v.adRecommendation === '🔥 HIGH POTENTIAL' ? '🔥 HIGH POTENTIAL' : ''}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-foreground mb-1 block">Ad Name *</label>
+            <label className="font-semibold text-foreground mb-1 block">Ad Name *</label>
             <input
               type="text"
               required
@@ -437,31 +550,31 @@ export default function Ads() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Creative Type</label>
+              <label className="font-semibold text-foreground mb-1 block">Delivery Status</label>
               <select
-                value={formData.creativeType}
-                onChange={e => setFormData({...formData, creativeType: e.target.value})}
-                className="app-select"
+                value={formData.status}
+                onChange={e => setFormData({...formData, status: e.target.value})}
+                className="app-select font-bold"
               >
-                <option value="Video">Video</option>
-                <option value="Image">Single Image</option>
-                <option value="Carousel">Carousel</option>
+                <option value="Active">🟢 Active & Running</option>
+                <option value="Draft">⚪ Draft</option>
+                <option value="Paused">🟡 Paused</option>
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">CTA Button</label>
+              <label className="font-semibold text-foreground mb-1 block">CTA Button</label>
               <select
                 value={formData.cta}
                 onChange={e => setFormData({...formData, cta: e.target.value})}
                 className="app-select"
               >
+                <option value="WhatsApp">💬 WhatsApp (Direct Message)</option>
                 <option value="Learn More">Learn More</option>
                 <option value="Book Now">Book Now</option>
                 <option value="Contact Us">Contact Us</option>
                 <option value="Call Now">Call Now</option>
-                <option value="WhatsApp">WhatsApp</option>
                 <option value="Sign Up">Sign Up</option>
                 <option value="Get Quote">Get Quote</option>
               </select>
@@ -469,7 +582,7 @@ export default function Ads() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-foreground mb-1 block">Headline</label>
+            <label className="font-semibold text-foreground mb-1 block">Headline</label>
             <input
               type="text"
               value={formData.headline}
@@ -480,7 +593,7 @@ export default function Ads() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-foreground mb-1 block">Primary Text / Ad Copy</label>
+            <label className="font-semibold text-foreground mb-1 block">Primary Text / Ad Copy</label>
             <textarea
               rows={3}
               value={formData.primaryText}
@@ -490,9 +603,9 @@ export default function Ads() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Destination URL</label>
+              <label className="font-semibold text-foreground mb-1 block">Destination URL</label>
               <input
                 type="url"
                 value={formData.destinationUrl}
@@ -502,7 +615,7 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">WhatsApp Number (Optional)</label>
+              <label className="font-semibold text-foreground mb-1 block">WhatsApp Number (Optional)</label>
               <input
                 type="text"
                 value={formData.whatsappNumber}
@@ -515,7 +628,7 @@ export default function Ads() {
 
           <div className="pt-4 border-t border-border flex justify-end gap-3">
             <button type="button" onClick={() => setIsDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="app-button-primary">Save Ad</button>
+            <button type="submit" className="app-button-primary">Save & Launch Ad</button>
           </div>
         </form>
       </SMMDrawer>

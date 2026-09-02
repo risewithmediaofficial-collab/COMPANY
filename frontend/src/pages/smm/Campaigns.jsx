@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Plus, Play, Pause, CheckCircle, SlidersHorizontal, CheckSquare, Trash2, Edit2, Layers, Calendar, Target, DollarSign, TrendingUp, AlertTriangle, Video, Sparkles } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Play, Pause, CheckCircle, SlidersHorizontal, CheckSquare, Trash2, Edit2, Layers, Calendar, Target, DollarSign, TrendingUp, AlertTriangle, Video, Sparkles, ArrowRight, Check, Film } from 'lucide-react';
 import { smmApi } from '../../api/smm';
 import api from '../../api/index';
 import { DataTable } from '../../components/ui/DataTable';
@@ -12,6 +13,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 
 export default function Campaigns() {
+  const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [crmClients, setCrmClients] = useState([]);
   const [crmProjects, setCrmProjects] = useState([]);
@@ -27,11 +29,12 @@ export default function Campaigns() {
   const [isDailyLogDrawerOpen, setIsDailyLogDrawerOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
   const [activeCampaignForLog, setActiveCampaignForLog] = useState(null);
+  const [createdCampaignForNextStep, setCreatedCampaignForNextStep] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: '', client: '', project: '', sourceContentId: '', objective: 'Lead Generation', campaignType: 'New Campaign',
+    name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [], objective: 'Lead Generation', campaignType: 'New Campaign',
     status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: 1000,
-    lifetimeBudget: 30000, amountAdded: 30000, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
+    lifetimeBudget: 30000, amountAdded: 30000, remainingBalance: 30000, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
   });
 
@@ -85,19 +88,34 @@ export default function Campaigns() {
     }
   };
 
-  const handleSelectVideoForCampaign = (videoId) => {
-    const video = videoList.find((v) => v._id === videoId);
-    if (!video) {
-      setFormData((prev) => ({ ...prev, sourceContentId: '' }));
-      return;
+  const clientVideos = useMemo(() => {
+    if (!formData.client) return videoList;
+    return videoList.filter(v => {
+      const vClientId = v.client?._id || v.client;
+      return String(vClientId) === String(formData.client);
+    });
+  }, [videoList, formData.client]);
+
+  const toggleVideoSelection = (videoId) => {
+    const current = formData.sourceContentIds || [];
+    const isSelected = current.includes(videoId);
+    const updated = isSelected ? current.filter(id => id !== videoId) : [...current, videoId];
+
+    let newName = formData.name;
+    if (!formData.name || formData.name.includes('Campaign')) {
+      const selectedVids = videoList.filter(v => updated.includes(v._id));
+      if (selectedVids.length === 1) {
+        newName = `${selectedVids[0].name} - Ad Campaign`;
+      } else if (selectedVids.length > 1) {
+        newName = `${selectedVids[0].name} + ${selectedVids.length - 1} Videos - Campaign`;
+      }
     }
-    setFormData((prev) => ({
+
+    setFormData(prev => ({
       ...prev,
-      sourceContentId: video._id,
-      name: prev.name || `${video.name} - Ad Campaign`,
-      client: video.client?._id || video.client || prev.client,
-      project: video.project?._id || video.project || prev.project,
-      platform: video.platforms?.[0] === 'Instagram' || video.platforms?.[0] === 'Facebook' ? 'Meta' : video.platforms?.[0] || 'Meta',
+      sourceContentIds: updated,
+      sourceContentId: updated[0] || '',
+      name: newName,
     }));
   };
 
@@ -184,12 +202,17 @@ export default function Campaigns() {
       if (editingCampaign) {
         await smmApi.updateCampaign(editingCampaign._id, cleanPayload);
         toast.success('Campaign updated');
+        setIsDrawerOpen(false);
+        fetchData();
       } else {
-        await smmApi.createCampaign(cleanPayload);
+        const res = await smmApi.createCampaign(cleanPayload);
         toast.success('Campaign created and added to ledger');
+        setIsDrawerOpen(false);
+        fetchData();
+        if (res.data?.data) {
+          setCreatedCampaignForNextStep(res.data.data);
+        }
       }
-      setIsDrawerOpen(false);
-      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save campaign');
     }
@@ -199,6 +222,7 @@ export default function Campaigns() {
     setActiveCampaignForLog(camp);
     setDailyLogForm({
       date: format(new Date(), 'yyyy-MM-dd'),
+      sourceContentId: camp.sourceContentId?._id || camp.sourceContentId || '',
       amountAdded: 0,
       spend: 0,
       leads: 0,
@@ -221,6 +245,7 @@ export default function Campaigns() {
         setActiveCampaignForLog(res.data.data);
         setDailyLogForm({
           date: format(new Date(), 'yyyy-MM-dd'),
+          sourceContentId: '',
           amountAdded: 0,
           spend: 0,
           leads: 0,
@@ -245,6 +270,7 @@ export default function Campaigns() {
       client: '',
       project: '',
       sourceContentId: '',
+      sourceContentIds: [],
       objective: 'Lead Generation',
       campaignType: 'New Campaign',
       status: 'Draft',
@@ -271,11 +297,13 @@ export default function Campaigns() {
     const added = camp.amountAdded ?? camp.lifetimeBudget ?? 30000;
     const spent = camp.amountSpent ?? 0;
     const rem = camp.remainingBalance ?? Math.max(0, added - spent);
+    const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
     setFormData({
       ...camp,
       client: camp.client?._id || camp.client || '',
       project: camp.project?._id || camp.project || '',
-      sourceContentId: camp.sourceContentId?._id || camp.sourceContentId || '',
+      sourceContentId: camp.sourceContentId?._id || camp.sourceContentId || vIds[0] || '',
+      sourceContentIds: vIds,
       lifetimeBudget: camp.lifetimeBudget ?? 30000,
       dailyBudget: camp.dailyBudget ?? 1000,
       amountAdded: added,
@@ -448,6 +476,7 @@ export default function Campaigns() {
         title={`Log Daily Spend & Leads — ${activeCampaignForLog?.name}`}
       >
         <form onSubmit={handleAddDailyLog} className="space-y-4 text-xs">
+          {/* Campaign Money Summary */}
           <div className="p-3.5 bg-secondary/40 border border-border rounded-2xl space-y-1">
             <span className="text-[10px] uppercase font-bold text-muted-foreground block">Campaign Money Summary</span>
             <div className="flex items-center justify-between font-bold text-xs pt-1">
@@ -456,6 +485,30 @@ export default function Campaigns() {
               <span className="text-emerald-500">Balance: ₹{(activeCampaignForLog?.remainingBalance || 0).toLocaleString()}</span>
             </div>
           </div>
+
+          {/* Select Video in Campaign */}
+          {activeCampaignForLog && (
+            <div>
+              <label className="font-semibold text-foreground block mb-1">Select Video in Campaign (Optional)</label>
+              <select
+                value={dailyLogForm.sourceContentId || ''}
+                onChange={e => setDailyLogForm({ ...dailyLogForm, sourceContentId: e.target.value })}
+                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+              >
+                <option value="">-- All Videos / Entire Campaign Level --</option>
+                {(activeCampaignForLog.sourceContentIds || []).map(v => (
+                  <option key={v._id || v} value={v._id || v}>
+                    🎥 {v.name || 'Video'} ({v.contentType || 'Video'})
+                  </option>
+                ))}
+                {activeCampaignForLog.sourceContentId && !activeCampaignForLog.sourceContentIds?.length && (
+                  <option value={activeCampaignForLog.sourceContentId._id || activeCampaignForLog.sourceContentId}>
+                    🎥 {activeCampaignForLog.sourceContentId.name || 'Campaign Video'}
+                  </option>
+                )}
+              </select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -527,44 +580,14 @@ export default function Campaigns() {
         title={editingCampaign ? 'Edit Campaign' : 'Create Campaign'}
       >
         <form onSubmit={handleSave} className="space-y-4 text-xs">
-          {/* Creative Source: Link to Video Database */}
-          <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-1.5">
-            <label className="font-bold text-purple-600 dark:text-purple-400 block flex items-center gap-1.5">
-              <Sparkles size={14} /> Connect to Video / Reel from Database
-            </label>
-            <select
-              value={formData.sourceContentId}
-              onChange={e => handleSelectVideoForCampaign(e.target.value)}
-              className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
-            >
-              <option value="">-- Or Create General Ad Campaign --</option>
-              {videoList.map(v => (
-                <option key={v._id} value={v._id}>
-                  {v.name} ({v.contentType}) {v.adRecommendation === '🔥 HIGH POTENTIAL' ? '🔥 HIGH POTENTIAL' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              className="app-input"
-              placeholder="e.g. August Restaurant Lead Campaign"
-            />
-          </div>
-
+          {/* Step 1: Client & Project Selection */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-semibold text-foreground block mb-1">Client *</label>
               <select
                 required
                 value={formData.client}
-                onChange={e => setFormData({ ...formData, client: e.target.value, project: '' })}
+                onChange={e => setFormData({ ...formData, client: e.target.value, project: '', sourceContentIds: [] })}
                 className="app-select"
               >
                 <option value="">Select Client</option>
@@ -588,6 +611,75 @@ export default function Campaigns() {
             </div>
           </div>
 
+          {/* Step 2: Multi-Video Selector from Database */}
+          <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                <Sparkles size={14} /> Select Videos to Run Ads (Multiple Allowed)
+              </label>
+              <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 bg-purple-500/20 px-2 py-0.5 rounded-full">
+                {formData.sourceContentIds?.length || 0} Selected
+              </span>
+            </div>
+
+            {!formData.client ? (
+              <p className="text-[11px] text-muted-foreground italic py-2 text-center">
+                👉 Please select a Client above to view their available videos and reels.
+              </p>
+            ) : clientVideos.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground italic py-2 text-center">
+                No videos found for this client in database. You can still proceed with general campaign setup.
+              </p>
+            ) : (
+              <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+                {clientVideos.map(v => {
+                  const isChecked = (formData.sourceContentIds || []).includes(v._id);
+                  return (
+                    <div
+                      key={v._id}
+                      onClick={() => toggleVideoSelection(v._id)}
+                      className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-all ${
+                        isChecked
+                          ? 'bg-purple-500/20 border-purple-500 text-purple-900 dark:text-purple-100 font-semibold'
+                          : 'bg-background/80 hover:bg-background border-border text-foreground'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-4 h-4 rounded flex items-center justify-center border ${isChecked ? 'bg-purple-600 border-purple-600 text-white' : 'border-border'}`}>
+                          {isChecked && <Check size={12} strokeWidth={3} />}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-xs font-medium truncate block">{v.name}</span>
+                          <span className="text-[10px] text-muted-foreground block">{v.contentType || 'Video'} • {v.platforms?.join(', ') || 'Meta'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {v.adRecommendation === '🔥 HIGH POTENTIAL' && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600">🔥 Hot</span>
+                        )}
+                        <span className="text-[10px] text-muted-foreground uppercase">{v.status || 'Ready'}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Step 3: Campaign Name */}
+          <div>
+            <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+              className="app-input"
+              placeholder="e.g. August Restaurant Lead Campaign"
+            />
+          </div>
+
+          {/* Step 4: Platform & Objective */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-semibold text-foreground block mb-1">Platform *</label>
@@ -621,6 +713,7 @@ export default function Campaigns() {
             </div>
           </div>
 
+          {/* Step 5: Budget & Cash Ledger */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
             <div>
               <label className="font-semibold text-foreground block mb-1">Total Campaign Budget (₹) *</label>
@@ -669,6 +762,7 @@ export default function Campaigns() {
             </div>
           </div>
 
+          {/* Step 6: Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-semibold text-foreground block mb-1">Start Date</label>
@@ -696,6 +790,59 @@ export default function Campaigns() {
           </div>
         </form>
       </SMMDrawer>
+
+      {/* Post-Creation Prompt Modal: Campaign Created -> Create Ad Set */}
+      {createdCampaignForNextStep && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-card border border-border max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+              <CheckCircle size={28} />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-bold text-foreground">Campaign Created Successfully!</h3>
+              <p className="text-xs text-muted-foreground">
+                <strong>{createdCampaignForNextStep.name}</strong> is now configured in your ledger. Would you like to create the Ad Set & set audience targeting now?
+              </p>
+            </div>
+
+            <div className="p-3 bg-secondary/50 rounded-2xl border border-border text-xs space-y-1.5">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Client:</span>
+                <span className="font-semibold text-foreground">{createdCampaignForNextStep.client?.company || createdCampaignForNextStep.client?.name}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Videos Attached:</span>
+                <span className="font-semibold text-purple-600 dark:text-purple-400">
+                  {createdCampaignForNextStep.sourceContentIds?.length || (createdCampaignForNextStep.sourceContentId ? 1 : 0)} Videos
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Campaign Budget:</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹{(createdCampaignForNextStep.lifetimeBudget || createdCampaignForNextStep.amountAdded || 0).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              <button
+                onClick={() => {
+                  const camp = createdCampaignForNextStep;
+                  setCreatedCampaignForNextStep(null);
+                  navigate('/smm/adsets', { state: { campaign: camp } });
+                }}
+                className="flex-1 py-2.5 px-4 bg-primary text-primary-foreground font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
+              >
+                <Layers size={14} /> Create Ad Set & Targeting <ArrowRight size={14} />
+              </button>
+              <button
+                onClick={() => setCreatedCampaignForNextStep(null)}
+                className="py-2.5 px-4 bg-secondary text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80"
+              >
+                View Campaigns
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

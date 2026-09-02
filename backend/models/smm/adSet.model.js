@@ -12,6 +12,14 @@ const adSetSchema = new mongoose.Schema(
       enum: ['Draft', 'Active', 'Paused', 'Completed', 'Error'],
       default: 'Draft',
     },
+    targetAudienceText: { type: String, default: '' },
+    locationText: { type: String, default: '' },
+    formType: {
+      type: String,
+      enum: ['Instant Form', 'WhatsApp', 'Landing Page', 'Instagram DM / Messenger', 'None'],
+      default: 'Instant Form',
+    },
+    sourceContentIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' }],
     audience: {
       location: [{ type: String }],
       ageMin: { type: Number, default: 18 },
