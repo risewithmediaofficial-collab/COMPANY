@@ -89,44 +89,56 @@ export const DateFilterProvider = ({ children }) => {
 
   const isDateInRange = useCallback((dateValue) => {
     if (!startDate && !endDate) return true;
-    if (!dateValue) return true;
+    if (!dateValue) return false;
 
     // Support array of fallback dates (e.g. [dueDate, startDate, createdAt])
     if (Array.isArray(dateValue)) {
       const validDates = dateValue.filter(Boolean);
-      if (validDates.length === 0) return true;
+      if (validDates.length === 0) return false;
       return validDates.some((d) => isDateInRange(d));
     }
 
-    // Extract YYYY-MM-DD from target date
-    let targetStr = '';
+    // Extract candidate date representations
+    const candidates = [];
     if (typeof dateValue === 'string') {
-      if (dateValue.includes('T')) {
-        targetStr = dateValue.split('T')[0];
-      } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue.trim())) {
-        targetStr = dateValue.trim();
-      } else {
-        const d = new Date(dateValue);
-        if (!Number.isNaN(d.getTime())) {
-          targetStr = d.toISOString().split('T')[0];
-        }
+      const trimmed = dateValue.trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+        candidates.push(trimmed.substring(0, 10));
+      }
+      const d = new Date(trimmed);
+      if (!Number.isNaN(d.getTime())) {
+        candidates.push(d.toISOString().split('T')[0]);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        candidates.push(`${y}-${m}-${day}`);
       }
     } else if (dateValue instanceof Date) {
       if (!Number.isNaN(dateValue.getTime())) {
-        targetStr = dateValue.toISOString().split('T')[0];
+        candidates.push(dateValue.toISOString().split('T')[0]);
+        const y = dateValue.getFullYear();
+        const m = String(dateValue.getMonth() + 1).padStart(2, '0');
+        const day = String(dateValue.getDate()).padStart(2, '0');
+        candidates.push(`${y}-${m}-${day}`);
       }
     } else if (typeof dateValue === 'number') {
       const d = new Date(dateValue);
       if (!Number.isNaN(d.getTime())) {
-        targetStr = d.toISOString().split('T')[0];
+        candidates.push(d.toISOString().split('T')[0]);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        candidates.push(`${y}-${m}-${day}`);
       }
     }
 
-    if (!targetStr) return true;
+    if (candidates.length === 0) return false;
 
-    if (startDate && targetStr < startDate) return false;
-    if (endDate && targetStr > endDate) return false;
-    return true;
+    return candidates.some((targetStr) => {
+      if (startDate && targetStr < startDate) return false;
+      if (endDate && targetStr > endDate) return false;
+      return true;
+    });
   }, [startDate, endDate]);
 
   const filterByDateRange = useCallback((items = [], datePropOrGetter = 'createdAt') => {

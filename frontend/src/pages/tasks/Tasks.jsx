@@ -148,10 +148,7 @@ const Tasks = () => {
   // Smooth side auto-scroll while dragging tasks
   useAutoScrollOnDrag(taskBoardRef, Boolean(draggingTaskId));
 
-  // Note: we intentionally do NOT apply the global date filter to the Tasks workspace.
-  // The global date filter is used by Dashboard analytics only.
-  // Tasks workspace shows all tasks from the API (already scoped by user role).
-
+  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange, isFiltered: isGlobalDateFiltered, resetDateFilter } = useDateFilter();
 
   const normalizedTasks = useMemo(
     () =>
@@ -170,12 +167,26 @@ const Tasks = () => {
     return due < new Date() && !isDone;
   };
 
+  const dateFilteredTasks = useMemo(() => {
+    if (isGlobalDateFiltered || globalStartDate || globalEndDate) {
+      return normalizedTasks.filter((task) =>
+        isDateInRange([
+          task.dueDate,
+          task.postingScheduleDate,
+          task.startDate,
+          task.createdAt,
+        ])
+      );
+    }
+    return normalizedTasks;
+  }, [normalizedTasks, isGlobalDateFiltered, globalStartDate, globalEndDate, isDateInRange]);
+
   const taskMetrics = {
-    total: normalizedTasks.length,
-    inProgress: normalizedTasks.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status)).length,
-    done: normalizedTasks.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status)).length,
-    overdue: normalizedTasks.filter(isTaskOverdue).length,
-    overTarget: normalizedTasks.filter((task) => task.isOverTarget).length,
+    total: dateFilteredTasks.length,
+    inProgress: dateFilteredTasks.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status)).length,
+    done: dateFilteredTasks.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status)).length,
+    overdue: dateFilteredTasks.filter(isTaskOverdue).length,
+    overTarget: dateFilteredTasks.filter((task) => task.isOverTarget).length,
   };
 
   const [quickFilter, setQuickFilter] = useState('all'); // 'all' | 'inProgress' | 'done' | 'overdue' | 'overTarget'
@@ -186,8 +197,8 @@ const Tasks = () => {
 
   // Category counts
   const categoryCounts = useMemo(() => {
-    const counts = { all: normalizedTasks.length };
-    normalizedTasks.forEach((t) => {
+    const counts = { all: dateFilteredTasks.length };
+    dateFilteredTasks.forEach((t) => {
       TASK_CATEGORY_PILLS.forEach((pill) => {
         if (pill.key !== 'all' && isCategoryMatch(t.taskType || t.taskCategory, pill.key, t.taskTitle || t.title)) {
           counts[pill.key] = (counts[pill.key] || 0) + 1;
@@ -200,14 +211,14 @@ const Tasks = () => {
       });
     });
     return counts;
-  }, [normalizedTasks]);
+  }, [dateFilteredTasks]);
 
   const activeCategoryPills = useMemo(() => {
     return TASK_CATEGORY_PILLS.map((pill) => ({
       ...pill,
-      count: pill.key === 'all' ? normalizedTasks.length : (categoryCounts[pill.key] || 0),
+      count: pill.key === 'all' ? dateFilteredTasks.length : (categoryCounts[pill.key] || 0),
     }));
-  }, [normalizedTasks, categoryCounts]);
+  }, [dateFilteredTasks, categoryCounts]);
 
   const clientOptions = useMemo(() => {
     return clients.map((c) => ({
@@ -233,13 +244,15 @@ const Tasks = () => {
     if (filters.assignedTo) count++;
     if (filters.search) count++;
     if (quickFilter !== 'all') count++;
+    if (isGlobalDateFiltered || globalStartDate || globalEndDate) count++;
     return count;
-  }, [categoryFilter, filters, quickFilter]);
+  }, [categoryFilter, filters, quickFilter, isGlobalDateFiltered, globalStartDate, globalEndDate]);
 
   const clearAllFilters = () => {
     setCategoryFilter('all');
     setQuickFilter('all');
     setSortBy('dueDate_asc');
+    resetDateFilter();
     setFilters({
       search: '',
       client: '',
@@ -252,7 +265,7 @@ const Tasks = () => {
   };
 
   const displayedTasks = useMemo(() => {
-    let result = [...normalizedTasks];
+    let result = [...dateFilteredTasks];
 
     // Category filter
     if (categoryFilter && categoryFilter !== 'all') {
@@ -355,7 +368,7 @@ const Tasks = () => {
     });
 
     return result;
-  }, [normalizedTasks, categoryFilter, filters, quickFilter, sortBy]);
+  }, [dateFilteredTasks, categoryFilter, filters, quickFilter, sortBy]);
 
   const columns = [
     {
