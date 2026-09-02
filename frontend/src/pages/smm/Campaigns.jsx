@@ -33,8 +33,8 @@ export default function Campaigns() {
 
   const [formData, setFormData] = useState({
     name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [], objective: 'Leads', campaignType: 'New Campaign',
-    status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: 1000,
-    lifetimeBudget: 30000, amountAdded: 30000, remainingBalance: 30000, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
+    status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: '',
+    lifetimeBudget: '', amountAdded: 0, remainingBalance: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
   });
 
@@ -276,10 +276,10 @@ export default function Campaigns() {
       status: 'Draft',
       platform: 'Meta',
       budgetType: 'Lifetime Budget',
-      dailyBudget: 1000,
-      lifetimeBudget: 30000,
-      amountAdded: 30000,
-      remainingBalance: 30000,
+      dailyBudget: '',
+      lifetimeBudget: '',
+      amountAdded: 0,
+      remainingBalance: 0,
       currency: 'INR',
       goal: '',
       landingPage: '',
@@ -294,7 +294,7 @@ export default function Campaigns() {
 
   const openEdit = (camp) => {
     setEditingCampaign(camp);
-    const added = camp.amountAdded ?? camp.lifetimeBudget ?? 30000;
+    const added = camp.amountAdded ?? camp.lifetimeBudget ?? 0;
     const spent = camp.amountSpent ?? 0;
     const rem = camp.remainingBalance ?? Math.max(0, added - spent);
     const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
@@ -304,8 +304,8 @@ export default function Campaigns() {
       project: camp.project?._id || camp.project || '',
       sourceContentId: camp.sourceContentId?._id || camp.sourceContentId || vIds[0] || '',
       sourceContentIds: vIds,
-      lifetimeBudget: camp.lifetimeBudget ?? 30000,
-      dailyBudget: camp.dailyBudget ?? 1000,
+      lifetimeBudget: camp.lifetimeBudget ?? '',
+      dailyBudget: camp.dailyBudget ?? '',
       amountAdded: added,
       remainingBalance: rem,
     });
@@ -715,32 +715,32 @@ export default function Campaigns() {
           {/* Step 5: Budget */}
           <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
             <div>
-              <label className="font-semibold text-foreground block mb-1">Overall Budget (₹) *</label>
+              <label className="font-semibold text-foreground block mb-1">Campaign Budget (₹) *</label>
               <input
                 type="number"
                 required
-                value={formData.lifetimeBudget}
+                value={formData.lifetimeBudget ?? ''}
                 onChange={e => {
-                  const val = Number(e.target.value);
+                  const val = e.target.value === '' ? '' : Number(e.target.value);
                   setFormData(prev => ({
                     ...prev,
                     lifetimeBudget: val,
-                    amountAdded: val,
-                    remainingBalance: val - (editingCampaign?.amountSpent || 0)
+                    amountAdded: val === '' ? 0 : val,
+                    remainingBalance: val === '' ? 0 : (val - (editingCampaign?.amountSpent || 0))
                   }));
                 }}
                 className="app-input font-bold text-foreground"
-                placeholder="30000"
+                placeholder="e.g. 50000"
               />
             </div>
             <div>
               <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
               <input
                 type="number"
-                value={formData.dailyBudget}
-                onChange={e => setFormData({ ...formData, dailyBudget: Number(e.target.value) })}
+                value={formData.dailyBudget ?? ''}
+                onChange={e => setFormData({ ...formData, dailyBudget: e.target.value === '' ? '' : Number(e.target.value) })}
                 className="app-input"
-                placeholder="1000"
+                placeholder="e.g. 1000"
               />
             </div>
           </div>
