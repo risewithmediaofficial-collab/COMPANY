@@ -69,7 +69,7 @@ const smmContentSchema = new mongoose.Schema(
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
     contentType: {
       type: String,
-      enum: ['Post', 'Reel', 'Story', 'Video', 'Short'],
+      enum: ['Post', 'Reel', 'Story', 'Reel / Story', 'Video', 'Short', 'Other'],
       required: true,
       default: 'Reel',
     },

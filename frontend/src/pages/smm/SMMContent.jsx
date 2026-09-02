@@ -421,7 +421,7 @@ export const SMMContent = () => {
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold shrink-0">
-                            {item.contentType === 'Reel' ? <Video size={16} /> : <FileText size={16} />}
+                            {['Reel', 'Reel / Story', 'Video', 'Short'].includes(item.contentType) ? <Video size={16} /> : <FileText size={16} />}
                           </div>
                           <div>
                             <button
@@ -640,10 +640,11 @@ export const SMMContent = () => {
                   className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
                 >
                   <option value="Reel">Reel (Short Video)</option>
+                  <option value="Story">Story</option>
+                  <option value="Reel / Story">Reel / Story (Dual Format)</option>
                   <option value="Video">Long-form Video</option>
                   <option value="Short">YouTube Short</option>
                   <option value="Post">Static Post / Carousel</option>
-                  <option value="Story">Story</option>
                 </select>
               </div>
             </div>

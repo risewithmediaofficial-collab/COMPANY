@@ -169,9 +169,12 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
             className="w-full h-9 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all"
           >
             <option value="">All Content</option>
-            <option value="Post">Post</option>
             <option value="Reel">Reel</option>
             <option value="Story">Story</option>
+            <option value="Reel / Story">Reel / Story</option>
+            <option value="Post">Post</option>
+            <option value="Video">Video</option>
+            <option value="Short">Short</option>
           </select>
         </div>
 

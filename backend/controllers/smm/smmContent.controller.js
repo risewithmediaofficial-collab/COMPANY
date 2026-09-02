@@ -59,9 +59,15 @@ export const getSmmContents = async (req, res) => {
 
     const query = {};
     if (client) query.client = client;
-    if (project) query.project = project;
-    if (contentType) query.contentType = contentType;
-    if (postingStatus) query.postingStatus = postingStatus;
+    if (contentType) {
+      if (contentType === 'Reel') {
+        query.contentType = { $in: ['Reel', 'Reel / Story'] };
+      } else if (contentType === 'Story') {
+        query.contentType = { $in: ['Story', 'Reel / Story'] };
+      } else {
+        query.contentType = contentType;
+      }
+    }
     if (notPostedReason) query.notPostedReason = notPostedReason;
     if (platform) query.platforms = platform;
 

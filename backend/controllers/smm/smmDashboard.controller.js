@@ -54,7 +54,15 @@ export const getSmmDashboardStats = async (req, res) => {
 
     // ── 1. CONTENT BREAKDOWN & STATUS STATS ───────────────────────
     const contentQuery = { ...filter };
-    if (contentType) contentQuery.contentType = contentType;
+    if (contentType) {
+      if (contentType === 'Reel') {
+        contentQuery.contentType = { $in: ['Reel', 'Reel / Story'] };
+      } else if (contentType === 'Story') {
+        contentQuery.contentType = { $in: ['Story', 'Reel / Story'] };
+      } else {
+        contentQuery.contentType = contentType;
+      }
+    }
     if (platform) contentQuery.platforms = platform;
     if (startDate || endDate) {
       contentQuery.$or = [
@@ -80,8 +88,8 @@ export const getSmmDashboardStats = async (req, res) => {
       allContents,
     ] = await Promise.all([
       SmmContent.countDocuments({ ...contentQuery, contentType: 'Post' }),
-      SmmContent.countDocuments({ ...contentQuery, contentType: 'Reel' }),
-      SmmContent.countDocuments({ ...contentQuery, contentType: 'Story' }),
+      SmmContent.countDocuments({ ...contentQuery, contentType: { $in: ['Reel', 'Reel / Story'] } }),
+      SmmContent.countDocuments({ ...contentQuery, contentType: { $in: ['Story', 'Reel / Story'] } }),
       SmmContent.countDocuments({ ...contentQuery, contentType: { $in: ['Video', 'Short'] } }),
       SmmContent.countDocuments({ ...contentQuery, postingStatus: 'Published' }),
       SmmContent.countDocuments({
