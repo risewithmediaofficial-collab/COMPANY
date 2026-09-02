@@ -32,7 +32,7 @@ export default function Campaigns() {
   const [createdCampaignForNextStep, setCreatedCampaignForNextStep] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [], objective: 'Lead Generation', campaignType: 'New Campaign',
+    name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [], objective: 'Leads', campaignType: 'New Campaign',
     status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: 1000,
     lifetimeBudget: 30000, amountAdded: 30000, remainingBalance: 30000, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
@@ -271,7 +271,7 @@ export default function Campaigns() {
       project: '',
       sourceContentId: '',
       sourceContentIds: [],
-      objective: 'Lead Generation',
+      objective: 'Leads',
       campaignType: 'New Campaign',
       status: 'Draft',
       platform: 'Meta',
@@ -696,32 +696,38 @@ export default function Campaigns() {
               </select>
             </div>
             <div>
-              <label className="font-semibold text-foreground block mb-1">Objective</label>
+              <label className="font-semibold text-foreground block mb-1">Objective *</label>
               <select
                 value={formData.objective}
                 onChange={e => setFormData({ ...formData, objective: e.target.value })}
-                className="app-select"
+                className="app-select font-semibold"
               >
-                <option value="Lead Generation">Lead Generation</option>
-                <option value="Conversions">Conversions / Sales</option>
-                <option value="Website Traffic">Website Traffic</option>
+                <option value="Awareness">Awareness</option>
                 <option value="Engagement">Engagement</option>
-                <option value="Messages">Direct Messages</option>
-                <option value="Awareness">Brand Awareness</option>
-                <option value="Video Views">Video Views</option>
+                <option value="Leads">Leads</option>
+                <option value="App Promotion">App Promotion</option>
+                <option value="Sales">Sales</option>
               </select>
             </div>
           </div>
 
-          {/* Step 5: Budget & Cash Ledger */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
+          {/* Step 5: Budget */}
+          <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
             <div>
-              <label className="font-semibold text-foreground block mb-1">Total Campaign Budget (₹) *</label>
+              <label className="font-semibold text-foreground block mb-1">Overall Budget (₹) *</label>
               <input
                 type="number"
                 required
                 value={formData.lifetimeBudget}
-                onChange={e => handleBudgetChange('lifetimeBudget', e.target.value)}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  setFormData(prev => ({
+                    ...prev,
+                    lifetimeBudget: val,
+                    amountAdded: val,
+                    remainingBalance: val - (editingCampaign?.amountSpent || 0)
+                  }));
+                }}
                 className="app-input font-bold text-foreground"
                 placeholder="30000"
               />
@@ -734,30 +740,6 @@ export default function Campaigns() {
                 onChange={e => setFormData({ ...formData, dailyBudget: Number(e.target.value) })}
                 className="app-input"
                 placeholder="1000"
-              />
-            </div>
-            <div>
-              <label className="font-semibold text-foreground block mb-1">
-                Deposited Budget (₹) <span className="text-muted-foreground font-normal text-[10px]">(Optional)</span>
-              </label>
-              <input
-                type="number"
-                value={formData.amountAdded ?? ''}
-                onChange={e => handleBudgetChange('amountAdded', e.target.value)}
-                className="app-input"
-                placeholder="Funds Deposited"
-              />
-            </div>
-            <div>
-              <label className="font-semibold text-foreground block mb-1">
-                Balance (₹) <span className="text-muted-foreground font-normal text-[10px]">(Optional)</span>
-              </label>
-              <input
-                type="number"
-                value={formData.remainingBalance ?? ''}
-                onChange={e => setFormData({ ...formData, remainingBalance: e.target.value === '' ? '' : Number(e.target.value) })}
-                className="app-input font-bold text-emerald-600 dark:text-emerald-400"
-                placeholder="Remaining Balance"
               />
             </div>
           </div>
