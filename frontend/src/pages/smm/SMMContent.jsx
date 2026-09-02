@@ -69,8 +69,8 @@ export const SMMContent = () => {
     thumbnail: '',
     postingStatus: 'Draft',
     notPostedReason: 'Not Scheduled',
-    shootDate: new Date().toISOString().split('T')[0],
-    scheduledDate: '',
+    publishedDate: new Date().toISOString().split('T')[0],
+    scheduledDate: new Date().toISOString().split('T')[0],
     scheduledTime: '10:00',
   });
 
@@ -174,9 +174,13 @@ export const SMMContent = () => {
     }
 
     try {
+      const liveDate = formData.publishedDate || formData.scheduledDate || new Date().toISOString().split('T')[0];
       const payload = {
         ...formData,
-        shootDate: formData.shootDate || new Date().toISOString().split('T')[0],
+        actualPostedDate: formData.postingStatus === 'Published' ? liveDate : undefined,
+        scheduledDate: liveDate,
+        publishedDate: liveDate,
+        platforms: [formData.platforms?.[0] || 'Instagram'],
         hashtags: formData.hashtags ? (Array.isArray(formData.hashtags) ? formData.hashtags : formData.hashtags.split(' ').map((t) => t.trim())) : [],
       };
       const res = await smmApi.createContent(payload);
@@ -197,8 +201,8 @@ export const SMMContent = () => {
           thumbnail: '',
           postingStatus: 'Draft',
           notPostedReason: 'Not Scheduled',
-          shootDate: new Date().toISOString().split('T')[0],
-          scheduledDate: '',
+          publishedDate: new Date().toISOString().split('T')[0],
+          scheduledDate: new Date().toISOString().split('T')[0],
           scheduledTime: '10:00',
         });
         fetchContents();
@@ -424,10 +428,10 @@ export const SMMContent = () => {
                             </button>
                             <span className="text-[10px] text-muted-foreground block">
                               {item.actualPostedDate
-                                ? `Posted: ${new Date(item.actualPostedDate).toLocaleDateString()}`
+                                ? `Published: ${new Date(item.actualPostedDate).toLocaleDateString()}`
                                 : item.scheduledDate
                                 ? `Scheduled: ${new Date(item.scheduledDate).toLocaleDateString()}`
-                                : `Shoot: ${item.shootDate ? new Date(item.shootDate).toLocaleDateString() : new Date().toLocaleDateString()}`}
+                                : `Live: ${new Date().toLocaleDateString()}`}
                             </span>
                           </div>
                         </div>
@@ -640,7 +644,7 @@ export const SMMContent = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="font-semibold text-foreground block mb-1">Publishing Status</label>
                 <select
@@ -657,7 +661,7 @@ export const SMMContent = () => {
                 </select>
               </div>
 
-              {formData.postingStatus !== 'Published' && (
+              {formData.postingStatus !== 'Published' ? (
                 <div>
                   <label className="font-semibold text-amber-500 block mb-1">Not Posted Reason</label>
                   <select
@@ -670,29 +674,28 @@ export const SMMContent = () => {
                     ))}
                   </select>
                 </div>
-              )}
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="font-semibold text-foreground">Shoot Date</label>
-                  <span className="text-[10px] text-muted-foreground font-medium">Auto-filled (Today)</span>
+              ) : (
+                <div>
+                  <label className="font-semibold text-emerald-500 block mb-1">Live Status</label>
+                  <div className="h-9 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center font-bold text-xs">
+                    Published Live to Audience
+                  </div>
                 </div>
-                <input
-                  type="date"
-                  value={formData.shootDate || new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setFormData({ ...formData, shootDate: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
-                />
-              </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Scheduled / Posted Date</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="font-semibold text-foreground">
+                    {formData.postingStatus === 'Published' ? 'Published / Live Date' : 'Scheduled / Target Date'}
+                  </label>
+                  <span className="text-[10px] text-muted-foreground font-medium">Auto: Live Date (Editable)</span>
+                </div>
                 <input
                   type="date"
-                  value={formData.scheduledDate}
-                  onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
+                  value={formData.publishedDate || formData.scheduledDate || new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setFormData({ ...formData, publishedDate: e.target.value, scheduledDate: e.target.value })}
                   className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
                 />
               </div>
@@ -869,9 +872,11 @@ export const SMMContent = () => {
                   <span className="font-bold text-foreground text-xs">{selectedContent.platforms?.join(', ')}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block text-[10px] uppercase font-bold">Shoot Date</span>
+                  <span className="text-muted-foreground block text-[10px] uppercase font-bold">Published Date</span>
                   <span className="font-bold text-foreground text-xs">
-                    {selectedContent.shootDate ? new Date(selectedContent.shootDate).toLocaleDateString('en-IN') : 'Today'}
+                    {selectedContent.actualPostedDate || selectedContent.scheduledDate
+                      ? new Date(selectedContent.actualPostedDate || selectedContent.scheduledDate).toLocaleDateString('en-IN')
+                      : 'Today (Live)'}
                   </span>
                 </div>
                 <div>

@@ -169,11 +169,22 @@ export const createSmmContent = async (req, res) => {
       });
     }
 
+    const rawLiveDate = req.body.actualPostedDate || req.body.publishedDate || req.body.scheduledDate;
+    const liveDate = rawLiveDate ? new Date(rawLiveDate) : new Date();
+
     const payload = {
       ...req.body,
-      shootDate: req.body.shootDate ? new Date(req.body.shootDate) : new Date(),
       createdBy: req.user?._id,
     };
+
+    if (req.body.postingStatus === 'Published') {
+      payload.actualPostedDate = liveDate;
+      payload.actualPostedTime = req.body.actualPostedTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    if (req.body.scheduledDate || req.body.publishedDate || req.body.postingStatus === 'Scheduled') {
+      payload.scheduledDate = liveDate;
+    }
 
     if (payload.scheduledDate === '') delete payload.scheduledDate;
     if (payload.actualPostedDate === '') delete payload.actualPostedDate;
@@ -185,12 +196,6 @@ export const createSmmContent = async (req, res) => {
       payload.adRecommendation = recommendation;
       if (!payload.performance) payload.performance = {};
       payload.performance.engagementRate = calculatedEngagementRate;
-    }
-
-    // Handle actual posted date/time tracking
-    if (req.body.postingStatus === 'Published' && !req.body.actualPostedDate) {
-      payload.actualPostedDate = new Date();
-      payload.actualPostedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     if (req.body.postingStatus === 'Pending Approval' && !req.body.approvalRequestedAt) {
