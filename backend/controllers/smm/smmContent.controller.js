@@ -85,9 +85,34 @@ export const getSmmContents = async (req, res) => {
     }
 
     if (startDate || endDate) {
-      query.scheduledDate = {};
-      if (startDate) query.scheduledDate.$gte = new Date(startDate);
-      if (endDate) query.scheduledDate.$lte = new Date(endDate);
+      const dateCond = {};
+      if (startDate) {
+        const s = new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        dateCond.$gte = s;
+      }
+      if (endDate) {
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        dateCond.$lte = e;
+      }
+
+      const dateOr = [
+        { actualPostedDate: dateCond },
+        { scheduledDate: dateCond },
+        { shootDate: dateCond },
+        { createdAt: dateCond },
+      ];
+
+      if (query.$or) {
+        query.$and = [
+          { $or: query.$or },
+          { $or: dateOr },
+        ];
+        delete query.$or;
+      } else {
+        query.$or = dateOr;
+      }
     }
 
     const total = await SmmContent.countDocuments(query);

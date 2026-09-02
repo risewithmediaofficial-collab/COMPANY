@@ -150,6 +150,8 @@ export const Campaigns = () => {
         project: filters.project || undefined,
         platform: filters.platform || undefined,
         status: statusTab !== 'all' ? statusTab : (filters.campaignStatus || undefined),
+        startDate: filters.startDate || undefined,
+        endDate: filters.endDate || undefined,
       };
       const res = await smmApi.getCampaigns(params);
       if (res.data?.success) setCampaigns(res.data.data || []);
@@ -164,8 +166,12 @@ export const Campaigns = () => {
     fetchCampaigns();
   }, [filters, statusTab]);
 
-  const handleFilterChange = (key, val) => {
-    setFilters((prev) => ({ ...prev, [key]: val }));
+  const handleFilterChange = (keyOrObj, val) => {
+    if (typeof keyOrObj === 'object' && keyOrObj !== null) {
+      setFilters((prev) => ({ ...prev, ...keyOrObj }));
+    } else {
+      setFilters((prev) => ({ ...prev, [keyOrObj]: val }));
+    }
   };
 
   const handleCreateSubmit = async (e) => {

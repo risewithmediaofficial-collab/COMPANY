@@ -40,31 +40,38 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
   }, [filters.client]);
 
   const handleDateRangeSelect = (val) => {
-    onFilterChange('dateRange', val);
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
 
+    let start = '';
+    let end = '';
+
     if (val === 'today') {
-      onFilterChange('startDate', todayStr);
-      onFilterChange('endDate', todayStr);
+      start = todayStr;
+      end = todayStr;
     } else if (val === 'this_month') {
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      onFilterChange('startDate', startOfMonth);
-      onFilterChange('endDate', todayStr);
+      start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      end = todayStr;
     } else if (val === 'last_30') {
-      const start30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      onFilterChange('startDate', start30);
-      onFilterChange('endDate', todayStr);
+      start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      end = todayStr;
     } else if (val === 'all') {
-      onFilterChange('startDate', '');
-      onFilterChange('endDate', '');
+      start = '';
+      end = '';
     } else if (val === 'specific_date') {
-      if (!filters.startDate) {
-        onFilterChange('startDate', todayStr);
-        onFilterChange('endDate', todayStr);
-      }
+      start = filters.startDate || todayStr;
+      end = filters.startDate || todayStr;
     } else if (val === 'custom') {
-      if (!filters.startDate) onFilterChange('startDate', todayStr);
+      start = filters.startDate || todayStr;
+      end = filters.endDate || todayStr;
+    }
+
+    if (typeof onFilterChange === 'function') {
+      onFilterChange({
+        dateRange: val,
+        startDate: start,
+        endDate: end,
+      });
     }
   };
 
@@ -216,8 +223,10 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
             type="date"
             value={filters.startDate || ''}
             onChange={(e) => {
-              onFilterChange('startDate', e.target.value);
-              onFilterChange('endDate', e.target.value);
+              onFilterChange({
+                startDate: e.target.value,
+                endDate: e.target.value,
+              });
             }}
             className="h-8 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden font-medium"
           />

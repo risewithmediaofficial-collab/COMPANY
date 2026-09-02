@@ -21,7 +21,7 @@ const populateCampaign = (query) =>
 
 export const getCampaigns = async (req, res) => {
   try {
-    const { client, project, status, platform, objective, search, page = 1, limit = 50 } = req.query;
+    const { client, project, status, platform, objective, search, startDate, endDate, page = 1, limit = 50 } = req.query;
     const query = {};
     if (client) query.client = client;
     if (project) query.project = project;
@@ -29,6 +29,25 @@ export const getCampaigns = async (req, res) => {
     if (platform) query.platform = platform;
     if (objective) query.objective = objective;
     if (search) query.name = { $regex: search, $options: 'i' };
+
+    if (startDate || endDate) {
+      const dateCond = {};
+      if (startDate) {
+        const s = new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        dateCond.$gte = s;
+      }
+      if (endDate) {
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        dateCond.$lte = e;
+      }
+      query.$or = [
+        { startDate: dateCond },
+        { endDate: dateCond },
+        { createdAt: dateCond },
+      ];
+    }
 
     const total = await Campaign.countDocuments(query);
     const campaigns = await populateCampaign(

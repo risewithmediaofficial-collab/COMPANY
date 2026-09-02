@@ -26,8 +26,16 @@ export const getSmmDashboardStats = async (req, res) => {
     if (project) filter.project = project;
 
     const dateFilter = {};
-    if (startDate) dateFilter.$gte = new Date(startDate);
-    if (endDate) dateFilter.$lte = new Date(endDate);
+    if (startDate) {
+      const s = new Date(startDate);
+      s.setHours(0, 0, 0, 0);
+      dateFilter.$gte = s;
+    }
+    if (endDate) {
+      const e = new Date(endDate);
+      e.setHours(23, 59, 59, 999);
+      dateFilter.$lte = e;
+    }
 
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -48,7 +56,14 @@ export const getSmmDashboardStats = async (req, res) => {
     const contentQuery = { ...filter };
     if (contentType) contentQuery.contentType = contentType;
     if (platform) contentQuery.platforms = platform;
-    if (startDate || endDate) contentQuery.scheduledDate = dateFilter;
+    if (startDate || endDate) {
+      contentQuery.$or = [
+        { actualPostedDate: dateFilter },
+        { scheduledDate: dateFilter },
+        { shootDate: dateFilter },
+        { createdAt: dateFilter },
+      ];
+    }
 
     const [
       totalPosts,

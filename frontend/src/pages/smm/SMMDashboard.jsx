@@ -57,8 +57,12 @@ export const SMMDashboard = () => {
     fetchDashboardStats();
   }, [filters, startDate, endDate]);
 
-  const handleFilterChange = (key, val) => {
-    setFilters((prev) => ({ ...prev, [key]: val }));
+  const handleFilterChange = (keyOrObj, val) => {
+    if (typeof keyOrObj === 'object' && keyOrObj !== null) {
+      setFilters((prev) => ({ ...prev, ...keyOrObj }));
+    } else {
+      setFilters((prev) => ({ ...prev, [keyOrObj]: val }));
+    }
   };
 
   const handleResetFilters = () => {

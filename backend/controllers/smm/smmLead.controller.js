@@ -25,8 +25,16 @@ export const getSmmLeads = async (req, res) => {
 
     if (startDate || endDate) {
       query.leadDate = {};
-      if (startDate) query.leadDate.$gte = new Date(startDate);
-      if (endDate) query.leadDate.$lte = new Date(endDate);
+      if (startDate) {
+        const s = new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        query.leadDate.$gte = s;
+      }
+      if (endDate) {
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        query.leadDate.$lte = e;
+      }
     }
 
     const total = await SmmLead.countDocuments(query);
