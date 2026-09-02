@@ -8,6 +8,6 @@ router.use(authorize('superAdmin', 'manager', 'employee'));
 
 router.get('/', getSmmNotes);
 router.post('/', createSmmNote);
-router.delete('/:id', authorize('superAdmin', 'manager'), deleteSmmNote);
+router.delete('/:id', authorize('superAdmin', 'manager', 'employee'), deleteSmmNote);
 
 export default router;

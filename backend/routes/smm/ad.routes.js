@@ -10,8 +10,8 @@ router.get('/', getAds);
 router.get('/:id', getAd);
 router.post('/', authorize('superAdmin', 'manager', 'employee'), createAd);
 router.put('/:id', authorize('superAdmin', 'manager', 'employee'), updateAd);
-router.patch('/:id/approval', authorize('superAdmin', 'manager'), updateAdApproval);
+router.patch('/:id/approval', authorize('superAdmin', 'manager', 'employee'), updateAdApproval);
 router.patch('/:id/performance', authorize('superAdmin', 'manager', 'employee'), updateAdPerformance);
-router.delete('/:id', authorize('superAdmin', 'manager'), deleteAd);
+router.delete('/:id', authorize('superAdmin', 'manager', 'employee'), deleteAd);
 
 export default router;

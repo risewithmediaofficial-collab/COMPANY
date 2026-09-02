@@ -8,8 +8,8 @@ router.use(authorize('superAdmin', 'manager', 'employee'));
 
 router.get('/', getSmmClients);
 router.get('/:id', getSmmClient);
-router.post('/', authorize('superAdmin', 'manager'), createSmmClient);
-router.put('/:id', authorize('superAdmin', 'manager'), updateSmmClient);
-router.delete('/:id', authorize('superAdmin'), deleteSmmClient);
+router.post('/', authorize('superAdmin', 'manager', 'employee'), createSmmClient);
+router.put('/:id', authorize('superAdmin', 'manager', 'employee'), updateSmmClient);
+router.delete('/:id', authorize('superAdmin', 'manager', 'employee'), deleteSmmClient);
 
 export default router;

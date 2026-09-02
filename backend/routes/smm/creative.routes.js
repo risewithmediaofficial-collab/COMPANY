@@ -9,6 +9,6 @@ router.use(authorize('superAdmin', 'manager', 'employee'));
 router.get('/', getCreatives);
 router.post('/', createCreative);
 router.put('/:id', updateCreative);
-router.delete('/:id', authorize('superAdmin', 'manager'), deleteCreative);
+router.delete('/:id', authorize('superAdmin', 'manager', 'employee'), deleteCreative);
 
 export default router;

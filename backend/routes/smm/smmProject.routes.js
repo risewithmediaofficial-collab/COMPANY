@@ -8,8 +8,8 @@ router.use(authorize('superAdmin', 'manager', 'employee'));
 
 router.get('/', getSmmProjects);
 router.get('/:id', getSmmProject);
-router.post('/', authorize('superAdmin', 'manager'), createSmmProject);
-router.put('/:id', authorize('superAdmin', 'manager'), updateSmmProject);
-router.delete('/:id', authorize('superAdmin'), deleteSmmProject);
+router.post('/', authorize('superAdmin', 'manager', 'employee'), createSmmProject);
+router.put('/:id', authorize('superAdmin', 'manager', 'employee'), updateSmmProject);
+router.delete('/:id', authorize('superAdmin', 'manager', 'employee'), deleteSmmProject);
 
 export default router;

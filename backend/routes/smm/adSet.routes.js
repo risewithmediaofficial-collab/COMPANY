@@ -8,8 +8,8 @@ router.use(authorize('superAdmin', 'manager', 'employee'));
 
 router.get('/', getAdSets);
 router.get('/:id', getAdSet);
-router.post('/', authorize('superAdmin', 'manager'), createAdSet);
-router.put('/:id', authorize('superAdmin', 'manager'), updateAdSet);
-router.delete('/:id', authorize('superAdmin', 'manager'), deleteAdSet);
+router.post('/', authorize('superAdmin', 'manager', 'employee'), createAdSet);
+router.put('/:id', authorize('superAdmin', 'manager', 'employee'), updateAdSet);
+router.delete('/:id', authorize('superAdmin', 'manager', 'employee'), deleteAdSet);
 
 export default router;
