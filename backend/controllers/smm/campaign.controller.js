@@ -144,15 +144,20 @@ export const createCampaign = async (req, res) => {
     }
 
     // Calculate initial remaining budget
-    const totalBudget = budgetType === 'Daily Budget'
-      ? (Number(dailyBudget) || 0) * (durationDays || 30)
-      : (Number(lifetimeBudget) || Number(payload.amountAdded) || 0);
+    const depositedBudget = payload.amountAdded !== undefined && payload.amountAdded !== '' 
+      ? Number(payload.amountAdded) 
+      : (budgetType === 'Daily Budget' ? (Number(dailyBudget) || 0) * (durationDays || 30) : (Number(lifetimeBudget) || 0));
+
+    const initialBalance = payload.remainingBalance !== undefined && payload.remainingBalance !== ''
+      ? Number(payload.remainingBalance)
+      : depositedBudget;
 
     const campaignPayload = {
       ...payload,
       durationDays,
-      amountSpent: 0,
-      remainingBalance: totalBudget,
+      amountAdded: depositedBudget,
+      amountSpent: Number(payload.amountSpent) || 0,
+      remainingBalance: initialBalance,
       createdBy: req.user?._id,
     };
 

@@ -15,6 +15,8 @@ export default function Campaigns() {
   const [campaigns, setCampaigns] = useState([]);
   const [crmClients, setCrmClients] = useState([]);
   const [crmProjects, setCrmProjects] = useState([]);
+  const [projectsList, setProjectsList] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
   const [videoList, setVideoList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -99,6 +101,66 @@ export default function Campaigns() {
     }));
   };
 
+  // Load projects whenever selected modal client changes
+  useEffect(() => {
+    if (!formData.client) {
+      setProjectsList(crmProjects);
+      return;
+    }
+    const loadClientProjects = async () => {
+      setLoadingProjects(true);
+      try {
+        const [smmRes, crmRes] = await Promise.allSettled([
+          smmApi.getProjects({ client: formData.client }),
+          api.get('/projects', { params: { client: formData.client } }),
+        ]);
+
+        const smmList = smmRes.status === 'fulfilled' && smmRes.value.data?.success ? (smmRes.value.data.data || []) : [];
+        const crmList = crmRes.status === 'fulfilled' && crmRes.value.data
+          ? (crmRes.value.data.projects || crmRes.value.data.data || (Array.isArray(crmRes.value.data) ? crmRes.value.data : []))
+          : [];
+
+        const map = new Map();
+        [...smmList, ...crmList].forEach(p => {
+          if (p && p._id) map.set(String(p._id), p);
+        });
+
+        if (map.size === 0 && crmProjects.length > 0) {
+          crmProjects
+            .filter(p => String(p.client?._id || p.client) === String(formData.client))
+            .forEach(p => map.set(String(p._id), p));
+        }
+
+        const combined = Array.from(map.values());
+        setProjectsList(combined.length > 0 ? combined : crmProjects);
+      } catch (err) {
+        console.error('Failed to load client projects:', err);
+        setProjectsList(crmProjects);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    loadClientProjects();
+  }, [formData.client, crmProjects]);
+
+  const handleBudgetChange = (field, value) => {
+    const num = value === '' ? '' : Number(value);
+    setFormData(prev => {
+      const next = { ...prev, [field]: num };
+      if (field === 'lifetimeBudget') {
+        if (prev.amountAdded === prev.lifetimeBudget || !prev.amountAdded) {
+          next.amountAdded = num;
+          next.remainingBalance = num;
+        }
+      } else if (field === 'amountAdded') {
+        if (num !== '') {
+          next.remainingBalance = num - (prev.amountSpent || 0);
+        }
+      }
+      return next;
+    });
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.client || !formData.project) {
@@ -109,6 +171,14 @@ export default function Campaigns() {
     if (!cleanPayload.sourceContentId) delete cleanPayload.sourceContentId;
     if (!cleanPayload.startDate) delete cleanPayload.startDate;
     if (!cleanPayload.endDate) delete cleanPayload.endDate;
+
+    cleanPayload.amountAdded = cleanPayload.amountAdded !== '' && cleanPayload.amountAdded !== undefined
+      ? Number(cleanPayload.amountAdded)
+      : (Number(cleanPayload.lifetimeBudget) || 0);
+
+    cleanPayload.remainingBalance = cleanPayload.remainingBalance !== '' && cleanPayload.remainingBalance !== undefined
+      ? Number(cleanPayload.remainingBalance)
+      : cleanPayload.amountAdded;
 
     try {
       if (editingCampaign) {
@@ -171,21 +241,45 @@ export default function Campaigns() {
   const openAdd = () => {
     setEditingCampaign(null);
     setFormData({
-      name: '', client: crmClients[0]?._id || '', project: crmProjects[0]?._id || '', sourceContentId: '', objective: 'Leads', campaignType: 'New Campaign',
-      status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: 1000,
-      lifetimeBudget: 30000, amountAdded: 30000, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
-      conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
+      name: '',
+      client: '',
+      project: '',
+      sourceContentId: '',
+      objective: 'Lead Generation',
+      campaignType: 'New Campaign',
+      status: 'Draft',
+      platform: 'Meta',
+      budgetType: 'Lifetime Budget',
+      dailyBudget: 1000,
+      lifetimeBudget: 30000,
+      amountAdded: 30000,
+      remainingBalance: 30000,
+      currency: 'INR',
+      goal: '',
+      landingPage: '',
+      pixelConnected: false,
+      conversionApiEnabled: false,
+      startDate: '',
+      endDate: '',
+      internalNotes: ''
     });
     setIsDrawerOpen(true);
   };
 
   const openEdit = (camp) => {
     setEditingCampaign(camp);
+    const added = camp.amountAdded ?? camp.lifetimeBudget ?? 30000;
+    const spent = camp.amountSpent ?? 0;
+    const rem = camp.remainingBalance ?? Math.max(0, added - spent);
     setFormData({
       ...camp,
       client: camp.client?._id || camp.client || '',
       project: camp.project?._id || camp.project || '',
       sourceContentId: camp.sourceContentId?._id || camp.sourceContentId || '',
+      lifetimeBudget: camp.lifetimeBudget ?? 30000,
+      dailyBudget: camp.dailyBudget ?? 1000,
+      amountAdded: added,
+      remainingBalance: rem,
     });
     setIsDrawerOpen(true);
   };
@@ -470,7 +564,7 @@ export default function Campaigns() {
               <select
                 required
                 value={formData.client}
-                onChange={e => setFormData({...formData, client: e.target.value})}
+                onChange={e => setFormData({ ...formData, client: e.target.value, project: '' })}
                 className="app-select"
               >
                 <option value="">Select Client</option>
@@ -478,15 +572,18 @@ export default function Campaigns() {
               </select>
             </div>
             <div>
-              <label className="font-semibold text-foreground block mb-1">Project *</label>
+              <label className="font-semibold text-foreground block mb-1">
+                Project * {loadingProjects && <span className="text-[10px] text-muted-foreground font-normal">(Loading...)</span>}
+              </label>
               <select
                 required
                 value={formData.project}
-                onChange={e => setFormData({...formData, project: e.target.value})}
+                onChange={e => setFormData({ ...formData, project: e.target.value })}
                 className="app-select"
+                disabled={loadingProjects}
               >
-                <option value="">Select Project</option>
-                {crmProjects.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                <option value="">{projectsList.length > 0 ? 'Select Project' : '-- No Projects Found --'}</option>
+                {projectsList.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
               </select>
             </div>
           </div>
@@ -496,7 +593,7 @@ export default function Campaigns() {
               <label className="font-semibold text-foreground block mb-1">Platform *</label>
               <select
                 value={formData.platform}
-                onChange={e => setFormData({...formData, platform: e.target.value})}
+                onChange={e => setFormData({ ...formData, platform: e.target.value })}
                 className="app-select"
               >
                 <option value="Meta">Meta Ads (IG & FB)</option>
@@ -510,7 +607,7 @@ export default function Campaigns() {
               <label className="font-semibold text-foreground block mb-1">Objective</label>
               <select
                 value={formData.objective}
-                onChange={e => setFormData({...formData, objective: e.target.value})}
+                onChange={e => setFormData({ ...formData, objective: e.target.value })}
                 className="app-select"
               >
                 <option value="Lead Generation">Lead Generation</option>
@@ -524,15 +621,16 @@ export default function Campaigns() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
             <div>
               <label className="font-semibold text-foreground block mb-1">Total Campaign Budget (₹) *</label>
               <input
                 type="number"
                 required
                 value={formData.lifetimeBudget}
-                onChange={e => setFormData({...formData, lifetimeBudget: Number(e.target.value), amountAdded: Number(e.target.value)})}
+                onChange={e => handleBudgetChange('lifetimeBudget', e.target.value)}
                 className="app-input font-bold text-foreground"
+                placeholder="30000"
               />
             </div>
             <div>
@@ -540,8 +638,33 @@ export default function Campaigns() {
               <input
                 type="number"
                 value={formData.dailyBudget}
-                onChange={e => setFormData({...formData, dailyBudget: Number(e.target.value)})}
+                onChange={e => setFormData({ ...formData, dailyBudget: Number(e.target.value) })}
                 className="app-input"
+                placeholder="1000"
+              />
+            </div>
+            <div>
+              <label className="font-semibold text-foreground block mb-1">
+                Deposited Budget (₹) <span className="text-muted-foreground font-normal text-[10px]">(Optional)</span>
+              </label>
+              <input
+                type="number"
+                value={formData.amountAdded ?? ''}
+                onChange={e => handleBudgetChange('amountAdded', e.target.value)}
+                className="app-input"
+                placeholder="Funds Deposited"
+              />
+            </div>
+            <div>
+              <label className="font-semibold text-foreground block mb-1">
+                Balance (₹) <span className="text-muted-foreground font-normal text-[10px]">(Optional)</span>
+              </label>
+              <input
+                type="number"
+                value={formData.remainingBalance ?? ''}
+                onChange={e => setFormData({ ...formData, remainingBalance: e.target.value === '' ? '' : Number(e.target.value) })}
+                className="app-input font-bold text-emerald-600 dark:text-emerald-400"
+                placeholder="Remaining Balance"
               />
             </div>
           </div>
