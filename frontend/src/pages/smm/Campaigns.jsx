@@ -703,6 +703,7 @@ export default function Campaigns() {
                 className="app-select font-semibold"
               >
                 <option value="Awareness">Awareness</option>
+                <option value="Traffic">Traffic</option>
                 <option value="Engagement">Engagement</option>
                 <option value="Leads">Leads</option>
                 <option value="App Promotion">App Promotion</option>
