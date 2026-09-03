@@ -344,6 +344,24 @@ export default function AdBudgetDashboard() {
   const totals = summary?.totals || {};
   const perCampaign = summary?.perCampaign || [];
 
+  const totalMonthlyBudget = useMemo(() => {
+    if (perCampaign.length > 0) {
+      return perCampaign.reduce((acc, c) => acc + (c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.totalAdded || 0), 0);
+    }
+    return campaignsList.reduce((acc, c) => acc + (c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0), 0);
+  }, [perCampaign, campaignsList]);
+
+  const totalDailyBudget = useMemo(() => {
+    if (perCampaign.length > 0) {
+      return perCampaign.reduce((acc, c) => acc + (c.dailyBudget || 0), 0);
+    }
+    return campaignsList.reduce((acc, c) => acc + (c.dailyBudget || 0), 0);
+  }, [perCampaign, campaignsList]);
+
+  const selectedDrawerCamp = useMemo(() => {
+    return campaignsList.find(c => String(c._id) === String(form.campaign));
+  }, [campaignsList, form.campaign]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -488,21 +506,37 @@ export default function AdBudgetDashboard() {
       </div>
 
       {/* ── KPI Cards ──────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <KPICard
+          testId="kpi-monthly-budget"
+          icon={Calendar}
+          label="Monthly Budget"
+          value={fmt(totalMonthlyBudget)}
+          sub="Total monthly allocation"
+          color="blue-500"
+        />
+        <KPICard
+          testId="kpi-daily-budget"
+          icon={TrendingUp}
+          label="Daily Budget"
+          value={fmt(totalDailyBudget)}
+          sub="Daily run-rate cap"
+          color="purple-500"
+        />
         <KPICard
           testId="kpi-total-added"
           icon={IndianRupee}
           label="Total Added"
           value={fmt(totals.totalAdded)}
-          sub="Funds added to campaigns"
-          color="blue-500"
+          sub="Funds deposited into campaigns"
+          color="amber-500"
         />
         <KPICard
           testId="kpi-total-spent"
           icon={TrendingDown}
           label="Total Spent"
           value={fmt(totals.totalSpent)}
-          sub="Actual ad spend"
+          sub="Actual spend recorded"
           color="rose-500"
         />
         <KPICard
@@ -510,32 +544,8 @@ export default function AdBudgetDashboard() {
           icon={DollarSign}
           label="Remaining Balance"
           value={fmt(totals.remaining)}
-          sub="Available budget"
+          sub="Available budget to run ads"
           color="emerald-500"
-        />
-        <KPICard
-          testId="kpi-total-leads"
-          icon={Target}
-          label="Total Leads"
-          value={fmtN(totals.totalLeads)}
-          sub={`CPL: ${fmt(totals.cpl)}`}
-          color="purple-500"
-        />
-        <KPICard
-          testId="kpi-messages"
-          icon={MessageSquare}
-          label="Messages"
-          value={fmtN(totals.totalMessages)}
-          sub="WhatsApp / DM"
-          color="emerald-500"
-        />
-        <KPICard
-          testId="kpi-roas"
-          icon={TrendingUp}
-          label="ROAS"
-          value={`${Number(totals.roas || 0).toFixed(2)}x`}
-          sub={`Revenue: ${fmt(totals.totalRevenue)}`}
-          color="primary"
         />
       </div>
 
@@ -567,12 +577,13 @@ export default function AdBudgetDashboard() {
               <thead>
                 <tr className="border-b border-border bg-secondary/30">
                   <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Campaign</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Monthly Budget</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Daily Budget</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Added</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Spent</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Remaining</th>
-                  <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground w-36">Spend %</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Leads</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">CPL</th>
+                  <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground w-28">Spend %</th>
+                  <th className="text-left px-3 py-2.5 font-semibold text-muted-foreground max-w-xs">Notes / Observations</th>
                   <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground">Status</th>
                 </tr>
               </thead>
@@ -580,6 +591,7 @@ export default function AdBudgetDashboard() {
                 {perCampaign.map((camp) => {
                   const spendP = pct(camp.totalSpent, camp.totalAdded);
                   const alert = ALERT_COLOR(spendP);
+                  const campMonthly = camp.lifetimeBudget || (camp.dailyBudget ? camp.dailyBudget * 30 : 0) || camp.totalAdded || 0;
                   return (
                     <tr key={camp.campaignId} className="hover:bg-secondary/20 transition-colors">
                       <td className="px-4 py-3">
@@ -593,9 +605,11 @@ export default function AdBudgetDashboard() {
                           </div>
                         </div>
                       </td>
+                      <td className="px-3 py-3 text-right font-mono font-semibold text-foreground">{fmt(campMonthly)}</td>
+                      <td className="px-3 py-3 text-right font-mono text-foreground">{fmt(camp.dailyBudget || 0)}</td>
                       <td className="px-3 py-3 text-right font-mono font-semibold text-blue-500">{fmt(camp.totalAdded)}</td>
                       <td className="px-3 py-3 text-right font-mono font-semibold text-rose-500">{fmt(camp.totalSpent)}</td>
-                      <td className="px-3 py-3 text-right font-mono font-semibold text-emerald-500">{fmt(camp.remaining)}</td>
+                      <td className="px-3 py-3 text-right font-mono font-bold text-emerald-500">{fmt(camp.remaining)}</td>
                       <td className="px-3 py-3">
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px]">
@@ -611,9 +625,8 @@ export default function AdBudgetDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-right font-mono font-semibold">{fmtN(camp.totalLeads)}</td>
-                      <td className="px-3 py-3 text-right font-mono text-muted-foreground">
-                        {camp.totalLeads > 0 ? fmt(camp.cpl?.toFixed(2)) : '—'}
+                      <td className="px-3 py-3 text-muted-foreground max-w-xs truncate">
+                        {camp.internalNotes || <span className="italic opacity-40">No notes noted</span>}
                       </td>
                       <td className="px-3 py-3 text-center">
                         <span className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${
@@ -664,11 +677,9 @@ export default function AdBudgetDashboard() {
                   <th className="text-left px-3 py-2.5 font-semibold text-muted-foreground">Ad</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Added</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Spent</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Balance</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Leads</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Msg</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Calls</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">CPL</th>
-                  <th className="text-left px-3 py-2.5 font-semibold text-muted-foreground max-w-xs">Notes</th>
+                  <th className="text-left px-3 py-2.5 font-semibold text-muted-foreground max-w-xs">Notes / Observations</th>
                   <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground">Flag</th>
                   <th className="px-3 py-2.5"></th>
                 </tr>
@@ -699,15 +710,13 @@ export default function AdBudgetDashboard() {
                     </td>
                     <td className="px-3 py-2.5 text-right font-mono font-semibold text-blue-500">{fmt(log.amountAdded)}</td>
                     <td className="px-3 py-2.5 text-right font-mono font-semibold text-rose-500">{fmt(log.amountSpent)}</td>
-                    <td className="px-3 py-2.5 text-right font-semibold text-emerald-600">{fmtN(log.leadsGenerated)}</td>
-                    <td className="px-3 py-2.5 text-right text-muted-foreground">{fmtN(log.messages)}</td>
-                    <td className="px-3 py-2.5 text-right text-muted-foreground">{fmtN(log.calls)}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-muted-foreground">
-                      {log.cpl > 0 ? fmt(log.cpl) : '—'}
+                    <td className="px-3 py-2.5 text-right font-mono font-bold text-emerald-500">
+                      {fmt(log.balance ?? Math.max(0, (log.amountAdded || 0) - (log.amountSpent || 0)))}
                     </td>
+                    <td className="px-3 py-2.5 text-right font-semibold text-muted-foreground">{fmtN(log.leadsGenerated)}</td>
                     <td className="px-3 py-2.5 max-w-xs">
-                      <span className="text-muted-foreground truncate block max-w-[180px]" title={log.notes}>
-                        {log.notes || <span className="italic opacity-40">No notes</span>}
+                      <span className="text-foreground block max-w-[220px] font-medium" title={log.notes}>
+                        {log.notes || <span className="italic opacity-40 font-normal">No notes</span>}
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-center">
@@ -853,6 +862,31 @@ export default function AdBudgetDashboard() {
             />
           </div>
 
+          {/* Selected Campaign Baseline Info */}
+          {selectedDrawerCamp && (
+            <div className="p-3 bg-secondary/60 rounded-2xl border border-border text-xs space-y-1.5">
+              <span className="font-bold text-foreground block">Campaign Budget Baseline</span>
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                <div>
+                  <span className="text-muted-foreground block">Monthly Budget:</span>
+                  <strong className="text-foreground">
+                    {fmt(selectedDrawerCamp.lifetimeBudget || (selectedDrawerCamp.dailyBudget ? selectedDrawerCamp.dailyBudget * 30 : 0) || selectedDrawerCamp.amountAdded || 0)}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block">Daily Budget:</span>
+                  <strong className="text-foreground">{fmt(selectedDrawerCamp.dailyBudget || 0)}</strong>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block">Current Balance:</span>
+                  <strong className="text-emerald-600 dark:text-emerald-400">
+                    {fmt(selectedDrawerCamp.remainingBalance ?? Math.max(0, (selectedDrawerCamp.amountAdded || 0) - (selectedDrawerCamp.amountSpent || 0)))}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Budget amounts */}
           <div className="p-3.5 bg-blue-500/5 border border-blue-500/20 rounded-2xl space-y-3">
             <h4 className="font-bold text-blue-600 dark:text-blue-400 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
@@ -885,14 +919,22 @@ export default function AdBudgetDashboard() {
                 />
               </div>
             </div>
+            {(Number(form.amountAdded) > 0 || Number(form.amountSpent) > 0) && (
+              <div className="pt-2 border-t border-border/50 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Calculated Entry Balance:</span>
+                <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                  {fmt(Math.max(0, Number(form.amountAdded || 0) - Number(form.amountSpent || 0)))}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Results */}
-          <div className="p-3.5 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl space-y-3">
-            <h4 className="font-bold text-emerald-600 dark:text-emerald-400 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-              <Target size={13} /> Results & Metrics
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {/* Collapsible Optional Metrics */}
+          <details className="text-xs text-muted-foreground p-3 bg-secondary/30 rounded-2xl border border-border">
+            <summary className="cursor-pointer font-semibold hover:text-foreground text-[11px]">
+              Optional Additional Metrics (Leads, Calls, Clicks)
+            </summary>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3">
               <div>
                 <label className="font-semibold text-foreground block mb-1">Leads Generated</label>
                 <input
@@ -954,7 +996,7 @@ export default function AdBudgetDashboard() {
                 />
               </div>
             </div>
-          </div>
+          </details>
 
           {/* Notes */}
           <div>

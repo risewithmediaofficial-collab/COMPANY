@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   FileCheck, BarChart3, CheckCircle2, Clock, FolderKanban,
   Receipt, TrendingUp, TrendingDown, AlertCircle, ArrowUpRight,
-  Layers, Star, Activity, Calendar, FileText
+  Layers, Star, Activity, Calendar, FileText, IndianRupee
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
@@ -34,6 +34,8 @@ const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
     {sub && <p className="text-[11px]" style={{ color: dark ? '#64748b' : '#94a3b8' }}>{sub}</p>}
   </motion.div>
 );
+
+const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 
 export default function PortalDashboard({ dark, user, setPendingCount }) {
   const [data, setData] = useState(null);
@@ -157,6 +159,51 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
           Welcome to your client portal. Here you can review content, approve posts, track campaign performance, access reports, and communicate with your team — all in one place.
         </p>
       </motion.div>
+
+      {/* ── Client Ad Budget Overview ── */}
+      {data?.adBudget && (
+        <div
+          className="rounded-2xl p-5 space-y-3"
+          style={{ background: card, border }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border/40">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <IndianRupee size={17} />
+              </div>
+              <div>
+                <h3 className={`text-sm font-bold ${txt}`}>Ad Budget & Spend Overview</h3>
+                <p className={`text-[11px] ${sub}`}>Live campaign budget status configured by your agency</p>
+              </div>
+            </div>
+            {data.adBudget.notes && (
+              <div className="text-[11px] px-3 py-1 rounded-xl bg-primary/10 text-primary font-medium flex items-center gap-1.5 max-w-md truncate">
+                <FileText size={13} className="shrink-0" />
+                <span className="truncate">Note: {data.adBudget.notes}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Monthly Budget</span>
+              <p className={`text-lg font-black ${txt}`}>{fmt(data.adBudget.monthlyBudget)}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Daily Budget</span>
+              <p className={`text-lg font-black ${txt}`}>{fmt(data.adBudget.dailyBudget)}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Amount Added</span>
+              <p className="text-lg font-black text-amber-500">{fmt(data.adBudget.amountAdded)}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Available Balance</span>
+              <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">{fmt(data.adBudget.balance)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

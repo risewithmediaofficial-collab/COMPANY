@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Calendar, BarChart3, Download,
   Palette, Receipt, HeadphonesIcon, BookOpen, Bell, Moon, Sun,
-  Menu, X, ChevronRight, LogOut, Settings, User
+  Menu, X, ChevronRight, LogOut, Settings, User, IndianRupee
 } from 'lucide-react';
 import PortalDashboard from './sections/PortalDashboard';
 import ContentCalendarView from './sections/ContentCalendarView';
@@ -14,20 +14,23 @@ import BrandAssets from './sections/BrandAssets';
 import PortalInvoices from './sections/PortalInvoices';
 import PortalSupport from './sections/PortalSupport';
 import PortalGuidelines from './sections/PortalGuidelines';
+import PortalAdBudget from './sections/PortalAdBudget';
 
 const NAV_ITEMS = [
-  { id: 'dashboard',  label: 'Dashboard',       icon: LayoutDashboard, color: '#6366f1' },
-  { id: 'calendar',   label: 'Content Calendar', icon: Calendar,        color: '#10b981' },
-  { id: 'reports',    label: 'Reports',          icon: BarChart3,       color: '#3b82f6' },
-  { id: 'downloads',  label: 'Downloads',        icon: Download,        color: '#8b5cf6' },
-  { id: 'assets',     label: 'Brand Assets',     icon: Palette,         color: '#ec4899' },
-  { id: 'invoices',   label: 'Invoices',         icon: Receipt,         color: '#14b8a6' },
-  { id: 'support',    label: 'Support',          icon: HeadphonesIcon,  color: '#f97316' },
-  { id: 'guidelines', label: 'Guidelines',       icon: BookOpen,        color: '#64748b' },
+  { id: 'dashboard',  label: 'Dashboard',        icon: LayoutDashboard, color: '#6366f1' },
+  { id: 'budget',     label: 'Ad Budget',        icon: IndianRupee,      color: '#10b981' },
+  { id: 'calendar',   label: 'Content Calendar', icon: Calendar,         color: '#10b981' },
+  { id: 'reports',    label: 'Reports',          icon: BarChart3,        color: '#3b82f6' },
+  { id: 'downloads',  label: 'Downloads',        icon: Download,         color: '#8b5cf6' },
+  { id: 'assets',     label: 'Brand Assets',     icon: Palette,          color: '#ec4899' },
+  { id: 'invoices',   label: 'Invoices',         icon: Receipt,          color: '#14b8a6' },
+  { id: 'support',    label: 'Support',          icon: HeadphonesIcon,   color: '#f97316' },
+  { id: 'guidelines', label: 'Guidelines',       icon: BookOpen,         color: '#64748b' },
 ];
 
 const SECTION_MAP = {
   dashboard:  PortalDashboard,
+  budget:     PortalAdBudget,
   calendar:   ContentCalendarView,
   reports:    PortalReports,
   downloads:  PortalDownloads,

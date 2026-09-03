@@ -21,6 +21,7 @@ import {
   getClientInvoices,
   getClientProjects,
   getClientTasks,
+  getClientAdBudget,
 } from '../controllers/portal.controller.js';
 import { authorize, protect } from '../middleware/auth.middleware.js';
 
@@ -39,6 +40,7 @@ router.get('/finance', authorize('client'), getClientFinanceOverview);
 router.get('/invoices', authorize('client'), getClientInvoices);
 router.get('/projects', authorize('client'), getClientProjects);
 router.get('/tasks', authorize('client'), getClientTasks);
+router.get('/budget', authorize('client'), getClientAdBudget);
 
 // ─── ADMIN / MANAGER ROUTES ──────────────────────────────────────────────────
 router.post('/content', authorize('superAdmin', 'manager', 'employee'), createContentItem);

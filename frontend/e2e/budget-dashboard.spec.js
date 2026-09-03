@@ -73,14 +73,15 @@ test.describe('Ad Budget Dashboard', () => {
   });
 
   // ── Test 5: KPI cards are visible ────────────────────────────────
-  test('5. KPI cards display Total Added, Total Spent, Remaining Balance', async ({ page }) => {
+  test('5. KPI cards display Monthly Budget, Daily Budget, Total Added, Total Spent, Remaining Balance', async ({ page }) => {
     await page.goto('/smm/budget');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.locator('#kpi-total-added')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('#kpi-monthly-budget')).toBeVisible({ timeout: 8000 });
+    await expect(page.locator('#kpi-daily-budget')).toBeVisible();
+    await expect(page.locator('#kpi-total-added')).toBeVisible();
     await expect(page.locator('#kpi-total-spent')).toBeVisible();
     await expect(page.locator('#kpi-remaining')).toBeVisible();
-    await expect(page.locator('#kpi-total-leads')).toBeVisible();
   });
 
   // ── Test 6: "Log Budget Entry" button opens drawer ────────────────

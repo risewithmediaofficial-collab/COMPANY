@@ -15,6 +15,8 @@ import Referral from '../models/referral.model.js';
 import CallHistory from '../models/callHistory.model.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import Notification from '../models/notification.model.js';
+import Campaign from '../models/smm/campaign.model.js';
+import SmmAdSpend from '../models/smm/smmAdSpend.model.js';
 
 // Helper: get client from logged-in user
 const getClientFromUser = async (userId) => {
@@ -52,6 +54,32 @@ export const getPortalDashboard = async (req, res) => {
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
+    // Client Ad Budget: Monthly Budget, Daily Budget, Amount Added, Balance, and Notes
+    let adBudget = { monthlyBudget: 0, dailyBudget: 0, amountAdded: 0, balance: 0, notes: '', campaignCount: 0 };
+    try {
+      const client = await getClientFromUser(req.user._id);
+      if (client) {
+        const clientCampaigns = await Campaign.find({ client: client._id });
+        const mBudget = clientCampaigns.reduce((sum, c) => sum + (c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0), 0);
+        const dBudget = clientCampaigns.reduce((sum, c) => sum + (c.dailyBudget || 0), 0);
+        const added = clientCampaigns.reduce((sum, c) => sum + (c.amountAdded || 0), 0);
+        const spent = clientCampaigns.reduce((sum, c) => sum + (c.amountSpent || 0), 0);
+        const bal = Math.max(0, added - spent);
+        const latestSpendLog = await SmmAdSpend.findOne({ client: client._id }).sort({ date: -1 });
+        adBudget = {
+          monthlyBudget: mBudget,
+          dailyBudget: dBudget,
+          amountAdded: added,
+          amountSpent: spent,
+          balance: bal,
+          notes: latestSpendLog?.notes || clientCampaigns[0]?.internalNotes || 'Budget on track',
+          campaignCount: clientCampaigns.length,
+        };
+      }
+    } catch (e) {
+      console.error('Error fetching client adBudget for portal dashboard:', e);
+    }
+
     res.json({
       success: true,
       stats: {
@@ -62,6 +90,7 @@ export const getPortalDashboard = async (req, res) => {
         activeProjects: activeProjects.length,
         openInvoices: openInvoices.length,
       },
+      adBudget,
       activeProjects,
       openInvoices,
       recentContent,
@@ -462,6 +491,75 @@ export const getClientTasks = async (req, res) => {
       .sort({ dueDate: 1, createdAt: -1 });
 
     res.json({ success: true, tasks, client });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── CLIENT AD BUDGET ─────────────────────────────────────────────────────────
+
+export const getClientAdBudget = async (req, res) => {
+  try {
+    const client = await getClientFromUser(req.user._id);
+    if (!client) {
+      return res.status(404).json({ success: false, message: 'Client profile not found' });
+    }
+
+    const campaigns = await Campaign.find({ client: client._id })
+      .select('name platform objective status dailyBudget lifetimeBudget amountAdded amountSpent remainingBalance internalNotes')
+      .sort({ updatedAt: -1 });
+
+    const spendLogs = await SmmAdSpend.find({ client: client._id })
+      .populate('campaign', 'name platform')
+      .populate('ad', 'name')
+      .sort({ date: -1 })
+      .limit(50);
+
+    const totalMonthlyBudget = campaigns.reduce((sum, c) => sum + (c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0), 0);
+    const totalDailyBudget = campaigns.reduce((sum, c) => sum + (c.dailyBudget || 0), 0);
+    const totalAdded = campaigns.reduce((sum, c) => sum + (c.amountAdded || 0), 0);
+    const totalSpent = campaigns.reduce((sum, c) => sum + (c.amountSpent || 0), 0);
+    const totalBalance = Math.max(0, totalAdded - totalSpent);
+
+    const latestLog = spendLogs[0];
+    const generalNote = latestLog?.notes || campaigns.find(c => c.internalNotes)?.internalNotes || 'Monthly ad budget active and monitored.';
+
+    res.json({
+      success: true,
+      data: {
+        totals: {
+          monthlyBudget: totalMonthlyBudget,
+          dailyBudget: totalDailyBudget,
+          amountAdded: totalAdded,
+          amountSpent: totalSpent,
+          balance: totalBalance,
+          notes: generalNote,
+        },
+        campaigns: campaigns.map(c => ({
+          _id: c._id,
+          name: c.name,
+          platform: c.platform,
+          objective: c.objective,
+          status: c.status,
+          monthlyBudget: c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0,
+          dailyBudget: c.dailyBudget || 0,
+          amountAdded: c.amountAdded || 0,
+          amountSpent: c.amountSpent || 0,
+          balance: c.remainingBalance ?? Math.max(0, (c.amountAdded || 0) - (c.amountSpent || 0)),
+          notes: c.internalNotes || '',
+        })),
+        recentLogs: spendLogs.map(l => ({
+          _id: l._id,
+          date: l.date,
+          campaignName: l.campaign?.name || 'Campaign',
+          adName: l.ad?.name || 'All Creatives',
+          amountAdded: l.amountAdded || 0,
+          amountSpent: l.amountSpent || 0,
+          balance: l.balance || 0,
+          notes: l.notes || '',
+        })),
+      },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
