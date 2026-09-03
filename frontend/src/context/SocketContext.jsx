@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 import { sendBrowserNotification } from '../utils/browserNotification';
+import { logout } from '../store/slices/authSlice';
+import { toast } from 'sonner';
 
 const SocketContext = createContext(null);
 
@@ -11,6 +13,7 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const socketRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -46,6 +49,16 @@ export const SocketProvider = ({ children }) => {
           link: data.link || '/',
         });
       }
+    });
+
+    // Targeted session termination for password / permissions / status changes
+    newSocket.on('forceLogout', (data) => {
+      console.warn('Targeted forceLogout received:', data);
+      toast.error(data?.message || 'Your session has ended. Please log in again.');
+      dispatch(logout());
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 600);
     });
 
     // Real-time invalidations across data models so changes reflect live without refresh

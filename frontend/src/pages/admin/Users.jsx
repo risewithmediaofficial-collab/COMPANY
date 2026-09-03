@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../../store/slices/authSlice';
 import {
   CheckCircle2,
   Clock,
@@ -61,6 +63,8 @@ const statusStyles = {
 
 const Users = () => {
   const { user: currentUser } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { data: users = [], isLoading, isFetching, refetch } = useUsers();
   const updateUser = useUpdateUser();
   const updateApproval = useUpdateUserApproval();
@@ -118,13 +122,23 @@ const Users = () => {
       return;
     }
     try {
+      const isSelf = String(passwordUser._id) === String(currentUser?._id);
       await adminChangeUserPassword.mutateAsync({
         id: passwordUser._id,
         newPassword: passwordForm.newPassword,
       });
-      toast.success(`Password updated for ${passwordUser.name}`);
+
+      const updatedUserName = passwordUser.name;
       setPasswordUser(null);
       setPasswordForm({ newPassword: '', confirmPassword: '' });
+
+      if (isSelf) {
+        toast.success('Your password was updated. Logging out...');
+        dispatch(logout());
+        navigate('/login');
+      } else {
+        toast.success(`Password updated for ${updatedUserName}. That user alone has been logged out.`);
+      }
     } catch {
       toast.error('Failed to update password');
     }

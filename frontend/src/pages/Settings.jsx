@@ -224,11 +224,15 @@ const Settings = () => {
       return;
     }
 
-    await changePassword.mutateAsync({
-      currentPassword: passwordData.currentPassword,
-      newPassword: passwordData.newPassword,
-    });
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    try {
+      await changePassword.mutateAsync({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch {
+      // Error handled by mutation onError toast
+    }
   };
 
   const savePreferences = async (nextPreferences = preferences) => {

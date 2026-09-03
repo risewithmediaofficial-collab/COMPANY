@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useDispatch } from 'react-redux';
+import { logout } from '../store/slices/authSlice';
 import api from '../api';
 
 export const useSettings = () => {
@@ -76,13 +78,18 @@ export const useUpdatePreferences = () => {
 };
 
 export const useChangePassword = () => {
+  const dispatch = useDispatch();
   return useMutation({
     mutationFn: async (data) => {
       const response = await api.put('/auth/change-password', data);
       return response.data;
     },
     onSuccess: (data) => {
-      toast.success(data.message || 'Password changed successfully');
+      toast.success(data.message || 'Password changed successfully. Please log in again.');
+      dispatch(logout());
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 600);
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Failed to change password'),
   });

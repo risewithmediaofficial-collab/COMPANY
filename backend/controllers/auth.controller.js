@@ -246,6 +246,8 @@ export const resetPassword = async (req, res) => {
     }
 
     user.password = req.body.password;
+    user.passwordChangedAt = new Date();
+    user.refreshToken = null;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
@@ -299,7 +301,20 @@ export const changePassword = async (req, res) => {
     }
 
     user.password = newPassword;
+    user.passwordChangedAt = new Date();
+    user.refreshToken = null;
     await user.save();
+
+    const io = req.app?.get('io') || global.io;
+    if (io) {
+      const msg = 'Your password has been changed. Please log in again.';
+      if (typeof io.sendToUser === 'function') {
+        io.sendToUser(user._id.toString(), 'forceLogout', { reason: 'password_changed', message: msg });
+      } else if (io.to) {
+        io.to(`user:${user._id.toString()}`).emit('forceLogout', { reason: 'password_changed', message: msg });
+      }
+    }
+
     res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

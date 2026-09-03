@@ -124,6 +124,40 @@ router.put('/:id', authorize('superAdmin'), async (req, res) => {
     const updateDoc = Object.keys(unset).length ? { $set: updates, $unset: unset } : { $set: updates };
     const user = await User.findByIdAndUpdate(req.params.id, updateDoc, { new: true, runValidators: true }).select(safeUserProjection);
 
+    // Invalidate session & force logout target user alone if permissions, role, or account deactivation occurred
+    const shouldInvalidateSession =
+      updates.permissions !== undefined ||
+      updates.role !== undefined ||
+      updates.isActive === false ||
+      updates.approvalStatus === 'rejected' ||
+      updates.employmentStatus === 'terminated';
+
+    if (shouldInvalidateSession && user) {
+      await User.findByIdAndUpdate(req.params.id, {
+        passwordChangedAt: new Date(),
+        refreshToken: null,
+      });
+
+      const io = req.app?.get('io') || global.io;
+      if (io) {
+        const isSelf = String(req.user._id) === String(user._id);
+        const reason = updates.isActive === false || updates.approvalStatus === 'rejected' || updates.employmentStatus === 'terminated'
+          ? 'account_deactivated'
+          : 'permissions_updated';
+        const msg = reason === 'account_deactivated'
+          ? 'Your account has been deactivated. Please contact an administrator.'
+          : (isSelf
+              ? 'Your permissions or role were updated. Please log in again.'
+              : 'Your permissions or role were updated by an administrator. Please log in again.');
+
+        if (typeof io.sendToUser === 'function') {
+          io.sendToUser(user._id.toString(), 'forceLogout', { reason, message: msg });
+        } else if (io.to) {
+          io.to(`user:${user._id.toString()}`).emit('forceLogout', { reason, message: msg });
+        }
+      }
+    }
+
     await createActivityLog({
       actor: req.user,
       action: 'user.updated',
@@ -153,11 +187,27 @@ router.put('/:id/password', authorize('superAdmin', 'admin'), async (req, res) =
       return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
     }
 
-    const user = await User.findById(req.params.id).select('+password');
+    const user = await User.findById(req.params.id).select('+password +refreshToken');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     user.password = newPassword;
+    user.passwordChangedAt = new Date();
+    user.refreshToken = null;
     await user.save();
+
+    const io = req.app?.get('io') || global.io;
+    if (io) {
+      const isSelf = String(req.user._id) === String(user._id);
+      const msg = isSelf
+        ? 'Your password was changed. Please log in again with your new password.'
+        : 'Your password was changed by an administrator. Please log in with your new password.';
+
+      if (typeof io.sendToUser === 'function') {
+        io.sendToUser(user._id.toString(), 'forceLogout', { reason: 'password_changed', message: msg });
+      } else if (io.to) {
+        io.to(`user:${user._id.toString()}`).emit('forceLogout', { reason: 'password_changed', message: msg });
+      }
+    }
 
     await createActivityLog({
       actor: req.user,
@@ -201,9 +251,25 @@ router.patch('/:id/approval', authorize('superAdmin'), async (req, res) => {
       unset.rejectedAt = '';
     }
 
-    const updateDoc = Object.keys(unset).length ? { $set: set, $unset: unset } : { $set: set };
     const user = await User.findByIdAndUpdate(req.params.id, updateDoc, { new: true, runValidators: true }).select(safeUserProjection);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (approvalStatus === 'rejected' || approvalStatus === 'pending') {
+      await User.findByIdAndUpdate(req.params.id, {
+        passwordChangedAt: new Date(),
+        refreshToken: null,
+      });
+
+      const io = req.app?.get('io') || global.io;
+      if (io) {
+        const msg = 'Your account status was updated. Please contact an administrator.';
+        if (typeof io.sendToUser === 'function') {
+          io.sendToUser(user._id.toString(), 'forceLogout', { reason: 'approval_changed', message: msg });
+        } else if (io.to) {
+          io.to(`user:${user._id.toString()}`).emit('forceLogout', { reason: 'approval_changed', message: msg });
+        }
+      }
+    }
 
     await createActivityLog({
       actor: req.user,
