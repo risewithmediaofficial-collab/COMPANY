@@ -1125,7 +1125,10 @@ const Projects = () => {
       {/* Add / Edit Project Modal */}
       <AddProjectModal
         open={showAddModal}
-        onOpenChange={setShowAddModal}
+        onOpenChange={(open) => {
+          setShowAddModal(open);
+          if (!open) setSelectedProject(null);
+        }}
         project={selectedProject}
       />
 

@@ -2,6 +2,7 @@
 // PROJECT CONTROLLER
 // =============================================
 
+import mongoose from 'mongoose';
 import Project from '../models/project.model.js';
 import Task from '../models/task.model.js';
 import Client from '../models/client.model.js';
@@ -12,18 +13,36 @@ import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 
 const projectStatusMap = {
   Planning: 'planning',
+  planning: 'planning',
   'In Progress': 'active',
+  in_progress: 'active',
+  'in-progress': 'active',
+  active: 'active',
+  Active: 'active',
   'On Hold': 'on_hold',
+  on_hold: 'on_hold',
+  'on-hold': 'on_hold',
   Completed: 'completed',
+  completed: 'completed',
+  Done: 'completed',
+  done: 'completed',
   Cancelled: 'cancelled',
+  cancelled: 'cancelled',
+  Canceled: 'cancelled',
+  canceled: 'cancelled',
 };
 
 const priorityMap = {
   Low: 'low',
+  low: 'low',
   Medium: 'medium',
+  medium: 'medium',
   High: 'high',
+  high: 'high',
   Critical: 'urgent',
+  critical: 'urgent',
   Urgent: 'urgent',
+  urgent: 'urgent',
 };
 
 const statusToColumnMap = {
@@ -122,8 +141,14 @@ const serializeProject = (project) => {
 
 const normalizeProjectPayload = (body) => {
   const payload = { ...body };
-  if (payload.status) payload.status = projectStatusMap[payload.status] || payload.status;
-  if (payload.priority) payload.priority = priorityMap[payload.priority] || payload.priority;
+  if (payload.status) {
+    const rawStatus = typeof payload.status === 'string' ? payload.status.trim() : payload.status;
+    payload.status = projectStatusMap[rawStatus] || projectStatusMap[String(rawStatus).toLowerCase()] || rawStatus;
+  }
+  if (payload.priority) {
+    const rawPriority = typeof payload.priority === 'string' ? payload.priority.trim() : payload.priority;
+    payload.priority = priorityMap[rawPriority] || priorityMap[String(rawPriority).toLowerCase()] || rawPriority;
+  }
   if (payload.endDate !== undefined) {
     if (payload.endDate && typeof payload.endDate === 'string' && payload.endDate.trim() !== '') {
       payload.dueDate = new Date(payload.endDate);
@@ -146,7 +171,24 @@ const normalizeProjectPayload = (body) => {
   if (payload.budget !== undefined) {
     payload.budget = Number(payload.budget) || 0;
   }
-  if (payload.team && !Array.isArray(payload.team)) payload.team = [payload.team];
+
+  // Flatten client / manager / proposal / team objects if populated objects were passed
+  if (payload.client && typeof payload.client === 'object' && payload.client._id) {
+    payload.client = payload.client._id;
+  }
+  if (payload.manager && typeof payload.manager === 'object' && payload.manager._id) {
+    payload.manager = payload.manager._id;
+  }
+  if (payload.acceptedProposalId && typeof payload.acceptedProposalId === 'object' && payload.acceptedProposalId._id) {
+    payload.acceptedProposalId = payload.acceptedProposalId._id;
+  }
+  if (payload.team && !Array.isArray(payload.team)) {
+    payload.team = [payload.team];
+  }
+  if (payload.team && Array.isArray(payload.team)) {
+    payload.team = payload.team.map((m) => (m && typeof m === 'object' && m._id ? m._id : m));
+  }
+
   if (!payload.currency) payload.currency = 'INR';
 
   // Support SaaS & Internal Products without Client
@@ -161,9 +203,24 @@ const normalizeProjectPayload = (body) => {
     payload.productType = payload.productType || 'saas_product';
   }
 
-  // Remove empty client reference
-  if (!payload.client || payload.client === '' || payload.client === 'none' || payload.client === 'null') {
-    delete payload.client;
+  // Clear client reference cleanly for SaaS / internal or empty values
+  if (
+    payload.client === '' ||
+    payload.client === 'none' ||
+    payload.client === 'null' ||
+    payload.client === null ||
+    (payload.isInternal && !payload.client)
+  ) {
+    payload.client = null;
+  }
+
+  if (
+    payload.acceptedProposalId === '' ||
+    payload.acceptedProposalId === 'none' ||
+    payload.acceptedProposalId === 'null' ||
+    payload.acceptedProposalId === null
+  ) {
+    payload.acceptedProposalId = null;
   }
 
   return payload;
@@ -324,6 +381,10 @@ export const getProjects = async (req, res) => {
 
 export const getProject = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
     const project = await Project.findById(req.params.id)
       .populate('client', 'name email logo company')
       .populate('acceptedProposalId', 'title amount acceptedAt proposalNumber status currency')
@@ -416,6 +477,10 @@ export const createProject = async (req, res) => {
 
 export const updateProject = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
     const project = await Project.findByIdAndUpdate(req.params.id, normalizeProjectPayload(req.body), { new: true, runValidators: true })
       .populate('client', 'name email logo company')
       .populate('manager', 'name avatar')
@@ -423,7 +488,14 @@ export const updateProject = async (req, res) => {
 
     if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
-    req.app.get('io').broadcastToProject(project._id.toString(), 'projectUpdated', project);
+    const io = req.app?.get('io') || global.io;
+    if (io && typeof io.broadcastToProject === 'function') {
+      try {
+        io.broadcastToProject(project._id.toString(), 'projectUpdated', project);
+      } catch (ioErr) {
+        console.error('Failed to emit project update socket:', ioErr.message);
+      }
+    }
 
     await createActivityLog({
       actor: req.user,
@@ -432,7 +504,7 @@ export const updateProject = async (req, res) => {
       entityId: project._id,
       title: 'Project updated',
       description: `${project.name} was updated.`,
-      relatedClient: project.client?._id || project.client,
+      relatedClient: project.client?._id || project.client || undefined,
       relatedProject: project._id,
       metadata: { fields: Object.keys(req.body || {}) },
     });
@@ -470,6 +542,10 @@ export const deleteProject = async (req, res) => {
 
 export const getProjectKanban = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
     const project = await Project.findById(req.params.id).select('_id client manager team');
     const access = await assertProjectAccess(req, project);
     if (!access.allowed) {

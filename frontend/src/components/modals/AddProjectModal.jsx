@@ -46,15 +46,56 @@ import { toast } from 'sonner';
 
 const DRAFT_KEY = 'draft:project-modal';
 
+const toDateInputValue = (val) => {
+  if (!val) return '';
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
+  } catch {
+    return '';
+  }
+};
+
+const normalizeFormStatus = (status) => {
+  if (!status) return 'Planning';
+  const key = String(status).toLowerCase().replace(/[\s-]+/g, '_');
+  const map = {
+    planning: 'Planning',
+    active: 'In Progress',
+    in_progress: 'In Progress',
+    on_process: 'In Progress',
+    on_hold: 'On Hold',
+    completed: 'Completed',
+    done: 'Completed',
+    cancelled: 'Cancelled',
+    canceled: 'Cancelled',
+  };
+  return map[key] || status;
+};
+
+const normalizeFormPriority = (priority) => {
+  if (!priority) return 'Medium';
+  const key = String(priority).toLowerCase();
+  const map = {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    urgent: 'Critical',
+    critical: 'Critical',
+  };
+  return map[key] || priority;
+};
+
 const projectFormSchema = z
   .object({
     name: z.string().min(2, 'Project name is required'),
-    description: z.string().optional(),
+    description: z.string().optional().or(z.literal('')),
     category: z.string().min(1, 'Project type is required'),
     client: z.string().optional().or(z.literal('')),
     isInternal: z.boolean().default(false),
-    status: z.enum(['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled']).default('Planning'),
-    priority: z.enum(['Low', 'Medium', 'High', 'Critical']).default('Medium'),
+    status: z.string().default('Planning'),
+    priority: z.string().default('Medium'),
     startDate: z.string().optional().or(z.literal('')),
     endDate: z.string().optional().or(z.literal('')),
     budget: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
@@ -70,8 +111,8 @@ const projectFormSchema = z
     otherExpenses: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
     totalBudget: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
     amountReceived: z.union([z.number(), z.string(), z.nan()]).optional().nullable(),
-    paymentStatus: z.enum(['pending', 'partial', 'paid']).optional(),
-    budgetNotes: z.string().optional(),
+    paymentStatus: z.string().optional(),
+    budgetNotes: z.string().optional().or(z.literal('')),
   })
   .refine(
     (data) => {
@@ -83,7 +124,7 @@ const projectFormSchema = z
         data.category === 'internal_product';
 
       if (isSaasOrInternal) return true;
-      return Boolean(data.client && data.client.trim().length > 0);
+      return Boolean(data.client && data.client.trim().length > 0 && data.client !== 'none');
     },
     {
       message: 'Client is required for client projects (or select SaaS Product type)',
@@ -163,19 +204,26 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
   useEffect(() => {
     if (project) {
+      const isInternalProject = Boolean(
+        project.isInternal ||
+        ['saas_product', 'saas', 'internal_tool', 'internal_product'].includes(project.category)
+      );
+      const clientId = project.client?._id || (typeof project.client === 'string' ? project.client : '') || '';
+
       form.reset({
-        name: project.name,
+        name: project.name || '',
         description: project.description || '',
         category: project.category || '',
-        client: project.client?._id || '',
-        status: project.status,
-        priority: project.priority,
-        startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
-        endDate: project.endDate ? new Date(project.endDate).toISOString().split('T')[0] : '',
+        client: clientId,
+        isInternal: isInternalProject,
+        status: normalizeFormStatus(project.status),
+        priority: normalizeFormPriority(project.priority),
+        startDate: toDateInputValue(project.startDate),
+        endDate: toDateInputValue(project.endDate || project.dueDate),
         budget: project.budget || project.budgetDetails?.totalBudget || project.budgetDetails?.quotedAmount || undefined,
         quotedAmount: project.budgetDetails?.quotedAmount ?? project.budget ?? undefined,
         currency: project.currency || 'INR',
-        acceptedProposalId: project.acceptedProposalId?._id || project.acceptedProposalId || '',
+        acceptedProposalId: project.acceptedProposalId?._id || (typeof project.acceptedProposalId === 'string' ? project.acceptedProposalId : '') || '',
         marketingAmount: project.budgetDetails?.marketingAmount,
         adsAmount: project.budgetDetails?.adsAmount,
         contentAmount: project.budgetDetails?.contentAmount,
@@ -252,77 +300,96 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   }, [project, open, form, defaultClientId]);
 
   const onSubmit = async (data) => {
-    const subtotal = [
-      data.marketingAmount, data.adsAmount, data.contentAmount, data.designAmount,
-      data.developmentAmount, data.printingAmount, data.otherExpenses,
-    ].reduce((sum, val) => sum + (Number(val) || 0), 0);
-    const parsedBudget = data.budget !== undefined && data.budget !== null && data.budget !== '' && !isNaN(Number(data.budget)) ? Number(data.budget) : undefined;
-    const quotedAmount = Number(data.quotedAmount) || parsedBudget || subtotal || 0;
-    const totalBudget = Number(data.totalBudget) || subtotal || quotedAmount || 0;
-    const amountReceived = Number(data.amountReceived) || 0;
+    try {
+      const subtotal = [
+        data.marketingAmount, data.adsAmount, data.contentAmount, data.designAmount,
+        data.developmentAmount, data.printingAmount, data.otherExpenses,
+      ].reduce((sum, val) => sum + (Number(val) || 0), 0);
+      const parsedBudget = data.budget !== undefined && data.budget !== null && data.budget !== '' && !isNaN(Number(data.budget)) ? Number(data.budget) : undefined;
+      const quotedAmount = Number(data.quotedAmount) || parsedBudget || subtotal || 0;
+      const totalBudget = Number(data.totalBudget) || subtotal || quotedAmount || 0;
+      const amountReceived = Number(data.amountReceived) || 0;
 
-    const payload = {
-      ...data,
-      startDate: data.startDate?.trim() ? data.startDate : null,
-      endDate: data.endDate?.trim() ? data.endDate : null,
-      budget: parsedBudget !== undefined ? parsedBudget : (quotedAmount || totalBudget || 0),
-      currency: data.currency || 'INR',
-      acceptedProposalId: data.acceptedProposalId || undefined,
-      budgetDetails: {
-        marketingAmount: Number(data.marketingAmount) || 0,
-        adsAmount: Number(data.adsAmount) || 0,
-        contentAmount: Number(data.contentAmount) || 0,
-        designAmount: Number(data.designAmount) || 0,
-        developmentAmount: Number(data.developmentAmount) || 0,
-        printingAmount: Number(data.printingAmount) || 0,
-        otherExpenses: Number(data.otherExpenses) || 0,
-        quotedAmount,
-        totalBudget,
-        amountReceived,
-        paymentStatus: data.paymentStatus || 'pending',
-        budgetNotes: data.budgetNotes || '',
-      },
-    };
-    delete payload.marketingAmount;
-    delete payload.adsAmount;
-    delete payload.contentAmount;
-    delete payload.designAmount;
-    delete payload.developmentAmount;
-    delete payload.printingAmount;
-    delete payload.otherExpenses;
-    delete payload.totalBudget;
-    delete payload.quotedAmount;
-    delete payload.amountReceived;
-    delete payload.paymentStatus;
-    delete payload.budgetNotes;
+      const isSaasOrInternal =
+        data.isInternal ||
+        ['saas_product', 'saas', 'internal_tool', 'internal_product'].includes(data.category);
 
-    let savedProject;
-    if (project) {
-      savedProject = await updateProject.mutateAsync({ id: project._id, data: payload });
-    } else {
-      savedProject = await createProject.mutateAsync(payload);
-    }
+      const clientId = isSaasOrInternal || !data.client || data.client === 'none'
+        ? null
+        : data.client;
 
-    const targetProjectId = project?._id || savedProject?._id || savedProject?.project?._id;
-    if (targetProjectId && monthlyDeliverables !== undefined) {
-      try {
-        await batchSaveDeliverables.mutateAsync({
-          projectId: targetProjectId,
-          month: deliverableMonth,
-          year: deliverableYear,
-          deliverables: monthlyDeliverables,
-        });
-      } catch (err) {
-        console.error('Failed to save monthly deliverables in project modal', err);
+      const payload = {
+        ...data,
+        client: clientId,
+        isInternal: isSaasOrInternal,
+        startDate: data.startDate?.trim() ? data.startDate : null,
+        endDate: data.endDate?.trim() ? data.endDate : null,
+        budget: parsedBudget !== undefined ? parsedBudget : (quotedAmount || totalBudget || 0),
+        currency: data.currency || 'INR',
+        acceptedProposalId: data.acceptedProposalId?.trim() ? data.acceptedProposalId : null,
+        budgetDetails: {
+          marketingAmount: Number(data.marketingAmount) || 0,
+          adsAmount: Number(data.adsAmount) || 0,
+          contentAmount: Number(data.contentAmount) || 0,
+          designAmount: Number(data.designAmount) || 0,
+          developmentAmount: Number(data.developmentAmount) || 0,
+          printingAmount: Number(data.printingAmount) || 0,
+          otherExpenses: Number(data.otherExpenses) || 0,
+          quotedAmount,
+          totalBudget,
+          amountReceived,
+          paymentStatus: data.paymentStatus || 'pending',
+          budgetNotes: data.budgetNotes || '',
+        },
+      };
+      delete payload.marketingAmount;
+      delete payload.adsAmount;
+      delete payload.contentAmount;
+      delete payload.designAmount;
+      delete payload.developmentAmount;
+      delete payload.printingAmount;
+      delete payload.otherExpenses;
+      delete payload.totalBudget;
+      delete payload.quotedAmount;
+      delete payload.amountReceived;
+      delete payload.paymentStatus;
+      delete payload.budgetNotes;
+
+      let savedProject;
+      if (project) {
+        savedProject = await updateProject.mutateAsync({ id: project._id, data: payload });
+      } else {
+        savedProject = await createProject.mutateAsync(payload);
       }
-    }
 
-    if (!createProject.isError && !updateProject.isError) {
+      const targetProjectId = project?._id || savedProject?._id || savedProject?.project?._id;
+      if (targetProjectId && monthlyDeliverables !== undefined) {
+        try {
+          await batchSaveDeliverables.mutateAsync({
+            projectId: targetProjectId,
+            month: deliverableMonth,
+            year: deliverableYear,
+            deliverables: monthlyDeliverables,
+          });
+        } catch (err) {
+          console.error('Failed to save monthly deliverables in project modal', err);
+        }
+      }
+
       form.reset();
       setMonthlyDeliverables([]);
       localStorage.removeItem(DRAFT_KEY);
       onOpenChange(false);
+    } catch (err) {
+      console.error('Failed to save project:', err);
+      toast.error(err.response?.data?.message || err.message || 'Failed to save project');
     }
+  };
+
+  const onFormError = (errors) => {
+    console.error('Project form validation errors:', errors);
+    const firstError = Object.values(errors)[0];
+    toast.error(firstError?.message || 'Please check the required fields in the form');
   };
 
   const handleClose = () => {
@@ -352,7 +419,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+          <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-5 p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
             <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}

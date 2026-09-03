@@ -106,27 +106,38 @@ const ProjectDetails = () => {
   // ─── Data Fetching ───────────────────────────────────────────────────────────
   const fetchProjectData = async (showLoading = true) => {
     try {
-      if (showLoading) setLoading(true);
-      const [projectRes, kanbanRes] = await Promise.all([
+      if (showLoading && !project) setLoading(true);
+      const [projectSettled, kanbanSettled] = await Promise.allSettled([
         api.get(`/projects/${id}`),
         api.get(`/projects/${id}/kanban`),
       ]);
 
-      setProject(projectRes.data.project);
-      setRecentActivity(projectRes.data.recentActivity || []);
-      setRecentTasks(projectRes.data.recentTasks || []);
-      setKanban(kanbanRes.data.kanban || {});
+      if (projectSettled.status === 'fulfilled' && projectSettled.value.data?.project) {
+        setProject(projectSettled.value.data.project);
+        setRecentActivity(projectSettled.value.data.recentActivity || []);
+        setRecentTasks(projectSettled.value.data.recentTasks || []);
+      } else if (projectSettled.status === 'rejected' && showLoading && !project) {
+        toast.error(projectSettled.reason?.response?.data?.message || 'Failed to load project');
+      }
+
+      if (kanbanSettled.status === 'fulfilled' && kanbanSettled.value.data?.kanban) {
+        setKanban(kanbanSettled.value.data.kanban);
+      }
 
       if (user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') {
-        const requestsRes = await api.get(`/access-requests/project/${id}`);
-        setAccessRequests(requestsRes.data.requests || []);
+        try {
+          const requestsRes = await api.get(`/access-requests/project/${id}`);
+          setAccessRequests(requestsRes.data.requests || []);
+        } catch (_) {
+          // non-blocking
+        }
       }
     } catch (error) {
-      if (showLoading) {
+      if (showLoading && !project) {
         toast.error(error.response?.data?.message || 'Failed to load project');
       }
     } finally {
-      if (showLoading) setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -349,34 +360,39 @@ const ProjectDetails = () => {
   };
 
   const handleSaveBudget = async () => {
-    const subtotal = [
-      budgetForm.marketingAmount, budgetForm.adsAmount, budgetForm.contentAmount,
-      budgetForm.designAmount, budgetForm.developmentAmount, budgetForm.printingAmount,
-      budgetForm.otherExpenses,
-    ].reduce((sum, val) => sum + (Number(val) || 0), 0);
-    const totalBudget = Number(budgetForm.totalBudget) || subtotal;
-    const amountReceived = Number(budgetForm.amountReceived) || 0;
+    try {
+      const subtotal = [
+        budgetForm.marketingAmount, budgetForm.adsAmount, budgetForm.contentAmount,
+        budgetForm.designAmount, budgetForm.developmentAmount, budgetForm.printingAmount,
+        budgetForm.otherExpenses,
+      ].reduce((sum, val) => sum + (Number(val) || 0), 0);
+      const totalBudget = Number(budgetForm.totalBudget) || subtotal;
+      const amountReceived = Number(budgetForm.amountReceived) || 0;
 
-    await updateProject.mutateAsync({
-      id: project._id,
-      data: {
-        budget: totalBudget,
-        budgetDetails: {
-          ...budgetForm,
-          marketingAmount: Number(budgetForm.marketingAmount) || 0,
-          adsAmount: Number(budgetForm.adsAmount) || 0,
-          contentAmount: Number(budgetForm.contentAmount) || 0,
-          designAmount: Number(budgetForm.designAmount) || 0,
-          developmentAmount: Number(budgetForm.developmentAmount) || 0,
-          printingAmount: Number(budgetForm.printingAmount) || 0,
-          otherExpenses: Number(budgetForm.otherExpenses) || 0,
-          totalBudget,
-          amountReceived,
+      await updateProject.mutateAsync({
+        id: project._id,
+        data: {
+          budget: totalBudget,
+          budgetDetails: {
+            ...budgetForm,
+            marketingAmount: Number(budgetForm.marketingAmount) || 0,
+            adsAmount: Number(budgetForm.adsAmount) || 0,
+            contentAmount: Number(budgetForm.contentAmount) || 0,
+            designAmount: Number(budgetForm.designAmount) || 0,
+            developmentAmount: Number(budgetForm.developmentAmount) || 0,
+            printingAmount: Number(budgetForm.printingAmount) || 0,
+            otherExpenses: Number(budgetForm.otherExpenses) || 0,
+            totalBudget,
+            amountReceived,
+          },
         },
-      },
-    });
-    setEditingBudget(false);
-    fetchProjectData();
+      });
+      setEditingBudget(false);
+      fetchProjectData(false);
+    } catch (err) {
+      console.error('Failed to save budget:', err);
+      toast.error(err.response?.data?.message || err.message || 'Failed to update budget');
+    }
   };
 
   // ─── Early returns ────────────────────────────────────────────────────────────
@@ -1170,7 +1186,7 @@ const ProjectDetails = () => {
             open={showProjectModal}
             onOpenChange={(open) => {
               setShowProjectModal(open);
-              if (!open) fetchProjectData();
+              if (!open) fetchProjectData(false);
             }}
             project={project}
           />
