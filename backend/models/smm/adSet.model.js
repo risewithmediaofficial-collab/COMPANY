@@ -19,6 +19,7 @@ const adSetSchema = new mongoose.Schema(
       default: 'Instant Form',
       trim: true,
     },
+    destinationPlatforms: [{ type: String }],
     sourceContentIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' }],
     audience: {
       location: [{ type: String }],

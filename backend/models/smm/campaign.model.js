@@ -50,9 +50,11 @@ const campaignSchema = new mongoose.Schema(
 
     objective: {
       type: String,
-      enum: ['Awareness', 'Engagement', 'Leads', 'App Promotion', 'Sales', 'Lead Generation', 'Website Traffic', 'Traffic', 'Reach', 'Video Views', 'Conversions', 'Messages', 'Other'],
+      enum: ['Awareness', 'Engagement', 'Page Engagement', 'Leads', 'App Promotion', 'Sales', 'Lead Generation', 'Website Traffic', 'Traffic', 'Reach', 'Video Views', 'Conversions', 'Messages', 'Other'],
       required: true,
     },
+    destination: { type: String, default: '' },
+    destinationPlatforms: [{ type: String }],
     status: {
       type: String,
       enum: ['Draft', 'Scheduled', 'Running', 'Active', 'Paused', 'Stopped', 'Completed', 'Archived'],

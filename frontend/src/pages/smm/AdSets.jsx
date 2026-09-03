@@ -8,62 +8,10 @@ import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { toast } from 'react-hot-toast';
+import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
+import { getDestinationsForObjective, normalizeObjective } from '../../utils/smmDestinations';
 
 const PLACEMENTS_LIST = ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels', 'Messenger', 'Audience Network'];
-
-export const OBJECTIVE_DESTINATIONS = {
-  Awareness: [
-    { value: 'Message Destination', label: 'Message Destination' },
-    { value: 'Call', label: 'Call' },
-    { value: 'Instagram or Facebook', label: 'Instagram or Facebook' },
-  ],
-  Traffic: [
-    { value: 'Message Destination', label: 'Message Destination' },
-    { value: 'Instagram', label: 'Instagram' },
-    { value: 'Facebook', label: 'Facebook' },
-    { value: 'Calls', label: 'Calls' },
-  ],
-  Leads: [
-    { value: 'Message', label: 'Message' },
-    { value: 'Instant Form', label: 'Instant Form' },
-  ],
-  'App Promotion': [
-    { value: 'App', label: 'App' },
-  ],
-  Sales: [
-    { value: 'Call', label: 'Call' },
-    { value: 'Message', label: 'Message' },
-    { value: 'App', label: 'App' },
-  ],
-  Engagement: [
-    { value: 'Message', label: 'Message' },
-    { value: 'Calls', label: 'Calls' },
-    { value: 'Instagram or Facebook', label: 'Instagram or Facebook' },
-  ],
-};
-
-export const getDestinationsForObjective = (objective = '') => {
-  const norm = String(objective || '').trim().toLowerCase();
-  if (norm === 'awareness' || norm === 'reach') {
-    return OBJECTIVE_DESTINATIONS.Awareness;
-  }
-  if (norm === 'traffic' || norm === 'website traffic') {
-    return OBJECTIVE_DESTINATIONS.Traffic;
-  }
-  if (norm === 'leads' || norm === 'lead generation') {
-    return OBJECTIVE_DESTINATIONS.Leads;
-  }
-  if (norm === 'app promotion' || norm === 'app' || norm === 'app install') {
-    return OBJECTIVE_DESTINATIONS['App Promotion'];
-  }
-  if (norm === 'sales' || norm === 'conversions') {
-    return OBJECTIVE_DESTINATIONS.Sales;
-  }
-  if (norm === 'engagement' || norm === 'messages' || norm === 'video views') {
-    return OBJECTIVE_DESTINATIONS.Engagement;
-  }
-  return OBJECTIVE_DESTINATIONS.Awareness;
-};
 
 export default function AdSets() {
   const location = useLocation();
@@ -85,6 +33,7 @@ export default function AdSets() {
     targetAudienceText: '',
     locationText: '',
     formType: 'Message Destination',
+    destinationPlatforms: [],
     sourceContentIds: [],
     audience: {
       location: ['India'],
@@ -127,6 +76,8 @@ export default function AdSets() {
       const camp = location.state.campaign;
       const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
       const dests = getDestinationsForObjective(camp.objective || 'Awareness');
+      const prefFormType = location.state.formType || camp.destination || dests[0]?.value || 'Message Destination';
+      const prefPlatforms = location.state.destinationPlatforms || camp.destinationPlatforms || [];
       setEditingAdSet(null);
       setFormData({
         name: `${camp.name} - Ad Set`,
@@ -134,7 +85,8 @@ export default function AdSets() {
         status: 'Draft',
         targetAudienceText: '',
         locationText: '',
-        formType: dests[0]?.value || 'Message Destination',
+        formType: prefFormType,
+        destinationPlatforms: prefPlatforms,
         sourceContentIds: vIds,
         audience: {
           location: ['India'],
@@ -167,19 +119,21 @@ export default function AdSets() {
   const handleCampaignChange = (campaignId) => {
     const camp = campaigns.find(c => String(c._id) === String(campaignId));
     if (!camp) {
-      setFormData(prev => ({ ...prev, campaign: '' }));
+      setFormData(prev => ({ ...prev, campaign: '', destinationPlatforms: [] }));
       return;
     }
     const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
     const dests = getDestinationsForObjective(camp.objective);
     setFormData(prev => {
       const isCurrentValid = dests.some(d => d.value === prev.formType);
+      const nextDest = isCurrentValid ? prev.formType : (camp.destination || dests[0]?.value || 'Message Destination');
       return {
         ...prev,
         campaign: camp._id,
         name: prev.name || `${camp.name} - Ad Set`,
         budget: camp.dailyBudget || prev.budget || 1000,
-        formType: isCurrentValid ? prev.formType : (dests[0]?.value || 'Message Destination'),
+        formType: nextDest,
+        destinationPlatforms: camp.destinationPlatforms || [],
         sourceContentIds: vIds,
       };
     });
@@ -472,36 +426,18 @@ export default function AdSets() {
           </div>
 
           {/* Form Type / Destination (dynamically based on Campaign Objective) */}
-          <div className="p-3.5 bg-secondary/30 rounded-2xl border border-border space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="font-semibold text-foreground flex items-center gap-1.5">
-                <MessageCircle size={15} className="text-emerald-500" /> Form Type / Destination *
-              </label>
-              {selectedCampaign?.objective && (
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
-                  {selectedCampaign.objective}
-                </span>
-              )}
-            </div>
-            <select
-              value={formData.formType}
-              onChange={e => setFormData({...formData, formType: e.target.value})}
-              className="app-select font-medium"
-              required
-            >
-              {formData.formType && !availableDestinations.some(d => d.value === formData.formType) && (
-                <option value={formData.formType}>{formData.formType} (Current)</option>
-              )}
-              {availableDestinations.map(d => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-[11px] text-muted-foreground">
-              Destinations available for <strong>{currentObjective}</strong> objective.
-            </p>
-          </div>
+          <SMMDestinationSelector
+            objective={currentObjective}
+            value={formData.formType}
+            onChange={(newVal, platforms) => {
+              setFormData(prev => ({
+                ...prev,
+                formType: newVal,
+                destinationPlatforms: platforms || [],
+              }));
+            }}
+            label="Form Type / Destination *"
+          />
 
           {/* Detailed Demographic Targeting */}
           <div className="p-3.5 bg-secondary/30 rounded-2xl border border-border space-y-2.5">

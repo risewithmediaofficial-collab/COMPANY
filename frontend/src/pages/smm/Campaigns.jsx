@@ -11,6 +11,8 @@ import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
+import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
+import { SMM_OBJECTIVES, getDestinationsForObjective } from '../../utils/smmDestinations';
 
 export default function Campaigns() {
   const navigate = useNavigate();
@@ -32,7 +34,8 @@ export default function Campaigns() {
   const [createdCampaignForNextStep, setCreatedCampaignForNextStep] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [], objective: 'Leads', campaignType: 'New Campaign',
+    name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [],
+    objective: 'Awareness', destination: 'Message Destination', destinationPlatforms: [], campaignType: 'New Campaign',
     status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: '',
     lifetimeBudget: '', amountAdded: 0, remainingBalance: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
@@ -265,13 +268,16 @@ export default function Campaigns() {
 
   const openAdd = () => {
     setEditingCampaign(null);
+    const defaultDests = getDestinationsForObjective('Awareness');
     setFormData({
       name: '',
       client: '',
       project: '',
       sourceContentId: '',
       sourceContentIds: [],
-      objective: 'Leads',
+      objective: 'Awareness',
+      destination: defaultDests[0]?.value || 'Message Destination',
+      destinationPlatforms: [],
       campaignType: 'New Campaign',
       status: 'Draft',
       platform: 'Meta',
@@ -298,12 +304,16 @@ export default function Campaigns() {
     const spent = camp.amountSpent ?? 0;
     const rem = camp.remainingBalance ?? Math.max(0, added - spent);
     const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
+    const dests = getDestinationsForObjective(camp.objective || 'Awareness');
     setFormData({
       ...camp,
       client: camp.client?._id || camp.client || '',
       project: camp.project?._id || camp.project || '',
       sourceContentId: camp.sourceContentId?._id || camp.sourceContentId || vIds[0] || '',
       sourceContentIds: vIds,
+      objective: camp.objective || 'Awareness',
+      destination: camp.destination || dests[0]?.value || 'Message Destination',
+      destinationPlatforms: camp.destinationPlatforms || [],
       lifetimeBudget: camp.lifetimeBudget ?? '',
       dailyBudget: camp.dailyBudget ?? '',
       amountAdded: added,
@@ -338,8 +348,13 @@ export default function Campaigns() {
       render: (row) => (
         <div>
           <span className="font-bold text-foreground block">{row.name}</span>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
             <span className="text-[11px] font-medium text-muted-foreground">{row.client?.name || row.client?.company || 'No Client'} • {row.objective}</span>
+            {row.destination && (
+              <span className="px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold">
+                📍 {row.destination}
+              </span>
+            )}
             {row.sourceContentId && (
               <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold">
                 🎥 Video Ad
@@ -699,18 +714,42 @@ export default function Campaigns() {
               <label className="font-semibold text-foreground block mb-1">Objective *</label>
               <select
                 value={formData.objective}
-                onChange={e => setFormData({ ...formData, objective: e.target.value })}
+                onChange={e => {
+                  const newObj = e.target.value;
+                  const dests = getDestinationsForObjective(newObj);
+                  const firstDest = dests[0]?.value || 'Message Destination';
+                  const platforms = (firstDest === 'Instagram' || firstDest === 'Facebook')
+                    ? [firstDest]
+                    : (firstDest === 'Instagram & Facebook' ? ['Instagram', 'Facebook'] : []);
+                  setFormData(prev => ({
+                    ...prev,
+                    objective: newObj,
+                    destination: firstDest,
+                    destinationPlatforms: platforms,
+                  }));
+                }}
                 className="app-select font-semibold"
               >
-                <option value="Awareness">Awareness</option>
-                <option value="Traffic">Traffic</option>
-                <option value="Engagement">Engagement</option>
-                <option value="Leads">Leads</option>
-                <option value="App Promotion">App Promotion</option>
-                <option value="Sales">Sales</option>
+                {SMM_OBJECTIVES.map(obj => (
+                  <option key={obj} value={obj}>{obj}</option>
+                ))}
               </select>
             </div>
           </div>
+
+          {/* Dynamic Destination / Form Type Selector */}
+          <SMMDestinationSelector
+            objective={formData.objective}
+            value={formData.destination}
+            onChange={(newDest, platforms) => {
+              setFormData(prev => ({
+                ...prev,
+                destination: newDest,
+                destinationPlatforms: platforms || [],
+              }));
+            }}
+            label="Target Destination / Conversion Location *"
+          />
 
           {/* Step 5: Budget */}
           <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
@@ -800,6 +839,12 @@ export default function Campaigns() {
                 </span>
               </div>
               <div className="flex justify-between text-muted-foreground">
+                <span>Objective & Destination:</span>
+                <span className="font-semibold text-primary">
+                  {createdCampaignForNextStep.objective} • {createdCampaignForNextStep.destination || 'Message Destination'}
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
                 <span>Campaign Budget:</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">₹{(createdCampaignForNextStep.lifetimeBudget || createdCampaignForNextStep.amountAdded || 0).toLocaleString()}</span>
               </div>
@@ -810,7 +855,13 @@ export default function Campaigns() {
                 onClick={() => {
                   const camp = createdCampaignForNextStep;
                   setCreatedCampaignForNextStep(null);
-                  navigate('/smm/adsets', { state: { campaign: camp } });
+                  navigate('/smm/adsets', {
+                    state: {
+                      campaign: camp,
+                      formType: camp.destination,
+                      destinationPlatforms: camp.destinationPlatforms,
+                    }
+                  });
                 }}
                 className="flex-1 py-2.5 px-4 bg-primary text-primary-foreground font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-primary/20 hover:opacity-90 transition-all"
               >

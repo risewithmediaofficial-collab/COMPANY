@@ -84,11 +84,15 @@ export default function Ads() {
         description: '',
         cta: (adSet.formType === 'Call' || adSet.formType === 'Calls')
           ? 'Call Now'
-          : (adSet.formType === 'Message' || adSet.formType === 'Message Destination' || adSet.formType === 'WhatsApp')
+          : (adSet.formType === 'Message' || adSet.formType === 'Message Destination' || adSet.formType === 'Message Destinations' || adSet.formType === 'WhatsApp')
             ? 'Send Message'
             : (adSet.formType === 'App')
               ? 'Install Now'
-              : 'Learn More',
+              : (adSet.formType === 'Instagram' || adSet.formType === 'Facebook' || adSet.formType === 'Instagram & Facebook')
+                ? 'Send Message'
+                : (adSet.formType === 'Instant Form' || adSet.formType === 'Instant Forms')
+                  ? 'Apply Now'
+                  : 'Learn More',
         destinationUrl: '',
         whatsappNumber: '',
         utmParameters: '',
@@ -510,7 +514,22 @@ export default function Ads() {
             <select
               required
               value={formData.adSet}
-              onChange={e => setFormData({...formData, adSet: e.target.value})}
+              onChange={e => {
+                const chosenSetId = e.target.value;
+                const chosenSet = adSets.find(s => String(s._id) === String(chosenSetId));
+                const newCta = (chosenSet?.formType === 'Call' || chosenSet?.formType === 'Calls')
+                  ? 'Call Now'
+                  : (chosenSet?.formType === 'Message' || chosenSet?.formType === 'Message Destination' || chosenSet?.formType === 'Message Destinations' || chosenSet?.formType === 'WhatsApp')
+                    ? 'Send Message'
+                    : (chosenSet?.formType === 'App')
+                      ? 'Install Now'
+                      : (chosenSet?.formType === 'Instagram' || chosenSet?.formType === 'Facebook' || chosenSet?.formType === 'Instagram & Facebook')
+                        ? 'Send Message'
+                        : (chosenSet?.formType === 'Instant Form' || chosenSet?.formType === 'Instant Forms')
+                          ? 'Apply Now'
+                          : (formData.cta || 'Learn More');
+                setFormData(prev => ({ ...prev, adSet: chosenSetId, cta: newCta }));
+              }}
               className="app-select"
             >
               <option value="">Select Ad Set</option>
