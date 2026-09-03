@@ -128,7 +128,7 @@ const ManagerTaskAssignments = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useSelector((state) => state.auth);
-  const isSuperAdmin = user?.role === 'superAdmin';
+  const isSuperAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
 
   const [filters, setFilters] = useState({
     search: '',
@@ -159,7 +159,7 @@ const ManagerTaskAssignments = () => {
   const projectBriefs = notesData || [];
 
   const assignableUsers = useMemo(
-    () => users.filter((person) => ['superAdmin', 'manager', 'employee'].includes(person.role)),
+    () => users.filter((person) => ['superAdmin', 'admin', 'manager', 'employee'].includes(person.role)),
     [users],
   );
 

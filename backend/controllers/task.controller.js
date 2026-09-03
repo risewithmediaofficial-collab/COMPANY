@@ -662,7 +662,7 @@ export const getTask = async (req, res) => {
     }
 
     if (
-      req.user.role !== 'superAdmin'
+      !['superAdmin', 'admin'].includes(req.user.role)
       && req.user.organizationId
       && task.organizationId
       && task.organizationId.toString() !== req.user.organizationId.toString()

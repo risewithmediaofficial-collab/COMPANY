@@ -75,7 +75,7 @@ const emptyForm = {
 const SOPDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const isAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
-  const canAdd = ['superAdmin', 'manager', 'employee'].includes(user?.role);
+  const canAdd = ['superAdmin', 'admin', 'manager', 'employee'].includes(user?.role);
 
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -106,8 +106,8 @@ const SOPDashboard = () => {
     const creatorId = sop.createdBy?._id || sop.createdBy;
     const isAuthorSelf = String(creatorId) === String(user._id);
 
-    if (['superAdmin', 'manager'].includes(user?.role)) return true;
-    if (authorRole === 'superAdmin' || authorRole === 'manager') return false;
+    if (['superAdmin', 'admin', 'manager'].includes(user?.role)) return true;
+    if (['superAdmin', 'admin'].includes(authorRole) && !['superAdmin', 'admin'].includes(user?.role)) return false;
     return isAuthorSelf;
   };
 
@@ -117,8 +117,8 @@ const SOPDashboard = () => {
     const creatorId = sop.createdBy?._id || sop.createdBy;
     const isAuthorSelf = String(creatorId) === String(user._id);
 
-    if (['superAdmin', 'manager'].includes(user?.role)) return true;
-    if (authorRole === 'superAdmin' || authorRole === 'manager') return false;
+    if (['superAdmin', 'admin', 'manager'].includes(user?.role)) return true;
+    if (['superAdmin', 'admin'].includes(authorRole) && !['superAdmin', 'admin'].includes(user?.role)) return false;
     return isAuthorSelf;
   };
 

@@ -26,6 +26,7 @@ import {
   Palette,
   Film,
   Megaphone,
+  Edit2,
 } from 'lucide-react';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
@@ -769,6 +770,14 @@ const Tasks = () => {
                 columns={columns}
                 loading={isLoading}
                 onRowClick={handleRowClick}
+                onEdit={
+                  canCreate
+                    ? (task) => {
+                        setSelectedTaskId(task._id);
+                        setShowAddModal(true);
+                      }
+                    : undefined
+                }
                 onDelete={canCreate ? (id) => setDeleteTaskId(id) : undefined}
                 emptyTitle="No tasks found"
                 emptyDescription="Create a task to assign scripting, filming, editing, or publishing deliverables."
@@ -803,9 +812,25 @@ const Tasks = () => {
                           {task.client?.company || task.client?.name || task.clientName || 'Internal Task'}
                         </p>
                       </div>
-                      <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
-                        {task.priority || 'Medium'}
-                      </StatusBadge>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
+                          {task.priority || 'Medium'}
+                        </StatusBadge>
+                        {canCreate && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTaskId(task._id);
+                              setShowAddModal(true);
+                            }}
+                            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                            title="Edit Task"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Assignees & Sub-roles */}
@@ -1060,13 +1085,29 @@ const Tasks = () => {
                                     {task.taskTitle || task.title}
                                   </h4>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase shrink-0 ${
-                                  task.priority === 'Urgent' || task.priority === 'High'
-                                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                                    : 'bg-secondary text-muted-foreground'
-                                }`}>
-                                  {task.priority || 'Medium'}
-                                </span>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase ${
+                                    task.priority === 'Urgent' || task.priority === 'High'
+                                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                      : 'bg-secondary text-muted-foreground'
+                                  }`}>
+                                    {task.priority || 'Medium'}
+                                  </span>
+                                  {canCreate && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTaskId(task._id);
+                                        setShowAddModal(true);
+                                      }}
+                                      className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                                      title="Edit Task"
+                                    >
+                                      <Edit2 size={12} />
+                                    </button>
+                                  )}
+                                </div>
                               </div>
 
                               <div className="flex items-center justify-between text-[11px] text-muted-foreground gap-1.5">

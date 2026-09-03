@@ -809,7 +809,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
         )}
       />
 
-      {currentUser?.role === 'superAdmin' && (
+      {['superAdmin', 'admin'].includes(currentUser?.role) && (
         <FormField
           control={form.control}
           name="assignedManager"
@@ -2126,7 +2126,7 @@ export const AddTaskModal = ({ open, onOpenChange, task = null, initialValues = 
                     <FormMessage />
                   </FormItem>
                 )} />
-                {currentUser?.role === 'superAdmin' && (
+                {['superAdmin', 'admin'].includes(currentUser?.role) && (
                   <FormField control={form.control} name="assignedManager" render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs font-semibold text-foreground/90">Assigned Manager</FormLabel>

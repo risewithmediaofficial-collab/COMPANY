@@ -92,7 +92,7 @@ const ClientDetails = () => {
   const totalRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || inv.amount || 0), 0);
   const paymentNotes = financeRecords.flatMap((record) => record.paymentHistory || []);
 
-  const isFinanceVisible = user?.role === 'superAdmin' || user?.role === 'manager' || !!user?.permissions?.canManageFinance;
+  const isFinanceVisible = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager' || !!user?.permissions?.canManageFinance;
 
   const stats = [
     ...(isFinanceVisible ? [

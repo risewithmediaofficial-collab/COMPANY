@@ -160,7 +160,7 @@ const Users = () => {
         <select
           value={u.role}
           onChange={(e) => handleRoleChange(u._id, e.target.value)}
-          disabled={currentUser?.role !== 'superAdmin' && u.role === 'superAdmin'}
+          disabled={!['superAdmin', 'admin'].includes(currentUser?.role) && u.role === 'superAdmin'}
           className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-semibold"
         >
           {roles.map((r) => (

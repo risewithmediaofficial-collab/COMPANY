@@ -40,6 +40,7 @@ import {
   Rocket,
   Wrench,
   FileText,
+  Edit2,
 } from 'lucide-react';
 import { useProjects, useDeleteProject, useUpdateProject } from '../../hooks/useProjects';
 import { useClients } from '../../hooks/useClients';
@@ -982,17 +983,33 @@ const Projects = () => {
                                     <span className="truncate max-w-[120px]">{catMeta.shortLabel}</span>
                                   </span>
 
-                                  <span
-                                    className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider ${
-                                      project.priority === 'Critical'
-                                        ? 'bg-rose-500/15 text-rose-600 border border-rose-500/30'
-                                        : project.priority === 'High'
-                                        ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
-                                        : 'bg-secondary text-muted-foreground'
-                                    }`}
-                                  >
-                                    {project.priority || 'Med'}
-                                  </span>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <span
+                                      className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider ${
+                                        project.priority === 'Critical'
+                                          ? 'bg-rose-500/15 text-rose-600 border border-rose-500/30'
+                                          : project.priority === 'High'
+                                          ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                                          : 'bg-secondary text-muted-foreground'
+                                      }`}
+                                    >
+                                      {project.priority || 'Med'}
+                                    </span>
+                                    {canCreate && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedProject(project);
+                                          setShowAddModal(true);
+                                        }}
+                                        className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                                        title="Edit Project"
+                                      >
+                                        <Edit2 size={12} />
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
 
                                 {/* Project Name & Client */}

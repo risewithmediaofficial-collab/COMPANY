@@ -48,6 +48,10 @@ export const protect = async (req, res, next) => {
  */
 export const authorize = (...roles) => {
   return (req, res, next) => {
+    // Admin and superAdmin have universal access across the entire platform
+    if (req.user && (req.user.role === 'superAdmin' || req.user.role === 'admin')) {
+      return next();
+    }
     let allowedRoles = [...roles];
     if (allowedRoles.includes('superAdmin') && !allowedRoles.includes('admin')) {
       allowedRoles.push('admin');

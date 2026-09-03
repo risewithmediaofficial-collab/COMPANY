@@ -3,7 +3,7 @@ import { AssetLibraryWorkspace } from '../../components/assets/AssetLibraryWorks
 
 const AssetsLibrary = () => {
   const { user } = useSelector((state) => state.auth);
-  const canManage = ['superAdmin', 'manager'].includes(user?.role);
+  const canManage = ['superAdmin', 'admin', 'manager'].includes(user?.role);
 
   return (
     <AssetLibraryWorkspace

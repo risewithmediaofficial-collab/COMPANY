@@ -556,11 +556,25 @@ const Clients = () => {
                                   <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
                                     {client.name}
                                   </h4>
-                                  {client.monthlyRetainer ? (
-                                    <span className="text-[11px] font-black text-emerald-600 shrink-0">
-                                      {formatINR(client.monthlyRetainer)}
-                                    </span>
-                                  ) : null}
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {client.monthlyRetainer ? (
+                                      <span className="text-[11px] font-black text-emerald-600">
+                                        {formatINR(client.monthlyRetainer)}
+                                      </span>
+                                    ) : null}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedClient(client);
+                                        setShowAddModal(true);
+                                      }}
+                                      className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                      title="Edit Client"
+                                    >
+                                      <Edit2 size={12} />
+                                    </button>
+                                  </div>
                                 </div>
 
                                 <p className="text-[11px] text-muted-foreground truncate">

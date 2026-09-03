@@ -35,7 +35,7 @@ const ProposalDetails = () => {
   const { user } = useSelector((state) => state.auth);
   const isNew = id === 'new';
   const isClient = user?.role === 'client';
-  const canManage = ['superAdmin', 'manager'].includes(user?.role);
+  const canManage = ['superAdmin', 'admin', 'manager'].includes(user?.role);
 
   const { data: proposal, isLoading } = useProposal(isNew ? null : id);
   const { data: clients = [] } = useClients();

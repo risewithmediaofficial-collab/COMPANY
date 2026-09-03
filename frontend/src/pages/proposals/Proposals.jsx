@@ -34,7 +34,7 @@ const statusTone = {
 const Proposals = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
-  const canManage = ['superAdmin', 'manager'].includes(user?.role);
+  const canManage = ['superAdmin', 'admin', 'manager'].includes(user?.role);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);

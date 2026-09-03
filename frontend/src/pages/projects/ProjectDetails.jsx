@@ -21,6 +21,7 @@ import {
   Lock,
   IndianRupee,
   FileText,
+  Edit3,
 } from 'lucide-react';
 import { formatINR } from '../../utils/currency';
 import { useUpdateProject } from '../../hooks/useProjects';
@@ -1088,10 +1089,20 @@ const ProjectDetails = () => {
             >
               <Share2 size={18} />
             </button>
+            {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
+              <button
+                onClick={() => setShowProjectModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-all shadow-xs cursor-pointer"
+                title="Edit Project Details"
+              >
+                <Edit3 size={14} />
+                <span>Edit Project</span>
+              </button>
+            )}
             {user?.role !== 'client' && (
               <button
                 onClick={() => setShowProjectModal(true)}
-                className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
                 title="Project settings"
               >
                 <Settings size={18} />
