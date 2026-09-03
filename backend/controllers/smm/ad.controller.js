@@ -2,13 +2,19 @@
 // SMM AD CONTROLLER (Video OS Linked Ads)
 // =============================================
 import Ad from '../../models/smm/ad.model.js';
+import AdSet from '../../models/smm/adSet.model.js';
 import SmmContent from '../../models/smm/smmContent.model.js';
 import SmmActivityLog from '../../models/smm/smmActivityLog.model.js';
 
 export const getAds = async (req, res) => {
   try {
-    const { adSet, status, approvalStatus, creativeType, search, page = 1, limit = 100 } = req.query;
+    const { campaign, adSet, status, approvalStatus, creativeType, search, page = 1, limit = 100 } = req.query;
     const query = {};
+    if (campaign) {
+      const adSets = await AdSet.find({ campaign }).select('_id');
+      const adSetIds = adSets.map(a => a._id);
+      query.adSet = { $in: adSetIds };
+    }
     if (adSet) query.adSet = adSet;
     if (status) query.status = status;
     if (approvalStatus) query.approvalStatus = approvalStatus;

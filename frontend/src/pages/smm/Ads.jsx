@@ -82,7 +82,13 @@ export default function Ads() {
         headline: firstVid?.name || '',
         primaryText: firstVid?.caption || '',
         description: '',
-        cta: adSet.formType === 'WhatsApp' ? 'WhatsApp' : 'Learn More',
+        cta: (adSet.formType === 'Call' || adSet.formType === 'Calls')
+          ? 'Call Now'
+          : (adSet.formType === 'Message' || adSet.formType === 'Message Destination' || adSet.formType === 'WhatsApp')
+            ? 'Send Message'
+            : (adSet.formType === 'App')
+              ? 'Install Now'
+              : 'Learn More',
         destinationUrl: '',
         whatsappNumber: '',
         utmParameters: '',

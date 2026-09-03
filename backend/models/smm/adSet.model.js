@@ -16,8 +16,8 @@ const adSetSchema = new mongoose.Schema(
     locationText: { type: String, default: '' },
     formType: {
       type: String,
-      enum: ['Instant Form', 'WhatsApp', 'Landing Page', 'Instagram DM / Messenger', 'None'],
       default: 'Instant Form',
+      trim: true,
     },
     sourceContentIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' }],
     audience: {
@@ -46,7 +46,6 @@ const adSetSchema = new mongoose.Schema(
     }],
     optimizationGoal: {
       type: String,
-      enum: ['Conversions', 'Leads', 'Landing Page Views', 'Link Clicks', 'Purchases'],
       default: 'Link Clicks',
     },
     budget: { type: Number, default: 0 },

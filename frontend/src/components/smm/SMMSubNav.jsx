@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Video, Calendar, Megaphone, Layers,
-  PlayCircle, Clock, BarChart2, FileSpreadsheet
+  PlayCircle, Clock, BarChart2, FileSpreadsheet, DollarSign
 } from 'lucide-react';
 
 const SMM_NAV_ITEMS = [
@@ -13,6 +13,7 @@ const SMM_NAV_ITEMS = [
   { name: 'Campaigns', path: '/smm/campaigns', icon: Megaphone },
   { name: 'Ad Sets', path: '/smm/adsets', icon: Layers },
   { name: 'Ads', path: '/smm/ads', icon: PlayCircle },
+  { name: 'Budget', path: '/smm/budget', icon: DollarSign },
   // ── Operations & Tracking Section ──
   { name: 'Daily Tracking', path: '/smm/daily-tracking', icon: Clock },
   { name: 'Analytics', path: '/smm/performance', icon: BarChart2 },
@@ -34,7 +35,7 @@ export const SMMSubNav = () => {
           const Icon = item.icon;
           const isActive = item.exact
             ? location.pathname === item.path
-            : location.pathname === item.path || (item.path !== '/smm' && location.pathname.startsWith(item.path));
+            : location.pathname === item.path || (item.path !== '/smm' && location.pathname.startsWith(`${item.path}/`));
 
           const showDivider = Boolean(SECTION_LABELS[item.path]);
 

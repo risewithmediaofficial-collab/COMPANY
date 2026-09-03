@@ -8,6 +8,7 @@ const smmAdSpendSchema = new mongoose.Schema(
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
     campaign: { type: mongoose.Schema.Types.ObjectId, ref: 'SmmCampaign', required: true },
+    ad: { type: mongoose.Schema.Types.ObjectId, ref: 'SmmAd' },
     sourceContentId: { type: mongoose.Schema.Types.ObjectId, ref: 'SmmContent' }, // Connected video if applicable
     date: { type: Date, required: true, default: Date.now },
     
@@ -45,6 +46,7 @@ const smmAdSpendSchema = new mongoose.Schema(
 smmAdSpendSchema.index({ client: 1 });
 smmAdSpendSchema.index({ project: 1 });
 smmAdSpendSchema.index({ campaign: 1 });
+smmAdSpendSchema.index({ ad: 1 });
 smmAdSpendSchema.index({ sourceContentId: 1 });
 smmAdSpendSchema.index({ date: -1 });
 

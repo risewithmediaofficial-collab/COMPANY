@@ -33,7 +33,10 @@ export const smmApi = {
   // Daily Ad Spend & Cash Ledger Logging
   getAdSpendLogs: (params) => api.get('/smm/ad-spend', { params }),
   addAdSpendLog: (data) => api.post('/smm/ad-spend', data),
+  updateAdSpendLog: (id, data) => api.put(`/smm/ad-spend/${id}`, data),
   deleteAdSpendLog: (id) => api.delete(`/smm/ad-spend/${id}`),
+  getAdSpendSummary: (params) => api.get('/smm/ad-spend/summary', { params }),
+  exportAdSpendReport: (params) => api.get('/smm/ad-spend/report/export', { params, responseType: 'blob' }),
 
   // Daily Tracking & Social Media Reports
   getDailyReports: (params) => api.get('/smm/daily-reports', { params }),

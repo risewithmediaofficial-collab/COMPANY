@@ -1,0 +1,380 @@
+{
+  "info": {
+    "_postman_id": "smm-ad-budget-api-collection",
+    "name": "SMM Ad Budget API",
+    "description": "Complete self-contained API test suite for SMM Ad Budget Tracking & Reporting. Covers auth, auto-provisioning of test hierarchy (Client -> Project -> Campaign -> AdSet -> Ad), and all Budget Dashboard operations (logging, updating, querying, summary calculation, CSV export, and deletion).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "clientId", "value": "6a8410ca8c54a6b5a04b6b21", "type": "string" },
+    { "key": "projectId", "value": "", "type": "string" },
+    { "key": "campaignId", "value": "", "type": "string" },
+    { "key": "adSetId", "value": "", "type": "string" },
+    { "key": "adId", "value": "", "type": "string" },
+    { "key": "logId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Auth — Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "const tok = json.accessToken || json.token;",
+              "pm.test('Response has valid access token', () => {",
+              "  pm.expect(tok).to.be.a('string');",
+              "  pm.collectionVariables.set('token', tok);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@agencycrm.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      }
+    },
+    {
+      "name": "2. Setup — Ensure Project Exists",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const json = pm.response.json();",
+              "const proj = json.project || json.data || (json.projects && json.projects[0]);",
+              "if (proj && proj._id) {",
+              "  pm.collectionVariables.set('projectId', proj._id);",
+              "  if (proj.client) {",
+              "    const cid = proj.client._id || proj.client;",
+              "    pm.collectionVariables.set('clientId', cid);",
+              "  }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"SMM Property Marketing Project\",\n  \"client\": \"{{clientId}}\",\n  \"budget\": 50000\n}"
+        },
+        "url": "{{baseUrl}}/smm/projects"
+      }
+    },
+    {
+      "name": "3. Setup — Ensure Campaign Exists",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const json = pm.response.json();",
+              "const camp = json.data || json.campaign || (json.campaigns && json.campaigns[0]);",
+              "if (camp && camp._id) {",
+              "  pm.collectionVariables.set('campaignId', camp._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Q3 Property Lead Gen Campaign\",\n  \"client\": \"{{clientId}}\",\n  \"project\": \"{{projectId}}\",\n  \"platform\": \"Facebook\",\n  \"objective\": \"Leads\",\n  \"budgetType\": \"Daily Budget\",\n  \"dailyBudget\": 1000,\n  \"status\": \"Active\"\n}"
+        },
+        "url": "{{baseUrl}}/smm/campaigns"
+      }
+    },
+    {
+      "name": "4. Setup — Ensure AdSet Exists",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const json = pm.response.json();",
+              "const adset = json.data || json.adSet;",
+              "if (adset && adset._id) {",
+              "  pm.collectionVariables.set('adSetId', adset._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Hosur Villa Buyers - Lookalike\",\n  \"campaign\": \"{{campaignId}}\",\n  \"formType\": \"Instant Form\",\n  \"budget\": 500,\n  \"status\": \"Active\"\n}"
+        },
+        "url": "{{baseUrl}}/smm/adsets"
+      }
+    },
+    {
+      "name": "5. Setup — Ensure Ad Exists",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "const json = pm.response.json();",
+              "const ad = json.data || json.ad;",
+              "if (ad && ad._id) {",
+              "  pm.collectionVariables.set('adId', ad._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Villa Walkthrough Reel Ad v1\",\n  \"adSet\": \"{{adSetId}}\",\n  \"creativeType\": \"Video\",\n  \"status\": \"Active\",\n  \"cta\": \"Contact Us\"\n}"
+        },
+        "url": "{{baseUrl}}/smm/ads"
+      }
+    },
+    {
+      "name": "6. Ad Spend — GET All Logs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('success=true', () => pm.expect(pm.response.json().success).to.be.true);",
+              "pm.test('data is an array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/smm/ad-spend"
+      }
+    },
+    {
+      "name": "7. Ad Spend — POST Add Budget Log (Client → Project → Campaign → Ad)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('success=true', () => pm.expect(json.success).to.be.true);",
+              "pm.test('Log ID created and amounts stored', () => {",
+              "  pm.expect(json.data._id).to.be.a('string');",
+              "  pm.collectionVariables.set('logId', json.data._id);",
+              "  pm.expect(json.data.amountAdded).to.eql(15000);",
+              "  pm.expect(json.data.amountSpent).to.eql(1200);",
+              "  pm.expect(json.data.notes).to.include('Initial budget scaled');",
+              "});",
+              "pm.test('Campaign balance updated', () => {",
+              "  pm.expect(json.data.campaign).to.exist;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"client\": \"{{clientId}}\",\n  \"project\": \"{{projectId}}\",\n  \"campaign\": \"{{campaignId}}\",\n  \"ad\": \"{{adId}}\",\n  \"date\": \"2026-09-01\",\n  \"amountAdded\": 15000,\n  \"amountSpent\": 1200,\n  \"leadsGenerated\": 8,\n  \"messages\": 5,\n  \"calls\": 3,\n  \"clicks\": 65,\n  \"impressions\": 2400,\n  \"revenue\": 45000,\n  \"notes\": \"Initial budget scaled for Villa Walkthrough Reel Ad\"\n}"
+        },
+        "url": "{{baseUrl}}/smm/ad-spend"
+      }
+    },
+    {
+      "name": "8. Ad Spend — GET Logs Filtered by Hierarchy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('success=true', () => pm.expect(pm.response.json().success).to.be.true);",
+              "const json = pm.response.json();",
+              "pm.test('Filtered logs return at least 1 entry', () => {",
+              "  pm.expect(json.data.length).to.be.at.least(1);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/smm/ad-spend?client={{clientId}}&campaign={{campaignId}}&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["smm", "ad-spend"],
+          "query": [
+            { "key": "client", "value": "{{clientId}}" },
+            { "key": "campaign", "value": "{{campaignId}}" },
+            { "key": "limit", "value": "10" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Ad Spend — GET Summary Aggregation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('success=true', () => pm.expect(json.success).to.be.true);",
+              "pm.test('Summary totals correctly calculated', () => {",
+              "  pm.expect(json.data.totals.totalAdded).to.be.at.least(15000);",
+              "  pm.expect(json.data.totals.totalSpent).to.be.at.least(1200);",
+              "  pm.expect(json.data.totals.remaining).to.be.at.least(0);",
+              "  pm.expect(json.data.totals.cpl).to.be.at.least(0);",
+              "  pm.expect(json.data.totals.roas).to.be.at.least(0);",
+              "});",
+              "pm.test('Per-campaign breakdown contains campaign entry', () => {",
+              "  pm.expect(json.data.perCampaign.length).to.be.at.least(1);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/smm/ad-spend/summary"
+      }
+    },
+    {
+      "name": "10. Ad Spend — PUT Update Budget Log",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('Updated notes and spend reflected', () => {",
+              "  pm.expect(json.data.amountSpent).to.eql(1350);",
+              "  pm.expect(json.data.notes).to.include('Updated mid-day budget check');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amountSpent\": 1350,\n  \"notes\": \"Updated mid-day budget check — ad scaling well\"\n}"
+        },
+        "url": "{{baseUrl}}/smm/ad-spend/{{logId}}"
+      }
+    },
+    {
+      "name": "11. Ad Spend — GET CSV Report Export",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Content-Type header is CSV', () => {",
+              "  const ct = pm.response.headers.get('Content-Type') || '';",
+              "  pm.expect(ct).to.include('text/csv');",
+              "});",
+              "pm.test('Response body includes CSV headers', () => {",
+              "  const body = pm.response.text();",
+              "  pm.expect(body).to.include('Date,Client,Project,Campaign,Ad,Platform');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/smm/ad-spend/report/export"
+      }
+    },
+    {
+      "name": "12. Ad Spend — DELETE Budget Log",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Success deletion message returned', () => {",
+              "  pm.expect(pm.response.json().message).to.include('deleted');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/smm/ad-spend/{{logId}}"
+      }
+    }
+  ]
+}

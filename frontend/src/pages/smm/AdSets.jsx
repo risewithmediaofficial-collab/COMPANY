@@ -11,6 +11,60 @@ import { toast } from 'react-hot-toast';
 
 const PLACEMENTS_LIST = ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels', 'Messenger', 'Audience Network'];
 
+export const OBJECTIVE_DESTINATIONS = {
+  Awareness: [
+    { value: 'Message Destination', label: 'Message Destination' },
+    { value: 'Call', label: 'Call' },
+    { value: 'Instagram or Facebook', label: 'Instagram or Facebook' },
+  ],
+  Traffic: [
+    { value: 'Message Destination', label: 'Message Destination' },
+    { value: 'Instagram', label: 'Instagram' },
+    { value: 'Facebook', label: 'Facebook' },
+    { value: 'Calls', label: 'Calls' },
+  ],
+  Leads: [
+    { value: 'Message', label: 'Message' },
+    { value: 'Instant Form', label: 'Instant Form' },
+  ],
+  'App Promotion': [
+    { value: 'App', label: 'App' },
+  ],
+  Sales: [
+    { value: 'Call', label: 'Call' },
+    { value: 'Message', label: 'Message' },
+    { value: 'App', label: 'App' },
+  ],
+  Engagement: [
+    { value: 'Message', label: 'Message' },
+    { value: 'Calls', label: 'Calls' },
+    { value: 'Instagram or Facebook', label: 'Instagram or Facebook' },
+  ],
+};
+
+export const getDestinationsForObjective = (objective = '') => {
+  const norm = String(objective || '').trim().toLowerCase();
+  if (norm === 'awareness' || norm === 'reach') {
+    return OBJECTIVE_DESTINATIONS.Awareness;
+  }
+  if (norm === 'traffic' || norm === 'website traffic') {
+    return OBJECTIVE_DESTINATIONS.Traffic;
+  }
+  if (norm === 'leads' || norm === 'lead generation') {
+    return OBJECTIVE_DESTINATIONS.Leads;
+  }
+  if (norm === 'app promotion' || norm === 'app' || norm === 'app install') {
+    return OBJECTIVE_DESTINATIONS['App Promotion'];
+  }
+  if (norm === 'sales' || norm === 'conversions') {
+    return OBJECTIVE_DESTINATIONS.Sales;
+  }
+  if (norm === 'engagement' || norm === 'messages' || norm === 'video views') {
+    return OBJECTIVE_DESTINATIONS.Engagement;
+  }
+  return OBJECTIVE_DESTINATIONS.Awareness;
+};
+
 export default function AdSets() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,7 +84,7 @@ export default function AdSets() {
     status: 'Draft',
     targetAudienceText: '',
     locationText: '',
-    formType: 'Instant Form',
+    formType: 'Message Destination',
     sourceContentIds: [],
     audience: {
       location: ['India'],
@@ -43,7 +97,6 @@ export default function AdSets() {
       audienceSize: 'Broad',
     },
     placements: ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels'],
-    optimizationGoal: 'Leads',
     budget: 1000,
     bidStrategy: 'Lowest Cost',
   });
@@ -73,6 +126,7 @@ export default function AdSets() {
     if (location.state?.campaign && campaigns.length > 0) {
       const camp = location.state.campaign;
       const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
+      const dests = getDestinationsForObjective(camp.objective || 'Awareness');
       setEditingAdSet(null);
       setFormData({
         name: `${camp.name} - Ad Set`,
@@ -80,7 +134,7 @@ export default function AdSets() {
         status: 'Draft',
         targetAudienceText: '',
         locationText: '',
-        formType: camp.objective === 'Messages' ? 'WhatsApp' : 'Instant Form',
+        formType: dests[0]?.value || 'Message Destination',
         sourceContentIds: vIds,
         audience: {
           location: ['India'],
@@ -93,7 +147,6 @@ export default function AdSets() {
           audienceSize: 'Broad',
         },
         placements: ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels'],
-        optimizationGoal: camp.objective === 'Lead Generation' ? 'Leads' : 'Link Clicks',
         budget: camp.dailyBudget || 1000,
         bidStrategy: 'Lowest Cost',
       });
@@ -105,6 +158,12 @@ export default function AdSets() {
     return campaigns.find(c => String(c._id) === String(formData.campaign));
   }, [campaigns, formData.campaign]);
 
+  const currentObjective = selectedCampaign?.objective || 'Awareness';
+
+  const availableDestinations = useMemo(() => {
+    return getDestinationsForObjective(currentObjective);
+  }, [currentObjective]);
+
   const handleCampaignChange = (campaignId) => {
     const camp = campaigns.find(c => String(c._id) === String(campaignId));
     if (!camp) {
@@ -112,15 +171,18 @@ export default function AdSets() {
       return;
     }
     const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
-    setFormData(prev => ({
-      ...prev,
-      campaign: camp._id,
-      name: prev.name || `${camp.name} - Ad Set`,
-      budget: camp.dailyBudget || prev.budget || 1000,
-      optimizationGoal: camp.objective === 'Lead Generation' ? 'Leads' : 'Link Clicks',
-      formType: camp.objective === 'Messages' ? 'WhatsApp' : prev.formType || 'Instant Form',
-      sourceContentIds: vIds,
-    }));
+    const dests = getDestinationsForObjective(camp.objective);
+    setFormData(prev => {
+      const isCurrentValid = dests.some(d => d.value === prev.formType);
+      return {
+        ...prev,
+        campaign: camp._id,
+        name: prev.name || `${camp.name} - Ad Set`,
+        budget: camp.dailyBudget || prev.budget || 1000,
+        formType: isCurrentValid ? prev.formType : (dests[0]?.value || 'Message Destination'),
+        sourceContentIds: vIds,
+      };
+    });
   };
 
   const handleSave = async (e) => {
@@ -153,13 +215,14 @@ export default function AdSets() {
     setEditingAdSet(null);
     const firstCamp = campaigns[0];
     const vIds = firstCamp?.sourceContentIds?.map(v => v._id || v) || (firstCamp?.sourceContentId ? [firstCamp.sourceContentId._id || firstCamp.sourceContentId] : []);
+    const dests = getDestinationsForObjective(firstCamp?.objective || 'Awareness');
     setFormData({
       name: firstCamp ? `${firstCamp.name} - Ad Set` : '',
       campaign: firstCamp?._id || '',
       status: 'Draft',
       targetAudienceText: '',
       locationText: '',
-      formType: 'Instant Form',
+      formType: dests[0]?.value || 'Message Destination',
       sourceContentIds: vIds,
       audience: {
         location: ['India'],
@@ -172,7 +235,6 @@ export default function AdSets() {
         audienceSize: 'Broad',
       },
       placements: ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels'],
-      optimizationGoal: firstCamp?.objective === 'Lead Generation' ? 'Leads' : 'Link Clicks',
       budget: firstCamp?.dailyBudget || 1000,
       bidStrategy: 'Lowest Cost',
     });
@@ -188,7 +250,7 @@ export default function AdSets() {
       campaign: campId,
       targetAudienceText: row.targetAudienceText || '',
       locationText: row.locationText || '',
-      formType: row.formType || 'Instant Form',
+      formType: row.formType || 'Message Destination',
       sourceContentIds: vIds,
     });
     setIsDrawerOpen(true);
@@ -214,9 +276,7 @@ export default function AdSets() {
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
             <span>{row.campaign?.name || 'Unassigned Campaign'}</span>
             {row.formType && (
-              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                row.formType === 'WhatsApp' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-500/10 text-blue-600'
-              }`}>
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
                 {row.formType}
               </span>
             )}
@@ -239,16 +299,18 @@ export default function AdSets() {
       ),
     },
     {
-      key: 'optimizationGoal',
-      label: 'Goal & Form Type',
+      key: 'formType',
+      label: 'Destination / Form Type',
       render: (row) => (
-        <div className="space-y-0.5">
-          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary block w-fit">
-            {row.optimizationGoal}
+        <div className="space-y-1">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 block w-fit">
+            {row.formType || 'Instant Form'}
           </span>
-          <span className="text-[10px] text-muted-foreground block">
-            {row.formType === 'WhatsApp' ? '💬 WhatsApp Lead' : '📋 Instant Form'}
-          </span>
+          {row.campaign?.objective && (
+            <span className="text-[10px] text-muted-foreground block font-medium">
+              Objective: {row.campaign.objective}
+            </span>
+          )}
         </div>
       ),
     },
@@ -409,38 +471,36 @@ export default function AdSets() {
             </div>
           </div>
 
-          {/* Extra Field: Form Type (Instant Form vs WhatsApp) & Optimization Goal */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-semibold text-foreground mb-1 block flex items-center gap-1.5">
-                <MessageCircle size={14} className="text-emerald-500" /> Form Type / Destination *
+          {/* Form Type / Destination (dynamically based on Campaign Objective) */}
+          <div className="p-3.5 bg-secondary/30 rounded-2xl border border-border space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="font-semibold text-foreground flex items-center gap-1.5">
+                <MessageCircle size={15} className="text-emerald-500" /> Form Type / Destination *
               </label>
-              <select
-                value={formData.formType}
-                onChange={e => setFormData({...formData, formType: e.target.value})}
-                className="app-select"
-              >
-                <option value="Instant Form">Instant Form (Meta Lead Gen)</option>
-                <option value="WhatsApp">WhatsApp (Direct Chat Leads)</option>
-                <option value="Landing Page">Landing Page Website</option>
-                <option value="Instagram DM / Messenger">Instagram DM / Messenger</option>
-              </select>
+              {selectedCampaign?.objective && (
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                  {selectedCampaign.objective}
+                </span>
+              )}
             </div>
-
-            <div>
-              <label className="font-semibold text-foreground mb-1 block">Optimization Goal</label>
-              <select
-                value={formData.optimizationGoal}
-                onChange={e => setFormData({...formData, optimizationGoal: e.target.value})}
-                className="app-select"
-              >
-                <option value="Leads">Leads</option>
-                <option value="Conversions">Conversions</option>
-                <option value="Landing Page Views">Landing Page Views</option>
-                <option value="Link Clicks">Link Clicks</option>
-                <option value="Purchases">Purchases</option>
-              </select>
-            </div>
+            <select
+              value={formData.formType}
+              onChange={e => setFormData({...formData, formType: e.target.value})}
+              className="app-select font-medium"
+              required
+            >
+              {formData.formType && !availableDestinations.some(d => d.value === formData.formType) && (
+                <option value={formData.formType}>{formData.formType} (Current)</option>
+              )}
+              {availableDestinations.map(d => (
+                <option key={d.value} value={d.value}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-muted-foreground">
+              Destinations available for <strong>{currentObjective}</strong> objective.
+            </p>
           </div>
 
           {/* Detailed Demographic Targeting */}
@@ -549,7 +609,7 @@ export default function AdSets() {
                 <span className="font-semibold text-foreground">{createdAdSetForNextStep.locationText || 'All'}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
-                <span>Form Type:</span>
+                <span>Destination:</span>
                 <span className="font-semibold text-primary">{createdAdSetForNextStep.formType || 'Instant Form'}</span>
               </div>
             </div>

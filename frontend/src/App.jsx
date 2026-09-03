@@ -69,6 +69,7 @@ import SMMPerformance from './pages/smm/Performance';
 import SMMReports from './pages/smm/Reports';
 import SMMDailyTracking from './pages/smm/DailyTracking';
 import SMMTeam from './pages/smm/Team';
+import AdBudgetDashboard from './pages/smm/AdBudgetDashboard';
 
 // ─── Shared Loading Screen ────────────────────────────────────────────────────
 const LoadingScreen = () => (
@@ -405,6 +406,11 @@ const App = () => {
           <Route path="/smm/ads" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <Ads />
+            </ProtectedRoute>
+          } />
+          <Route path="/smm/budget" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <AdBudgetDashboard />
             </ProtectedRoute>
           } />
           <Route path="/smm/creatives" element={
