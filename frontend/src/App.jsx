@@ -423,6 +423,11 @@ const App = () => {
               <SMMContentCalendar />
             </ProtectedRoute>
           } />
+          <Route path="/smm/analytics" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <SMMPerformance />
+            </ProtectedRoute>
+          } />
           <Route path="/smm/performance" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <SMMPerformance />

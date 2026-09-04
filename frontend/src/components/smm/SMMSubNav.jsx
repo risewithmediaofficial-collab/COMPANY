@@ -16,7 +16,7 @@ const SMM_NAV_ITEMS = [
   { name: 'Budget', path: '/smm/budget', icon: DollarSign },
   // ── Operations & Tracking Section ──
   { name: 'Daily Tracking', path: '/smm/daily-tracking', icon: Clock },
-  { name: 'Analytics', path: '/smm/performance', icon: BarChart2 },
+  { name: 'Analytics', path: '/smm/analytics', icon: BarChart2, aliases: ['/smm/performance'] },
   { name: 'Reports', path: '/smm/reports', icon: FileSpreadsheet },
 ];
 
@@ -35,7 +35,9 @@ export const SMMSubNav = () => {
           const Icon = item.icon;
           const isActive = item.exact
             ? location.pathname === item.path
-            : location.pathname === item.path || (item.path !== '/smm' && location.pathname.startsWith(`${item.path}/`));
+            : location.pathname === item.path ||
+              (item.path !== '/smm' && location.pathname.startsWith(`${item.path}/`)) ||
+              Boolean(item.aliases && item.aliases.some((a) => location.pathname === a || location.pathname.startsWith(`${a}/`)));
 
           const showDivider = Boolean(SECTION_LABELS[item.path]);
 

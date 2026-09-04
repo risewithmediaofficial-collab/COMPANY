@@ -466,7 +466,7 @@ export const SMMDashboard = () => {
                   Organic vs Paid Performance Comparison
                 </h3>
                 <button
-                  onClick={() => navigate('/smm/performance')}
+                  onClick={() => navigate('/smm/analytics')}
                   className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
                 >
                   Full Analytics <ArrowUpRight size={13} />

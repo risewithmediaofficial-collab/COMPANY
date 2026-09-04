@@ -80,6 +80,7 @@ const getBreadcrumbs = (pathname) => {
     '/smm/budget': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Ad Budget', path: '/smm/budget' }],
     '/smm/creatives': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Creative Library', path: '/smm/creatives' }],
     '/smm/calendar': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'SMM Calendar', path: '/smm/calendar' }],
+    '/smm/analytics': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Analytics', path: '/smm/analytics' }],
     '/smm/performance': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Performance', path: '/smm/performance' }],
     '/smm/reports': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'SMM Reports', path: '/smm/reports' }],
     '/smm/team': [{ label: 'Growth', path: '/smm' }, { label: 'Marketing', path: '/smm' }, { label: 'Team', path: '/smm/team' }],

@@ -29,10 +29,10 @@ export default function Performance() {
     try {
       setLoading(true);
       const [cRes, campRes, vRes, dashRes] = await Promise.all([
-        smmApi.getClients(),
-        smmApi.getCampaigns({ client: selectedClient || undefined }),
-        smmApi.getContents({ client: selectedClient || undefined, limit: 100 }),
-        smmApi.getDashboardStats({ client: selectedClient || undefined }),
+        smmApi.getClients().catch((err) => { console.error('SMM Analytics getClients error:', err); return { data: { success: false, data: [] } }; }),
+        smmApi.getCampaigns({ client: selectedClient || undefined }).catch((err) => { console.error('SMM Analytics getCampaigns error:', err); return { data: { success: false, data: [] } }; }),
+        smmApi.getContents({ client: selectedClient || undefined, limit: 100 }).catch((err) => { console.error('SMM Analytics getContents error:', err); return { data: { success: false, data: [] } }; }),
+        smmApi.getDashboardStats({ client: selectedClient || undefined }).catch((err) => { console.error('SMM Analytics getDashboardStats error:', err); return { data: { success: false, data: null } }; }),
       ]);
 
       if (cRes.data?.success) setClientsList(cRes.data.data || []);
@@ -177,6 +177,35 @@ export default function Performance() {
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              {/* Organic vs Paid Visual Bar Chart */}
+              <div className="pt-4 border-t border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reach & Views Distribution</span>
+                  <span className="text-[10px] text-muted-foreground">Organic (Purple) vs Paid (Emerald)</span>
+                </div>
+                <div className="h-44 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                      <XAxis dataKey="name" stroke="#888888" fontSize={11} />
+                      <YAxis stroke="#888888" fontSize={11} tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--card)',
+                          borderColor: 'var(--border)',
+                          borderRadius: '0.75rem',
+                          fontSize: '12px',
+                        }}
+                        formatter={(value) => Number(value).toLocaleString()}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
+                      <Bar dataKey="Organic" fill="#a855f7" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Paid" fill="#10b981" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
@@ -339,11 +368,11 @@ export default function Performance() {
                   {platformPerf.map((p, idx) => (
                     <tr key={idx} className="hover:bg-muted/20">
                       <td className="px-4 py-3 font-bold text-foreground">{p.platform}</td>
-                      <td className="px-4 py-3">{p.posts + p.reels + p.stories} items</td>
-                      <td className="px-4 py-3">{p.ads} ads</td>
-                      <td className="px-4 py-3 font-mono font-semibold">₹{p.adSpend.toLocaleString()}</td>
-                      <td className="px-4 py-3 font-bold text-emerald-500">{p.leads}</td>
-                      <td className="px-4 py-3 text-right font-bold text-foreground">₹{p.cpl}</td>
+                      <td className="px-4 py-3">{((p.posts || 0) + (p.reels || 0) + (p.stories || 0))} items</td>
+                      <td className="px-4 py-3">{p.ads || 0} ads</td>
+                      <td className="px-4 py-3 font-mono font-semibold">₹{(p.adSpend || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 font-bold text-emerald-500">{p.leads || 0}</td>
+                      <td className="px-4 py-3 text-right font-bold text-foreground">₹{p.cpl || 0}</td>
                     </tr>
                   ))}
                 </tbody>
