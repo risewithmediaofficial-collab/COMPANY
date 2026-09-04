@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp, DollarSign, Target, MousePointer, Edit3, Sliders, RefreshCw,
-  Plus, Calendar, Trash2, Video, Flame, Sparkles, Award, ArrowUpRight, BarChart2
+  Plus, Calendar, Trash2, Video, Flame, Sparkles, Award, ArrowUpRight, BarChart2, Megaphone
 } from 'lucide-react';
 import { smmApi } from '../../api/smm';
 import { PageHeader } from '../../components/ui/page';
