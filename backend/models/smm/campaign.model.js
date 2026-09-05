@@ -71,14 +71,15 @@ const campaignSchema = new mongoose.Schema(
     // Budget & Financials (Amount Added vs Amount Spent)
     budgetType: {
       type: String,
-      enum: ['Daily Budget', 'Lifetime Budget', 'daily', 'lifetime'],
-      default: 'Daily Budget',
+      enum: ['Daily Budget', 'Lifetime Budget', 'Monthly Budget', 'daily', 'lifetime', 'monthly'],
+      default: 'Monthly Budget',
     },
     dailyBudget: { type: Number, default: 0 },
+    monthlyBudget: { type: Number, default: 0 },
     lifetimeBudget: { type: Number, default: 0 },
-    amountAdded: { type: Number, default: 0 }, // Total funds added to campaign
+    amountAdded: { type: Number, default: 0 }, // Total funds added / deposited to campaign
     amountSpent: { type: Number, default: 0 }, // Auto-updated from daily spend tracking logs
-    remainingBalance: { type: Number, default: 0 }, // (amountAdded - amountSpent) or (lifetimeBudget - amountSpent)
+    remainingBalance: { type: Number, default: 0 }, // (amountAdded - amountSpent) or (monthlyBudget - amountSpent)
     currency: { type: String, default: 'INR' },
     
     // Alerts triggered (e.g. ['50%', '75%', '80%', '90%', '100%'])

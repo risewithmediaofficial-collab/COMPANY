@@ -145,9 +145,10 @@ export const createCampaign = async (req, res) => {
     }
 
     // Calculate initial remaining budget
+    const effectiveMonthlyBudget = Number(payload.monthlyBudget || payload.lifetimeBudget) || 0;
     const depositedBudget = payload.amountAdded !== undefined && payload.amountAdded !== '' 
       ? Number(payload.amountAdded) 
-      : (budgetType === 'Daily Budget' ? (Number(dailyBudget) || 0) * (durationDays || 30) : (Number(lifetimeBudget) || 0));
+      : (effectiveMonthlyBudget || (Number(dailyBudget) || 0) * (durationDays || 30));
 
     const initialBalance = payload.remainingBalance !== undefined && payload.remainingBalance !== ''
       ? Number(payload.remainingBalance)
@@ -156,6 +157,8 @@ export const createCampaign = async (req, res) => {
     const campaignPayload = {
       ...payload,
       durationDays,
+      monthlyBudget: effectiveMonthlyBudget,
+      lifetimeBudget: effectiveMonthlyBudget,
       amountAdded: depositedBudget,
       amountSpent: Number(payload.amountSpent) || 0,
       remainingBalance: initialBalance,
@@ -198,6 +201,12 @@ export const updateCampaign = async (req, res) => {
     if (!prevCampaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
 
     const updates = normalizeCampaignPayload(req.body);
+
+    if (updates.monthlyBudget !== undefined && updates.lifetimeBudget === undefined) {
+      updates.lifetimeBudget = Number(updates.monthlyBudget) || 0;
+    } else if (updates.lifetimeBudget !== undefined && updates.monthlyBudget === undefined) {
+      updates.monthlyBudget = Number(updates.lifetimeBudget) || 0;
+    }
 
     if (updates.startDate && updates.endDate) {
       const diffMs = new Date(updates.endDate) - new Date(updates.startDate);

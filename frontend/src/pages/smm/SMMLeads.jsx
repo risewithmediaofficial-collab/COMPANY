@@ -359,11 +359,18 @@ export const SMMLeads = () => {
                 className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
               >
                 <option value="">-- Choose Client --</option>
-                {clientsList.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.companyName || c.name}
-                  </option>
-                ))}
+                {clientsList.map((c) => {
+                  const comp = c.company || c.companyName || '';
+                  const name = c.name || '';
+                  const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                    ? `${comp} - ${name}`
+                    : (comp || name || 'Client');
+                  return (
+                    <option key={c._id} value={c._id}>
+                      {display}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

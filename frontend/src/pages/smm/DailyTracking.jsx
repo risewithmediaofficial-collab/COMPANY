@@ -678,9 +678,18 @@ export default function DailyTracking() {
                 className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
               >
                 <option value="">-- Choose Campaign --</option>
-                {campaignsList.map((c) => (
-                  <option key={c._id} value={c._id}>{c.name} ({c.platform})</option>
-                ))}
+                {campaignsList.map((c) => {
+                  const comp = c.client?.company || c.client?.companyName || '';
+                  const name = c.client?.name || '';
+                  const clientLabel = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                    ? `${comp} - ${name}`
+                    : (comp || name);
+                  return (
+                    <option key={c._id} value={c._id}>
+                      {c.name} {clientLabel ? `(${clientLabel})` : ''} ({c.platform})
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -714,7 +723,7 @@ export default function DailyTracking() {
                 />
               </div>
               <div>
-                <label className="font-semibold text-blue-400 block mb-1">Amount Added (₹)</label>
+                <label className="font-semibold text-blue-400 block mb-1">Deposited (₹)</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -748,6 +757,15 @@ export default function DailyTracking() {
                 />
               </div>
             </div>
+
+            {(Number(spendForm.amountAdded) > 0 || Number(spendForm.amountSpent) > 0) && (
+              <div className="p-2.5 bg-secondary/50 rounded-xl border border-border flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Balance Amount (Deposited - Spent):</span>
+                <span className="font-bold font-mono text-emerald-400">
+                  ₹{Math.max(0, (Number(spendForm.amountAdded) || 0) - (Number(spendForm.amountSpent) || 0)).toLocaleString()}
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>

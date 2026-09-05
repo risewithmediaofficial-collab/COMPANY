@@ -422,11 +422,18 @@ export const Campaigns = () => {
                           className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
                         >
                           <option value="">-- Choose Client --</option>
-                          {clientsList.map((c) => (
-                            <option key={c._id} value={c._id}>
-                              {c.companyName || c.name}
-                            </option>
-                          ))}
+                          {clientsList.map((c) => {
+                            const comp = c.company || c.companyName || '';
+                            const name = c.name || '';
+                            const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                              ? `${comp} - ${name}`
+                              : (comp || name || 'Client');
+                            return (
+                              <option key={c._id} value={c._id}>
+                                {display}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
 
@@ -497,24 +504,38 @@ export const Campaigns = () => {
                       </div>
 
                       <div>
-                        <label className="font-semibold text-foreground block mb-1">Daily Budget (₹) *</label>
+                        <label className="font-semibold text-foreground block mb-1">Monthly Budget (₹) *</label>
                         <input
                           required
                           type="number"
-                          placeholder="1000"
-                          value={formData.dailyBudget}
-                          onChange={(e) => setFormData({ ...formData, dailyBudget: Number(e.target.value) })}
+                          placeholder="30000"
+                          value={formData.totalBudget}
+                          onChange={(e) => {
+                            const val = Number(e.target.value) || 0;
+                            setFormData({
+                              ...formData,
+                              totalBudget: val,
+                              dailyBudget: Math.round(val / 30)
+                            });
+                          }}
                           className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
                         />
                       </div>
 
                       <div>
-                        <label className="font-semibold text-foreground block mb-1">Total Budget (₹)</label>
+                        <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
                         <input
                           type="number"
-                          placeholder="30000"
-                          value={formData.totalBudget}
-                          onChange={(e) => setFormData({ ...formData, totalBudget: Number(e.target.value) })}
+                          placeholder="1000"
+                          value={formData.dailyBudget}
+                          onChange={(e) => {
+                            const val = Number(e.target.value) || 0;
+                            setFormData({
+                              ...formData,
+                              dailyBudget: val,
+                              totalBudget: val * 30
+                            });
+                          }}
                           className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
                         />
                       </div>

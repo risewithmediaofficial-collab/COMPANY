@@ -36,8 +36,8 @@ export default function Campaigns() {
   const [formData, setFormData] = useState({
     name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [],
     objective: 'Awareness', destination: 'Message Destination', destinationPlatforms: [], campaignType: 'New Campaign',
-    status: 'Draft', platform: 'Meta', budgetType: 'Lifetime Budget', dailyBudget: '',
-    lifetimeBudget: '', amountAdded: 0, remainingBalance: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
+    status: 'Draft', platform: 'Meta', budgetType: 'Monthly Budget', dailyBudget: '',
+    monthlyBudget: '', lifetimeBudget: '', deposited: '', amountAdded: 0, remainingBalance: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
   });
 
@@ -164,22 +164,57 @@ export default function Campaigns() {
     loadClientProjects();
   }, [formData.client, crmProjects]);
 
-  const handleBudgetChange = (field, value) => {
-    const num = value === '' ? '' : Number(value);
+  const handleMonthlyBudgetChange = (value) => {
+    const val = value === '' ? '' : Number(value);
+    const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
     setFormData(prev => {
-      const next = { ...prev, [field]: num };
-      if (field === 'lifetimeBudget') {
-        if (prev.amountAdded === prev.lifetimeBudget || !prev.amountAdded) {
-          next.amountAdded = num;
-          next.remainingBalance = num;
-        }
-      } else if (field === 'amountAdded') {
-        if (num !== '') {
-          next.remainingBalance = num - (prev.amountSpent || 0);
-        }
-      }
-      return next;
+      const daily = val !== '' && !isNaN(val) ? Math.round(val / 30) : '';
+      const newDeposited = (prev.deposited === '' || prev.deposited === prev.monthlyBudget || prev.deposited === undefined) ? val : prev.deposited;
+      const depNum = newDeposited === '' ? 0 : Number(newDeposited);
+      const balance = Math.max(0, depNum - spent);
+      return {
+        ...prev,
+        monthlyBudget: val,
+        lifetimeBudget: val,
+        dailyBudget: daily,
+        deposited: newDeposited,
+        amountAdded: newDeposited,
+        remainingBalance: balance,
+      };
     });
+  };
+
+  const handleDailyBudgetChange = (value) => {
+    const val = value === '' ? '' : Number(value);
+    const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
+    setFormData(prev => {
+      const monthly = val !== '' && !isNaN(val) ? Math.round(val * 30) : '';
+      const newDeposited = (prev.deposited === '' || prev.deposited === prev.monthlyBudget || prev.deposited === undefined) ? monthly : prev.deposited;
+      const depNum = newDeposited === '' ? 0 : Number(newDeposited);
+      const balance = Math.max(0, depNum - spent);
+      return {
+        ...prev,
+        dailyBudget: val,
+        monthlyBudget: monthly,
+        lifetimeBudget: monthly,
+        deposited: newDeposited,
+        amountAdded: newDeposited,
+        remainingBalance: balance,
+      };
+    });
+  };
+
+  const handleDepositedChange = (value) => {
+    const val = value === '' ? '' : Number(value);
+    const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
+    const depNum = val === '' ? 0 : Number(val);
+    const balance = Math.max(0, depNum - spent);
+    setFormData(prev => ({
+      ...prev,
+      deposited: val,
+      amountAdded: val,
+      remainingBalance: balance,
+    }));
   };
 
   const handleSave = async (e) => {
@@ -193,13 +228,24 @@ export default function Campaigns() {
     if (!cleanPayload.startDate) delete cleanPayload.startDate;
     if (!cleanPayload.endDate) delete cleanPayload.endDate;
 
-    cleanPayload.amountAdded = cleanPayload.amountAdded !== '' && cleanPayload.amountAdded !== undefined
-      ? Number(cleanPayload.amountAdded)
+    const mBudget = cleanPayload.monthlyBudget !== '' && cleanPayload.monthlyBudget !== undefined
+      ? Number(cleanPayload.monthlyBudget)
       : (Number(cleanPayload.lifetimeBudget) || 0);
+    cleanPayload.monthlyBudget = mBudget;
+    cleanPayload.lifetimeBudget = mBudget;
+    cleanPayload.dailyBudget = cleanPayload.dailyBudget !== '' && cleanPayload.dailyBudget !== undefined
+      ? Number(cleanPayload.dailyBudget)
+      : 0;
 
-    cleanPayload.remainingBalance = cleanPayload.remainingBalance !== '' && cleanPayload.remainingBalance !== undefined
-      ? Number(cleanPayload.remainingBalance)
-      : cleanPayload.amountAdded;
+    const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
+    const depositedVal = cleanPayload.deposited !== '' && cleanPayload.deposited !== undefined
+      ? Number(cleanPayload.deposited)
+      : (cleanPayload.amountAdded !== '' && cleanPayload.amountAdded !== undefined
+          ? Number(cleanPayload.amountAdded)
+          : mBudget);
+
+    cleanPayload.amountAdded = depositedVal;
+    cleanPayload.remainingBalance = Math.max(0, depositedVal - spent);
 
     try {
       if (editingCampaign) {
@@ -281,10 +327,12 @@ export default function Campaigns() {
       campaignType: 'New Campaign',
       status: 'Draft',
       platform: 'Meta',
-      budgetType: 'Lifetime Budget',
+      budgetType: 'Monthly Budget',
+      monthlyBudget: '',
       dailyBudget: '',
+      deposited: '',
       lifetimeBudget: '',
-      amountAdded: 0,
+      amountAdded: '',
       remainingBalance: 0,
       currency: 'INR',
       goal: '',
@@ -300,9 +348,11 @@ export default function Campaigns() {
 
   const openEdit = (camp) => {
     setEditingCampaign(camp);
-    const added = camp.amountAdded ?? camp.lifetimeBudget ?? 0;
-    const spent = camp.amountSpent ?? 0;
-    const rem = camp.remainingBalance ?? Math.max(0, added - spent);
+    const mBudget = camp.monthlyBudget ?? camp.lifetimeBudget ?? '';
+    const dBudget = camp.dailyBudget ?? (mBudget ? Math.round(mBudget / 30) : '');
+    const dep = camp.amountAdded ?? mBudget ?? '';
+    const spent = camp.amountSpent || camp.performance?.spend || 0;
+    const rem = camp.remainingBalance ?? Math.max(0, (Number(dep) || 0) - spent);
     const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
     const dests = getDestinationsForObjective(camp.objective || 'Awareness');
     setFormData({
@@ -314,9 +364,12 @@ export default function Campaigns() {
       objective: camp.objective || 'Awareness',
       destination: camp.destination || dests[0]?.value || 'Message Destination',
       destinationPlatforms: camp.destinationPlatforms || [],
-      lifetimeBudget: camp.lifetimeBudget ?? '',
-      dailyBudget: camp.dailyBudget ?? '',
-      amountAdded: added,
+      budgetType: 'Monthly Budget',
+      monthlyBudget: mBudget,
+      dailyBudget: dBudget,
+      deposited: dep,
+      lifetimeBudget: mBudget,
+      amountAdded: dep,
       remainingBalance: rem,
     });
     setIsDrawerOpen(true);
@@ -366,17 +419,17 @@ export default function Campaigns() {
     },
     {
       key: 'moneyLedger',
-      label: 'Money Ledger (Added / Spent / Remaining)',
+      label: 'Budget & Balance (Deposited / Spent / Balance)',
       render: (row) => {
-        const added = row.amountAdded || row.lifetimeBudget || (row.dailyBudget * 30) || 0;
+        const deposited = row.amountAdded || row.monthlyBudget || row.lifetimeBudget || (row.dailyBudget * 30) || 0;
         const spent = row.amountSpent || row.performance?.spend || 0;
-        const remaining = Math.max(0, added - spent);
-        const percent = added > 0 ? Math.min(100, Math.round((spent / added) * 100)) : 0;
+        const balance = Math.max(0, deposited - spent);
+        const percent = deposited > 0 ? Math.min(100, Math.round((spent / deposited) * 100)) : 0;
 
         return (
           <div className="w-56 space-y-1">
             <div className="flex items-center justify-between text-[11px] font-semibold">
-              <span className="text-blue-500">Added: ₹{added.toLocaleString()}</span>
+              <span className="text-blue-500">Deposited: ₹{deposited.toLocaleString()}</span>
               <span className="text-rose-500">Spent: ₹{spent.toLocaleString()}</span>
             </div>
             <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
@@ -386,7 +439,7 @@ export default function Campaigns() {
               />
             </div>
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-emerald-500 font-bold">Bal: ₹{remaining.toLocaleString()}</span>
+              <span className="text-emerald-500 font-bold">Balance: ₹{balance.toLocaleString()}</span>
               <span className="text-muted-foreground font-mono">{percent}%</span>
             </div>
           </div>
@@ -431,7 +484,7 @@ export default function Campaigns() {
     <div className="space-y-6">
       <PageHeader
         title="Campaigns & Money Ledger"
-        subtitle="Manage campaign budgets, track Amount Added vs Amount Spent, budget alerts, and log daily lead entries"
+        subtitle="Manage monthly & daily budgets, track Deposited vs Amount Spent, and monitor balance"
         actions={
           <button onClick={openAdd} className="bg-primary text-primary-foreground font-bold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
             <Plus size={18} />
@@ -493,9 +546,9 @@ export default function Campaigns() {
         <form onSubmit={handleAddDailyLog} className="space-y-4 text-xs">
           {/* Campaign Money Summary */}
           <div className="p-3.5 bg-secondary/40 border border-border rounded-2xl space-y-1">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Campaign Money Summary</span>
+            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Budget & Ledger Summary</span>
             <div className="flex items-center justify-between font-bold text-xs pt-1">
-              <span className="text-blue-500">Added: ₹{(activeCampaignForLog?.amountAdded || 0).toLocaleString()}</span>
+              <span className="text-blue-500">Deposited: ₹{(activeCampaignForLog?.amountAdded || 0).toLocaleString()}</span>
               <span className="text-rose-500">Spent: ₹{(activeCampaignForLog?.amountSpent || 0).toLocaleString()}</span>
               <span className="text-emerald-500">Balance: ₹{(activeCampaignForLog?.remainingBalance || 0).toLocaleString()}</span>
             </div>
@@ -537,7 +590,7 @@ export default function Campaigns() {
               />
             </div>
             <div>
-              <label className="font-semibold text-blue-500 block mb-1">Add Funds to Campaign (₹)</label>
+              <label className="font-semibold text-blue-500 block mb-1">Deposited Funds (₹)</label>
               <input
                 type="number"
                 placeholder="0"
@@ -606,7 +659,18 @@ export default function Campaigns() {
                 className="app-select"
               >
                 <option value="">Select Client</option>
-                {crmClients.map(c => <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>)}
+                {crmClients.map(c => {
+                  const comp = c.company || c.companyName || '';
+                  const name = c.name || '';
+                  const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                    ? `${comp} - ${name}`
+                    : (comp || name || 'Client');
+                  return (
+                    <option key={c._id} value={c._id}>
+                      {display}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
@@ -751,37 +815,79 @@ export default function Campaigns() {
             label="Target Destination / Conversion Location *"
           />
 
-          {/* Step 5: Budget */}
-          <div className="grid grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Campaign Budget (₹) *</label>
-              <input
-                type="number"
-                required
-                value={formData.lifetimeBudget ?? ''}
-                onChange={e => {
-                  const val = e.target.value === '' ? '' : Number(e.target.value);
-                  setFormData(prev => ({
-                    ...prev,
-                    lifetimeBudget: val,
-                    amountAdded: val === '' ? 0 : val,
-                    remainingBalance: val === '' ? 0 : (val - (editingCampaign?.amountSpent || 0))
-                  }));
-                }}
-                className="app-input font-bold text-foreground"
-                placeholder="e.g. 50000"
-              />
+          {/* Step 5: Budget & Calculations (Monthly, Daily, Deposited, Balance Amount) */}
+          <div className="bg-secondary/30 p-3.5 rounded-2xl border border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <DollarSign size={13} className="text-primary" /> Budget Calculations & Funds
+              </h4>
+              <span className="text-[10px] text-muted-foreground font-medium">Auto-calculated</span>
             </div>
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
-              <input
-                type="number"
-                value={formData.dailyBudget ?? ''}
-                onChange={e => setFormData({ ...formData, dailyBudget: e.target.value === '' ? '' : Number(e.target.value) })}
-                className="app-input"
-                placeholder="e.g. 1000"
-              />
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Monthly Budget (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={formData.monthlyBudget ?? ''}
+                  onChange={e => handleMonthlyBudgetChange(e.target.value)}
+                  className="app-input font-bold text-foreground"
+                  placeholder="e.g. 30000"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Calculates daily run-rate</span>
+              </div>
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.dailyBudget ?? ''}
+                  onChange={e => handleDailyBudgetChange(e.target.value)}
+                  className="app-input font-medium"
+                  placeholder="e.g. 1000"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">≈ Monthly ÷ 30</span>
+              </div>
+              <div>
+                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Deposited (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={formData.deposited ?? ''}
+                  onChange={e => handleDepositedChange(e.target.value)}
+                  className="app-input font-bold text-blue-600 dark:text-blue-400 border-blue-500/30"
+                  placeholder="e.g. 30000"
+                />
+                <span className="text-[10px] text-blue-500/80 block mt-0.5">Funds deposited for ads</span>
+              </div>
             </div>
+
+            {/* Calculated Balance Box: Deposited minus Spent */}
+            {(() => {
+              const dep = Number(formData.deposited !== '' && formData.deposited !== undefined ? formData.deposited : (formData.amountAdded || 0));
+              const spent = Number(editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0);
+              const bal = Math.max(0, dep - spent);
+              return (
+                <div className="p-3 bg-card rounded-xl border border-border flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-foreground text-xs block">Balance Amount</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {spent > 0
+                        ? `Deposited ₹${dep.toLocaleString()} − Spent ₹${spent.toLocaleString()}`
+                        : `Deposited funds available for ads (minus spend)`}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400">
+                      ₹{bal.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Step 6: Dates */}

@@ -413,9 +413,16 @@ export default function AdBudgetDashboard() {
               className="app-select w-full"
             >
               <option value="">All Clients</option>
-              {clientsList.map(c => (
-                <option key={c._id} value={c._id}>{c.company || c.name}</option>
-              ))}
+              {clientsList.map(c => {
+                const comp = c.company || c.companyName || '';
+                const name = c.name || '';
+                const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                  ? `${comp} - ${name}`
+                  : (comp || name || 'Client');
+                return (
+                  <option key={c._id} value={c._id}>{display}</option>
+                );
+              })}
             </select>
           </div>
 
@@ -526,9 +533,9 @@ export default function AdBudgetDashboard() {
         <KPICard
           testId="kpi-total-added"
           icon={IndianRupee}
-          label="Total Added"
+          label="Total Deposited"
           value={fmt(totals.totalAdded)}
-          sub="Funds deposited into campaigns"
+          sub="Funds deposited for ads"
           color="amber-500"
         />
         <KPICard
@@ -542,9 +549,9 @@ export default function AdBudgetDashboard() {
         <KPICard
           testId="kpi-remaining"
           icon={DollarSign}
-          label="Remaining Balance"
+          label="Balance Amount"
           value={fmt(totals.remaining)}
-          sub="Available budget to run ads"
+          sub="Available balance to run ads"
           color="emerald-500"
         />
       </div>
@@ -579,9 +586,9 @@ export default function AdBudgetDashboard() {
                   <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Campaign</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Monthly Budget</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Daily Budget</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Added</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Deposited</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Spent</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Remaining</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Balance</th>
                   <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground w-28">Spend %</th>
                   <th className="text-left px-3 py-2.5 font-semibold text-muted-foreground max-w-xs">Notes / Observations</th>
                   <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground">Status</th>
@@ -775,11 +782,18 @@ export default function AdBudgetDashboard() {
                   className="app-select w-full"
                 >
                   <option value="">Select Client (Optional)</option>
-                  {clientsList.map(c => (
-                    <option key={c._id} value={c._id}>
-                      {c.company || c.name}
-                    </option>
-                  ))}
+                  {clientsList.map(c => {
+                    const comp = c.company || c.companyName || '';
+                    const name = c.name || '';
+                    const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                      ? `${comp} - ${name}`
+                      : (comp || name || 'Client');
+                    return (
+                      <option key={c._id} value={c._id}>
+                        {display}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -820,7 +834,7 @@ export default function AdBudgetDashboard() {
                     : campaignsList
                   ).map(c => (
                     <option key={c._id} value={c._id}>
-                      {c.name} ({c.client?.company || c.client?.name || 'Client'})
+                      {c.name} ({c.client?.company && c.client?.name ? `${c.client.company} - ${c.client.name}` : (c.client?.company || c.client?.name || 'Client')})
                     </option>
                   ))}
                 </select>
@@ -865,12 +879,12 @@ export default function AdBudgetDashboard() {
           {/* Selected Campaign Baseline Info */}
           {selectedDrawerCamp && (
             <div className="p-3 bg-secondary/60 rounded-2xl border border-border text-xs space-y-1.5">
-              <span className="font-bold text-foreground block">Campaign Budget Baseline</span>
+              <span className="font-bold text-foreground block">Budget Baseline</span>
               <div className="grid grid-cols-3 gap-2 text-[11px]">
                 <div>
                   <span className="text-muted-foreground block">Monthly Budget:</span>
                   <strong className="text-foreground">
-                    {fmt(selectedDrawerCamp.lifetimeBudget || (selectedDrawerCamp.dailyBudget ? selectedDrawerCamp.dailyBudget * 30 : 0) || selectedDrawerCamp.amountAdded || 0)}
+                    {fmt(selectedDrawerCamp.monthlyBudget || selectedDrawerCamp.lifetimeBudget || (selectedDrawerCamp.dailyBudget ? selectedDrawerCamp.dailyBudget * 30 : 0) || selectedDrawerCamp.amountAdded || 0)}
                   </strong>
                 </div>
                 <div>
@@ -878,7 +892,7 @@ export default function AdBudgetDashboard() {
                   <strong className="text-foreground">{fmt(selectedDrawerCamp.dailyBudget || 0)}</strong>
                 </div>
                 <div>
-                  <span className="text-muted-foreground block">Current Balance:</span>
+                  <span className="text-muted-foreground block">Balance:</span>
                   <strong className="text-emerald-600 dark:text-emerald-400">
                     {fmt(selectedDrawerCamp.remainingBalance ?? Math.max(0, (selectedDrawerCamp.amountAdded || 0) - (selectedDrawerCamp.amountSpent || 0)))}
                   </strong>
@@ -894,7 +908,7 @@ export default function AdBudgetDashboard() {
             </h4>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Amount Added (₹)</label>
+                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Deposited (₹)</label>
                 <input
                   id="log-amount-added"
                   type="number"
@@ -921,7 +935,7 @@ export default function AdBudgetDashboard() {
             </div>
             {(Number(form.amountAdded) > 0 || Number(form.amountSpent) > 0) && (
               <div className="pt-2 border-t border-border/50 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Calculated Entry Balance:</span>
+                <span className="text-muted-foreground">Balance Amount (Deposited - Spent):</span>
                 <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
                   {fmt(Math.max(0, Number(form.amountAdded || 0) - Number(form.amountSpent || 0)))}
                 </span>

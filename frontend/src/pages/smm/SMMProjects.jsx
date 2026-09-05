@@ -205,9 +205,16 @@ export default function SMMProjects() {
               <label className="text-xs font-semibold text-foreground mb-1 block">Client *</label>
               <select required value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} className="app-select">
                 <option value="">Select SMM Client</option>
-                {clients.map(c => (
-                  <option key={c._id} value={c._id}>{c.companyName}</option>
-                ))}
+                {clients.map(c => {
+                  const comp = c.company || c.companyName || '';
+                  const name = c.name || '';
+                  const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                    ? `${comp} - ${name}`
+                    : (comp || name || 'Client');
+                  return (
+                    <option key={c._id} value={c._id}>{display}</option>
+                  );
+                })}
               </select>
             </div>
 
