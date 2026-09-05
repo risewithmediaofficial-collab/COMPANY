@@ -397,50 +397,80 @@ export default function Campaigns() {
     },
     {
       key: 'name',
-      label: 'Campaign Name & Client',
-      render: (row) => (
-        <div>
-          <span className="font-bold text-foreground block">{row.name}</span>
-          <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-            <span className="text-[11px] font-medium text-muted-foreground">{row.client?.name || row.client?.company || 'No Client'} • {row.objective}</span>
-            {row.destination && (
-              <span className="px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold">
-                📍 {row.destination}
-              </span>
-            )}
-            {row.sourceContentId && (
-              <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold">
-                🎥 Video Ad
-              </span>
-            )}
+      label: 'Campaign & Client',
+      render: (row) => {
+        const comp = row.client?.company || row.client?.companyName || '';
+        const name = row.client?.name || '';
+        const clientDisplay = comp && name && comp.toLowerCase() !== name.toLowerCase()
+          ? `${comp} - ${name}`
+          : (comp || name || 'No Client');
+        return (
+          <div>
+            <span className="font-bold text-foreground block">{row.name}</span>
+            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+              <span className="text-[11px] font-semibold text-primary/80">{clientDisplay}</span>
+              <span className="text-[10px] text-muted-foreground">• {row.objective}</span>
+              {row.destination && (
+                <span className="px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold">
+                  📍 {row.destination}
+                </span>
+              )}
+              {row.sourceContentId && (
+                <span className="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold">
+                  🎥 Video Ad
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
-      key: 'moneyLedger',
-      label: 'Budget & Balance (Deposited / Spent / Balance)',
+      key: 'monthlyBudget',
+      label: 'Monthly Budget',
       render: (row) => {
-        const deposited = row.amountAdded || row.monthlyBudget || row.lifetimeBudget || (row.dailyBudget * 30) || 0;
+        const mBudget = row.monthlyBudget || row.lifetimeBudget || (row.dailyBudget ? row.dailyBudget * 30 : 0) || row.amountAdded || 0;
+        const dBudget = row.dailyBudget || (mBudget ? Math.round(mBudget / 30) : 0);
+        return (
+          <div>
+            <span className="font-mono font-bold text-xs text-foreground block">₹{mBudget.toLocaleString()}</span>
+            <span className="text-[10px] text-muted-foreground font-mono">₹{dBudget.toLocaleString()}/day</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'budgetDeposited',
+      label: 'Budget Deposited',
+      render: (row) => {
+        const deposited = row.amountAdded || row.deposited || row.monthlyBudget || row.lifetimeBudget || 0;
+        return (
+          <div>
+            <span className="font-mono font-bold text-xs text-blue-500 block">₹{deposited.toLocaleString()}</span>
+            <span className="text-[10px] text-muted-foreground">Deposited</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'balanceAmount',
+      label: 'Balance Amount',
+      render: (row) => {
+        const deposited = row.amountAdded || row.deposited || row.monthlyBudget || row.lifetimeBudget || 0;
         const spent = row.amountSpent || row.performance?.spend || 0;
         const balance = Math.max(0, deposited - spent);
         const percent = deposited > 0 ? Math.min(100, Math.round((spent / deposited) * 100)) : 0;
-
         return (
-          <div className="w-56 space-y-1">
-            <div className="flex items-center justify-between text-[11px] font-semibold">
-              <span className="text-blue-500">Deposited: ₹{deposited.toLocaleString()}</span>
-              <span className="text-rose-500">Spent: ₹{spent.toLocaleString()}</span>
+          <div className="w-36 space-y-1">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{balance.toLocaleString()}</span>
+              <span className="text-[10px] text-muted-foreground">Spent ₹{spent.toLocaleString()}</span>
             </div>
             <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
               <div
-                className={`h-full rounded-full ${percent >= 90 ? 'bg-rose-500' : percent >= 80 ? 'bg-amber-500' : 'bg-primary'}`}
+                className={`h-full rounded-full ${percent >= 90 ? 'bg-rose-500' : percent >= 80 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                 style={{ width: `${percent}%` }}
               />
-            </div>
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-emerald-500 font-bold">Balance: ₹{balance.toLocaleString()}</span>
-              <span className="text-muted-foreground font-mono">{percent}%</span>
             </div>
           </div>
         );

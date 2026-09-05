@@ -533,9 +533,9 @@ export default function AdBudgetDashboard() {
         <KPICard
           testId="kpi-total-added"
           icon={IndianRupee}
-          label="Total Deposited"
+          label="Budget Deposited"
           value={fmt(totals.totalAdded)}
-          sub="Funds deposited for ads"
+          sub="Total budget deposited"
           color="amber-500"
         />
         <KPICard
@@ -551,7 +551,7 @@ export default function AdBudgetDashboard() {
           icon={DollarSign}
           label="Balance Amount"
           value={fmt(totals.remaining)}
-          sub="Available balance to run ads"
+          sub="Net balance available"
           color="emerald-500"
         />
       </div>
@@ -586,9 +586,9 @@ export default function AdBudgetDashboard() {
                   <th className="text-left px-4 py-2.5 font-semibold text-muted-foreground">Campaign</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Monthly Budget</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Daily Budget</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Deposited</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Budget Deposited</th>
                   <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Spent</th>
-                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Balance</th>
+                  <th className="text-right px-3 py-2.5 font-semibold text-muted-foreground">Balance Amount</th>
                   <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground w-28">Spend %</th>
                   <th className="text-left px-3 py-2.5 font-semibold text-muted-foreground max-w-xs">Notes / Observations</th>
                   <th className="text-center px-3 py-2.5 font-semibold text-muted-foreground">Status</th>
@@ -908,7 +908,7 @@ export default function AdBudgetDashboard() {
             </h4>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Deposited (₹)</label>
+                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Budget Deposited (₹)</label>
                 <input
                   id="log-amount-added"
                   type="number"
