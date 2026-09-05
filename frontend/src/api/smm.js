@@ -38,6 +38,14 @@ export const smmApi = {
   getAdSpendSummary: (params) => api.get('/smm/ad-spend/summary', { params }),
   exportAdSpendReport: (params) => api.get('/smm/ad-spend/report/export', { params, responseType: 'blob' }),
 
+  // Client Ad Budgets (Decoupled from campaigns)
+  getBudgets: (params) => api.get('/smm/budgets', { params }),
+  getBudgetSummary: (params) => api.get('/smm/budgets/summary', { params }),
+  addBudget: (data) => api.post('/smm/budgets', data),
+  updateBudget: (id, data) => api.put(`/smm/budgets/${id}`, data),
+  deleteBudget: (id) => api.delete(`/smm/budgets/${id}`),
+  exportBudgetReport: (params) => api.get('/smm/budgets/report/export', { params, responseType: 'blob' }),
+
   // Daily Tracking & Social Media Reports
   getDailyReports: (params) => api.get('/smm/daily-reports', { params }),
   getDailyReportByDate: (params) => api.get('/smm/daily-reports/by-date', { params }),
