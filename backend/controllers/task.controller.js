@@ -714,10 +714,7 @@ export const createTask = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Task title is required' });
       }
 
-      if (!payload.project && !payload.client) {
-        return res.status(400).json({ success: false, message: 'Project or client is required to create a task' });
-      }
-
+      // Project and client are optional (supports general tasks and ad-hoc kanban tasks)
       const project = payload.project
         ? await Project.findById(payload.project).select('name client manager team')
         : null;

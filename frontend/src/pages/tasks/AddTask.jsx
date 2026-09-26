@@ -12,7 +12,7 @@ const AddTask = () => {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">Create New Task</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Select a project first, then choose content or non-content task fields.</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Simple, minimalist task card. Client & project are optional.</p>
         </div>
         <Button variant="outline" size="icon" className="shrink-0 rounded-xl" onClick={() => navigate('/tasks')} aria-label="Close">
           <X size={18} />

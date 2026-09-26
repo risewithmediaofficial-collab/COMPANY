@@ -152,6 +152,7 @@ const Tasks = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addModalInitialValues, setAddModalInitialValues] = useState({});
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
@@ -620,7 +621,10 @@ const Tasks = () => {
           {canCreate && (
             <Button
               size="sm"
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                setAddModalInitialValues({});
+                setShowAddModal(true);
+              }}
               className="bg-primary text-primary-foreground font-bold shadow-sm"
             >
               <Plus size={15} className="mr-1.5 stroke-[2.5]" />
@@ -1082,7 +1086,10 @@ const Tasks = () => {
                       </div>
                       {canCreate && (
                         <button
-                          onClick={() => setShowAddModal(true)}
+                          onClick={() => {
+                            setAddModalInitialValues({ status: column.key });
+                            setShowAddModal(true);
+                          }}
                           className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
                           title={`Add task to ${column.label}`}
                         >
@@ -1360,6 +1367,7 @@ const Tasks = () => {
       <AddTaskModal
         open={showAddModal}
         onOpenChange={setShowAddModal}
+        initialValues={addModalInitialValues}
       />
 
       <TaskDetailModal

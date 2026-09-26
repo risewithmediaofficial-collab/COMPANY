@@ -96,7 +96,7 @@ const taskSchema = new mongoose.Schema(
     clientName: { type: String, default: '' },
     assignedPersonName: { type: String, default: '' },
     assignedManager: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true },
+    project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', default: null },
     client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default: null },
     parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Task', default: null },
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
