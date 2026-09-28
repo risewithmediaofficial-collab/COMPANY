@@ -13,11 +13,13 @@ import {
   approveOrRejectAttendanceRequest,
 } from '../controllers/attendance.controller.js';
 import { clockInWithLocation as clockIn } from '../controllers/attendanceWithLocation.controller.js';
+import { exportEodReportsDocx } from '../controllers/eodExport.controller.js';
 
 const router = express.Router();
 router.use(protect);
 
 router.get('/team/today', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), getTeamAttendance);
+router.get('/eod-reports/export', exportEodReportsDocx);
 router.get('/eod-reports', getEodReports);
 router.get('/', getAttendance);
 router.post('/clock-in', clockIn);

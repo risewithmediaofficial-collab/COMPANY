@@ -40,6 +40,7 @@ import CallHistoryDashboard from './pages/finance/CallHistoryDashboard';
 import HR from './pages/hr/HR';
 import Reports from './pages/reports/Reports';
 import Attendance from './pages/employee/Attendance';
+import MyEODReports from './pages/employee/MyEODReports';
 import ReferralDashboard from './pages/referral/ReferralDashboard';
 import Users from './pages/admin/Users';
 import DomainRenewals from './pages/admin/DomainRenewals';
@@ -363,6 +364,11 @@ const App = () => {
           <Route path="/attendance" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <Attendance />
+            </ProtectedRoute>
+          } />
+          <Route path="/my-eod-reports" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+              <MyEODReports />
             </ProtectedRoute>
           } />
 

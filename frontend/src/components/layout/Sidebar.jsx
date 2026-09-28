@@ -188,6 +188,7 @@ export default function Sidebar({ onOpenSearch }) {
           title: 'TEAM & WORKLOAD',
           items: [
             { name: 'Attendance & EOD', icon: Clock, path: '/attendance' },
+            { name: 'My EOD Reports', icon: FileText, path: '/my-eod-reports' },
           ],
         },
         {
@@ -263,6 +264,7 @@ export default function Sidebar({ onOpenSearch }) {
         title: 'TEAM & WORKLOAD',
         items: [
           { name: 'Attendance & EOD', icon: Clock, path: '/attendance' },
+          { name: 'My EOD Reports', icon: FileText, path: '/my-eod-reports' },
           { name: 'HR & Hiring', icon: Users2, path: '/hr' },
           ...(role === 'superAdmin' || role === 'admin' ? [
             { name: 'User Directory', icon: UserCheck, path: '/admin/users' },
