@@ -646,6 +646,7 @@ export default function Campaigns() {
                 placeholder="0"
                 value={dailyLogForm.amountAdded}
                 onChange={e => setDailyLogForm({...dailyLogForm, amountAdded: Number(e.target.value)})}
+                onWheel={e => e.currentTarget.blur()}
                 className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none"
               />
             </div>
@@ -659,6 +660,7 @@ export default function Campaigns() {
                 required
                 value={dailyLogForm.spend}
                 onChange={e => setDailyLogForm({...dailyLogForm, spend: Number(e.target.value)})}
+                onWheel={e => e.currentTarget.blur()}
                 className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none"
               />
             </div>
@@ -668,6 +670,7 @@ export default function Campaigns() {
                 type="number"
                 value={dailyLogForm.leads}
                 onChange={e => setDailyLogForm({...dailyLogForm, leads: Number(e.target.value)})}
+                onWheel={e => e.currentTarget.blur()}
                 className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none"
               />
             </div>
@@ -780,6 +783,7 @@ export default function Campaigns() {
                   min="0"
                   value={formData.totalBudget ?? ''}
                   onChange={e => handleTotalBudgetChange(e.target.value)}
+                  onWheel={e => e.currentTarget.blur()}
                   className="app-input font-bold text-foreground"
                   placeholder="e.g. 800"
                 />
@@ -792,6 +796,7 @@ export default function Campaigns() {
                   min="0"
                   value={formData.dailyBudget ?? ''}
                   onChange={e => handleDailyBudgetChange(e.target.value)}
+                  onWheel={e => e.currentTarget.blur()}
                   className="app-input font-medium"
                   placeholder="e.g. 100"
                 />
@@ -952,6 +957,7 @@ export default function Campaigns() {
                   min="0"
                   value={formData.deposited ?? ''}
                   onChange={e => handleDepositedChange(e.target.value)}
+                  onWheel={e => e.currentTarget.blur()}
                   className="app-input font-bold text-blue-600 dark:text-blue-400 border-blue-500/30"
                   placeholder="e.g. 800"
                 />

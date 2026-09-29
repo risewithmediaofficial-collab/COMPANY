@@ -33,6 +33,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 )
 
+// Prevent mouse wheel / touchpad scrolling from increasing or decreasing number inputs
+document.addEventListener(
+  'wheel',
+  () => {
+    if (document.activeElement && document.activeElement.type === 'number') {
+      document.activeElement.blur();
+    }
+  },
+  { passive: true }
+);
+
 // Register Service Worker for Browser Push Notifications
 if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
   window.addEventListener('load', () => {
@@ -41,3 +52,4 @@ if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
     });
   });
 }
+

@@ -248,4 +248,16 @@ input[type="week"]::-webkit-calendar-picker-indicator {
   background: rgba(156, 163, 175, 0.65);
 }
 
+/* Remove number input spin buttons / up-down arrows for keyboard-only input */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 

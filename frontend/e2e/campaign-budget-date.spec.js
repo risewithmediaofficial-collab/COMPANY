@@ -76,4 +76,33 @@ test.describe('Campaign Budget & Date Flow E2E', () => {
     // Close drawer
     await page.getByRole('button', { name: 'Cancel' }).click();
   });
+
+  test('Mouse wheel or trackpad scroll does not increment or decrement number inputs', async ({ page }) => {
+    await page.goto('http://localhost:5173/smm/campaigns');
+    await page.waitForLoadState('networkidle');
+
+    // Click Create Campaign button
+    const createBtn = page.getByRole('button', { name: 'Create Campaign' }).first();
+    await createBtn.click();
+
+    const depositedAmountInput = page.getByPlaceholder('e.g. 800').nth(1);
+    await depositedAmountInput.fill('38');
+    expect(await depositedAmountInput.inputValue()).toBe('38');
+
+    // Focus input and dispatch wheel scroll
+    await depositedAmountInput.focus();
+    await page.mouse.wheel(0, 100);
+    await page.waitForTimeout(200);
+
+    // Value should strictly remain 38 (not 37 or 39)
+    expect(await depositedAmountInput.inputValue()).toBe('38');
+
+    await page.mouse.wheel(0, -100);
+    await page.waitForTimeout(200);
+    expect(await depositedAmountInput.inputValue()).toBe('38');
+
+    // Close drawer
+    await page.getByRole('button', { name: 'Cancel' }).click();
+  });
 });
+
