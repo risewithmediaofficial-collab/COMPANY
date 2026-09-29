@@ -145,10 +145,12 @@ export const createCampaign = async (req, res) => {
     }
 
     // Calculate initial remaining budget
-    const effectiveMonthlyBudget = Number(payload.monthlyBudget || payload.lifetimeBudget) || 0;
-    const depositedBudget = payload.amountAdded !== undefined && payload.amountAdded !== '' 
-      ? Number(payload.amountAdded) 
-      : (effectiveMonthlyBudget || (Number(dailyBudget) || 0) * (durationDays || 30));
+    const effectiveTotalBudget = Number(payload.totalBudget ?? payload.lifetimeBudget ?? payload.monthlyBudget) || 0;
+    const depositedBudget = payload.deposited !== undefined && payload.deposited !== '' 
+      ? Number(payload.deposited) 
+      : (payload.amountAdded !== undefined && payload.amountAdded !== ''
+          ? Number(payload.amountAdded) 
+          : 0);
 
     const initialBalance = payload.remainingBalance !== undefined && payload.remainingBalance !== ''
       ? Number(payload.remainingBalance)
@@ -157,8 +159,11 @@ export const createCampaign = async (req, res) => {
     const campaignPayload = {
       ...payload,
       durationDays,
-      monthlyBudget: effectiveMonthlyBudget,
-      lifetimeBudget: effectiveMonthlyBudget,
+      totalBudget: effectiveTotalBudget,
+      monthlyBudget: effectiveTotalBudget,
+      lifetimeBudget: effectiveTotalBudget,
+      dailyBudget: Number(payload.dailyBudget) || 0,
+      depositDate: payload.depositDate ? new Date(payload.depositDate) : new Date(),
       amountAdded: depositedBudget,
       amountSpent: Number(payload.amountSpent) || 0,
       remainingBalance: initialBalance,
@@ -202,10 +207,22 @@ export const updateCampaign = async (req, res) => {
 
     const updates = normalizeCampaignPayload(req.body);
 
-    if (updates.monthlyBudget !== undefined && updates.lifetimeBudget === undefined) {
+    if (updates.totalBudget !== undefined) {
+      updates.lifetimeBudget = Number(updates.totalBudget) || 0;
+      updates.monthlyBudget = Number(updates.totalBudget) || 0;
+    } else if (updates.monthlyBudget !== undefined && updates.lifetimeBudget === undefined) {
       updates.lifetimeBudget = Number(updates.monthlyBudget) || 0;
+      updates.totalBudget = Number(updates.monthlyBudget) || 0;
     } else if (updates.lifetimeBudget !== undefined && updates.monthlyBudget === undefined) {
       updates.monthlyBudget = Number(updates.lifetimeBudget) || 0;
+      updates.totalBudget = Number(updates.lifetimeBudget) || 0;
+    }
+
+    if (updates.deposited !== undefined) {
+      updates.amountAdded = Number(updates.deposited) || 0;
+    }
+    if (updates.depositDate) {
+      updates.depositDate = new Date(updates.depositDate);
     }
 
     if (updates.startDate && updates.endDate) {

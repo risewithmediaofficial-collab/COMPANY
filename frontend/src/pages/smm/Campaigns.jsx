@@ -14,6 +14,17 @@ import { toast } from 'react-hot-toast';
 import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
 import { SMM_OBJECTIVES, getDestinationsForObjective } from '../../utils/smmDestinations';
 
+const formatDateForInput = (dateVal) => {
+  if (!dateVal) return '';
+  try {
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return format(d, 'yyyy-MM-dd');
+  } catch {
+    return '';
+  }
+};
+
 export default function Campaigns() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
@@ -36,8 +47,9 @@ export default function Campaigns() {
   const [formData, setFormData] = useState({
     name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [],
     objective: 'Awareness', destination: 'Message Destination', destinationPlatforms: [], campaignType: 'New Campaign',
-    status: 'Draft', platform: 'Meta', budgetType: 'Monthly Budget', dailyBudget: '',
-    monthlyBudget: '', lifetimeBudget: '', deposited: '', amountAdded: 0, remainingBalance: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
+    status: 'Draft', platform: 'Meta', budgetType: 'Assigned Budget', dailyBudget: '',
+    totalBudget: '', lifetimeBudget: '', deposited: '', depositDate: format(new Date(), 'yyyy-MM-dd'),
+    amountAdded: 0, remainingBalance: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
   });
 
@@ -164,44 +176,22 @@ export default function Campaigns() {
     loadClientProjects();
   }, [formData.client, crmProjects]);
 
-  const handleMonthlyBudgetChange = (value) => {
+  const handleTotalBudgetChange = (value) => {
     const val = value === '' ? '' : Number(value);
-    const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
-    setFormData(prev => {
-      const daily = val !== '' && !isNaN(val) ? Math.round(val / 30) : '';
-      const newDeposited = (prev.deposited === '' || prev.deposited === prev.monthlyBudget || prev.deposited === undefined) ? val : prev.deposited;
-      const depNum = newDeposited === '' ? 0 : Number(newDeposited);
-      const balance = Math.max(0, depNum - spent);
-      return {
-        ...prev,
-        monthlyBudget: val,
-        lifetimeBudget: val,
-        dailyBudget: daily,
-        deposited: newDeposited,
-        amountAdded: newDeposited,
-        remainingBalance: balance,
-      };
-    });
+    setFormData(prev => ({
+      ...prev,
+      totalBudget: val,
+      lifetimeBudget: val,
+      monthlyBudget: val,
+    }));
   };
 
   const handleDailyBudgetChange = (value) => {
     const val = value === '' ? '' : Number(value);
-    const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
-    setFormData(prev => {
-      const monthly = val !== '' && !isNaN(val) ? Math.round(val * 30) : '';
-      const newDeposited = (prev.deposited === '' || prev.deposited === prev.monthlyBudget || prev.deposited === undefined) ? monthly : prev.deposited;
-      const depNum = newDeposited === '' ? 0 : Number(newDeposited);
-      const balance = Math.max(0, depNum - spent);
-      return {
-        ...prev,
-        dailyBudget: val,
-        monthlyBudget: monthly,
-        lifetimeBudget: monthly,
-        deposited: newDeposited,
-        amountAdded: newDeposited,
-        remainingBalance: balance,
-      };
-    });
+    setFormData(prev => ({
+      ...prev,
+      dailyBudget: val,
+    }));
   };
 
   const handleDepositedChange = (value) => {
@@ -217,6 +207,13 @@ export default function Campaigns() {
     }));
   };
 
+  const handleDepositDateChange = (value) => {
+    setFormData(prev => ({
+      ...prev,
+      depositDate: value,
+    }));
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.client || !formData.project) {
@@ -228,11 +225,14 @@ export default function Campaigns() {
     if (!cleanPayload.startDate) delete cleanPayload.startDate;
     if (!cleanPayload.endDate) delete cleanPayload.endDate;
 
-    const mBudget = cleanPayload.monthlyBudget !== '' && cleanPayload.monthlyBudget !== undefined
-      ? Number(cleanPayload.monthlyBudget)
-      : (Number(cleanPayload.lifetimeBudget) || 0);
-    cleanPayload.monthlyBudget = mBudget;
-    cleanPayload.lifetimeBudget = mBudget;
+    const tBudget = cleanPayload.totalBudget !== '' && cleanPayload.totalBudget !== undefined
+      ? Number(cleanPayload.totalBudget)
+      : (cleanPayload.monthlyBudget !== '' && cleanPayload.monthlyBudget !== undefined
+          ? Number(cleanPayload.monthlyBudget)
+          : (Number(cleanPayload.lifetimeBudget) || 0));
+    cleanPayload.totalBudget = tBudget;
+    cleanPayload.monthlyBudget = tBudget;
+    cleanPayload.lifetimeBudget = tBudget;
     cleanPayload.dailyBudget = cleanPayload.dailyBudget !== '' && cleanPayload.dailyBudget !== undefined
       ? Number(cleanPayload.dailyBudget)
       : 0;
@@ -242,8 +242,9 @@ export default function Campaigns() {
       ? Number(cleanPayload.deposited)
       : (cleanPayload.amountAdded !== '' && cleanPayload.amountAdded !== undefined
           ? Number(cleanPayload.amountAdded)
-          : mBudget);
+          : 0);
 
+    cleanPayload.deposited = depositedVal;
     cleanPayload.amountAdded = depositedVal;
     cleanPayload.remainingBalance = Math.max(0, depositedVal - spent);
 
@@ -327,11 +328,13 @@ export default function Campaigns() {
       campaignType: 'New Campaign',
       status: 'Draft',
       platform: 'Meta',
-      budgetType: 'Monthly Budget',
-      monthlyBudget: '',
+      budgetType: 'Assigned Budget',
+      totalBudget: '',
       dailyBudget: '',
+      depositDate: format(new Date(), 'yyyy-MM-dd'),
       deposited: '',
       lifetimeBudget: '',
+      monthlyBudget: '',
       amountAdded: '',
       remainingBalance: 0,
       currency: 'INR',
@@ -348,9 +351,9 @@ export default function Campaigns() {
 
   const openEdit = (camp) => {
     setEditingCampaign(camp);
-    const mBudget = camp.monthlyBudget ?? camp.lifetimeBudget ?? '';
-    const dBudget = camp.dailyBudget ?? (mBudget ? Math.round(mBudget / 30) : '');
-    const dep = camp.amountAdded ?? mBudget ?? '';
+    const tBudget = camp.totalBudget ?? camp.lifetimeBudget ?? camp.monthlyBudget ?? '';
+    const dBudget = camp.dailyBudget ?? '';
+    const dep = camp.deposited ?? camp.amountAdded ?? '';
     const spent = camp.amountSpent || camp.performance?.spend || 0;
     const rem = camp.remainingBalance ?? Math.max(0, (Number(dep) || 0) - spent);
     const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
@@ -364,13 +367,17 @@ export default function Campaigns() {
       objective: camp.objective || 'Awareness',
       destination: camp.destination || dests[0]?.value || 'Message Destination',
       destinationPlatforms: camp.destinationPlatforms || [],
-      budgetType: 'Monthly Budget',
-      monthlyBudget: mBudget,
+      budgetType: 'Assigned Budget',
+      totalBudget: tBudget,
       dailyBudget: dBudget,
+      depositDate: camp.depositDate ? formatDateForInput(camp.depositDate) : format(new Date(), 'yyyy-MM-dd'),
       deposited: dep,
-      lifetimeBudget: mBudget,
+      lifetimeBudget: tBudget,
+      monthlyBudget: tBudget,
       amountAdded: dep,
       remainingBalance: rem,
+      startDate: formatDateForInput(camp.startDate),
+      endDate: formatDateForInput(camp.endDate),
     });
     setIsDrawerOpen(true);
   };
@@ -426,28 +433,41 @@ export default function Campaigns() {
       },
     },
     {
-      key: 'monthlyBudget',
-      label: 'Monthly Budget',
+      key: 'assignedBudget',
+      label: 'Assigned Budget',
       render: (row) => {
-        const mBudget = row.monthlyBudget || row.lifetimeBudget || (row.dailyBudget ? row.dailyBudget * 30 : 0) || row.amountAdded || 0;
-        const dBudget = row.dailyBudget || (mBudget ? Math.round(mBudget / 30) : 0);
+        const aBudget = row.totalBudget ?? row.lifetimeBudget ?? row.monthlyBudget ?? 0;
+        const dBudget = row.dailyBudget ?? 0;
+        const dateRangeStr = row.startDate && row.endDate
+          ? `${format(new Date(row.startDate), 'dd MMM')} - ${format(new Date(row.endDate), 'dd MMM')}`
+          : (row.startDate ? `From ${format(new Date(row.startDate), 'dd MMM')}` : '');
         return (
           <div>
-            <span className="font-mono font-bold text-xs text-foreground block">₹{mBudget.toLocaleString()}</span>
-            <span className="text-[10px] text-muted-foreground font-mono">₹{dBudget.toLocaleString()}/day</span>
+            <span className="font-mono font-bold text-xs text-foreground block">₹{Number(aBudget).toLocaleString()}</span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {dBudget > 0 && (
+                <span className="text-[10px] text-muted-foreground font-mono">₹{Number(dBudget).toLocaleString()}/day</span>
+              )}
+              {dateRangeStr && (
+                <span className="text-[10px] text-primary/80 font-medium">({dateRangeStr})</span>
+              )}
+            </div>
           </div>
         );
       },
     },
     {
       key: 'budgetDeposited',
-      label: 'Budget Deposited',
+      label: 'Deposited Budget',
       render: (row) => {
-        const deposited = row.amountAdded || row.deposited || row.monthlyBudget || row.lifetimeBudget || 0;
+        const deposited = row.deposited ?? row.amountAdded ?? row.totalBudget ?? row.monthlyBudget ?? row.lifetimeBudget ?? 0;
+        const depositDateStr = row.depositDate ? format(new Date(row.depositDate), 'dd MMM yyyy') : null;
         return (
           <div>
-            <span className="font-mono font-bold text-xs text-blue-500 block">₹{deposited.toLocaleString()}</span>
-            <span className="text-[10px] text-muted-foreground">Deposited</span>
+            <span className="font-mono font-bold text-xs text-blue-500 block">₹{Number(deposited).toLocaleString()}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {depositDateStr ? `Deposited on ${depositDateStr}` : 'Deposited'}
+            </span>
           </div>
         );
       },
@@ -514,7 +534,7 @@ export default function Campaigns() {
     <div className="space-y-6">
       <PageHeader
         title="Campaigns & Money Ledger"
-        subtitle="Manage monthly & daily budgets, track Deposited vs Amount Spent, and monitor balance"
+        subtitle="Manage assigned & daily budgets, track Deposited vs Amount Spent, and monitor balance"
         actions={
           <button onClick={openAdd} className="bg-primary text-primary-foreground font-bold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90">
             <Plus size={18} />
@@ -720,7 +740,67 @@ export default function Campaigns() {
             </div>
           </div>
 
-          {/* Step 2: Multi-Video Selector from Database */}
+          {/* Step 2: Campaign Dates & Assigned Budget (Directly below Client & Project) */}
+          <div className="bg-secondary/30 p-3.5 rounded-2xl border border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <Calendar size={13} className="text-primary" /> Campaign Dates & Assigned Budget
+              </h4>
+              <span className="text-[10px] text-muted-foreground font-medium">Independent manual entry</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="font-semibold text-foreground block mb-1">From Date (Start Date)</label>
+                <input
+                  type="date"
+                  value={formData.startDate}
+                  onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                  className="app-input font-medium"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign start date</span>
+              </div>
+              <div>
+                <label className="font-semibold text-foreground block mb-1">To Date (End Date)</label>
+                <input
+                  type="date"
+                  value={formData.endDate}
+                  onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                  className="app-input font-medium"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign end date</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/50">
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Assigned Budget (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.totalBudget ?? ''}
+                  onChange={e => handleTotalBudgetChange(e.target.value)}
+                  className="app-input font-bold text-foreground"
+                  placeholder="e.g. 800"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Total budget assigned for date range</span>
+              </div>
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.dailyBudget ?? ''}
+                  onChange={e => handleDailyBudgetChange(e.target.value)}
+                  className="app-input font-medium"
+                  placeholder="e.g. 100"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Manual daily budget (no auto-calc)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3: Multi-Video Selector from Database */}
           <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-2.5">
             <div className="flex items-center justify-between">
               <label className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
@@ -775,7 +855,7 @@ export default function Campaigns() {
             )}
           </div>
 
-          {/* Step 3: Campaign Name */}
+          {/* Step 4: Campaign Name */}
           <div>
             <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
             <input
@@ -788,7 +868,7 @@ export default function Campaigns() {
             />
           </div>
 
-          {/* Step 4: Platform & Objective */}
+          {/* Step 5: Platform & Objective */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-semibold text-foreground block mb-1">Platform *</label>
@@ -831,7 +911,7 @@ export default function Campaigns() {
             </div>
           </div>
 
-          {/* Dynamic Destination / Form Type Selector */}
+          {/* Step 6: Dynamic Destination / Form Type Selector */}
           <SMMDestinationSelector
             objective={formData.objective}
             value={formData.destination}
@@ -845,51 +925,35 @@ export default function Campaigns() {
             label="Target Destination / Conversion Location *"
           />
 
-          {/* Step 5: Budget & Calculations (Monthly, Daily, Deposited, Balance Amount) */}
+          {/* Step 7: Daily Deposited Budget & Funds (Directly below Target Destination) */}
           <div className="bg-secondary/30 p-3.5 rounded-2xl border border-border space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <DollarSign size={13} className="text-primary" /> Budget Calculations & Funds
+                <DollarSign size={13} className="text-primary" /> Daily Deposited Budget
               </h4>
-              <span className="text-[10px] text-muted-foreground font-medium">Auto-calculated</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Manual deposit tracking</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Monthly Budget (₹) *</label>
+                <label className="font-semibold text-foreground block mb-1">Deposit Date</label>
                 <input
-                  type="number"
-                  required
-                  min="0"
-                  value={formData.monthlyBudget ?? ''}
-                  onChange={e => handleMonthlyBudgetChange(e.target.value)}
-                  className="app-input font-bold text-foreground"
-                  placeholder="e.g. 30000"
-                />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Calculates daily run-rate</span>
-              </div>
-              <div>
-                <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.dailyBudget ?? ''}
-                  onChange={e => handleDailyBudgetChange(e.target.value)}
+                  type="date"
+                  value={formData.depositDate}
+                  onChange={e => handleDepositDateChange(e.target.value)}
                   className="app-input font-medium"
-                  placeholder="e.g. 1000"
                 />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">≈ Monthly ÷ 30</span>
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Date funds were deposited</span>
               </div>
               <div>
-                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Deposited (₹) *</label>
+                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Deposited Amount (₹) *</label>
                 <input
                   type="number"
-                  required
                   min="0"
                   value={formData.deposited ?? ''}
                   onChange={e => handleDepositedChange(e.target.value)}
                   className="app-input font-bold text-blue-600 dark:text-blue-400 border-blue-500/30"
-                  placeholder="e.g. 30000"
+                  placeholder="e.g. 800"
                 />
                 <span className="text-[10px] text-blue-500/80 block mt-0.5">Funds deposited for ads</span>
               </div>
@@ -918,28 +982,6 @@ export default function Campaigns() {
                 </div>
               );
             })()}
-          </div>
-
-          {/* Step 6: Dates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Start Date</label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={e => setFormData({...formData, startDate: e.target.value})}
-                className="app-input"
-              />
-            </div>
-            <div>
-              <label className="font-semibold text-foreground block mb-1">End Date</label>
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={e => setFormData({...formData, endDate: e.target.value})}
-                className="app-input"
-              />
-            </div>
           </div>
 
           <div className="pt-4 border-t border-border flex justify-end gap-3">
