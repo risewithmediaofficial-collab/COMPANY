@@ -4,6 +4,7 @@
 import SmmMonthlyTracker from '../../models/smm/smmMonthlyTracker.model.js';
 import SmmClient from '../../models/smm/smmClient.model.js';
 import SmmContent from '../../models/smm/smmContent.model.js';
+import Client from '../../models/client.model.js';
 
 // ── Helper: build empty days array for a month ─────────────────────────────
 const buildEmptyDays = (year, month) => {
@@ -18,6 +19,49 @@ const buildEmptyDays = (year, month) => {
   }));
 };
 
+// ── Helper: resolve a client object from either SmmClient or CRM Client ────
+const resolveClientObj = async (clientId) => {
+  if (!clientId) return null;
+  const idStr = clientId.toString();
+  try {
+    const smmClient = await SmmClient.findById(idStr).select('companyName status brandLogo email phone').lean();
+    if (smmClient) {
+      return {
+        _id: smmClient._id,
+        companyName: smmClient.companyName || 'Client',
+        status: smmClient.status || 'Active',
+      };
+    }
+    const crmClient = await Client.findById(idStr).select('company name status logo email phone').lean();
+    if (crmClient) {
+      const cName = crmClient.company || crmClient.name || 'Client';
+      // Auto-mirror to SmmClient so future queries & refs also find it
+      SmmClient.findByIdAndUpdate(
+        crmClient._id,
+        {
+          $setOnInsert: {
+            _id: crmClient._id,
+            companyName: cName,
+            status: crmClient.status === 'active' || crmClient.status === 'Active' ? 'Active' : 'Inactive',
+            email: crmClient.email || '',
+            phone: crmClient.phone || '',
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
+
+      return {
+        _id: crmClient._id,
+        companyName: cName,
+        status: crmClient.status === 'active' || crmClient.status === 'Active' ? 'Active' : 'Inactive',
+      };
+    }
+  } catch (err) {
+    console.error('resolveClientObj error:', err);
+  }
+  return { _id: clientId, companyName: 'Client', status: 'Active' };
+};
+
 // ── GET all tracker rows for a given month/year ─────────────────────────────
 // GET /api/smm/tracker?month=9&year=2026
 export const getMonthlyTrackers = async (req, res) => {
@@ -25,25 +69,86 @@ export const getMonthlyTrackers = async (req, res) => {
     const month = parseInt(req.query.month) || new Date().getMonth() + 1;
     const year  = parseInt(req.query.year)  || new Date().getFullYear();
 
-    // Fetch all active SMM clients
-    const clients = await SmmClient.find({ status: 'Active' }).sort({ companyName: 1 }).lean();
+    // 1. Fetch all active clients from BOTH CRM Client and SMM Client
+    const [crmClients, smmClientsList] = await Promise.all([
+      Client.find({ status: { $regex: /^active$/i } }).sort({ company: 1, name: 1 }).lean(),
+      SmmClient.find({ status: { $regex: /^active$/i } }).sort({ companyName: 1 }).lean(),
+    ]);
 
-    // Fetch existing tracker docs for this month/year
-    const existingTrackers = await SmmMonthlyTracker.find({ month, year })
-      .populate('client', 'companyName status')
-      .lean();
-
-    const trackerMap = {};
-    existingTrackers.forEach((t) => {
-      if (t.client?._id) trackerMap[t.client._id.toString()] = t;
+    // Build unified active client map
+    const clientMap = new Map();
+    crmClients.forEach((c) => {
+      const cName = c.company || c.name || 'Client';
+      clientMap.set(c._id.toString(), {
+        _id: c._id,
+        companyName: cName,
+        status: 'Active',
+      });
+      // Background mirror to SmmClient for consistency
+      SmmClient.findByIdAndUpdate(
+        c._id,
+        {
+          $setOnInsert: {
+            _id: c._id,
+            companyName: cName,
+            status: 'Active',
+            email: c.email || '',
+            phone: c.phone || '',
+          },
+        },
+        { upsert: true }
+      ).catch(() => {});
     });
 
-    // For active clients, return existing (if not excluded) or scaffold (if not excluded)
+    smmClientsList.forEach((c) => {
+      if (!clientMap.has(c._id.toString())) {
+        clientMap.set(c._id.toString(), {
+          _id: c._id,
+          companyName: c.companyName || 'Client',
+          status: c.status || 'Active',
+        });
+      }
+    });
+
+    // 2. Fetch existing tracker docs for this month/year
+    const existingTrackers = await SmmMonthlyTracker.find({ month, year }).lean();
+
+    // Look for any client IDs in existingTrackers not yet in clientMap
+    const missingClientIds = existingTrackers
+      .map(t => t.client?.toString())
+      .filter(id => id && !clientMap.has(id));
+
+    if (missingClientIds.length > 0) {
+      const [extraCrm, extraSmm] = await Promise.all([
+        Client.find({ _id: { $in: missingClientIds } }).lean(),
+        SmmClient.find({ _id: { $in: missingClientIds } }).lean(),
+      ]);
+      extraCrm.forEach(c => clientMap.set(c._id.toString(), { _id: c._id, companyName: c.company || c.name || 'Client', status: 'Active' }));
+      extraSmm.forEach(c => {
+        if (!clientMap.has(c._id.toString())) {
+          clientMap.set(c._id.toString(), { _id: c._id, companyName: c.companyName || 'Client', status: c.status || 'Active' });
+        }
+      });
+    }
+
+    const trackerMap = {};
+    const existingPopulatedList = [];
+
+    existingTrackers.forEach((t) => {
+      const cIdStr = t.client?.toString();
+      if (cIdStr) {
+        const clientObj = clientMap.get(cIdStr) || { _id: t.client, companyName: 'Client', status: 'Active' };
+        const pop = { ...t, client: clientObj };
+        trackerMap[cIdStr] = pop;
+        existingPopulatedList.push(pop);
+      }
+    });
+
     const handledClientIds = new Set();
     const rows = [];
 
-    for (const client of clients) {
-      const cIdStr = client._id.toString();
+    // For active clients, return existing (if not excluded) or scaffold (if not excluded)
+    for (const [cIdStr, client] of clientMap.entries()) {
       handledClientIds.add(cIdStr);
       const existing = trackerMap[cIdStr];
 
@@ -70,8 +175,8 @@ export const getMonthlyTrackers = async (req, res) => {
       }
     }
 
-    // Also include any other non-excluded trackers for this month not in active clients list
-    for (const existing of existingTrackers) {
+    // Also include any other non-excluded trackers for this month
+    for (const existing of existingPopulatedList) {
       const cIdStr = existing.client?._id?.toString();
       if (cIdStr && !handledClientIds.has(cIdStr) && !existing.isExcluded) {
         rows.push(existing);
@@ -87,6 +192,7 @@ export const getMonthlyTrackers = async (req, res) => {
   }
 };
 
+
 // ── GET single tracker row by clientId + month/year ─────────────────────────
 export const getTrackerByClient = async (req, res) => {
   try {
@@ -94,12 +200,12 @@ export const getTrackerByClient = async (req, res) => {
     const month = parseInt(req.query.month) || new Date().getMonth() + 1;
     const year  = parseInt(req.query.year)  || new Date().getFullYear();
 
-    const tracker = await SmmMonthlyTracker.findOne({ client: clientId, month, year })
-      .populate('client', 'companyName status');
+    const tracker = await SmmMonthlyTracker.findOne({ client: clientId, month, year }).lean();
 
     if (!tracker) {
       return res.status(404).json({ success: false, message: 'Tracker not found' });
     }
+    tracker.client = await resolveClientObj(clientId);
     res.json({ success: true, data: tracker });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -135,7 +241,9 @@ export const upsertTracker = async (req, res) => {
         },
       },
       { upsert: true, new: true, runValidators: true }
-    ).populate('client', 'companyName status');
+    ).lean();
+
+    tracker.client = await resolveClientObj(clientId);
 
     res.json({ success: true, data: tracker });
   } catch (err) {
@@ -174,7 +282,10 @@ export const updateDayCell = async (req, res) => {
     tracker.updatedBy = req.user?._id;
     await tracker.save();
 
-    res.json({ success: true, data: tracker });
+    const result = tracker.toObject();
+    result.client = await resolveClientObj(tracker.client);
+
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error('updateDayCell error:', err);
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -192,11 +303,12 @@ export const updateTrackerMeta = async (req, res) => {
       id,
       { $set: { plan, storyPlan, team, updatedBy: req.user?._id } },
       { new: true }
-    ).populate('client', 'companyName status');
+    ).lean();
 
     if (!tracker) {
       return res.status(404).json({ success: false, message: 'Tracker not found' });
     }
+    tracker.client = await resolveClientObj(tracker.client);
     res.json({ success: true, data: tracker });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -250,8 +362,23 @@ export const syncContentWithTracker = async (req, res) => {
       }
     });
 
-    // Fetch all active SMM clients
-    const clients = await SmmClient.find({ status: 'Active' }).lean();
+    // Fetch all active clients from BOTH CRM Client and SmmClient
+    const [crmClients, smmClientsList] = await Promise.all([
+      Client.find({ status: { $regex: /^active$/i } }).lean(),
+      SmmClient.find({ status: { $regex: /^active$/i } }).lean(),
+    ]);
+
+    const clientMap = new Map();
+    crmClients.forEach((c) => {
+      clientMap.set(c._id.toString(), { _id: c._id, companyName: c.company || c.name || 'Client' });
+    });
+    smmClientsList.forEach((c) => {
+      if (!clientMap.has(c._id.toString())) {
+        clientMap.set(c._id.toString(), { _id: c._id, companyName: c.companyName || 'Client' });
+      }
+    });
+
+    const clients = Array.from(clientMap.values());
 
     let updatedCount = 0;
     for (const client of clients) {
@@ -363,7 +490,10 @@ export const deleteTracker = async (req, res) => {
     if (deleteClient && targetClientId) {
       // Permanently remove client and all trackers for this client
       await SmmMonthlyTracker.deleteMany({ client: targetClientId });
-      await SmmClient.findByIdAndDelete(targetClientId);
+      await Promise.allSettled([
+        SmmClient.findByIdAndDelete(targetClientId),
+        Client.findByIdAndDelete(targetClientId),
+      ]);
       return res.json({ success: true, message: 'Client and all tracker data permanently deleted' });
     }
 
@@ -392,3 +522,4 @@ export const deleteTracker = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
+
