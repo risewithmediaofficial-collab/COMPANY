@@ -23,6 +23,17 @@ const performanceSchema = new mongoose.Schema({
   apiSource: { type: String, enum: ['manual', 'meta', 'google', 'linkedin'], default: 'manual' },
 }, { _id: false });
 
+const depositEntrySchema = new mongoose.Schema(
+  {
+    fromDate: { type: Date },
+    toDate: { type: Date },
+    depositDate: { type: Date, required: true, default: Date.now },
+    amount: { type: Number, required: true, default: 0 },
+    notes: { type: String, default: '' },
+  },
+  { _id: true }
+);
+
 const campaignSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -79,6 +90,10 @@ const campaignSchema = new mongoose.Schema(
     monthlyBudget: { type: Number, default: 0 },
     lifetimeBudget: { type: Number, default: 0 },
     depositDate: { type: Date },
+    deposits: {
+      type: [depositEntrySchema],
+      default: [],
+    },
     amountAdded: { type: Number, default: 0 }, // Total funds added / deposited to campaign
     amountSpent: { type: Number, default: 0 }, // Auto-updated from daily spend tracking logs
     remainingBalance: { type: Number, default: 0 }, // (amountAdded - amountSpent)

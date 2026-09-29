@@ -25,6 +25,14 @@ const formatDateForInput = (dateVal) => {
   }
 };
 
+const createInitialDeposit = () => ({
+  depositDate: format(new Date(), 'yyyy-MM-dd'),
+  fromDate: '',
+  toDate: '',
+  amount: '',
+  notes: '',
+});
+
 export default function Campaigns() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
@@ -48,7 +56,7 @@ export default function Campaigns() {
     name: '', client: '', project: '', sourceContentId: '', sourceContentIds: [],
     objective: 'Awareness', destination: 'Message Destination', destinationPlatforms: [], campaignType: 'New Campaign',
     status: 'Draft', platform: 'Meta', budgetType: 'Assigned Budget', dailyBudget: '',
-    totalBudget: '', lifetimeBudget: '', deposited: '', depositDate: format(new Date(), 'yyyy-MM-dd'),
+    totalBudget: '', lifetimeBudget: '', deposits: [createInitialDeposit()], deposited: '', depositDate: format(new Date(), 'yyyy-MM-dd'),
     amountAdded: 0, remainingBalance: 0, currency: 'INR', goal: '', landingPage: '', pixelConnected: false,
     conversionApiEnabled: false, startDate: '', endDate: '', internalNotes: ''
   });
@@ -199,19 +207,93 @@ export default function Campaigns() {
     const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
     const depNum = val === '' ? 0 : Number(val);
     const balance = Math.max(0, depNum - spent);
-    setFormData(prev => ({
-      ...prev,
-      deposited: val,
-      amountAdded: val,
-      remainingBalance: balance,
-    }));
+    setFormData(prev => {
+      const deposits = [...(prev.deposits || [])];
+      if (deposits.length > 0) {
+        deposits[0] = { ...deposits[0], amount: val };
+      } else {
+        deposits.push({ ...createInitialDeposit(), amount: val });
+      }
+      return {
+        ...prev,
+        deposits,
+        deposited: val,
+        amountAdded: val,
+        remainingBalance: balance,
+      };
+    });
   };
 
   const handleDepositDateChange = (value) => {
-    setFormData(prev => ({
-      ...prev,
-      depositDate: value,
-    }));
+    setFormData(prev => {
+      const deposits = [...(prev.deposits || [])];
+      if (deposits.length > 0) {
+        deposits[0] = { ...deposits[0], depositDate: value };
+      }
+      return {
+        ...prev,
+        depositDate: value,
+        deposits,
+      };
+    });
+  };
+
+  const handleAddDeposit = () => {
+    setFormData(prev => {
+      const list = prev.deposits || [];
+      const last = list[list.length - 1];
+      const nextDate = last?.toDate || last?.depositDate || format(new Date(), 'yyyy-MM-dd');
+      return {
+        ...prev,
+        deposits: [
+          ...list,
+          {
+            depositDate: nextDate,
+            fromDate: '',
+            toDate: '',
+            amount: '',
+            notes: '',
+          }
+        ]
+      };
+    });
+  };
+
+  const handleRemoveDeposit = (index) => {
+    setFormData(prev => {
+      const list = (prev.deposits || []).filter((_, i) => i !== index);
+      const updated = list.length > 0 ? list : [createInitialDeposit()];
+      const total = updated.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+      const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
+      return {
+        ...prev,
+        deposits: updated,
+        deposited: total,
+        amountAdded: total,
+        remainingBalance: Math.max(0, total - spent),
+      };
+    });
+  };
+
+  const handleDepositChange = (index, field, value) => {
+    setFormData(prev => {
+      const list = [...(prev.deposits || [])];
+      list[index] = {
+        ...list[index],
+        [field]: value,
+      };
+      const total = list.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+      const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
+      const latestDate = list[list.length - 1]?.depositDate || prev.depositDate;
+      return {
+        ...prev,
+        deposits: list,
+        deposited: total,
+        amountAdded: total,
+        remainingBalance: Math.max(0, total - spent),
+        depositDate: latestDate,
+      };
+    });
   };
 
   const handleSave = async (e) => {
@@ -237,16 +319,34 @@ export default function Campaigns() {
       ? Number(cleanPayload.dailyBudget)
       : 0;
 
+    const cleanedDeposits = (cleanPayload.deposits || [])
+      .filter(d => d && (d.amount !== '' && d.amount !== undefined && Number(d.amount) >= 0))
+      .map(d => ({
+        ...(d._id ? { _id: d._id } : {}),
+        depositDate: d.depositDate || format(new Date(), 'yyyy-MM-dd'),
+        fromDate: d.fromDate || undefined,
+        toDate: d.toDate || undefined,
+        amount: Number(d.amount) || 0,
+        notes: d.notes || '',
+      }));
+    cleanPayload.deposits = cleanedDeposits;
+
     const spent = editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0;
-    const depositedVal = cleanPayload.deposited !== '' && cleanPayload.deposited !== undefined
-      ? Number(cleanPayload.deposited)
-      : (cleanPayload.amountAdded !== '' && cleanPayload.amountAdded !== undefined
-          ? Number(cleanPayload.amountAdded)
-          : 0);
+    const totalDepositedFromList = cleanedDeposits.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+    const depositedVal = cleanedDeposits.length > 0
+      ? totalDepositedFromList
+      : (cleanPayload.deposited !== '' && cleanPayload.deposited !== undefined
+          ? Number(cleanPayload.deposited)
+          : (cleanPayload.amountAdded !== '' && cleanPayload.amountAdded !== undefined
+              ? Number(cleanPayload.amountAdded)
+              : 0));
 
     cleanPayload.deposited = depositedVal;
     cleanPayload.amountAdded = depositedVal;
     cleanPayload.remainingBalance = Math.max(0, depositedVal - spent);
+    if (cleanedDeposits.length > 0) {
+      cleanPayload.depositDate = cleanedDeposits[cleanedDeposits.length - 1].depositDate;
+    }
 
     try {
       if (editingCampaign) {
@@ -331,6 +431,7 @@ export default function Campaigns() {
       budgetType: 'Assigned Budget',
       totalBudget: '',
       dailyBudget: '',
+      deposits: [createInitialDeposit()],
       depositDate: format(new Date(), 'yyyy-MM-dd'),
       deposited: '',
       lifetimeBudget: '',
@@ -358,6 +459,26 @@ export default function Campaigns() {
     const rem = camp.remainingBalance ?? Math.max(0, (Number(dep) || 0) - spent);
     const vIds = camp.sourceContentIds?.map(v => v._id || v) || (camp.sourceContentId ? [camp.sourceContentId._id || camp.sourceContentId] : []);
     const dests = getDestinationsForObjective(camp.objective || 'Awareness');
+    const loadedDeposits = (camp.deposits && camp.deposits.length > 0)
+      ? camp.deposits.map(d => ({
+          _id: d._id,
+          depositDate: d.depositDate ? formatDateForInput(d.depositDate) : format(new Date(), 'yyyy-MM-dd'),
+          fromDate: d.fromDate ? formatDateForInput(d.fromDate) : '',
+          toDate: d.toDate ? formatDateForInput(d.toDate) : '',
+          amount: d.amount ?? '',
+          notes: d.notes || '',
+        }))
+      : (dep !== '' && dep !== undefined && Number(dep) > 0
+          ? [{
+              depositDate: camp.depositDate ? formatDateForInput(camp.depositDate) : format(new Date(), 'yyyy-MM-dd'),
+              fromDate: camp.startDate ? formatDateForInput(camp.startDate) : '',
+              toDate: camp.endDate ? formatDateForInput(camp.endDate) : '',
+              amount: dep,
+              notes: 'Initial Deposit',
+            }]
+          : [createInitialDeposit()]
+        );
+
     setFormData({
       ...camp,
       client: camp.client?._id || camp.client || '',
@@ -370,6 +491,7 @@ export default function Campaigns() {
       budgetType: 'Assigned Budget',
       totalBudget: tBudget,
       dailyBudget: dBudget,
+      deposits: loadedDeposits,
       depositDate: camp.depositDate ? formatDateForInput(camp.depositDate) : format(new Date(), 'yyyy-MM-dd'),
       deposited: dep,
       lifetimeBudget: tBudget,
@@ -461,13 +583,29 @@ export default function Campaigns() {
       label: 'Deposited Budget',
       render: (row) => {
         const deposited = row.deposited ?? row.amountAdded ?? row.totalBudget ?? row.monthlyBudget ?? row.lifetimeBudget ?? 0;
+        const aBudget = row.totalBudget ?? row.lifetimeBudget ?? row.monthlyBudget ?? 0;
         const depositDateStr = row.depositDate ? format(new Date(row.depositDate), 'dd MMM yyyy') : null;
+        const depCount = row.deposits?.length || (deposited > 0 ? 1 : 0);
+        const pending = aBudget > 0 ? Math.max(0, aBudget - deposited) : 0;
         return (
           <div>
-            <span className="font-mono font-bold text-xs text-blue-500 block">₹{Number(deposited).toLocaleString()}</span>
-            <span className="text-[10px] text-muted-foreground">
-              {depositDateStr ? `Deposited on ${depositDateStr}` : 'Deposited'}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono font-bold text-xs text-blue-500 block">₹{Number(deposited).toLocaleString()}</span>
+              {depCount > 1 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold">
+                  {depCount} deposits
+                </span>
+              )}
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-0.5 space-y-0.5">
+              {aBudget > 0 && pending > 0 ? (
+                <span className="text-amber-500 block font-medium">₹{pending.toLocaleString()} pending from assigned</span>
+              ) : aBudget > 0 && deposited >= aBudget ? (
+                <span className="text-emerald-500 block font-medium">✓ Fully deposited</span>
+              ) : (
+                <span>{depositDateStr ? `Deposited on ${depositDateStr}` : 'Deposited'}</span>
+              )}
+            </div>
           </div>
         );
       },
@@ -476,19 +614,22 @@ export default function Campaigns() {
       key: 'balanceAmount',
       label: 'Balance Amount',
       render: (row) => {
-        const deposited = row.amountAdded || row.deposited || row.monthlyBudget || row.lifetimeBudget || 0;
+        const aBudget = row.totalBudget ?? row.lifetimeBudget ?? row.monthlyBudget ?? 0;
+        const deposited = row.deposited ?? row.amountAdded ?? 0;
         const spent = row.amountSpent || row.performance?.spend || 0;
-        const balance = Math.max(0, deposited - spent);
-        const percent = deposited > 0 ? Math.min(100, Math.round((spent / deposited) * 100)) : 0;
+        const balance = aBudget > 0 ? Math.max(0, aBudget - deposited) : Math.max(0, deposited - spent);
+        const percent = aBudget > 0 ? (deposited > 0 ? Math.min(100, Math.round((deposited / aBudget) * 100)) : 0) : (deposited > 0 ? Math.min(100, Math.round((spent / deposited) * 100)) : 0);
         return (
           <div className="w-36 space-y-1">
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{balance.toLocaleString()}</span>
-              <span className="text-[10px] text-muted-foreground">Spent ₹{spent.toLocaleString()}</span>
+              <span className="text-[10px] text-muted-foreground">
+                {aBudget > 0 ? (balance === 0 ? 'Fully Deposited' : 'Remaining') : `Spent ₹${spent.toLocaleString()}`}
+              </span>
             </div>
             <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
               <div
-                className={`h-full rounded-full ${percent >= 90 ? 'bg-rose-500' : percent >= 80 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                className={`h-full rounded-full ${percent >= 100 ? 'bg-emerald-500' : percent >= 75 ? 'bg-amber-500' : 'bg-primary'}`}
                 style={{ width: `${percent}%` }}
               />
             </div>
@@ -743,69 +884,77 @@ export default function Campaigns() {
             </div>
           </div>
 
-          {/* Step 2: Campaign Dates & Assigned Budget (Directly below Client & Project) */}
-          <div className="bg-secondary/30 p-3.5 rounded-2xl border border-border space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar size={13} className="text-primary" /> Campaign Dates & Assigned Budget
-              </h4>
-              <span className="text-[10px] text-muted-foreground font-medium">Independent manual entry</span>
-            </div>
+          {/* Step 2: Campaign Name */}
+          <div>
+            <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+              className="app-input"
+              placeholder="e.g. August Restaurant Lead Campaign"
+            />
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="font-semibold text-foreground block mb-1">From Date (Start Date)</label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                  className="app-input font-medium"
-                />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign start date</span>
-              </div>
-              <div>
-                <label className="font-semibold text-foreground block mb-1">To Date (End Date)</label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                  className="app-input font-medium"
-                />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign end date</span>
-              </div>
+          {/* Step 3: Platform & Objective */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="font-semibold text-foreground block mb-1">Platform *</label>
+              <select
+                value={formData.platform}
+                onChange={e => setFormData({ ...formData, platform: e.target.value })}
+                className="app-select"
+              >
+                <option value="Meta">Meta Ads (IG & FB)</option>
+                <option value="Google">Google Ads</option>
+                <option value="LinkedIn">LinkedIn Ads</option>
+                <option value="YouTube">YouTube Ads</option>
+                <option value="TikTok">TikTok Ads</option>
+              </select>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/50">
-              <div>
-                <label className="font-semibold text-foreground block mb-1">Assigned Budget (₹) *</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.totalBudget ?? ''}
-                  onChange={e => handleTotalBudgetChange(e.target.value)}
-                  onWheel={e => e.currentTarget.blur()}
-                  className="app-input font-bold text-foreground"
-                  placeholder="e.g. 800"
-                />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Total budget assigned for date range</span>
-              </div>
-              <div>
-                <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.dailyBudget ?? ''}
-                  onChange={e => handleDailyBudgetChange(e.target.value)}
-                  onWheel={e => e.currentTarget.blur()}
-                  className="app-input font-medium"
-                  placeholder="e.g. 100"
-                />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Manual daily budget (no auto-calc)</span>
-              </div>
+            <div>
+              <label className="font-semibold text-foreground block mb-1">Objective *</label>
+              <select
+                value={formData.objective}
+                onChange={e => {
+                  const newObj = e.target.value;
+                  const dests = getDestinationsForObjective(newObj);
+                  const firstDest = dests[0]?.value || 'Message Destination';
+                  const platforms = (firstDest === 'Instagram' || firstDest === 'Facebook')
+                    ? [firstDest]
+                    : (firstDest === 'Instagram & Facebook' ? ['Instagram', 'Facebook'] : []);
+                  setFormData(prev => ({
+                    ...prev,
+                    objective: newObj,
+                    destination: firstDest,
+                    destinationPlatforms: platforms,
+                  }));
+                }}
+                className="app-select font-semibold"
+              >
+                {SMM_OBJECTIVES.map(obj => (
+                  <option key={obj} value={obj}>{obj}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Step 3: Multi-Video Selector from Database */}
+          {/* Step 4: Dynamic Destination / Form Type Selector */}
+          <SMMDestinationSelector
+            objective={formData.objective}
+            value={formData.destination}
+            onChange={(newDest, platforms) => {
+              setFormData(prev => ({
+                ...prev,
+                destination: newDest,
+                destinationPlatforms: platforms || [],
+              }));
+            }}
+            label="Target Destination / Conversion Location *"
+          />
+
+          {/* Step 5: Multi-Video Selector from Database */}
           <div className="p-3.5 rounded-2xl bg-purple-500/10 border border-purple-500/20 space-y-2.5">
             <div className="flex items-center justify-between">
               <label className="font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
@@ -860,130 +1009,226 @@ export default function Campaigns() {
             )}
           </div>
 
-          {/* Step 4: Campaign Name */}
-          <div>
-            <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              className="app-input"
-              placeholder="e.g. August Restaurant Lead Campaign"
-            />
-          </div>
-
-          {/* Step 5: Platform & Objective */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Platform *</label>
-              <select
-                value={formData.platform}
-                onChange={e => setFormData({ ...formData, platform: e.target.value })}
-                className="app-select"
-              >
-                <option value="Meta">Meta Ads (IG & FB)</option>
-                <option value="Google">Google Ads</option>
-                <option value="LinkedIn">LinkedIn Ads</option>
-                <option value="YouTube">YouTube Ads</option>
-                <option value="TikTok">TikTok Ads</option>
-              </select>
-            </div>
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Objective *</label>
-              <select
-                value={formData.objective}
-                onChange={e => {
-                  const newObj = e.target.value;
-                  const dests = getDestinationsForObjective(newObj);
-                  const firstDest = dests[0]?.value || 'Message Destination';
-                  const platforms = (firstDest === 'Instagram' || firstDest === 'Facebook')
-                    ? [firstDest]
-                    : (firstDest === 'Instagram & Facebook' ? ['Instagram', 'Facebook'] : []);
-                  setFormData(prev => ({
-                    ...prev,
-                    objective: newObj,
-                    destination: firstDest,
-                    destinationPlatforms: platforms,
-                  }));
-                }}
-                className="app-select font-semibold"
-              >
-                {SMM_OBJECTIVES.map(obj => (
-                  <option key={obj} value={obj}>{obj}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Step 6: Dynamic Destination / Form Type Selector */}
-          <SMMDestinationSelector
-            objective={formData.objective}
-            value={formData.destination}
-            onChange={(newDest, platforms) => {
-              setFormData(prev => ({
-                ...prev,
-                destination: newDest,
-                destinationPlatforms: platforms || [],
-              }));
-            }}
-            label="Target Destination / Conversion Location *"
-          />
-
-          {/* Step 7: Daily Deposited Budget & Funds (Directly below Target Destination) */}
-          <div className="bg-secondary/30 p-3.5 rounded-2xl border border-border space-y-3">
-            <div className="flex items-center justify-between">
+          {/* Step 6: Campaign Dates, Assigned Budget & Daily Deposited Budget (Moved below Campaign Name, Platform, Destination, Videos) */}
+          <div className="bg-secondary/30 p-3.5 rounded-2xl border border-border space-y-3.5">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <DollarSign size={13} className="text-primary" /> Daily Deposited Budget
+                <Calendar size={13} className="text-primary" /> Campaign Dates & Assigned Budget
               </h4>
-              <span className="text-[10px] text-muted-foreground font-medium">Manual deposit tracking</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Independent manual entry</span>
             </div>
 
+            {/* Campaign Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Deposit Date</label>
+                <label className="font-semibold text-foreground block mb-1">From Date (Start Date)</label>
                 <input
                   type="date"
-                  value={formData.depositDate}
-                  onChange={e => handleDepositDateChange(e.target.value)}
+                  value={formData.startDate}
+                  onChange={e => setFormData({ ...formData, startDate: e.target.value })}
                   className="app-input font-medium"
                 />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Date funds were deposited</span>
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign start date</span>
               </div>
               <div>
-                <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-1">Deposited Amount (₹) *</label>
+                <label className="font-semibold text-foreground block mb-1">To Date (End Date)</label>
+                <input
+                  type="date"
+                  value={formData.endDate}
+                  onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                  className="app-input font-medium"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign end date</span>
+              </div>
+            </div>
+
+            {/* Assigned & Daily Budget Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/50">
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Assigned Budget (₹) *</label>
                 <input
                   type="number"
                   min="0"
-                  value={formData.deposited ?? ''}
-                  onChange={e => handleDepositedChange(e.target.value)}
+                  value={formData.totalBudget ?? ''}
+                  onChange={e => handleTotalBudgetChange(e.target.value)}
                   onWheel={e => e.currentTarget.blur()}
-                  className="app-input font-bold text-blue-600 dark:text-blue-400 border-blue-500/30"
+                  className="app-input font-bold text-foreground"
                   placeholder="e.g. 800"
                 />
-                <span className="text-[10px] text-blue-500/80 block mt-0.5">Funds deposited for ads</span>
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Total budget assigned for date range</span>
+              </div>
+              <div>
+                <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.dailyBudget ?? ''}
+                  onChange={e => handleDailyBudgetChange(e.target.value)}
+                  onWheel={e => e.currentTarget.blur()}
+                  className="app-input font-medium"
+                  placeholder="e.g. 100"
+                />
+                <span className="text-[10px] text-muted-foreground block mt-0.5">Manual daily budget (no auto-calc)</span>
               </div>
             </div>
 
-            {/* Calculated Balance Box: Deposited minus Spent */}
+            {/* Daily Deposited Budget & Tranches (Moved up here into unified budget details) */}
+            <div className="p-3 bg-card rounded-xl border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h5 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <DollarSign size={13} className="text-primary" /> Daily Deposited Budget
+                  </h5>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
+                    {(formData.deposits || []).length} tranche{(formData.deposits || []).length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddDeposit}
+                  className="flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground font-bold rounded-lg text-[11px] shadow-xs hover:opacity-90 transition-all"
+                  title="Add another daily deposit tranche"
+                >
+                  <Plus size={13} strokeWidth={2.5} /> Add Deposit
+                </button>
+              </div>
+
+              <p className="text-[10px] text-muted-foreground">
+                Deposit funds for daily ad spend. Use <strong>+ Add Deposit</strong> to add multiple deposit entries.
+              </p>
+
+              <div className="space-y-2.5">
+                {(formData.deposits || []).map((dep, idx) => (
+                  <div key={idx} className="p-2.5 bg-secondary/30 rounded-xl border border-border space-y-2">
+                    <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                      <span className="font-bold text-foreground text-[11px] flex items-center gap-1.5">
+                        <span className="w-4 h-4 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[9px] font-black">
+                          {idx + 1}
+                        </span>
+                        Deposit #{idx + 1}
+                      </span>
+                      {(formData.deposits || []).length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDeposit(idx)}
+                          className="text-muted-foreground hover:text-rose-500 p-0.5 rounded transition-colors"
+                          title="Remove deposit"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="font-semibold text-foreground block mb-0.5 text-[10px]">Date of Deposit</label>
+                        <input
+                          type="date"
+                          value={dep.depositDate}
+                          onChange={e => handleDepositChange(idx, 'depositDate', e.target.value)}
+                          className="app-input font-medium text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-semibold text-blue-600 dark:text-blue-400 block mb-0.5 text-[10px]">
+                          Deposited Amount (₹) *
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={dep.amount ?? ''}
+                          onChange={e => handleDepositChange(idx, 'amount', e.target.value)}
+                          onWheel={e => e.currentTarget.blur()}
+                          className="app-input font-bold text-blue-600 dark:text-blue-400 border-blue-500/30 text-xs"
+                          placeholder="e.g. 800"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Optional remarks (e.g. UPI, Bank transfer, Tranche 1)"
+                        value={dep.notes || ''}
+                        onChange={e => handleDepositChange(idx, 'notes', e.target.value)}
+                        className="app-input text-[11px] h-7"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add another deposit button */}
+              <button
+                type="button"
+                onClick={handleAddDeposit}
+                className="w-full py-2 border-2 border-dashed border-primary/30 rounded-xl text-[11px] font-bold text-primary hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Plus size={13} strokeWidth={2.5} /> Add Another Deposit Tranche
+              </button>
+            </div>
+
+            {/* Dynamic Live Ledger & Minus Calculation Box */}
             {(() => {
-              const dep = Number(formData.deposited !== '' && formData.deposited !== undefined ? formData.deposited : (formData.amountAdded || 0));
+              const liveDeposited = (formData.deposits || []).reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+              const liveAssigned = Number(formData.totalBudget) || 0;
+              const remainingFromAssigned = liveAssigned - liveDeposited;
               const spent = Number(editingCampaign?.amountSpent || editingCampaign?.performance?.spend || 0);
-              const bal = Math.max(0, dep - spent);
+              const balance = Math.max(0, liveDeposited - spent);
+
               return (
-                <div className="p-3 bg-card rounded-xl border border-border flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <span className="font-bold text-foreground text-xs block">Balance Amount</span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {spent > 0
-                        ? `Deposited ₹${dep.toLocaleString()} − Spent ₹${spent.toLocaleString()}`
-                        : `Deposited funds available for ads (minus spend)`}
+                <div className="p-3 bg-card rounded-xl border border-border space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-[11px] border-b border-border/50 pb-1.5">
+                    <span className="font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <TrendingUp size={12} className="text-primary" /> Budget & Deposit Ledger Summary
+                    </span>
+                    <span className="font-bold text-foreground font-mono">
+                      {(formData.deposits || []).length} Tranche{(formData.deposits || []).length !== 1 ? 's' : ''}
                     </span>
                   </div>
-                  <div className="text-right">
-                    <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400">
-                      ₹{bal.toLocaleString()}
-                    </span>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 rounded-lg bg-secondary/50 border border-border">
+                      <span className="text-[10px] text-muted-foreground block font-medium">Assigned Budget</span>
+                      <span className="text-sm font-bold font-mono text-foreground block mt-0.5">
+                        ₹{liveAssigned.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                      <span className="text-[10px] text-blue-600 dark:text-blue-400 block font-medium">Total Deposited</span>
+                      <span className="text-sm font-bold font-mono text-blue-600 dark:text-blue-400 block mt-0.5">
+                        ₹{liveDeposited.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Balance Amount: Assigned Budget MINUS Deposited Amount */}
+                  <div className="p-3 rounded-xl bg-card border border-border flex items-center justify-between shadow-xs">
+                    <div>
+                      <span className="font-bold text-foreground text-xs block">
+                        Balance Amount
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        Assigned ₹{liveAssigned.toLocaleString()} − Deposited ₹{liveDeposited.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      {liveAssigned > 0 && remainingFromAssigned > 0 ? (
+                        <span className="text-sm font-black font-mono px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                          ₹{remainingFromAssigned.toLocaleString()}
+                        </span>
+                      ) : liveAssigned > 0 && remainingFromAssigned === 0 ? (
+                        <span className="text-sm font-black font-mono px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                          ✓ ₹0 (100% Fully Deposited)
+                        </span>
+                      ) : remainingFromAssigned < 0 ? (
+                        <span className="text-sm font-black font-mono px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400">
+                          +₹{Math.abs(remainingFromAssigned).toLocaleString()} Extra Deposited
+                        </span>
+                      ) : (
+                        <span className="text-sm font-bold font-mono text-muted-foreground">₹0</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

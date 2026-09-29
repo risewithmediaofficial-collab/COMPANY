@@ -104,5 +104,42 @@ test.describe('Campaign Budget & Date Flow E2E', () => {
     // Close drawer
     await page.getByRole('button', { name: 'Cancel' }).click();
   });
+
+  test('Multi-deposit tranche flow calculates minus remaining from assigned budget and allows adding multiple tranches', async ({ page }) => {
+    await page.goto('http://localhost:5173/smm/campaigns');
+    await page.waitForLoadState('networkidle');
+
+    // Click Create Campaign button
+    const createBtn = page.getByRole('button', { name: 'Create Campaign' }).first();
+    await createBtn.click();
+
+    // Verify sections order: Campaign Name is before Campaign Dates & Assigned Budget
+    await expect(page.getByPlaceholder('e.g. August Restaurant Lead Campaign')).toBeVisible();
+
+    // Fill Assigned Budget with 10000
+    const assignedBudgetInput = page.getByPlaceholder('e.g. 800').first();
+    await assignedBudgetInput.fill('10000');
+
+    // Deposit #1 amount input
+    const deposit1Amount = page.getByPlaceholder('e.g. 800').nth(1);
+    await deposit1Amount.fill('2000');
+
+    // Verify live minus from assigned budget: 10,000 - 2,000 = 8,000
+    await expect(page.getByText('₹8,000').first()).toBeVisible();
+
+    // Click "+ Add Deposit" or "+ Add Another Deposit Tranche"
+    const addAnotherDepositBtn = page.getByRole('button', { name: /Add Another Deposit Tranche/i });
+    await addAnotherDepositBtn.click();
+
+    // Deposit #2 amount input is now at index 2
+    const deposit2Amount = page.getByPlaceholder('e.g. 800').nth(2);
+    await deposit2Amount.fill('3000');
+
+    // Verify live minus from assigned budget: 10,000 - (2,000 + 3,000) = 5,000
+    await expect(page.getByText('₹5,000').first()).toBeVisible();
+
+    // Close drawer
+    await page.getByRole('button', { name: 'Cancel' }).click();
+  });
 });
 

@@ -146,11 +146,41 @@ export const createCampaign = async (req, res) => {
 
     // Calculate initial remaining budget
     const effectiveTotalBudget = Number(payload.totalBudget ?? payload.lifetimeBudget ?? payload.monthlyBudget) || 0;
-    const depositedBudget = payload.deposited !== undefined && payload.deposited !== '' 
-      ? Number(payload.deposited) 
-      : (payload.amountAdded !== undefined && payload.amountAdded !== ''
-          ? Number(payload.amountAdded) 
-          : 0);
+    
+    // Parse deposits array if provided
+    let deposits = [];
+    if (Array.isArray(payload.deposits)) {
+      deposits = payload.deposits
+        .filter(d => d && (d.amount !== '' && d.amount !== undefined && Number(d.amount) >= 0))
+        .map(d => ({
+          fromDate: d.fromDate ? new Date(d.fromDate) : undefined,
+          toDate: d.toDate ? new Date(d.toDate) : undefined,
+          depositDate: d.depositDate ? new Date(d.depositDate) : new Date(),
+          amount: Number(d.amount) || 0,
+          notes: d.notes || '',
+        }));
+    }
+
+    const totalFromDeposits = deposits.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+    const depositedBudget = deposits.length > 0
+      ? totalFromDeposits
+      : (payload.deposited !== undefined && payload.deposited !== '' 
+          ? Number(payload.deposited) 
+          : (payload.amountAdded !== undefined && payload.amountAdded !== ''
+              ? Number(payload.amountAdded) 
+              : 0));
+
+    if (deposits.length === 0 && depositedBudget > 0) {
+      deposits.push({
+        depositDate: payload.depositDate ? new Date(payload.depositDate) : new Date(),
+        amount: depositedBudget,
+        notes: 'Initial Deposit',
+      });
+    }
+
+    const latestDepositDate = deposits.length > 0
+      ? deposits[deposits.length - 1].depositDate
+      : (payload.depositDate ? new Date(payload.depositDate) : new Date());
 
     const initialBalance = payload.remainingBalance !== undefined && payload.remainingBalance !== ''
       ? Number(payload.remainingBalance)
@@ -163,7 +193,8 @@ export const createCampaign = async (req, res) => {
       monthlyBudget: effectiveTotalBudget,
       lifetimeBudget: effectiveTotalBudget,
       dailyBudget: Number(payload.dailyBudget) || 0,
-      depositDate: payload.depositDate ? new Date(payload.depositDate) : new Date(),
+      deposits,
+      depositDate: latestDepositDate,
       amountAdded: depositedBudget,
       amountSpent: Number(payload.amountSpent) || 0,
       remainingBalance: initialBalance,
@@ -218,8 +249,30 @@ export const updateCampaign = async (req, res) => {
       updates.totalBudget = Number(updates.lifetimeBudget) || 0;
     }
 
-    if (updates.deposited !== undefined) {
-      updates.amountAdded = Number(updates.deposited) || 0;
+    if (Array.isArray(updates.deposits)) {
+      updates.deposits = updates.deposits
+        .filter(d => d && (d.amount !== '' && d.amount !== undefined && Number(d.amount) >= 0))
+        .map(d => ({
+          ...(d._id ? { _id: d._id } : {}),
+          fromDate: d.fromDate ? new Date(d.fromDate) : undefined,
+          toDate: d.toDate ? new Date(d.toDate) : undefined,
+          depositDate: d.depositDate ? new Date(d.depositDate) : new Date(),
+          amount: Number(d.amount) || 0,
+          notes: d.notes || '',
+        }));
+      const totalFromDeposits = updates.deposits.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+      updates.amountAdded = totalFromDeposits;
+      updates.deposited = totalFromDeposits;
+      if (updates.deposits.length > 0) {
+        updates.depositDate = updates.deposits[updates.deposits.length - 1].depositDate;
+      }
+      const spent = prevCampaign.amountSpent || prevCampaign.performance?.spend || 0;
+      updates.remainingBalance = Math.max(0, totalFromDeposits - spent);
+    } else if (updates.deposited !== undefined) {
+      const depVal = Number(updates.deposited) || 0;
+      updates.amountAdded = depVal;
+      const spent = prevCampaign.amountSpent || prevCampaign.performance?.spend || 0;
+      updates.remainingBalance = Math.max(0, depVal - spent);
     }
     if (updates.depositDate) {
       updates.depositDate = new Date(updates.depositDate);
@@ -298,12 +351,14 @@ export const addDailyLog = async (req, res) => {
     const campaign = await Campaign.findById(campaignId);
     if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
 
+    const addedAmount = Number(req.body.amountAdded || req.body.deposited) || 0;
     const spendLog = await SmmAdSpend.create({
       client: campaign.client,
       project: campaign.project,
       campaign: campaignId,
       date: req.body.date || new Date(),
       dailyBudget: campaign.dailyBudget,
+      amountAdded: addedAmount,
       amountSpent: Number(req.body.spend || req.body.amountSpent) || 0,
       leadsGenerated: Number(req.body.leads || req.body.leadsGenerated) || 0,
       clicks: Number(req.body.clicks) || 0,
@@ -311,6 +366,18 @@ export const addDailyLog = async (req, res) => {
       notes: req.body.notes || '',
       loggedBy: req.user?._id,
     });
+
+    if (addedAmount > 0) {
+      await Campaign.findByIdAndUpdate(campaignId, {
+        $push: {
+          deposits: {
+            depositDate: req.body.date ? new Date(req.body.date) : new Date(),
+            amount: addedAmount,
+            notes: req.body.notes || 'Daily Ledger Deposit',
+          }
+        }
+      });
+    }
 
     await recalculateCampaignSpend(campaignId);
     const updated = await populateCampaign(Campaign.findById(campaignId));
