@@ -105,7 +105,7 @@ export const smmApi = {
   upsertTracker: (data) => api.post('/smm/tracker', data),
   updateTrackerDayCell: (id, day, data) => api.patch(`/smm/tracker/${id}/day/${day}`, data),
   updateTrackerMeta: (id, data) => api.patch(`/smm/tracker/${id}/meta`, data),
-  deleteTracker: (id) => api.delete(`/smm/tracker/${id}`),
+  deleteTracker: (id, config) => api.delete(`/smm/tracker/${id}`, config),
   syncContentTracker: (data) => api.post('/smm/tracker/sync-content', data),
 };
 

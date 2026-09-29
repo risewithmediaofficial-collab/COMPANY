@@ -38,24 +38,45 @@ export const getMonthlyTrackers = async (req, res) => {
       if (t.client?._id) trackerMap[t.client._id.toString()] = t;
     });
 
-    // For every active client, return existing or a scaffold
-    const rows = clients.map((client, index) => {
-      const existing = trackerMap[client._id.toString()];
-      if (existing) return existing;
+    // For active clients, return existing (if not excluded) or scaffold (if not excluded)
+    const handledClientIds = new Set();
+    const rows = [];
 
-      // Scaffold (not yet saved)
-      return {
-        _id: null,
-        client: { _id: client._id, companyName: client.companyName },
-        team: 'RWM',
-        plan: '',
-        storyPlan: '30 STORIES',
-        month,
-        year,
-        days: buildEmptyDays(year, month),
-        _scaffold: true,
-      };
-    });
+    for (const client of clients) {
+      const cIdStr = client._id.toString();
+      handledClientIds.add(cIdStr);
+      const existing = trackerMap[cIdStr];
+
+      // If explicitly marked as excluded for this month, skip it
+      if (existing?.isExcluded) {
+        continue;
+      }
+
+      if (existing) {
+        rows.push(existing);
+      } else {
+        // Scaffold (not yet saved)
+        rows.push({
+          _id: null,
+          client: { _id: client._id, companyName: client.companyName },
+          team: 'RWM',
+          plan: '',
+          storyPlan: '30 STORIES',
+          month,
+          year,
+          days: buildEmptyDays(year, month),
+          _scaffold: true,
+        });
+      }
+    }
+
+    // Also include any other non-excluded trackers for this month not in active clients list
+    for (const existing of existingTrackers) {
+      const cIdStr = existing.client?._id?.toString();
+      if (cIdStr && !handledClientIds.has(cIdStr) && !existing.isExcluded) {
+        rows.push(existing);
+      }
+    }
 
     const daysInMonth = new Date(year, month, 0).getDate();
 
@@ -103,6 +124,7 @@ export const upsertTracker = async (req, res) => {
           plan: plan || '',
           storyPlan: storyPlan || '30 STORIES',
           days: days || buildEmptyDays(year, month),
+          isExcluded: false,
           updatedBy: req.user?._id,
         },
         $setOnInsert: {
@@ -291,6 +313,7 @@ export const syncContentWithTracker = async (req, res) => {
             plan,
             storyPlan,
             days,
+            isExcluded: false,
             updatedBy: req.user?._id,
           },
         },
@@ -315,9 +338,57 @@ export const syncContentWithTracker = async (req, res) => {
 export const deleteTracker = async (req, res) => {
   try {
     const { id } = req.params;
-    await SmmMonthlyTracker.findByIdAndDelete(id);
-    res.json({ success: true, message: 'Tracker deleted' });
+    const deleteClient = req.query.deleteClient === 'true' || req.body?.deleteClient === true;
+    const month = parseInt(req.query.month) || parseInt(req.body?.month);
+    const year = parseInt(req.query.year) || parseInt(req.body?.year);
+    const clientId = req.query.clientId || req.body?.clientId;
+
+    let targetClientId = clientId;
+
+    // If id is a valid Mongo tracker ID, locate tracker
+    if (id && id !== 'scaffold' && id !== 'null' && id !== 'undefined') {
+      const tracker = await SmmMonthlyTracker.findById(id);
+      if (tracker) {
+        if (!targetClientId && tracker.client) {
+          targetClientId = tracker.client.toString();
+        }
+        if (!deleteClient) {
+          tracker.isExcluded = true;
+          tracker.updatedBy = req.user?._id;
+          await tracker.save();
+        }
+      }
+    }
+
+    if (deleteClient && targetClientId) {
+      // Permanently remove client and all trackers for this client
+      await SmmMonthlyTracker.deleteMany({ client: targetClientId });
+      await SmmClient.findByIdAndDelete(targetClientId);
+      return res.json({ success: true, message: 'Client and all tracker data permanently deleted' });
+    }
+
+    if (!deleteClient && targetClientId && month && year) {
+      // Exclude from this month's tracker so scaffold doesn't regenerate it
+      await SmmMonthlyTracker.findOneAndUpdate(
+        { client: targetClientId, month, year },
+        {
+          $set: {
+            isExcluded: true,
+            updatedBy: req.user?._id,
+          },
+          $setOnInsert: {
+            days: buildEmptyDays(year, month),
+            createdBy: req.user?._id,
+          },
+        },
+        { upsert: true, new: true }
+      );
+      return res.json({ success: true, message: 'Client removed from monthly tracker' });
+    }
+
+    res.json({ success: true, message: 'Tracker updated' });
   } catch (err) {
+    console.error('deleteTracker error:', err);
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };

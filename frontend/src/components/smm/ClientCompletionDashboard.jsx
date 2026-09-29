@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, CheckCircle2, TrendingUp, Info } from 'lucide-react';
+import { BarChart3, CheckCircle2, TrendingUp, Info, Trash2 } from 'lucide-react';
 
 export const parseClientMetrics = (row, daysInMonth = 30) => {
   const clientName = row.client?.companyName || 'Unknown';
@@ -97,6 +97,7 @@ export const ClientCompletionDashboard = ({
   daysInMonth = 30,
   onUpdatePlan,
   onUpdateStories,
+  onDeleteClient,
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
@@ -185,8 +186,22 @@ export const ClientCompletionDashboard = ({
                         }`}
                       >
                         {/* Client Name */}
-                        <td className="py-2 px-3 font-bold text-foreground truncate max-w-[150px] border border-border/60" title={item.clientName}>
-                          {item.clientName}
+                        <td className="py-2 px-3 font-bold text-foreground border border-border/60">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="truncate max-w-[120px]" title={item.clientName}>
+                              {item.clientName}
+                            </span>
+                            {onDeleteClient && (
+                              <button
+                                type="button"
+                                onClick={() => onDeleteClient(item.rawRow)}
+                                className="p-1 rounded text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex-shrink-0 cursor-pointer"
+                                title={`Delete ${item.clientName} from tracker`}
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
                         </td>
 
                         {/* Editable Reels */}

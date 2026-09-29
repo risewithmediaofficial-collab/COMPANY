@@ -53,6 +53,9 @@ const smmMonthlyTrackerSchema = new mongoose.Schema(
     // Array of day-by-day cells (up to 31 entries)
     days: [dayCellSchema],
 
+    // If true, this client is excluded/removed from this month's tracker
+    isExcluded: { type: Boolean, default: false },
+
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },

@@ -4,7 +4,8 @@ import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { ClientCompletionDashboard } from '../../components/smm/ClientCompletionDashboard';
 import {
   ChevronLeft, ChevronRight, CheckCircle2, Clock, RefreshCw,
-  LayoutGrid, AlertCircle, Check, X, Info, Plus, Sparkles, ArrowDownToLine
+  LayoutGrid, AlertCircle, Check, X, Info, Plus, Sparkles, ArrowDownToLine,
+  Trash2, AlertTriangle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -16,16 +17,16 @@ const MONTHS = [
 const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 // ── Fixed column pixel widths (must match sticky left offsets exactly) ───────
-const COL = { NO: 36, TEAM: 52, CLIENT: 168, PLAN: 104, DAY: 68, DONE: 68 };
+const COL = { NO: 36, TEAM: 52, CLIENT: 176, PLAN: 104, DAY: 68, DONE: 68 };
 // Sticky left offsets:
 const L = {
   NO:     0,
   TEAM:   COL.NO,                          // 36
   CLIENT: COL.NO + COL.TEAM,               // 88
-  PLAN:   COL.NO + COL.TEAM + COL.CLIENT,  // 256
+  PLAN:   COL.NO + COL.TEAM + COL.CLIENT,  // 264
 };
 // Total fixed width
-const FIXED_W = COL.NO + COL.TEAM + COL.CLIENT + COL.PLAN; // 360
+const FIXED_W = COL.NO + COL.TEAM + COL.CLIENT + COL.PLAN; // 368
 
 const STATUS_CYCLE  = { pending:'done', done:'skip', skip:'pending' };
 const STATUS_LABEL  = { done:'DONE', pending:'PENDING', skip:'SKIP' };
@@ -215,6 +216,9 @@ const SMMOnePageTracker = () => {
     isCustom: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState(null);
+  const [deleteMode, setDeleteMode] = useState('month'); // 'month' | 'permanent'
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -420,6 +424,42 @@ const SMMOnePageTracker = () => {
     }
   };
 
+  const handleDeleteClient = async () => {
+    if (!clientToDelete) return;
+    setDeleting(true);
+    try {
+      const isPermanent = deleteMode === 'permanent';
+      const trackerId = clientToDelete._id || 'scaffold';
+      const clientId = clientToDelete.client?._id;
+      const clientName = clientToDelete.client?.companyName || 'Client';
+
+      await smmApi.deleteTracker(trackerId, {
+        params: {
+          clientId,
+          month,
+          year,
+          deleteClient: isPermanent,
+        },
+      });
+
+      toast.success(
+        isPermanent
+          ? `"${clientName}" permanently deleted`
+          : `"${clientName}" removed from ${MONTHS[month - 1]} ${year} tracker`
+      );
+
+      setClientToDelete(null);
+      setDeleteMode('month');
+      fetchData();
+      fetchClients();
+    } catch (err) {
+      console.error('Failed to delete client:', err);
+      toast.error(err.response?.data?.message || 'Failed to delete client from tracker');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const ensureRow = async (row) => {
     if (row._id) return row;
     const res = await smmApi.upsertTracker({ clientId:row.client._id, month, year, plan:row.plan, storyPlan:row.storyPlan, team:row.team, days:row.days });
@@ -560,9 +600,24 @@ const SMMOnePageTracker = () => {
           <p className="text-sm text-muted-foreground font-semibold">Loading tracker…</p>
         </div>
       ) : rows.length === 0 ? (
-        <div className="py-20 text-center bg-card border border-border rounded-2xl">
-          <AlertCircle size={32} className="mx-auto text-muted-foreground mb-3"/>
-          <p className="text-sm text-muted-foreground">No active SMM clients found. Add clients first.</p>
+        <div className="py-16 text-center bg-card border border-border rounded-2xl p-8 space-y-4 shadow-xs">
+          <AlertCircle size={36} className="mx-auto text-muted-foreground/80"/>
+          <div>
+            <h3 className="text-sm font-bold text-foreground">No Active Clients in Tracker</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              There are no clients listed for {MONTHS[month-1]} {year}. Add clients to start tracking.
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setShowAddModal(true);
+              fetchClients();
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 shadow-sm transition-all"
+          >
+            <Plus size={15} />
+            <span>Add Client to Tracker</span>
+          </button>
         </div>
       ) : (
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
@@ -626,10 +681,27 @@ const SMMOnePageTracker = () => {
                         <td style={{ ...CELL_STICKY(L.TEAM, COL.TEAM), color:'#6366f1', fontWeight:700, fontSize:10 }}>
                           {row.team || 'RWM'}
                         </td>
-                        <td style={{ ...CELL_STICKY(L.CLIENT, COL.CLIENT), textAlign:'left', paddingLeft:8 }}>
-                          <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:700, fontSize:11 }} title={name}>
-                            {name}
-                          </span>
+                        <td style={{ ...CELL_STICKY(L.CLIENT, COL.CLIENT), textAlign:'left', paddingLeft:8, paddingRight:6 }}>
+                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:4 }}>
+                            <span
+                              style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:700, fontSize:11 }}
+                              title={name}
+                            >
+                              {name}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteMode('month');
+                                setClientToDelete(row);
+                              }}
+                              className="p-1 rounded text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex-shrink-0 cursor-pointer"
+                              title={`Delete ${name} from tracker`}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </td>
                         <td style={CELL_STICKY(L.PLAN, COL.PLAN)}>
                           <EditablePlan value={row[planField]} placeholder={planPH} onSave={v => handleMetaSave(rowIdx, planField, v)}/>
@@ -711,6 +783,10 @@ const SMMOnePageTracker = () => {
           onUpdateStories={(rowIdx, newStories) => {
             const storyStr = `${newStories} STORIES`;
             handleMetaSave(rowIdx, 'storyPlan', storyStr);
+          }}
+          onDeleteClient={(row) => {
+            setDeleteMode('month');
+            setClientToDelete(row);
           }}
         />
       )}
@@ -866,6 +942,123 @@ const SMMOnePageTracker = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ── Delete Client Confirmation Modal ── */}
+      {clientToDelete && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-start justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400">
+                  <Trash2 size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-foreground">Delete Client from Tracker</h3>
+                  <p className="text-xs text-muted-foreground">Choose how you want to remove this client</p>
+                </div>
+              </div>
+              <button
+                disabled={deleting}
+                onClick={() => setClientToDelete(null)}
+                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Target Client Badge */}
+            <div className="bg-muted/40 rounded-xl p-3 border border-border/60 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Selected Client:</span>
+              <span className="font-black text-foreground text-sm">
+                {clientToDelete.client?.companyName || 'Unknown Client'}
+              </span>
+            </div>
+
+            {/* Options */}
+            <div className="space-y-2.5">
+              <label
+                onClick={() => setDeleteMode('month')}
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  deleteMode === 'month'
+                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                    : 'border-border bg-card hover:bg-secondary/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="deleteMode"
+                  checked={deleteMode === 'month'}
+                  onChange={() => setDeleteMode('month')}
+                  className="mt-0.5 text-primary"
+                />
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-foreground">
+                    Remove from {MONTHS[month - 1]} {year} tracker only{' '}
+                    <span className="text-[10px] text-primary font-semibold">(Recommended)</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Hides this client from this month's tracker grid and analytics. The client remains active in SMM Clients and can be re-added anytime.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                onClick={() => setDeleteMode('permanent')}
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  deleteMode === 'permanent'
+                    ? 'border-red-500 bg-red-50/50 dark:bg-red-950/20 ring-1 ring-red-500'
+                    : 'border-border bg-card hover:bg-secondary/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="deleteMode"
+                  checked={deleteMode === 'permanent'}
+                  onChange={() => setDeleteMode('permanent')}
+                  className="mt-0.5 text-red-600"
+                />
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertTriangle size={12} />
+                    Delete client permanently from SMM
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Permanently deletes this client, associated content, and all monthly trackers from your system. This cannot be undone.
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setClientToDelete(null)}
+                className="px-4 py-2 text-xs font-semibold rounded-xl border border-border hover:bg-secondary transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDeleteClient}
+                className="px-4 py-2 text-xs font-bold rounded-xl bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {deleting && <RefreshCw size={13} className="animate-spin" />}
+                <Trash2 size={13} />
+                <span>
+                  {deleting
+                    ? 'Deleting...'
+                    : deleteMode === 'month'
+                    ? 'Remove from Tracker'
+                    : 'Delete Permanently'}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       )}
