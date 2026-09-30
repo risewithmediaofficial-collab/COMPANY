@@ -14,9 +14,15 @@ import {
   Shield,
   Trash2,
   User,
+  Eye,
+  EyeOff,
+  BellRing,
+  CheckCircle2,
+  AlertTriangle,
+  Send,
+  Laptop,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { toggleDarkMode } from '../store/slices/uiSlice';
 import { updateCurrentUser } from '../store/slices/authSlice';
@@ -29,6 +35,13 @@ import {
   useUploadProfileAvatar,
 } from '../hooks/useSettings';
 import { getAssetUrl } from '../utils/assetUrl';
+import api from '../api';
+import {
+  getBrowserNotificationPermission,
+  requestBrowserNotificationPermission,
+  sendBrowserNotification,
+  isBrowserNotificationSupported,
+} from '../utils/browserNotification';
 
 const sections = [
   { id: 'profile', label: 'Profile Info', icon: User },
@@ -88,6 +101,35 @@ const Settings = () => {
     newPassword: false,
     confirmPassword: false,
   });
+
+  const [browserPermission, setBrowserPermission] = useState(() => getBrowserNotificationPermission());
+  const [isTestingNotification, setIsTestingNotification] = useState(false);
+
+  const handleEnableBrowserNotifications = async () => {
+    const perm = await requestBrowserNotificationPermission();
+    setBrowserPermission(perm);
+  };
+
+  const handleTestNotification = async () => {
+    setIsTestingNotification(true);
+    try {
+      // 1. Direct browser notification
+      await sendBrowserNotification({
+        title: '🔔 Browser Notification Working!',
+        message: 'This confirms your browser desktop notifications are successfully connected.',
+        link: '/settings',
+      });
+
+      // 2. Real-time notification through backend Socket.io pipeline
+      await api.post('/notifications/test');
+      toast.success('Test notification dispatched via Socket.io & Browser!');
+    } catch (err) {
+      console.error('Test notification failed:', err);
+      toast.error(err?.response?.data?.message || 'Failed to trigger test notification');
+    } finally {
+      setIsTestingNotification(false);
+    }
+  };
 
   useEffect(() => {
     if (!profileUser) return;
@@ -390,26 +432,101 @@ const Settings = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-bold">Notification Preferences</h3>
-                  <p className="text-sm text-muted-foreground">Choose which updates should reach you.</p>
+                  <p className="text-sm text-muted-foreground">Manage your real-time desktop push alerts and event preferences.</p>
                 </div>
-                {[
-                  ['email', 'Email notifications'],
-                  ['inApp', 'In-app notifications'],
-                  ['taskUpdates', 'Task updates'],
-                  ['leadUpdates', 'Lead updates'],
-                  ['financeAlerts', 'Finance alerts'],
-                  ['dailyDigest', 'Daily digest'],
-                ].map(([key, label]) => (
-                  <label key={key} className="flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-4">
-                    <span className="text-sm font-semibold">{label}</span>
-                    <input
-                      type="checkbox"
-                      checked={Boolean(preferences.notifications?.[key])}
-                      onChange={(event) => setNotification(key, event.target.checked)}
-                      className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
-                    />
-                  </label>
-                ))}
+
+                {/* Native Desktop / Browser Push Notifications Card */}
+                <div className="rounded-2xl border border-border bg-card/60 p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                        <BellRing size={20} />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground">Desktop & Browser Push Notifications</h4>
+                        <p className="text-xs text-muted-foreground">Receive instant desktop alerts when tasks, leads, or finances are updated.</p>
+                      </div>
+                    </div>
+                    <div>
+                      {browserPermission === 'granted' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          <CheckCircle2 size={13} /> Active & Permitted
+                        </span>
+                      ) : browserPermission === 'denied' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                          <AlertTriangle size={13} /> Blocked in Browser
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                          <AlertTriangle size={13} /> Not Enabled
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    {browserPermission !== 'granted' && (
+                      <button
+                        type="button"
+                        onClick={handleEnableBrowserNotifications}
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm"
+                      >
+                        <BellRing size={14} />
+                        Enable Browser Notifications
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={isTestingNotification}
+                      onClick={handleTestNotification}
+                      className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground text-xs font-bold rounded-xl hover:bg-secondary/80 transition-all border border-border"
+                    >
+                      <Send size={14} className={isTestingNotification ? 'animate-pulse' : ''} />
+                      {isTestingNotification ? 'Sending Test...' : 'Send Test Notification'}
+                    </button>
+                  </div>
+
+                  {/* Troubleshooting Helper Box */}
+                  <div className="mt-3 p-3.5 rounded-xl bg-secondary/30 border border-border/60 text-xs space-y-2 text-muted-foreground">
+                    <div className="font-semibold text-foreground flex items-center gap-1.5">
+                      <Laptop size={14} className="text-primary" /> Troubleshooting Desktop Notifications:
+                    </div>
+                    <ul className="list-disc pl-4 space-y-1 text-[11px] leading-relaxed">
+                      <li>
+                        <strong className="text-foreground">Browser Permission:</strong> If blocked, click the lock / tune icon in your browser address bar (next to the website URL) and set <em>Notifications</em> to <em>Allow</em>.
+                      </li>
+                      <li>
+                        <strong className="text-foreground">Windows 10/11 Notification Settings:</strong> Ensure notifications for your browser (Chrome / Edge) are enabled in <em>Windows Settings &gt; System &gt; Notifications</em>, and make sure <em>Focus Assist (Do Not Disturb)</em> is turned OFF.
+                      </li>
+                      <li>
+                        <strong className="text-foreground">Tab Requirement:</strong> Real-time Socket.io desktop notifications work while the CRM is open in any tab. If you click "Send Test Notification", you will immediately receive both an in-app toast and a desktop alert.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Event Preferences */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notification Types</h4>
+                  {[
+                    ['email', 'Email notifications'],
+                    ['inApp', 'In-app notifications'],
+                    ['taskUpdates', 'Task updates'],
+                    ['leadUpdates', 'Lead updates'],
+                    ['financeAlerts', 'Finance alerts'],
+                    ['dailyDigest', 'Daily digest'],
+                  ].map(([key, label]) => (
+                    <label key={key} className="flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-4">
+                      <span className="text-sm font-semibold">{label}</span>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(preferences.notifications?.[key])}
+                        onChange={(event) => setNotification(key, event.target.checked)}
+                        className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
+                      />
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
 

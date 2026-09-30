@@ -27,13 +27,13 @@ export const requestBrowserNotificationPermission = async () => {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      toast.success('Web push notifications enabled successfully!');
-      sendBrowserNotification({
-        title: '🔔 Notifications Active',
-        message: 'You will now receive desktop push alerts for tasks, updates, and messages.',
+      toast.success('Desktop push notifications enabled successfully!');
+      await sendBrowserNotification({
+        title: '🔔 Desktop Notifications Active',
+        message: 'You will now receive desktop alerts for real-time CRM updates, tasks, and leads.',
       });
     } else if (permission === 'denied') {
-      toast.error('Notification permission was blocked in your browser settings.');
+      toast.error('Notification permission was blocked. Click the lock/tune icon near your browser address bar to allow notifications.');
     }
     return permission;
   } catch (error) {
@@ -45,21 +45,42 @@ export const requestBrowserNotificationPermission = async () => {
 /**
  * Send a native browser desktop push notification
  */
-export const sendBrowserNotification = ({ title, message, link, icon, tag }) => {
-  if (!isBrowserNotificationSupported() || Notification.permission !== 'granted') {
+export const sendBrowserNotification = async ({ title, message, link, icon, tag } = {}) => {
+  if (!isBrowserNotificationSupported()) {
+    return null;
+  }
+
+  if (Notification.permission !== 'granted') {
     return null;
   }
 
   try {
     const notifOptions = {
       body: message || '',
-      icon: icon || '/favicon.ico',
-      badge: '/favicon.ico',
+      icon: icon || '/branding/logo.png',
+      badge: '/branding/logo.png',
       tag: tag || `crm-notif-${Date.now()}`,
       renotify: true,
       requireInteraction: false,
+      data: {
+        url: link || '/',
+      },
     };
 
+    // First try via Service Worker registration (most reliable on modern Chrome, Edge & Android)
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && typeof registration.showNotification === 'function') {
+          await registration.showNotification(title || 'New CRM Alert', notifOptions);
+          return true;
+        }
+      } catch (_swErr) {
+        // Fall back to standard Notification constructor
+      }
+    }
+
+    // Fall back to window.Notification
     const notification = new Notification(title || 'New CRM Alert', notifOptions);
 
     if (link) {

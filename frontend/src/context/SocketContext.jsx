@@ -36,6 +36,19 @@ export const SocketProvider = ({ children }) => {
       autoConnect: true,
     });
 
+    // Auto-register user room on connect and reconnect
+    newSocket.on('connect', () => {
+      if (user?._id) {
+        newSocket.emit('register', user._id.toString());
+      }
+    });
+
+    newSocket.on('reconnect', () => {
+      if (user?._id) {
+        newSocket.emit('register', user._id.toString());
+      }
+    });
+
     newSocket.on('connect_error', () => {
       // Clean silent error handling for WebSocket dev server reconnections
     });
@@ -43,6 +56,21 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('newNotification', (data) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       if (data) {
+        // 1. In-app toast notification so user sees it instantly on screen
+        toast.info(data.title || 'New CRM Notification', {
+          description: data.message || '',
+          action: data.link ? {
+            label: 'View',
+            onClick: () => {
+              if (window.location.pathname !== data.link) {
+                window.location.href = data.link;
+              }
+            },
+          } : undefined,
+          duration: 5000,
+        });
+
+        // 2. Native OS / Desktop Browser Push Notification
         sendBrowserNotification({
           title: data.title || 'New CRM Notification',
           message: data.message || '',
