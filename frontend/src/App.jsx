@@ -4,6 +4,7 @@ import { Suspense, lazy, useEffect } from 'react';
 import { fetchMe } from './store/slices/authSlice';
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Toaster as SonnerToaster } from 'sonner';
+import WebsiteLaunchLoader from './components/WebsiteLaunchLoader';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -156,11 +157,13 @@ const App = () => {
     }
   }, [dispatch, isAuthenticated, user, loading, authChecked]);
 
-  // Global boot-screen while the very first /me call is in-flight
-  if (loading && !user && isAuthenticated && !authChecked) return null;
+  const isResolvingInitialAuth = loading && !user && isAuthenticated && !authChecked;
 
   return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <>
+      <WebsiteLaunchLoader />
+      {!isResolvingInitialAuth && (
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HotToaster position="top-right" reverseOrder={false} />
       <SonnerToaster position="top-right" richColors closeButton />
       <Suspense fallback={null}>
@@ -545,7 +548,9 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-    </Router>
+        </Router>
+      )}
+    </>
   );
 };
 
