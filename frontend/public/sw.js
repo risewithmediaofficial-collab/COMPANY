@@ -1,4 +1,5 @@
 // Progressive Web App (PWA) & Push Service Worker
+// Version: 1.1.0 - Website Launch Loader Update
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });

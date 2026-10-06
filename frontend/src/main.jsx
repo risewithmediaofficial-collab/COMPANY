@@ -44,12 +44,17 @@ document.addEventListener(
   { passive: true }
 );
 
-// Register Service Worker for Browser Push Notifications
+// Register Service Worker for Browser Push Notifications & PWA Updates
 if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.warn('Service worker registration bypassed:', err.message);
-    });
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => {
+        reg.update().catch(() => {});
+      })
+      .catch((err) => {
+        console.warn('Service worker registration bypassed:', err.message);
+      });
   });
 }
 
