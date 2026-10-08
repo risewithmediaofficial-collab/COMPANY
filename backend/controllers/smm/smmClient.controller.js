@@ -3,6 +3,7 @@
 // =============================================
 import Client from '../../models/client.model.js';
 import SmmClient from '../../models/smm/smmClient.model.js';
+import { emitLiveEvent } from '../../utils/socketEmitter.js';
 
 export const getSmmClients = async (req, res) => {
   try {
@@ -106,6 +107,10 @@ export const createSmmClient = async (req, res) => {
       // CRM Client creation is secondary, proceed with smmClient
     }
 
+    emitLiveEvent('clientCreated', smmClient);
+    emitLiveEvent('smmClientCreated', smmClient);
+    emitLiveEvent('smmTrackerUpdated', {});
+
     res.status(201).json({ success: true, data: smmClient });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -119,6 +124,11 @@ export const updateSmmClient = async (req, res) => {
       client = await SmmClient.findByIdAndUpdate(req.params.id, req.body, { new: true });
     }
     if (!client) return res.status(404).json({ success: false, message: 'Client not found' });
+
+    emitLiveEvent('clientUpdated', client);
+    emitLiveEvent('smmClientUpdated', client);
+    emitLiveEvent('smmTrackerUpdated', {});
+
     res.json({ success: true, data: client });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -132,6 +142,11 @@ export const deleteSmmClient = async (req, res) => {
       client = await SmmClient.findByIdAndDelete(req.params.id);
     }
     if (!client) return res.status(404).json({ success: false, message: 'Client not found' });
+
+    emitLiveEvent('clientDeleted', req.params.id);
+    emitLiveEvent('smmClientDeleted', req.params.id);
+    emitLiveEvent('smmTrackerUpdated', {});
+
     res.json({ success: true, message: 'Client deleted' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

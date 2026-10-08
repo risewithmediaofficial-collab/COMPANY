@@ -14,7 +14,9 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
-      staleTime: 5000,
+      staleTime: 2000,
+      refetchInterval: 8000, // Automatic background polling safety net (8s) across all pages
+      refetchIntervalInBackground: false,
     },
   },
 })

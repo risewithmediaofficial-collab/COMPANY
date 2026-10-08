@@ -10,6 +10,7 @@ import ActivityLog from '../models/activityLog.model.js';
 import { createNotification } from '../utils/notification.js';
 import { createActivityLog } from '../utils/activity.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const projectStatusMap = {
   Planning: 'planning',
@@ -469,7 +470,9 @@ export const createProject = async (req, res) => {
       relatedUser: project.manager,
     });
 
-    res.status(201).json({ success: true, project: serializeProject(populated) });
+    const serialized = serializeProject(populated);
+    emitLiveEvent('projectCreated', serialized);
+    res.status(201).json({ success: true, project: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -509,7 +512,9 @@ export const updateProject = async (req, res) => {
       metadata: { fields: Object.keys(req.body || {}) },
     });
 
-    res.json({ success: true, project: serializeProject(project) });
+    const serialized = serializeProject(project);
+    emitLiveEvent('projectUpdated', serialized);
+    res.json({ success: true, project: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -534,6 +539,7 @@ export const deleteProject = async (req, res) => {
       relatedProject: project._id,
     });
 
+    emitLiveEvent('projectDeleted', req.params.id);
     res.json({ success: true, message: 'Project and associated tasks deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

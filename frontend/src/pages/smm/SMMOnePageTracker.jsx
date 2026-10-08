@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { smmApi } from '../../api/smm';
+import { useSocket } from '../../context/SocketContext';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { ClientCompletionDashboard } from '../../components/smm/ClientCompletionDashboard';
 import {
   ChevronLeft, ChevronRight, CheckCircle2, Clock, RefreshCw,
   LayoutGrid, AlertCircle, Check, X, Info, Plus, Sparkles, ArrowDownToLine,
-  Trash2, AlertTriangle, ListTodo
+  Trash2, AlertTriangle, ListTodo, Radio
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -316,6 +317,7 @@ const SMMOnePageTracker = () => {
     team: 'RWM',
     isCustom: false,
   });
+  const socket = useSocket();
   const [submitting, setSubmitting] = useState(false);
   const [clientToDelete, setClientToDelete] = useState(null);
   const [deleteMode, setDeleteMode] = useState('month'); // 'month' | 'permanent'
@@ -324,6 +326,7 @@ const SMMOnePageTracker = () => {
   const isCurrentMonth = month === (now.getMonth() + 1) && year === now.getFullYear();
   const currentDayNumber = isCurrentMonth ? now.getDate() : null;
   const tableContainerRef = useRef(null);
+  const hasAutoScrolledRef = useRef(false);
 
   const scrollToToday = useCallback((smooth = true) => {
     if (isCurrentMonth && currentDayNumber && tableContainerRef.current) {
@@ -337,16 +340,21 @@ const SMMOnePageTracker = () => {
   }, [isCurrentMonth, currentDayNumber]);
 
   useEffect(() => {
-    if (!loading && rows.length > 0 && isCurrentMonth) {
+    hasAutoScrolledRef.current = false;
+  }, [month, year, section]);
+
+  useEffect(() => {
+    if (!loading && rows.length > 0 && isCurrentMonth && !hasAutoScrolledRef.current) {
       const timer = setTimeout(() => {
         scrollToToday(true);
+        hasAutoScrolledRef.current = true;
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [loading, rows.length, month, year, section, isCurrentMonth, scrollToToday]);
+  }, [loading, rows.length, isCurrentMonth, scrollToToday]);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await smmApi.getMonthlyTrackers({ month, year });
       if (res.data?.success) {
@@ -355,13 +363,125 @@ const SMMOnePageTracker = () => {
       }
     } catch (err) {
       console.error('fetchData error:', err);
-      toast.error('Failed to load tracker data');
+      if (!silent) toast.error('Failed to load tracker data');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [month, year]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // ── Real-time Socket Synchronization across multiple systems ───────────
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCellUpdated = (data) => {
+      if (!data) return;
+      if (Number(data.month) === Number(month) && Number(data.year) === Number(year)) {
+        setRows((prevRows) => {
+          return prevRows.map((row) => {
+            const rowTrackerId = row._id ? row._id.toString() : null;
+            const rowClientId = row.client?._id ? row.client._id.toString() : (row.client ? row.client.toString() : null);
+
+            const matchesTracker = data.trackerId && rowTrackerId && rowTrackerId === data.trackerId.toString();
+            const matchesClient = data.clientId && rowClientId && rowClientId === data.clientId.toString();
+
+            if (!matchesTracker && !matchesClient) return row;
+
+            const updatedDays = (row.days || []).map((d) => {
+              if (d.day === Number(data.day)) {
+                return { ...d, [data.field]: data.value };
+              }
+              return d;
+            });
+
+            return { ...row, days: updatedDays };
+          });
+        });
+      }
+    };
+
+    const handleMetaUpdated = (data) => {
+      if (!data) return;
+      if (Number(data.month) === Number(month) && Number(data.year) === Number(year)) {
+        setRows((prevRows) => {
+          return prevRows.map((row) => {
+            const rowTrackerId = row._id ? row._id.toString() : null;
+            const rowClientId = row.client?._id ? row.client._id.toString() : null;
+            const matchesTracker = data.trackerId && rowTrackerId && rowTrackerId === data.trackerId.toString();
+            const matchesClient = data.clientId && rowClientId && rowClientId === data.clientId.toString();
+            if (!matchesTracker && !matchesClient) return row;
+
+            return {
+              ...row,
+              plan: data.plan !== undefined ? data.plan : row.plan,
+              storyPlan: data.storyPlan !== undefined ? data.storyPlan : row.storyPlan,
+              team: data.team !== undefined ? data.team : row.team,
+            };
+          });
+        });
+      }
+    };
+
+    const handleTrackerUpdated = (data) => {
+      if (!data || !data.month || (Number(data.month) === Number(month) && Number(data.year) === Number(year))) {
+        fetchData(true);
+      }
+    };
+
+    const handleTrackerDeleted = (data) => {
+      if (!data || !data.month || (Number(data.month) === Number(month) && Number(data.year) === Number(year))) {
+        fetchData(true);
+      }
+    };
+
+    const handleClientChanged = () => {
+      fetchData(true);
+    };
+
+    socket.on('smmTrackerCellUpdated', handleCellUpdated);
+    socket.on('smmTrackerMetaUpdated', handleMetaUpdated);
+    socket.on('smmTrackerUpdated', handleTrackerUpdated);
+    socket.on('smmTrackerDeleted', handleTrackerDeleted);
+    socket.on('clientCreated', handleClientChanged);
+    socket.on('clientUpdated', handleClientChanged);
+    socket.on('clientDeleted', handleClientChanged);
+
+    return () => {
+      socket.off('smmTrackerCellUpdated', handleCellUpdated);
+      socket.off('smmTrackerMetaUpdated', handleMetaUpdated);
+      socket.off('smmTrackerUpdated', handleTrackerUpdated);
+      socket.off('smmTrackerDeleted', handleTrackerDeleted);
+      socket.off('clientCreated', handleClientChanged);
+      socket.off('clientUpdated', handleClientChanged);
+      socket.off('clientDeleted', handleClientChanged);
+    };
+  }, [socket, month, year, fetchData]);
+
+  // ── Background Polling Safety Net & Tab Focus Refetch ──────────────────
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        const activeTag = document.activeElement?.tagName;
+        if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+          fetchData(true);
+        }
+      }
+    }, 5000);
+
+    const handleFocus = () => {
+      fetchData(true);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [fetchData]);
 
   const prevMonth = () => { if(month===1){setMonth(12);setYear(y=>y-1);}else setMonth(m=>m-1); };
   const nextMonth = () => { if(month===12){setMonth(1);setYear(y=>y+1);}else setMonth(m=>m+1); };
@@ -613,7 +733,7 @@ const SMMOnePageTracker = () => {
       await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, { field, value: next });
     } catch(err) {
       toast.error('Failed to update');
-      fetchData();
+      fetchData(true);
     }
   };
 
@@ -631,7 +751,7 @@ const SMMOnePageTracker = () => {
     try {
       let saved = row; if (!row._id) saved = await ensureRow(row);
       await smmApi.updateTrackerDayCell(saved._id||row._id, dayNum, { field, value });
-    } catch(err) { toast.error('Failed to save label'); fetchData(); }
+    } catch(err) { toast.error('Failed to save label'); fetchData(true); }
   };
 
   const handleMetaSave = async (rowIdx, field, value) => {
@@ -643,7 +763,7 @@ const SMMOnePageTracker = () => {
         const res = await smmApi.upsertTracker({ clientId:row.client._id, month, year, [field]:value, plan:field==='plan'?value:row.plan, storyPlan:field==='storyPlan'?value:row.storyPlan, team:field==='team'?value:row.team, days:row.days });
         if (res.data?.data) setRows(prev => { const u=[...prev]; u[rowIdx]=res.data.data; return u; });
       }
-    } catch(err) { toast.error('Failed to save'); fetchData(); }
+    } catch(err) { toast.error('Failed to save'); fetchData(true); }
   };
 
   const calcProgress = (row, sf) => {
@@ -689,12 +809,19 @@ const SMMOnePageTracker = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold shadow-2xs" title="Live sync connected: real-time updates active without page refresh">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>Live Sync</span>
+          </div>
           <div className="flex items-center gap-1 bg-card border border-border rounded-xl px-2 py-1.5 shadow-xs">
             <button onClick={prevMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors"><ChevronLeft size={16}/></button>
             <span className="text-xs font-bold text-foreground w-32 text-center">{MONTHS[month-1]} {year}</span>
             <button onClick={nextMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors"><ChevronRight size={16}/></button>
           </div>
-          <button onClick={fetchData} disabled={loading} className="p-2 rounded-xl border border-border bg-card hover:bg-secondary transition-colors" title="Refresh">
+          <button onClick={() => fetchData(false)} disabled={loading} className="p-2 rounded-xl border border-border bg-card hover:bg-secondary transition-colors" title="Manual Refresh">
             <RefreshCw size={15} className={loading ? 'animate-spin text-primary' : 'text-muted-foreground'}/>
           </button>
           <button

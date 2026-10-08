@@ -119,6 +119,21 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('attendanceUpdated', () => handleInvalidate(['attendance']));
     newSocket.on('accessRequestCreated', () => handleInvalidate(['access-requests']));
 
+    newSocket.on('smmTrackerUpdated', () => handleInvalidate(['smm-tracker', 'smmTracker', 'smm-clients', 'clients']));
+    newSocket.on('smmClientCreated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
+    newSocket.on('smmClientUpdated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
+    newSocket.on('smmClientDeleted', () => handleInvalidate(['clients', 'client', 'smm-clients']));
+
+    // Universal catch-all for live CRM mutations
+    newSocket.on('crmLiveUpdate', ({ event }) => {
+      if (!event) return;
+      if (event.startsWith('task')) handleInvalidate(['tasks', 'task', 'projects']);
+      else if (event.startsWith('client') || event.startsWith('smmClient')) handleInvalidate(['clients', 'client', 'smm-clients']);
+      else if (event.startsWith('lead')) handleInvalidate(['leads', 'lead', 'leads-kanban']);
+      else if (event.startsWith('project')) handleInvalidate(['projects', 'project', 'tasks']);
+      else if (event.startsWith('smmTracker')) handleInvalidate(['smm-tracker', 'smmTracker']);
+    });
+
     socketRef.current = newSocket;
     setSocket(newSocket);
 

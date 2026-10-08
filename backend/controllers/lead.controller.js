@@ -7,6 +7,7 @@ import Referral from '../models/referral.model.js';
 import { createNotification } from '../utils/notification.js';
 import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const sourceMap = {
   Website: 'website',
@@ -274,7 +275,9 @@ export const createLead = async (req, res) => {
     });
 
     const populated = await Lead.findById(lead._id).populate('assignedTo', 'name email avatar');
-    res.status(201).json({ success: true, lead: serializeLead(populated) });
+    const serialized = serializeLead(populated);
+    emitLiveEvent('leadCreated', serialized);
+    res.status(201).json({ success: true, lead: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -338,7 +341,9 @@ export const updateLead = async (req, res) => {
     });
 
     const updated = await Lead.findById(lead._id).populate('assignedTo', 'name email avatar');
-    res.json({ success: true, lead: serializeLead(updated) });
+    const serialized = serializeLead(updated);
+    emitLiveEvent('leadUpdated', serialized);
+    res.json({ success: true, lead: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -386,7 +391,9 @@ export const updateLeadStage = async (req, res) => {
       metadata: { stage: normalizedStage, stageOrder: lead.stageOrder },
     });
 
-    res.json({ success: true, lead: serializeLead(lead) });
+    const serialized = serializeLead(lead);
+    emitLiveEvent('leadUpdated', serialized);
+    res.json({ success: true, lead: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -501,6 +508,7 @@ export const deleteLead = async (req, res) => {
       description: `${lead.name} was deleted.`,
     });
 
+    emitLiveEvent('leadDeleted', req.params.id);
     res.json({ success: true, message: 'Lead deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

@@ -14,6 +14,7 @@ import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import { matchesContentType, getMonthDateRange } from './projectMonthlyDeliverable.controller.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const taskStatusMap = {
   'To Do': 'todo',
@@ -848,7 +849,9 @@ export const createTask = async (req, res) => {
     }
 
     const populated = await hydrateTask(createdTasks[0]._id);
-    res.status(201).json({ success: true, task: serializeTask(populated) });
+    const serialized = serializeTask(populated);
+    emitLiveEvent('taskCreated', { task: serialized, tasks: createdTasks.map((t) => t._id) });
+    res.status(201).json({ success: true, task: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -987,7 +990,9 @@ export const updateTask = async (req, res) => {
       metadata: { fields: Object.keys(req.body || {}) },
     });
 
-    res.json({ success: true, task: serializeTask(updated) });
+    const serialized = serializeTask(updated);
+    emitLiveEvent('taskUpdated', { task: serialized, taskId: task._id });
+    res.json({ success: true, task: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -1037,7 +1042,11 @@ export const updateTaskStatus = async (req, res) => {
       metadata: { status: task.status, orderIndex: task.orderIndex },
     });
 
-    res.json({ success: true, task: serializeTask(updated) });
+    const serialized = serializeTask(updated);
+    emitLiveEvent('taskStatusUpdated', { taskId: task._id, status: task.status, orderIndex: task.orderIndex });
+    emitLiveEvent('taskMoved', { taskId: task._id, status: task.status, orderIndex: task.orderIndex });
+    emitLiveEvent('taskUpdated', { task: serialized, taskId: task._id });
+    res.json({ success: true, task: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -1762,6 +1771,7 @@ export const deleteTask = async (req, res) => {
       relatedTask: task._id,
     });
 
+    emitLiveEvent('taskDeleted', { taskId: task._id });
     res.json({ success: true, message: 'Task deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

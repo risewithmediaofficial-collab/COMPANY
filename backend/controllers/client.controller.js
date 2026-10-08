@@ -8,6 +8,7 @@ import Project from '../models/project.model.js';
 import ActivityLog from '../models/activityLog.model.js';
 import { sendEmail } from '../utils/email.js';
 import { createActivityLog } from '../utils/activity.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const statusMap = {
   Active: 'active',
@@ -206,10 +207,7 @@ export const createClient = async (req, res) => {
       relatedClient: client._id,
     });
 
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('clientCreated', client);
-    }
+    emitLiveEvent('clientCreated', client);
 
     const populatedClient = await Client.findById(client._id).populate(clientPopulate);
 
@@ -243,7 +241,10 @@ export const updateClient = async (req, res) => {
       metadata: { fields: Object.keys(req.body || {}) },
     });
 
-    res.json({ success: true, client: serializeClient(client) });
+    const serialized = serializeClient(client);
+    emitLiveEvent('clientUpdated', serialized);
+
+    res.json({ success: true, client: serialized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -263,6 +264,8 @@ export const deleteClient = async (req, res) => {
       description: `${client.company || client.name} was deleted.`,
       relatedClient: client._id,
     });
+
+    emitLiveEvent('clientDeleted', req.params.id);
 
     res.json({ success: true, message: 'Client deleted' });
   } catch (error) {

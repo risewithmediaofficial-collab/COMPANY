@@ -5,6 +5,7 @@ import SmmMonthlyTracker from '../../models/smm/smmMonthlyTracker.model.js';
 import SmmClient from '../../models/smm/smmClient.model.js';
 import SmmContent from '../../models/smm/smmContent.model.js';
 import Client from '../../models/client.model.js';
+import { emitLiveEvent } from '../../utils/socketEmitter.js';
 
 // ── Helper: build empty days array for a month ─────────────────────────────
 const buildEmptyDays = (year, month) => {
@@ -245,6 +246,13 @@ export const upsertTracker = async (req, res) => {
 
     tracker.client = await resolveClientObj(clientId);
 
+    emitLiveEvent('smmTrackerUpdated', {
+      trackerId: tracker._id,
+      clientId,
+      month,
+      year,
+    });
+
     res.json({ success: true, data: tracker });
   } catch (err) {
     console.error('upsertTracker error:', err);
@@ -285,6 +293,17 @@ export const updateDayCell = async (req, res) => {
     const result = tracker.toObject();
     result.client = await resolveClientObj(tracker.client);
 
+    emitLiveEvent('smmTrackerCellUpdated', {
+      trackerId: tracker._id.toString(),
+      clientId: tracker.client?._id?.toString() || tracker.client?.toString(),
+      day: dayNum,
+      field,
+      value,
+      month: tracker.month,
+      year: tracker.year,
+      updatedBy: req.user?._id,
+    });
+
     res.json({ success: true, data: result });
   } catch (err) {
     console.error('updateDayCell error:', err);
@@ -309,6 +328,23 @@ export const updateTrackerMeta = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Tracker not found' });
     }
     tracker.client = await resolveClientObj(tracker.client);
+
+    emitLiveEvent('smmTrackerMetaUpdated', {
+      trackerId: tracker._id.toString(),
+      clientId: tracker.client?._id?.toString() || tracker.client?.toString(),
+      month: tracker.month,
+      year: tracker.year,
+      plan,
+      storyPlan,
+      team,
+    });
+    emitLiveEvent('smmTrackerUpdated', {
+      trackerId: tracker._id.toString(),
+      clientId: tracker.client?._id?.toString() || tracker.client?.toString(),
+      month: tracker.month,
+      year: tracker.year,
+    });
+
     res.json({ success: true, data: tracker });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -449,6 +485,8 @@ export const syncContentWithTracker = async (req, res) => {
       updatedCount++;
     }
 
+    emitLiveEvent('smmTrackerUpdated', { month, year });
+
     res.json({
       success: true,
       message: `Successfully synced ${contents.length} content items across ${updatedCount} clients`,
@@ -494,6 +532,11 @@ export const deleteTracker = async (req, res) => {
         SmmClient.findByIdAndDelete(targetClientId),
         Client.findByIdAndDelete(targetClientId),
       ]);
+
+      emitLiveEvent('clientDeleted', targetClientId);
+      emitLiveEvent('smmTrackerDeleted', { trackerId: id, clientId: targetClientId, month, year });
+      emitLiveEvent('smmTrackerUpdated', { month, year });
+
       return res.json({ success: true, message: 'Client and all tracker data permanently deleted' });
     }
 
@@ -513,9 +556,14 @@ export const deleteTracker = async (req, res) => {
         },
         { upsert: true, new: true }
       );
+
+      emitLiveEvent('smmTrackerDeleted', { trackerId: id, clientId: targetClientId, month, year });
+      emitLiveEvent('smmTrackerUpdated', { month, year });
+
       return res.json({ success: true, message: 'Client removed from monthly tracker' });
     }
 
+    emitLiveEvent('smmTrackerUpdated', { month, year });
     res.json({ success: true, message: 'Tracker updated' });
   } catch (err) {
     console.error('deleteTracker error:', err);
