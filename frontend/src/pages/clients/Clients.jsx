@@ -1,25 +1,17 @@
-import React, { Fragment, useState, useMemo, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Briefcase,
   Building2,
   IndianRupee,
   Plus,
   Users,
-  Search,
-  SlidersHorizontal,
   FolderOpen,
   ArrowRight,
-  TrendingUp,
-  ShieldCheck,
   Phone,
   Mail,
-  MoreVertical,
   Edit2,
-  Trash2,
   Calendar,
-  Filter,
-  ArrowUpDown,
   RotateCcw,
   Sparkles,
   Globe,
@@ -28,6 +20,9 @@ import {
   Video,
   Megaphone,
   FileEdit,
+  CheckCircle2,
+  Clock,
+  UserX,
 } from 'lucide-react';
 import { useClients, useDeleteClient, useUpdateClient } from '../../hooks/useClients';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -40,9 +35,6 @@ import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
-import { getCategoryTheme, isCategoryMatch } from '../../utils/categoryColors';
-import { CategoryColorLegend, BOARD_CATEGORY_DEFINITIONS } from '../../components/ui/CategoryColorLegend';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,16 +55,54 @@ const clientStatusTone = {
 
 const STATUS_COLUMNS = ['Active', 'Prospect', 'Renew', 'Inactive', 'Churned'];
 
-export const CLIENT_CATEGORY_PILLS = [
-  { key: 'all', label: 'All Accounts', icon: Users },
-  { key: 'web_development', label: 'Website / Dev', icon: Globe },
-  { key: 'social_media', label: 'Social Media', icon: Share2 },
-  { key: 'branding', label: 'Branding & Design', icon: Palette },
-  { key: 'seo', label: 'SEO & Search', icon: Sparkles },
-  { key: 'paid_ads', label: 'Paid Ads', icon: Megaphone },
-  { key: 'video_content', label: 'Video Production', icon: Video },
-  { key: 'content', label: 'Content Creation', icon: FileEdit },
-  { key: 'other', label: 'Custom Retainer', icon: Briefcase },
+const STATUS_CONFIG = {
+  Active: {
+    label: 'Active',
+    icon: CheckCircle2,
+    dotColor: 'bg-emerald-500',
+    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25',
+    emptyMsg: 'No active clients yet',
+  },
+  Prospect: {
+    label: 'Prospect',
+    icon: Sparkles,
+    dotColor: 'bg-amber-500',
+    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25',
+    emptyMsg: 'No prospects in pipeline',
+  },
+  Renew: {
+    label: 'Renew',
+    icon: RotateCcw,
+    dotColor: 'bg-indigo-500',
+    badgeClass: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/25',
+    emptyMsg: 'No renewals pending',
+  },
+  Inactive: {
+    label: 'Inactive',
+    icon: Clock,
+    dotColor: 'bg-slate-400',
+    badgeClass: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/25',
+    emptyMsg: 'No inactive accounts',
+  },
+  Churned: {
+    label: 'Churned',
+    icon: UserX,
+    dotColor: 'bg-rose-500',
+    badgeClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25',
+    emptyMsg: 'No churned accounts',
+  },
+};
+
+export const SERVICE_FILTER_OPTIONS = [
+  'Website Development',
+  'Social Media Marketing',
+  'Video Production',
+  'Branding & Design',
+  'Paid Ads / Meta & Google',
+  'SEO & Search Optimization',
+  'Content Writing',
+  'Lead Generation',
+  'Custom Retainer',
 ];
 
 export const CLIENT_SORT_OPTIONS = [
@@ -81,20 +111,59 @@ export const CLIENT_SORT_OPTIONS = [
   { value: 'retainer_desc', label: '💰 Retainer: High to Low' },
   { value: 'retainer_asc', label: '💰 Retainer: Low to High' },
   { value: 'status_active', label: '📊 Status: Active First' },
-  { value: 'service_asc', label: '📁 Service: A to Z' },
   { value: 'newest', label: '🕒 Recently Added' },
   { value: 'oldest', label: '🕒 Oldest Added' },
 ];
 
+const AVATAR_PALETTES = [
+  'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+  'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+  'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+  'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+];
+
+const getCompanyInitials = (name, company) => {
+  const target = (company || name || 'Client').trim();
+  const words = target.split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return target.slice(0, 2).toUpperCase();
+};
+
+const getAvatarStyle = (str = '') => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_PALETTES.length;
+  return AVATAR_PALETTES[index];
+};
+
+const getServiceIcon = (serviceName = '') => {
+  const s = serviceName.toLowerCase();
+  if (s.includes('web') || s.includes('site') || s.includes('dev')) return Globe;
+  if (s.includes('social') || s.includes('smm') || s.includes('insta')) return Share2;
+  if (s.includes('video') || s.includes('shoot') || s.includes('reel') || s.includes('film')) return Video;
+  if (s.includes('brand') || s.includes('design') || s.includes('logo')) return Palette;
+  if (s.includes('ad') || s.includes('marketing') || s.includes('ppc')) return Megaphone;
+  if (s.includes('seo') || s.includes('search')) return Sparkles;
+  if (s.includes('content') || s.includes('script') || s.includes('writ')) return FileEdit;
+  return Briefcase;
+};
+
 const Clients = () => {
   const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [initialStatus, setInitialStatus] = useState('Active');
   const [selectedClient, setSelectedClient] = useState(null);
   const [deleteClientId, setDeleteClientId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [serviceFilter, setServiceFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name_asc');
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [draggingClientId, setDraggingClientId] = useState(null);
@@ -117,43 +186,15 @@ const Clients = () => {
   const { data: rawClients = [], isLoading } = useClients(filters);
   const clients = rawClients.filter((c) => isDateInRange([c.createdAt, c.updatedAt, c.onboardingDate]));
 
-  // Category counts
-  const categoryCounts = useMemo(() => {
-    const counts = { all: clients.length };
-    clients.forEach((c) => {
-      const serviceTarget = [c.service, ...(Array.isArray(c.services) ? c.services : [])].filter(Boolean).join(' ');
-      CLIENT_CATEGORY_PILLS.forEach((pill) => {
-        if (pill.key !== 'all' && isCategoryMatch(serviceTarget, pill.key, c.company || c.name)) {
-          counts[pill.key] = (counts[pill.key] || 0) + 1;
-        }
-      });
-      BOARD_CATEGORY_DEFINITIONS.forEach((def) => {
-        if (counts[def.key] === undefined && isCategoryMatch(serviceTarget, def.key, c.company || c.name)) {
-          counts[def.key] = (counts[def.key] || 0) + 1;
-        }
-      });
-    });
-    return counts;
-  }, [clients]);
-
-  const activeCategoryPills = useMemo(() => {
-    return CLIENT_CATEGORY_PILLS.map((pill) => ({
-      ...pill,
-      count: pill.key === 'all' ? clients.length : (categoryCounts[pill.key] || 0),
-    }));
-  }, [clients, categoryCounts]);
-
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (categoryFilter !== 'all') count++;
     if (statusFilter) count++;
     if (serviceFilter) count++;
     if (searchTerm) count++;
     return count;
-  }, [categoryFilter, statusFilter, serviceFilter, searchTerm]);
+  }, [statusFilter, serviceFilter, searchTerm]);
 
   const clearAllFilters = () => {
-    setCategoryFilter('all');
     setStatusFilter('');
     setServiceFilter('');
     setSearchTerm('');
@@ -163,14 +204,6 @@ const Clients = () => {
   const displayedClients = useMemo(() => {
     let result = [...clients];
 
-    // Category Filter
-    if (categoryFilter && categoryFilter !== 'all') {
-      result = result.filter((c) => {
-        const serviceTarget = [c.service, ...(Array.isArray(c.services) ? c.services : [])].filter(Boolean).join(' ');
-        return isCategoryMatch(serviceTarget, categoryFilter, c.company || c.name);
-      });
-    }
-
     // Status Filter
     if (statusFilter) {
       result = result.filter((c) => (c.status || 'Prospect') === statusFilter);
@@ -178,18 +211,29 @@ const Clients = () => {
 
     // Service Dropdown Filter
     if (serviceFilter) {
-      result = result.filter((c) => (c.service || '').toLowerCase().includes(serviceFilter.toLowerCase()));
+      const sf = serviceFilter.toLowerCase().trim();
+      result = result.filter((c) => {
+        const clientServices = [
+          c.service,
+          ...(Array.isArray(c.services) ? c.services : []),
+        ].filter(Boolean);
+        return clientServices.some(
+          (srv) => srv.toLowerCase().includes(sf) || sf.includes(srv.toLowerCase())
+        );
+      });
     }
 
     // Search
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase().trim();
-      result = result.filter((c) =>
-        (c.name || '').toLowerCase().includes(q) ||
-        (c.company || '').toLowerCase().includes(q) ||
-        (c.email || '').toLowerCase().includes(q) ||
-        (c.phone || '').toLowerCase().includes(q) ||
-        (c.service || '').toLowerCase().includes(q)
+      result = result.filter(
+        (c) =>
+          (c.name || '').toLowerCase().includes(q) ||
+          (c.company || '').toLowerCase().includes(q) ||
+          (c.email || '').toLowerCase().includes(q) ||
+          (c.phone || '').toLowerCase().includes(q) ||
+          (c.service || '').toLowerCase().includes(q) ||
+          (Array.isArray(c.services) && c.services.some((s) => s.toLowerCase().includes(q)))
       );
     }
 
@@ -206,10 +250,14 @@ const Clients = () => {
         return nameB.localeCompare(nameA);
       }
       if (sortBy === 'retainer_desc') {
-        return (b.monthlyRetainer || 0) - (a.monthlyRetainer || 0);
+        const valA = a.monthlyRetainer || a.contractValue || 0;
+        const valB = b.monthlyRetainer || b.contractValue || 0;
+        return valB - valA;
       }
       if (sortBy === 'retainer_asc') {
-        return (a.monthlyRetainer || 0) - (b.monthlyRetainer || 0);
+        const valA = a.monthlyRetainer || a.contractValue || 0;
+        const valB = b.monthlyRetainer || b.contractValue || 0;
+        return valA - valB;
       }
       if (sortBy === 'status_active') {
         const order = { Active: 1, Renew: 2, Prospect: 3, Inactive: 4, Churned: 5 };
@@ -217,9 +265,6 @@ const Clients = () => {
         const orderB = order[b.status] || 99;
         if (orderA !== orderB) return orderA - orderB;
         return (a.company || a.name || '').localeCompare(b.company || b.name || '');
-      }
-      if (sortBy === 'service_asc') {
-        return (a.service || '').localeCompare(b.service || '');
       }
       if (sortBy === 'oldest') {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
@@ -233,7 +278,7 @@ const Clients = () => {
     });
 
     return result;
-  }, [clients, categoryFilter, statusFilter, serviceFilter, searchTerm, sortBy]);
+  }, [clients, statusFilter, serviceFilter, searchTerm, sortBy]);
 
   const deleteClientMutation = useDeleteClient();
   const updateClientMutation = useUpdateClient();
@@ -242,27 +287,32 @@ const Clients = () => {
   const prospectClients = clients.filter((client) => client.status === 'Prospect').length;
   const totalMrr = clients
     .filter((c) => c.status === 'Active')
-    .reduce((sum, c) => sum + (c.monthlyRetainer || 0), 0);
+    .reduce((sum, c) => sum + (c.monthlyRetainer || c.contractValue || 0), 0);
 
   const columns = [
     {
       key: 'name',
       label: 'Client / Company',
       render: (row) => {
-        const theme = getCategoryTheme(row.service);
-        const CatIcon = theme.icon || Building2;
+        const displayName = row.company || row.name || 'Untitled Client';
+        const contactPerson = row.company ? row.name : null;
+        const initials = getCompanyInitials(row.name, row.company);
+        const avatarClass = getAvatarStyle(displayName);
+
         return (
-          <div className="min-w-0 flex items-start gap-2.5">
-            <div className={`p-2 rounded-xl border shrink-0 mt-0.5 ${theme.badgeClass}`}>
-              <CatIcon size={14} />
+          <div className="min-w-0 flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-xl font-bold flex items-center justify-center shrink-0 text-xs border ${avatarClass}`}>
+              {initials}
             </div>
             <div className="min-w-0">
-              <div className="font-bold text-foreground text-xs hover:text-primary transition-colors cursor-pointer">
-                {row.name}
+              <div className="font-bold text-foreground text-xs hover:text-primary transition-colors cursor-pointer truncate">
+                {displayName}
               </div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground truncate">
-                {row.company || row.email || 'No company specified'}
-              </div>
+              {contactPerson && (
+                <div className="text-[11px] text-muted-foreground truncate">
+                  {contactPerson}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -274,32 +324,47 @@ const Clients = () => {
       render: (row) => (
         <div className="text-[11px] space-y-0.5">
           <div className="font-medium text-foreground">{row.phone || '—'}</div>
-          <div className="text-muted-foreground">{row.email || '—'}</div>
+          <div className="text-muted-foreground truncate max-w-[180px]">{row.email || '—'}</div>
         </div>
       ),
     },
     {
       key: 'service',
-      label: 'Primary Service',
+      label: 'Services',
       render: (row) => {
-        const theme = getCategoryTheme(row.service);
-        const CatIcon = theme.icon || Briefcase;
+        const servicesList = [row.service, ...(Array.isArray(row.services) ? row.services : [])].filter(Boolean);
+        const unique = Array.from(new Set(servicesList));
+        if (unique.length === 0) {
+          return <span className="text-muted-foreground text-xs">—</span>;
+        }
+        const first = unique[0];
+        const Icon = getServiceIcon(first);
         return (
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold border ${theme.badgeClass}`}>
-            <CatIcon size={11} />
-            <span>{row.service || 'General Retainer'}</span>
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-secondary text-secondary-foreground border border-border/80">
+              <Icon size={11} className="text-muted-foreground shrink-0" />
+              <span>{first}</span>
+            </span>
+            {unique.length > 1 && (
+              <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-secondary/60 text-muted-foreground border border-border/60">
+                +{unique.length - 1}
+              </span>
+            )}
+          </div>
         );
       },
     },
     {
       key: 'monthlyRetainer',
       label: 'Monthly Retainer',
-      render: (row) => (
-        <span className="font-bold text-xs text-emerald-600">
-          {row.monthlyRetainer ? formatINR(row.monthlyRetainer) : '—'}
-        </span>
-      ),
+      render: (row) => {
+        const val = row.monthlyRetainer || row.contractValue;
+        return (
+          <span className="font-bold text-xs text-emerald-600">
+            {val ? formatINR(val) : '—'}
+          </span>
+        );
+      },
     },
     {
       key: 'status',
@@ -344,9 +409,10 @@ const Clients = () => {
           size="sm"
           onClick={() => {
             setSelectedClient(null);
+            setInitialStatus('Active');
             setShowAddModal(true);
           }}
-          className="bg-primary text-primary-foreground font-bold shadow-sm"
+          className="bg-primary text-primary-foreground font-bold shadow-sm cursor-pointer"
         >
           <Plus size={15} className="mr-1.5 stroke-[2.5]" />
           Add Client
@@ -385,26 +451,18 @@ const Clients = () => {
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Dropdown Filters Group */}
               <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {/* Category Dropdown Filter */}
-                <SelectDropdown
-                  className="w-44 text-xs"
-                  value={categoryFilter}
-                  onChange={(val) => setCategoryFilter(val || 'all')}
-                  options={CLIENT_CATEGORY_PILLS.map((p) => ({ value: p.key, label: p.label }))}
-                  allOptionLabel="All Categories"
-                />
                 <SelectDropdown
                   className="w-40 text-xs"
                   value={statusFilter}
                   onChange={(val) => setStatusFilter(val)}
-                  options={['Active', 'Prospect', 'Inactive', 'Churned', 'Renew']}
+                  options={['Active', 'Prospect', 'Renew', 'Inactive', 'Churned']}
                   allOptionLabel="All Statuses"
                 />
                 <SelectDropdown
-                  className="w-44 text-xs"
+                  className="w-48 text-xs"
                   value={serviceFilter}
                   onChange={(val) => setServiceFilter(val)}
-                  options={['Social Media', 'Website', 'Branding', 'SEO', 'Ads', 'Video Editing', 'Content Creation', 'Custom']}
+                  options={SERVICE_FILTER_OPTIONS}
                   allOptionLabel="All Services"
                 />
                 {/* Sorting Filter Dropdown */}
@@ -449,22 +507,20 @@ const Clients = () => {
             />
           )}
 
-          {/* Board View (Kanban by Client Status) */}
+          {/* Board View (Clean, Modern Kanban by Client Status) */}
           {(currentView === 'board' || currentView === 'kanban') && (
-            <div className="space-y-3.5 w-full">
-              {/* Category Color Definition Guide */}
-              <CategoryColorLegend
-                selectedCategory={categoryFilter}
-                onSelectCategory={setCategoryFilter}
-                title="Client Service Color Code Index"
-                description="Card left-border accent indicates client service retainer (click any color pill to filter)"
-              />
-
-              <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
+            <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 min-w-[1100px] lg:min-w-0 w-full">
                 {STATUS_COLUMNS.map((status) => {
                   const statusClients = displayedClients.filter((c) => (c.status || 'Prospect') === status);
                   const isColActive = dragOverStatus === status;
+                  const conf = STATUS_CONFIG[status] || STATUS_CONFIG.Prospect;
+                  const ColIcon = conf.icon;
+
+                  const colTotalRetainer = statusClients.reduce(
+                    (sum, c) => sum + (c.monthlyRetainer || c.contractValue || 0),
+                    0
+                  );
 
                   return (
                     <div
@@ -490,30 +546,66 @@ const Clients = () => {
                         setDragOverStatus(null);
                         setDragOverClientIndex(null);
                       }}
-                      className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-2xl border transition-all p-3 space-y-3 w-full ${
+                      className={`flex flex-col min-h-[520px] max-h-[calc(100vh-270px)] rounded-2xl border transition-all p-3 space-y-3 w-full ${
                         isColActive
                           ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
-                          : 'border-border/80 bg-secondary/15'
+                          : 'border-border/70 bg-secondary/25'
                       }`}
                     >
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-xs font-bold uppercase tracking-wider text-foreground">{status}</span>
-                        <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-card border border-border text-foreground shadow-xs">
-                          {statusClients.length}
-                        </span>
+                      {/* Column Header */}
+                      <div className="flex items-center justify-between px-1 pb-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full ${conf.dotColor} ring-4 ring-current/15`} />
+                          <span className="text-xs font-extrabold uppercase tracking-wider text-foreground">
+                            {status}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${conf.badgeClass}`}>
+                            {statusClients.length}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          {colTotalRetainer > 0 && (
+                            <span className="text-[10px] font-bold text-muted-foreground">
+                              {formatINR(colTotalRetainer)}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedClient(null);
+                              setInitialStatus(status);
+                              setShowAddModal(true);
+                            }}
+                            className="p-1 rounded-lg hover:bg-card border border-transparent hover:border-border text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                            title={`Add client to ${status}`}
+                          >
+                            <Plus size={13} />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="space-y-2.5 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar pr-0.5 flex-1">
+                      {/* Cards Container */}
+                      <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-340px)] custom-scrollbar pr-0.5 flex-1">
                         {statusClients.map((client, idx) => {
                           const isBeingDragged = draggingClientId === client._id;
                           const showDropIndicatorBefore = isColActive && dragOverClientIndex === idx && !isBeingDragged;
-                          const theme = getCategoryTheme(client.service);
-                          const CatIcon = theme.icon || Briefcase;
+
+                          const displayName = client.company || client.name || 'Untitled Client';
+                          const contactPerson = client.company ? client.name : null;
+                          const initials = getCompanyInitials(client.name, client.company);
+                          const avatarClass = getAvatarStyle(displayName);
+                          const retainerValue = client.monthlyRetainer || client.contractValue;
+                          const clientServices = [
+                            client.service,
+                            ...(Array.isArray(client.services) ? client.services : []),
+                          ].filter(Boolean);
+                          const uniqueServices = Array.from(new Set(clientServices));
 
                           return (
                             <React.Fragment key={client._id}>
                               {showDropIndicatorBefore && (
-                                <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                                <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1.5 shadow-xs" />
                               )}
                               <div
                                 draggable
@@ -548,20 +640,34 @@ const Clients = () => {
                                   setDragOverClientIndex(null);
                                 }}
                                 onClick={() => navigate(`/clients/${client._id}`)}
-                                className={`p-3.5 bg-card rounded-xl border border-border hover:border-primary/40 border-l-[4px] ${theme.accentBorder} transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs ${
-                                  isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : 'hover:shadow-md hover:-translate-y-0.5'
+                                className={`p-3.5 bg-card rounded-2xl border border-border/80 hover:border-primary/50 transition-all duration-200 cursor-grab active:cursor-grabbing space-y-3 group shadow-xs relative overflow-hidden ${
+                                  isBeingDragged
+                                    ? 'opacity-30 scale-95 border-dashed border-primary ring-2 ring-primary/30'
+                                    : 'hover:shadow-md hover:-translate-y-0.5'
                                 }`}
                               >
-                                <div className="flex items-center justify-between gap-1.5">
-                                  <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
-                                    {client.name}
-                                  </h4>
-                                  <div className="flex items-center gap-1 shrink-0">
-                                    {client.monthlyRetainer ? (
-                                      <span className="text-[11px] font-black text-emerald-600">
-                                        {formatINR(client.monthlyRetainer)}
-                                      </span>
-                                    ) : null}
+                                {/* Top: Avatar + Company / Client Name + Quick Edit */}
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <div
+                                      className={`w-9 h-9 rounded-xl font-bold flex items-center justify-center shrink-0 text-xs border ${avatarClass}`}
+                                    >
+                                      {initials}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                                        {displayName}
+                                      </h4>
+                                      {contactPerson && (
+                                        <div className="text-[11px] text-muted-foreground flex items-center gap-1 truncate mt-0.5">
+                                          <Users size={10} className="shrink-0 text-muted-foreground/60" />
+                                          <span className="truncate">{contactPerson}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
                                     <button
                                       type="button"
                                       onClick={(e) => {
@@ -577,23 +683,106 @@ const Clients = () => {
                                   </div>
                                 </div>
 
-                                <p className="text-[11px] text-muted-foreground truncate">
-                                  {client.company || client.email || 'No company specified'}
-                                </p>
+                                {/* Financial Retainer / Value Badge + Contact Links */}
+                                <div className="flex items-center justify-between gap-2 pt-0.5">
+                                  {retainerValue ? (
+                                    <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                      <IndianRupee size={11} className="stroke-[2.5]" />
+                                      <span>{formatINR(retainerValue)}</span>
+                                      <span className="text-[10px] font-medium text-emerald-600/70 dark:text-emerald-400/70">
+                                        {client.budgetType === 'overall' ? 'total' : '/mo'}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="text-[10px] text-muted-foreground/80 font-medium px-2 py-0.5 rounded-md bg-secondary/40 border border-border/40">
+                                      No retainer set
+                                    </div>
+                                  )}
 
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${theme.badgeClass}`}>
-                                    <CatIcon size={10} />
-                                    <span>{client.service || 'Retainer'}</span>
-                                  </span>
+                                  {/* Direct Quick Actions */}
+                                  <div className="flex items-center gap-0.5">
+                                    {client.phone && (
+                                      <a
+                                        href={`tel:${client.phone}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        title={`Call ${client.phone}`}
+                                        className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-emerald-600 transition-colors"
+                                      >
+                                        <Phone size={12} />
+                                      </a>
+                                    )}
+                                    {client.email && (
+                                      <a
+                                        href={`mailto:${client.email}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        title={`Email ${client.email}`}
+                                        className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                                      >
+                                        <Mail size={12} />
+                                      </a>
+                                    )}
+                                    {client.driveLink && (
+                                      <a
+                                        href={client.driveLink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        title="Google Drive Assets"
+                                        className="p-1 rounded-md hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600 transition-colors"
+                                      >
+                                        <FolderOpen size={12} />
+                                      </a>
+                                    )}
+                                    {client.website && (
+                                      <a
+                                        href={client.website}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        title="Visit Website"
+                                        className="p-1 rounded-md hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600 transition-colors"
+                                      >
+                                        <Globe size={12} />
+                                      </a>
+                                    )}
+                                  </div>
                                 </div>
 
-                                <div className="flex items-center justify-between pt-1.5 border-t border-border/50 text-[10px] text-muted-foreground">
+                                {/* Clean Services Chips */}
+                                {uniqueServices.length > 0 && (
+                                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                    {uniqueServices.slice(0, 2).map((srv, sIdx) => {
+                                      const Icon = getServiceIcon(srv);
+                                      return (
+                                        <span
+                                          key={sIdx}
+                                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-secondary/80 text-secondary-foreground border border-border/70 truncate max-w-[150px]"
+                                          title={srv}
+                                        >
+                                          <Icon size={10} className="shrink-0 text-muted-foreground" />
+                                          <span className="truncate">{srv}</span>
+                                        </span>
+                                      );
+                                    })}
+                                    {uniqueServices.length > 2 && (
+                                      <span className="px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-secondary/60 text-muted-foreground border border-border/60">
+                                        +{uniqueServices.length - 2}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Card Footer: Date & Open indicator */}
+                                <div className="flex items-center justify-between pt-2 border-t border-border/60 text-[10px] text-muted-foreground">
                                   <span className="flex items-center gap-1">
                                     <Calendar size={10} className="text-muted-foreground/70 shrink-0" />
                                     <span>
                                       {client.createdAt
-                                        ? new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+                                        ? new Date(client.createdAt).toLocaleDateString([], {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                          })
                                         : 'Active'}
                                     </span>
                                   </span>
@@ -608,14 +797,39 @@ const Clients = () => {
 
                         {/* Drop indicator at the bottom of the column */}
                         {isColActive && dragOverClientIndex >= statusClients.length && (
-                          <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
+                          <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1.5 shadow-xs" />
                         )}
 
+                        {/* Column Empty State */}
                         {statusClients.length === 0 && (
-                          <div className={`p-8 text-center text-xs border border-dashed rounded-xl transition-all ${
-                            isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'border-border/60 text-muted-foreground'
-                          }`}>
-                            {isColActive ? `Drop here to set status to ${status}` : `No ${status} clients`}
+                          <div
+                            className={`p-6 text-center text-xs border border-dashed rounded-2xl flex flex-col items-center justify-center gap-2 transition-all min-h-[140px] ${
+                              isColActive
+                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                : 'border-border/70 bg-card/40 text-muted-foreground'
+                            }`}
+                          >
+                            {isColActive ? (
+                              <span>Drop client here to move to {status}</span>
+                            ) : (
+                              <>
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${conf.badgeClass}`}>
+                                  <ColIcon size={14} />
+                                </div>
+                                <p className="font-medium text-muted-foreground">{conf.emptyMsg}</p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedClient(null);
+                                    setInitialStatus(status);
+                                    setShowAddModal(true);
+                                  }}
+                                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Plus size={11} /> Add {status} Client
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -624,8 +838,7 @@ const Clients = () => {
                 })}
               </div>
             </div>
-          </div>
-        )}
+          )}
         </DatabaseView>
       </div>
 
@@ -633,6 +846,7 @@ const Clients = () => {
         open={showAddModal}
         onOpenChange={setShowAddModal}
         client={selectedClient}
+        initialStatus={initialStatus}
       />
 
       <AlertDialog open={!!deleteClientId} onOpenChange={(open) => !open && setDeleteClientId(null)}>

@@ -12,9 +12,9 @@ const buildEmptyDays = (year, month) => {
   return Array.from({ length: daysInMonth }, (_, i) => ({
     day: i + 1,
     postLabel: '',
-    postStatus: 'pending',
+    postStatus: 'todo',
     storyLabel: '',
-    storyStatus: 'pending',
+    storyStatus: 'todo',
     note: '',
   }));
 };

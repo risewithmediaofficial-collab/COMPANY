@@ -130,7 +130,7 @@ const clientFormSchema = z.object({
 });
 
 
-export const AddClientModal = ({ open, onOpenChange, client = null }) => {
+export const AddClientModal = ({ open, onOpenChange, client = null, initialStatus = 'Active' }) => {
   const form = useForm({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
@@ -144,7 +144,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
       customIndustry: '',
       services: [],
       customService: '',
-      status: 'Active',
+      status: initialStatus || 'Active',
       referredByMode: 'none',
       referredBy: '',
       referredByManual: '',
@@ -204,7 +204,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
             customIndustry: '',
             services: [],
             customService: '',
-            status: 'Active',
+            status: initialStatus || 'Active',
             referredByMode: 'none',
             referredBy: '',
             referredByManual: '',
@@ -217,29 +217,29 @@ export const AddClientModal = ({ open, onOpenChange, client = null }) => {
         }
       } else {
         form.reset({
-            name: '',
-            company: '',
-            email: '',
-            phone: '',
-            website: '',
-            driveLink: '',
-            industry: undefined,
-            customIndustry: '',
-            services: [],
-            customService: '',
-            status: 'Active',
-            referredByMode: 'none',
-            referredBy: '',
-            referredByManual: '',
-            notes: '',
-            budgetType: 'monthly',
-            contractValue: undefined,
-            contractStartDate: '',
-            contractEndDate: '',
-          });
-        }
+          name: '',
+          company: '',
+          email: '',
+          phone: '',
+          website: '',
+          driveLink: '',
+          industry: undefined,
+          customIndustry: '',
+          services: [],
+          customService: '',
+          status: initialStatus || 'Active',
+          referredByMode: 'none',
+          referredBy: '',
+          referredByManual: '',
+          notes: '',
+          budgetType: 'monthly',
+          contractValue: undefined,
+          contractStartDate: '',
+          contractEndDate: '',
+        });
+      }
     }
-  }, [client, open, form]);
+  }, [client, open, form, initialStatus]);
 
   const onSubmit = async (data) => {
     const payload = {

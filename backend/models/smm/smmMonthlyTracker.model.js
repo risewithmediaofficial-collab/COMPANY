@@ -12,15 +12,15 @@ const dayCellSchema = new mongoose.Schema(
     postLabel: { type: String, default: '' },     // e.g. "R1 6:30P", "P2 1P"
     postStatus: {
       type: String,
-      enum: ['pending', 'done', 'skip', ''],
-      default: 'pending',
+      enum: ['todo', 'pending', 'done', 'skip', ''],
+      default: 'todo',
     },
     // Story section
     storyLabel: { type: String, default: '' },    // e.g. "S1 9A/7P"
     storyStatus: {
       type: String,
-      enum: ['pending', 'done', 'skip', ''],
-      default: 'pending',
+      enum: ['todo', 'pending', 'done', 'skip', ''],
+      default: 'todo',
     },
     // Optional notes per day
     note: { type: String, default: '' },

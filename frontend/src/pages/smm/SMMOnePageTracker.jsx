@@ -5,7 +5,7 @@ import { ClientCompletionDashboard } from '../../components/smm/ClientCompletion
 import {
   ChevronLeft, ChevronRight, CheckCircle2, Clock, RefreshCw,
   LayoutGrid, AlertCircle, Check, X, Info, Plus, Sparkles, ArrowDownToLine,
-  Trash2, AlertTriangle
+  Trash2, AlertTriangle, ListTodo
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -28,8 +28,8 @@ const L = {
 // Total fixed width
 const FIXED_W = COL.NO + COL.TEAM + COL.CLIENT + COL.PLAN; // 368
 
-const STATUS_CYCLE  = { pending:'done', done:'skip', skip:'pending' };
-const STATUS_LABEL  = { done:'DONE', pending:'PENDING', skip:'SKIP' };
+const STATUS_CYCLE  = { todo:'pending', pending:'done', done:'skip', skip:'todo' };
+const STATUS_LABEL  = { todo:'TODO', pending:'PENDING', done:'DONE', skip:'SKIP' };
 
 const getDayOfWeek = (y, m, d) => new Date(y, m - 1, d).getDay();
 const isSunday     = (y, m, d) => getDayOfWeek(y, m, d) === 0;
@@ -60,6 +60,13 @@ const HDR_STICKY = (left, width) => ({
   maxWidth: width,
 });
 const HDR_SUN = { ...HDR_BASE, background: 'rgba(251,191,36,0.85)', color:'#78350f' };
+const HDR_TODAY = {
+  ...HDR_BASE,
+  background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+  color: '#ffffff',
+  border: '2px solid #60a5fa',
+  boxShadow: '0 2px 8px rgba(37,99,235,0.35)',
+};
 
 const CELL_BASE = {
   fontSize: 11,
@@ -84,41 +91,135 @@ const STATUS_CELL_STICKY = (left, width) => ({
   background: 'rgba(204,251,241,0.4)',  // teal-50 tint
   padding: '4px 4px',
 });
-const DAY_CELL  = (sun) => ({
+const DAY_CELL = (sun, isToday) => ({
   ...CELL_BASE,
   width: COL.DAY,
   minWidth: COL.DAY,
   maxWidth: COL.DAY,
-  background: sun ? 'rgba(252,211,77,0.08)' : undefined,
+  background: isToday
+    ? 'rgba(37, 99, 235, 0.08)'
+    : sun
+    ? 'rgba(252,211,77,0.08)'
+    : undefined,
+  borderLeft: isToday ? '2px solid #3b82f6' : undefined,
+  borderRight: isToday ? '2px solid #3b82f6' : undefined,
 });
-const STATUS_DAY_CELL = (sun) => ({
-  ...DAY_CELL(sun),
+const STATUS_DAY_CELL = (sun, isToday) => ({
+  ...DAY_CELL(sun, isToday),
   padding: '3px 2px',
-  background: sun ? 'rgba(252,211,77,0.08)' : 'rgba(204,251,241,0.2)',
+  background: isToday
+    ? 'rgba(37, 99, 235, 0.14)'
+    : sun
+    ? 'rgba(252,211,77,0.08)'
+    : 'rgba(204,251,241,0.2)',
+  borderLeft: isToday ? '2px solid #3b82f6' : undefined,
+  borderRight: isToday ? '2px solid #3b82f6' : undefined,
 });
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const StatusBadge = ({ status, onClick }) => {
-  const s = status || 'pending';
+const StatusBadge = ({ status, onClick, onSelectStatus }) => {
+  const s = status || 'todo';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
   const baseStyle = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    gap: 2, width: '100%', padding: '3px 2px',
-    borderRadius: 5, fontSize: 10, fontWeight: 700,
+    gap: 2.5, width: '100%', padding: '3px 2px',
+    borderRadius: 5, fontSize: 9.5, fontWeight: 800,
     border: '1px solid', cursor: 'pointer', whiteSpace: 'nowrap',
-    transition: 'opacity 0.15s',
+    transition: 'all 0.15s ease',
+    userSelect: 'none',
   };
   const styles = {
-    done:    { ...baseStyle, background:'#10b981', color:'#fff', borderColor:'#059669' },
-    pending: { ...baseStyle, background:'#fbbf24', color:'#78350f', borderColor:'#f59e0b' },
-    skip:    { ...baseStyle, background:'#e5e7eb', color:'#6b7280', borderColor:'#d1d5db' },
+    todo:    { ...baseStyle, background: '#e0f2fe', color: '#0369a1', borderColor: '#7dd3fc' },
+    pending: { ...baseStyle, background: '#fef3c7', color: '#92400e', borderColor: '#fcd34d' },
+    done:    { ...baseStyle, background: '#10b981', color: '#ffffff', borderColor: '#059669' },
+    skip:    { ...baseStyle, background: '#f3f4f6', color: '#6b7280', borderColor: '#d1d5db' },
   };
+
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpen((prev) => !prev);
+  };
+
   return (
-    <button style={styles[s] || styles.pending} onClick={onClick} title={`→ ${STATUS_CYCLE[s]}`}>
-      {s === 'done'    && <CheckCircle2 size={9} />}
-      {s === 'pending' && <Clock size={9} />}
-      {STATUS_LABEL[s] || 'PENDING'}
-    </button>
+    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+      <button
+        type="button"
+        style={styles[s] || styles.todo}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.();
+        }}
+        onContextMenu={handleContextMenu}
+        title={`Status: ${STATUS_LABEL[s] || 'TODO'} (Click to cycle → ${STATUS_CYCLE[s] || 'pending'}, Right-click to select)`}
+      >
+        {s === 'done'    && <CheckCircle2 size={9} className="shrink-0" />}
+        {s === 'pending' && <Clock size={9} className="shrink-0" />}
+        {s === 'todo'    && <ListTodo size={9} className="shrink-0" />}
+        <span>{STATUS_LABEL[s] || 'TODO'}</span>
+      </button>
+
+      {/* Popover to directly select any status */}
+      {menuOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
+            marginTop: 4,
+            background: '#ffffff',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            minWidth: 84,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {['todo', 'pending', 'done', 'skip'].map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectStatus?.(opt);
+                setMenuOpen(false);
+              }}
+              style={{
+                ...styles[opt],
+                padding: '4px 6px',
+                borderRadius: 5,
+                boxShadow: s === opt ? '0 0 0 1.5px #2563eb' : 'none',
+              }}
+            >
+              {opt === 'done'    && <CheckCircle2 size={9} />}
+              {opt === 'pending' && <Clock size={9} />}
+              {opt === 'todo'    && <ListTodo size={9} />}
+              <span>{STATUS_LABEL[opt]}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -219,6 +320,30 @@ const SMMOnePageTracker = () => {
   const [clientToDelete, setClientToDelete] = useState(null);
   const [deleteMode, setDeleteMode] = useState('month'); // 'month' | 'permanent'
   const [deleting, setDeleting] = useState(false);
+
+  const isCurrentMonth = month === (now.getMonth() + 1) && year === now.getFullYear();
+  const currentDayNumber = isCurrentMonth ? now.getDate() : null;
+  const tableContainerRef = useRef(null);
+
+  const scrollToToday = useCallback((smooth = true) => {
+    if (isCurrentMonth && currentDayNumber && tableContainerRef.current) {
+      // (currentDayNumber - 1) * COL.DAY puts today at the first visible day spot next to sticky columns
+      const targetScroll = Math.max(0, (currentDayNumber - 1) * COL.DAY);
+      tableContainerRef.current.scrollTo({
+        left: targetScroll,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    }
+  }, [isCurrentMonth, currentDayNumber]);
+
+  useEffect(() => {
+    if (!loading && rows.length > 0 && isCurrentMonth) {
+      const timer = setTimeout(() => {
+        scrollToToday(true);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, rows.length, month, year, section, isCurrentMonth, scrollToToday]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -363,9 +488,9 @@ const SMMOnePageTracker = () => {
       const days = Array.from({ length: daysInMonth }, (_, i) => ({
         day: i + 1,
         postLabel: '',
-        postStatus: 'pending',
+        postStatus: 'todo',
         storyLabel: '',
-        storyStatus: 'pending',
+        storyStatus: 'todo',
         note: '',
       }));
 
@@ -466,16 +591,38 @@ const SMMOnePageTracker = () => {
     return res.data?.data || row;
   };
 
+  const handleStatusSet = async (rowIdx, dayNum, field, next) => {
+    const row = rows[rowIdx];
+    setRows(prev => {
+      const u = [...prev];
+      const r = { ...u[rowIdx] };
+      r.days = r.days.map(d => d.day === dayNum ? { ...d, [field]: next } : d);
+      u[rowIdx] = r;
+      return u;
+    });
+    try {
+      let saved = row;
+      if (!row._id) {
+        saved = await ensureRow(row);
+        setRows(prev => {
+          const u = [...prev];
+          u[rowIdx] = { ...saved, days: saved.days.map(d => d.day === dayNum ? { ...d, [field]: next } : d) };
+          return u;
+        });
+      }
+      await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, { field, value: next });
+    } catch(err) {
+      toast.error('Failed to update');
+      fetchData();
+    }
+  };
+
   const handleStatusToggle = async (rowIdx, dayNum, field) => {
     const row = rows[rowIdx];
     const cell = row.days.find(d => d.day === dayNum) || { day: dayNum };
-    const next = STATUS_CYCLE[cell[field] || 'pending'];
-    setRows(prev => { const u=[...prev]; const r={...u[rowIdx]}; r.days=r.days.map(d=>d.day===dayNum?{...d,[field]:next}:d); u[rowIdx]=r; return u; });
-    try {
-      let saved = row;
-      if (!row._id) { saved = await ensureRow(row); setRows(prev => { const u=[...prev]; u[rowIdx]={...saved,days:saved.days.map(d=>d.day===dayNum?{...d,[field]:next}:d)}; return u; }); }
-      await smmApi.updateTrackerDayCell(saved._id||row._id, dayNum, { field, value:next });
-    } catch(err) { toast.error('Failed to update'); fetchData(); }
+    const current = cell[field] || 'todo';
+    const next = STATUS_CYCLE[current] || 'todo';
+    await handleStatusSet(rowIdx, dayNum, field, next);
   };
 
   const handleLabelSave = async (rowIdx, dayNum, field, value) => {
@@ -508,7 +655,13 @@ const SMMOnePageTracker = () => {
 
   const dayHeaders = Array.from({ length: daysInMonth }, (_, i) => {
     const d = i + 1;
-    return { d, dow: DAYS_SHORT[getDayOfWeek(year, month, d)], sun: isSunday(year, month, d) };
+    const isToday = isCurrentMonth && d === currentDayNumber;
+    return {
+      d,
+      dow: DAYS_SHORT[getDayOfWeek(year, month, d)],
+      sun: isSunday(year, month, d),
+      isToday,
+    };
   });
 
   const labelField    = section === 'posts' ? 'postLabel'  : 'storyLabel';
@@ -580,17 +733,57 @@ const SMMOnePageTracker = () => {
         ))}
       </div>
 
-      {/* ── Legend ── */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {[['done','#10b981','#fff'],['pending','#fbbf24','#78350f'],['skip','#e5e7eb','#6b7280']].map(([s,bg,fg]) => (
-          <span key={s} style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:bg, color:fg, fontSize:11, fontWeight:700, border:'1px solid rgba(0,0,0,0.1)' }}>
-            {s==='done' && <CheckCircle2 size={11}/>}{s==='pending' && <Clock size={11}/>}
-            {s.charAt(0).toUpperCase()+s.slice(1)}
+      {/* ── Legend & Navigation ── */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Todo badge */}
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#e0f2fe', color:'#0369a1', fontSize:11, fontWeight:700, border:'1px solid #7dd3fc' }}>
+            <ListTodo size={11}/>
+            Todo (Initial)
           </span>
-        ))}
-        <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'rgba(251,191,36,0.2)', color:'#92400e', fontSize:11, fontWeight:700, border:'1px solid rgba(251,191,36,0.4)' }}>
-          <span style={{ width:12, height:12, background:'rgba(251,191,36,0.6)', borderRadius:2, display:'inline-block' }}/>Sunday
-        </span>
+
+          {/* Pending badge */}
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#fef3c7', color:'#92400e', fontSize:11, fontWeight:700, border:'1px solid #fcd34d' }}>
+            <Clock size={11}/>
+            Pending
+          </span>
+
+          {/* Done badge */}
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#10b981', color:'#ffffff', fontSize:11, fontWeight:700, border:'1px solid #059669' }}>
+            <CheckCircle2 size={11}/>
+            Done
+          </span>
+
+          {/* Skip badge */}
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:11, fontWeight:700, border:'1px solid #d1d5db' }}>
+            Skip
+          </span>
+
+          {/* Sunday */}
+          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'rgba(251,191,36,0.2)', color:'#92400e', fontSize:11, fontWeight:700, border:'1px solid rgba(251,191,36,0.4)' }}>
+            <span style={{ width:10, height:10, background:'rgba(251,191,36,0.8)', borderRadius:2, display:'inline-block' }}/>Sunday
+          </span>
+
+          {/* Today / Live */}
+          {isCurrentMonth && (
+            <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'linear-gradient(135deg, #2563eb, #1d4ed8)', color:'#ffffff', fontSize:11, fontWeight:800, border:'1px solid #60a5fa', boxShadow:'0 1px 4px rgba(37,99,235,0.25)' }}>
+              <span style={{ width:7, height:7, background:'#ef4444', borderRadius:'50%', display:'inline-block', boxShadow:'0 0 6px #ef4444' }}/>
+              Today (Live: Day {currentDayNumber})
+            </span>
+          )}
+        </div>
+
+        {/* Quick jump to today button */}
+        {isCurrentMonth && (
+          <button
+            type="button"
+            onClick={() => scrollToToday(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all cursor-pointer shadow-xs"
+            title="Scroll horizontally to today's column"
+          >
+            <span>📍 Scroll to Today</span>
+          </button>
+        )}
       </div>
 
       {/* ── Table ── */}
@@ -632,7 +825,11 @@ const SMMOnePageTracker = () => {
           </div>
 
           {/* Scrollable wrapper — overflow-x ONLY on this div; vertical handled by the table height */}
-          <div style={{ overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 310px)' }}>
+          <div
+            ref={tableContainerRef}
+            className="custom-scrollbar"
+            style={{ overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 310px)' }}
+          >
             <table style={{ borderCollapse:'separate', borderSpacing:0, minWidth:totalW, tableLayout:'fixed', width: totalW }}>
 
               {/* ── colgroup — single source of truth for widths ── */}
@@ -652,12 +849,53 @@ const SMMOnePageTracker = () => {
                   <th style={HDR_STICKY(L.TEAM,   COL.TEAM)}>TEAM</th>
                   <th style={{ ...HDR_STICKY(L.CLIENT, COL.CLIENT), textAlign:'left', paddingLeft:8 }}>CLIENT</th>
                   <th style={HDR_STICKY(L.PLAN,   COL.PLAN)}>PLAN</th>
-                  {dayHeaders.map(({d, dow, sun}) => (
-                    <th key={d} style={sun ? { ...HDR_SUN, position:'sticky', top:0, zIndex:20 } : { ...HDR_BASE, position:'sticky', top:0, zIndex:20 }}>
-                      <div style={{ lineHeight:'1.2' }}>{d}</div>
-                      <div style={{ fontWeight:500, opacity:0.8, fontSize:9 }}>{dow}</div>
-                    </th>
-                  ))}
+                  {dayHeaders.map(({d, dow, sun, isToday}) => {
+                    let thStyle = HDR_BASE;
+                    if (isToday) {
+                      thStyle = HDR_TODAY;
+                    } else if (sun) {
+                      thStyle = HDR_SUN;
+                    }
+
+                    return (
+                      <th
+                        key={d}
+                        style={{
+                          ...thStyle,
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: isToday ? 25 : 20,
+                        }}
+                      >
+                        {isToday && (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                            <span
+                              style={{
+                                fontSize: 8,
+                                fontWeight: 900,
+                                background: '#ef4444',
+                                color: '#ffffff',
+                                padding: '1px 5px',
+                                borderRadius: 4,
+                                letterSpacing: '0.06em',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 2,
+                              }}
+                            >
+                              ● LIVE
+                            </span>
+                          </div>
+                        )}
+                        <div style={{ lineHeight: '1.2', fontSize: isToday ? 12 : 10, fontWeight: isToday ? 900 : 800 }}>
+                          {d}
+                        </div>
+                        <div style={{ fontWeight: isToday ? 700 : 500, opacity: isToday ? 1 : 0.8, fontSize: 9 }}>
+                          {dow}
+                        </div>
+                      </th>
+                    );
+                  })}
                   <th style={{ ...HDR_STICKY('auto', COL.DONE), right:0, left:'auto' }}>DONE%</th>
                 </tr>
               </thead>
@@ -706,10 +944,10 @@ const SMMOnePageTracker = () => {
                         <td style={CELL_STICKY(L.PLAN, COL.PLAN)}>
                           <EditablePlan value={row[planField]} placeholder={planPH} onSave={v => handleMetaSave(rowIdx, planField, v)}/>
                         </td>
-                        {dayHeaders.map(({d, sun}) => {
+                        {dayHeaders.map(({d, sun, isToday}) => {
                           const cell = row.days.find(dc => dc.day===d) || {};
                           return (
-                            <td key={d} style={DAY_CELL(sun)}>
+                            <td key={d} style={DAY_CELL(sun, isToday)}>
                               <EditableLabel value={cell[labelField]} placeholder={section==='posts'?'R/P':'S#'} onSave={v => handleLabelSave(rowIdx, d, labelField, v)}/>
                             </td>
                           );
@@ -732,12 +970,16 @@ const SMMOnePageTracker = () => {
                           </span>
                         </td>
                         <td style={STATUS_CELL_STICKY(L.PLAN, COL.PLAN)}/>
-                        {dayHeaders.map(({d, sun}) => {
+                        {dayHeaders.map(({d, sun, isToday}) => {
                           const cell = row.days.find(dc => dc.day===d) || {};
-                          const st = cell[statusField] || 'pending';
+                          const st = cell[statusField] || 'todo';
                           return (
-                            <td key={d} style={STATUS_DAY_CELL(sun)}>
-                              <StatusBadge status={st} onClick={() => handleStatusToggle(rowIdx, d, statusField)}/>
+                            <td key={d} style={STATUS_DAY_CELL(sun, isToday)}>
+                              <StatusBadge
+                                status={st}
+                                onClick={() => handleStatusToggle(rowIdx, d, statusField)}
+                                onSelectStatus={(newSt) => handleStatusSet(rowIdx, d, statusField, newSt)}
+                              />
                             </td>
                           );
                         })}
@@ -756,12 +998,15 @@ const SMMOnePageTracker = () => {
             <span className="text-[11px] text-muted-foreground">
               {rows.length} clients &nbsp;•&nbsp; {daysInMonth} days &nbsp;•&nbsp; {MONTHS[month-1]} {year}
             </span>
-            <div className="flex items-center gap-4 text-[11px] font-semibold">
-              <span className="text-emerald-600 dark:text-emerald-400">
-                ✅ Done: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='done').length, 0)}
+            <div className="flex items-center gap-4 text-[11px] font-semibold flex-wrap">
+              <span className="text-sky-600 dark:text-sky-400">
+                📋 Todo: {rows.reduce((a,r)=>a+r.days.filter(d=>(d[statusField]||'todo')==='todo').length, 0)}
               </span>
               <span className="text-amber-600 dark:text-amber-400">
-                ⏳ Pending: {rows.reduce((a,r)=>a+r.days.filter(d=>(d[statusField]||'pending')==='pending').length, 0)}
+                ⏳ Pending: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='pending').length, 0)}
+              </span>
+              <span className="text-emerald-600 dark:text-emerald-400">
+                ✅ Done: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='done').length, 0)}
               </span>
               <span className="text-muted-foreground">
                 ⏭ Skip: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='skip').length, 0)}
