@@ -33,10 +33,12 @@
     --ring: 221.2 83.2% 53.3%;
 
     --radius: 0.5rem;
+    --tracker-status-sticky: #f0fdfa;
   }
 
   .dark {
     color-scheme: dark;
+    --tracker-status-sticky: #06312d;
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
 

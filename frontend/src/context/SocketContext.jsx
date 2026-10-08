@@ -70,12 +70,14 @@ export const SocketProvider = ({ children }) => {
           duration: 5000,
         });
 
-        // 2. Native OS / Desktop Browser Push Notification
-        sendBrowserNotification({
-          title: data.title || 'New CRM Notification',
-          message: data.message || '',
-          link: data.link || '/',
-        });
+        // 2. Native OS / Desktop Browser Push Notification (only if user is not actively viewing tab)
+        if (typeof document !== 'undefined' && document.hidden) {
+          sendBrowserNotification({
+            title: data.title || 'New CRM Notification',
+            message: data.message || '',
+            link: data.link || '/',
+          });
+        }
       }
     });
 

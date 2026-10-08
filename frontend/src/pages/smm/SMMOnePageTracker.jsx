@@ -76,21 +76,26 @@ const CELL_BASE = {
   whiteSpace: 'nowrap',
   verticalAlign: 'middle',
   textAlign: 'center',
-  background: 'var(--card-bg, #fff)',
+  background: 'hsl(var(--card, 0 0% 100%))',
+  color: 'inherit',
 };
 const CELL_STICKY = (left, width) => ({
   ...CELL_BASE,
   position: 'sticky',
   left,
-  zIndex: 10,
+  zIndex: 15,
   width,
   minWidth: width,
   maxWidth: width,
+  background: 'hsl(var(--card, 0 0% 100%))',
+  boxShadow: left === L.PLAN ? '2px 0 6px -2px rgba(0,0,0,0.08)' : undefined,
 });
 const STATUS_CELL_STICKY = (left, width) => ({
   ...CELL_STICKY(left, width),
-  background: 'rgba(204,251,241,0.4)',  // teal-50 tint
+  background: 'var(--tracker-status-sticky, #f0fdfa)',  // 100% solid opaque background, never transparent
   padding: '4px 4px',
+  zIndex: 15,
+  boxShadow: left === L.PLAN ? '2px 0 6px -2px rgba(0,0,0,0.08)' : undefined,
 });
 const DAY_CELL = (sun, isToday) => ({
   ...CELL_BASE,
@@ -1023,7 +1028,7 @@ const SMMOnePageTracker = () => {
                       </th>
                     );
                   })}
-                  <th style={{ ...HDR_STICKY('auto', COL.DONE), right:0, left:'auto' }}>DONE%</th>
+                  <th style={{ ...HDR_STICKY('auto', COL.DONE), right:0, left:'auto', zIndex:32, boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.15)' }}>DONE%</th>
                 </tr>
               </thead>
 
@@ -1079,7 +1084,7 @@ const SMMOnePageTracker = () => {
                             </td>
                           );
                         })}
-                        <td style={{ ...CELL_STICKY('auto', COL.DONE), right:0, left:'auto' }}>
+                        <td style={{ ...CELL_STICKY('auto', COL.DONE), right:0, left:'auto', zIndex:15, background:'hsl(var(--card, 0 0% 100%))', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }}>
                           <div style={{ fontWeight:800, fontSize:10 }}>{done}/{total}</div>
                           <div style={{ marginTop:2, height:4, background:'#e5e7eb', borderRadius:4, overflow:'hidden' }}>
                             <div style={{ height:'100%', width:`${pct}%`, background:pctColor, borderRadius:4, transition:'width 0.3s' }}/>
@@ -1110,7 +1115,7 @@ const SMMOnePageTracker = () => {
                             </td>
                           );
                         })}
-                        <td style={{ ...STATUS_CELL_STICKY('auto', COL.DONE), right:0, left:'auto' }}/>
+                        <td style={{ ...STATUS_CELL_STICKY('auto', COL.DONE), right:0, left:'auto', zIndex:15, background:'var(--tracker-status-sticky, #f0fdfa)', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }}/>
                       </tr>
 
                     </React.Fragment>

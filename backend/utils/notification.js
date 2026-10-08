@@ -3,6 +3,7 @@
 // =============================================
 
 import Notification from '../models/notification.model.js';
+import { sendPushToUser } from '../services/push.service.js';
 
 export const createNotification = async ({ recipient, sender, type, title, message, link, metadata }, io) => {
   try {
@@ -22,6 +23,18 @@ export const createNotification = async ({ recipient, sender, type, title, messa
         createdAt: notification.createdAt,
       });
     }
+
+    // Deliver native browser Web Push notification for background/closed tab
+    sendPushToUser(recipient, {
+      title: title || 'New CRM Notification',
+      body: message || '',
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      link: link || '/',
+      eventId: notification._id?.toString(),
+    }).catch((pushErr) => {
+      console.warn('Web push delivery skipped/failed:', pushErr.message);
+    });
 
     return notification;
   } catch (error) {

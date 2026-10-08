@@ -15,31 +15,13 @@ export const getBrowserNotificationPermission = () => {
   return Notification.permission;
 };
 
+import { subscribeToWebPush } from './webPush';
+
 /**
- * Request notification permission from the user
+ * Request notification permission from the user and register Web Push subscription
  */
 export const requestBrowserNotificationPermission = async () => {
-  if (!isBrowserNotificationSupported()) {
-    toast.error('Browser push notifications are not supported in this browser.');
-    return 'unsupported';
-  }
-
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      toast.success('Desktop push notifications enabled successfully!');
-      await sendBrowserNotification({
-        title: '🔔 Desktop Notifications Active',
-        message: 'You will now receive desktop alerts for real-time CRM updates, tasks, and leads.',
-      });
-    } else if (permission === 'denied') {
-      toast.error('Notification permission was blocked. Click the lock/tune icon near your browser address bar to allow notifications.');
-    }
-    return permission;
-  } catch (error) {
-    console.error('Error requesting notification permission:', error);
-    return 'default';
-  }
+  return await subscribeToWebPush();
 };
 
 /**

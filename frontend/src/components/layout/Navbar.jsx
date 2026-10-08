@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   BellRing,
   Bell,
+  BellOff,
   Search,
   Moon,
   Sun,
@@ -25,9 +26,13 @@ import { logout } from '../../store/slices/authSlice';
 import api from '../../api';
 import { getAssetUrl } from '../../utils/assetUrl';
 import {
-  getBrowserNotificationPermission,
-  requestBrowserNotificationPermission,
-} from '../../utils/browserNotification';
+  subscribeToWebPush,
+  unsubscribeFromWebPush,
+  sendTestPushNotification,
+  getExistingPushSubscription,
+  getWebPushPermission,
+  isWebPushSupported,
+} from '../../utils/webPush';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -152,7 +157,56 @@ const Navbar = () => {
   const { darkMode } = useSelector((state) => state.ui);
 
   const [searchOpen, setSearchOpen] = useState(false);
-  const [pushPermission, setPushPermission] = useState(getBrowserNotificationPermission());
+  const [pushPermission, setPushPermission] = useState(getWebPushPermission());
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const checkPush = async () => {
+      setPushPermission(getWebPushPermission());
+      const existing = await getExistingPushSubscription();
+      if (isMounted) {
+        setPushSubscribed(Boolean(existing));
+      }
+    };
+    checkPush();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleEnablePush = async () => {
+    setPushLoading(true);
+    try {
+      const res = await subscribeToWebPush();
+      setPushPermission(getWebPushPermission());
+      if (res?.success) {
+        setPushSubscribed(true);
+      }
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  const handleTestPush = async () => {
+    setPushLoading(true);
+    try {
+      await sendTestPushNotification();
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await unsubscribeFromWebPush();
+    } catch (err) {
+      console.warn('Error unsubscribing push during logout:', err);
+    }
+    dispatch(logout());
+    navigate('/login');
+  };
 
   // Quick Create Modals
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
@@ -335,19 +389,51 @@ const Navbar = () => {
                 </button>
               </DropdownMenuLabel>
 
-              {pushPermission !== 'granted' && pushPermission !== 'unsupported' && (
-                <div className="mx-2 mb-2 p-2 bg-primary/10 border border-primary/20 rounded-xl text-xs flex items-center justify-between gap-2">
-                  <span className="text-foreground flex items-center gap-1.5 font-medium text-[11px]">
-                    <BellRing size={13} className="text-primary shrink-0" /> Desktop Alerts
+              {/* Web Push Notification Status & Action Banner */}
+              {!isWebPushSupported() ? (
+                <div className="mx-2 mb-2 p-2 bg-muted/60 border border-border rounded-xl text-xs flex items-center gap-2 text-muted-foreground">
+                  <BellOff size={13} className="shrink-0" />
+                  <span className="text-[11px]">Push notifications unsupported in this browser.</span>
+                </div>
+              ) : pushPermission === 'denied' ? (
+                <div className="mx-2 mb-2 p-2.5 bg-destructive/10 border border-destructive/20 rounded-xl text-xs flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-destructive font-semibold text-[11px]">
+                    <BellOff size={13} className="shrink-0" />
+                    <span>Notifications Blocked</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    Permission denied. Click the lock/settings icon in your browser address bar to allow notifications.
+                  </p>
+                </div>
+              ) : pushSubscribed && pushPermission === 'granted' ? (
+                <div className="mx-2 mb-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs flex items-center justify-between gap-2">
+                  <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 font-medium text-[11px]">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Push Active
                   </span>
                   <button
-                    onClick={async () => {
-                      const perm = await requestBrowserNotificationPermission();
-                      setPushPermission(perm);
-                    }}
-                    className="px-2 py-0.5 rounded-lg bg-primary text-primary-foreground font-bold text-[10px] hover:bg-primary/90 transition-all shrink-0"
+                    id="test-web-push-btn"
+                    onClick={handleTestPush}
+                    disabled={pushLoading}
+                    className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[10px] transition-all shrink-0 disabled:opacity-50"
+                    title="Send test push notification to this browser"
                   >
-                    Enable
+                    {pushLoading ? 'Sending...' : 'Test Push'}
+                  </button>
+                </div>
+              ) : (
+                <div className="mx-2 mb-2 p-2 bg-primary/10 border border-primary/20 rounded-xl text-xs flex items-center justify-between gap-2">
+                  <span className="text-foreground flex items-center gap-1.5 font-medium text-[11px]">
+                    <BellRing size={13} className="text-primary shrink-0" />
+                    Desktop Alerts
+                  </span>
+                  <button
+                    id="enable-web-push-btn"
+                    onClick={handleEnablePush}
+                    disabled={pushLoading}
+                    className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-semibold text-[10px] hover:bg-primary/90 transition-all shrink-0 shadow-xs disabled:opacity-50"
+                  >
+                    {pushLoading ? 'Enabling...' : 'Enable notifications'}
                   </button>
                 </div>
               )}
@@ -404,7 +490,7 @@ const Navbar = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer text-destructive focus:text-destructive gap-2"
-                onClick={() => dispatch(logout())}
+                onClick={handleLogout}
               >
                 <LogOut size={14} />
                 <span>Log out</span>
