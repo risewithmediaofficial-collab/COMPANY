@@ -1029,7 +1029,7 @@ const Tasks = () => {
             />
 
             <div ref={taskBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
-              <div className="grid w-max min-w-full auto-cols-[minmax(275px,85vw)] sm:auto-cols-[minmax(280px,320px)] grid-flow-col gap-3.5 sm:gap-4">
+              <div className="grid w-max min-w-full auto-cols-[minmax(285px,85vw)] sm:auto-cols-[minmax(300px,340px)] grid-flow-col gap-4">
               {[
                 { key: 'To Do', label: 'To Do', badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400', surface: 'border-border bg-card/60' },
                 { key: 'On Process', label: 'In Process', badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', surface: 'border-blue-500/20 bg-blue-500/5' },
@@ -1157,7 +1157,7 @@ const Tasks = () => {
                                       🔴 Over Task
                                     </span>
                                   )}
-                                  <h4 className="text-xs font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                                  <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                                     {task.taskTitle || task.title}
                                   </h4>
                                 </div>

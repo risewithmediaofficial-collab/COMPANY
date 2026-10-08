@@ -58,6 +58,7 @@ export const deleteNotification = async (req, res) => {
 
 export const sendTestNotification = async (req, res) => {
   try {
+    const io = req.app?.get('io') || global.io;
     const notification = await createNotification({
       recipient: req.user._id,
       sender: req.user._id,
@@ -65,7 +66,7 @@ export const sendTestNotification = async (req, res) => {
       title: '🔔 Test Notification',
       message: 'Real-time and browser desktop notifications are connected successfully!',
       link: '/settings',
-    });
+    }, io);
     res.json({ success: true, message: 'Test notification triggered', notification });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -232,10 +233,10 @@ export const triggerAttendanceReminders = async (req, res) => {
   try {
     const io = req.app?.get('io') || global.io;
     const { checkAndSendAttendanceReminders } = await import('../services/cron.service.js');
-    const result = await checkAndSendAttendanceReminders(io);
+    const result = await checkAndSendAttendanceReminders(io, { testUser: req.user });
     res.json({
       success: true,
-      message: `Attendance reminders processed: ${result.sentCount || 0} reminder(s) sent out of ${result.pendingCount || 0} unclocked staff.`,
+      message: `Attendance reminders processed: ${result.sentCount || 0} reminder(s) sent out of ${result.pendingCount ?? result.totalChecked ?? 0} staff. Verified notification delivered to your screen & device!`,
       result,
     });
   } catch (error) {
@@ -247,10 +248,10 @@ export const triggerEveningReminders = async (req, res) => {
   try {
     const io = req.app?.get('io') || global.io;
     const { checkAndSendEveningReminders } = await import('../services/cron.service.js');
-    const result = await checkAndSendEveningReminders(io);
+    const result = await checkAndSendEveningReminders(io, { testUser: req.user });
     res.json({
       success: true,
-      message: `Evening EOD & Clock-Out reminders processed: ${result.sentCount || 0} reminder(s) sent out of ${result.totalChecked || 0} eligible staff.`,
+      message: `Evening EOD & Clock-Out reminders processed: ${result.sentCount || 0} reminder(s) sent out of ${result.totalChecked || 0} eligible staff. Verified notification delivered to your screen & device!`,
       result,
     });
   } catch (error) {

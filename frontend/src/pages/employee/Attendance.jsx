@@ -24,7 +24,9 @@ import {
   AlertCircle,
   Send,
   Eye,
+  BellRing,
 } from 'lucide-react';
+import api from '../../api';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { EODReportModal } from '../../components/modals/EODReportModal';
 import { EODDetailModal } from '../../components/modals/EODDetailModal';
@@ -95,6 +97,31 @@ const Attendance = () => {
   });
   const [wfhForm, setWfhForm] = useState({ date: '', notes: '' });
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [reminding, setReminding] = useState(false);
+
+  const handleTriggerAttendanceReminder = async () => {
+    setReminding(true);
+    try {
+      const res = await api.post('/notifications/trigger-attendance-reminders');
+      toast.success(res.data?.message || 'Attendance reminders sent to staff!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to trigger attendance reminder');
+    } finally {
+      setReminding(false);
+    }
+  };
+
+  const handleTriggerEveningReminder = async () => {
+    setReminding(true);
+    try {
+      const res = await api.post('/notifications/trigger-evening-reminders');
+      toast.success(res.data?.message || 'Evening EOD reminders sent to staff!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to trigger evening reminder');
+    } finally {
+      setReminding(false);
+    }
+  };
 
   // Build query filters for useAttendance
   const attendanceFilters = useMemo(() => {
@@ -563,6 +590,28 @@ const Attendance = () => {
             >
               <Calendar size={18} className="mr-2 text-primary" />
               Assign Holiday
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={handleTriggerAttendanceReminder}
+              disabled={reminding}
+              className="inline-flex items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-sm font-bold text-amber-600 dark:text-amber-400 shadow-xs hover:bg-amber-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+              title="Send 9:00 - 9:30 AM attendance reminder to unclocked staff"
+            >
+              <Clock size={16} className="mr-1.5" />
+              Remind Attendance
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={handleTriggerEveningReminder}
+              disabled={reminding}
+              className="inline-flex items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 shadow-xs hover:bg-indigo-500/20 transition-colors disabled:opacity-50 cursor-pointer"
+              title="Send 6:00 - 6:30 PM evening clock-out & EOD reminder to staff"
+            >
+              <BellRing size={16} className="mr-1.5" />
+              Remind EOD
             </button>
           )}
           <button

@@ -262,16 +262,17 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                     setTesting(true);
                     try {
                       const res = await api.post('/notifications/trigger-attendance-reminders');
-                      toast.success(res.data?.message || 'Attendance reminders simulated!');
+                      toast.success(res.data?.message || 'Attendance reminder delivered to your device!');
+                      await loadData();
                     } catch (err) {
-                      toast.error(err.response?.data?.message || 'Failed to trigger attendance reminders');
+                      toast.error(err.response?.data?.message || 'Failed to trigger attendance reminder');
                     } finally {
                       setTesting(false);
                     }
                   }}
                   disabled={testing}
                   className="px-2.5 py-1.5 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Simulate 9:00 - 9:30 AM Attendance Reminder for unclocked staff"
+                  title="Simulate 9:00 - 9:30 AM Attendance Reminder and test delivery on your screen"
                 >
                   <Clock size={12} />
                   <span>Test Attendance Check</span>
@@ -283,16 +284,17 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                     setTesting(true);
                     try {
                       const res = await api.post('/notifications/trigger-evening-reminders');
-                      toast.success(res.data?.message || 'Evening reminders simulated!');
+                      toast.success(res.data?.message || 'Evening EOD reminder delivered to your device!');
+                      await loadData();
                     } catch (err) {
-                      toast.error(err.response?.data?.message || 'Failed to trigger evening reminders');
+                      toast.error(err.response?.data?.message || 'Failed to trigger evening reminder');
                     } finally {
                       setTesting(false);
                     }
                   }}
                   disabled={testing}
                   className="px-2.5 py-1.5 rounded-xl border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Simulate 6:00 - 6:30 PM Evening Clock-Out & EOD Reminder"
+                  title="Simulate 6:00 - 6:30 PM Evening Clock-Out & EOD Reminder and test delivery on your screen"
                 >
                   <Clock size={12} />
                   <span>Test Evening EOD Check</span>

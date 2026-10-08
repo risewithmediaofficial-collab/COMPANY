@@ -13,7 +13,7 @@ import { sendWhatsAppMessage } from './whatsapp.service.js';
  * Check and send morning attendance reminders to employees who have not clocked in
  * Scheduled 5 times between 9:00 AM and 9:30 AM (9:00, 9:07, 9:15, 9:22, 9:30 AM)
  */
-export const checkAndSendAttendanceReminders = async (io) => {
+export const checkAndSendAttendanceReminders = async (io, options = {}) => {
   try {
     console.log('CRON: Running 9:00 - 9:30 AM attendance reminder check...');
 
@@ -22,10 +22,10 @@ export const checkAndSendAttendanceReminders = async (io) => {
     const end = new Date();
     end.setHours(23, 59, 59, 999);
 
-    // 1. Find all active employees, staff, managers
+    // 1. Find all active internal team members (all internal roles except client/referral)
     const eligibleUsers = await User.find({
       isActive: true,
-      role: { $in: ['employee', 'staff', 'manager', 'accountManager', 'editor', 'scriptWriter', 'videographer'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
     }).select('_id name role email phone');
 
     if (!eligibleUsers.length) {
@@ -54,6 +54,8 @@ export const checkAndSendAttendanceReminders = async (io) => {
     const timeString = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
     let sentCount = 0;
+    const notifiedUserIds = new Set();
+
     for (const user of pendingUsers) {
       await createNotification({
         recipient: user._id,
@@ -68,6 +70,26 @@ export const checkAndSendAttendanceReminders = async (io) => {
         },
       }, io);
 
+      notifiedUserIds.add(user._id.toString());
+      sentCount++;
+    }
+
+    // 4. If options.testUser provided (manual trigger / test button), ensure caller ALWAYS receives reminder
+    if (options.testUser && !notifiedUserIds.has(options.testUser._id?.toString())) {
+      const testUser = options.testUser;
+      await createNotification({
+        recipient: testUser._id,
+        type: 'attendance_reminder',
+        title: '⏰ Attendance Reminder (Verified)',
+        message: `Good morning ${testUser.name}! Attendance check active (${timeString}). Please ensure your daily clock-in is registered.`,
+        link: '/attendance',
+        metadata: {
+          reminderType: 'morning_attendance_test',
+          date: start.toISOString().slice(0, 10),
+          time: timeString,
+          isTest: true,
+        },
+      }, io);
       sentCount++;
     }
 
@@ -84,7 +106,7 @@ export const checkAndSendAttendanceReminders = async (io) => {
  * 2. Submit EOD (End of Day) report
  * Scheduled 5 times: 6:00, 6:07, 6:15, 6:22, and 6:30 PM (18:00, 18:07, 18:15, 18:22, 18:30)
  */
-export const checkAndSendEveningReminders = async (io) => {
+export const checkAndSendEveningReminders = async (io, options = {}) => {
   try {
     console.log('CRON: Running 6:00 - 6:30 PM evening clock-out & EOD report check...');
 
@@ -93,10 +115,10 @@ export const checkAndSendEveningReminders = async (io) => {
     const end = new Date();
     end.setHours(23, 59, 59, 999);
 
-    // 1. Find all active employees, staff, managers
+    // 1. Find all active internal team members (all internal roles except client/referral)
     const eligibleUsers = await User.find({
       isActive: true,
-      role: { $in: ['employee', 'staff', 'manager', 'accountManager', 'editor', 'scriptWriter', 'videographer'] },
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
     }).select('_id name role email phone');
 
     if (!eligibleUsers.length) {
@@ -119,6 +141,7 @@ export const checkAndSendEveningReminders = async (io) => {
 
     let sentCount = 0;
     const remindersSent = [];
+    const notifiedUserIds = new Set();
 
     for (const user of eligibleUsers) {
       const att = attendanceByUser.get(user._id.toString());
@@ -172,12 +195,40 @@ export const checkAndSendEveningReminders = async (io) => {
         },
       }, io);
 
+      notifiedUserIds.add(user._id.toString());
       sentCount++;
       remindersSent.push({
         userId: user._id,
         name: user.name,
         needsClockOut,
         needsEod,
+      });
+    }
+
+    // 3. If options.testUser provided (manual trigger / test button), ensure caller ALWAYS receives EOD reminder
+    if (options.testUser && !notifiedUserIds.has(options.testUser._id?.toString())) {
+      const testUser = options.testUser;
+      await createNotification({
+        recipient: testUser._id,
+        type: 'eod_clockout_reminder',
+        title: '📋 Evening Reminder: Submit EOD & Clock Out (Verified)',
+        message: `Good evening ${testUser.name}! Please remember to submit your daily EOD report and clock out for today (${timeString}).`,
+        link: '/attendance',
+        metadata: {
+          reminderType: 'evening_eod_clockout_test',
+          date: start.toISOString().slice(0, 10),
+          time: timeString,
+          needsClockOut: true,
+          needsEod: true,
+          isTest: true,
+        },
+      }, io);
+      sentCount++;
+      remindersSent.push({
+        userId: testUser._id,
+        name: testUser.name,
+        needsClockOut: true,
+        needsEod: true,
       });
     }
 
@@ -191,16 +242,25 @@ export const checkAndSendEveningReminders = async (io) => {
 
 export const initCronJobs = (io) => {
   console.log('Initializing cron jobs...');
+  const cronTz = process.env.TZ || 'Asia/Kolkata';
 
   // Morning Attendance Reminders: 9:00 AM, 9:07 AM, 9:15 AM, 9:22 AM, 9:30 AM (5 times total)
-  cron.schedule('0,7,15,22,30 9 * * *', async () => {
-    await checkAndSendAttendanceReminders(io);
-  });
+  cron.schedule(
+    '0,7,15,22,30 9 * * *',
+    async () => {
+      await checkAndSendAttendanceReminders(io);
+    },
+    { timezone: cronTz }
+  );
 
   // Evening Clock-Out & EOD Report Reminders: 6:00 PM, 6:07 PM, 6:15 PM, 6:22 PM, 6:30 PM (5 times total)
-  cron.schedule('0,7,15,22,30 18 * * *', async () => {
-    await checkAndSendEveningReminders(io);
-  });
+  cron.schedule(
+    '0,7,15,22,30 18 * * *',
+    async () => {
+      await checkAndSendEveningReminders(io);
+    },
+    { timezone: cronTz }
+  );
 
   cron.schedule('0 9 * * *', async () => {
     try {
