@@ -8,6 +8,7 @@ import {
   subscribePush,
   unsubscribePush,
   sendTestPushNotification,
+  getPushDiagnostics,
 } from '../controllers/notification.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get('/', getNotifications);
+router.get('/diagnostics', getPushDiagnostics);
 router.post('/test', sendTestNotification);
 router.post('/test-push', sendTestPushNotification);
 router.post('/subscribe', subscribePush);

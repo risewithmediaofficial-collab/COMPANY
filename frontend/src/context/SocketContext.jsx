@@ -2,9 +2,9 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useSelector, useDispatch } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
-import { sendBrowserNotification } from '../utils/browserNotification';
 import { logout } from '../store/slices/authSlice';
 import { toast } from 'sonner';
+import { reconcilePushSubscription } from '../utils/webPush';
 
 const SocketContext = createContext(null);
 
@@ -36,16 +36,18 @@ export const SocketProvider = ({ children }) => {
       autoConnect: true,
     });
 
-    // Auto-register user room on connect and reconnect
+    // Auto-register user room on connect and reconnect, and reconcile push subscription
     newSocket.on('connect', () => {
       if (user?._id) {
         newSocket.emit('register', user._id.toString());
+        reconcilePushSubscription().catch(() => {});
       }
     });
 
     newSocket.on('reconnect', () => {
       if (user?._id) {
         newSocket.emit('register', user._id.toString());
+        reconcilePushSubscription().catch(() => {});
       }
     });
 
@@ -56,7 +58,7 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('newNotification', (data) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       if (data) {
-        // 1. In-app toast notification so user sees it instantly on screen
+        // Socket.IO updates in-app UI instantly; Service Worker delivers system OS push
         toast.info(data.title || 'New CRM Notification', {
           description: data.message || '',
           action: data.link ? {
@@ -69,15 +71,6 @@ export const SocketProvider = ({ children }) => {
           } : undefined,
           duration: 5000,
         });
-
-        // 2. Native OS / Desktop Browser Push Notification (only if user is not actively viewing tab)
-        if (typeof document !== 'undefined' && document.hidden) {
-          sendBrowserNotification({
-            title: data.title || 'New CRM Notification',
-            message: data.message || '',
-            link: data.link || '/',
-          });
-        }
       }
     });
 

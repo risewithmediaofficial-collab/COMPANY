@@ -5,7 +5,7 @@
 import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
-import { sendPushToUser } from '../services/push.service.js';
+import { sendPushToUser, getEndpointProvider } from '../services/push.service.js';
 
 export const getNotifications = async (req, res) => {
   try {
@@ -141,26 +141,87 @@ export const unsubscribePush = async (req, res) => {
 export const sendTestPushNotification = async (req, res) => {
   try {
     const userId = req.user._id;
-    const result = await sendPushToUser(userId, {
-      title: '🔔 Test Web Push Notification',
-      body: 'Browser Web Push is working seamlessly with VAPID keys!',
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
-      link: '/settings',
-      eventId: `test-push-${Date.now()}`,
-    });
+    const delaySeconds = parseInt(req.body?.delaySeconds, 10) || 0;
 
-    if (!result.success && result.reason === 'No subscriptions found for user') {
+    const user = await User.findById(userId).select('pushSubscriptions');
+    if (!user || !user.pushSubscriptions || user.pushSubscriptions.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'No push subscriptions found for your account. Please click "Enable Notifications" first.',
       });
     }
 
+    const testPayload = {
+      title: '🔔 Test Notification | RISE WITH MEDIA',
+      body: delaySeconds > 0
+        ? `Delayed push successfully delivered after ${delaySeconds}s while tab/app was closed!`
+        : 'Background Web Push is verified and operational across your devices!',
+      icon: '/branding/rise-with-media-logo.png',
+      badge: '/branding/rise-with-media-logo.png',
+      link: '/settings',
+      eventId: `test-push-${Date.now()}`,
+    };
+
+    if (delaySeconds > 0) {
+      setTimeout(async () => {
+        try {
+          await sendPushToUser(userId, testPayload);
+          console.log(`[WebPush] Delayed test push (${delaySeconds}s) delivered for user ${userId}`);
+        } catch (e) {
+          console.error('[WebPush] Delayed push error:', e.message);
+        }
+      }, delaySeconds * 1000);
+
+      return res.json({
+        success: true,
+        delayed: true,
+        delaySeconds,
+        deviceCount: user.pushSubscriptions.length,
+        message: `Test push scheduled in ${delaySeconds}s! Close your browser tab or app now to verify background delivery.`,
+      });
+    }
+
+    const result = await sendPushToUser(userId, testPayload);
+
+    res.json({
+      success: result.success,
+      message: `Test push sent to ${result.acceptedCount || 0} active device(s)`,
+      result,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getPushDiagnostics = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId).select('pushSubscriptions');
+
+    const devices = (user?.pushSubscriptions || []).map((sub) => ({
+      provider: getEndpointProvider(sub.endpoint),
+      endpointDomain: (() => {
+        try {
+          return new URL(sub.endpoint).hostname;
+        } catch (_e) {
+          return 'Unknown';
+        }
+      })(),
+      createdAt: sub.createdAt,
+      lastUsedAt: sub.lastUsedAt || null,
+      lastStatus: sub.lastStatus || 'active',
+      userAgent: sub.userAgent || '',
+    }));
+
     res.json({
       success: true,
-      message: `Test push sent to ${result.deliveredCount || 0} active device(s)`,
-      result,
+      data: {
+        configured: Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
+        vapidPublicKey: process.env.VAPID_PUBLIC_KEY || '',
+        vapidEmail: process.env.VAPID_EMAIL || 'risewithmediaofficial@gmail.com',
+        deviceCount: devices.length,
+        devices,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

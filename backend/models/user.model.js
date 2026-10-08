@@ -103,6 +103,8 @@ const userSchema = new mongoose.Schema(
         },
         userAgent: { type: String, default: '' },
         createdAt: { type: Date, default: Date.now },
+        lastUsedAt: { type: Date },
+        lastStatus: { type: String, default: 'active' },
       },
     ],
   },

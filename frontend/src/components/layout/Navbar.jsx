@@ -18,7 +18,9 @@ import {
   Briefcase,
   Users,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Smartphone,
+  Activity
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toggleDarkMode, toggleSidebar } from '../../store/slices/uiSlice';
@@ -32,7 +34,10 @@ import {
   getExistingPushSubscription,
   getWebPushPermission,
   isWebPushSupported,
+  isIOSRequiresHomeInstall,
+  reconcilePushSubscription,
 } from '../../utils/webPush';
+import { PushDiagnosticsModal } from '../modals/PushDiagnosticsModal';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -160,6 +165,7 @@ const Navbar = () => {
   const [pushPermission, setPushPermission] = useState(getWebPushPermission());
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -168,6 +174,14 @@ const Navbar = () => {
       const existing = await getExistingPushSubscription();
       if (isMounted) {
         setPushSubscribed(Boolean(existing));
+      }
+
+      // Auto-reconcile subscription in background if user already has granted permission
+      if (Notification.permission === 'granted') {
+        const res = await reconcilePushSubscription();
+        if (isMounted && res?.success) {
+          setPushSubscribed(true);
+        }
       }
     };
     checkPush();
@@ -390,7 +404,17 @@ const Navbar = () => {
               </DropdownMenuLabel>
 
               {/* Web Push Notification Status & Action Banner */}
-              {!isWebPushSupported() ? (
+              {isIOSRequiresHomeInstall() ? (
+                <div className="mx-2 mb-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold text-[11px]">
+                    <Smartphone size={13} className="shrink-0" />
+                    <span>iPhone / iPad Setup</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    Tap Share (bottom of Safari) → <strong>Add to Home Screen</strong>, then open RiseWithMedia from your Home Screen to enable background alerts.
+                  </p>
+                </div>
+              ) : !isWebPushSupported() ? (
                 <div className="mx-2 mb-2 p-2 bg-muted/60 border border-border rounded-xl text-xs flex items-center gap-2 text-muted-foreground">
                   <BellOff size={13} className="shrink-0" />
                   <span className="text-[11px]">Push notifications unsupported in this browser.</span>
@@ -411,15 +435,25 @@ const Navbar = () => {
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Push Active
                   </span>
-                  <button
-                    id="test-web-push-btn"
-                    onClick={handleTestPush}
-                    disabled={pushLoading}
-                    className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[10px] transition-all shrink-0 disabled:opacity-50"
-                    title="Send test push notification to this browser"
-                  >
-                    {pushLoading ? 'Sending...' : 'Test Push'}
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      id="test-web-push-btn"
+                      onClick={handleTestPush}
+                      disabled={pushLoading}
+                      className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[10px] transition-all shrink-0 disabled:opacity-50 cursor-pointer"
+                      title="Send test push notification to this browser"
+                    >
+                      {pushLoading ? 'Sending...' : 'Test Push'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDiagnosticsOpen(true)}
+                      className="px-1.5 py-0.5 rounded-lg border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 text-[10px] font-semibold transition-all cursor-pointer"
+                      title="Inspect Push Diagnostics & Test Closed Tab"
+                    >
+                      Inspect
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="mx-2 mb-2 p-2 bg-primary/10 border border-primary/20 rounded-xl text-xs flex items-center justify-between gap-2">
@@ -427,14 +461,24 @@ const Navbar = () => {
                     <BellRing size={13} className="text-primary shrink-0" />
                     Desktop Alerts
                   </span>
-                  <button
-                    id="enable-web-push-btn"
-                    onClick={handleEnablePush}
-                    disabled={pushLoading}
-                    className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-semibold text-[10px] hover:bg-primary/90 transition-all shrink-0 shadow-xs disabled:opacity-50"
-                  >
-                    {pushLoading ? 'Enabling...' : 'Enable notifications'}
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      id="enable-web-push-btn"
+                      onClick={handleEnablePush}
+                      disabled={pushLoading}
+                      className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-semibold text-[10px] hover:bg-primary/90 transition-all shrink-0 shadow-xs disabled:opacity-50 cursor-pointer"
+                    >
+                      {pushLoading ? 'Enabling...' : 'Enable notifications'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDiagnosticsOpen(true)}
+                      className="px-1.5 py-0.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 text-[10px] font-semibold transition-all cursor-pointer"
+                      title="Push Diagnostics & Testing"
+                    >
+                      Info
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -502,6 +546,9 @@ const Navbar = () => {
 
       {/* Global Search Modal */}
       <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+
+      {/* Push Diagnostics & Closed-Tab Test Modal */}
+      <PushDiagnosticsModal open={diagnosticsOpen} onOpenChange={setDiagnosticsOpen} />
 
       {/* Global Quick Create Modals */}
       {createTaskOpen && (
