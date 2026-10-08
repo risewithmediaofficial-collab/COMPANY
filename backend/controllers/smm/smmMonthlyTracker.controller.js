@@ -20,6 +20,32 @@ const buildEmptyDays = (year, month) => {
   }));
 };
 
+// ── Helper: detect if label contains actual poster/content text (not just dashes or blank) ──
+const hasPosterContent = (label) => {
+  if (!label) return false;
+  const clean = String(label).trim();
+  if (!clean) return false;
+  return !/^[-—–\s]+$/.test(clean);
+};
+
+// ── Helper: determine if a day is before the live date (in the past) ────────
+const isDayBeforeToday = (dayNum, month, year) => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+
+  const numYear = Number(year);
+  const numMonth = Number(month);
+  const numDay = Number(dayNum);
+
+  if (numYear < currentYear) return true;
+  if (numYear > currentYear) return false;
+  if (numMonth < currentMonth) return true;
+  if (numMonth > currentMonth) return false;
+  return numDay < currentDay;
+};
+
 // ── Helper: resolve a client object from either SmmClient or CRM Client ────
 const resolveClientObj = async (clientId) => {
   if (!clientId) return null;
@@ -138,8 +164,31 @@ export const getMonthlyTrackers = async (req, res) => {
     existingTrackers.forEach((t) => {
       const cIdStr = t.client?.toString();
       if (cIdStr) {
+        let modified = false;
+        const updatedDays = (t.days || []).map((day) => {
+          const isPast = isDayBeforeToday(day.day, month, year);
+          let newDay = day;
+          if (isPast) {
+            if (hasPosterContent(day.postLabel) && (!day.postStatus || day.postStatus === 'todo')) {
+              if (newDay === day) newDay = { ...day };
+              newDay.postStatus = 'pending';
+              modified = true;
+            }
+            if (hasPosterContent(day.storyLabel) && (!day.storyStatus || day.storyStatus === 'todo')) {
+              if (newDay === day) newDay = { ...day };
+              newDay.storyStatus = 'pending';
+              modified = true;
+            }
+          }
+          return newDay;
+        });
+
+        if (modified && t._id) {
+          SmmMonthlyTracker.findByIdAndUpdate(t._id, { $set: { days: updatedDays } }).catch(() => {});
+        }
+
         const clientObj = clientMap.get(cIdStr) || { _id: t.client, companyName: 'Client', status: 'Active' };
-        const pop = { ...t, client: clientObj };
+        const pop = { ...t, days: updatedDays, client: clientObj };
         trackerMap[cIdStr] = pop;
         existingPopulatedList.push(pop);
       }
@@ -206,6 +255,30 @@ export const getTrackerByClient = async (req, res) => {
     if (!tracker) {
       return res.status(404).json({ success: false, message: 'Tracker not found' });
     }
+    let modified = false;
+    const updatedDays = (tracker.days || []).map((day) => {
+      const isPast = isDayBeforeToday(day.day, month, year);
+      let newDay = day;
+      if (isPast) {
+        if (hasPosterContent(day.postLabel) && (!day.postStatus || day.postStatus === 'todo')) {
+          if (newDay === day) newDay = { ...day };
+          newDay.postStatus = 'pending';
+          modified = true;
+        }
+        if (hasPosterContent(day.storyLabel) && (!day.storyStatus || day.storyStatus === 'todo')) {
+          if (newDay === day) newDay = { ...day };
+          newDay.storyStatus = 'pending';
+          modified = true;
+        }
+      }
+      return newDay;
+    });
+
+    if (modified && tracker._id) {
+      SmmMonthlyTracker.findByIdAndUpdate(tracker._id, { $set: { days: updatedDays } }).catch(() => {});
+    }
+
+    tracker.days = updatedDays;
     tracker.client = await resolveClientObj(clientId);
     res.json({ success: true, data: tracker });
   } catch (err) {

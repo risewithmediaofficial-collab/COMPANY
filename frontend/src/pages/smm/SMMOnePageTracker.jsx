@@ -122,6 +122,46 @@ const STATUS_DAY_CELL = (sun, isToday) => ({
   borderRight: isToday ? '2px solid #3b82f6' : undefined,
 });
 
+// ── Helper: detect if label contains actual poster/content text (not just dashes or blank) ──
+export const hasPosterContent = (label) => {
+  if (!label) return false;
+  const clean = String(label).trim();
+  if (!clean) return false;
+  return !/^[-—–\s]+$/.test(clean);
+};
+
+// ── Helper: determine if a day is before the live date (in the past) ────────
+export const isDayBeforeToday = (dayNum, month, year) => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+
+  const numYear = Number(year);
+  const numMonth = Number(month);
+  const numDay = Number(dayNum);
+
+  if (numYear < currentYear) return true;
+  if (numYear > currentYear) return false;
+  if (numMonth < currentMonth) return true;
+  if (numMonth > currentMonth) return false;
+  return numDay < currentDay;
+};
+
+// ── Helper: resolve cell status, automatically making overdue posters pending ──
+export const resolveCellStatus = (status, label, dayNum, month, year) => {
+  const rawStatus = status || 'todo';
+  // Respect user's explicit manual decisions:
+  if (rawStatus === 'done' || rawStatus === 'skip') {
+    return rawStatus;
+  }
+  // If date is before live date and has a poster, mark as pending automatically
+  if (isDayBeforeToday(dayNum, month, year) && hasPosterContent(label)) {
+    return 'pending';
+  }
+  return rawStatus;
+};
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const StatusBadge = ({ status, onClick, onSelectStatus }) => {
@@ -630,7 +670,8 @@ const SMMOnePageTracker = () => {
           const timeStr = item.scheduledTime || '';
           const isDone = item.postingStatus === 'Published';
           const isSkip = item.postingStatus === 'Cancelled';
-          const st = isDone ? 'done' : isSkip ? 'skip' : 'pending';
+          const isPast = isDayBeforeToday(dayNum, month, year);
+          const st = isDone ? 'done' : isSkip ? 'skip' : (isPast ? 'pending' : 'todo');
 
           if (['Reel', 'Video', 'Short'].includes(item.contentType)) {
             dayCell.postLabel = `R${rIdx++} ${timeStr}`.trim();
@@ -745,18 +786,43 @@ const SMMOnePageTracker = () => {
   const handleStatusToggle = async (rowIdx, dayNum, field) => {
     const row = rows[rowIdx];
     const cell = row.days.find(d => d.day === dayNum) || { day: dayNum };
-    const current = cell[field] || 'todo';
+    const lf = field === 'postStatus' ? 'postLabel' : 'storyLabel';
+    const current = resolveCellStatus(cell[field], cell[lf], dayNum, month, year);
     const next = STATUS_CYCLE[current] || 'todo';
     await handleStatusSet(rowIdx, dayNum, field, next);
   };
 
   const handleLabelSave = async (rowIdx, dayNum, field, value) => {
     const row = rows[rowIdx];
-    setRows(prev => { const u=[...prev]; const r={...u[rowIdx]}; r.days=r.days.map(d=>d.day===dayNum?{...d,[field]:value}:d); u[rowIdx]=r; return u; });
+    const sf = field === 'postLabel' ? 'postStatus' : 'storyStatus';
+    const cell = row.days.find(d => d.day === dayNum) || {};
+    const autoPending = isDayBeforeToday(dayNum, month, year) && hasPosterContent(value) && (!cell[sf] || cell[sf] === 'todo');
+
+    setRows(prev => {
+      const u = [...prev];
+      const r = { ...u[rowIdx] };
+      r.days = r.days.map(d => {
+        if (d.day === dayNum) {
+          const updated = { ...d, [field]: value };
+          if (autoPending) updated[sf] = 'pending';
+          return updated;
+        }
+        return d;
+      });
+      u[rowIdx] = r;
+      return u;
+    });
     try {
-      let saved = row; if (!row._id) saved = await ensureRow(row);
-      await smmApi.updateTrackerDayCell(saved._id||row._id, dayNum, { field, value });
-    } catch(err) { toast.error('Failed to save label'); fetchData(true); }
+      let saved = row;
+      if (!row._id) saved = await ensureRow(row);
+      await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, { field, value });
+      if (autoPending) {
+        await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, { field: sf, value: 'pending' });
+      }
+    } catch(err) {
+      toast.error('Failed to save label');
+      fetchData(true);
+    }
   };
 
   const handleMetaSave = async (rowIdx, field, value) => {
@@ -1104,7 +1170,8 @@ const SMMOnePageTracker = () => {
                         <td style={STATUS_CELL_STICKY(L.PLAN, COL.PLAN)}/>
                         {dayHeaders.map(({d, sun, isToday}) => {
                           const cell = row.days.find(dc => dc.day===d) || {};
-                          const st = cell[statusField] || 'todo';
+                          const rawSt = cell[statusField] || 'todo';
+                          const st = resolveCellStatus(rawSt, cell[labelField], d, month, year);
                           return (
                             <td key={d} style={STATUS_DAY_CELL(sun, isToday)}>
                               <StatusBadge
@@ -1132,10 +1199,10 @@ const SMMOnePageTracker = () => {
             </span>
             <div className="flex items-center gap-4 text-[11px] font-semibold flex-wrap">
               <span className="text-sky-600 dark:text-sky-400">
-                📋 Todo: {rows.reduce((a,r)=>a+r.days.filter(d=>(d[statusField]||'todo')==='todo').length, 0)}
+                📋 Todo: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='todo').length, 0)}
               </span>
               <span className="text-amber-600 dark:text-amber-400">
-                ⏳ Pending: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='pending').length, 0)}
+                ⏳ Pending: {rows.reduce((a,r)=>a+r.days.filter(d=>resolveCellStatus(d[statusField], d[labelField], d.day, month, year)==='pending').length, 0)}
               </span>
               <span className="text-emerald-600 dark:text-emerald-400">
                 ✅ Done: {rows.reduce((a,r)=>a+r.days.filter(d=>d[statusField]==='done').length, 0)}
