@@ -78,12 +78,128 @@ export const checkAndSendAttendanceReminders = async (io) => {
   }
 };
 
+/**
+ * Check and send evening reminders to employees between 6:00 PM and 6:30 PM:
+ * 1. Clock out attendance (logout attendance)
+ * 2. Submit EOD (End of Day) report
+ * Scheduled 5 times: 6:00, 6:07, 6:15, 6:22, and 6:30 PM (18:00, 18:07, 18:15, 18:22, 18:30)
+ */
+export const checkAndSendEveningReminders = async (io) => {
+  try {
+    console.log('CRON: Running 6:00 - 6:30 PM evening clock-out & EOD report check...');
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    // 1. Find all active employees, staff, managers
+    const eligibleUsers = await User.find({
+      isActive: true,
+      role: { $in: ['employee', 'staff', 'manager', 'accountManager', 'editor', 'scriptWriter', 'videographer'] },
+    }).select('_id name role email phone');
+
+    if (!eligibleUsers.length) {
+      console.log('CRON: No active eligible users found for evening reminders.');
+      return { sentCount: 0, checkedCount: 0 };
+    }
+
+    // 2. Fetch today's attendance records for all users
+    const todayAttendances = await Attendance.find({
+      date: { $gte: start, $lte: end },
+    }).select('user clockIn clockOut sessions status eodReport');
+
+    const attendanceByUser = new Map();
+    for (const att of todayAttendances) {
+      attendanceByUser.set(att.user.toString(), att);
+    }
+
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    let sentCount = 0;
+    const remindersSent = [];
+
+    for (const user of eligibleUsers) {
+      const att = attendanceByUser.get(user._id.toString());
+
+      // If user is on approved leave or holiday, skip
+      if (att && ['leave', 'holiday'].includes(att.status)) {
+        continue;
+      }
+
+      // Check if user clocked in today
+      const hasClockedIn = Boolean(att?.clockIn || (att?.sessions && att.sessions.length > 0));
+
+      // Check if user is still clocked in (open session or no clockOut)
+      const hasOpenSession = att?.sessions && att.sessions.some((s) => !s.clockOut);
+      const isStillClockedIn = hasClockedIn && (hasOpenSession || !att?.clockOut);
+
+      // Check if EOD report is submitted
+      const hasEodReport = Boolean(att?.eodReport?.submittedAt || att?.eodReport?.summary?.trim());
+
+      // If both clock-out and EOD are satisfied, no reminder needed
+      let needsClockOut = isStillClockedIn;
+      let needsEod = !hasEodReport;
+
+      if (!needsClockOut && !needsEod) {
+        continue;
+      }
+
+      let title = '📋 Evening Reminder: Clock Out & EOD';
+      let message = `Good evening ${user.name}! Please remember to submit your EOD report and clock out for today (${timeString}).`;
+
+      if (needsClockOut && !needsEod) {
+        title = '⏱️ Evening Reminder: Clock Out Attendance';
+        message = `Good evening ${user.name}! Your shift is still active. Please remember to clock out (${timeString}).`;
+      } else if (!needsClockOut && needsEod) {
+        title = '📋 Evening Reminder: Submit EOD Report';
+        message = `Good evening ${user.name}! You haven't submitted your EOD report today (${timeString}). Please submit it before wrapping up.`;
+      }
+
+      await createNotification({
+        recipient: user._id,
+        type: 'eod_clockout_reminder',
+        title,
+        message,
+        link: '/attendance',
+        metadata: {
+          reminderType: 'evening_eod_clockout',
+          date: start.toISOString().slice(0, 10),
+          time: timeString,
+          needsClockOut,
+          needsEod,
+        },
+      }, io);
+
+      sentCount++;
+      remindersSent.push({
+        userId: user._id,
+        name: user.name,
+        needsClockOut,
+        needsEod,
+      });
+    }
+
+    console.log(`CRON: Evening reminders sent to ${sentCount} user(s).`);
+    return { sentCount, totalChecked: eligibleUsers.length, remindersSent };
+  } catch (error) {
+    console.error('CRON Error (Evening Reminders):', error);
+    return { error: error.message };
+  }
+};
+
 export const initCronJobs = (io) => {
   console.log('Initializing cron jobs...');
 
   // Morning Attendance Reminders: 9:00 AM, 9:07 AM, 9:15 AM, 9:22 AM, 9:30 AM (5 times total)
   cron.schedule('0,7,15,22,30 9 * * *', async () => {
     await checkAndSendAttendanceReminders(io);
+  });
+
+  // Evening Clock-Out & EOD Report Reminders: 6:00 PM, 6:07 PM, 6:15 PM, 6:22 PM, 6:30 PM (5 times total)
+  cron.schedule('0,7,15,22,30 18 * * *', async () => {
+    await checkAndSendEveningReminders(io);
   });
 
   cron.schedule('0 9 * * *', async () => {

@@ -10,6 +10,7 @@ import {
   sendTestPushNotification,
   getPushDiagnostics,
   triggerAttendanceReminders,
+  triggerEveningReminders,
 } from '../controllers/notification.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 
@@ -21,6 +22,7 @@ router.get('/diagnostics', getPushDiagnostics);
 router.post('/test', sendTestNotification);
 router.post('/test-push', sendTestPushNotification);
 router.post('/trigger-attendance-reminders', triggerAttendanceReminders);
+router.post('/trigger-evening-reminders', triggerEveningReminders);
 router.post('/subscribe', subscribePush);
 router.post('/unsubscribe', unsubscribePush);
 router.put('/mark-all-read', markAllRead);

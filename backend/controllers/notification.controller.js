@@ -243,3 +243,18 @@ export const triggerAttendanceReminders = async (req, res) => {
   }
 };
 
+export const triggerEveningReminders = async (req, res) => {
+  try {
+    const io = req.app?.get('io') || global.io;
+    const { checkAndSendEveningReminders } = await import('../services/cron.service.js');
+    const result = await checkAndSendEveningReminders(io);
+    res.json({
+      success: true,
+      message: `Evening EOD & Clock-Out reminders processed: ${result.sentCount || 0} reminder(s) sent out of ${result.totalChecked || 0} eligible staff.`,
+      result,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

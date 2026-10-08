@@ -276,6 +276,27 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   <Clock size={12} />
                   <span>Test Attendance Check</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setTesting(true);
+                    try {
+                      const res = await api.post('/notifications/trigger-evening-reminders');
+                      toast.success(res.data?.message || 'Evening reminders simulated!');
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || 'Failed to trigger evening reminders');
+                    } finally {
+                      setTesting(false);
+                    }
+                  }}
+                  disabled={testing}
+                  className="px-2.5 py-1.5 rounded-xl border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                  title="Simulate 6:00 - 6:30 PM Evening Clock-Out & EOD Reminder"
+                >
+                  <Clock size={12} />
+                  <span>Test Evening EOD Check</span>
+                </button>
               </div>
             </div>
 
