@@ -227,3 +227,19 @@ export const getPushDiagnostics = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const triggerAttendanceReminders = async (req, res) => {
+  try {
+    const io = req.app?.get('io') || global.io;
+    const { checkAndSendAttendanceReminders } = await import('../services/cron.service.js');
+    const result = await checkAndSendAttendanceReminders(io);
+    res.json({
+      success: true,
+      message: `Attendance reminders processed: ${result.sentCount || 0} reminder(s) sent out of ${result.pendingCount || 0} unclocked staff.`,
+      result,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+

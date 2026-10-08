@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import api from '../../api';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -252,6 +254,27 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                 >
                   <RefreshCw size={12} className={testing ? 'animate-spin' : ''} />
                   <span>Re-sync</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setTesting(true);
+                    try {
+                      const res = await api.post('/notifications/trigger-attendance-reminders');
+                      toast.success(res.data?.message || 'Attendance reminders simulated!');
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || 'Failed to trigger attendance reminders');
+                    } finally {
+                      setTesting(false);
+                    }
+                  }}
+                  disabled={testing}
+                  className="px-2.5 py-1.5 rounded-xl border border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                  title="Simulate 9:00 - 9:30 AM Attendance Reminder for unclocked staff"
+                >
+                  <Clock size={12} />
+                  <span>Test Attendance Check</span>
                 </button>
               </div>
             </div>

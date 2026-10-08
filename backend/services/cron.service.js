@@ -1,4 +1,5 @@
 import cron from 'node-cron';
+import Attendance from '../models/attendance.model.js';
 import DomainRenewal from '../models/domainRenewal.model.js';
 import Invoice from '../models/invoice.model.js';
 import Lead from '../models/lead.model.js';
@@ -8,8 +9,82 @@ import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
 import { sendWhatsAppMessage } from './whatsapp.service.js';
 
+/**
+ * Check and send morning attendance reminders to employees who have not clocked in
+ * Scheduled 5 times between 9:00 AM and 9:30 AM (9:00, 9:07, 9:15, 9:22, 9:30 AM)
+ */
+export const checkAndSendAttendanceReminders = async (io) => {
+  try {
+    console.log('CRON: Running 9:00 - 9:30 AM attendance reminder check...');
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    // 1. Find all active employees, staff, managers
+    const eligibleUsers = await User.find({
+      isActive: true,
+      role: { $in: ['employee', 'staff', 'manager', 'accountManager', 'editor', 'scriptWriter', 'videographer'] },
+    }).select('_id name role email phone');
+
+    if (!eligibleUsers.length) {
+      console.log('CRON: No active eligible users found for attendance reminders.');
+      return { sentCount: 0, checkedCount: 0 };
+    }
+
+    // 2. Find attendance records already marked for today
+    const markedAttendances = await Attendance.find({
+      date: { $gte: start, $lte: end },
+      $or: [
+        { clockIn: { $exists: true, $ne: null } },
+        { status: { $in: ['present', 'leave', 'holiday', 'work_from_home'] } },
+        { 'sessions.0': { $exists: true } },
+      ],
+    }).select('user status');
+
+    const markedUserIds = new Set(markedAttendances.map((a) => a.user.toString()));
+
+    // 3. Filter users who have NOT marked attendance yet
+    const pendingUsers = eligibleUsers.filter((u) => !markedUserIds.has(u._id.toString()));
+
+    console.log(`CRON: Attendance check: ${pendingUsers.length} of ${eligibleUsers.length} users have not marked attendance today.`);
+
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    let sentCount = 0;
+    for (const user of pendingUsers) {
+      await createNotification({
+        recipient: user._id,
+        type: 'attendance_reminder',
+        title: '⏰ Attendance Reminder',
+        message: `Good morning ${user.name}! You haven't marked attendance today (${timeString}). Please clock in before 9:30 AM.`,
+        link: '/attendance',
+        metadata: {
+          reminderType: 'morning_attendance',
+          date: start.toISOString().slice(0, 10),
+          time: timeString,
+        },
+      }, io);
+
+      sentCount++;
+    }
+
+    return { sentCount, pendingCount: pendingUsers.length, totalChecked: eligibleUsers.length };
+  } catch (error) {
+    console.error('CRON Error (Attendance Reminders):', error);
+    return { error: error.message };
+  }
+};
+
 export const initCronJobs = (io) => {
   console.log('Initializing cron jobs...');
+
+  // Morning Attendance Reminders: 9:00 AM, 9:07 AM, 9:15 AM, 9:22 AM, 9:30 AM (5 times total)
+  cron.schedule('0,7,15,22,30 9 * * *', async () => {
+    await checkAndSendAttendanceReminders(io);
+  });
 
   cron.schedule('0 9 * * *', async () => {
     try {

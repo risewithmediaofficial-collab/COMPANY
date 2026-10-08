@@ -449,6 +449,21 @@ export const createProject = async (req, res) => {
       }, req.app.get('io'));
     }
 
+    if (Array.isArray(project.team) && project.team.length > 0) {
+      const teamRecipients = project.team
+        .map((t) => t?._id || t)
+        .filter((t) => t && t.toString() !== req.user._id.toString() && t.toString() !== project.manager?.toString());
+
+      await Promise.all(teamRecipients.map((recipient) => createNotification({
+        recipient,
+        sender: req.user._id,
+        type: 'project_team_added',
+        title: 'Added to Project',
+        message: `You have been added to team for project: ${project.name}`,
+        link: `/projects/${project._id}`,
+      }, req.app.get('io')))).catch(() => {});
+    }
+
     if (project.client) {
       await Client.findByIdAndUpdate(project.client, {
         $set: {
@@ -511,6 +526,19 @@ export const updateProject = async (req, res) => {
       relatedProject: project._id,
       metadata: { fields: Object.keys(req.body || {}) },
     });
+
+    if (req.body.status) {
+      const teamUserIds = (project.team || []).map((m) => m?._id || m).concat(project.manager?._id || project.manager).filter(Boolean);
+      const uniqueRecipients = [...new Set(teamUserIds.map((id) => id.toString()))].filter((id) => id !== req.user._id.toString());
+      await Promise.all(uniqueRecipients.map((recipient) => createNotification({
+        recipient,
+        sender: req.user._id,
+        type: 'project_status_updated',
+        title: `Project Status: ${project.status}`,
+        message: `${req.user.name} changed status of "${project.name}" to ${project.status}.`,
+        link: `/projects/${project._id}`,
+      }, io))).catch((e) => console.warn('Project status notification error:', e.message));
+    }
 
     const serialized = serializeProject(project);
     emitLiveEvent('projectUpdated', serialized);

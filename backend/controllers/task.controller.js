@@ -489,11 +489,16 @@ const isWebsiteTaskType = (taskType) => ['website_development', 'website_update'
 const isTaskResponseOpen = (status) => ['completed', 'waiting_for_client', 'rework_completed', 'review_required'].includes(status);
 
 const notifyTaskStakeholders = async ({ task, sender, type, title, message, io, extraRecipients = [] }) => {
-  const recipients = uniqueIds([
-    task.createdBy,
-    ...(task.assignedTo || []),
-    ...extraRecipients,
-  ]).filter((userId) => userId && userId !== sender.toString());
+  const getRawId = (item) => (item?._id ? item._id.toString() : item ? item.toString() : null);
+
+  const rawRecipients = [
+    getRawId(task.createdBy),
+    getRawId(task.assignedManager),
+    ...(Array.isArray(task.assignedTo) ? task.assignedTo.map(getRawId) : []),
+    ...extraRecipients.map(getRawId),
+  ].filter(Boolean);
+
+  const recipients = uniqueIds(rawRecipients).filter((userId) => userId && userId !== sender.toString());
 
   await Promise.all(recipients.map((recipient) => createNotification({
     recipient,
@@ -867,6 +872,7 @@ export const updateTask = async (req, res) => {
 
     const previousAssignedTo = [...(task.assignedTo || [])];
     const previousAssignedManager = task.assignedManager;
+    const previousStatus = task.status;
     const payload = normalizeTaskPayload(req.body);
 
     if (payload.project || payload.client) {
@@ -973,6 +979,23 @@ export const updateTask = async (req, res) => {
     });
 
     const updated = await hydrateTask(task._id);
+
+    // Notify manager, creator, and teammates if status changed
+    if (payload.status && previousStatus !== task.status) {
+      const statusLabel = statusLabels[task.status] || task.status;
+      const prevLabel = statusLabels[previousStatus] || previousStatus;
+      const project = updated.project ? await Project.findById(updated.project).select('manager') : null;
+      await notifyTaskStakeholders({
+        task: updated,
+        sender: req.user._id,
+        type: 'task_status_updated',
+        title: `Task Status: ${statusLabel}`,
+        message: `${req.user.name} updated "${task.title}" from ${prevLabel} to ${statusLabel}`,
+        io,
+        extraRecipients: [updated.assignedManager, project?.manager].filter(Boolean),
+      }).catch((err) => console.warn('Failed to notify task update stakeholders:', err.message));
+    }
+
     if (task.project) {
       io?.broadcastToProject?.(task.project.toString(), 'taskUpdated', serializeTask(updated));
     }
@@ -1007,6 +1030,7 @@ export const updateTaskStatus = async (req, res) => {
       return res.status(access.status).json({ success: false, message: access.message });
     }
 
+    const previousStatus = task.status;
     task.status = taskStatusMap[status] || status;
     if (orderIndex !== undefined) task.orderIndex = Number(orderIndex) || 0;
     if (req.user.role !== 'client' && ['todo', 'on_process', 'waiting_for_client', 'completed', 'review_required', 'rework_completed'].includes(task.status)) {
@@ -1041,6 +1065,26 @@ export const updateTaskStatus = async (req, res) => {
       relatedTask: task._id,
       metadata: { status: task.status, orderIndex: task.orderIndex },
     });
+
+    // Notify manager, creator, and teammates when status changes (e.g. from to do to completed)
+    if (previousStatus !== task.status) {
+      const statusLabel = statusLabels[task.status] || task.status;
+      const prevLabel = statusLabels[previousStatus] || previousStatus;
+      const project = updated.project ? await Project.findById(updated.project).select('manager') : null;
+      await notifyTaskStakeholders({
+        task: updated,
+        sender: req.user._id,
+        type: 'task_status_updated',
+        title: `Task Moved: ${statusLabel}`,
+        message: `${req.user.name} moved "${task.title}" from ${prevLabel} to ${statusLabel}`,
+        io,
+        extraRecipients: [updated.assignedManager, project?.manager].filter(Boolean),
+      }).catch((err) => console.warn('Failed to notify task status stakeholders:', err.message));
+
+      if (['done', 'approved', 'completed'].includes(task.status)) {
+        await runAutomation('task_completed', { task: updated, project, user: req.user, io }).catch(() => {});
+      }
+    }
 
     const serialized = serializeTask(updated);
     emitLiveEvent('taskStatusUpdated', { taskId: task._id, status: task.status, orderIndex: task.orderIndex });
@@ -1626,6 +1670,17 @@ export const addCompletedFiles = async (req, res) => {
     await task.save();
 
     const updated = await hydrateTask(task._id);
+    const io = req.app.get('io');
+    await notifyTaskStakeholders({
+      task: updated,
+      sender: req.user._id,
+      type: 'task_files_completed',
+      title: 'Completed Files Uploaded',
+      message: `${req.user.name} uploaded completed work for "${task.title}". Please review.`,
+      io,
+      extraRecipients: [updated.assignedManager].filter(Boolean),
+    }).catch((err) => console.warn('Failed to notify completed file stakeholders:', err.message));
+
     res.json({ success: true, task: serializeTask(updated) });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
