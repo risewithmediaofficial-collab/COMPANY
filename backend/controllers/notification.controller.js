@@ -9,8 +9,12 @@ import { sendPushToUser, getEndpointProvider } from '../services/push.service.js
 
 export const getNotifications = async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
-    const notifications = await Notification.find({ recipient: req.user._id })
+    const { page = 1, limit = 20, unreadOnly } = req.query;
+    const filter = { recipient: req.user._id };
+    if (unreadOnly === 'true' || unreadOnly === true) {
+      filter.isRead = false;
+    }
+    const notifications = await Notification.find(filter)
       .populate('sender', 'name avatar')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)

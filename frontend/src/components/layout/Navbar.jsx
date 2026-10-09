@@ -258,20 +258,57 @@ const Navbar = () => {
   const { data: notificationData } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const response = await api.get('/notifications', { params: { limit: 5 } });
+      const response = await api.get('/notifications', { params: { limit: 20, unreadOnly: true } });
       return response.data;
     },
-    refetchInterval: 60000,
+    refetchInterval: 30000,
   });
 
   const markAllRead = useMutation({
     mutationFn: async () => api.put('/notifications/mark-all-read'),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['notifications'] });
+      const previous = queryClient.getQueryData(['notifications']);
+      queryClient.setQueryData(['notifications'], {
+        notifications: [],
+        unreadCount: 0,
+        success: true,
+      });
+      return { previous };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['notifications'], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
   });
 
   const markNotificationRead = useMutation({
     mutationFn: async (id) => api.put(`/notifications/${id}/read`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['notifications'] });
+      const previous = queryClient.getQueryData(['notifications']);
+      if (previous) {
+        const remaining = (previous.notifications || []).filter((n) => n._id !== id);
+        queryClient.setQueryData(['notifications'], {
+          ...previous,
+          notifications: remaining,
+          unreadCount: Math.max(0, (previous.unreadCount || 1) - 1),
+        });
+      }
+      return { previous };
+    },
+    onError: (err, id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['notifications'], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
   });
 
   // Global keyboard shortcut for search
@@ -415,117 +452,101 @@ const Navbar = () => {
             <AppTooltip content="Notifications & Activity Alerts">
               <DropdownMenuTrigger className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
                 <Bell size={17} />
-                {notificationData?.unreadCount > 0 && (
+                {(notificationData?.unreadCount > 0 || (notificationData?.notifications || []).filter((n) => !n.isRead).length > 0) && (
                   <span className="absolute top-0.5 right-0.5 min-w-3.5 h-3.5 px-0.5 bg-primary text-white rounded-full border border-card text-[9px] font-bold flex items-center justify-center">
-                    {Math.min(notificationData.unreadCount, 9)}
+                    {Math.min(notificationData?.unreadCount ?? (notificationData?.notifications || []).filter((n) => !n.isRead).length, 9)}
                   </span>
                 )}
               </DropdownMenuTrigger>
             </AppTooltip>
-            <DropdownMenuContent align="end" className="w-80 mt-2">
-              <DropdownMenuLabel className="flex items-center justify-between text-xs">
-                <span>Notifications</span>
-                <button onClick={() => markAllRead.mutate()} className="text-[11px] text-primary font-semibold hover:underline">
-                  Mark all read
-                </button>
-              </DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-80 mt-2 p-0 overflow-hidden">
+              {(() => {
+                const unreadNotifications = (notificationData?.notifications || []).filter((n) => !n.isRead);
+                return (
+                  <>
+                    <DropdownMenuLabel className="flex items-center justify-between text-xs px-3.5 py-2.5 border-b border-border bg-card">
+                      <span className="font-bold text-foreground">Notifications</span>
+                      {unreadNotifications.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => markAllRead.mutate()}
+                          disabled={markAllRead.isPending}
+                          className="text-[11px] text-primary font-bold hover:underline cursor-pointer disabled:opacity-50"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </DropdownMenuLabel>
 
-              {/* Web Push Notification Status & Action Banner */}
-              {isIOSRequiresHomeInstall() ? (
-                <div className="mx-2 mb-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold text-[11px]">
-                    <Smartphone size={13} className="shrink-0" />
-                    <span>iPhone / iPad Setup</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-tight">
-                    Tap Share (bottom of Safari) → <strong>Add to Home Screen</strong>, then open RiseWithMedia from your Home Screen to enable background alerts.
-                  </p>
-                </div>
-              ) : !isWebPushSupported() ? (
-                <div className="mx-2 mb-2 p-2 bg-muted/60 border border-border rounded-xl text-xs flex items-center gap-2 text-muted-foreground">
-                  <BellOff size={13} className="shrink-0" />
-                  <span className="text-[11px]">Push notifications unsupported in this browser.</span>
-                </div>
-              ) : pushPermission === 'denied' ? (
-                <div className="mx-2 mb-2 p-2.5 bg-destructive/10 border border-destructive/20 rounded-xl text-xs flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-destructive font-semibold text-[11px]">
-                    <BellOff size={13} className="shrink-0" />
-                    <span>Notifications Blocked</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-tight">
-                    Permission denied. Click the lock/settings icon in your browser address bar to allow notifications.
-                  </p>
-                </div>
-              ) : pushSubscribed && pushPermission === 'granted' ? (
-                <div className="mx-2 mb-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs flex items-center justify-between gap-2">
-                  <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 font-medium text-[11px]">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Banner Alerts Active
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      id="test-web-push-btn"
-                      onClick={handleTestPush}
-                      disabled={pushLoading}
-                      className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[10px] transition-all shrink-0 disabled:opacity-50 cursor-pointer"
-                      title="Send test banner notification across this browser & screen"
-                    >
-                      {pushLoading ? 'Testing...' : 'Test Banner'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDiagnosticsOpen(true)}
-                      className="px-1.5 py-0.5 rounded-lg border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 text-[10px] font-semibold transition-all cursor-pointer"
-                      title="Inspect Push Diagnostics & Test Closed Tab"
-                    >
-                      Inspect
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mx-2 mb-2 p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs flex items-center justify-between gap-2">
-                  <span className="text-foreground flex items-center gap-1.5 font-medium text-[11px]">
-                    <BellRing size={13} className="text-indigo-500 shrink-0" />
-                    Banner Alerts
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      id="enable-web-push-btn"
-                      onClick={handleEnablePush}
-                      disabled={pushLoading}
-                      className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold text-[10px] transition-all shrink-0 shadow-xs disabled:opacity-50 cursor-pointer active:scale-95"
-                    >
-                      {pushLoading ? 'Enabling...' : 'Enable Banners'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDiagnosticsOpen(true)}
-                      className="px-1.5 py-0.5 rounded-lg border border-indigo-500/30 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/10 text-[10px] font-semibold transition-all cursor-pointer"
-                      title="Push Diagnostics & Testing"
-                    >
-                      Info
-                    </button>
-                  </div>
-                </div>
-              )}
+                    {/* Web Push Setup only if permission not yet decided or denied */}
+                    {isIOSRequiresHomeInstall() ? (
+                      <div className="m-2 p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 font-bold text-[11px]">
+                          <Smartphone size={13} className="shrink-0" />
+                          <span>iPhone / iPad Setup</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-tight">
+                          Tap Share → <strong>Add to Home Screen</strong> to enable background alerts.
+                        </p>
+                      </div>
+                    ) : pushPermission === 'denied' ? (
+                      <div className="m-2 p-2 bg-destructive/10 border border-destructive/20 rounded-xl text-xs flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-destructive font-semibold text-[11px]">
+                          <BellOff size={13} className="shrink-0" />
+                          <span>Notifications Blocked</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-tight">
+                          Permission denied in browser address bar.
+                        </p>
+                      </div>
+                    ) : !pushSubscribed && pushPermission !== 'granted' ? (
+                      <div className="m-2 p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs flex items-center justify-between gap-2">
+                        <span className="text-foreground flex items-center gap-1.5 font-medium text-[11px]">
+                          <BellRing size={13} className="text-indigo-500 shrink-0" />
+                          Banner Alerts
+                        </span>
+                        <button
+                          id="enable-web-push-btn"
+                          onClick={handleEnablePush}
+                          disabled={pushLoading}
+                          className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold text-[10px] transition-all shrink-0 shadow-xs disabled:opacity-50 cursor-pointer"
+                        >
+                          {pushLoading ? 'Enabling...' : 'Enable Banners'}
+                        </button>
+                      </div>
+                    ) : null}
 
-              <DropdownMenuSeparator />
-              {(notificationData?.notifications || []).length === 0 ? (
-                <div className="px-3 py-6 text-center text-xs text-muted-foreground">No new notifications.</div>
-              ) : (
-                notificationData.notifications.map((notification) => (
-                  <DropdownMenuItem key={notification._id} asChild>
-                    <Link
-                      to={notification.link || '/'}
-                      onClick={() => !notification.isRead && markNotificationRead.mutate(notification._id)}
-                      className="flex flex-col items-start gap-0.5 whitespace-normal p-2.5"
-                    >
-                      <span className="text-xs font-semibold text-foreground">{notification.title}</span>
-                      <span className="text-[11px] text-muted-foreground leading-tight">{notification.message}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                ))
-              )}
+                    {/* Unread Notifications List */}
+                    {unreadNotifications.length === 0 ? (
+                      <div className="px-3 py-8 text-center space-y-1">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center font-bold text-sm mb-1.5">
+                          ✓
+                        </div>
+                        <p className="text-xs font-bold text-foreground">All caught up!</p>
+                        <p className="text-[11px] text-muted-foreground">No unread notifications.</p>
+                      </div>
+                    ) : (
+                      <div className="max-h-80 overflow-y-auto divide-y divide-border/50">
+                        {unreadNotifications.map((notification) => (
+                          <DropdownMenuItem key={notification._id} asChild>
+                            <Link
+                              to={notification.link || '/'}
+                              onClick={() => markNotificationRead.mutate(notification._id)}
+                              className="flex flex-col items-start gap-1 p-3 hover:bg-secondary/70 transition-colors cursor-pointer rounded-none"
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span className="text-xs font-bold text-foreground">{notification.title}</span>
+                                <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                              </div>
+                              <span className="text-[11px] text-muted-foreground leading-snug">{notification.message}</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </DropdownMenuContent>
           </DropdownMenu>
 
