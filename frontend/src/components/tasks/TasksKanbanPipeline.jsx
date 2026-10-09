@@ -316,12 +316,38 @@ export const TasksKanbanPipeline = ({
         </div>
       </div>
 
+      {/* Mobile Stage Quick Navigator */}
+      <div className="flex sm:hidden items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+        {KANBAN_COLUMNS.map((col, idx) => {
+          const count = (columnTasksMap[col.id] || []).length;
+          return (
+            <button
+              key={col.id}
+              type="button"
+              onClick={() => {
+                if (boardContainerRef.current) {
+                  const targetX = idx * 290;
+                  boardContainerRef.current.scrollTo({ left: targetX, behavior: 'smooth' });
+                }
+              }}
+              className="inline-flex items-center gap-1 shrink-0 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 shadow-2xs dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <span>{col.icon}</span>
+              <span>{col.title}</span>
+              <span className="rounded-full bg-slate-100 px-1.5 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Single-Row Horizontal Kanban Track */}
       <div
         ref={boardContainerRef}
-        className="w-full overflow-x-auto pb-4 pt-1 custom-scrollbar scroll-smooth"
+        className="w-full overflow-x-auto pb-4 pt-1 custom-scrollbar scroll-smooth snap-x snap-mandatory sm:snap-none"
       >
-        <div className="flex gap-4 items-stretch min-w-max pb-2">
+        <div className="flex gap-3 sm:gap-4 items-stretch min-w-max pb-2">
           {KANBAN_COLUMNS.map((column, colIdx) => {
             const columnTasks = columnTasksMap[column.id] || [];
             const isDragOver = dragOverColumnId === column.id;
@@ -334,11 +360,11 @@ export const TasksKanbanPipeline = ({
                 onDragEnter={(e) => handleDragEnter(e, column.id)}
                 onDragLeave={(e) => handleDragLeave(e, column.id)}
                 onDrop={(e) => handleDrop(e, column.id)}
-                className={`flex flex-col w-[295px] min-w-[295px] shrink-0 rounded-2xl border transition-all duration-200 select-none ${column.accentBorder} ${
+                className={`flex flex-col w-[85vw] max-w-[320px] sm:w-[295px] sm:max-w-none shrink-0 snap-center sm:snap-align-none rounded-2xl border transition-all duration-200 select-none ${column.accentBorder} ${
                   isDragOver
                     ? 'border-indigo-500 bg-indigo-50/70 dark:border-indigo-500 dark:bg-indigo-950/40 ring-2 ring-indigo-500/40 shadow-lg'
                     : 'border-slate-200/90 bg-slate-50/60 dark:border-slate-800/80 dark:bg-slate-900/60'
-                } p-3 h-[calc(100vh-275px)] min-h-[460px] max-h-[calc(100vh-220px)]`}
+                } p-3 h-[calc(100dvh-230px)] sm:h-[calc(100vh-275px)] min-h-[440px] max-h-[calc(100dvh-180px)] sm:max-h-[calc(100vh-220px)]`}
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
@@ -579,7 +605,7 @@ export const TasksKanbanPipeline = ({
                                 <button
                                   onClick={(e) => handleQuickAdvance(e, task, column.id)}
                                   title={`Move to ${nextCol.title}`}
-                                  className="opacity-0 group-hover:opacity-100 flex h-5 w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all dark:bg-indigo-950 dark:text-indigo-300"
+                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all dark:bg-indigo-950 dark:text-indigo-300"
                                 >
                                   <ArrowRight className="h-3 w-3" />
                                 </button>
