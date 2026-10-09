@@ -35,6 +35,26 @@ const progressUpdateSchema = new mongoose.Schema({
   attachments: [fileAttachmentSchema],
 });
 
+const checklistItemSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    isCompleted: { type: Boolean, default: false },
+    completedAt: { type: Date, default: null },
+    completedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  },
+  { _id: true, timestamps: true }
+);
+
+const taskNoteSchema = new mongoose.Schema(
+  {
+    content: { type: String, required: true },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    authorName: { type: String, default: '' },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: true }
+);
+
 const taskSchema = new mongoose.Schema(
   {
     organizationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
@@ -158,6 +178,8 @@ const taskSchema = new mongoose.Schema(
         'todo',
         'in_progress',
         'review',
+        'client_approval',
+        'smm_team',
         'approved',
         'rejected',
         'done',
@@ -220,6 +242,8 @@ const taskSchema = new mongoose.Schema(
     internalNotes: { type: String, default: '' },
     clientVisibleNotes: { type: String, default: '' },
     tags: [{ type: String }],
+    checklist: [checklistItemSchema],
+    taskNotes: [taskNoteSchema],
     comments: [commentSchema],
     attachments: [fileAttachmentSchema],
     orderIndex: { type: Number, default: 0 },
@@ -320,6 +344,8 @@ const taskSchema = new mongoose.Schema(
       actualResult: { type: String, default: '' },
       environment: { type: String, default: '' },
     },
+    checklist: [checklistItemSchema],
+    taskNotes: [taskNoteSchema],
   },
   { timestamps: true }
 );

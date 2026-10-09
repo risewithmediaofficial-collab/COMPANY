@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { logout } from '../store/slices/authSlice';
 import { toast } from 'sonner';
 import { reconcilePushSubscription } from '../utils/webPush';
+import { triggerBannerNotification, sendBrowserNotification } from '../utils/browserNotification';
 
 const SocketContext = createContext(null);
 
@@ -27,7 +28,7 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Connect to the same origin — Vite proxies /socket.io → :5000 in dev
+    // Connect to the same origin — Vite proxies /socket.io → :5002 in dev
     const newSocket = io(window.location.origin, {
       withCredentials: true,
       transports: ['polling', 'websocket'],
@@ -58,14 +59,36 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('newNotification', (data) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       if (data) {
-        // Socket.IO updates in-app UI instantly; Service Worker delivers system OS push
-        toast.info(data.title || 'New CRM Notification', {
-          description: data.message || '',
-          action: data.link ? {
+        const title = data.title || '🔔 RISE WITH MEDIA Notification';
+        const message = data.message || '';
+        const link = data.link || '/';
+
+        // 1. Trigger the rich in-app floating banner notification at top of screen
+        triggerBannerNotification({
+          id: data._id || `notif-${Date.now()}`,
+          title,
+          message,
+          link,
+          type: data.type || 'system',
+          createdAt: data.createdAt,
+        });
+
+        // 2. Trigger native OS Desktop / Mobile banner notification (shows even if window minimized or inactive)
+        sendBrowserNotification({
+          title,
+          message,
+          link,
+          tag: data._id?.toString() || `crm-notif-${Date.now()}`,
+        }).catch(() => {});
+
+        // 3. Fallback toast
+        toast.info(title, {
+          description: message,
+          action: link ? {
             label: 'View',
             onClick: () => {
-              if (window.location.pathname !== data.link) {
-                window.location.href = data.link;
+              if (window.location.pathname !== link) {
+                window.location.href = link;
               }
             },
           } : undefined,

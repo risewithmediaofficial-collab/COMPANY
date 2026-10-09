@@ -5,6 +5,7 @@ import { fetchMe } from './store/slices/authSlice';
 import { Toaster as HotToaster } from 'react-hot-toast';
 import { Toaster as SonnerToaster } from 'sonner';
 import WebsiteLaunchLoader from './components/WebsiteLaunchLoader';
+import BannerNotificationHost from './components/notifications/BannerNotificationHost';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -166,6 +167,7 @@ const App = () => {
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <HotToaster position="top-right" reverseOrder={false} />
       <SonnerToaster position="top-right" richColors closeButton />
+      <BannerNotificationHost />
       <Suspense fallback={null}>
         <Routes>
           {/* ── Auth Routes ─────────────────────────────────────────────── */}

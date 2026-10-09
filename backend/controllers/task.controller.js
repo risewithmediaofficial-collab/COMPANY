@@ -12,7 +12,6 @@ import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
 import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
-import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import { matchesContentType, getMonthDateRange } from './projectMonthlyDeliverable.controller.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 
@@ -20,33 +19,44 @@ const taskStatusMap = {
   'To Do': 'todo',
   'In Progress': 'in_progress',
   'In Review': 'review',
+  'Internal Approval': 'review',
+  'Client Approval': 'client_approval',
+  'SMM Team': 'smm_team',
   Approved: 'approved',
   Done: 'done',
   Blocked: 'rejected',
   Rejected: 'rejected',
-  'On Process': 'on_process',
-  'Waiting for Client': 'waiting_for_client',
+  'On Process': 'in_progress',
+  'Waiting for Client': 'client_approval',
   Completed: 'completed',
   Rework: 'rework',
   'Rework Completed': 'rework_completed',
-  'Review Required': 'review_required',
-  'Work in Progress': 'on_process',
+  'Review Required': 'review',
+  'Work in Progress': 'in_progress',
   'Task Received': 'todo',
+  todo: 'todo',
+  in_progress: 'in_progress',
+  review: 'review',
+  client_approval: 'client_approval',
+  smm_team: 'smm_team',
+  completed: 'completed',
 };
 
 const statusLabels = {
   todo: 'To Do',
   in_progress: 'In Progress',
-  review: 'In Review',
+  review: 'Internal Approval',
+  client_approval: 'Client Approval',
+  smm_team: 'SMM Team',
   approved: 'Approved',
   rejected: 'Blocked',
-  done: 'Done',
-  on_process: 'On Process',
-  waiting_for_client: 'Waiting for Client',
+  done: 'Completed',
+  on_process: 'In Progress',
+  waiting_for_client: 'Client Approval',
   completed: 'Completed',
   rework: 'Rework',
   rework_completed: 'Rework Completed',
-  review_required: 'Review Required',
+  review_required: 'Internal Approval',
 };
 
 const priorityMap = {
@@ -1830,5 +1840,86 @@ export const deleteTask = async (req, res) => {
     res.json({ success: true, message: 'Task deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateTaskChecklist = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    const access = await assertTaskAccess(req, task);
+    if (!access.allowed) {
+      return res.status(access.status).json({ success: false, message: access.message });
+    }
+
+    const { checklist, itemIndex, isCompleted, title } = req.body;
+
+    task.checklist = task.checklist || [];
+
+    if (Array.isArray(checklist)) {
+      task.checklist = checklist;
+    } else if (itemIndex !== undefined && task.checklist[itemIndex]) {
+      task.checklist[itemIndex].isCompleted = Boolean(isCompleted);
+      task.checklist[itemIndex].completedAt = isCompleted ? new Date() : null;
+      task.checklist[itemIndex].completedBy = isCompleted ? req.user._id : null;
+    } else if (title?.trim()) {
+      task.checklist.push({
+        title: title.trim(),
+        isCompleted: false,
+      });
+    }
+
+    await task.save();
+    const updated = await hydrateTask(task._id);
+    const serialized = serializeTask(updated);
+
+    emitLiveEvent('taskUpdated', { task: serialized });
+    res.json({ success: true, task: serialized, checklist: updated.checklist });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const addTaskNote = async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) {
+      return res.status(400).json({ success: false, message: 'Note content is required' });
+    }
+
+    const task = await Task.findById(req.params.id);
+    const access = await assertTaskAccess(req, task);
+    if (!access.allowed) {
+      return res.status(access.status).json({ success: false, message: access.message });
+    }
+
+    task.taskNotes = task.taskNotes || [];
+    const note = {
+      content: content.trim(),
+      author: req.user._id,
+      authorName: req.user.name || 'Team Member',
+      createdAt: new Date(),
+    };
+    task.taskNotes.push(note);
+    await task.save();
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'task.note.added',
+      entityType: 'task',
+      entityId: task._id,
+      title: 'Task note added',
+      description: `Note added to ${task.title}: "${content.trim()}"`,
+      relatedClient: task.client,
+      relatedProject: task.project,
+      relatedTask: task._id,
+    });
+
+    const updated = await hydrateTask(task._id);
+    const serialized = serializeTask(updated);
+
+    emitLiveEvent('taskUpdated', { task: serialized });
+    res.json({ success: true, task: serialized, note });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 };

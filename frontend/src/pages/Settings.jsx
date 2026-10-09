@@ -40,8 +40,10 @@ import {
   getBrowserNotificationPermission,
   requestBrowserNotificationPermission,
   sendBrowserNotification,
+  triggerBannerNotification,
   isBrowserNotificationSupported,
 } from '../utils/browserNotification';
+import { sendTestPushNotification } from '../utils/webPush';
 
 const sections = [
   { id: 'profile', label: 'Profile Info', icon: User },
@@ -104,30 +106,75 @@ const Settings = () => {
 
   const [browserPermission, setBrowserPermission] = useState(() => getBrowserNotificationPermission());
   const [isTestingNotification, setIsTestingNotification] = useState(false);
+  const [isTestingDelayed, setIsTestingDelayed] = useState(false);
+  const [delayedCountdown, setDelayedCountdown] = useState(null);
+  const [bannerSoundMuted, setBannerSoundMuted] = useState(() => {
+    return localStorage.getItem('rwm_banner_sound_muted') === 'true';
+  });
+
+  const toggleBannerSound = () => {
+    const next = !bannerSoundMuted;
+    setBannerSoundMuted(next);
+    localStorage.setItem('rwm_banner_sound_muted', String(next));
+    toast.success(next ? 'Banner notification sound muted' : 'Banner notification sound unmuted');
+  };
 
   const handleEnableBrowserNotifications = async () => {
-    const perm = await requestBrowserNotificationPermission();
-    setBrowserPermission(perm);
+    const res = await requestBrowserNotificationPermission();
+    const updatedPerm = res?.permission || getBrowserNotificationPermission();
+    setBrowserPermission(updatedPerm);
+    window.dispatchEvent(new CustomEvent('rwm-push-state-changed', { detail: { active: updatedPerm === 'granted' } }));
+    if (updatedPerm === 'granted') {
+      toast.success('Banner notifications enabled on this device!');
+    }
   };
 
   const handleTestNotification = async () => {
     setIsTestingNotification(true);
     try {
-      // 1. Direct browser notification
+      // 1. In-App Floating Banner
+      triggerBannerNotification({
+        title: '🔔 Banner Notification Working!',
+        message: 'Your in-app floating banner and system desktop notifications are verified and active.',
+        link: '/settings',
+        type: 'success',
+      });
+
+      // 2. Direct browser OS banner notification
       await sendBrowserNotification({
-        title: '🔔 Browser Notification Working!',
-        message: 'This confirms your browser desktop notifications are successfully connected.',
+        title: '🔔 Banner Notification Active!',
+        message: 'Rise With Media system desktop alerts are connected successfully.',
         link: '/settings',
       });
 
-      // 2. Real-time notification through backend Socket.io pipeline
+      // 3. Real-time notification through backend Socket.io pipeline
       await api.post('/notifications/test');
-      toast.success('Test notification dispatched via Socket.io & Browser!');
+      toast.success('Test notification dispatched to banner and system!');
     } catch (err) {
       console.error('Test notification failed:', err);
       toast.error(err?.response?.data?.message || 'Failed to trigger test notification');
     } finally {
       setIsTestingNotification(false);
+    }
+  };
+
+  const handleDelayedPushTest = async () => {
+    setIsTestingDelayed(true);
+    try {
+      await sendTestPushNotification(10);
+      setDelayedCountdown(10);
+      const timer = setInterval(() => {
+        setDelayedCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setIsTestingDelayed(false);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      setIsTestingDelayed(false);
     }
   };
 
@@ -440,17 +487,22 @@ const Settings = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
                     <div className="flex items-center gap-3">
                       <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-                        <BellRing size={20} />
+                        <BellRing size={20} className="animate-pulse" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-foreground">Desktop & Browser Push Notifications</h4>
-                        <p className="text-xs text-muted-foreground">Receive instant desktop alerts when tasks, leads, or finances are updated.</p>
+                        <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                          Banner & Push Notifications
+                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
+                            Heads-Up & Desktop
+                          </span>
+                        </h4>
+                        <p className="text-xs text-muted-foreground">Receive instant popup banner alerts on your device for tasks, leads, and messages even when the app is closed.</p>
                       </div>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-2">
                       {browserPermission === 'granted' ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                          <CheckCircle2 size={13} /> Active & Permitted
+                          <CheckCircle2 size={13} /> Banner Alerts Active
                         </span>
                       ) : browserPermission === 'denied' ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
@@ -469,37 +521,63 @@ const Settings = () => {
                       <button
                         type="button"
                         onClick={handleEnableBrowserNotifications}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
                       >
                         <BellRing size={14} />
-                        Enable Browser Notifications
+                        Enable Banner Notifications
                       </button>
                     )}
+
                     <button
                       type="button"
                       disabled={isTestingNotification}
                       onClick={handleTestNotification}
-                      className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground text-xs font-bold rounded-xl hover:bg-secondary/80 transition-all border border-border"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+                      title="Trigger both in-app top banner and desktop banner alert"
                     >
-                      <Send size={14} className={isTestingNotification ? 'animate-pulse' : ''} />
-                      {isTestingNotification ? 'Sending Test...' : 'Send Test Notification'}
+                      <BellRing size={14} className={isTestingNotification ? 'animate-bounce' : ''} />
+                      {isTestingNotification ? 'Testing Banner...' : 'Test Banner Notification'}
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isTestingDelayed}
+                      onClick={handleDelayedPushTest}
+                      className="flex items-center gap-2 px-3.5 py-2 bg-secondary text-secondary-foreground text-xs font-semibold rounded-xl hover:bg-secondary/80 transition-all border border-border cursor-pointer active:scale-95 disabled:opacity-50"
+                      title="Schedules a push in 10 seconds so you can close this tab and verify background delivery"
+                    >
+                      <Clock size={14} className={isTestingDelayed ? 'animate-spin' : ''} />
+                      {delayedCountdown !== null ? `Arriving in ${delayedCountdown}s (close tab now!)` : 'Test Closed Tab (10s)'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={toggleBannerSound}
+                      className="flex items-center gap-2 px-3 py-2 bg-secondary/60 hover:bg-secondary text-secondary-foreground text-xs font-semibold rounded-xl transition-all border border-border/80 cursor-pointer"
+                      title="Toggle synthesizer audio chime on banner alerts"
+                    >
+                      {bannerSoundMuted ? <VolumeX size={14} className="text-muted-foreground" /> : <Volume2 size={14} className="text-emerald-500" />}
+                      <span>{bannerSoundMuted ? 'Sound Muted' : 'Sound Enabled'}</span>
                     </button>
                   </div>
 
                   {/* Troubleshooting Helper Box */}
                   <div className="mt-3 p-3.5 rounded-xl bg-secondary/30 border border-border/60 text-xs space-y-2 text-muted-foreground">
                     <div className="font-semibold text-foreground flex items-center gap-1.5">
-                      <Laptop size={14} className="text-primary" /> Troubleshooting Desktop Notifications:
+                      <Laptop size={14} className="text-primary" /> How Banner Notifications Work:
                     </div>
                     <ul className="list-disc pl-4 space-y-1 text-[11px] leading-relaxed">
                       <li>
-                        <strong className="text-foreground">Browser Permission:</strong> If blocked, click the lock / tune icon in your browser address bar (next to the website URL) and set <em>Notifications</em> to <em>Allow</em>.
+                        <strong className="text-foreground">In-App Floating Banners:</strong> When working inside the app, interactive slide-down banners appear at the top center of your screen with sound, view buttons, and auto-dismiss.
                       </li>
                       <li>
-                        <strong className="text-foreground">Windows 10/11 Notification Settings:</strong> Ensure notifications for your browser (Chrome / Edge) are enabled in <em>Windows Settings &gt; System &gt; Notifications</em>, and make sure <em>Focus Assist (Do Not Disturb)</em> is turned OFF.
+                        <strong className="text-foreground">System OS Desktop Banners:</strong> When minimized or browsing other tabs, persistent system desktop notifications pop up via Chrome/Edge and Windows Action Center / macOS Notification Center.
                       </li>
                       <li>
-                        <strong className="text-foreground">Tab Requirement:</strong> Real-time Socket.io desktop notifications work while the CRM is open in any tab. If you click "Send Test Notification", you will immediately receive both an in-app toast and a desktop alert.
+                        <strong className="text-foreground">Closed App Background Push:</strong> Through our Web Push gateway, notifications arrive on your devices even when all tabs and the browser are completely closed.
+                      </li>
+                      <li>
+                        <strong className="text-foreground">Mobile Android Heads-Up:</strong> Enhanced vibration and high-urgency headers ensure notifications pop down as high-priority heads-up banners on Android devices.
                       </li>
                     </ul>
                   </div>

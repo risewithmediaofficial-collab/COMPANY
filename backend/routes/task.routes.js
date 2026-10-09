@@ -17,6 +17,8 @@ import {
   submitClientTaskResponse,
   updateTask,
   updateTaskStatus,
+  updateTaskChecklist,
+  addTaskNote,
 } from '../controllers/task.controller.js';
 import { authorize, protect } from '../middleware/auth.middleware.js';
 
@@ -31,6 +33,8 @@ router.get('/:id', authorize('superAdmin', 'admin', 'manager', 'employee', 'clie
 router.post('/', authorize('superAdmin', 'admin', 'manager', 'employee'), createTask);
 router.put('/:id', authorize('superAdmin', 'admin', 'manager', 'employee'), updateTask);
 router.patch('/:id/status', authorize('superAdmin', 'admin', 'manager', 'employee'), updateTaskStatus);
+router.patch('/:id/checklist', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), updateTaskChecklist);
+router.post('/:id/notes', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), addTaskNote);
 router.post('/:id/comment', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), addComment);
 router.post('/:id/progress', authorize('superAdmin', 'admin', 'manager', 'employee'), addProgressUpdate);
 router.post('/:id/attachments', authorize('superAdmin', 'admin', 'manager', 'employee'), addTaskAttachments);

@@ -82,10 +82,11 @@ export const subscribePush = async (req, res) => {
 
     const userId = req.user._id;
 
-    // Remove any existing subscription with this same endpoint to avoid duplicates
-    await User.findByIdAndUpdate(userId, {
-      $pull: { pushSubscriptions: { endpoint: subscription.endpoint } },
-    });
+    // Remove any existing subscription with this same endpoint across all users to avoid crossed alerts
+    await User.updateMany(
+      { 'pushSubscriptions.endpoint': subscription.endpoint },
+      { $pull: { pushSubscriptions: { endpoint: subscription.endpoint } } }
+    );
 
     // Add updated subscription record
     const updatedUser = await User.findByIdAndUpdate(

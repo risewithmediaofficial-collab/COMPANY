@@ -227,7 +227,8 @@ app.use(errorHandler);
 
 httpServer.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
-    console.error(`Port ${env.port} is already in use. Stop the existing server or change PORT.`);
+    console.error(`\n❌ Port ${env.port} is already in use by another running process.`);
+    console.error(`👉 To free port ${env.port} on Windows, run: npx kill-port ${env.port}\n`);
   } else {
     console.error('Server startup failed:', error.message);
   }

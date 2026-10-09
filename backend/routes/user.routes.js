@@ -18,7 +18,7 @@ const mapEmploymentStatus = (status) => {
   }[normalized] || undefined;
 };
 
-router.get('/', authorize('superAdmin', 'manager'), async (req, res) => {
+router.get('/', authorize('superAdmin', 'admin', 'manager', 'employee'), async (req, res) => {
   try {
     const users = await User.find()
       .select(safeUserProjection)

@@ -160,6 +160,9 @@ export const sendPushToUser = async (userId, payload = {}) => {
       link,
       url: link,
       eventId,
+      requireInteraction: true,
+      vibrate: [250, 100, 250, 100, 250],
+      silent: false,
       timestamp: Date.now(),
     });
 

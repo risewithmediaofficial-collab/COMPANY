@@ -1,10 +1,10 @@
 // ==============================================================================
 // RISE WITH MEDIA - PWA & NATIVE WEB PUSH SERVICE WORKER
 // Supports: Android Chrome, Windows Chrome/Edge, macOS, and iOS 16.4+ Safari PWA
-// Version: 2.0.0
+// Version: 2.1.0 - Enhanced Banner Notifications with Heads-Up & Persistent Display
 // ==============================================================================
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (_event) => {
   // Activate immediately without waiting for old worker to exit
   self.skipWaiting();
 });
@@ -39,14 +39,16 @@ self.addEventListener('push', (event) => {
   const icon = data.icon || '/branding/rise-with-media-logo.png';
   const badge = data.badge || '/branding/rise-with-media-logo.png';
 
-  // Base options supported universally across Android, Windows, macOS, and iOS
+  // Rich banner options supported across Android, Windows, macOS, and iOS PWA
   const options = {
     body,
     icon,
     badge,
     tag: eventId, // Deduplicates retried pushes with the same event ID
     renotify: true,
-    requireInteraction: false,
+    requireInteraction: true, // Key: Keeps desktop banner on screen until dismissed or clicked
+    vibrate: [250, 100, 250, 100, 250], // Key: Forces mobile Android to pop Heads-Up banner
+    silent: false,
     timestamp: data.timestamp || Date.now(),
     data: {
       url: destinationUrl,
@@ -70,21 +72,39 @@ self.addEventListener('push', (event) => {
     // If feature check fails, leave actions off to ensure delivery succeeds
   }
 
-  // event.waitUntil MUST wrap showNotification directly so browser does not kill worker
-  event.waitUntil(
-    self.registration
-      .showNotification(title, options)
-      .catch((err) => {
-        console.error('[SW] Standard showNotification failed, attempting minimal fallback:', err);
-        // Resilient fallback with bare minimum options if system rejected rich options
-        return self.registration.showNotification(title, {
-          body,
-          icon: '/branding/rise-with-media-logo.png',
-          tag: eventId,
-          data: { url: destinationUrl },
+  // 1. Deliver native OS Banner notification
+  const showPromise = self.registration
+    .showNotification(title, options)
+    .catch((err) => {
+      console.error('[SW] Standard showNotification failed, attempting minimal fallback:', err);
+      return self.registration.showNotification(title, {
+        body,
+        icon: '/branding/rise-with-media-logo.png',
+        tag: eventId,
+        data: { url: destinationUrl },
+      });
+    });
+
+  // 2. Also broadcast to any open browser windows so in-app banner renders immediately
+  const broadcastPromise = self.clients
+    .matchAll({ type: 'window', includeUncontrolled: true })
+    .then((windowClients) => {
+      windowClients.forEach((client) => {
+        client.postMessage({
+          type: 'PUSH_NOTIFICATION_RECEIVED',
+          payload: {
+            title,
+            body,
+            link: destinationUrl,
+            eventId,
+            timestamp: Date.now(),
+          },
         });
-      })
-  );
+      });
+    })
+    .catch(() => {});
+
+  event.waitUntil(Promise.all([showPromise, broadcastPromise]));
 });
 
 // ── Notification Click Handler ────────────────────────────────────────────────

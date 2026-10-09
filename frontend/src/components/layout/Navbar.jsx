@@ -37,6 +37,11 @@ import {
   isIOSRequiresHomeInstall,
   reconcilePushSubscription,
 } from '../../utils/webPush';
+import {
+  triggerBannerNotification,
+  sendBrowserNotification,
+  requestBrowserNotificationPermission,
+} from '../../utils/browserNotification';
 import { PushDiagnosticsModal } from '../modals/PushDiagnosticsModal';
 import {
   DropdownMenu,
@@ -185,18 +190,25 @@ const Navbar = () => {
       }
     };
     checkPush();
+
+    const handlePushStateChange = () => checkPush();
+    window.addEventListener('rwm-push-state-changed', handlePushStateChange);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('rwm-push-state-changed', handlePushStateChange);
     };
   }, []);
 
   const handleEnablePush = async () => {
     setPushLoading(true);
     try {
-      const res = await subscribeToWebPush();
-      setPushPermission(getWebPushPermission());
-      if (res?.success) {
+      const res = await requestBrowserNotificationPermission();
+      const updatedPerm = res?.permission || getWebPushPermission();
+      setPushPermission(updatedPerm);
+      if (res?.success || updatedPerm === 'granted') {
         setPushSubscribed(true);
+        window.dispatchEvent(new CustomEvent('rwm-push-state-changed', { detail: { active: true } }));
       }
     } finally {
       setPushLoading(false);
@@ -206,18 +218,31 @@ const Navbar = () => {
   const handleTestPush = async () => {
     setPushLoading(true);
     try {
-      await sendTestPushNotification();
+      // 1. In-App Floating Banner
+      triggerBannerNotification({
+        title: '🔔 Banner Notifications Verified!',
+        message: 'Interactive in-app floating banner and system alerts are functioning correctly.',
+        link: '/settings',
+        type: 'success',
+      });
+
+      // 2. Direct browser OS banner notification
+      await sendBrowserNotification({
+        title: '🔔 Banner Notification Active!',
+        message: 'Rise With Media CRM desktop alerts are connected.',
+        link: '/settings',
+      });
+
+      // 3. Background Web Push (if subscribed)
+      if (pushSubscribed) {
+        await sendTestPushNotification(0);
+      }
     } finally {
       setPushLoading(false);
     }
   };
 
   const handleLogout = async () => {
-    try {
-      await unsubscribeFromWebPush();
-    } catch (err) {
-      console.warn('Error unsubscribing push during logout:', err);
-    }
     dispatch(logout());
     navigate('/login');
   };
@@ -433,7 +458,7 @@ const Navbar = () => {
                 <div className="mx-2 mb-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs flex items-center justify-between gap-2">
                   <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 font-medium text-[11px]">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Push Active
+                    Banner Alerts Active
                   </span>
                   <div className="flex items-center gap-1">
                     <button
@@ -441,9 +466,9 @@ const Navbar = () => {
                       onClick={handleTestPush}
                       disabled={pushLoading}
                       className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[10px] transition-all shrink-0 disabled:opacity-50 cursor-pointer"
-                      title="Send test push notification to this browser"
+                      title="Send test banner notification across this browser & screen"
                     >
-                      {pushLoading ? 'Sending...' : 'Test Push'}
+                      {pushLoading ? 'Testing...' : 'Test Banner'}
                     </button>
                     <button
                       type="button"
@@ -456,24 +481,24 @@ const Navbar = () => {
                   </div>
                 </div>
               ) : (
-                <div className="mx-2 mb-2 p-2 bg-primary/10 border border-primary/20 rounded-xl text-xs flex items-center justify-between gap-2">
+                <div className="mx-2 mb-2 p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs flex items-center justify-between gap-2">
                   <span className="text-foreground flex items-center gap-1.5 font-medium text-[11px]">
-                    <BellRing size={13} className="text-primary shrink-0" />
-                    Desktop Alerts
+                    <BellRing size={13} className="text-indigo-500 shrink-0" />
+                    Banner Alerts
                   </span>
                   <div className="flex items-center gap-1">
                     <button
                       id="enable-web-push-btn"
                       onClick={handleEnablePush}
                       disabled={pushLoading}
-                      className="px-2.5 py-1 rounded-lg bg-primary text-primary-foreground font-semibold text-[10px] hover:bg-primary/90 transition-all shrink-0 shadow-xs disabled:opacity-50 cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold text-[10px] transition-all shrink-0 shadow-xs disabled:opacity-50 cursor-pointer active:scale-95"
                     >
-                      {pushLoading ? 'Enabling...' : 'Enable notifications'}
+                      {pushLoading ? 'Enabling...' : 'Enable Banners'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setDiagnosticsOpen(true)}
-                      className="px-1.5 py-0.5 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 text-[10px] font-semibold transition-all cursor-pointer"
+                      className="px-1.5 py-0.5 rounded-lg border border-indigo-500/30 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/10 text-[10px] font-semibold transition-all cursor-pointer"
                       title="Push Diagnostics & Testing"
                     >
                       Info

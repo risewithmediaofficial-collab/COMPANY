@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearchModal from '../components/modals/GlobalSearchModal';
 import MobileAppInstallButton from '../components/ui/MobileAppInstallButton';
+import EnableBannerNotificationBar from '../components/notifications/EnableBannerNotificationBar';
 
 const MainLayout = () => {
   const { sidebarOpen } = useSelector((state) => state.ui);
@@ -20,6 +21,7 @@ const MainLayout = () => {
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col transition-all duration-250 md:ml-[260px]">
         <Navbar onOpenSearch={() => setGlobalSearchOpen(true)} />
+        <EnableBannerNotificationBar />
         <main className="min-w-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-5 md:p-6 custom-scrollbar">
           <div className="mx-auto min-w-0 max-w-7xl">
             <AnimatePresence mode="wait">

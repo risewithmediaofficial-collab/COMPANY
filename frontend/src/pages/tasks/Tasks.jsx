@@ -1,40 +1,28 @@
-import React, { Fragment, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   CheckCircle2,
   Clock,
-  ListChecks,
   Plus,
-  TimerReset,
   CheckSquare,
   AlertTriangle,
   ArrowRight,
-  Filter,
-  Users,
-  User,
-  Video,
-  Scissors,
   FileEdit,
   Share2,
   X,
   Calendar,
-  ArrowUpDown,
   RotateCcw,
   Sparkles,
   Globe,
   Palette,
   Film,
   Megaphone,
-  Edit2,
-  Code2,
   Kanban,
-  GitPullRequest,
-  ShieldAlert,
+  Video,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
-import { CollapsibleFilterBar } from '../../components/ui/CollapsibleFilterBar';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { DataTable } from '../../components/ui/DataTable';
@@ -43,8 +31,11 @@ import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { SelectDropdown } from '../../components/ui/SelectDropdown';
-import { CategoryColorLegend, BOARD_CATEGORY_DEFINITIONS } from '../../components/ui/CategoryColorLegend';
-import { getCategoryTheme, isCategoryMatch } from '../../utils/categoryColors';
+import { isCategoryMatch } from '../../utils/categoryColors';
+import { TeamQuickAssignRoster } from '../../components/tasks/TeamQuickAssignRoster';
+import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
+import { TaskWorkflowDrawer } from '../../components/tasks/TaskWorkflowDrawer';
+import { TasksKanbanPipeline } from '../../components/tasks/TasksKanbanPipeline';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,19 +48,13 @@ import {
 import { useClients } from '../../hooks/useClients';
 import { useDeleteTask, useTasks, useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useUsers } from '../../hooks/useUsers';
-import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import PortalTasks from '../portal/sections/PortalTasks';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
-  CONTENT_TASK_TYPE_OPTIONS,
-  NON_CONTENT_TASK_TYPE_OPTIONS,
-  PRIORITY_OPTIONS,
   TASK_STATUS_OPTIONS,
   TEAM_STATUS_OPTIONS,
   formatTaskTypeLabel,
   normalizeTaskStatusLabel,
-  isWebsiteTaskType,
 } from '../../utils/taskFields';
 
 export const TASK_CATEGORY_PILLS = [
@@ -98,55 +83,12 @@ export const TASK_SORT_OPTIONS = [
   { value: 'oldest', label: '🕒 Oldest Created' },
 ];
 
-const statusTone = {
-  'To Do': 'neutral',
-  'On Process': 'info',
-  'Waiting for Client': 'warning',
-  Completed: 'success',
-  Rework: 'danger',
-  Approved: 'success',
-  'Rework Completed': 'info',
-  'Review Required': 'warning',
-};
-
 const priorityTone = {
   Low: 'neutral',
   Medium: 'info',
   High: 'warning',
   Urgent: 'danger',
 };
-
-const DEV_STAGE_SHORT_LABELS = {
-  backlog: 'Backlog',
-  analysis: 'Analysis',
-  ready_for_dev: 'Ready for Dev',
-  in_development: 'In Dev',
-  code_review: 'Code Review',
-  qa_testing: 'QA / Testing',
-  client_uat: 'Client UAT',
-  approved: 'Approved',
-  deployment: 'Deploying',
-  live: 'Live',
-  closed: 'Closed',
-  blocked: 'Blocked',
-};
-
-const DEV_STAGE_TONES = {
-  backlog: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
-  analysis: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  ready_for_dev: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
-  in_development: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  code_review: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  qa_testing: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
-  client_uat: 'bg-teal-500/10 text-teal-600 border-teal-500/20',
-  approved: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  deployment: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
-  live: 'bg-green-500/10 text-green-600 border-green-500/20',
-  closed: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
-  blocked: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
-};
-
-const KANBAN_STATUSES = ['To Do', 'On Process', 'Waiting for Client', 'Review Required', 'Completed'];
 
 const Tasks = () => {
   const navigate = useNavigate();
@@ -159,9 +101,6 @@ const Tasks = () => {
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate_asc');
-  const [draggingTaskId, setDraggingTaskId] = useState(null);
-  const [dragOverColKey, setDragOverColKey] = useState(null);
-  const [dragOverTaskIndex, setDragOverTaskIndex] = useState(null);
   const [filters, setFilters] = useState({
     search: '',
     client: '',
@@ -178,13 +117,35 @@ const Tasks = () => {
   const isManager = user?.role === 'manager';
   const { data: tasks = [], isLoading } = useTasks(filters);
   const { data: clients = [] } = useClients();
-  const { data: users = [] } = useUsers({ enabled: !isEmployee });
+  const { data: users = [] } = useUsers();
   const deleteTaskMutation = useDeleteTask();
   const updateStatusMutation = useUpdateTaskStatus();
-  const taskBoardRef = useRef(null);
 
-  // Smooth side auto-scroll while dragging tasks
-  useAutoScrollOnDrag(taskBoardRef, Boolean(draggingTaskId));
+  // Kanban Flow State
+  const [showKanbanCreateModal, setShowKanbanCreateModal] = useState(false);
+  const [preSelectedEmployee, setPreSelectedEmployee] = useState(null);
+  const [workflowTaskId, setWorkflowTaskId] = useState(null);
+  const [showWorkflowDrawer, setShowWorkflowDrawer] = useState(false);
+
+  const activeWorkflowTask = useMemo(() => {
+    if (!workflowTaskId) return null;
+    return tasks.find((t) => t._id === workflowTaskId) || null;
+  }, [tasks, workflowTaskId]);
+
+  const handleOpenWorkflowDrawer = (task) => {
+    setWorkflowTaskId(task._id);
+    setShowWorkflowDrawer(true);
+  };
+
+  const handleQuickAssignEmployee = (employee) => {
+    setPreSelectedEmployee(employee);
+    setShowKanbanCreateModal(true);
+  };
+
+  const handleOpenCreateGeneral = () => {
+    setPreSelectedEmployee(null);
+    setShowKanbanCreateModal(true);
+  };
 
   const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange, isFiltered: isGlobalDateFiltered, resetDateFilter } = useDateFilter();
 
@@ -240,11 +201,6 @@ const Tasks = () => {
       TASK_CATEGORY_PILLS.forEach((pill) => {
         if (pill.key !== 'all' && isCategoryMatch(t.taskType || t.taskCategory, pill.key, t.taskTitle || t.title)) {
           counts[pill.key] = (counts[pill.key] || 0) + 1;
-        }
-      });
-      BOARD_CATEGORY_DEFINITIONS.forEach((def) => {
-        if (counts[def.key] === undefined && isCategoryMatch(t.taskType || t.taskCategory, def.key, t.taskTitle || t.title)) {
-          counts[def.key] = (counts[def.key] || 0) + 1;
         }
       });
     });
@@ -581,17 +537,14 @@ const Tasks = () => {
   };
 
   const handleRowClick = (task) => {
-    if (isEmployee) {
-      openTaskDetail(task._id);
-      return;
-    }
-    navigate(`/tasks/${task._id}`);
+    handleOpenWorkflowDrawer(task);
   };
 
   useEffect(() => {
     const openTaskId = searchParams.get('open');
     if (!openTaskId) return;
-    openTaskDetail(openTaskId);
+    setWorkflowTaskId(openTaskId);
+    setShowWorkflowDrawer(true);
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('open');
     setSearchParams(nextParams, { replace: true });
@@ -621,10 +574,7 @@ const Tasks = () => {
           {canCreate && (
             <Button
               size="sm"
-              onClick={() => {
-                setAddModalInitialValues({});
-                setShowAddModal(true);
-              }}
+              onClick={handleOpenCreateGeneral}
               className="bg-primary text-primary-foreground font-bold shadow-sm"
             >
               <Plus size={15} className="mr-1.5 stroke-[2.5]" />
@@ -724,6 +674,14 @@ const Tasks = () => {
       }
     >
       <div className="space-y-4">
+        {/* Team Quick Assign Roster categorized by Media / Developer / SMM / Management */}
+        <TeamQuickAssignRoster
+          users={users}
+          tasks={tasks}
+          onQuickAssign={handleQuickAssignEmployee}
+          onOpenCreateGeneral={handleOpenCreateGeneral}
+        />
+
         {/* Database View Engine (Table + Kanban Board) */}
         <DatabaseView
           activeView={currentView}
@@ -1017,348 +975,14 @@ const Tasks = () => {
           </div>
         )}
 
-        {/* Board View (Responsive Kanban by Task Status with Snap Scroll) */}
+        {/* Board View (Modern 6-Stage Kanban Workflow Pipeline) */}
         {(currentView === 'board' || currentView === 'kanban') && (
           <div className="space-y-3.5 w-full">
-            {/* Category Color Definition Guide */}
-            <CategoryColorLegend
-              selectedCategory={categoryFilter}
-              onSelectCategory={setCategoryFilter}
-              title="Deliverable Color Code Index"
-              description="Card left-border accent identifies task category (click any color pill to filter)"
+            <TasksKanbanPipeline
+              tasks={displayedTasks}
+              onSelectTask={handleOpenWorkflowDrawer}
+              onOpenCreateGeneral={handleOpenCreateGeneral}
             />
-
-            <div ref={taskBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
-              <div className="grid w-max min-w-full auto-cols-[minmax(285px,85vw)] sm:auto-cols-[minmax(300px,340px)] grid-flow-col gap-4">
-              {[
-                { key: 'To Do', label: 'To Do', badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400', surface: 'border-border bg-card/60' },
-                { key: 'On Process', label: 'In Process', badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400', surface: 'border-blue-500/20 bg-blue-500/5' },
-                { key: 'Waiting for Client', label: 'Waiting for Client', badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', surface: 'border-amber-500/20 bg-amber-500/5' },
-                { key: 'Review Required', label: 'Review Required', badge: 'bg-purple-500/10 text-purple-600 dark:text-purple-400', surface: 'border-purple-500/20 bg-purple-500/5' },
-                { key: 'Completed', label: 'Completed', badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', surface: 'border-emerald-500/20 bg-emerald-500/5' },
-              ].map((column) => {
-                const columnTasks = displayedTasks.filter((t) => {
-                  const s = t.status || 'To Do';
-                  if (column.key === 'Completed') return ['Completed', 'Approved', 'done', 'completed'].includes(s);
-                  if (column.key === 'On Process') return ['On Process', 'in_progress', 'on_process'].includes(s);
-                  if (column.key === 'Waiting for Client') return ['Waiting for Client', 'waiting_for_client'].includes(s);
-                  if (column.key === 'Review Required') return ['Review Required', 'review_required', 'Rework', 'Rework Completed', 'rework'].includes(s);
-                  if (column.key === 'To Do') return ['To Do', 'todo', ''].includes(s) || (!['On Process', 'Waiting for Client', 'Review Required', 'Completed', 'Approved', 'Rework'].includes(s));
-                  return s === column.key;
-                });
-
-                const isColActive = dragOverColKey === column.key;
-
-                return (
-                  <div
-                    key={column.key}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = 'move';
-                      if (dragOverColKey !== column.key) setDragOverColKey(column.key);
-                    }}
-                    onDragLeave={(e) => {
-                      if (!e.currentTarget.contains(e.relatedTarget)) {
-                        if (dragOverColKey === column.key) setDragOverColKey(null);
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const taskId = e.dataTransfer.getData('taskId');
-                      if (taskId) {
-                        updateStatusMutation.mutate({ id: taskId, status: column.key });
-                      }
-                      setDraggingTaskId(null);
-                      setDragOverColKey(null);
-                      setDragOverTaskIndex(null);
-                    }}
-                    className={`flex flex-col min-h-[440px] max-h-[calc(100vh-280px)] rounded-2xl border ${column.surface} p-3 space-y-3 transition-all snap-center sm:snap-align-none ${
-                      isColActive ? 'ring-2 ring-primary/40 border-primary bg-primary/5 shadow-md' : ''
-                    }`}
-                  >
-                    <div className="flex items-center justify-between px-1.5 py-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-foreground uppercase tracking-wider">{column.label}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${column.badge}`}>
-                          {columnTasks.length}
-                        </span>
-                      </div>
-                      {canCreate && (
-                        <button
-                          onClick={() => {
-                            setAddModalInitialValues({ status: column.key });
-                            setShowAddModal(true);
-                          }}
-                          className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                          title={`Add task to ${column.label}`}
-                        >
-                          <Plus size={14} />
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[calc(100vh-340px)] pr-0.5 custom-scrollbar">
-                      {columnTasks.map((task, idx) => {
-                        const isBeingDragged = draggingTaskId === task._id;
-                        const showDropIndicatorBefore = isColActive && dragOverTaskIndex === idx && !isBeingDragged;
-                        const assignees = extractTaskAssignees(task);
-                        const primaryColor = assignees.length > 0 ? getPersonColor(assignees[0].name) : null;
-
-                        return (
-                          <React.Fragment key={task._id}>
-                            {showDropIndicatorBefore && (
-                              <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
-                            )}
-                            <div
-                              draggable
-                              onDragStart={(e) => {
-                                setDraggingTaskId(task._id);
-                                e.dataTransfer.setData('taskId', task._id);
-                                e.dataTransfer.effectAllowed = 'move';
-                              }}
-                              onDragEnd={() => {
-                                setDraggingTaskId(null);
-                                setDragOverColKey(null);
-                                setDragOverTaskIndex(null);
-                              }}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.dataTransfer.dropEffect = 'move';
-                                setDragOverColKey(column.key);
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const midY = rect.top + rect.height / 2;
-                                setDragOverTaskIndex(e.clientY < midY ? idx : idx + 1);
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                e.dataTransfer.dropEffect = 'move';
-                                const taskId = e.dataTransfer.getData('taskId');
-                                if (taskId) {
-                                  updateStatusMutation.mutate({ id: taskId, status: column.key });
-                                }
-                                setDraggingTaskId(null);
-                                setDragOverColKey(null);
-                                setDragOverTaskIndex(null);
-                              }}
-                              onClick={() => handleRowClick(task)}
-                              className={`p-3.5 bg-card rounded-2xl border border-border hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing space-y-2.5 group shadow-xs hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] border-l-[4px] ${
-                                getCategoryTheme(task.taskType || task.taskCategory).accentBorder
-                              } ${
-                                isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
-                              }`}
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="space-y-1 min-w-0">
-                                  {task.isOverTarget && (
-                                    <span className="inline-flex items-center gap-1 rounded bg-rose-500/15 border border-rose-500/30 px-1.5 py-0.5 text-[8px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
-                                      🔴 Over Task
-                                    </span>
-                                  )}
-                                  <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                                    {task.taskTitle || task.title}
-                                  </h4>
-                                </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase ${
-                                    task.priority === 'Urgent' || task.priority === 'High'
-                                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                                      : 'bg-secondary text-muted-foreground'
-                                  }`}>
-                                    {task.priority || 'Medium'}
-                                  </span>
-                                  {canCreate && (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedTaskId(task._id);
-                                        setShowAddModal(true);
-                                      }}
-                                      className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
-                                      title="Edit Task"
-                                    >
-                                      <Edit2 size={12} />
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between text-[11px] text-muted-foreground gap-1.5">
-                                <span className="truncate max-w-[150px] font-medium text-foreground/80">
-                                  {task.client?.company || task.client?.name || task.clientName || 'RiseWithMedia'}
-                                </span>
-                                {(() => {
-                                  const catTheme = getCategoryTheme(task.taskType || task.taskCategory);
-                                  const Icon = catTheme.icon;
-                                  return (
-                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg text-[10px] font-bold border shrink-0 ${catTheme.badgeClass}`}>
-                                      <Icon size={10} className="shrink-0" />
-                                      <span className="truncate max-w-[110px]">{formatTaskTypeLabel(task.taskType)}</span>
-                                    </span>
-                                  );
-                                })()}
-                              </div>
-
-                              {/* Primary Assigned Person(s) with Individual Color Badges */}
-                              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                                {assignees.length > 0 ? (
-                                  assignees.map((person, pIdx) => (
-                                    <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
-                                  ))
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-secondary text-muted-foreground border border-border/80">
-                                    <User size={10} /> Unassigned
-                                  </span>
-                                )}
-                              </div>
-
-                              {/* Pipeline production sub-assignees with names and colors */}
-                              {(task.scriptWriterAssigned || task.voiceArtistAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
-                                <div className="flex flex-wrap gap-1 text-[9px] pt-1">
-                                  {task.scriptWriterAssigned && (() => {
-                                    const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
-                                    const c = getPersonColor(name);
-                                    return (
-                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
-                                        ✍️ Script: <span className="font-bold">{name}</span>
-                                      </span>
-                                    );
-                                  })()}
-                                  {task.voiceArtistAssigned && (() => {
-                                    const name = task.voiceArtistAssigned.name || task.voiceArtistName || 'RJ / Voice';
-                                    const c = getPersonColor(name);
-                                    return (
-                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
-                                        🎙️ RJ: <span className="font-bold">{name}</span>
-                                      </span>
-                                    );
-                                  })()}
-                                  {task.videographerAssigned && (() => {
-                                    const name = task.videographerAssigned.name || task.videographerName || 'Videographer';
-                                    const c = getPersonColor(name);
-                                    return (
-                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
-                                        🎥 Shoot: <span className="font-bold">{name}</span>
-                                      </span>
-                                    );
-                                  })()}
-                                  {task.editorAssigned && (() => {
-                                    const name = task.editorAssigned.name || task.editorName || 'Editor';
-                                    const c = getPersonColor(name);
-                                    return (
-                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
-                                        ✂️ Edit: <span className="font-bold">{name}</span>
-                                      </span>
-                                    );
-                                  })()}
-                                  {task.publisherAssigned && (() => {
-                                    const name = task.publisherAssigned.name || task.publisherName || 'Publisher';
-                                    const c = getPersonColor(name);
-                                    return (
-                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
-                                        📱 Post: <span className="font-bold">{name}</span>
-                                      </span>
-                                    );
-                                  })()}
-                                </div>
-                              )}
-
-                              {/* Development Pipeline Workflow Badge & Sub-assignees */}
-                              {(task.department === 'Development' || task.development?.isDevTask || isWebsiteTaskType(task.taskType)) && (
-                                <div className="flex flex-wrap items-center gap-1 text-[9px] pt-1 border-t border-border/40">
-                                  <span className={`px-1.5 py-0.5 rounded-md border font-bold flex items-center gap-1 shadow-2xs ${
-                                    task.development?.isBlocked
-                                      ? 'bg-rose-500/15 text-rose-600 border-rose-500/30'
-                                      : DEV_STAGE_TONES[task.development?.stage] || DEV_STAGE_TONES.in_development
-                                  }`}>
-                                    <Code2 size={10} />
-                                    <span>Dev: {task.development?.isBlocked ? 'Blocked' : (DEV_STAGE_SHORT_LABELS[task.development?.stage] || 'In Dev')}</span>
-                                  </span>
-
-                                  {task.development?.reviewer && (() => {
-                                    const name = task.development.reviewer.name || 'Reviewer';
-                                    const c = getPersonColor(name);
-                                    return (
-                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
-                                        🔍 Review: <span className="font-bold">{name}</span>
-                                      </span>
-                                    );
-                                  })()}
-
-                                  {task.development?.tester && (() => {
-                                    const name = task.development.tester.name || 'Tester';
-                                    const c = getPersonColor(name);
-                                    return (
-                                      <span className={`px-1.5 py-0.5 rounded-md border font-semibold flex items-center gap-1 shadow-2xs ${c.bg} ${c.text} ${c.border}`}>
-                                        🛡️ QA: <span className="font-bold">{name}</span>
-                                      </span>
-                                    );
-                                  })()}
-
-                                  {task.development?.branch && (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-secondary text-muted-foreground border border-border font-mono text-[8px] truncate max-w-[100px]">
-                                      🌿 {task.development.branch}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-
-                              <div className="flex items-center justify-between pt-2 border-t border-border/50 text-[10px]">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  {task.createdAt && (
-                                    <span className="flex items-center gap-1 text-muted-foreground">
-                                      <Calendar size={10} className="text-primary/70 shrink-0" />
-                                      <span>Created {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                                    </span>
-                                  )}
-                                  {(() => {
-                                    const overdue = isTaskOverdue(task);
-                                    return (
-                                      <span className={`flex items-center gap-1 font-medium ${overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-muted-foreground'}`}>
-                                        {overdue && <AlertTriangle size={11} className="shrink-0 text-rose-500 dark:text-rose-400" />}
-                                        <span>
-                                          {task.dueDate ? `• ${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : ''}
-                                        </span>
-                                      </span>
-                                    );
-                                  })()}
-                                </div>
-                                <span className="group-hover:text-primary font-semibold flex items-center gap-0.5 text-muted-foreground shrink-0">
-                                  Open <ArrowRight size={10} />
-                                </span>
-                              </div>
-                            </div>
-                          </React.Fragment>
-                        );
-                      })}
-
-                      {/* Drop indicator at the bottom of the column */}
-                      {isColActive && dragOverTaskIndex >= columnTasks.length && (
-                        <div className="h-1.5 rounded-full bg-primary/70 animate-pulse my-1 shadow-xs" />
-                      )}
-
-                      {columnTasks.length === 0 && (
-                        <div className={`py-12 text-center text-xs border border-dashed rounded-xl transition-all ${
-                          isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'text-muted-foreground/60 border-border/70'
-                        }`}>
-                          {isColActive
-                            ? `Drop here to move to ${column.label}`
-                            : quickFilter === 'overdue'
-                            ? `No overdue tasks in ${column.label}`
-                            : quickFilter !== 'all'
-                            ? `No matching tasks in ${column.label}`
-                            : `No ${column.label} tasks`}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
           </div>
         )}
       </DatabaseView>
@@ -1374,6 +998,26 @@ const Tasks = () => {
         open={showTaskDetail}
         onOpenChange={setShowTaskDetail}
         taskId={selectedTaskId}
+      />
+
+      {/* New Fast Dynamic Kanban Task Creator */}
+      <KanbanCreateTaskModal
+        isOpen={showKanbanCreateModal}
+        onClose={() => {
+          setShowKanbanCreateModal(false);
+          setPreSelectedEmployee(null);
+        }}
+        initialUser={preSelectedEmployee}
+      />
+
+      {/* Interactive Workflow Drawer with live checklists and task notes */}
+      <TaskWorkflowDrawer
+        task={activeWorkflowTask}
+        isOpen={showWorkflowDrawer && !!activeWorkflowTask}
+        onClose={() => {
+          setShowWorkflowDrawer(false);
+          setWorkflowTaskId(null);
+        }}
       />
 
       <AlertDialog open={!!deleteTaskId} onOpenChange={(open) => !open && setDeleteTaskId(null)}>

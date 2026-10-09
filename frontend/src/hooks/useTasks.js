@@ -259,3 +259,40 @@ export const useLogTime = () => {
     },
   });
 };
+
+export const useUpdateTaskChecklist = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }) => {
+      const response = await api.patch(`/tasks/${id}/checklist`, data);
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task', variables.id] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to update checklist');
+    },
+  });
+};
+
+export const useAddTaskNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, content }) => {
+      const response = await api.post(`/tasks/${id}/notes`, { content });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['task', variables.id] });
+      toast.success('Note added successfully');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to add note');
+    },
+  });
+};
