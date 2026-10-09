@@ -3,6 +3,7 @@ import { smmApi } from '../../api/smm';
 import { useSocket } from '../../context/SocketContext';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { ClientCompletionDashboard } from '../../components/smm/ClientCompletionDashboard';
+import { TrackerDayDeliverablesDrawer } from '../../components/smm/TrackerDayDeliverablesDrawer';
 import {
   ChevronLeft, ChevronRight, CheckCircle2, Clock, RefreshCw,
   LayoutGrid, AlertCircle, Check, X, Info, Plus, Sparkles, ArrowDownToLine,
@@ -164,10 +165,23 @@ export const resolveCellStatus = (status, label, dayNum, month, year) => {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const StatusBadge = ({ status, onClick, onSelectStatus }) => {
+const StatusBadge = ({ status, items = [], onClick, onSelectStatus, onOpenDrawer }) => {
   const s = status || 'todo';
   const [menuOpen, setMenuOpen] = useState(false);
   const containerRef = useRef(null);
+
+  const relevantItems = Array.isArray(items) ? items : [];
+  const hasMultiple = relevantItems.length > 1;
+  const doneCount = relevantItems.filter((it) => it.status === 'done').length;
+  const totalCount = relevantItems.length;
+
+  const displayLabel = hasMultiple
+    ? doneCount === totalCount
+      ? `✓ ${totalCount} DONE`
+      : doneCount > 0
+      ? `⚡ ${doneCount}/${totalCount}`
+      : `${totalCount} ${STATUS_LABEL[s] || 'TODO'}`
+    : (STATUS_LABEL[s] || 'TODO');
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -210,13 +224,21 @@ const StatusBadge = ({ status, onClick, onSelectStatus }) => {
           e.stopPropagation();
           onClick?.();
         }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          onOpenDrawer?.();
+        }}
         onContextMenu={handleContextMenu}
-        title={`Status: ${STATUS_LABEL[s] || 'TODO'} (Click to cycle → ${STATUS_CYCLE[s] || 'pending'}, Right-click to select)`}
+        title={
+          hasMultiple
+            ? `${totalCount} items scheduled. Click to cycle, double-click for sidebar breakdown, right-click to select status`
+            : `Status: ${STATUS_LABEL[s] || 'TODO'} (Click to cycle, right-click to select)`
+        }
       >
         {s === 'done'    && <CheckCircle2 size={9} className="shrink-0" />}
         {s === 'pending' && <Clock size={9} className="shrink-0" />}
         {s === 'todo'    && <ListTodo size={9} className="shrink-0" />}
-        <span>{STATUS_LABEL[s] || 'TODO'}</span>
+        <span>{displayLabel}</span>
       </button>
 
       {/* Popover to directly select any status */}
@@ -263,8 +285,128 @@ const StatusBadge = ({ status, onClick, onSelectStatus }) => {
               <span>{STATUS_LABEL[opt]}</span>
             </button>
           ))}
+          {onOpenDrawer && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpen(false);
+                onOpenDrawer();
+              }}
+              className="text-[9px] font-bold text-indigo-600 hover:bg-indigo-50 p-1 rounded text-center mt-1 border-t border-slate-100"
+            >
+              Sidebar Details →
+            </button>
+          )}
         </div>
       )}
+    </div>
+  );
+};
+
+// ── Interactive Day Cell Slot (Supports multiple deliverables + '+' button) ──
+const DayCellDeliverableSlot = ({
+  cell = {},
+  field = 'postLabel',
+  section = 'posts',
+  onSaveLabel,
+  onOpenDrawer,
+}) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const ref = useRef(null);
+
+  const items = Array.isArray(cell.items) ? cell.items : [];
+  const relevantItems = items.length > 0
+    ? items.filter((it) => (section === 'stories' ? it.type === 'story' : ['reel', 'post', 'video', 'carousel'].includes(it.type)))
+    : [];
+
+  const hasMultiple = relevantItems.length > 1;
+  const primaryItem = relevantItems[0];
+  const displayVal = primaryItem ? primaryItem.label : (cell[field] || '');
+  const extraCount = relevantItems.length - 1;
+
+  useEffect(() => {
+    if (editing) ref.current?.focus();
+  }, [editing]);
+
+  const commit = () => {
+    onSaveLabel(draft.trim());
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <input
+          ref={ref}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit();
+            if (e.key === 'Escape') setEditing(false);
+          }}
+          style={{
+            width: '100%',
+            fontSize: 10,
+            padding: '2px 3px',
+            border: '1px solid #6366f1',
+            borderRadius: 4,
+            outline: 'none',
+            background: 'var(--input,#fff)',
+            color: 'inherit',
+            minWidth: 0,
+          }}
+        />
+        <button onClick={commit} style={{ color: '#10b981', flexShrink: 0 }}>
+          <Check size={11} />
+        </button>
+        <button onClick={() => setEditing(false)} style={{ color: '#9ca3af', flexShrink: 0 }}>
+          <X size={11} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="group/cell relative flex items-center justify-between w-full min-h-[22px] px-1 py-0.5 rounded cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/70 transition-all select-none"
+      onClick={() => onOpenDrawer()}
+      title={
+        hasMultiple
+          ? `${relevantItems.length} deliverables on this date. Click to open sidebar & breakdown!`
+          : displayVal
+          ? `Click to view details (${displayVal})`
+          : 'Click to add Reel, Post, or Story'
+      }
+    >
+      <div className="flex items-center gap-1 min-w-0 flex-1 justify-center">
+        <span
+          className={`truncate text-[10.5px] ${
+            displayVal ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-400 font-normal italic'
+          }`}
+        >
+          {displayVal || '—'}
+        </span>
+
+        {hasMultiple && (
+          <span className="inline-flex items-center rounded-md bg-indigo-500/15 border border-indigo-500/30 px-1 py-0 text-[8.5px] font-black text-indigo-700 dark:text-indigo-300 shrink-0">
+            +{extraCount}
+          </span>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenDrawer();
+        }}
+        className="opacity-40 group-hover/cell:opacity-100 hover:!opacity-100 hover:scale-110 p-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-all shrink-0 ml-0.5 cursor-pointer"
+        title="Add extra deliverable / open drawer (+)"
+      >
+        <Plus size={8} className="stroke-[3]" />
+      </button>
     </div>
   );
 };
@@ -367,6 +509,14 @@ const SMMOnePageTracker = () => {
   const [clientToDelete, setClientToDelete] = useState(null);
   const [deleteMode, setDeleteMode] = useState('month'); // 'month' | 'permanent'
   const [deleting, setDeleting] = useState(false);
+  const [drawerState, setDrawerState] = useState({
+    isOpen: false,
+    client: null,
+    dayNumber: null,
+    dayCell: null,
+    trackerId: null,
+    rowIdx: null,
+  });
 
   const isCurrentMonth = month === (now.getMonth() + 1) && year === now.getFullYear();
   const currentDayNumber = isCurrentMonth ? now.getDate() : null;
@@ -435,6 +585,9 @@ const SMMOnePageTracker = () => {
 
             const updatedDays = (row.days || []).map((d) => {
               if (d.day === Number(data.day)) {
+                if (data.cell) {
+                  return { ...d, ...data.cell };
+                }
                 return { ...d, [data.field]: data.value };
               }
               return d;
@@ -442,6 +595,18 @@ const SMMOnePageTracker = () => {
 
             return { ...row, days: updatedDays };
           });
+        });
+
+        // Also update open drawer state if currently inspecting this cell
+        setDrawerState((prev) => {
+          if (!prev.isOpen || prev.dayNumber !== Number(data.day)) return prev;
+          const matchesDrawerTracker = data.trackerId && prev.trackerId && prev.trackerId.toString() === data.trackerId.toString();
+          const matchesDrawerClient = data.clientId && prev.client?._id && prev.client._id.toString() === data.clientId.toString();
+          if (!matchesDrawerTracker && !matchesDrawerClient) return prev;
+          return {
+            ...prev,
+            dayCell: data.cell ? { ...(prev.dayCell || {}), ...data.cell } : { ...(prev.dayCell || {}), [data.field]: data.value },
+          };
         });
       }
     };
@@ -798,12 +963,22 @@ const SMMOnePageTracker = () => {
     const cell = row.days.find(d => d.day === dayNum) || {};
     const autoPending = isDayBeforeToday(dayNum, month, year) && hasPosterContent(value) && (!cell[sf] || cell[sf] === 'todo');
 
+    let updatedItems = cell.items;
+    if (Array.isArray(cell.items) && cell.items.length > 0) {
+      const targetTypes = field === 'storyLabel' ? ['story'] : ['reel', 'post', 'video', 'carousel'];
+      const itemIdx = cell.items.findIndex((it) => targetTypes.includes(it.type));
+      if (itemIdx >= 0) {
+        updatedItems = cell.items.map((it, idx) => (idx === itemIdx ? { ...it, label: value } : it));
+      }
+    }
+
     setRows(prev => {
       const u = [...prev];
       const r = { ...u[rowIdx] };
       r.days = r.days.map(d => {
         if (d.day === dayNum) {
           const updated = { ...d, [field]: value };
+          if (updatedItems) updated.items = updatedItems;
           if (autoPending) updated[sf] = 'pending';
           return updated;
         }
@@ -815,12 +990,80 @@ const SMMOnePageTracker = () => {
     try {
       let saved = row;
       if (!row._id) saved = await ensureRow(row);
-      await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, { field, value });
+      const payload = { field, value };
+      if (updatedItems) payload.items = updatedItems;
+      await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, payload);
       if (autoPending) {
         await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, { field: sf, value: 'pending' });
       }
     } catch(err) {
       toast.error('Failed to save label');
+      fetchData(true);
+    }
+  };
+
+  const handleOpenDayDrawer = (rowIdx, dayNum) => {
+    const row = rows[rowIdx];
+    if (!row) return;
+    const cell = (row.days || []).find((d) => d.day === dayNum) || { day: dayNum, items: [] };
+    setDrawerState({
+      isOpen: true,
+      client: row.client,
+      dayNumber: dayNum,
+      dayCell: cell,
+      trackerId: row._id || null,
+      rowIdx,
+    });
+  };
+
+  const handleSaveDayCell = async (dayNum, payload) => {
+    if (drawerState.rowIdx === null || drawerState.rowIdx === undefined) return;
+    const rowIdx = drawerState.rowIdx;
+    const row = rows[rowIdx];
+    if (!row) return;
+
+    // Optimistic UI update
+    setRows((prev) => {
+      const u = [...prev];
+      if (!u[rowIdx]) return prev;
+      const r = { ...u[rowIdx] };
+      r.days = (r.days || []).map((d) => {
+        if (d.day === dayNum) {
+          return { ...d, ...payload };
+        }
+        return d;
+      });
+      u[rowIdx] = r;
+      return u;
+    });
+
+    setDrawerState((prev) => {
+      if (!prev.isOpen || prev.dayNumber !== dayNum) return prev;
+      return {
+        ...prev,
+        dayCell: { ...(prev.dayCell || {}), ...payload },
+      };
+    });
+
+    try {
+      let saved = row;
+      if (!row._id) {
+        saved = await ensureRow(row);
+        setRows((prev) => {
+          const u = [...prev];
+          if (!u[rowIdx]) return prev;
+          u[rowIdx] = {
+            ...saved,
+            days: (saved.days || []).map((d) => (d.day === dayNum ? { ...d, ...payload } : d)),
+          };
+          return u;
+        });
+        setDrawerState((prev) => ({ ...prev, trackerId: saved._id }));
+      }
+      await smmApi.updateTrackerDayCell(saved._id || row._id, dayNum, payload);
+    } catch (err) {
+      console.error('Failed to save day cell deliverables:', err);
+      toast.error('Failed to save day deliverables');
       fetchData(true);
     }
   };
@@ -1146,7 +1389,13 @@ const SMMOnePageTracker = () => {
                           const cell = row.days.find(dc => dc.day===d) || {};
                           return (
                             <td key={d} style={DAY_CELL(sun, isToday)}>
-                              <EditableLabel value={cell[labelField]} placeholder={section==='posts'?'R/P':'S#'} onSave={v => handleLabelSave(rowIdx, d, labelField, v)}/>
+                              <DayCellDeliverableSlot
+                                cell={cell}
+                                field={labelField}
+                                section={section}
+                                onSaveLabel={v => handleLabelSave(rowIdx, d, labelField, v)}
+                                onOpenDrawer={() => handleOpenDayDrawer(rowIdx, d)}
+                              />
                             </td>
                           );
                         })}
@@ -1172,12 +1421,19 @@ const SMMOnePageTracker = () => {
                           const cell = row.days.find(dc => dc.day===d) || {};
                           const rawSt = cell[statusField] || 'todo';
                           const st = resolveCellStatus(rawSt, cell[labelField], d, month, year);
+                          const relevantItems = Array.isArray(cell.items)
+                            ? (section === 'stories'
+                                ? cell.items.filter((it) => it.type === 'story')
+                                : cell.items.filter((it) => ['reel', 'post', 'video', 'carousel'].includes(it.type)))
+                            : [];
                           return (
                             <td key={d} style={STATUS_DAY_CELL(sun, isToday)}>
                               <StatusBadge
                                 status={st}
+                                items={relevantItems}
                                 onClick={() => handleStatusToggle(rowIdx, d, statusField)}
                                 onSelectStatus={(newSt) => handleStatusSet(rowIdx, d, statusField, newSt)}
+                                onOpenDrawer={() => handleOpenDayDrawer(rowIdx, d)}
                               />
                             </td>
                           );
@@ -1506,6 +1762,24 @@ const SMMOnePageTracker = () => {
           </div>
         </div>
       )}
+      {/* ── Day Deliverables Breakdown & Multi-Add Drawer ── */}
+      <TrackerDayDeliverablesDrawer
+        isOpen={drawerState.isOpen}
+        onClose={() => setDrawerState((prev) => ({ ...prev, isOpen: false }))}
+        client={drawerState.client}
+        dayNumber={drawerState.dayNumber}
+        monthName={MONTHS[month - 1]}
+        year={year}
+        dayOfWeek={
+          drawerState.dayNumber
+            ? DAYS_SHORT[getDayOfWeek(year, month, drawerState.dayNumber)]
+            : ''
+        }
+        isToday={isCurrentMonth && drawerState.dayNumber === currentDayNumber}
+        dayCell={drawerState.dayCell}
+        trackerId={drawerState.trackerId}
+        onSaveCell={handleSaveDayCell}
+      />
     </div>
   );
 };

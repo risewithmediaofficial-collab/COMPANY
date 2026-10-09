@@ -17,6 +17,7 @@ const buildEmptyDays = (year, month) => {
     storyLabel: '',
     storyStatus: 'todo',
     note: '',
+    items: [],
   }));
 };
 
@@ -333,31 +334,81 @@ export const upsertTracker = async (req, res) => {
   }
 };
 
-// ── PATCH a single day cell status ─────────────────────────────────────────
-// PATCH /api/smm/tracker/:id/day/:day  { field: 'postStatus'|'storyStatus'|'postLabel'|'storyLabel'|'note', value }
+// ── PATCH a single day cell status & items ─────────────────────────────────
+// PATCH /api/smm/tracker/:id/day/:day  { field, value } OR { items, postStatus, postLabel, storyStatus, storyLabel, note }
 export const updateDayCell = async (req, res) => {
   try {
     const { id, day } = req.params;
-    const { field, value } = req.body;
-
     const dayNum = parseInt(day);
-    const allowedFields = ['postStatus', 'postLabel', 'storyStatus', 'storyLabel', 'note'];
-    if (!allowedFields.includes(field)) {
-      return res.status(400).json({ success: false, message: 'Invalid field' });
-    }
 
-    // Find the tracker and update the specific day cell
     const tracker = await SmmMonthlyTracker.findById(id);
     if (!tracker) {
       return res.status(404).json({ success: false, message: 'Tracker not found' });
     }
 
-    const dayCell = tracker.days.find((d) => d.day === dayNum);
+    let dayCell = tracker.days.find((d) => d.day === dayNum);
     if (!dayCell) {
-      // Add missing day cell
-      tracker.days.push({ day: dayNum, [field]: value });
-    } else {
+      dayCell = { day: dayNum, postLabel: '', postStatus: 'todo', storyLabel: '', storyStatus: 'todo', items: [] };
+      tracker.days.push(dayCell);
+      dayCell = tracker.days.find((d) => d.day === dayNum);
+    }
+
+    // 1. Direct items update (from Day Details Drawer)
+    if (req.body.items !== undefined) {
+      const itemsList = Array.isArray(req.body.items) ? req.body.items : [];
+      dayCell.items = itemsList;
+
+      // Automatically sync primary post/story fields from items if not explicitly provided
+      const contentItems = itemsList.filter((it) => ['reel', 'post', 'video', 'carousel'].includes(it.type));
+      const storyItems = itemsList.filter((it) => it.type === 'story');
+
+      if (req.body.postLabel !== undefined) {
+        dayCell.postLabel = req.body.postLabel;
+      } else if (contentItems.length > 0) {
+        dayCell.postLabel = contentItems[0].label || '';
+      }
+
+      if (req.body.postStatus !== undefined) {
+        dayCell.postStatus = req.body.postStatus;
+      } else if (contentItems.length > 0) {
+        // If all done, done; if any pending, pending; else first item status
+        const allDone = contentItems.every((it) => it.status === 'done');
+        const anyPending = contentItems.some((it) => it.status === 'pending');
+        dayCell.postStatus = allDone ? 'done' : (anyPending ? 'pending' : (contentItems[0].status || 'todo'));
+      }
+
+      if (req.body.storyLabel !== undefined) {
+        dayCell.storyLabel = req.body.storyLabel;
+      } else if (storyItems.length > 0) {
+        dayCell.storyLabel = storyItems[0].label || '';
+      }
+
+      if (req.body.storyStatus !== undefined) {
+        dayCell.storyStatus = req.body.storyStatus;
+      } else if (storyItems.length > 0) {
+        const allDone = storyItems.every((it) => it.status === 'done');
+        const anyPending = storyItems.some((it) => it.status === 'pending');
+        dayCell.storyStatus = allDone ? 'done' : (anyPending ? 'pending' : (storyItems[0].status || 'todo'));
+      }
+
+      if (req.body.note !== undefined) {
+        dayCell.note = req.body.note;
+      }
+    } else if (req.body.field) {
+      // 2. Legacy single-field update
+      const { field, value } = req.body;
+      const allowedFields = ['postStatus', 'postLabel', 'storyStatus', 'storyLabel', 'note', 'items'];
+      if (!allowedFields.includes(field)) {
+        return res.status(400).json({ success: false, message: 'Invalid field' });
+      }
       dayCell[field] = value;
+    } else {
+      // 3. Selective field updates
+      if (req.body.postLabel !== undefined) dayCell.postLabel = req.body.postLabel;
+      if (req.body.postStatus !== undefined) dayCell.postStatus = req.body.postStatus;
+      if (req.body.storyLabel !== undefined) dayCell.storyLabel = req.body.storyLabel;
+      if (req.body.storyStatus !== undefined) dayCell.storyStatus = req.body.storyStatus;
+      if (req.body.note !== undefined) dayCell.note = req.body.note;
     }
 
     tracker.updatedBy = req.user?._id;
@@ -370,11 +421,17 @@ export const updateDayCell = async (req, res) => {
       trackerId: tracker._id.toString(),
       clientId: tracker.client?._id?.toString() || tracker.client?.toString(),
       day: dayNum,
-      field,
-      value,
+      cell: dayCell,
+      field: req.body.field || 'cell',
+      value: req.body.value !== undefined ? req.body.value : dayCell,
       month: tracker.month,
       year: tracker.year,
       updatedBy: req.user?._id,
+    });
+    emitLiveEvent('smmTrackerUpdated', {
+      trackerId: tracker._id.toString(),
+      month: tracker.month,
+      year: tracker.year,
     });
 
     res.json({ success: true, data: result });
