@@ -30,9 +30,9 @@ router.get('/calendar', authorize('superAdmin', 'admin', 'manager', 'employee', 
 router.get('/weekly-report', authorize('superAdmin', 'admin', 'manager', 'employee'), getWeeklyTaskReport);
 router.post('/daily', authorize('superAdmin', 'admin', 'manager', 'employee'), createDailyTask);
 router.get('/:id', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), getTask);
-router.post('/', authorize('superAdmin', 'admin', 'manager', 'employee'), createTask);
-router.put('/:id', authorize('superAdmin', 'admin', 'manager', 'employee'), updateTask);
-router.patch('/:id/status', authorize('superAdmin', 'admin', 'manager', 'employee'), updateTaskStatus);
+router.post('/', authorize('superAdmin', 'admin', 'manager', 'organizationOwner'), createTask);
+router.put('/:id', authorize('superAdmin', 'admin', 'manager', 'organizationOwner'), updateTask);
+router.patch('/:id/status', authorize('superAdmin', 'admin', 'manager', 'employee', 'organizationOwner'), updateTaskStatus);
 router.patch('/:id/checklist', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), updateTaskChecklist);
 router.post('/:id/notes', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), addTaskNote);
 router.post('/:id/comment', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), addComment);

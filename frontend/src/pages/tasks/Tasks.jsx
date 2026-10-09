@@ -115,7 +115,7 @@ const Tasks = () => {
   const isEmployee = user?.role === 'employee';
   const isClient = user?.role === 'client';
   const isManager = user?.role === 'manager';
-  const { data: tasks = [], isLoading } = useTasks(filters);
+  const { data: tasks = [], isLoading } = useTasks({ ...filters, limit: 300, parent: 'all' });
   const { data: clients = [] } = useClients();
   const { data: users = [] } = useUsers();
   const deleteTaskMutation = useDeleteTask();
@@ -167,7 +167,8 @@ const Tasks = () => {
   };
 
   const dateFilteredTasks = useMemo(() => {
-    if (isGlobalDateFiltered || globalStartDate || globalEndDate) {
+    // Only filter by date if user has explicitly chosen an active date range
+    if (globalStartDate || globalEndDate) {
       return normalizedTasks.filter((task) =>
         isDateInRange([
           task.dueDate,
@@ -178,7 +179,7 @@ const Tasks = () => {
       );
     }
     return normalizedTasks;
-  }, [normalizedTasks, isGlobalDateFiltered, globalStartDate, globalEndDate, isDateInRange]);
+  }, [normalizedTasks, globalStartDate, globalEndDate, isDateInRange]);
 
   const taskMetrics = {
     total: dateFilteredTasks.length,
@@ -289,8 +290,8 @@ const Tasks = () => {
       });
     }
 
-    // Status filter
-    if (filters.status) {
+    // Status filter - only filter in table view so Kanban board always shows tasks in all stages
+    if (filters.status && currentView === 'table') {
       result = result.filter((task) => task.status === filters.status);
     }
 
@@ -554,7 +555,7 @@ const Tasks = () => {
     return <PortalTasks />;
   }
 
-  const canCreate = ['superAdmin', 'admin', 'manager'].includes(user?.role);
+  const canCreate = !isEmployee && ['superAdmin', 'admin', 'manager', 'organizationOwner'].includes(user?.role);
 
   return (
     <WorkspacePage
@@ -674,13 +675,16 @@ const Tasks = () => {
       }
     >
       <div className="space-y-4">
-        {/* Team Quick Assign Roster categorized by Media / Developer / SMM / Management */}
-        <TeamQuickAssignRoster
-          users={users}
-          tasks={tasks}
-          onQuickAssign={handleQuickAssignEmployee}
-          onOpenCreateGeneral={handleOpenCreateGeneral}
-        />
+        {/* Team Quick Assign Roster categorized by Media / Developer / SMM / Management - for managers/admins */}
+        {canCreate && (
+          <TeamQuickAssignRoster
+            users={users}
+            tasks={tasks}
+            onQuickAssign={handleQuickAssignEmployee}
+            onOpenCreateGeneral={handleOpenCreateGeneral}
+            canCreate={canCreate}
+          />
+        )}
 
         {/* Database View Engine (Table + Kanban Board) */}
         <DatabaseView
@@ -982,6 +986,7 @@ const Tasks = () => {
               tasks={displayedTasks}
               onSelectTask={handleOpenWorkflowDrawer}
               onOpenCreateGeneral={handleOpenCreateGeneral}
+              canCreate={canCreate}
             />
           </div>
         )}

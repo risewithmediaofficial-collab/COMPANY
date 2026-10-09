@@ -14,6 +14,7 @@ import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
 import { matchesContentType, getMonthDateRange } from './projectMonthlyDeliverable.controller.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
+import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 
 const taskStatusMap = {
   'To Do': 'todo',
@@ -287,7 +288,7 @@ const buildScopedTaskFilter = async (req, baseFilter = {}) => {
   const baseOr = filter.$or;
   if (baseOr) delete filter.$or;
 
-  if (req.user.role === 'superAdmin' || req.user.role === 'admin') return baseOr ? { ...filter, $or: baseOr } : filter;
+  if (['superAdmin', 'admin', 'organizationOwner'].includes(req.user.role)) return baseOr ? { ...filter, $or: baseOr } : filter;
 
   if (req.user.role === 'manager') {
     const { projectIds, clientIds } = await getManagedScope(req.user._id);
@@ -324,7 +325,7 @@ const buildScopedTaskFilter = async (req, baseFilter = {}) => {
 
 const assertTaskAccess = async (req, task) => {
   if (!task) return { allowed: false, status: 404, message: 'Task not found' };
-  if (req.user.role === 'superAdmin' || req.user.role === 'admin') return { allowed: true };
+  if (['superAdmin', 'admin', 'organizationOwner'].includes(req.user.role)) return { allowed: true };
 
   const userId = req.user._id.toString();
   const isAssigned = isTaskAssignedToUser(task, userId);
@@ -610,12 +611,8 @@ export const getTasks = async (req, res) => {
     if (client) filter.client = client;
     if (taskCategory) filter.taskCategory = taskCategoryMap[taskCategory] || taskCategory;
     if (taskType) filter.taskType = taskType;
-    if (parent === 'all') {
-      // leave unfiltered
-    } else if (parent) {
+    if (parent && parent !== 'all') {
       filter.parent = parent;
-    } else {
-      filter.parent = null;
     }
 
     if (status) filter.status = taskStatusMap[status] || status;

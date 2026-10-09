@@ -65,6 +65,7 @@ export const TeamQuickAssignRoster = ({
   tasks = [],
   onQuickAssign,
   onOpenCreateGeneral,
+  canCreate = true,
 }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -157,8 +158,8 @@ export const TeamQuickAssignRoster = ({
             />
           </div>
 
-          {/* General Create Button */}
-          {onOpenCreateGeneral && (
+          {/* General Create Button - only for managers/admins */}
+          {canCreate && onOpenCreateGeneral && (
             <button
               onClick={onOpenCreateGeneral}
               className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 text-xs font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:from-indigo-500 hover:to-violet-500 active:scale-95"
@@ -294,14 +295,20 @@ export const TeamQuickAssignRoster = ({
                     {activeCount === 0 ? '✨ Idle' : `${activeCount} in progress`}
                   </span>
 
-                  <button
-                    onClick={() => onQuickAssign && onQuickAssign(user)}
-                    title={`Create task for ${user.name}`}
-                    className="inline-flex h-6 items-center gap-1 rounded-md bg-indigo-50 px-2 text-[11px] font-semibold text-indigo-600 transition-all hover:bg-indigo-600 hover:text-white dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-600 dark:hover:text-white"
-                  >
-                    <Plus className="h-3 w-3 stroke-[2.5]" />
-                    <span>Assign</span>
-                  </button>
+                  {canCreate ? (
+                    <button
+                      onClick={() => onQuickAssign && onQuickAssign(user)}
+                      title={`Create task for ${user.name}`}
+                      className="inline-flex h-6 items-center gap-1 rounded-md bg-indigo-50 px-2 text-[11px] font-semibold text-indigo-600 transition-all hover:bg-indigo-600 hover:text-white dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-600 dark:hover:text-white"
+                    >
+                      <Plus className="h-3 w-3 stroke-[2.5]" />
+                      <span>Assign</span>
+                    </button>
+                  ) : (
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                      Team Member
+                    </span>
+                  )}
                 </div>
               </div>
             );

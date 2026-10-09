@@ -20,7 +20,7 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Not authorized, no token' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-super-secret-jwt-key');
     const user = await User.findById(decoded.id).select('+passwordChangedAt -password -refreshToken');
 
     if (!user) {
@@ -48,6 +48,7 @@ export const protect = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
+    console.error('Auth protect error:', error.message);
     return res.status(401).json({ success: false, message: 'Not authorized, token failed' });
   }
 };
@@ -102,14 +103,14 @@ export const withWorkspaceScope = (req, baseQuery = {}) => {
   const user = req.user;
   if (!user) return baseQuery;
   
-  if (user.role === 'superAdmin' || user.role === 'admin') {
+  if (user.role === 'superAdmin' || user.role === 'admin' || user.role === 'employee') {
     if (req.headers['x-workspace-id']) {
       return { ...baseQuery, brandId: req.headers['x-workspace-id'] };
     }
     return baseQuery;
   }
   
-  const query = { ...baseQuery, organizationId: user.organizationId };
+  const query = user.organizationId ? { ...baseQuery, organizationId: user.organizationId } : { ...baseQuery };
   
   // Explicit workspace selection from UI
   if (req.headers['x-workspace-id']) {

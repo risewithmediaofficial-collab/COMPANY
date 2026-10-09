@@ -85,16 +85,57 @@ export const KANBAN_COLUMNS = [
 // Helper to normalize task status into the 7 Kanban column keys
 export const normalizeToKanbanColumn = (status) => {
   if (!status) return 'todo';
-  const s = status.toLowerCase();
+  const s = String(status).toLowerCase().replace(/[-_]+/g, ' ').trim();
 
-  if (s === 'todo' || s === 'task received') return 'todo';
-  if (s === 'in_progress' || s === 'on_process' || s === 'work in progress') return 'in_progress';
-  if (s === 'review' || s === 'review_required' || s === 'rework' || s === 'rework_completed') return 'review';
-  if (s === 'client_approval' || s === 'waiting_for_client') return 'client_approval';
-  if (s === 'smm_team') return 'smm_team';
-  if (s === 'drive_uploaded' || s === 'drive uploaded' || s === 'drive') return 'drive_uploaded';
-  if (s === 'completed' || s === 'done' || s === 'approved') return 'completed';
+  // Completed / Done / Approved
+  if (['completed', 'complete', 'done', 'approved'].includes(s)) {
+    return 'completed';
+  }
 
+  // Drive Uploaded
+  if (['drive uploaded', 'drive', 'uploaded', 'files uploaded', 'drive upload'].includes(s)) {
+    return 'drive_uploaded';
+  }
+
+  // SMM Team / Publishing
+  if (['smm team', 'smm', 'social media', 'posting', 'scheduled'].includes(s)) {
+    return 'smm_team';
+  }
+
+  // Client Approval
+  if (['client approval', 'waiting for client', 'client review', 'waiting client'].includes(s)) {
+    return 'client_approval';
+  }
+
+  // Internal Approval / Review / Rework
+  if ([
+    'review',
+    'internal approval',
+    'review required',
+    'in review',
+    'rework',
+    'rework completed',
+    'manager review',
+  ].includes(s)) {
+    return 'review';
+  }
+
+  // In Progress / On Process / Ongoing
+  if ([
+    'in progress',
+    'on process',
+    'work in progress',
+    'ongoing',
+    'in development',
+    'developing',
+    'filming',
+    'editing',
+    'scripting',
+  ].includes(s)) {
+    return 'in_progress';
+  }
+
+  // To Do / Task Received / Backlog / Default
   return 'todo';
 };
 
@@ -102,6 +143,7 @@ export const TasksKanbanPipeline = ({
   tasks = [],
   onSelectTask,
   onOpenCreateGeneral,
+  canCreate = true,
 }) => {
   const updateStatusMutation = useUpdateTaskStatus();
   const [draggedTaskId, setDraggedTaskId] = useState(null);
@@ -318,8 +360,8 @@ export const TasksKanbanPipeline = ({
                   </span>
                 </div>
 
-                {/* Quick Add Button on To Do column */}
-                {column.id === 'todo' && onOpenCreateGeneral && (
+                {/* Quick Add Button on To Do column - only if user can create tasks */}
+                {column.id === 'todo' && onOpenCreateGeneral && canCreate && (
                   <button
                     onClick={onOpenCreateGeneral}
                     className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:bg-white hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-500 dark:hover:bg-slate-800"
