@@ -22,6 +22,7 @@ const taskStatusMap = {
   'Internal Approval': 'review',
   'Client Approval': 'client_approval',
   'SMM Team': 'smm_team',
+  'Drive Uploaded': 'drive_uploaded',
   Approved: 'approved',
   Done: 'done',
   Blocked: 'rejected',
@@ -39,6 +40,7 @@ const taskStatusMap = {
   review: 'review',
   client_approval: 'client_approval',
   smm_team: 'smm_team',
+  drive_uploaded: 'drive_uploaded',
   completed: 'completed',
 };
 
@@ -48,6 +50,7 @@ const statusLabels = {
   review: 'Internal Approval',
   client_approval: 'Client Approval',
   smm_team: 'SMM Team',
+  drive_uploaded: 'Drive Uploaded',
   approved: 'Approved',
   rejected: 'Blocked',
   done: 'Completed',
@@ -246,6 +249,8 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.shootDate !== undefined) payload.shootDate = payload.shootDate ? new Date(payload.shootDate) : undefined;
   if (payload.shootLocation !== undefined) payload.shootLocation = payload.shootLocation ? payload.shootLocation.trim() : '';
   if (payload.rawFootageLink !== undefined) payload.rawFootageLink = normalizeLink(payload.rawFootageLink);
+  if (payload.driveLink !== undefined) payload.driveLink = normalizeLink(payload.driveLink);
+  if (payload.driveUploadLink !== undefined) payload.driveUploadLink = normalizeLink(payload.driveUploadLink);
   if (payload.postingScheduleDate !== undefined) payload.postingScheduleDate = payload.postingScheduleDate ? new Date(payload.postingScheduleDate) : undefined;
   if (payload.publishingDate !== undefined) payload.publishingDate = payload.publishingDate ? new Date(payload.publishingDate) : undefined;
   if (payload.publishingTime !== undefined) payload.publishingTime = payload.publishingTime ? payload.publishingTime.toString().trim() : '';

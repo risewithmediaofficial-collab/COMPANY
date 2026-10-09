@@ -180,6 +180,7 @@ const taskSchema = new mongoose.Schema(
         'review',
         'client_approval',
         'smm_team',
+        'drive_uploaded',
         'approved',
         'rejected',
         'done',

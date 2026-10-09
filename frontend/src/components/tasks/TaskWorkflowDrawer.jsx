@@ -23,6 +23,7 @@ export const PIPELINE_STAGES = [
   { id: 'review', label: 'Internal Approval', color: 'purple', badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
   { id: 'client_approval', label: 'Client Approval', color: 'amber', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
   { id: 'smm_team', label: 'SMM Team', color: 'indigo', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' },
+  { id: 'drive_uploaded', label: 'Drive Uploaded', color: 'cyan', badge: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300' },
   { id: 'completed', label: 'Completed', color: 'emerald', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
 ];
 
@@ -42,6 +43,7 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
     if (s === 'on_process') return 'in_progress';
     if (s === 'review_required') return 'review';
     if (s === 'waiting_for_client') return 'client_approval';
+    if (s === 'drive_uploaded' || s === 'drive uploaded') return 'drive_uploaded';
     if (['done', 'approved'].includes(s)) return 'completed';
     return s || 'todo';
   })();
@@ -237,6 +239,65 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
                 </button>
               )}
             </div>
+
+            {/* SMM Team Member Sub-Assignment */}
+            {task.publisherName && (
+              <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-xs">
+                <span className="font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                  📱 SMM Team Member (Social Media):
+                </span>
+                <span className="font-bold text-slate-800 dark:text-slate-100">
+                  {task.publisherName}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Drive Uploaded Files Card */}
+          <div className="rounded-xl border border-cyan-200/80 bg-cyan-50/30 p-3.5 dark:border-cyan-900/60 dark:bg-cyan-950/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-base">☁️</span>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                    Google Drive Assets
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Edited assets ready for review & posting
+                  </p>
+                </div>
+              </div>
+
+              {currentStatus !== 'drive_uploaded' && (
+                <button
+                  onClick={() => handleStageChange('drive_uploaded')}
+                  className="rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-cyan-500 transition-all shadow-xs"
+                >
+                  Move to Drive Uploaded
+                </button>
+              )}
+            </div>
+
+            {(task.driveUploadLink || task.driveLink || task.rawFootageLink) ? (
+              <div className="mt-2.5 flex items-center justify-between gap-2 rounded-lg bg-white p-2.5 border border-cyan-100 dark:bg-slate-900 dark:border-slate-800">
+                <span className="truncate text-xs font-medium text-slate-700 dark:text-slate-300">
+                  {task.driveUploadLink || task.driveLink || task.rawFootageLink}
+                </span>
+                <a
+                  href={task.driveUploadLink || task.driveLink || task.rawFootageLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md bg-cyan-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-cyan-500 shrink-0"
+                >
+                  <span>Open Drive</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            ) : (
+              <p className="mt-2 text-[11px] text-slate-400 italic">
+                No Drive link attached yet. Upload edited files to Drive and attach the link.
+              </p>
+            )}
           </div>
 
           {/* 3. Interactive Kanban Pipeline Stage Stepper */}

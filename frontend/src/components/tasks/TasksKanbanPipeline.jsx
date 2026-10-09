@@ -53,6 +53,14 @@ export const KANBAN_COLUMNS = [
     description: 'Ready for posting & scheduling',
   },
   {
+    id: 'drive_uploaded',
+    title: 'Drive Uploaded',
+    icon: '☁️',
+    color: 'border-t-cyan-500 bg-cyan-500/5',
+    badge: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300',
+    description: 'Edited assets uploaded to Drive',
+  },
+  {
     id: 'completed',
     title: 'Completed',
     icon: '✅',
@@ -62,7 +70,7 @@ export const KANBAN_COLUMNS = [
   },
 ];
 
-// Helper to normalize task status into the 6 Kanban column keys
+// Helper to normalize task status into the 7 Kanban column keys
 export const normalizeToKanbanColumn = (status) => {
   if (!status) return 'todo';
   const s = status.toLowerCase();
@@ -72,6 +80,7 @@ export const normalizeToKanbanColumn = (status) => {
   if (s === 'review' || s === 'review_required' || s === 'rework' || s === 'rework_completed') return 'review';
   if (s === 'client_approval' || s === 'waiting_for_client') return 'client_approval';
   if (s === 'smm_team') return 'smm_team';
+  if (s === 'drive_uploaded' || s === 'drive uploaded' || s === 'drive') return 'drive_uploaded';
   if (s === 'completed' || s === 'done' || s === 'approved') return 'completed';
 
   return 'todo';
@@ -294,21 +303,45 @@ export const TasksKanbanPipeline = ({
                       }`}
                     >
                       {/* Top Row: Category Pill & Client */}
-                      <div className="flex items-center justify-between gap-1 mb-1.5">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                            task.taskCategory === 'content'
-                              ? 'bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-300'
-                              : 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
-                          }`}
-                        >
-                          {task.taskCategory === 'content' ? (
-                            <Video className="h-2.5 w-2.5" />
-                          ) : (
-                            <Code2 className="h-2.5 w-2.5" />
+                      <div className="flex items-center justify-between gap-1 mb-1.5 flex-wrap">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                              task.taskCategory === 'content'
+                                ? 'bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-950/60 dark:text-fuchsia-300'
+                                : 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300'
+                            }`}
+                          >
+                            {task.taskCategory === 'content' ? (
+                              <Video className="h-2.5 w-2.5" />
+                            ) : (
+                              <Code2 className="h-2.5 w-2.5" />
+                            )}
+                            <span>{task.taskType || 'Task'}</span>
+                          </span>
+
+                          {task.publisherName && (
+                            <span
+                              title={`SMM Assigned: ${task.publisherName}`}
+                              className="inline-flex items-center gap-0.5 rounded-md bg-purple-50 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300"
+                            >
+                              📱 {task.publisherName}
+                            </span>
                           )}
-                          <span>{task.taskType || 'Task'}</span>
-                        </span>
+
+                          {(task.driveUploadLink || task.driveLink || task.rawFootageLink) && (
+                            <a
+                              href={task.driveUploadLink || task.driveLink || task.rawFootageLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-0.5 rounded-md bg-cyan-50 px-1.5 py-0.5 text-[9px] font-bold text-cyan-700 hover:bg-cyan-100 hover:text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300"
+                              title="Open Google Drive Files"
+                            >
+                              ☁️ Drive
+                            </a>
+                          )}
+                        </div>
 
                         {task.clientName && (
                           <span

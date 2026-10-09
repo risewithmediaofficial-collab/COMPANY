@@ -68,13 +68,14 @@ export const KanbanCreateTaskModal = ({
     return tomorrow.toISOString().split('T')[0];
   });
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [smmUserId, setSmmUserId] = useState('');
 
-  // Multi-Client Batch Mode
-  const [isBatchMode, setIsBatchMode] = useState(false);
+  // Client & Project Selection
   const [singleClientId, setSingleClientId] = useState('');
   const [singleProjectId, setSingleProjectId] = useState('');
-  // Batch state: array of { clientId, projectId }
-  const [batchSelections, setBatchSelections] = useState([]);
+
+  // Multi-Task Queue State (supports adding different tasks for different clients/projects)
+  const [queuedTasks, setQueuedTasks] = useState([]);
 
   // Content specific
   const [selectedPlatforms, setSelectedPlatforms] = useState(['Instagram']);
@@ -89,6 +90,22 @@ export const KanbanCreateTaskModal = ({
   // Checklist
   const [checklist, setChecklist] = useState([]);
   const [newChecklistText, setNewChecklistText] = useState('');
+
+  // Detect SMM / Social Media specialists from team
+  const smmUsers = useMemo(() => {
+    return users.filter((u) => {
+      const dept = (u.department || '').toLowerCase();
+      const pos = (u.position || u.designation || u.role || '').toLowerCase();
+      return (
+        dept.includes('smm') ||
+        dept.includes('social') ||
+        dept.includes('market') ||
+        pos.includes('smm') ||
+        pos.includes('social') ||
+        pos.includes('publish')
+      );
+    });
+  }, [users]);
 
   // Reset or initialize when modal opens or initialUser changes
   useEffect(() => {
@@ -118,6 +135,8 @@ export const KanbanCreateTaskModal = ({
       if (clients.length > 0 && !singleClientId) {
         setSingleClientId(clients[0]._id);
       }
+    } else {
+      setQueuedTasks([]);
     }
   }, [isOpen, initialUser, users, clients]);
 
@@ -133,24 +152,50 @@ export const KanbanCreateTaskModal = ({
     }
   }, [subType, taskCategory]);
 
-  // Filter projects by selected client in single mode
-  const availableProjects = useMemo(() => {
-    if (!singleClientId) return projects;
-    return projects.filter(
-      (p) =>
-        (typeof p.client === 'object' ? p.client?._id : p.client)?.toString() ===
-        singleClientId.toString()
-    );
+  // Robust client ID extractor for projects
+  const getProjectClientId = (p) => {
+    if (!p) return null;
+    if (p.client) {
+      if (typeof p.client === 'object' && p.client._id) {
+        return p.client._id.toString();
+      }
+      return p.client.toString();
+    }
+    if (p.clientId) {
+      return p.clientId.toString();
+    }
+    return null;
+  };
+
+  const isProjectMatchClient = (p, clientId) => {
+    if (!p || !clientId) return false;
+    const pCid = getProjectClientId(p);
+    return pCid === clientId.toString();
+  };
+
+  // Projects strictly matching selected client in single mode
+  const clientSpecificProjects = useMemo(() => {
+    if (!singleClientId) return [];
+    return projects.filter((p) => isProjectMatchClient(p, singleClientId));
   }, [projects, singleClientId]);
 
-  // Set default project when client changes
+  // Other projects (or all projects if no client selected)
+  const otherProjects = useMemo(() => {
+    if (!singleClientId) return projects;
+    return projects.filter((p) => !isProjectMatchClient(p, singleClientId));
+  }, [projects, singleClientId]);
+
+  // Set default project when single client changes
   useEffect(() => {
-    if (availableProjects.length > 0) {
-      setSingleProjectId(availableProjects[0]._id);
-    } else {
-      setSingleProjectId('');
+    if (singleClientId) {
+      const specific = projects.filter((p) => isProjectMatchClient(p, singleClientId));
+      if (specific.length > 0) {
+        setSingleProjectId(specific[0]._id);
+      } else {
+        setSingleProjectId('');
+      }
     }
-  }, [availableProjects]);
+  }, [singleClientId, projects]);
 
   if (!isOpen) return null;
 
@@ -165,52 +210,10 @@ export const KanbanCreateTaskModal = ({
     setChecklist(checklist.filter((_, i) => i !== index));
   };
 
-  // Batch Selection Handlers
-  const toggleBatchClient = (client) => {
-    const cid = client._id;
-    const exists = batchSelections.find((item) => item.clientId === cid);
-
-    if (exists) {
-      setBatchSelections(batchSelections.filter((item) => item.clientId !== cid));
-    } else {
-      // Find matching project for this client
-      const clientProject = projects.find(
-        (p) =>
-          (typeof p.client === 'object' ? p.client?._id : p.client)?.toString() === cid.toString()
-      );
-      setBatchSelections([
-        ...batchSelections,
-        {
-          clientId: cid,
-          clientName: client.name,
-          projectId: clientProject ? clientProject._id : null,
-          projectName: clientProject ? clientProject.name : '',
-        },
-      ]);
-    }
-  };
-
-  const updateBatchProject = (clientId, projectId) => {
-    setBatchSelections(
-      batchSelections.map((item) => {
-        if (item.clientId === clientId) {
-          const prj = projects.find((p) => p._id === projectId);
-          return {
-            ...item,
-            projectId,
-            projectName: prj ? prj.name : '',
-          };
-        }
-        return item;
-      })
-    );
-  };
-
-  // Submit Handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Add Current Task to Queue (for multi-task creation across different clients/projects)
+  const handleAddToQueue = () => {
     if (!title.trim()) {
-      toast.error('Please enter a task title');
+      toast.error('Please enter a task name/title before adding to queue');
       return;
     }
     if (!selectedUserId) {
@@ -220,31 +223,41 @@ export const KanbanCreateTaskModal = ({
 
     const assignedUserObj = users.find((u) => u._id === selectedUserId);
     const assignedPersonName = assignedUserObj?.name || 'Assigned Member';
+    const smmUserObj = users.find((u) => u._id === smmUserId);
+    const clientObj = clients.find((c) => c._id === singleClientId);
+    const projectObj = projects.find((p) => p._id === singleProjectId);
 
-    // Base fields
-    const baseData = {
+    const taskItem = {
+      queueId: Date.now().toString() + Math.random().toString(36).substring(2, 6),
       title: title.trim(),
       taskTitle: title.trim(),
       taskCategory,
       taskType: subType,
       priority,
       dueDate,
-      status: 'todo', // Kanban flow: lands in To Do
+      status: 'todo',
       assignedTo: [selectedUserId],
       assignedPersonName,
+      publisherAssigned: smmUserId || undefined,
+      publisherName: smmUserObj?.name || '',
+      client: singleClientId || undefined,
+      clientName: clientObj?.name || (singleClientId ? 'Selected Client' : 'General / Internal'),
+      project: singleProjectId || undefined,
+      projectName: projectObj?.name || '',
       checklist: checklist.map((c) => ({ title: c.title, isCompleted: false })),
     };
 
     if (taskCategory === 'content') {
-      baseData.postingPlatforms = selectedPlatforms;
-      baseData.contentIdea = contentHook;
-      baseData.scriptText = contentHook;
-      baseData.rawFootageLink = driveLink;
-      baseData.referenceLink = driveLink;
+      taskItem.postingPlatforms = [...selectedPlatforms];
+      taskItem.contentIdea = contentHook;
+      taskItem.scriptText = contentHook;
+      taskItem.rawFootageLink = driveLink;
+      taskItem.driveLink = driveLink;
+      taskItem.referenceLink = driveLink;
     } else {
-      baseData.requirementDetails = techScope;
-      baseData.referenceLink = repoLink;
-      baseData.development = {
+      taskItem.requirementDetails = techScope;
+      taskItem.referenceLink = repoLink;
+      taskItem.development = {
         isDevTask: true,
         stage: 'backlog',
         bugSeverity: subType === 'bug_fix' ? bugSeverity : undefined,
@@ -252,41 +265,99 @@ export const KanbanCreateTaskModal = ({
       };
     }
 
-    try {
-      if (isBatchMode) {
-        if (batchSelections.length === 0) {
-          toast.error('Please select at least one client in batch mode');
-          return;
-        }
+    setQueuedTasks((prev) => [...prev, taskItem]);
+    toast.success(`Task added for ${clientObj?.name || 'client'}! Configure next task.`);
 
-        // Create tasks simultaneously for all selected clients
-        const tasksPayload = batchSelections.map((sel) => ({
-          ...baseData,
-          client: sel.clientId,
-          project: sel.projectId || undefined,
-          clientName: sel.clientName,
-        }));
+    // Reset task title and hook for next task, leaving assignee & date ready
+    setTitle('');
+    setContentHook('');
+    setDriveLink('');
+    setTechScope('');
+  };
 
-        await createTaskMutation.mutateAsync({ tasks: tasksPayload });
-        toast.success(`Successfully assigned ${batchSelections.length} tasks to ${assignedPersonName}!`);
-      } else {
-        // Single client task
-        const singleClientObj = clients.find((c) => c._id === singleClientId);
-        const payload = {
-          ...baseData,
-          client: singleClientId || undefined,
-          project: singleProjectId || undefined,
-          clientName: singleClientObj?.name || '',
-        };
+  const handleRemoveQueuedTask = (queueId) => {
+    setQueuedTasks((prev) => prev.filter((item) => item.queueId !== queueId));
+  };
 
-        await createTaskMutation.mutateAsync(payload);
-        toast.success(`Task created and assigned to ${assignedPersonName}!`);
+  // Submit Handler
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    let tasksToSubmit = [...queuedTasks];
+
+    // If user has a title typed in current form, include it too!
+    if (title.trim()) {
+      if (!selectedUserId) {
+        toast.error('Please select an employee to assign this task');
+        return;
       }
 
+      const assignedUserObj = users.find((u) => u._id === selectedUserId);
+      const assignedPersonName = assignedUserObj?.name || 'Assigned Member';
+      const smmUserObj = users.find((u) => u._id === smmUserId);
+      const clientObj = clients.find((c) => c._id === singleClientId);
+      const projectObj = projects.find((p) => p._id === singleProjectId);
+
+      const currentItem = {
+        title: title.trim(),
+        taskTitle: title.trim(),
+        taskCategory,
+        taskType: subType,
+        priority,
+        dueDate,
+        status: 'todo',
+        assignedTo: [selectedUserId],
+        assignedPersonName,
+        publisherAssigned: smmUserId || undefined,
+        publisherName: smmUserObj?.name || '',
+        client: singleClientId || undefined,
+        clientName: clientObj?.name || (singleClientId ? 'Selected Client' : 'General / Internal'),
+        project: singleProjectId || undefined,
+        projectName: projectObj?.name || '',
+        checklist: checklist.map((c) => ({ title: c.title, isCompleted: false })),
+      };
+
+      if (taskCategory === 'content') {
+        currentItem.postingPlatforms = [...selectedPlatforms];
+        currentItem.contentIdea = contentHook;
+        currentItem.scriptText = contentHook;
+        currentItem.rawFootageLink = driveLink;
+        currentItem.driveLink = driveLink;
+        currentItem.referenceLink = driveLink;
+      } else {
+        currentItem.requirementDetails = techScope;
+        currentItem.referenceLink = repoLink;
+        currentItem.development = {
+          isDevTask: true,
+          stage: 'backlog',
+          bugSeverity: subType === 'bug_fix' ? bugSeverity : undefined,
+          isBug: subType === 'bug_fix',
+        };
+      }
+
+      tasksToSubmit.push(currentItem);
+    }
+
+    if (tasksToSubmit.length === 0) {
+      toast.error('Please enter a task name/title');
+      return;
+    }
+
+    try {
+      if (tasksToSubmit.length === 1) {
+        await createTaskMutation.mutateAsync(tasksToSubmit[0]);
+        toast.success(`Task created and assigned to ${tasksToSubmit[0].assignedPersonName}!`);
+      } else {
+        await createTaskMutation.mutateAsync({ tasks: tasksToSubmit });
+        toast.success(`Successfully created & assigned ${tasksToSubmit.length} tasks!`);
+      }
+
+      setQueuedTasks([]);
+      setTitle('');
       if (onTaskCreated) onTaskCreated();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create task');
+      toast.error(err.response?.data?.message || 'Failed to create task(s)');
     }
   };
 
@@ -388,27 +459,57 @@ export const KanbanCreateTaskModal = ({
             </div>
           </div>
 
-          {/* 2. Assignee & Priority & Due Date Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* 2. Assignee & SMM & Priority & Due Date Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             {/* Assignee */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Assign To Employee *
               </label>
-              <div className="relative">
-                <select
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                >
-                  <option value="">Select Employee...</option>
-                  {users.map((u) => (
-                    <option key={u._id} value={u._id}>
-                      {u.name} ({u.position || u.role})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="">Select Employee...</option>
+                {users.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u.name} ({u.position || u.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* SMM Team Member */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                📱 SMM Member (Posting)
+              </label>
+              <select
+                value={smmUserId}
+                onChange={(e) => setSmmUserId(e.target.value)}
+                className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              >
+                <option value="">No SMM Assigned (Optional)</option>
+                {smmUsers.length > 0 && (
+                  <optgroup label="SMM / Social Media Specialists">
+                    {smmUsers.map((u) => (
+                      <option key={u._id} value={u._id}>
+                        📱 {u.name} ({u.position || u.role})
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="All Team Members">
+                  {users
+                    .filter((u) => !smmUsers.some((su) => su._id === u._id))
+                    .map((u) => (
+                      <option key={u._id} value={u._id}>
+                        {u.name} ({u.position || u.role})
+                      </option>
+                    ))}
+                </optgroup>
+              </select>
             </div>
 
             {/* Priority */}
@@ -419,12 +520,12 @@ export const KanbanCreateTaskModal = ({
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
               >
-                <option value="low">🟢 Low Priority</option>
-                <option value="medium">🔵 Medium Priority</option>
-                <option value="high">🟠 High Priority</option>
-                <option value="urgent">🔴 Urgent / Critical</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🔵 Medium</option>
+                <option value="high">🟠 High</option>
+                <option value="urgent">🔴 Urgent</option>
               </select>
             </div>
 
@@ -437,7 +538,7 @@ export const KanbanCreateTaskModal = ({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-indigo-500 focus:bg-white focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
               />
             </div>
           </div>
@@ -485,7 +586,7 @@ export const KanbanCreateTaskModal = ({
             </div>
           </div>
 
-          {/* 4. Client & Project: Single vs Multi-Client Batch Mode */}
+          {/* 4. Client & Project Assignment */}
           <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -494,140 +595,83 @@ export const KanbanCreateTaskModal = ({
                   Client & Project Assignment
                 </span>
               </div>
-
-              {/* Multi-Client Batch Toggle */}
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={isBatchMode}
-                  onChange={(e) => setIsBatchMode(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800"
-                />
-                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                  ⚡ Multi-Client Batch Mode (e.g. 3 Clients at once)
-                </span>
-              </label>
+              <span className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400">
+                ⚡ For multiple clients: click "+ Add Another Task" below
+              </span>
             </div>
 
-            {!isBatchMode ? (
-              /* Single Client & Project View */
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                    Select Client
-                  </label>
-                  <select
-                    value={singleClientId}
-                    onChange={(e) => setSingleClientId(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  >
-                    <option value="">General / Internal Task</option>
-                    {clients.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {c.name} {c.companyName ? `(${c.companyName})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  Select Client
+                </label>
+                <select
+                  value={singleClientId}
+                  onChange={(e) => setSingleClientId(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  <option value="">General / Internal Task (No Client)</option>
+                  {clients.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name} {c.company || c.companyName ? `(${c.company || c.companyName})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400">
                     Select Project
                   </label>
-                  <select
-                    value={singleProjectId}
-                    onChange={(e) => setSingleProjectId(e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  >
-                    <option value="">No Project Linked</option>
-                    {availableProjects.map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            ) : (
-              /* Multi-Client Batch Selector */
-              <div className="space-y-3">
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Select multiple clients and their respective projects below. A copy of this task will be generated for each selected client simultaneously!
-                </p>
-
-                <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900 space-y-2">
-                  {clients.length === 0 ? (
-                    <div className="text-center py-3 text-xs text-slate-400">No clients available</div>
-                  ) : (
-                    clients.map((client) => {
-                      const isSelected = batchSelections.some((b) => b.clientId === client._id);
-                      const currentSelection = batchSelections.find((b) => b.clientId === client._id);
-                      const clientProjects = projects.filter(
-                        (p) =>
-                          (typeof p.client === 'object' ? p.client?._id : p.client)?.toString() ===
-                          client._id.toString()
-                      );
-
-                      return (
-                        <div
-                          key={client._id}
-                          className={`flex items-center justify-between gap-3 rounded-lg border p-2 transition-colors ${
-                            isSelected
-                              ? 'border-indigo-400 bg-indigo-50/40 dark:border-indigo-500/60 dark:bg-indigo-950/20'
-                              : 'border-slate-100 hover:bg-slate-50 dark:border-slate-800/80 dark:hover:bg-slate-800/40'
-                          }`}
-                        >
-                          <label className="flex items-center gap-2 cursor-pointer flex-1">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleBatchClient(client)}
-                              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                            <div>
-                              <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">
-                                {client.name}
-                              </span>
-                              {client.companyName && (
-                                <span className="ml-1.5 text-[10px] text-slate-400">
-                                  ({client.companyName})
-                                </span>
-                              )}
-                            </div>
-                          </label>
-
-                          {isSelected && (
-                            <div className="w-48">
-                              <select
-                                value={currentSelection?.projectId || ''}
-                                onChange={(e) => updateBatchProject(client._id, e.target.value)}
-                                className="h-7 w-full rounded border border-slate-200 bg-white px-2 text-[11px] text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                              >
-                                <option value="">No Project</option>
-                                {clientProjects.map((cp) => (
-                                  <option key={cp._id} value={cp._id}>
-                                    {cp.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
+                  {singleClientId && clientSpecificProjects.length > 0 && (
+                    <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
+                      {clientSpecificProjects.length} linked to client
+                    </span>
                   )}
                 </div>
+                <select
+                  value={singleProjectId}
+                  onChange={(e) => setSingleProjectId(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  <option value="">— No Project Linked (General) —</option>
 
-                {batchSelections.length > 0 && (
-                  <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>
-                      {batchSelections.length} client(s) selected: will create {batchSelections.length} tasks in 1 click!
-                    </span>
-                  </div>
-                )}
+                  {/* Linked projects for the chosen client */}
+                  {clientSpecificProjects.length > 0 && (
+                    <optgroup label="Client Projects">
+                      {clientSpecificProjects.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          📁 {p.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+
+                  {/* All other workspace projects */}
+                  {otherProjects.length > 0 && (
+                    <optgroup
+                      label={
+                        clientSpecificProjects.length > 0
+                          ? 'Other Workspace Projects'
+                          : singleClientId
+                          ? 'All Workspace Projects (Client has no linked projects)'
+                          : 'All Workspace Projects'
+                      }
+                    >
+                      {otherProjects.map((p) => {
+                        const cName = typeof p.client === 'object' ? p.client?.name : '';
+                        return (
+                          <option key={p._id} value={p._id}>
+                            📁 {p.name} {cName ? `(${cName})` : ''}
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                  )}
+                </select>
               </div>
-            )}
+            </div>
           </div>
 
           {/* 5. Dynamic Content vs Tech Fields */}
@@ -806,6 +850,73 @@ export const KanbanCreateTaskModal = ({
               </button>
             </div>
           </div>
+          {/* Queued Tasks List (Multi-Task Builder) */}
+          {queuedTasks.length > 0 && (
+            <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-4 dark:border-indigo-900/60 dark:bg-indigo-950/20 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white shadow-xs">
+                    {queuedTasks.length}
+                  </span>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                    Queued Tasks ({queuedTasks.length}) — Ready to Create in 1 Click!
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setQueuedTasks([])}
+                  className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 transition-colors"
+                >
+                  Clear Queue
+                </button>
+              </div>
+
+              <div className="max-h-52 overflow-y-auto space-y-2 pr-1">
+                {queuedTasks.map((q, idx) => (
+                  <div
+                    key={q.queueId}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3 shadow-xs transition-all dark:border-slate-800 dark:bg-slate-900"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                        <span className="rounded-md bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                          #{idx + 1}
+                        </span>
+                        <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                          🏢 {q.clientName}
+                        </span>
+                        {q.projectName && (
+                          <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                            📁 {q.projectName}
+                          </span>
+                        )}
+                        <span className="rounded-md bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                          👤 {q.assignedPersonName}
+                        </span>
+                        {q.publisherName && (
+                          <span className="rounded-md bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                            📱 SMM: {q.publisherName}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {q.title}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveQueuedTask(q.queueId)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors shrink-0"
+                      title="Remove task from queue"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </form>
 
         {/* Modal Footer */}
@@ -818,24 +929,35 @@ export const KanbanCreateTaskModal = ({
             Cancel
           </button>
 
-          <button
-            onClick={handleSubmit}
-            disabled={createTaskMutation.isPending}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/30 transition-all hover:from-indigo-500 hover:to-violet-500 disabled:opacity-60"
-          >
-            {createTaskMutation.isPending ? (
-              <span>Creating...</span>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 stroke-[2.5]" />
-                <span>
-                  {isBatchMode
-                    ? `Assign ${batchSelections.length || 1} Batch Tasks to To-Do`
-                    : 'Create Task & Add to To-Do'}
-                </span>
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleAddToQueue}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-300 bg-white px-4 py-2 text-xs font-bold text-indigo-700 shadow-xs hover:bg-indigo-50 transition-all dark:border-indigo-700 dark:bg-slate-800 dark:text-indigo-300 dark:hover:bg-slate-700"
+            >
+              <Plus className="h-4 w-4 stroke-[2.5]" />
+              <span>+ Add Another Task</span>
+            </button>
+
+            <button
+              onClick={handleSubmit}
+              disabled={createTaskMutation.isPending}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/30 transition-all hover:from-indigo-500 hover:to-violet-500 disabled:opacity-60"
+            >
+              {createTaskMutation.isPending ? (
+                <span>Creating...</span>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  <span>
+                    {queuedTasks.length > 0
+                      ? `Assign All ${queuedTasks.length + (title.trim() ? 1 : 0)} Tasks to To-Do`
+                      : 'Assign Task to To-Do'}
+                  </span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
