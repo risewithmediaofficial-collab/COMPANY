@@ -7,6 +7,8 @@ import {
   ShieldCheck,
   Plus,
   Search,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { getAssetUrl } from '../../utils/assetUrl';
 
@@ -69,6 +71,7 @@ export const TeamQuickAssignRoster = ({
 }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Calculate active task workload for each user
   const userWorkloadMap = useMemo(() => {
@@ -158,6 +161,17 @@ export const TeamQuickAssignRoster = ({
             />
           </div>
 
+          {/* Collapse / Expand Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-semibold text-slate-600 transition-all hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700"
+            title={isCollapsed ? 'Expand Team Roster' : 'Collapse Team Roster'}
+          >
+            {isCollapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+            <span>{isCollapsed ? 'Show Roster' : 'Hide'}</span>
+          </button>
+
           {/* General Create Button - only for managers/admins */}
           {canCreate && onOpenCreateGeneral && (
             <button
@@ -171,8 +185,10 @@ export const TeamQuickAssignRoster = ({
         </div>
       </div>
 
-      {/* Role / Department Filter Tabs */}
-      <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      {!isCollapsed && (
+        <>
+          {/* Role / Department Filter Tabs */}
+          <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
         {CATEGORY_TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           const count = categoryCounts[tab.id] || 0;
@@ -315,6 +331,8 @@ export const TeamQuickAssignRoster = ({
           })
         )}
       </div>
+      </>
+      )}
     </div>
   );
 };

@@ -319,9 +319,9 @@ export const TasksKanbanPipeline = ({
       {/* Single-Row Horizontal Kanban Track */}
       <div
         ref={boardContainerRef}
-        className="w-full overflow-x-auto pb-6 pt-1 custom-scrollbar scroll-smooth"
+        className="w-full overflow-x-auto pb-4 pt-1 custom-scrollbar scroll-smooth"
       >
-        <div className="flex gap-4 items-start min-w-max pb-2">
+        <div className="flex gap-4 items-stretch min-w-max pb-2">
           {KANBAN_COLUMNS.map((column, colIdx) => {
             const columnTasks = columnTasksMap[column.id] || [];
             const isDragOver = dragOverColumnId === column.id;
@@ -334,14 +334,14 @@ export const TasksKanbanPipeline = ({
                 onDragEnter={(e) => handleDragEnter(e, column.id)}
                 onDragLeave={(e) => handleDragLeave(e, column.id)}
                 onDrop={(e) => handleDrop(e, column.id)}
-                className={`flex flex-col w-[290px] min-w-[290px] shrink-0 rounded-2xl border transition-all duration-200 select-none ${column.accentBorder} ${
+                className={`flex flex-col w-[295px] min-w-[295px] shrink-0 rounded-2xl border transition-all duration-200 select-none ${column.accentBorder} ${
                   isDragOver
                     ? 'border-indigo-500 bg-indigo-50/70 dark:border-indigo-500 dark:bg-indigo-950/40 ring-2 ring-indigo-500/40 shadow-lg'
                     : 'border-slate-200/90 bg-slate-50/60 dark:border-slate-800/80 dark:bg-slate-900/60'
-                } p-3 min-h-[580px]`}
+                } p-3 h-[calc(100vh-275px)] min-h-[460px] max-h-[calc(100vh-220px)]`}
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-800/60">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/60 dark:border-slate-800/60 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="text-base select-none">{column.icon}</span>
                     <h3 className="text-xs font-bold text-slate-800 dark:text-slate-100">
@@ -364,7 +364,7 @@ export const TasksKanbanPipeline = ({
                 {column.id === 'todo' && onOpenCreateGeneral && canCreate && (
                   <button
                     onClick={onOpenCreateGeneral}
-                    className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:bg-white hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-500 dark:hover:bg-slate-800"
+                    className="mt-2 shrink-0 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:bg-white hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-500 dark:hover:bg-slate-800"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>+ New Task</span>
@@ -373,14 +373,14 @@ export const TasksKanbanPipeline = ({
 
                 {/* Drop Cue when dragging over this column */}
                 {isDragOver && (
-                  <div className="mt-2.5 flex items-center justify-center gap-1.5 p-3 rounded-xl border-2 border-dashed border-indigo-400 bg-indigo-100/60 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/70 dark:text-indigo-300 font-bold text-xs animate-pulse">
+                  <div className="mt-2 shrink-0 flex items-center justify-center gap-1.5 p-2.5 rounded-xl border-2 border-dashed border-indigo-400 bg-indigo-100/60 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-950/70 dark:text-indigo-300 font-bold text-xs animate-pulse">
                     <ArrowDown className="h-4 w-4 shrink-0" />
                     <span>Drop in {column.title}</span>
                   </div>
                 )}
 
-                {/* Tasks Container */}
-                <div className="mt-2.5 flex-1 space-y-2.5 overflow-y-auto min-h-[320px] pr-0.5 custom-scrollbar">
+                {/* Tasks Container with INLINE SCROLL */}
+                <div className="mt-2.5 flex-1 min-h-0 space-y-2.5 overflow-y-auto pr-1.5 custom-scrollbar">
                   {columnTasks.length === 0 ? (
                     <div
                       onDragOver={(e) => handleDragOver(e, column.id)}
