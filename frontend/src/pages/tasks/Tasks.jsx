@@ -975,7 +975,7 @@ const Tasks = () => {
           </div>
         )}
 
-        {/* Board View (Modern 6-Stage Kanban Workflow Pipeline) */}
+        {/* Board View (Modern 7-Stage Kanban Workflow Pipeline) */}
         {(currentView === 'board' || currentView === 'kanban') && (
           <div className="space-y-3.5 w-full">
             <TasksKanbanPipeline
