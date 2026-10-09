@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   CheckCircle2,
@@ -91,8 +90,6 @@ const priorityTone = {
 };
 
 const Tasks = () => {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
   const [addModalInitialValues, setAddModalInitialValues] = useState({});
   const [selectedTaskId, setSelectedTaskId] = useState(null);

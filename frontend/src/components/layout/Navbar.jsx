@@ -75,6 +75,8 @@ const getBreadcrumbs = (pathname) => {
     '/influencers': [{ label: 'Delivery', path: '/tasks' }, { label: 'Influencer Hub', path: '/influencers' }],
     '/manager-board': [{ label: 'Delivery', path: '/tasks' }, { label: 'Manager Board', path: '/manager-board' }],
     '/pending-notes': [{ label: 'Delivery', path: '/tasks' }, { label: 'Pending Notes', path: '/pending-notes' }],
+    '/notes': [{ label: 'Delivery', path: '/tasks' }, { label: 'Pending Notes', path: '/pending-notes' }],
+    '/task-notes': [{ label: 'Delivery', path: '/tasks' }, { label: 'Pending Notes', path: '/pending-notes' }],
     '/daily-tasks': [{ label: 'Delivery', path: '/tasks' }, { label: 'Daily Calendar', path: '/daily-tasks' }],
 
     '/clients': [{ label: 'Clients', path: '/clients' }, { label: 'Directory', path: '/clients' }],

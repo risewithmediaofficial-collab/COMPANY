@@ -316,6 +316,9 @@ const App = () => {
               <PendingNotes />
             </ProtectedRoute>
           } />
+          <Route path="/pending notes" element={<Navigate to="/pending-notes" replace />} />
+          <Route path="/pending%20notes" element={<Navigate to="/pending-notes" replace />} />
+          <Route path="/task-notes" element={<Navigate to="/pending-notes" replace />} />
           <Route path="/notes" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee']}>
               <PendingNotes />
