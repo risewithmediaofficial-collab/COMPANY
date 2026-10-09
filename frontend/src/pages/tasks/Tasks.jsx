@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   CheckCircle2,
@@ -20,7 +20,7 @@ import {
   Kanban,
   Video,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
@@ -90,6 +90,7 @@ const priorityTone = {
 };
 
 const Tasks = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
   const [addModalInitialValues, setAddModalInitialValues] = useState({});
   const [selectedTaskId, setSelectedTaskId] = useState(null);
