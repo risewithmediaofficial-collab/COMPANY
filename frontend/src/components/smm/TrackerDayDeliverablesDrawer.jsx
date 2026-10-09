@@ -491,7 +491,7 @@ export const TrackerDayDeliverablesDrawer = ({
               className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-indigo-600/30 hover:bg-indigo-500 transition-all cursor-pointer"
             >
               <Plus size={14} className="stroke-[2.5]" />
-              <span>+ Add Extra Deliverable</span>
+              <span>Add Extra Deliverable</span>
             </button>
           </div>
 
@@ -671,7 +671,7 @@ export const TrackerDayDeliverablesDrawer = ({
                   className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 transition-all"
                 >
                   <Plus size={14} className="stroke-[2.5]" />
-                  <span>+ Add First Deliverable</span>
+                  <span>Add First Deliverable</span>
                 </button>
               </div>
             ) : (

@@ -370,43 +370,41 @@ const DayCellDeliverableSlot = ({
 
   return (
     <div
-      className="group/cell relative flex items-center justify-between w-full min-h-[22px] px-1 py-0.5 rounded cursor-pointer hover:bg-slate-100/70 dark:hover:bg-slate-800/70 transition-all select-none"
+      className="group/cell flex items-center justify-center w-full min-h-[24px] px-1 py-0.5 rounded cursor-pointer hover:bg-indigo-50/80 dark:hover:bg-slate-800/80 hover:ring-1 hover:ring-indigo-400/40 transition-all select-none"
       onClick={() => onOpenDrawer()}
       title={
         hasMultiple
-          ? `${relevantItems.length} deliverables on this date. Click to open sidebar & breakdown!`
+          ? `${relevantItems.length} deliverables on this date (${relevantItems.map((i) => i.label || i.type).join(', ')}). Click to open sidebar & add more!`
           : displayVal
-          ? `Click to view details (${displayVal})`
-          : 'Click to add Reel, Post, or Story'
+          ? `${displayVal} (Click to open sidebar & details)`
+          : 'Click to open sidebar & add Reel, Post, or Story'
       }
     >
-      <div className="flex items-center gap-1 min-w-0 flex-1 justify-center">
+      {hasMultiple ? (
+        <div className="flex flex-col items-center justify-center w-full leading-tight py-0.5 gap-0.5">
+          {relevantItems.slice(0, 2).map((it, idx) => (
+            <span
+              key={it.id || idx}
+              className="truncate max-w-full text-[9px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 px-1 py-0.5 rounded border border-indigo-400/25 block text-center w-full"
+            >
+              {it.label || `${it.type.toUpperCase()}${idx + 1}`}
+            </span>
+          ))}
+          {relevantItems.length > 2 && (
+            <span className="text-[8px] font-black text-indigo-600 dark:text-indigo-400">
+              +{relevantItems.length - 2} more
+            </span>
+          )}
+        </div>
+      ) : (
         <span
-          className={`truncate text-[10.5px] ${
-            displayVal ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-400 font-normal italic'
+          className={`truncate text-[10.5px] block w-full text-center ${
+            displayVal ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-400 font-normal'
           }`}
         >
           {displayVal || '—'}
         </span>
-
-        {hasMultiple && (
-          <span className="inline-flex items-center rounded-md bg-indigo-500/15 border border-indigo-500/30 px-1 py-0 text-[8.5px] font-black text-indigo-700 dark:text-indigo-300 shrink-0">
-            +{extraCount}
-          </span>
-        )}
-      </div>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpenDrawer();
-        }}
-        className="opacity-40 group-hover/cell:opacity-100 hover:!opacity-100 hover:scale-110 p-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-all shrink-0 ml-0.5 cursor-pointer"
-        title="Add extra deliverable / open drawer (+)"
-      >
-        <Plus size={8} className="stroke-[3]" />
-      </button>
+      )}
     </div>
   );
 };
@@ -1528,7 +1526,7 @@ const SMMOnePageTracker = () => {
                       {c.companyName || c.company || c.name}
                     </option>
                   ))}
-                  <option value="__custom__">➕ + Add New Client Manually...</option>
+                  <option value="__custom__">➕ Add New Client Manually...</option>
                 </select>
               </div>
 

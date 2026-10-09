@@ -939,7 +939,7 @@ export const KanbanCreateTaskModal = ({
               className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl border border-indigo-300 bg-white px-4 py-2 text-xs font-bold text-indigo-700 shadow-xs hover:bg-indigo-50 transition-all dark:border-indigo-700 dark:bg-slate-800 dark:text-indigo-300 dark:hover:bg-slate-700"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" />
-              <span>+ Add Another Task</span>
+              <span>Add Another Task</span>
             </button>
 
             <button

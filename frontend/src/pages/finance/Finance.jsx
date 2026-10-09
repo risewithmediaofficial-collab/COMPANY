@@ -902,7 +902,7 @@ export default function Finance() {
                     className="rounded-xl text-xs font-bold gap-1.5 h-9 shadow-sm"
                   >
                     <Plus size={14} className="stroke-[2.5]" />
-                    <span>+ Add Salary Entry</span>
+                    <span>Add Salary Entry</span>
                   </Button>
                 </>
               ) : (
@@ -914,7 +914,7 @@ export default function Finance() {
                     className="rounded-xl text-xs font-bold gap-1.5 h-9"
                   >
                     <Receipt size={14} />
-                    <span>+ Record Spend</span>
+                    <span>Record Spend</span>
                   </Button>
                   <Button
                     size="sm"

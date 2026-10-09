@@ -393,7 +393,7 @@ export const TasksKanbanPipeline = ({
                     className="mt-2 shrink-0 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:bg-white hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-500 dark:hover:bg-slate-800"
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    <span>+ New Task</span>
+                    <span>New Task</span>
                   </button>
                 )}
 
