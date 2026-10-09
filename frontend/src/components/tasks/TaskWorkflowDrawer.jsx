@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   CheckCircle2,
@@ -14,17 +14,95 @@ import {
   ListChecks,
 } from 'lucide-react';
 import { useUpdateTaskStatus, useUpdateTaskChecklist, useAddTaskNote } from '../../hooks/useTasks';
+import { normalizeToKanbanColumn } from './TasksKanbanPipeline';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { toast } from 'sonner';
 
 export const PIPELINE_STAGES = [
-  { id: 'todo', label: 'To Do', color: 'slate', badge: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
-  { id: 'in_progress', label: 'In Progress', color: 'blue', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
-  { id: 'review', label: 'Internal Approval', color: 'purple', badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' },
-  { id: 'client_approval', label: 'Client Approval', color: 'amber', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
-  { id: 'smm_team', label: 'SMM Team', color: 'indigo', badge: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' },
-  { id: 'drive_uploaded', label: 'Drive Uploaded', color: 'cyan', badge: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300' },
-  { id: 'completed', label: 'Completed', color: 'emerald', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' },
+  {
+    id: 'todo',
+    label: 'To Do',
+    icon: '📋',
+    activeBg: 'bg-slate-100 dark:bg-slate-800/90',
+    activeBorder: 'border-slate-500 dark:border-slate-400',
+    activeText: 'text-slate-900 dark:text-slate-100 font-bold',
+    activeRing: 'ring-2 ring-slate-400/40',
+    indicatorBg: 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900',
+    badge: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700',
+    accentDot: 'bg-slate-600',
+  },
+  {
+    id: 'in_progress',
+    label: 'In Progress',
+    icon: '⚡',
+    activeBg: 'bg-blue-50/90 dark:bg-blue-950/60',
+    activeBorder: 'border-blue-500 dark:border-blue-400',
+    activeText: 'text-blue-700 dark:text-blue-300 font-bold',
+    activeRing: 'ring-2 ring-blue-500/40',
+    indicatorBg: 'bg-blue-600 text-white',
+    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-blue-300 dark:border-blue-800',
+    accentDot: 'bg-blue-600',
+  },
+  {
+    id: 'review',
+    label: 'Internal Approval',
+    icon: '🔍',
+    activeBg: 'bg-purple-50/90 dark:bg-purple-950/60',
+    activeBorder: 'border-purple-500 dark:border-purple-400',
+    activeText: 'text-purple-700 dark:text-purple-300 font-bold',
+    activeRing: 'ring-2 ring-purple-500/40',
+    indicatorBg: 'bg-purple-600 text-white',
+    badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border-purple-300 dark:border-purple-800',
+    accentDot: 'bg-purple-600',
+  },
+  {
+    id: 'client_approval',
+    label: 'Client Approval',
+    icon: '🤝',
+    activeBg: 'bg-amber-50/90 dark:bg-amber-950/60',
+    activeBorder: 'border-amber-500 dark:border-amber-400',
+    activeText: 'text-amber-800 dark:text-amber-300 font-bold',
+    activeRing: 'ring-2 ring-amber-500/40',
+    indicatorBg: 'bg-amber-600 text-white',
+    badge: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+    accentDot: 'bg-amber-600',
+  },
+  {
+    id: 'smm_team',
+    label: 'SMM Team',
+    icon: '🚀',
+    activeBg: 'bg-pink-50/90 dark:bg-pink-950/60',
+    activeBorder: 'border-pink-500 dark:border-pink-400',
+    activeText: 'text-pink-700 dark:text-pink-300 font-bold',
+    activeRing: 'ring-2 ring-pink-500/40',
+    indicatorBg: 'bg-pink-600 text-white',
+    badge: 'bg-pink-100 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300 border-pink-300 dark:border-pink-800',
+    accentDot: 'bg-pink-600',
+  },
+  {
+    id: 'drive_uploaded',
+    label: 'Drive Uploaded',
+    icon: '☁️',
+    activeBg: 'bg-cyan-50/90 dark:bg-cyan-950/60',
+    activeBorder: 'border-cyan-500 dark:border-cyan-400',
+    activeText: 'text-cyan-700 dark:text-cyan-300 font-bold',
+    activeRing: 'ring-2 ring-cyan-500/40',
+    indicatorBg: 'bg-cyan-600 text-white',
+    badge: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300 border-cyan-300 dark:border-cyan-800',
+    accentDot: 'bg-cyan-600',
+  },
+  {
+    id: 'completed',
+    label: 'Completed',
+    icon: '✅',
+    activeBg: 'bg-emerald-50/90 dark:bg-emerald-950/60',
+    activeBorder: 'border-emerald-500 dark:border-emerald-400',
+    activeText: 'text-emerald-700 dark:text-emerald-300 font-bold',
+    activeRing: 'ring-2 ring-emerald-500/40',
+    indicatorBg: 'bg-emerald-600 text-white',
+    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800',
+    accentDot: 'bg-emerald-600',
+  },
 ];
 
 export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
@@ -32,22 +110,22 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
   const updateChecklistMutation = useUpdateTaskChecklist();
   const addNoteMutation = useAddTaskNote();
 
+  const [optimisticStatus, setOptimisticStatus] = useState(null);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
 
+  // Sync / reset optimistic status when task._id changes
+  useEffect(() => {
+    setOptimisticStatus(null);
+  }, [task?._id]);
+
   if (!isOpen || !task) return null;
 
-  // Normalized status
-  const currentStatus = (() => {
-    const s = task.status;
-    if (s === 'on_process') return 'in_progress';
-    if (s === 'review_required') return 'review';
-    if (s === 'waiting_for_client') return 'client_approval';
-    if (s === 'drive_uploaded' || s === 'drive uploaded') return 'drive_uploaded';
-    if (['done', 'approved'].includes(s)) return 'completed';
-    return s || 'todo';
-  })();
+  // Normalized status supporting all 7 Kanban stages
+  const rawStatus = optimisticStatus || task.status;
+  const currentStatus = normalizeToKanbanColumn(rawStatus);
 
+  const currentStageObj = PIPELINE_STAGES.find((st) => st.id === currentStatus) || PIPELINE_STAGES[0];
   const currentStageIndex = PIPELINE_STAGES.findIndex((st) => st.id === currentStatus);
   const nextStage = PIPELINE_STAGES[currentStageIndex + 1];
 
@@ -66,10 +144,12 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
 
   // Stage Switch Handler
   const handleStageChange = async (targetStageId) => {
+    setOptimisticStatus(targetStageId);
     try {
       await updateStatusMutation.mutateAsync({ id: task._id, status: targetStageId });
       toast.success(`Moved to ${PIPELINE_STAGES.find((s) => s.id === targetStageId)?.label || targetStageId}`);
     } catch (err) {
+      setOptimisticStatus(null);
       toast.error('Failed to change task status');
     }
   };
@@ -302,36 +382,51 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
 
           {/* 3. Interactive Kanban Pipeline Stage Stepper */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-              Kanban Workflow Stage
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {PIPELINE_STAGES.map((stage, idx) => {
+            <div className="flex items-center justify-between mb-2.5">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                Kanban Workflow Stage
+              </label>
+              <div
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${currentStageObj.badge}`}
+              >
+                <span>{currentStageObj.icon}</span>
+                <span>Current: {currentStageObj.label}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {PIPELINE_STAGES.map((stage) => {
                 const isActive = stage.id === currentStatus;
-                const isPassed = currentStageIndex > idx;
 
                 return (
                   <button
                     key={stage.id}
+                    type="button"
                     onClick={() => handleStageChange(stage.id)}
-                    className={`flex items-center gap-2 rounded-xl border p-2.5 text-left text-xs transition-all ${
+                    className={`group relative flex items-center justify-between rounded-xl border p-2.5 text-left text-xs transition-all cursor-pointer select-none active:scale-[0.98] ${
                       isActive
-                        ? 'border-indigo-500 bg-indigo-50/80 font-bold text-indigo-700 shadow-sm ring-1 ring-indigo-500 dark:border-indigo-400 dark:bg-indigo-950/40 dark:text-indigo-300'
-                        : isPassed
-                        ? 'border-emerald-200 bg-emerald-50/30 font-medium text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-300'
-                        : 'border-slate-200/80 bg-white text-slate-600 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
+                        ? `${stage.activeBg} ${stage.activeBorder} ${stage.activeText} ${stage.activeRing} shadow-sm font-bold`
+                        : 'border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:border-slate-700'
                     }`}
                   >
-                    {isPassed ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                    ) : isActive ? (
-                      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] text-white">
-                        ✓
+                    <div className="flex items-center gap-2 min-w-0">
+                      {isActive ? (
+                        <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-black shadow-xs ${stage.indicatorBg}`}>
+                          ✓
+                        </span>
+                      ) : (
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white group-hover:border-slate-400 dark:border-slate-700 dark:bg-slate-800" />
+                      )}
+                      <span className="text-sm shrink-0">{stage.icon}</span>
+                      <span className="truncate">{stage.label}</span>
+                    </div>
+
+                    {isActive && (
+                      <span className="shrink-0 flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider opacity-90">
+                        <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${stage.accentDot}`} />
+                        <span>Active</span>
                       </span>
-                    ) : (
-                      <Circle className="h-4 w-4 shrink-0 text-slate-300 dark:text-slate-600" />
                     )}
-                    <span className="truncate">{stage.label}</span>
                   </button>
                 );
               })}
