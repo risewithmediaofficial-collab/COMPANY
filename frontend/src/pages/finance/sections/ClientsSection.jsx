@@ -12,8 +12,11 @@ import {
   Layers,
   ArrowRight,
   ShieldCheck,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
-import { useClients } from '../../../hooks/useClients';
+import { useClients, useUpdateClient } from '../../../hooks/useClients';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useClientProfitability,
   useGenerateRetainerInvoices,
@@ -25,9 +28,23 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function ClientsSection({ onQuickAdd }) {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [selectedClientForCost, setSelectedClientForCost] = useState(null);
   const [showCostModal, setShowCostModal] = useState(false);
+
+  // Edit Client Modal State
+  const [showEditClientModal, setShowEditClientModal] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [clientForm, setClientForm] = useState({
+    monthlyPlanFee: '',
+    servicePlan: 'Retainer',
+    deliverables: '',
+    billingDate: 1,
+    billingCycle: 'monthly',
+    contractValue: '',
+  });
+
   const [retainerPeriod, setRetainerPeriod] = useState(
     new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date())
   );
@@ -37,6 +54,47 @@ export default function ClientsSection({ onQuickAdd }) {
 
   const generateRetainers = useGenerateRetainerInvoices();
   const createAllocation = useCreateCostAllocation();
+  const deleteAllocation = useDeleteCostAllocation();
+  const updateClient = useUpdateClient();
+
+  const handleOpenEditClient = (client) => {
+    setEditingClient(client);
+    setClientForm({
+      monthlyPlanFee: client.monthlyPlanFee != null ? String(client.monthlyPlanFee) : '',
+      servicePlan: client.servicePlan || 'Retainer',
+      deliverables: client.deliverables || '',
+      billingDate: client.billingDate || 1,
+      billingCycle: client.billingCycle || 'monthly',
+      contractValue: client.contractValue != null ? String(client.contractValue) : '',
+    });
+    setShowEditClientModal(true);
+  };
+
+  const handleSaveClient = async (e) => {
+    e.preventDefault();
+    if (!editingClient) return;
+
+    try {
+      await updateClient.mutateAsync({
+        id: editingClient._id,
+        data: {
+          monthlyPlanFee: Number(clientForm.monthlyPlanFee || 0),
+          servicePlan: clientForm.servicePlan,
+          deliverables: clientForm.deliverables,
+          billingDate: Number(clientForm.billingDate || 1),
+          billingCycle: clientForm.billingCycle,
+          contractValue: Number(clientForm.contractValue || clientForm.monthlyPlanFee || 0),
+        },
+      });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-client-profitability'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      setShowEditClientModal(false);
+      toast.success(`Updated ${editingClient.company || editingClient.name} retainer details`);
+    } catch (err) {
+      toast.error('Failed to update client retainer details');
+    }
+  };
 
   // Allocation Form State
   const [allocForm, setAllocForm] = useState({
@@ -257,15 +315,24 @@ export default function ClientsSection({ onQuickAdd }) {
                         )}
                       </td>
                       <td className="p-3 text-right">
-                        <button
-                          onClick={() => {
-                            setSelectedClientForCost(client);
-                            setShowCostModal(true);
-                          }}
-                          className="px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 text-xs transition-colors"
-                        >
-                          + Assign Cost
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditClient(client)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-semibold text-xs transition-colors cursor-pointer"
+                            title="Edit Plan Fee, Deliverables & Billing"
+                          >
+                            <Edit2 className="h-3 w-3" /> Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedClientForCost(client);
+                              setShowCostModal(true);
+                            }}
+                            className="px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 text-xs transition-colors cursor-pointer"
+                          >
+                            + Assign Cost
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -355,6 +422,160 @@ export default function ClientsSection({ onQuickAdd }) {
                   className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {createAllocation.isPending ? 'Assigning...' : 'Assign Cost'}
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* EDIT CLIENT RETAINER MODAL */}
+      <Dialog open={Boolean(showEditClientModal && editingClient)} onOpenChange={(open) => !open && setShowEditClientModal(false)}>
+        {showEditClientModal && editingClient && (
+          <DialogContent variant="center" size="md" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-lg text-xs max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
+              <DialogTitle className="text-base font-bold text-foreground">
+                Edit Retainer Plan: {editingClient.company || editingClient.name}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground text-xs mt-0.5">
+                Update monthly recurring fee, contracted deliverables, and billing dates. This immediately recalculates client net profit and margins.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSaveClient} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1.5">Monthly Plan Fee (₹) *</label>
+                  <input
+                    type="number"
+                    value={clientForm.monthlyPlanFee}
+                    onChange={(e) => setClientForm({ ...clientForm, monthlyPlanFee: e.target.value })}
+                    placeholder="e.g. 25000"
+                    required
+                    min="0"
+                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-bold text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <span className="text-[10px] text-muted-foreground mt-0.5 block">Amount billed recurringly each month</span>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1.5">Service Plan / Package</label>
+                  <input
+                    type="text"
+                    value={clientForm.servicePlan}
+                    onChange={(e) => setClientForm({ ...clientForm, servicePlan: e.target.value })}
+                    placeholder="e.g. Retainer, Social Media"
+                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-foreground mb-1.5">Contracted Deliverables</label>
+                <textarea
+                  rows="2"
+                  value={clientForm.deliverables}
+                  onChange={(e) => setClientForm({ ...clientForm, deliverables: e.target.value })}
+                  placeholder="e.g. 12 Reels, 15 Graphic Posts, Ad Campaign Management"
+                  className="w-full rounded-xl border border-border p-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500 resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block font-semibold text-foreground mb-1.5">Billing Day of Month</label>
+                  <select
+                    value={clientForm.billingDate}
+                    onChange={(e) => setClientForm({ ...clientForm, billingDate: e.target.value })}
+                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                      <option key={d} value={d}>
+                        Day {d} of month
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-foreground mb-1.5">Billing Cycle</label>
+                  <select
+                    value={clientForm.billingCycle}
+                    onChange={(e) => setClientForm({ ...clientForm, billingCycle: e.target.value })}
+                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annually">Annually</option>
+                    <option value="one_time">One-time / Milestone</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Direct Cost Allocations for this client in current period */}
+              {(() => {
+                const clientProf = profitability.find((p) => String(p.clientId) === String(editingClient._id));
+                const clientAllocations = clientProf?.allocations || [];
+                if (clientAllocations.length === 0) return null;
+
+                return (
+                  <div className="pt-3 border-t border-border space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-foreground text-xs">
+                        Direct Costs in {retainerPeriod} ({clientAllocations.length})
+                      </span>
+                      <span className="text-[11px] font-semibold text-rose-600">
+                        Total: {formatINR(clientProf?.directCosts || 0)}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                      {clientAllocations.map((alloc) => (
+                        <div
+                          key={alloc._id}
+                          className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px]"
+                        >
+                          <div>
+                            <span className="font-bold text-slate-800">{alloc.activityDeliverable}</span>
+                            {alloc.notes && <span className="text-slate-500 ml-1.5">· {alloc.notes}</span>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-rose-600">{formatINR(alloc.allocatedAmount)}</span>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (window.confirm(`Delete this ${formatINR(alloc.allocatedAmount)} cost allocation?`)) {
+                                  await deleteAllocation.mutateAsync(alloc._id);
+                                  queryClient.invalidateQueries({ queryKey: ['finance-client-profitability'] });
+                                }
+                              }}
+                              disabled={deleteAllocation.isPending}
+                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              title="Delete Cost Allocation"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowEditClientModal(false)}
+                  className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateClient.isPending}
+                  className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {updateClient.isPending ? 'Saving...' : 'Save Retainer Details'}
                 </button>
               </div>
             </form>

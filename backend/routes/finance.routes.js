@@ -48,30 +48,20 @@ import {
   getFinanceAccounts,
   createFinanceAccount,
   updateFinanceAccount,
-  deleteFinanceAccount,
   reconcileAccount,
   getInternalTransfers,
   createInternalTransfer,
-  deleteInternalTransfer,
   getModuleInvoices,
   createModuleInvoice,
-  updateModuleInvoice,
-  deleteModuleInvoice,
   updateInvoiceWorkflow,
   generateMonthlyRetainerInvoices,
   recordClientPaymentReceipt,
   getPaymentReceipts,
-  updatePaymentReceipt,
-  deletePaymentReceipt,
   getModuleExpenses,
   createModuleExpense,
-  updateModuleExpense,
-  deleteModuleExpense,
   payVendorBill,
   getSubscriptions,
   createSubscription,
-  updateSubscription,
-  deleteSubscription,
   postSubscriptionRenewal,
   getPayrollRecords,
   getPayrollRecord,
@@ -115,40 +105,30 @@ router.get('/module/overview', authorize('superAdmin', 'admin', 'manager', 'fina
 router.get('/accounts', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getFinanceAccounts);
 router.post('/accounts', authorize('superAdmin', 'admin', 'financeManager'), createFinanceAccount);
 router.put('/accounts/:id', authorize('superAdmin', 'admin', 'financeManager'), updateFinanceAccount);
-router.delete('/accounts/:id', authorize('superAdmin', 'admin', 'financeManager'), deleteFinanceAccount);
 router.post('/accounts/:id/reconcile', authorize('superAdmin', 'admin', 'financeManager'), reconcileAccount);
 
 // 3. Internal Transfers
 router.get('/transfers', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getInternalTransfers);
 router.post('/transfers', authorize('superAdmin', 'admin', 'financeManager'), createInternalTransfer);
-router.delete('/transfers/:id', authorize('superAdmin', 'admin', 'financeManager'), deleteInternalTransfer);
 
 // 4. Invoices & Revenue Master
 router.get('/module/invoices', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager'), getModuleInvoices);
 router.post('/module/invoices', authorize('superAdmin', 'admin', 'financeManager'), createModuleInvoice);
-router.put('/module/invoices/:id', authorize('superAdmin', 'admin', 'financeManager'), updateModuleInvoice);
-router.delete('/module/invoices/:id', authorize('superAdmin', 'admin', 'financeManager'), deleteModuleInvoice);
 router.patch('/module/invoices/:id/workflow', authorize('superAdmin', 'admin', 'financeManager'), updateInvoiceWorkflow);
 router.post('/module/invoices/retainer-generate', authorize('superAdmin', 'admin', 'financeManager'), generateMonthlyRetainerInvoices);
 
 // 5. Client Payment Receipts
 router.get('/receipts', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager'), getPaymentReceipts);
 router.post('/receipts', authorize('superAdmin', 'admin', 'financeManager'), recordClientPaymentReceipt);
-router.put('/receipts/:id', authorize('superAdmin', 'admin', 'financeManager'), updatePaymentReceipt);
-router.delete('/receipts/:id', authorize('superAdmin', 'admin', 'financeManager'), deletePaymentReceipt);
 
 // 6. Expenses & Vendor Bills
 router.get('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), getModuleExpenses);
 router.post('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), createModuleExpense);
-router.put('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), updateModuleExpense);
-router.delete('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), deleteModuleExpense);
 router.post('/module/expenses/:id/pay', authorize('superAdmin', 'admin', 'financeManager'), payVendorBill);
 
 // 7. Recurring Subscriptions
 router.get('/subscriptions', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getSubscriptions);
 router.post('/subscriptions', authorize('superAdmin', 'admin', 'financeManager'), createSubscription);
-router.put('/subscriptions/:id', authorize('superAdmin', 'admin', 'financeManager'), updateSubscription);
-router.delete('/subscriptions/:id', authorize('superAdmin', 'admin', 'financeManager'), deleteSubscription);
 router.post('/subscriptions/:id/post-renewal', authorize('superAdmin', 'admin', 'financeManager'), postSubscriptionRenewal);
 
 // 8. Payroll Integration
