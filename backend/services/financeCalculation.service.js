@@ -445,8 +445,12 @@ export const computeSixMonthCashForecast = async ({ scenario = 'expected' } = {}
     }
   });
 
-  // Estimated overhead and vendor bills (past 30 days average or baseline)
-  const estimatedMonthlyOverhead = 45000; // baseline agency rent, internet, amenities
+  // Estimated overhead and vendor bills (past 30 days actual recorded expenses)
+  const pastExpenses = await Expense.find({
+    paymentStatus: 'paid',
+    date: { $gte: new Date(Date.now() - 30 * 86400000) },
+  }).lean();
+  const estimatedMonthlyOverhead = pastExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
   const forecastMonths = [];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -496,10 +500,14 @@ export const computeSixMonthCashForecast = async ({ scenario = 'expected' } = {}
   const monthlyAverageBurn = forecastMonths.reduce((sum, m) => sum + m.projectedOutflow, 0) / 6;
   const monthlyAverageNet = totalNetCashFlow / 6;
   let runwayMonths = 'N/A';
-  if (monthlyAverageNet < 0 && currentCash > 0) {
-    runwayMonths = (currentCash / Math.abs(monthlyAverageNet)).toFixed(1);
-  } else if (monthlyAverageNet >= 0) {
-    runwayMonths = 'Profitable / Self-sustaining';
+  if (monthlyAverageBurn > 0) {
+    if (monthlyAverageNet < 0 && currentCash > 0) {
+      runwayMonths = (currentCash / Math.abs(monthlyAverageNet)).toFixed(1);
+    } else if (monthlyAverageNet >= 0) {
+      runwayMonths = 'Profitable / Self-sustaining';
+    }
+  } else {
+    runwayMonths = 'N/A';
   }
 
   return {

@@ -208,16 +208,16 @@ export const getFinanceAccounts = async (req, res) => {
         bankName: 'HDFC Bank',
         accountNumber: '50200012345678',
         ifscCode: 'HDFC0001234',
-        openingBalance: 150000,
-        currentBalance: 150000,
+        openingBalance: 0,
+        currentBalance: 0,
         isDefault: true,
       });
 
       const defaultCash = await FinanceAccount.create({
         accountName: 'Petty Cash Box',
         accountType: 'cash',
-        openingBalance: 25000,
-        currentBalance: 25000,
+        openingBalance: 0,
+        currentBalance: 0,
       });
 
       accounts = [defaultBank, defaultCash];

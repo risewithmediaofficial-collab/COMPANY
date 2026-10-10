@@ -11,7 +11,6 @@ import {
   Banknote,
   ShieldCheck,
   TrendingUp,
-  Settings,
   Plus,
   Search,
   Calendar,
@@ -28,10 +27,9 @@ import ClientsSection from './sections/ClientsSection';
 import InvoicesSection from './sections/InvoicesSection';
 import PayrollSection from './sections/PayrollSection';
 import ForecastReportsSection from './sections/ForecastReportsSection';
-import SettingsSection from './sections/SettingsSection';
 import FinanceQuickAddModal from './components/FinanceQuickAddModal';
 
-import { useFinanceModuleOverview, useFinanceAccounts } from '../../hooks/useFinance';
+import { useFinanceModuleOverview } from '../../hooks/useFinance';
 import { formatINR } from '../../utils/financeFormatters';
 
 const TABS = [
@@ -42,7 +40,6 @@ const TABS = [
   { id: 'invoices', label: 'Invoices', icon: FileText },
   { id: 'payroll', label: 'Payroll', icon: Banknote },
   { id: 'forecast-reports', label: 'Forecast & Reports', icon: TrendingUp },
-  { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Finance() {
@@ -53,7 +50,7 @@ export default function Finance() {
 
   // Active section (from URL query param, route param, or default 'overview')
   const rawTab = section || searchParams.get('tab') || 'overview';
-  const initialTab = rawTab === 'cash-flow' || rawTab === 'founders' ? 'overview' : rawTab;
+  const initialTab = rawTab === 'cash-flow' || rawTab === 'founders' || rawTab === 'settings' ? 'overview' : rawTab;
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Quick Add Modal state
@@ -68,7 +65,7 @@ export default function Finance() {
   // Sync tab with URL
   useEffect(() => {
     let tabFromUrl = section || searchParams.get('tab');
-    if (tabFromUrl === 'cash-flow') {
+    if (tabFromUrl === 'cash-flow' || tabFromUrl === 'founders' || tabFromUrl === 'settings') {
       tabFromUrl = 'overview';
       setSearchParams({ tab: 'overview' });
     }
@@ -113,9 +110,6 @@ export default function Finance() {
   }, [periodFilter, customStartDate, customEndDate]);
 
   const { data: overviewData = {}, isLoading: overviewLoading, refetch } = useFinanceModuleOverview(dateParams);
-  const { data: accounts = [] } = useFinanceAccounts();
-
-  const totalLiquid = accounts.reduce((sum, a) => sum + Number(a.currentBalance || 0), 0);
 
   const openQuickAdd = (action = 'invoice') => {
     setQuickAddAction(action);
@@ -145,18 +139,10 @@ export default function Finance() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Quick Balances Widget */}
-            <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs shadow-2xs">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-slate-500 font-medium">Liquid Cash:</span>
-              <span className="font-extrabold text-slate-900">{formatINR(totalLiquid)}</span>
-              <span className="text-[10px] text-slate-400 font-medium border-l border-slate-200 pl-2">Asia/Kolkata</span>
-            </div>
-
             {/* Central Add New Button */}
             <button
               onClick={() => openQuickAdd('invoice')}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all hover:shadow hover:scale-[1.01]"
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all hover:shadow hover:scale-[1.01] cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Add New</span>
@@ -256,8 +242,6 @@ export default function Finance() {
         {activeTab === 'payroll' && <PayrollSection onQuickAdd={openQuickAdd} />}
 
         {activeTab === 'forecast-reports' && <ForecastReportsSection />}
-
-        {activeTab === 'settings' && <SettingsSection />}
       </div>
 
       {/* ── CENTRAL QUICK ADD MODAL (Handles all 8 action flows) ────── */}

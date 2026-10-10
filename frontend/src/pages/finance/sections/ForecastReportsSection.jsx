@@ -202,25 +202,19 @@ export default function ForecastReportsSection() {
       {reportType === 'forecast' && (
         <div className="space-y-6">
           {/* Forecast Summary KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase">Starting Cash Balance</span>
-              <div className="text-2xl font-bold text-slate-900 mt-1">{formatINR(forecastData.openingCash)}</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Liquid cash available today</div>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
               <span className="text-[11px] font-semibold text-slate-500 uppercase">Average Monthly Outflows</span>
-              <div className="text-2xl font-bold text-rose-600 mt-1">{formatINR(forecastData.monthlyAverageBurn)}</div>
+              <div className="text-2xl font-bold text-rose-600 mt-1">{formatINR(forecastData.monthlyAverageBurn || 0)}</div>
               <div className="text-[11px] text-slate-500 mt-0.5">Estimated salaries, tools & overhead</div>
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-[11px] font-semibold text-slate-500 uppercase">Cash Runway Runway Status</span>
+              <span className="text-[11px] font-semibold text-slate-500 uppercase">Cash Runway Status</span>
               <div className="text-2xl font-bold text-indigo-700 mt-1">
                 {typeof forecastData.runwayMonths === 'number'
                   ? `${forecastData.runwayMonths} Months`
-                  : forecastData.runwayMonths || 'Self-Sustaining'}
+                  : forecastData.runwayMonths || 'N/A'}
               </div>
               <div className="text-[11px] text-slate-500 mt-0.5">Under {scenario} scenario assumptions</div>
             </div>
@@ -241,7 +235,7 @@ export default function ForecastReportsSection() {
                     tick={{ fontSize: 11, fill: '#64748b' }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
+                    tickFormatter={(val) => Math.abs(val) >= 1000 ? `₹${(val / 1000).toFixed(0)}k` : `₹${val}`}
                   />
                   <Tooltip
                     formatter={(val) => [formatINR(val), '']}

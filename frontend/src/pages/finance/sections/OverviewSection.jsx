@@ -155,20 +155,16 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
         </div>
 
         {/* Card 5: Bank & Cash Total */}
-        <div
-          onClick={() => onNavigateSection('settings')}
-          className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-teal-300 hover:shadow-sm cursor-pointer transition-all group"
-        >
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
           <div className="flex justify-between items-start mb-2">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Bank & Cash Total</span>
-            <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600 group-hover:scale-110 transition-transform">
+            <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
               <Building className="h-4 w-4" />
             </div>
           </div>
           <div className="text-xl font-bold text-slate-900">{formatINR(kpis.totalCashBankBalance)}</div>
           <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
             <span>Closing liquid balance</span>
-            <span className="text-teal-600 font-medium group-hover:underline">Settings →</span>
           </div>
         </div>
       </div>
