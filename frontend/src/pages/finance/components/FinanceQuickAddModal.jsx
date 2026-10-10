@@ -20,6 +20,7 @@ import {
   Trash2,
   AlertCircle,
   HelpCircle,
+  Loader2,
 } from 'lucide-react';
 import {
   useCreateModuleInvoice,
@@ -60,6 +61,16 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
   const createFounder = useCreateFounderTransaction();
   const createClient = useCreateClient();
   const createPayroll = useCreatePayrollRecord();
+
+  const isSubmitting =
+    createInvoice.isPending ||
+    recordReceipt.isPending ||
+    createExpense.isPending ||
+    createTransfer.isPending ||
+    createSubscription.isPending ||
+    createFounder.isPending ||
+    createClient.isPending ||
+    createPayroll.isPending;
 
   // Form States
   // 1. Invoice Form
@@ -378,7 +389,6 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   <select
                     value={invForm.client}
                     onChange={(e) => setInvForm({ ...invForm, client: e.target.value })}
-                    required
                     className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs cursor-pointer"
                   >
                     <option value="">-- Choose Client --</option>
@@ -1163,45 +1173,47 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         </div>
 
         {/* ── MODAL FOOTER ─────────────────────────────────────────────── */}
-        <div className="shrink-0 border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
-          <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
-            <span>Double-Entry Verified · Asia/Kolkata</span>
+        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 pt-4 pb-7 sm:pb-8 flex items-center justify-between gap-4 select-none">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-semibold">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50 animate-pulse" />
+            <span className="truncate">Double-Entry Verified · Asia/Kolkata</span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="h-9.5 px-4 rounded-xl border border-slate-200 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors shadow-2xs"
+              disabled={isSubmitting}
+              className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted/70 text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               form="finance-modal-form"
-              disabled={
-                createInvoice.isPending ||
-                recordReceipt.isPending ||
-                createExpense.isPending ||
-                createClient.isPending ||
-                createPayroll.isPending ||
-                createFounder.isPending ||
-                createTransfer.isPending ||
-                createSubscription.isPending
-              }
-              className="h-9.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-all shadow-xs hover:shadow hover:scale-[1.01] flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              disabled={isSubmitting}
+              className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <span>
-                {activeAction === 'invoice' && 'Issue Invoice & Post Receivable'}
-                {activeAction === 'receipt' && 'Record Payment Receipt'}
-                {activeAction === 'expense' && 'Record Expense Entry'}
-                {activeAction === 'client' && 'Create Client & Retainer'}
-                {activeAction === 'payroll' && 'Post Payroll Entry'}
-                {activeAction === 'founder' && 'Record Capital Entry'}
-                {activeAction === 'transfer' && 'Execute Internal Transfer'}
-                {activeAction === 'subscription' && 'Save Subscription'}
-              </span>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span>
+                    {activeAction === 'invoice' && 'Issue Invoice & Post Receivable'}
+                    {activeAction === 'receipt' && 'Record Payment Receipt'}
+                    {activeAction === 'expense' && 'Record Expense Entry'}
+                    {activeAction === 'client' && 'Create Client & Retainer'}
+                    {activeAction === 'payroll' && 'Post Payroll Entry'}
+                    {activeAction === 'founder' && 'Record Capital Entry'}
+                    {activeAction === 'transfer' && 'Execute Internal Transfer'}
+                    {activeAction === 'subscription' && 'Save Subscription'}
+                  </span>
+                </>
+              )}
             </button>
           </div>
         </div>
