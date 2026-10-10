@@ -102,7 +102,7 @@ export default function PayrollSection() {
       deductionReason: '',
       netSalary: '',
       status: 'pending',
-      paymentAccount: accounts[0]?._id || '',
+      paymentAccount: '',
       notes: '',
     });
     setEntryModalOpen(true);
@@ -120,7 +120,7 @@ export default function PayrollSection() {
       deductionReason: rec.deductionReason || '',
       netSalary: rec.netSalary != null ? String(rec.netSalary) : '',
       status: rec.status || 'pending',
-      paymentAccount: rec.paymentAccount?._id || rec.paymentAccount || (accounts[0]?._id || ''),
+      paymentAccount: rec.paymentAccount?._id || rec.paymentAccount || '',
       notes: rec.notes || '',
     });
     setEntryModalOpen(true);
@@ -205,7 +205,7 @@ export default function PayrollSection() {
         deductionReason: form.deductionReason,
         netSalary: Number(form.netSalary),
         status: form.status,
-        paymentAccount: (form.status === 'paid' && form.paymentAccount) ? form.paymentAccount : undefined,
+        paymentAccount: undefined,
         notes: form.notes,
       };
 
@@ -237,7 +237,7 @@ export default function PayrollSection() {
     try {
       await payPayroll.mutateAsync({
         id: payModalRecord._id,
-        paymentAccount: fundingAccount || undefined,
+        paymentAccount: undefined,
       });
       setPayModalRecord(null);
     } catch (err) {}
@@ -756,24 +756,7 @@ export default function PayrollSection() {
               </div>
             </div>
 
-            {/* If marked paid, choose account if any exist */}
-            {form.status === 'paid' && accounts.length > 0 && (
-              <div>
-                <label className="block font-semibold text-foreground mb-1.5">Funding Bank / Cash Account (Optional)</label>
-                <select
-                  value={form.paymentAccount}
-                  onChange={(e) => setForm({ ...form, paymentAccount: e.target.value })}
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
-                >
-                  <option value="">-- No Account Selected --</option>
-                  {accounts.map((a) => (
-                    <option key={a._id} value={a._id}>
-                      {a.accountName} (Balance: ₹{a.currentBalance})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+
 
             {/* Notes */}
             <div>
@@ -830,33 +813,10 @@ export default function PayrollSection() {
           </DialogHeader>
 
           <form onSubmit={handleExecutePayment} className="space-y-4 text-xs">
-            {accounts.length > 0 ? (
-              <div>
-                <label className="block font-semibold text-foreground mb-1.5">Disbursement Bank / Cash Account (Optional)</label>
-                <select
-                  value={fundingAccount}
-                  onChange={(e) => setFundingAccount(e.target.value)}
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-medium text-foreground bg-background shadow-2xs"
-                >
-                  <option value="">-- Direct Disbursement (No Bank) --</option>
-                  {accounts.map((a) => (
-                    <option key={a._id} value={a._id}>
-                      {a.accountName} (₹{a.currentBalance?.toLocaleString('en-IN')})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <div className="p-3 bg-muted/40 rounded-xl text-muted-foreground text-xs border border-border">
-                No bank accounts configured. This salary will be marked as disbursed directly.
-              </div>
-            )}
-
-            {accounts.length > 0 && (
-              <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl text-emerald-800 dark:text-emerald-300 text-[11px] border border-emerald-100 dark:border-emerald-800">
-                💡 <strong>Double-Entry Rule:</strong> Marking disbursed creates a cash outflow from the chosen bank account and clears the payable without duplicating the recognized salary expense.
-              </div>
-            )}
+            <div className="p-3.5 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs border border-emerald-100 dark:border-emerald-800 space-y-1">
+              <div>Confirming will record salary payout of <strong className="text-emerald-900 dark:text-emerald-200">{formatINR(payModalRecord?.netSalary || 0)}</strong> for <strong>{payModalRecord?.employee?.name}</strong>.</div>
+              <div className="text-[11px] text-emerald-700/80 dark:text-emerald-400">Status will update to <strong>Paid</strong> for {payModalRecord?.month} {payModalRecord?.year}.</div>
+            </div>
 
             <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
               <button

@@ -164,8 +164,9 @@ export const getFinanceOverview = async (req, res) => {
       });
     }
 
-    // Low cash alert if balance < 1,00,000
-    if (kpis.totalCashBankBalance < 100000) {
+    // Low cash alert if balance < 1,00,000 (only if accounts exist)
+    const activeAccountsCount = await FinanceAccount.countDocuments({ isActive: true });
+    if (activeAccountsCount > 0 && kpis.totalCashBankBalance < 100000) {
       alerts.push({
         type: 'danger',
         title: 'Low Cash Balance Warning',

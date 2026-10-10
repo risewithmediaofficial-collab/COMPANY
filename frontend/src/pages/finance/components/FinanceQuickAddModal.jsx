@@ -113,7 +113,6 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     amount: '',
     receivedDate: new Date().toISOString().slice(0, 10),
     paymentMode: 'Bank',
-    destinationAccount: '',
     reference: '',
     notes: '',
   });
@@ -128,7 +127,6 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     client: '',
     paymentStatus: 'paid',
     paymentMode: 'Bank',
-    fundingAccount: '',
     date: new Date().toISOString().slice(0, 10),
     notes: '',
   });
@@ -192,24 +190,15 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     transactionType: 'capital_introduced',
     amount: '',
     date: new Date().toISOString().slice(0, 10),
-    account: '',
     paymentMode: 'Bank Transfer',
     reference: '',
     notes: '',
   });
 
-  // Set default accounts once loaded
+  // Set default accounts once loaded (only for internal transfers if configured)
   useEffect(() => {
-    if (accounts.length > 0) {
-      const defaultAcc = accounts[0]._id;
-      if (!receiptForm.destinationAccount) setReceiptForm((f) => ({ ...f, destinationAccount: defaultAcc }));
-      if (!expForm.fundingAccount) setExpForm((f) => ({ ...f, fundingAccount: defaultAcc }));
-      if (!transferForm.fromAccount && accounts.length > 1) {
-        setTransferForm((f) => ({ ...f, fromAccount: accounts[0]._id, toAccount: accounts[1]._id }));
-      }
-      if (!subForm.paymentAccount) setSubForm((f) => ({ ...f, paymentAccount: defaultAcc }));
-      if (!founderForm.account) setFounderForm((f) => ({ ...f, account: defaultAcc }));
-      if (!payrollForm.paymentAccount) setPayrollForm((f) => ({ ...f, paymentAccount: defaultAcc }));
+    if (accounts.length > 1 && !transferForm.fromAccount) {
+      setTransferForm((f) => ({ ...f, fromAccount: accounts[0]._id, toAccount: accounts[1]._id }));
     }
   }, [accounts]);
 
@@ -271,7 +260,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       await recordReceipt.mutateAsync({
         ...receiptForm,
         amount: Number(receiptForm.amount),
-        destinationAccount: receiptForm.destinationAccount || undefined,
+        destinationAccount: undefined,
         invoice: receiptForm.invoice || undefined,
       });
       onOpenChange(false);
@@ -285,7 +274,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       await createExpense.mutateAsync({
         ...expForm,
         amount: Number(expForm.amount),
-        fundingAccount: expForm.fundingAccount || undefined,
+        fundingAccount: undefined,
         client: expForm.costType === 'client_project' ? expForm.client : undefined,
       });
       onOpenChange(false);
@@ -358,7 +347,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       await createFounder.mutateAsync({
         ...founderForm,
         amount: Number(founderForm.amount),
-        account: founderForm.account || undefined,
+        account: undefined,
       });
       onOpenChange(false);
     } catch (err) {}
@@ -690,7 +679,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Amount Received (₹) *</label>
                   <input
@@ -714,21 +703,6 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     <option value="Cash">Cash Vault</option>
                   </select>
                 </div>
-                {accounts.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Destination Account (Optional)</label>
-                    <select
-                      value={receiptForm.destinationAccount}
-                      onChange={(e) => setReceiptForm({ ...receiptForm, destinationAccount: e.target.value })}
-                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
-                    >
-                      <option value="">-- No Specific Account --</option>
-                      {accounts.map((a) => (
-                        <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -826,7 +800,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className={`grid grid-cols-1 gap-4 ${expForm.paymentStatus === 'paid' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Payment Status</label>
                   <select
@@ -850,21 +824,6 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                       <option value="UPI">UPI (GPay / PhonePe / QR)</option>
                       <option value="Cash">Cash</option>
                       <option value="Card">Corporate / Credit Card</option>
-                    </select>
-                  </div>
-                )}
-                {expForm.paymentStatus === 'paid' && accounts.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Funding Account (Optional)</label>
-                    <select
-                      value={expForm.fundingAccount}
-                      onChange={(e) => setExpForm({ ...expForm, fundingAccount: e.target.value })}
-                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
-                    >
-                      <option value="">-- No Specific Account --</option>
-                      {accounts.map((a) => (
-                        <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
-                      ))}
                     </select>
                   </div>
                 )}
@@ -1104,7 +1063,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Amount (₹) *</label>
                   <input
@@ -1116,21 +1075,6 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-indigo-700 shadow-2xs"
                   />
                 </div>
-                {accounts.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Bank / Cash Account</label>
-                    <select
-                      value={founderForm.account}
-                      onChange={(e) => setFounderForm({ ...founderForm, account: e.target.value })}
-                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
-                    >
-                      <option value="">-- No Specific Account --</option>
-                      {accounts.map((a) => (
-                        <option key={a._id} value={a._id}>{a.accountName}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
                   <input
