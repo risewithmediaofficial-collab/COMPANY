@@ -322,26 +322,24 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        variant="center"
+        variant="side"
         size="xl"
         noPadding={true}
-        className="bg-white border border-slate-200/90 shadow-2xl overflow-hidden rounded-2xl max-w-3xl flex flex-col max-h-[92vh] font-sans"
+        className="bg-card border-l border-border shadow-2xl overflow-hidden flex flex-col font-sans"
       >
-        {/* ── MODAL HEADER ─────────────────────────────────────────────── */}
-        <div className="border-b border-slate-100 px-6 pt-5 pb-4 bg-slate-50/50">
-          <div className="flex items-start justify-between pr-8">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 font-bold text-base shadow-2xs">
-                +
-              </div>
-              <div>
-                <DialogTitle className="text-base font-bold text-slate-900 tracking-tight">
-                  Add New Financial Transaction
-                </DialogTitle>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Record operational entries with double-entry reconciliation into RiseWithMedia Finance.
-                </p>
-              </div>
+        {/* ── DRAWER HEADER (PINNED) ───────────────────────────────────── */}
+        <div className="shrink-0 border-b border-border px-6 pt-5 pb-4 bg-muted/20 pr-24 sm:pr-28 select-none">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold text-base shadow-2xs shrink-0">
+              +
+            </div>
+            <div>
+              <DialogTitle className="text-base font-bold text-foreground tracking-tight">
+                Add New Financial Transaction
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Record operational entries with double-entry reconciliation into RiseWithMedia Finance.
+              </p>
             </div>
           </div>
 
@@ -370,7 +368,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         </div>
 
         {/* ── SCROLLABLE FORM BODY ─────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4 text-xs custom-scrollbar overscroll-contain">
           {/* 1. INVOICE FORM */}
           {activeAction === 'invoice' && (
             <form id="finance-modal-form" onSubmit={handleInvoiceSubmit} className="space-y-4">
@@ -1165,7 +1163,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         </div>
 
         {/* ── MODAL FOOTER ─────────────────────────────────────────────── */}
-        <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
+        <div className="shrink-0 border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
           <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
             <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
             <span>Double-Entry Verified · Asia/Kolkata</span>
