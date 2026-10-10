@@ -13,12 +13,15 @@ import {
   Download,
   ArrowUpDown,
   X,
+  Trash2,
 } from 'lucide-react';
 import {
   useFinanceAccounts,
   useInternalTransfers,
   useReconcileAccount,
   useDailyCashbook,
+  useDeleteInternalTransfer,
+  useDeleteFinanceAccount,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
@@ -40,6 +43,9 @@ export default function CashFlowSection({ onQuickAdd }) {
     endDate: toDate || undefined,
     sortOrder: dateSort,
   });
+
+  const deleteTransfer = useDeleteInternalTransfer();
+  const deleteAccount = useDeleteFinanceAccount();
 
   const sortedTransfers = useMemo(() => {
     return [...transfers].sort((a, b) => {
@@ -200,13 +206,27 @@ export default function CashFlowSection({ onQuickAdd }) {
                   <span className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Balanced
                   </span>
-                  <button
-                    onClick={() => handleReconcile(acc._id)}
-                    disabled={reconcileAccount.isPending}
-                    className="flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-800 hover:underline disabled:opacity-50 cursor-pointer"
-                  >
-                    <RefreshCw className="h-3 w-3" /> Reconcile
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleReconcile(acc._id)}
+                      disabled={reconcileAccount.isPending}
+                      className="flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-800 hover:underline disabled:opacity-50 cursor-pointer"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Reconcile
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete account "${acc.accountName}"? All linked records should be settled first.`)) {
+                          deleteAccount.mutate(acc._id);
+                        }
+                      }}
+                      disabled={deleteAccount.isPending}
+                      className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      title="Delete Account"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -280,9 +300,9 @@ export default function CashFlowSection({ onQuickAdd }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto text-xs">
+          <div className="overflow-x-auto overflow-y-auto max-h-[580px] text-xs">
             <table className="w-full text-left">
-              <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th
                     onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
@@ -300,12 +320,13 @@ export default function CashFlowSection({ onQuickAdd }) {
                   <th className="p-3">Bank Fee</th>
                   <th className="p-3">Reference / UTR</th>
                   <th className="p-3 text-right">Amount</th>
+                  <th className="p-3 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {sortedTransfers.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="p-8 text-center text-slate-400">
+                    <td colSpan="7" className="p-8 text-center text-slate-400">
                       No internal transfers recorded matching the criteria.
                     </td>
                   </tr>
@@ -318,6 +339,20 @@ export default function CashFlowSection({ onQuickAdd }) {
                       <td className="p-3 text-slate-500">{t.bankFee ? formatINR(t.bankFee) : '₹0.00'}</td>
                       <td className="p-3 font-mono text-slate-500">{t.reference || '-'}</td>
                       <td className="p-3 text-right font-bold text-slate-900 text-sm">{formatINR(t.amount)}</td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this internal transfer? Transferred amounts will be refunded to source account.')) {
+                              deleteTransfer.mutate(t._id);
+                            }
+                          }}
+                          disabled={deleteTransfer.isPending}
+                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Delete Transfer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -398,9 +433,9 @@ export default function CashFlowSection({ onQuickAdd }) {
             </div>
           </div>
 
-          <div className="overflow-x-auto text-xs">
+          <div className="overflow-x-auto overflow-y-auto max-h-[580px] text-xs">
             <table className="w-full text-left">
-              <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th
                     onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}

@@ -13,8 +13,22 @@ import {
   Calendar,
   ArrowUpDown,
   X,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
-import { usePaymentReceipts, useModuleInvoices } from '../../../hooks/useFinance';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  usePaymentReceipts,
+  useModuleInvoices,
+  useUpdatePaymentReceipt,
+  useDeletePaymentReceipt,
+} from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 
@@ -25,6 +39,15 @@ export default function IncomeSection({ onQuickAdd }) {
   const [toDate, setToDate] = useState('');
   const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
 
+  // Edit Receipt State
+  const [editingReceipt, setEditingReceipt] = useState(null);
+  const [receiptForm, setReceiptForm] = useState({
+    receivedDate: '',
+    paymentMode: 'Bank',
+    reference: '',
+    notes: '',
+  });
+
   const { data: receipts = [], isLoading } = usePaymentReceipts({
     client: clientFilter !== 'all' ? clientFilter : undefined,
     startDate: fromDate || undefined,
@@ -33,6 +56,39 @@ export default function IncomeSection({ onQuickAdd }) {
   });
 
   const { data: clients = [] } = useClients();
+  const updateReceipt = useUpdatePaymentReceipt();
+  const deleteReceipt = useDeletePaymentReceipt();
+
+  const handleStartEditReceipt = (r) => {
+    setEditingReceipt(r);
+    const d = r.receivedDate || r.paidAt;
+    setReceiptForm({
+      receivedDate: d ? new Date(d).toISOString().slice(0, 10) : '',
+      paymentMode: r.paymentMode || r.method || 'Bank',
+      reference: r.reference || '',
+      notes: r.notes || '',
+    });
+  };
+
+  const handleSaveEditReceipt = async (e) => {
+    e.preventDefault();
+    if (!editingReceipt) return;
+    try {
+      await updateReceipt.mutateAsync({
+        id: editingReceipt._id,
+        data: receiptForm,
+      });
+      setEditingReceipt(null);
+    } catch (_) {}
+  };
+
+  const handleDeleteReceipt = async (r) => {
+    if (window.confirm(`Are you sure you want to delete payment receipt of ₹${r.amount}?`)) {
+      try {
+        await deleteReceipt.mutateAsync(r._id);
+      } catch (_) {}
+    }
+  };
 
   const filteredReceipts = useMemo(() => {
     return receipts.filter((r) => {
@@ -214,10 +270,10 @@ export default function IncomeSection({ onQuickAdd }) {
       </div>
 
       {/* Receipts Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto text-xs">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+        <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
           <table className="w-full text-left">
-            <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
               <tr>
                 <th
                   onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
@@ -236,12 +292,13 @@ export default function IncomeSection({ onQuickAdd }) {
                 <th className="p-3">Destination Account</th>
                 <th className="p-3">UTR / Ref</th>
                 <th className="p-3 text-right">Amount Received</th>
+                <th className="p-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {sortedReceipts.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-slate-400">
+                  <td colSpan="8" className="p-8 text-center text-slate-400">
                     No payment receipts found matching your filters.
                   </td>
                 </tr>
@@ -271,6 +328,25 @@ export default function IncomeSection({ onQuickAdd }) {
                     <td className="p-3 text-slate-600">{r.destinationAccount?.accountName || '-'}</td>
                     <td className="p-3 font-mono text-slate-500">{r.reference || '-'}</td>
                     <td className="p-3 text-right font-bold text-emerald-600 text-sm">+{formatINR(r.amount)}</td>
+                    <td className="p-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleStartEditReceipt(r)}
+                          className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          title="Edit Receipt"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReceipt(r)}
+                          disabled={deleteReceipt.isPending}
+                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Delete Receipt"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -278,6 +354,89 @@ export default function IncomeSection({ onQuickAdd }) {
           </table>
         </div>
       </div>
+
+      {/* EDIT RECEIPT MODAL */}
+      <Dialog open={Boolean(editingReceipt)} onOpenChange={(open) => !open && setEditingReceipt(null)}>
+        {editingReceipt && (
+          <DialogContent variant="center" size="md" className="rounded-2xl p-6 text-xs max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-slate-900">Edit Payment Receipt</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                Receipt for {editingReceipt.client?.company || editingReceipt.client?.name || 'Client'} ({formatINR(editingReceipt.amount)})
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSaveEditReceipt} className="space-y-3.5 mt-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Received Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={receiptForm.receivedDate}
+                    onChange={(e) => setReceiptForm({ ...receiptForm, receivedDate: e.target.value })}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Mode</label>
+                  <select
+                    value={receiptForm.paymentMode}
+                    onChange={(e) => setReceiptForm({ ...receiptForm, paymentMode: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                  >
+                    <option value="Bank">Bank Transfer / NEFT / IMPS</option>
+                    <option value="UPI">UPI / QR</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Stripe">Stripe / Card</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">UTR / Transaction Reference</label>
+                <input
+                  type="text"
+                  value={receiptForm.reference}
+                  onChange={(e) => setReceiptForm({ ...receiptForm, reference: e.target.value })}
+                  placeholder="e.g. UTR12345678"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Notes / Remarks</label>
+                <textarea
+                  rows="2"
+                  value={receiptForm.notes}
+                  onChange={(e) => setReceiptForm({ ...receiptForm, notes: e.target.value })}
+                  placeholder="Optional internal remarks..."
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingReceipt(null)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateReceipt.isPending}
+                  className="px-4 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {updateReceipt.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }

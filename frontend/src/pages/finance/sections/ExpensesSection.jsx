@@ -15,11 +15,24 @@ import {
   Calendar,
   ArrowUpDown,
   X,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import {
   useModuleExpenses,
   usePayVendorBill,
+  useUpdateModuleExpense,
+  useDeleteModuleExpense,
   useSubscriptions,
+  useUpdateSubscription,
+  useDeleteSubscription,
   usePostSubscriptionRenewal,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
@@ -33,6 +46,31 @@ export default function ExpensesSection({ onQuickAdd }) {
   const [toDate, setToDate] = useState('');
   const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
 
+  // Edit Expense State
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [expenseForm, setExpenseForm] = useState({
+    title: '',
+    amount: '',
+    category: 'office',
+    vendor: '',
+    costType: 'agency_overhead',
+    paymentStatus: 'paid',
+    date: '',
+    notes: '',
+  });
+
+  // Edit Subscription State
+  const [editingSubscription, setEditingSubscription] = useState(null);
+  const [subscriptionForm, setSubscriptionForm] = useState({
+    serviceName: '',
+    vendor: '',
+    frequency: 'monthly',
+    expectedAmount: '',
+    nextRenewalDate: '',
+    costClassification: 'software',
+    notes: '',
+  });
+
   const { data: expenses = [] } = useModuleExpenses({
     category: categoryFilter !== 'all' ? categoryFilter : undefined,
     paymentStatus: paymentStatusFilter !== 'all' ? paymentStatusFilter : undefined,
@@ -44,7 +82,84 @@ export default function ExpensesSection({ onQuickAdd }) {
   const { data: subscriptions = [] } = useSubscriptions();
 
   const payVendorBill = usePayVendorBill();
+  const updateExpense = useUpdateModuleExpense();
+  const deleteExpense = useDeleteModuleExpense();
+  const updateSubscription = useUpdateSubscription();
+  const deleteSubscription = useDeleteSubscription();
   const postRenewal = usePostSubscriptionRenewal();
+
+  const handleStartEditExpense = (exp) => {
+    setEditingExpense(exp);
+    setExpenseForm({
+      title: exp.title || '',
+      amount: exp.amount || '',
+      category: exp.category || 'office',
+      vendor: exp.vendor || '',
+      costType: exp.costType || 'agency_overhead',
+      paymentStatus: exp.paymentStatus || 'paid',
+      date: exp.date ? new Date(exp.date).toISOString().slice(0, 10) : '',
+      notes: exp.notes || '',
+    });
+  };
+
+  const handleSaveEditExpense = async (e) => {
+    e.preventDefault();
+    if (!editingExpense) return;
+    try {
+      await updateExpense.mutateAsync({
+        id: editingExpense._id,
+        data: {
+          ...expenseForm,
+          amount: Number(expenseForm.amount),
+        },
+      });
+      setEditingExpense(null);
+    } catch (_) {}
+  };
+
+  const handleDeleteExpense = async (exp) => {
+    if (window.confirm(`Are you sure you want to delete expense "${exp.title}"?`)) {
+      try {
+        await deleteExpense.mutateAsync(exp._id);
+      } catch (_) {}
+    }
+  };
+
+  const handleStartEditSubscription = (sub) => {
+    setEditingSubscription(sub);
+    setSubscriptionForm({
+      serviceName: sub.serviceName || '',
+      vendor: sub.vendor || '',
+      frequency: sub.frequency || 'monthly',
+      expectedAmount: sub.expectedAmount || '',
+      nextRenewalDate: sub.nextRenewalDate ? new Date(sub.nextRenewalDate).toISOString().slice(0, 10) : '',
+      costClassification: sub.costClassification || 'software',
+      notes: sub.notes || '',
+    });
+  };
+
+  const handleSaveEditSubscription = async (e) => {
+    e.preventDefault();
+    if (!editingSubscription) return;
+    try {
+      await updateSubscription.mutateAsync({
+        id: editingSubscription._id,
+        data: {
+          ...subscriptionForm,
+          expectedAmount: Number(subscriptionForm.expectedAmount),
+        },
+      });
+      setEditingSubscription(null);
+    } catch (_) {}
+  };
+
+  const handleDeleteSubscription = async (sub) => {
+    if (window.confirm(`Are you sure you want to delete subscription "${sub.serviceName}"?`)) {
+      try {
+        await deleteSubscription.mutateAsync(sub._id);
+      } catch (_) {}
+    }
+  };
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((e) => {
@@ -266,10 +381,10 @@ export default function ExpensesSection({ onQuickAdd }) {
           </div>
 
           {/* Expenses Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="overflow-x-auto text-xs">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+            <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
               <table className="w-full text-left">
-                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
                   <tr>
                     <th
                       onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
@@ -333,17 +448,36 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </td>
                         <td className="p-3 text-right font-bold text-slate-900 text-sm">{formatINR(exp.amount)}</td>
                         <td className="p-3 text-right">
-                          {exp.paymentStatus === 'unpaid' ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            {exp.paymentStatus === 'unpaid' ? (
+                              <button
+                                onClick={() => payVendorBill.mutate({ id: exp._id })}
+                                disabled={payVendorBill.isPending}
+                                className="px-2.5 py-1 rounded bg-indigo-600 text-white font-semibold text-[11px] hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                              >
+                                Pay Bill
+                              </button>
+                            ) : (
+                              <span className="text-emerald-700 font-semibold text-[10px] px-2 py-0.5 rounded bg-emerald-50">
+                                Paid
+                              </span>
+                            )}
                             <button
-                              onClick={() => payVendorBill.mutate({ id: exp._id })}
-                              disabled={payVendorBill.isPending}
-                              className="px-2.5 py-1 rounded bg-indigo-600 text-white font-semibold text-[11px] hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                              onClick={() => handleStartEditExpense(exp)}
+                              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                              title="Edit Expense"
                             >
-                              Pay Bill
+                              <Edit2 className="h-3.5 w-3.5" />
                             </button>
-                          ) : (
-                            <span className="text-slate-400 text-[11px]">Paid</span>
-                          )}
+                            <button
+                              onClick={() => handleDeleteExpense(exp)}
+                              disabled={deleteExpense.isPending}
+                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              title="Delete Expense"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -355,7 +489,7 @@ export default function ExpensesSection({ onQuickAdd }) {
         </>
       ) : (
         /* Recurring Subscriptions Tab */
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Software & Agency Subscriptions</h3>
@@ -372,9 +506,9 @@ export default function ExpensesSection({ onQuickAdd }) {
             </button>
           </div>
 
-          <div className="overflow-x-auto text-xs">
+          <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
             <table className="w-full text-left">
-              <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
                 <tr>
                   <th className="p-3">Tool / Service</th>
                   <th className="p-3">Vendor</th>
@@ -402,13 +536,30 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <td className="p-3 font-medium text-amber-700">{formatDateIST(sub.nextRenewalDate)}</td>
                       <td className="p-3 capitalize">{sub.costClassification}</td>
                       <td className="p-3 text-right">
-                        <button
-                          onClick={() => postRenewal.mutate({ id: sub._id, actualAmount: sub.expectedAmount })}
-                          disabled={postRenewal.isPending}
-                          className="px-2.5 py-1 rounded bg-emerald-600 text-white font-semibold text-[11px] hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                        >
-                          Confirm & Post Renewal
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => postRenewal.mutate({ id: sub._id, actualAmount: sub.expectedAmount })}
+                            disabled={postRenewal.isPending}
+                            className="px-2.5 py-1 rounded bg-emerald-600 text-white font-semibold text-[11px] hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                          >
+                            Post Renewal
+                          </button>
+                          <button
+                            onClick={() => handleStartEditSubscription(sub)}
+                            className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                            title="Edit Subscription"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSubscription(sub)}
+                            disabled={deleteSubscription.isPending}
+                            className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Delete Subscription"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -418,6 +569,238 @@ export default function ExpensesSection({ onQuickAdd }) {
           </div>
         </div>
       )}
+
+      {/* EDIT EXPENSE MODAL */}
+      <Dialog open={Boolean(editingExpense)} onOpenChange={(open) => !open && setEditingExpense(null)}>
+        {editingExpense && (
+          <DialogContent variant="center" size="md" className="rounded-2xl p-6 text-xs max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-slate-900">Edit Expense / Vendor Bill</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                Update details for {editingExpense.title}
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSaveEditExpense} className="space-y-3.5 mt-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Item Title / Description</label>
+                <input
+                  type="text"
+                  required
+                  value={expenseForm.title}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })}
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Amount (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={expenseForm.amount}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={expenseForm.date}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Vendor / Payee</label>
+                  <input
+                    type="text"
+                    value={expenseForm.vendor}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Category</label>
+                  <select
+                    value={expenseForm.category}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                  >
+                    <option value="production_shoot">Production / Shoot</option>
+                    <option value="travel">Travel Allowance</option>
+                    <option value="freelancers">Freelancers</option>
+                    <option value="software_subscriptions">Software / Subscriptions</option>
+                    <option value="rent">Rent</option>
+                    <option value="internet">Internet & Utilities</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="office">Office Expenses</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Cost Type</label>
+                  <select
+                    value={expenseForm.costType}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, costType: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                  >
+                    <option value="agency_overhead">Agency Overhead</option>
+                    <option value="client_project">Client Direct</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Status</label>
+                  <select
+                    value={expenseForm.paymentStatus}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, paymentStatus: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                  >
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid Vendor Bill</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Notes</label>
+                <textarea
+                  rows="2"
+                  value={expenseForm.notes}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
+                  placeholder="Optional internal remarks..."
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingExpense(null)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateExpense.isPending}
+                  className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {updateExpense.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* EDIT SUBSCRIPTION MODAL */}
+      <Dialog open={Boolean(editingSubscription)} onOpenChange={(open) => !open && setEditingSubscription(null)}>
+        {editingSubscription && (
+          <DialogContent variant="center" size="md" className="rounded-2xl p-6 text-xs max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-slate-900">Edit Subscription</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                Update commitment for {editingSubscription.serviceName}
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSaveEditSubscription} className="space-y-3.5 mt-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Service / Tool Name</label>
+                <input
+                  type="text"
+                  required
+                  value={subscriptionForm.serviceName}
+                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, serviceName: e.target.value })}
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Expected Amount (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={subscriptionForm.expectedAmount}
+                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, expectedAmount: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Frequency</label>
+                  <select
+                    value={subscriptionForm.frequency}
+                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, frequency: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="annual">Annual</option>
+                    <option value="quarterly">Quarterly</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Next Renewal Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={subscriptionForm.nextRenewalDate}
+                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, nextRenewalDate: e.target.value })}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Classification</label>
+                  <select
+                    value={subscriptionForm.costClassification}
+                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, costClassification: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                  >
+                    <option value="software">Software / SaaS</option>
+                    <option value="tools">Tools & Utilities</option>
+                    <option value="hosting">Hosting / Cloud</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingSubscription(null)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateSubscription.isPending}
+                  className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {updateSubscription.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }

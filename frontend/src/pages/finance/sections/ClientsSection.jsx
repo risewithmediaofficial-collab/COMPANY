@@ -186,9 +186,9 @@ export default function ClientsSection({ onQuickAdd }) {
           </div>
         </div>
 
-        <div className="overflow-x-auto text-xs">
+        <div className="overflow-x-auto overflow-y-auto max-h-[580px] text-xs">
           <table className="w-full text-left">
-            <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3">Client / Business</th>
                 <th className="p-3">Plan & Deliverables</th>

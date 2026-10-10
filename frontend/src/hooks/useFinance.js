@@ -685,6 +685,23 @@ export const useReconcileAccount = () => {
   });
 };
 
+export const useDeleteFinanceAccount = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/finance/accounts/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Account deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete account');
+    },
+  });
+};
+
 export const useInternalTransfers = (filters = {}, options = {}) => {
   return useQuery({
     queryKey: ['finance-transfers', filters],
@@ -712,6 +729,25 @@ export const useCreateInternalTransfer = () => {
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to record transfer');
+    },
+  });
+};
+
+export const useDeleteInternalTransfer = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/finance/transfers/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-transfers'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-cashbook'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Internal transfer deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete transfer');
     },
   });
 };
@@ -762,6 +798,43 @@ export const useUpdateInvoiceWorkflow = () => {
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to update invoice workflow');
+    },
+  });
+};
+
+export const useUpdateModuleInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/module/invoices/${id}`, data);
+      return response.data?.invoice;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-module-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Invoice updated successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update invoice');
+    },
+  });
+};
+
+export const useDeleteModuleInvoice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/finance/module/invoices/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-module-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Invoice deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete invoice');
     },
   });
 };
@@ -818,6 +891,45 @@ export const useRecordPaymentReceipt = () => {
   });
 };
 
+export const useUpdatePaymentReceipt = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/receipts/${id}`, data);
+      return response.data?.payment;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-receipts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Payment receipt updated successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update receipt');
+    },
+  });
+};
+
+export const useDeletePaymentReceipt = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/finance/receipts/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-receipts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Payment receipt deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete receipt');
+    },
+  });
+};
+
 export const useModuleExpenses = (filters = {}, options = {}) => {
   return useQuery({
     queryKey: ['finance-module-expenses', filters],
@@ -870,6 +982,45 @@ export const usePayVendorBill = () => {
   });
 };
 
+export const useUpdateModuleExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/module/expenses/${id}`, data);
+      return response.data?.expense;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-module-expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Expense updated successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update expense');
+    },
+  });
+};
+
+export const useDeleteModuleExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/finance/module/expenses/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-module-expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Expense deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete expense');
+    },
+  });
+};
+
 export const useSubscriptions = (options = {}) => {
   return useQuery({
     queryKey: ['finance-subscriptions'],
@@ -916,6 +1067,41 @@ export const usePostSubscriptionRenewal = () => {
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to post renewal');
+    },
+  });
+};
+
+export const useUpdateSubscription = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/subscriptions/${id}`, data);
+      return response.data?.subscription;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Subscription updated successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update subscription');
+    },
+  });
+};
+
+export const useDeleteSubscription = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/finance/subscriptions/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Subscription deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete subscription');
     },
   });
 };

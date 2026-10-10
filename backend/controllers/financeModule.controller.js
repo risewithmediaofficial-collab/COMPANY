@@ -288,6 +288,17 @@ export const reconcileAccount = async (req, res) => {
   }
 };
 
+export const deleteFinanceAccount = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const account = await FinanceAccount.findByIdAndDelete(id);
+    if (!account) return res.status(404).json({ success: false, message: 'Account not found' });
+    res.json({ success: true, message: 'Account deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const getInternalTransfers = async (req, res) => {
   try {
     const { startDate, endDate, sortOrder = 'desc' } = req.query;
@@ -385,6 +396,24 @@ export const createInternalTransfer = async (req, res) => {
     res.status(201).json({ success: true, transfer });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteInternalTransfer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transfer = await InternalTransfer.findById(id);
+    if (!transfer) return res.status(404).json({ success: false, message: 'Transfer not found' });
+
+    const { fromAccount, toAccount } = transfer;
+    await transfer.deleteOne();
+
+    if (fromAccount) await reconcileAccountBalance(fromAccount);
+    if (toAccount) await reconcileAccountBalance(toAccount);
+
+    res.json({ success: true, message: 'Transfer deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -671,6 +700,42 @@ export const generateMonthlyRetainerInvoices = async (req, res) => {
   }
 };
 
+export const updateModuleInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const invoice = await Invoice.findById(id);
+    if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
+
+    const { dueDate, notes, terms, status, workflowStatus, clientDetails } = req.body;
+    if (dueDate) invoice.dueDate = new Date(dueDate);
+    if (notes !== undefined) invoice.notes = notes;
+    if (terms !== undefined) invoice.terms = terms;
+    if (status) invoice.status = status;
+    if (workflowStatus) invoice.workflowStatus = workflowStatus;
+    if (clientDetails) invoice.clientDetails = { ...invoice.clientDetails, ...clientDetails };
+
+    await invoice.save();
+    res.json({ success: true, invoice });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteModuleInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const invoice = await Invoice.findById(id);
+    if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
+
+    await Payment.deleteMany({ invoice: invoice._id });
+    await invoice.deleteOne();
+
+    res.json({ success: true, message: 'Invoice deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // =============================================
 // 4. CLIENT PAYMENT RECEIPTS
 // =============================================
@@ -811,6 +876,72 @@ export const getPaymentReceipts = async (req, res) => {
       .lean();
 
     res.json({ success: true, receipts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updatePaymentReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const payment = await Payment.findById(id);
+    if (!payment) return res.status(404).json({ success: false, message: 'Payment receipt not found' });
+
+    const { receivedDate, paymentMode, reference, notes, proofUrl } = req.body;
+    if (receivedDate) {
+      payment.receivedDate = new Date(receivedDate);
+      payment.paidAt = new Date(receivedDate);
+    }
+    if (paymentMode) {
+      payment.paymentMode = paymentMode;
+      payment.method = paymentMode;
+    }
+    if (reference !== undefined) payment.reference = reference;
+    if (notes !== undefined) payment.notes = notes;
+    if (proofUrl !== undefined) payment.proofUrl = proofUrl;
+
+    await payment.save();
+    res.json({ success: true, payment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deletePaymentReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const payment = await Payment.findById(id);
+    if (!payment) return res.status(404).json({ success: false, message: 'Payment receipt not found' });
+
+    // Restore invoice balance if payment was linked to an invoice
+    if (payment.invoice) {
+      const inv = await Invoice.findById(payment.invoice);
+      if (inv) {
+        const appliedAmt = Number(payment.amount || 0) - Number(payment.unappliedCredit || 0);
+        inv.paidAmount = Math.max(0, Number(inv.paidAmount || 0) - appliedAmt);
+        inv.balanceAmount = Math.min(Number(inv.total || 0), Number(inv.balanceAmount || 0) + appliedAmt);
+        if (inv.paidAmount === 0) {
+          inv.status = 'unpaid';
+        } else {
+          inv.status = 'partially_paid';
+        }
+        if (Array.isArray(inv.payments)) {
+          inv.payments = inv.payments.filter(
+            (p) => p._id?.toString() !== payment._id?.toString() && p.reference !== payment.reference
+          );
+        }
+        await inv.save();
+      }
+    }
+
+    const destinationAccount = payment.destinationAccount;
+    await payment.deleteOne();
+
+    if (destinationAccount) {
+      await reconcileAccountBalance(destinationAccount);
+    }
+
+    res.json({ success: true, message: 'Payment receipt deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -987,6 +1118,86 @@ export const payVendorBill = async (req, res) => {
   }
 };
 
+export const updateModuleExpense = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const expense = await Expense.findById(id);
+    if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
+
+    const oldFundingAccount = expense.fundingAccount;
+    const oldPaymentStatus = expense.paymentStatus;
+
+    const {
+      title,
+      amount,
+      category,
+      subcategory,
+      vendor,
+      description,
+      costType,
+      paymentStatus,
+      paymentMode,
+      fundingAccount,
+      date,
+      paymentDate,
+      notes,
+    } = req.body;
+
+    if (title !== undefined) expense.title = title;
+    if (amount !== undefined && Number(amount) > 0) expense.amount = Number(amount);
+    if (category !== undefined) expense.category = category;
+    if (subcategory !== undefined) expense.subcategory = subcategory;
+    if (vendor !== undefined) expense.vendor = vendor;
+    if (description !== undefined) expense.description = description;
+    if (costType !== undefined) expense.costType = costType;
+    if (paymentStatus !== undefined) expense.paymentStatus = paymentStatus;
+    if (paymentMode !== undefined) expense.paymentMode = paymentMode;
+    if (fundingAccount !== undefined) expense.fundingAccount = fundingAccount || null;
+    if (date) expense.date = new Date(date);
+    if (paymentDate) expense.paymentDate = new Date(paymentDate);
+    if (notes !== undefined) expense.notes = notes;
+
+    await expense.save();
+
+    // Reconcile if paid and fundingAccount changed or amount changed
+    if (expense.fundingAccount && expense.paymentStatus === 'paid') {
+      await reconcileAccountBalance(expense.fundingAccount);
+    }
+    if (
+      oldFundingAccount &&
+      oldFundingAccount.toString() !== expense.fundingAccount?.toString() &&
+      oldPaymentStatus === 'paid'
+    ) {
+      await reconcileAccountBalance(oldFundingAccount);
+    }
+
+    res.json({ success: true, expense });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteModuleExpense = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const expense = await Expense.findById(id);
+    if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
+
+    const fundingAccount = expense.fundingAccount;
+    const wasPaid = expense.paymentStatus === 'paid';
+
+    await expense.deleteOne();
+
+    if (fundingAccount && wasPaid) {
+      await reconcileAccountBalance(fundingAccount);
+    }
+
+    res.json({ success: true, message: 'Expense deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // =============================================
 // 6. RECURRING SUBSCRIPTIONS
 // =============================================
@@ -1103,6 +1314,35 @@ export const postSubscriptionRenewal = async (req, res) => {
     res.json({ success: true, expense, subscription: sub });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateSubscription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subscription = await Subscription.findById(id);
+    if (!subscription) return res.status(404).json({ success: false, message: 'Subscription not found' });
+
+    Object.assign(subscription, req.body);
+    if (req.body.nextRenewalDate) subscription.nextRenewalDate = new Date(req.body.nextRenewalDate);
+    if (req.body.expectedAmount !== undefined) subscription.expectedAmount = Number(req.body.expectedAmount);
+
+    await subscription.save();
+    res.json({ success: true, subscription });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteSubscription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subscription = await Subscription.findByIdAndDelete(id);
+    if (!subscription) return res.status(404).json({ success: false, message: 'Subscription not found' });
+
+    res.json({ success: true, message: 'Subscription deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

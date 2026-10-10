@@ -15,11 +15,18 @@ import {
   Calendar,
   ArrowUpDown,
   X,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
-import { useModuleInvoices, useUpdateInvoiceWorkflow } from '../../../hooks/useFinance';
+import {
+  useModuleInvoices,
+  useUpdateInvoiceWorkflow,
+  useUpdateModuleInvoice,
+  useDeleteModuleInvoice,
+} from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -29,6 +36,15 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
   const [toDate, setToDate] = useState('');
   const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+  // Edit Invoice State
+  const [editingInvoice, setEditingInvoice] = useState(null);
+  const [invoiceForm, setInvoiceForm] = useState({
+    dueDate: '',
+    status: 'unpaid',
+    notes: '',
+    terms: '',
+  });
 
   const { data: invoices = [], isLoading } = useModuleInvoices({
     status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -40,6 +56,38 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
 
   const { data: clients = [] } = useClients();
   const updateWorkflow = useUpdateInvoiceWorkflow();
+  const updateInvoice = useUpdateModuleInvoice();
+  const deleteInvoice = useDeleteModuleInvoice();
+
+  const handleStartEditInvoice = (inv) => {
+    setEditingInvoice(inv);
+    setInvoiceForm({
+      dueDate: inv.dueDate ? new Date(inv.dueDate).toISOString().slice(0, 10) : '',
+      status: inv.status || 'unpaid',
+      notes: inv.notes || '',
+      terms: inv.terms || '',
+    });
+  };
+
+  const handleSaveEditInvoice = async (e) => {
+    e.preventDefault();
+    if (!editingInvoice) return;
+    try {
+      await updateInvoice.mutateAsync({
+        id: editingInvoice._id,
+        data: invoiceForm,
+      });
+      setEditingInvoice(null);
+    } catch (_) {}
+  };
+
+  const handleDeleteInvoice = async (inv) => {
+    if (window.confirm(`Are you sure you want to delete invoice ${inv.invoiceNumber}?`)) {
+      try {
+        await deleteInvoice.mutateAsync(inv._id);
+      } catch (_) {}
+    }
+  };
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((i) => {
@@ -244,10 +292,10 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       </div>
 
       {/* Invoices Master Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto text-xs">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+        <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
           <table className="w-full text-left">
-            <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
               <tr>
                 <th className="p-3">Invoice #</th>
                 <th className="p-3">Client</th>
@@ -316,7 +364,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                       </span>
                     </td>
                     <td className="p-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => setSelectedInvoice(inv)}
                           className="text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center gap-1"
@@ -339,6 +387,21 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                             + Pay
                           </button>
                         )}
+                        <button
+                          onClick={() => handleStartEditInvoice(inv)}
+                          className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          title="Edit Invoice"
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteInvoice(inv)}
+                          disabled={deleteInvoice.isPending}
+                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Delete Invoice"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -477,6 +540,90 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                 </button>
               </div>
             </div>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* EDIT INVOICE MODAL */}
+      <Dialog open={Boolean(editingInvoice)} onOpenChange={(open) => !open && setEditingInvoice(null)}>
+        {editingInvoice && (
+          <DialogContent variant="center" size="md" className="rounded-2xl p-6 text-xs max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-slate-900">Edit Invoice</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                Update parameters for invoice {editingInvoice.invoiceNumber}
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSaveEditInvoice} className="space-y-3.5 mt-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Due Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={invoiceForm.dueDate}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Status</label>
+                  <select
+                    value={invoiceForm.status}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                  >
+                    <option value="unpaid">Unpaid</option>
+                    <option value="partially_paid">Partially Paid</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                    <option value="draft">Draft</option>
+                    <option value="void">Void</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Terms</label>
+                <input
+                  type="text"
+                  value={invoiceForm.terms}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, terms: e.target.value })}
+                  placeholder="e.g. Net 15 Days"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Notes / Terms Remark</label>
+                <textarea
+                  rows="2"
+                  value={invoiceForm.notes}
+                  onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
+                  placeholder="Optional internal remarks..."
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingInvoice(null)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateInvoice.isPending}
+                  className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {updateInvoice.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </DialogContent>
         )}
       </Dialog>

@@ -255,9 +255,9 @@ export default function ForecastReportsSection() {
             <div className="p-4 border-b border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">Forecast Cashbook Matrix (6 Months)</h3>
             </div>
-            <div className="overflow-x-auto text-xs">
+            <div className="overflow-x-auto overflow-y-auto max-h-[480px] text-xs">
               <table className="w-full text-left">
-                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="p-3">Month</th>
                     <th className="p-3">Opening Cash</th>
@@ -325,9 +325,9 @@ export default function ForecastReportsSection() {
               </div>
             </div>
 
-            <div className="overflow-x-auto text-xs">
+            <div className="overflow-x-auto overflow-y-auto max-h-[500px] text-xs">
               <table className="w-full text-left">
-                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="p-3">Aging Bucket</th>
                     <th className="p-3">Invoice #</th>
@@ -392,9 +392,9 @@ export default function ForecastReportsSection() {
               </p>
             </div>
 
-            <div className="overflow-x-auto text-xs">
+            <div className="overflow-x-auto overflow-y-auto max-h-[500px] text-xs">
               <table className="w-full text-left">
-                <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="p-3">Month</th>
                     <th className="p-3">Service Revenue</th>
