@@ -22,7 +22,7 @@ import {
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function ClientsSection({ onQuickAdd }) {
   const [search, setSearch] = useState('');
@@ -284,9 +284,9 @@ export default function ClientsSection({ onQuickAdd }) {
               <DialogTitle className="text-base font-bold text-foreground">
                 Assign Cost to {selectedClientForCost.company || selectedClientForCost.name}
               </DialogTitle>
-              <p className="text-muted-foreground text-xs mt-0.5">
+              <DialogDescription className="text-muted-foreground text-xs mt-0.5">
                 Period: {retainerPeriod}. Distribute direct service cost (editing, design, shoot) without creating another agency expense.
-              </p>
+              </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleSaveAllocation} className="space-y-4">

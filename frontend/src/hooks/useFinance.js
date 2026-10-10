@@ -944,6 +944,19 @@ export const usePayrollEmployees = (options = {}) => {
   });
 };
 
+export const usePayrollRecord = (id, options = {}) => {
+  return useQuery({
+    queryKey: ['finance-payroll-record', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const response = await api.get(`/finance/payroll/${id}`);
+      return response.data?.record || null;
+    },
+    enabled: Boolean(id),
+    ...options,
+  });
+};
+
 export const useCreatePayrollRecord = () => {
   const queryClient = useQueryClient();
   return useMutation({

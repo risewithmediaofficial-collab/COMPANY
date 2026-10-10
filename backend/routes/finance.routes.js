@@ -64,6 +64,7 @@ import {
   createSubscription,
   postSubscriptionRenewal,
   getPayrollRecords,
+  getPayrollRecord,
   createPayrollRecord,
   updatePayrollRecord,
   deletePayrollRecord,
@@ -132,6 +133,7 @@ router.post('/subscriptions/:id/post-renewal', authorize('superAdmin', 'admin', 
 
 // 8. Payroll Integration
 router.get('/payroll/employees', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getEmployeesForPayroll);
+router.get('/payroll/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getPayrollRecord);
 router.get('/payroll', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getPayrollRecords);
 router.post('/payroll', authorize('superAdmin', 'admin', 'financeManager'), createPayrollRecord);
 router.put('/payroll/:id', authorize('superAdmin', 'admin', 'financeManager'), updatePayrollRecord);

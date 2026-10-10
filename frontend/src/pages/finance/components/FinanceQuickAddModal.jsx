@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Plus,
@@ -348,9 +349,9 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
               <DialogTitle className="text-base font-bold text-foreground tracking-tight">
                 Add New Financial Transaction
               </DialogTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
                 Record operational entries with double-entry reconciliation into RiseWithMedia Finance.
-              </p>
+              </DialogDescription>
             </div>
           </div>
 

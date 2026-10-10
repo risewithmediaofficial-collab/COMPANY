@@ -14,12 +14,14 @@ import {
   generateMonthlyPayroll,
 } from '../controllers/salary.controller.js';
 import { authorize, protect } from '../middleware/auth.middleware.js';
+import { getEmployeesForPayroll } from '../controllers/financeModule.controller.js';
 
 const router = express.Router();
 
 router.use(protect);
 
 router.get('/summary', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getSalarySummary);
+router.get('/employees', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getEmployeesForPayroll);
 router.post('/generate-monthly', authorize('superAdmin', 'admin', 'manager', 'financeManager'), generateMonthlyPayroll);
 
 router.get('/', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'employee'), getSalaries);

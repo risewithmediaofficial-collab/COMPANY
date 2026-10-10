@@ -16,7 +16,7 @@ import {
 import { useModuleInvoices, useUpdateInvoiceWorkflow } from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -271,8 +271,8 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
             <div className="flex justify-between items-start border-b border-border pb-4 mb-4 pr-10">
               <div>
                 <span className="text-indigo-600 dark:text-indigo-400 font-bold tracking-wider uppercase text-[11px]">Tax Invoice</span>
-                <h2 className="text-xl font-bold text-foreground mt-0.5">{selectedInvoice.invoiceNumber}</h2>
-                <div className="text-muted-foreground mt-1">Rise With Media Agency OS</div>
+                <DialogTitle className="text-xl font-bold text-foreground mt-0.5">{selectedInvoice.invoiceNumber}</DialogTitle>
+                <DialogDescription className="text-muted-foreground mt-1">Rise With Media Agency OS</DialogDescription>
               </div>
               <div className="text-right">
                 <span

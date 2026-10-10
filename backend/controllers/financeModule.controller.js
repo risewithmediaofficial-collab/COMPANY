@@ -1112,6 +1112,25 @@ export const getPayrollRecords = async (req, res) => {
   }
 };
 
+export const getPayrollRecord = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const record = await SalaryRecord.findById(id)
+      .populate('employee', 'name email department position salary phone')
+      .populate('approvedBy', 'name email')
+      .populate('paymentAccount', 'accountName accountType')
+      .lean();
+
+    if (!record) {
+      return res.status(404).json({ success: false, message: 'Payroll record not found' });
+    }
+
+    res.json({ success: true, record });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const calculateMonthlyPayroll = async (req, res) => {
   try {
     const { month, year = new Date().getFullYear(), workingDays = 26, dailyHours = 9 } = req.body;

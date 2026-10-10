@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   usePayrollRecords,
@@ -637,9 +638,9 @@ export default function PayrollSection() {
             <DialogTitle className="text-base font-bold text-foreground">
               {editingRecord ? 'Edit Employee Payroll' : 'Manual Employee Payroll Entry'}
             </DialogTitle>
-            <p className="text-muted-foreground text-xs mt-0.5">
+            <DialogDescription className="text-muted-foreground text-xs mt-0.5">
               Period: <strong className="text-foreground">{selectedMonth} {selectedYear}</strong> · Directly enter base salary, bonus & deductions
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmitEntry} className="space-y-4 text-xs">
@@ -819,9 +820,9 @@ export default function PayrollSection() {
             <DialogTitle className="text-base font-bold text-foreground">
               Disburse Salary to {payModalRecord?.employee?.name}
             </DialogTitle>
-            <p className="text-muted-foreground text-xs mt-0.5">
+            <DialogDescription className="text-muted-foreground text-xs mt-0.5">
               Net Amount: <strong className="text-foreground text-sm">{formatINR(payModalRecord?.netSalary || 0)}</strong> for {payModalRecord?.month} {payModalRecord?.year}
-            </p>
+            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleExecutePayment} className="space-y-4 text-xs">
