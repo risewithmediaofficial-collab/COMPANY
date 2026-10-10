@@ -17,6 +17,10 @@ import {
   X,
   Edit2,
   Trash2,
+  User,
+  Users,
+  Receipt,
+  ArrowRight,
 } from 'lucide-react';
 import {
   Dialog,
@@ -38,13 +42,17 @@ import {
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 
 export default function ExpensesSection({ onQuickAdd }) {
-  const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'subscriptions'
+  const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions'
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [payeeSearch, setPayeeSearch] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
+
+  // Payee / Vendor Ledger State
+  const [selectedPayeeForLedger, setSelectedPayeeForLedger] = useState(null);
 
   // Edit Expense State
   const [editingExpense, setEditingExpense] = useState(null);
@@ -189,6 +197,70 @@ export default function ExpensesSection({ onQuickAdd }) {
     });
   }, [filteredExpenses, dateSort]);
 
+  // Group all expenses by Payee / Vendor
+  const payeeSummaries = useMemo(() => {
+    const map = {};
+    expenses.forEach((e) => {
+      const payeeName = (e.vendor || '').trim();
+      const displayName = payeeName || 'Unassigned / General';
+      const key = displayName.toLowerCase();
+      if (!map[key]) {
+        map[key] = {
+          name: displayName,
+          rawName: payeeName,
+          totalAmount: 0,
+          paidAmount: 0,
+          pendingAmount: 0,
+          totalCount: 0,
+          paidCount: 0,
+          pendingCount: 0,
+          items: [],
+        };
+      }
+      const amt = Number(e.amount || 0);
+      map[key].totalAmount += amt;
+      map[key].totalCount += 1;
+      map[key].items.push(e);
+      if (e.paymentStatus === 'paid') {
+        map[key].paidAmount += amt;
+        map[key].paidCount += 1;
+      } else {
+        map[key].pendingAmount += amt;
+        map[key].pendingCount += 1;
+      }
+    });
+    return Object.values(map).sort((a, b) => b.totalAmount - a.totalAmount);
+  }, [expenses]);
+
+  const filteredPayees = useMemo(() => {
+    if (!payeeSearch.trim()) return payeeSummaries;
+    const q = payeeSearch.toLowerCase();
+    return payeeSummaries.filter((p) => p.name.toLowerCase().includes(q));
+  }, [payeeSummaries, payeeSearch]);
+
+  const activePayeeDetails = useMemo(() => {
+    if (!selectedPayeeForLedger) return null;
+    const target = selectedPayeeForLedger.toLowerCase();
+    const matching = expenses.filter((e) => {
+      const v = (e.vendor || '').trim();
+      if (target === 'unassigned / general') return !v;
+      return v.toLowerCase() === target;
+    });
+    const totalAmount = matching.reduce((s, e) => s + Number(e.amount || 0), 0);
+    const paidAmount = matching.filter((e) => e.paymentStatus === 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
+    const pendingAmount = matching.filter((e) => e.paymentStatus !== 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
+    return {
+      name: selectedPayeeForLedger,
+      items: [...matching].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)),
+      totalAmount,
+      paidAmount,
+      pendingAmount,
+      totalCount: matching.length,
+      paidCount: matching.filter((e) => e.paymentStatus === 'paid').length,
+      pendingCount: matching.filter((e) => e.paymentStatus !== 'paid').length,
+    };
+  }, [expenses, selectedPayeeForLedger]);
+
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const unpaidBills = filteredExpenses.filter((e) => e.paymentStatus === 'unpaid');
   const totalUnpaidBills = unpaidBills.reduce((sum, e) => sum + Number(e.amount || 0), 0);
@@ -248,7 +320,7 @@ export default function ExpensesSection({ onQuickAdd }) {
         </div>
       </div>
 
-      {/* Sub Tabs: Expenses / Subscriptions */}
+      {/* Sub Tabs: Expenses / Payees / Subscriptions */}
       <div className="flex border-b border-slate-200 gap-4 text-xs font-semibold">
         <button
           onClick={() => setActiveTab('expenses')}
@@ -259,6 +331,16 @@ export default function ExpensesSection({ onQuickAdd }) {
           }`}
         >
           Operational Expenses & Vendor Bills ({filteredExpenses.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('payees')}
+          className={`pb-2.5 transition-all border-b-2 ${
+            activeTab === 'payees'
+              ? 'border-indigo-600 text-indigo-600'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          👥 Payee & Vendor Ledgers ({payeeSummaries.length})
         </button>
         <button
           onClick={() => setActiveTab('subscriptions')}
@@ -272,7 +354,7 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
       </div>
 
-      {activeTab === 'expenses' ? (
+      {activeTab === 'expenses' && (
         <>
           {/* Filters & Action Bar */}
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -418,7 +500,26 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <tr key={exp._id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="p-3 text-slate-600 font-medium">{formatDateIST(exp.date)}</td>
                         <td className="p-3 font-semibold text-slate-900">{exp.title}</td>
-                        <td className="p-3 text-slate-700">{exp.vendor || '-'}</td>
+                        <td className="p-3 text-slate-700">
+                          {exp.vendor ? (
+                            <button
+                              onClick={() => setSelectedPayeeForLedger(exp.vendor)}
+                              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-colors cursor-pointer group"
+                              title={`Open ${exp.vendor}'s payment history & pending balance ledger`}
+                            >
+                              <User className="h-3 w-3 text-indigo-500 group-hover:scale-110 transition-transform" />
+                              <span>{exp.vendor}</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleStartEditExpense(exp)}
+                              className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/60 px-1.5 py-0.5 rounded border border-dashed border-slate-200 transition-colors cursor-pointer"
+                              title="Click to assign payee/vendor name (e.g. VJ, Videographer)"
+                            >
+                              <Plus className="h-2.5 w-2.5" /> Assign Payee
+                            </button>
+                          )}
+                        </td>
                         <td className="p-3">
                           <span className="capitalize px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
                             {exp.category?.replace(/_/g, ' ')}
@@ -487,8 +588,125 @@ export default function ExpensesSection({ onQuickAdd }) {
             </div>
           </div>
         </>
-      ) : (
-        /* Recurring Subscriptions Tab */
+      )}
+
+      {/* 2. PAYEES & VENDOR LEDGERS TAB */}
+      {activeTab === 'payees' && (
+        <div className="space-y-4">
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="relative w-72">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search payee name, videographer, editor..."
+                value={payeeSearch}
+                onChange={(e) => setPayeeSearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 font-medium">
+                {filteredPayees.length} {filteredPayees.length === 1 ? 'payee' : 'payees'} found
+              </span>
+              <button
+                onClick={() => onQuickAdd('expense')}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 text-white font-semibold text-xs hover:bg-rose-700 shadow-2xs"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Record Expense / Bill
+              </button>
+            </div>
+          </div>
+
+          {/* Payees Directory Table */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+            <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
+                  <tr>
+                    <th className="p-3">Payee / Person / Vendor</th>
+                    <th className="p-3 text-center">Bills & Payments Count</th>
+                    <th className="p-3 text-right">Total Incurred</th>
+                    <th className="p-3 text-right">Total Paid</th>
+                    <th className="p-3 text-right">Pending to Pay</th>
+                    <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredPayees.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="p-8 text-center text-slate-400">
+                        No payees or vendor records found matching your search.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredPayees.map((p) => (
+                      <tr key={p.name} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-7 w-7 rounded-full bg-indigo-50 text-indigo-700 font-bold flex items-center justify-center text-xs shrink-0 border border-indigo-100">
+                              {p.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <button
+                                onClick={() => setSelectedPayeeForLedger(p.name)}
+                                className="font-bold text-slate-900 hover:text-indigo-600 text-left hover:underline cursor-pointer block"
+                              >
+                                {p.name}
+                              </button>
+                              <div className="text-[10px] text-slate-400">
+                                {p.items[0]?.category ? p.items[0].category.replace(/_/g, ' ') : 'Payee Account'}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="font-bold text-slate-800">{p.totalCount}</span>
+                          <span className="text-[10px] text-slate-400 ml-1">({p.paidCount} paid, {p.pendingCount} unpaid)</span>
+                        </td>
+                        <td className="p-3 text-right font-bold text-slate-900">{formatINR(p.totalAmount)}</td>
+                        <td className="p-3 text-right font-bold text-emerald-600">{formatINR(p.paidAmount)}</td>
+                        <td className="p-3 text-right font-bold text-sm">
+                          {p.pendingAmount > 0 ? (
+                            <span className="text-amber-600 font-extrabold">{formatINR(p.pendingAmount)}</span>
+                          ) : (
+                            <span className="text-slate-400 font-normal">₹0.00</span>
+                          )}
+                        </td>
+                        <td className="p-3 text-center">
+                          {p.pendingAmount > 0 ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-800">
+                              Payment Due
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800">
+                              Fully Cleared
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3 text-right">
+                          <button
+                            onClick={() => setSelectedPayeeForLedger(p.name)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-colors cursor-pointer"
+                          >
+                            <span>Open Ledger</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. RECURRING SUBSCRIPTIONS TAB */}
+      {activeTab === 'subscriptions' && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
             <div>
@@ -623,10 +841,24 @@ export default function ExpensesSection({ onQuickAdd }) {
                   <label className="block text-[11px] font-semibold text-slate-600 mb-1">Vendor / Payee</label>
                   <input
                     type="text"
+                    placeholder="e.g. VJ, Videographer, Saran"
                     value={expenseForm.vendor}
                     onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
                     className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
                   />
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    <span className="text-[10px] text-slate-400">Quick set:</span>
+                    {['VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: sug }))}
+                        className="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-[10px] font-medium text-slate-600 border border-slate-200 transition-colors cursor-pointer"
+                      >
+                        + {sug}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 mb-1">Category</label>
@@ -798,6 +1030,144 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </button>
               </div>
             </form>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* PAYEE / VENDOR STATEMENT & LEDGER MODAL */}
+      <Dialog open={Boolean(selectedPayeeForLedger)} onOpenChange={(open) => !open && setSelectedPayeeForLedger(null)}>
+        {selectedPayeeForLedger && activePayeeDetails && (
+          <DialogContent variant="center" size="lg" className="rounded-2xl p-6 text-xs max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="border-b border-slate-100 pb-3 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <User className="h-4 w-4 text-indigo-600" />
+                    <span>Payee Ledger: {activePayeeDetails.name}</span>
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                    Detailed payment ledger, clearance history, and pending balances
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            {/* KPI Cards Strip */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Billed / Tasks</span>
+                <div className="text-lg font-bold text-slate-900 mt-0.5">{formatINR(activePayeeDetails.totalAmount)}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{activePayeeDetails.totalCount} total entries</div>
+              </div>
+              <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Cleared / Paid</span>
+                <div className="text-lg font-bold text-emerald-800 mt-0.5">{formatINR(activePayeeDetails.paidAmount)}</div>
+                <div className="text-[10px] text-emerald-600 mt-0.5">{activePayeeDetails.paidCount} cleared</div>
+              </div>
+              <div className={`p-3 rounded-xl border ${activePayeeDetails.pendingAmount > 0 ? 'bg-amber-50/80 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-800' : 'text-slate-500'}`}>Pending to Pay</span>
+                <div className={`text-lg font-bold mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-700 font-extrabold' : 'text-slate-900'}`}>
+                  {formatINR(activePayeeDetails.pendingAmount)}
+                </div>
+                <div className={`text-[10px] mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                  {activePayeeDetails.pendingCount > 0 ? `${activePayeeDetails.pendingCount} unpaid bills` : 'All cleared'}
+                </div>
+              </div>
+            </div>
+
+            {/* List of Transactions */}
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Payment Transactions</span>
+                <span className="text-[10px] text-slate-500">{activePayeeDetails.items.length} records</span>
+              </div>
+              <div className="overflow-x-auto max-h-[380px] overflow-y-auto text-xs">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
+                    <tr>
+                      <th className="p-2.5">Date</th>
+                      <th className="p-2.5">Item / Description</th>
+                      <th className="p-2.5">Category</th>
+                      <th className="p-2.5">Status</th>
+                      <th className="p-2.5 text-right">Amount</th>
+                      <th className="p-2.5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {activePayeeDetails.items.map((item) => (
+                      <tr key={item._id} className="hover:bg-slate-50/50">
+                        <td className="p-2.5 text-slate-600 font-medium whitespace-nowrap">{formatDateIST(item.date)}</td>
+                        <td className="p-2.5 font-semibold text-slate-900">{item.title}</td>
+                        <td className="p-2.5">
+                          <span className="capitalize px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
+                            {item.category?.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="p-2.5">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                            item.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {item.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-right font-bold text-slate-900">{formatINR(item.amount)}</td>
+                        <td className="p-2.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {item.paymentStatus !== 'paid' && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await updateExpense.mutateAsync({
+                                      id: item._id,
+                                      data: { paymentStatus: 'paid' },
+                                    });
+                                  } catch (_) {}
+                                }}
+                                disabled={updateExpense.isPending}
+                                className="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-2xs transition-colors cursor-pointer"
+                                title="Clear and mark this bill as paid"
+                              >
+                                ✓ Pay
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedPayeeForLedger(null);
+                                handleStartEditExpense(item);
+                              }}
+                              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                              title="Edit item"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-3 border-t border-slate-100 mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPayeeForLedger(null);
+                  onQuickAdd('expense');
+                }}
+                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                + Record New Expense for {activePayeeDetails.name}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPayeeForLedger(null)}
+                className="px-4 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </DialogContent>
         )}
       </Dialog>

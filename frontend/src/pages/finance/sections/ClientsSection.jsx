@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Users,
   Plus,
@@ -14,6 +14,9 @@ import {
   ShieldCheck,
   Edit2,
   Trash2,
+  Receipt,
+  FileText,
+  Clock,
 } from 'lucide-react';
 import { useClients, useUpdateClient } from '../../../hooks/useClients';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,6 +25,8 @@ import {
   useGenerateRetainerInvoices,
   useCreateCostAllocation,
   useDeleteCostAllocation,
+  useModuleInvoices,
+  usePaymentReceipts,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
@@ -32,6 +37,9 @@ export default function ClientsSection({ onQuickAdd }) {
   const [search, setSearch] = useState('');
   const [selectedClientForCost, setSelectedClientForCost] = useState(null);
   const [showCostModal, setShowCostModal] = useState(false);
+
+  // Client Statement & Ledger State
+  const [selectedClientForLedger, setSelectedClientForLedger] = useState(null);
 
   // Edit Client Modal State
   const [showEditClientModal, setShowEditClientModal] = useState(false);
@@ -51,11 +59,38 @@ export default function ClientsSection({ onQuickAdd }) {
 
   const { data: clients = [], isLoading } = useClients();
   const { data: profitability = [] } = useClientProfitability({ servicePeriod: retainerPeriod });
+  const { data: allInvoices = [] } = useModuleInvoices();
+  const { data: allReceipts = [] } = usePaymentReceipts();
 
   const generateRetainers = useGenerateRetainerInvoices();
   const createAllocation = useCreateCostAllocation();
   const deleteAllocation = useDeleteCostAllocation();
   const updateClient = useUpdateClient();
+
+  const activeClientLedger = useMemo(() => {
+    if (!selectedClientForLedger) return null;
+    const cid = String(selectedClientForLedger._id);
+    const invoices = allInvoices.filter((inv) => String(inv.client?._id || inv.client) === cid);
+    const receipts = allReceipts.filter((r) => String(r.client?._id || r.client) === cid);
+
+    const totalInvoiced = invoices.reduce((sum, inv) => sum + Number(inv.total || inv.totalAmount || 0), 0);
+    const totalPaid = invoices.reduce((sum, inv) => sum + Number(inv.paidAmount || 0), 0);
+    const totalPending = invoices.reduce(
+      (sum, inv) => sum + Number(inv.balanceAmount != null ? inv.balanceAmount : Math.max(0, (inv.total || 0) - (inv.paidAmount || 0))),
+      0
+    );
+
+    return {
+      client: selectedClientForLedger,
+      invoices: [...invoices].sort((a, b) => new Date(b.invoiceDate || b.createdAt || 0) - new Date(a.invoiceDate || a.createdAt || 0)),
+      receipts: [...receipts].sort((a, b) => new Date(b.receivedDate || b.createdAt || 0) - new Date(a.receivedDate || a.createdAt || 0)),
+      totalInvoiced,
+      totalPaid,
+      totalPending,
+      invoicesCount: invoices.length,
+      receiptsCount: receipts.length,
+    };
+  }, [allInvoices, allReceipts, selectedClientForLedger]);
 
   const handleOpenEditClient = (client) => {
     setEditingClient(client);
@@ -276,7 +311,14 @@ export default function ClientsSection({ onQuickAdd }) {
                   return (
                     <tr key={client._id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-3">
-                        <div className="font-bold text-slate-900">{client.company || client.name}</div>
+                        <button
+                          onClick={() => setSelectedClientForLedger(client)}
+                          className="font-bold text-slate-900 hover:text-indigo-600 text-left hover:underline cursor-pointer flex items-center gap-1.5 group"
+                          title="Click to view full financial ledger & invoices statement"
+                        >
+                          <span>{client.company || client.name}</span>
+                          <Receipt className="h-3 w-3 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                        </button>
                         <div className="text-[11px] text-slate-500">{client.contactName || client.name} · {client.email || '-'}</div>
                       </td>
                       <td className="p-3">
@@ -317,8 +359,15 @@ export default function ClientsSection({ onQuickAdd }) {
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
+                            onClick={() => setSelectedClientForLedger(client)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs transition-colors cursor-pointer"
+                            title="Open Invoices, Receipts & Dues Statement"
+                          >
+                            <Receipt className="h-3 w-3" /> Ledger
+                          </button>
+                          <button
                             onClick={() => handleOpenEditClient(client)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-semibold text-xs transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                             title="Edit Plan Fee, Deliverables & Billing"
                           >
                             <Edit2 className="h-3 w-3" /> Edit
@@ -328,9 +377,9 @@ export default function ClientsSection({ onQuickAdd }) {
                               setSelectedClientForCost(client);
                               setShowCostModal(true);
                             }}
-                            className="px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 text-xs transition-colors cursor-pointer"
+                            className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                           >
-                            + Assign Cost
+                            + Cost
                           </button>
                         </div>
                       </td>
@@ -579,6 +628,179 @@ export default function ClientsSection({ onQuickAdd }) {
                 </button>
               </div>
             </form>
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* CLIENT FINANCIAL STATEMENT & LEDGER MODAL */}
+      <Dialog open={Boolean(selectedClientForLedger)} onOpenChange={(open) => !open && setSelectedClientForLedger(null)}>
+        {selectedClientForLedger && activeClientLedger && (
+          <DialogContent variant="center" size="lg" className="rounded-2xl p-6 text-xs max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="border-b border-border pb-3 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-indigo-600" />
+                    <span>Client Ledger: {activeClientLedger.client.company || activeClientLedger.client.name}</span>
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                    Complete statement of all invoices, collected payments, and pending client dues
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            {/* Top KPI Cards Strip */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Invoiced</span>
+                <div className="text-lg font-bold text-slate-900 mt-0.5">{formatINR(activeClientLedger.totalInvoiced)}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{activeClientLedger.invoicesCount} invoices issued</div>
+              </div>
+              <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Collected / Paid</span>
+                <div className="text-lg font-bold text-emerald-800 mt-0.5">{formatINR(activeClientLedger.totalPaid)}</div>
+                <div className="text-[10px] text-emerald-600 mt-0.5">{activeClientLedger.receiptsCount} receipts cleared</div>
+              </div>
+              <div className={`p-3 rounded-xl border ${activeClientLedger.totalPending > 0 ? 'bg-amber-50/80 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                <span className={`text-[10px] font-bold uppercase tracking-wider ${activeClientLedger.totalPending > 0 ? 'text-amber-800' : 'text-slate-500'}`}>Pending Balance Due</span>
+                <div className={`text-lg font-bold mt-0.5 ${activeClientLedger.totalPending > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-900'}`}>
+                  {formatINR(activeClientLedger.totalPending)}
+                </div>
+                <div className={`text-[10px] mt-0.5 ${activeClientLedger.totalPending > 0 ? 'text-rose-600 font-semibold' : 'text-slate-400'}`}>
+                  {activeClientLedger.totalPending > 0 ? 'Outstanding client balance' : 'All clear / no balance'}
+                </div>
+              </div>
+            </div>
+
+            {/* Invoices List */}
+            <div className="space-y-4">
+              <div className="rounded-xl border border-slate-200 overflow-hidden">
+                <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Invoices ({activeClientLedger.invoices.length})</span>
+                  <span className="text-[10px] text-slate-500">Billed Services & Retainers</span>
+                </div>
+                <div className="overflow-x-auto max-h-[220px] overflow-y-auto text-xs">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
+                      <tr>
+                        <th className="p-2.5">Date</th>
+                        <th className="p-2.5">Invoice #</th>
+                        <th className="p-2.5">Due Date</th>
+                        <th className="p-2.5 text-right">Total</th>
+                        <th className="p-2.5 text-right">Paid</th>
+                        <th className="p-2.5 text-right">Balance Due</th>
+                        <th className="p-2.5 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {activeClientLedger.invoices.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="p-4 text-center text-slate-400">
+                            No invoices issued for this client yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        activeClientLedger.invoices.map((inv) => (
+                          <tr key={inv._id} className="hover:bg-slate-50/50">
+                            <td className="p-2.5 text-slate-600 whitespace-nowrap">{formatDateIST(inv.invoiceDate || inv.createdAt)}</td>
+                            <td className="p-2.5 font-bold text-slate-900">{inv.invoiceNumber}</td>
+                            <td className="p-2.5 text-slate-500 whitespace-nowrap">{formatDateIST(inv.dueDate)}</td>
+                            <td className="p-2.5 text-right font-bold text-slate-900">{formatINR(inv.total || inv.totalAmount)}</td>
+                            <td className="p-2.5 text-right text-emerald-600 font-semibold">{formatINR(inv.paidAmount || 0)}</td>
+                            <td className="p-2.5 text-right font-bold text-rose-600">
+                              {formatINR(inv.balanceAmount != null ? inv.balanceAmount : Math.max(0, (inv.total || 0) - (inv.paidAmount || 0)))}
+                            </td>
+                            <td className="p-2.5 text-center">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                                inv.status === 'paid'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : inv.status === 'partially_paid'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-rose-100 text-rose-800'
+                              }`}>
+                                {inv.status?.replace(/_/g, ' ')}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Payment Receipts List */}
+              <div className="rounded-xl border border-slate-200 overflow-hidden">
+                <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Payment Receipts Received ({activeClientLedger.receipts.length})</span>
+                  <span className="text-[10px] text-slate-500">Collected in Bank / UPI / Cash</span>
+                </div>
+                <div className="overflow-x-auto max-h-[180px] overflow-y-auto text-xs">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
+                      <tr>
+                        <th className="p-2.5">Date Received</th>
+                        <th className="p-2.5">Payment Mode</th>
+                        <th className="p-2.5">Reference / UTR</th>
+                        <th className="p-2.5 text-right">Amount Received</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {activeClientLedger.receipts.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="p-4 text-center text-slate-400">
+                            No payment receipts recorded for this client yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        activeClientLedger.receipts.map((r) => (
+                          <tr key={r._id} className="hover:bg-slate-50/50">
+                            <td className="p-2.5 text-slate-600 whitespace-nowrap">{formatDateIST(r.receivedDate || r.createdAt)}</td>
+                            <td className="p-2.5 font-semibold text-slate-800">{r.paymentMode || 'Bank'}</td>
+                            <td className="p-2.5 font-mono text-slate-500">{r.reference || '-'}</td>
+                            <td className="p-2.5 text-right font-bold text-emerald-600">+{formatINR(r.amount)}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-3 border-t border-border mt-4">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedClientForLedger(null);
+                    onQuickAdd('invoice');
+                  }}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  + Issue Invoice
+                </button>
+                <span className="text-slate-300">·</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedClientForLedger(null);
+                    onQuickAdd('receipt');
+                  }}
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  + Record Receipt
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedClientForLedger(null)}
+                className="px-4 py-1.5 rounded-lg border border-border text-foreground font-semibold text-xs hover:bg-muted cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </DialogContent>
         )}
       </Dialog>

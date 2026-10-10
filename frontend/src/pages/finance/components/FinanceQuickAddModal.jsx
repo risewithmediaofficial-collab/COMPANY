@@ -751,9 +751,26 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     type="text"
                     value={expForm.vendor}
                     onChange={(e) => setExpForm({ ...expForm, vendor: e.target.value })}
-                    placeholder="e.g. Ramesh Media Works"
+                    placeholder="e.g. VJ, Videographer, Ramesh"
                     className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs"
                   />
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                    <span className="text-[10px] text-slate-400 font-medium">Quick suggestions:</span>
+                    {['VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setExpForm({ ...expForm, vendor: sug })}
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-medium transition-colors border ${
+                          expForm.vendor === sug 
+                            ? 'bg-rose-100 text-rose-800 border-rose-300 font-semibold' 
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
