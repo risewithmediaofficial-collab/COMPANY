@@ -262,15 +262,11 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* ── PREVENT BACKGROUND SCROLLING WHEN MODALS / DIALOGS ARE OPEN ── */
-body:has([role="dialog"]) main,
-body:has([data-state="open"]) main,
-body[data-scroll-locked] main,
-body.modal-open main,
-body.overflow-hidden main {
+/* ── PREVENT BACKGROUND SCROLLING ONLY WHEN A MODAL / DIALOG IS GENUINELY OPEN ── */
+body.dialog-open main,
+body:has([data-radix-portal] [role="dialog"][data-state="open"]) main {
   overflow: hidden !important;
   overscroll-behavior: none !important;
-  touch-action: none !important;
 }
 
 

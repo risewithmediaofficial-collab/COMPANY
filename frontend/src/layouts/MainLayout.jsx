@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
@@ -12,6 +12,14 @@ const MainLayout = () => {
   const { sidebarOpen } = useSelector((state) => state.ui);
   const location = useLocation();
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+
+  // Clear any residual scroll lock on main element across route changes
+  useEffect(() => {
+    const mainEl = document.querySelector('main');
+    if (mainEl && !document.body.classList.contains('dialog-open')) {
+      mainEl.style.removeProperty('overflow');
+    }
+  }, [location.pathname]);
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">

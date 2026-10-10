@@ -35,22 +35,18 @@ export const DialogContent = React.forwardRef(
       ? className.replace(/max-h-\[[^\]]+\]/g, '').replace(/my-auto/g, '').replace(/rounded-\S+/g, '')
       : className;
 
-    // Prevent background page (<main> and body) from scrolling while modal is open
+    // Prevent background page (<main>) from scrolling only while this modal is open
     React.useEffect(() => {
-      const mainEl = document.querySelector('main');
-      const prevMainOverflow = mainEl ? mainEl.style.overflow : '';
-      const prevBodyOverflow = document.body.style.overflow;
-      document.body.classList.add('modal-open');
-      if (mainEl) {
-        mainEl.style.overflow = 'hidden';
-      }
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('dialog-open');
       return () => {
-        document.body.classList.remove('modal-open');
-        if (mainEl) {
-          mainEl.style.overflow = prevMainOverflow || '';
+        const remainingOpen = document.querySelectorAll('[role="dialog"][data-state="open"]');
+        if (remainingOpen.length <= 1) {
+          document.body.classList.remove('dialog-open');
+          const mainEl = document.querySelector('main');
+          if (mainEl && mainEl.style.overflow === 'hidden') {
+            mainEl.style.removeProperty('overflow');
+          }
         }
-        document.body.style.overflow = prevBodyOverflow || '';
       };
     }, []);
 
