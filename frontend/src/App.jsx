@@ -332,9 +332,14 @@ const App = () => {
             </ProtectedRoute>
           } />
 
-          {/* Finance */}
+          {/* Finance OS */}
           <Route path="/finance" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee', 'client']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee', 'client']}>
+              <Finance />
+            </ProtectedRoute>
+          } />
+          <Route path="/finance/:section" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee', 'client']}>
               <Finance />
             </ProtectedRoute>
           } />

@@ -1,0 +1,198 @@
+import { useState } from 'react';
+import {
+  Download,
+  Filter,
+  Plus,
+  Receipt,
+  Search,
+  CheckCircle,
+  Clock,
+  ArrowDownRight,
+  CreditCard,
+  Building,
+} from 'lucide-react';
+import { usePaymentReceipts, useModuleInvoices } from '../../../hooks/useFinance';
+import { useClients } from '../../../hooks/useClients';
+import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
+
+export default function IncomeSection({ onQuickAdd }) {
+  const [clientFilter, setClientFilter] = useState('all');
+  const [search, setSearch] = useState('');
+
+  const { data: receipts = [], isLoading } = usePaymentReceipts({
+    client: clientFilter !== 'all' ? clientFilter : undefined,
+  });
+
+  const { data: clients = [] } = useClients();
+
+  const filteredReceipts = receipts.filter((r) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    const clientName = (r.client?.company || r.client?.name || '').toLowerCase();
+    const ref = (r.reference || '').toLowerCase();
+    const mode = (r.paymentMode || '').toLowerCase();
+    return clientName.includes(q) || ref.includes(q) || mode.includes(q);
+  });
+
+  const totalCollected = filteredReceipts.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+  const totalUnappliedCredit = filteredReceipts.reduce((sum, r) => sum + Number(r.unappliedCredit || 0), 0);
+
+  const handleExport = () => {
+    const rows = filteredReceipts.map((r) => ({
+      date: formatDateIST(r.receivedDate),
+      client: r.client?.company || r.client?.name || 'Client',
+      amount: r.amount,
+      mode: r.paymentMode,
+      account: r.destinationAccount?.accountName || 'Bank',
+      reference: r.reference || '',
+      invoice: r.invoice?.invoiceNumber || 'Advance Credit',
+      unappliedCredit: r.unappliedCredit || 0,
+    }));
+    exportToCSV('client_payment_receipts', rows, [
+      { key: 'date', label: 'Date Received' },
+      { key: 'client', label: 'Client' },
+      { key: 'amount', label: 'Amount (INR)' },
+      { key: 'mode', label: 'Payment Mode' },
+      { key: 'account', label: 'Destination Account' },
+      { key: 'reference', label: 'UTR / Reference' },
+      { key: 'invoice', label: 'Allocated Invoice' },
+      { key: 'unappliedCredit', label: 'Unapplied Credit (INR)' },
+    ]);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Top Banner KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+            <span>TOTAL COLLECTED REVENUE</span>
+            <ArrowDownRight className="h-4 w-4 text-emerald-600" />
+          </div>
+          <div className="text-2xl font-bold text-emerald-600">{formatINR(totalCollected)}</div>
+          <div className="text-[11px] text-slate-500 mt-1">Confirmed client payment receipts</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+            <span>UNAPPLIED ADVANCE CREDITS</span>
+            <Clock className="h-4 w-4 text-amber-500" />
+          </div>
+          <div className="text-2xl font-bold text-amber-600">{formatINR(totalUnappliedCredit)}</div>
+          <div className="text-[11px] text-slate-500 mt-1">Advances preserved without negative invoice outstanding</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+            <span>RECEIPTS COUNT</span>
+            <Receipt className="h-4 w-4 text-blue-600" />
+          </div>
+          <div className="text-2xl font-bold text-slate-800">{filteredReceipts.length} Transactions</div>
+          <div className="text-[11px] text-slate-500 mt-1">Total confirmed receipt vouchers</div>
+        </div>
+      </div>
+
+      {/* Filter and Action Bar */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by client, UTR, or mode..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+            />
+          </div>
+
+          <select
+            value={clientFilter}
+            onChange={(e) => setClientFilter(e.target.value)}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700"
+          >
+            <option value="all">All Clients</option>
+            {clients.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.company || c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </button>
+          <button
+            onClick={() => onQuickAdd('receipt')}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-2xs"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Record Payment Receipt
+          </button>
+        </div>
+      </div>
+
+      {/* Receipts Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="overflow-x-auto text-xs">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+              <tr>
+                <th className="p-3">Received Date</th>
+                <th className="p-3">Client</th>
+                <th className="p-3">Invoice Allocation</th>
+                <th className="p-3">Payment Mode</th>
+                <th className="p-3">Destination Account</th>
+                <th className="p-3">UTR / Ref</th>
+                <th className="p-3 text-right">Amount Received</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredReceipts.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="p-8 text-center text-slate-400">
+                    No payment receipts found matching your filters.
+                  </td>
+                </tr>
+              ) : (
+                filteredReceipts.map((r) => (
+                  <tr key={r._id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-3 text-slate-600 font-medium">{formatDateIST(r.receivedDate || r.paidAt)}</td>
+                    <td className="p-3 font-semibold text-slate-900">
+                      {r.client?.company || r.client?.name || 'Client'}
+                    </td>
+                    <td className="p-3">
+                      {r.invoice ? (
+                        <span className="inline-flex items-center gap-1 font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                          {r.invoice.invoiceNumber}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[10px]">
+                          Advance Credit
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 font-medium text-slate-700 text-[10px]">
+                        {r.paymentMode || r.method || 'Bank'}
+                      </span>
+                    </td>
+                    <td className="p-3 text-slate-600">{r.destinationAccount?.accountName || 'Bank Account'}</td>
+                    <td className="p-3 font-mono text-slate-500">{r.reference || '-'}</td>
+                    <td className="p-3 text-right font-bold text-emerald-600 text-sm">+{formatINR(r.amount)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

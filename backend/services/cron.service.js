@@ -6,6 +6,8 @@ import Lead from '../models/lead.model.js';
 import Notification from '../models/notification.model.js';
 import Task from '../models/task.model.js';
 import User from '../models/user.model.js';
+import Subscription from '../models/subscription.model.js';
+import FinanceBudget from '../models/financeBudget.model.js';
 import { createNotification } from '../utils/notification.js';
 import { sendWhatsAppMessage } from './whatsapp.service.js';
 
@@ -423,6 +425,153 @@ export const initCronJobs = (io) => {
       console.error('CRON Error (Renewal Expiry):', error);
     }
   });
+
+  // Daily Finance Reminders: Invoice Due Dates, Recurring Subscriptions, and Budget Thresholds
+  cron.schedule('30 8 * * *', async () => {
+    try {
+      console.log('CRON: Checking Finance alerts and reminders...');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayKey = today.toISOString().slice(0, 10);
+
+      // 1. Invoices reminders: 7 days before, on due date, 3 days overdue, weekly thereafter
+      const activeInvoices = await Invoice.find({
+        workflowStatus: 'issued',
+        status: { $nin: ['paid', 'cancelled', 'void'] },
+      }).populate('client', 'name phone email');
+
+      for (const inv of activeInvoices) {
+        if (!inv.dueDate) continue;
+        const dueDate = new Date(inv.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        let reminderType = null;
+        let messageText = null;
+
+        if (diffDays === 7) {
+          reminderType = 'invoice_due_in_7_days';
+          messageText = `Invoice #${inv.invoiceNumber} is due in 7 days (${inv.client?.name || 'Client'}).`;
+        } else if (diffDays === 0) {
+          reminderType = 'invoice_due_today';
+          messageText = `Invoice #${inv.invoiceNumber} is due today (${inv.client?.name || 'Client'}).`;
+        } else if (diffDays === -3) {
+          reminderType = 'invoice_overdue_3_days';
+          messageText = `Invoice #${inv.invoiceNumber} is 3 days overdue (${inv.client?.name || 'Client'}).`;
+        } else if (diffDays < -3 && Math.abs(diffDays) % 7 === 0) {
+          reminderType = `invoice_overdue_${Math.abs(diffDays)}_days`;
+          messageText = `Invoice #${inv.invoiceNumber} is ${Math.abs(diffDays)} days overdue (${inv.client?.name || 'Client'}).`;
+        }
+
+        if (reminderType) {
+          const managers = await User.find({
+            organizationId: inv.organizationId,
+            role: { $in: ['superAdmin', 'manager', 'financeManager'] },
+            isActive: true,
+          }).select('_id');
+
+          for (const mgr of managers) {
+            const alreadySent = await Notification.findOne({
+              recipient: mgr._id,
+              'metadata.invoiceId': inv._id.toString(),
+              'metadata.reminderType': reminderType,
+              'metadata.reminderDate': todayKey,
+            });
+            if (alreadySent) continue;
+
+            await createNotification({
+              recipient: mgr._id,
+              type: 'general',
+              title: 'Invoice Due Reminder',
+              message: messageText,
+              link: '/finance/invoices',
+              metadata: {
+                invoiceId: inv._id.toString(),
+                reminderType,
+                reminderDate: todayKey,
+              },
+            }, io);
+          }
+        }
+      }
+
+      // 2. Subscription renewals within lead days
+      const activeSubs = await Subscription.find({ status: 'active' });
+      for (const sub of activeSubs) {
+        if (!sub.nextRenewalDate) continue;
+        const leadDays = sub.reminderLeadDays || 5;
+        const renewalDate = new Date(sub.nextRenewalDate);
+        renewalDate.setHours(0, 0, 0, 0);
+        const daysLeft = Math.round((renewalDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (daysLeft >= 0 && daysLeft <= leadDays) {
+          const managers = await User.find({
+            organizationId: sub.organizationId,
+            role: { $in: ['superAdmin', 'manager', 'financeManager'] },
+            isActive: true,
+          }).select('_id');
+
+          for (const mgr of managers) {
+            const alreadySent = await Notification.findOne({
+              recipient: mgr._id,
+              'metadata.subscriptionId': sub._id.toString(),
+              'metadata.reminderDate': todayKey,
+            });
+            if (alreadySent) continue;
+
+            await createNotification({
+              recipient: mgr._id,
+              type: 'general',
+              title: 'Subscription Renewal Alert',
+              message: `Recurring subscription for "${sub.serviceName}" is renewing in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`,
+              link: '/finance/forecast-reports',
+              metadata: {
+                subscriptionId: sub._id.toString(),
+                reminderDate: todayKey,
+              },
+            }, io);
+          }
+        }
+      }
+
+      // 3. Budget threshold warnings (spent >= 80% of limit)
+      const currentMonthKey = today.toISOString().slice(0, 7);
+      const budgets = await FinanceBudget.find({ period: currentMonthKey });
+      for (const b of budgets) {
+        if (b.limitAmount > 0 && (b.spentAmount / b.limitAmount) >= 0.8) {
+          const pct = Math.round((b.spentAmount / b.limitAmount) * 100);
+          const managers = await User.find({
+            organizationId: b.organizationId,
+            role: { $in: ['superAdmin', 'manager', 'financeManager'] },
+            isActive: true,
+          }).select('_id');
+
+          for (const mgr of managers) {
+            const alreadySent = await Notification.findOne({
+              recipient: mgr._id,
+              'metadata.budgetId': b._id.toString(),
+              'metadata.reminderDate': todayKey,
+            });
+            if (alreadySent) continue;
+
+            await createNotification({
+              recipient: mgr._id,
+              type: 'general',
+              title: 'Budget Alert',
+              message: `Budget for "${b.category}" has reached ${pct}% of its limit (₹${b.spentAmount.toLocaleString('en-IN')} / ₹${b.limitAmount.toLocaleString('en-IN')}).`,
+              link: '/finance/settings',
+              metadata: {
+                budgetId: b._id.toString(),
+                reminderDate: todayKey,
+              },
+            }, io);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('CRON Error (Finance Reminders):', err);
+    }
+  }, { timezone: cronTz });
 
   console.log('Cron jobs initialized.');
 };

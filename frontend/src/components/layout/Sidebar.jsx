@@ -197,6 +197,14 @@ export default function Sidebar({ onOpenSearch }) {
             { name: 'SOP Dashboard', icon: BookOpen, path: '/sop' },
           ],
         },
+        ...(p.canManageFinance || p.canViewFinanceOverview ? [
+          {
+            title: 'BUSINESS & FINANCE',
+            items: [
+              { name: 'Finance Hub', icon: IndianRupee, path: '/finance' },
+            ],
+          },
+        ] : []),
       ];
     }
 
@@ -255,7 +263,7 @@ export default function Sidebar({ onOpenSearch }) {
       {
         title: 'BUSINESS & FINANCE',
         items: [
-          { name: 'Finance Status', icon: IndianRupee, path: '/finance' },
+          { name: 'Finance Hub', icon: IndianRupee, path: '/finance' },
           { name: 'Call History', icon: PhoneCall, path: '/call-history' },
           { name: 'Domain Renewals', icon: Globe2, path: '/domain-renewals' },
         ],

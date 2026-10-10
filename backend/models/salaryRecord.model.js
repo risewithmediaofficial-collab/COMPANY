@@ -91,9 +91,17 @@ const salaryRecordSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['draft', 'pending', 'processing', 'paid', 'hold'],
+      enum: ['draft', 'pending', 'approved', 'processing', 'paid', 'hold'],
       default: 'pending',
     },
+    expectedWorkingHours: { type: Number, default: 234 },
+    actualApprovedHours: { type: Number, default: 0 },
+    shortfallHours: { type: Number, default: 0 },
+    overtimeHours: { type: Number, default: 0 },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    approvedAt: { type: Date },
+    paidAmount: { type: Number, default: 0 },
+    paymentAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'FinanceAccount' },
     paymentDate: {
       type: Date,
     },

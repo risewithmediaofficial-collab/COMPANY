@@ -38,7 +38,12 @@ const clientSchema = new mongoose.Schema(
     assignedTeam: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     // Source lead
     convertedFromLead: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead' },
-    // Billing
+    // Billing & Finance Master
+    contactName: { type: String, trim: true, default: '' },
+    monthlyPlanFee: { type: Number, default: 0, min: 0 },
+    servicePlan: { type: String, trim: true, default: '' },
+    deliverables: { type: String, trim: true, default: '' },
+    billingDate: { type: Number, default: 1, min: 1, max: 31 },
     contractValue: { type: Number, default: 0 },
     budgetType: {
       type: String,
