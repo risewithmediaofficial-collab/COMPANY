@@ -59,7 +59,7 @@ export default function ExpensesSection({ onQuickAdd }) {
       costType: e.costType,
       amount: e.amount,
       status: e.paymentStatus,
-      account: e.fundingAccount?.accountName || 'Bank',
+      account: e.fundingAccount?.accountName || '-',
     }));
     exportToCSV('agency_expenses_and_bills', rows, [
       { key: 'date', label: 'Date' },

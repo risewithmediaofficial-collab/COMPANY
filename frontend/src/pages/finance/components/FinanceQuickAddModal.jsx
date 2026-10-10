@@ -271,6 +271,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       await recordReceipt.mutateAsync({
         ...receiptForm,
         amount: Number(receiptForm.amount),
+        destinationAccount: receiptForm.destinationAccount || undefined,
         invoice: receiptForm.invoice || undefined,
       });
       onOpenChange(false);
@@ -284,6 +285,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       await createExpense.mutateAsync({
         ...expForm,
         amount: Number(expForm.amount),
+        fundingAccount: expForm.fundingAccount || undefined,
         client: expForm.costType === 'client_project' ? expForm.client : undefined,
       });
       onOpenChange(false);
@@ -315,6 +317,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         deductions: Number(payrollForm.deductions || 0),
         netSalary: Number(payrollForm.netSalary || payrollForm.baseSalary),
         year: Number(payrollForm.year),
+        paymentAccount: payrollForm.paymentAccount || undefined,
       });
       onOpenChange(false);
     } catch (err) {}
@@ -342,6 +345,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       await createSubscription.mutateAsync({
         ...subForm,
         expectedAmount: Number(subForm.expectedAmount),
+        paymentAccount: subForm.paymentAccount || undefined,
       });
       onOpenChange(false);
     } catch (err) {}
@@ -354,6 +358,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       await createFounder.mutateAsync({
         ...founderForm,
         amount: Number(founderForm.amount),
+        account: founderForm.account || undefined,
       });
       onOpenChange(false);
     } catch (err) {}
@@ -457,7 +462,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     type="date"
                     value={invForm.invoiceDate}
                     onChange={(e) => setInvForm({ ...invForm, invoiceDate: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs"
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs cursor-pointer"
                   />
                 </div>
                 <div>
@@ -466,7 +472,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     type="date"
                     value={invForm.dueDate}
                     onChange={(e) => setInvForm({ ...invForm, dueDate: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs"
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs cursor-pointer"
                   />
                 </div>
                 <div>
@@ -707,19 +714,21 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     <option value="Cash">Cash Vault</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Destination Account *</label>
-                  <select
-                    value={receiptForm.destinationAccount}
-                    onChange={(e) => setReceiptForm({ ...receiptForm, destinationAccount: e.target.value })}
-                    required
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
-                  >
-                    {accounts.map((a) => (
-                      <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
-                    ))}
-                  </select>
-                </div>
+                {accounts.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Destination Account (Optional)</label>
+                    <select
+                      value={receiptForm.destinationAccount}
+                      onChange={(e) => setReceiptForm({ ...receiptForm, destinationAccount: e.target.value })}
+                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
+                    >
+                      <option value="">-- No Specific Account --</option>
+                      {accounts.map((a) => (
+                        <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -739,7 +748,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     type="date"
                     value={receiptForm.receivedDate}
                     onChange={(e) => setReceiptForm({ ...receiptForm, receivedDate: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs"
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs cursor-pointer"
                   />
                 </div>
               </div>
@@ -824,18 +834,34 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     onChange={(e) => setExpForm({ ...expForm, paymentStatus: e.target.value })}
                     className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
                   >
-                    <option value="paid">Paid Now (Atomic Cash Outflow)</option>
+                    <option value="paid">Paid Now (Cash Outflow)</option>
                     <option value="unpaid">Unpaid Vendor Bill (Payable)</option>
                   </select>
                 </div>
                 {expForm.paymentStatus === 'paid' && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Funding Account *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Payment Mode</label>
+                    <select
+                      value={expForm.paymentMode}
+                      onChange={(e) => setExpForm({ ...expForm, paymentMode: e.target.value })}
+                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
+                    >
+                      <option value="Bank">Bank Transfer (NEFT/RTGS/IMPS)</option>
+                      <option value="UPI">UPI (GPay / PhonePe / QR)</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Card">Corporate / Credit Card</option>
+                    </select>
+                  </div>
+                )}
+                {expForm.paymentStatus === 'paid' && accounts.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Funding Account (Optional)</label>
                     <select
                       value={expForm.fundingAccount}
                       onChange={(e) => setExpForm({ ...expForm, fundingAccount: e.target.value })}
                       className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
                     >
+                      <option value="">-- No Specific Account --</option>
                       {accounts.map((a) => (
                         <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
                       ))}
@@ -848,7 +874,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     type="date"
                     value={expForm.date}
                     onChange={(e) => setExpForm({ ...expForm, date: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs"
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs cursor-pointer"
                   />
                 </div>
               </div>
@@ -1089,25 +1116,29 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-indigo-700 shadow-2xs"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Bank / Cash Account</label>
-                  <select
-                    value={founderForm.account}
-                    onChange={(e) => setFounderForm({ ...founderForm, account: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
-                  >
-                    {accounts.map((a) => (
-                      <option key={a._id} value={a._id}>{a.accountName}</option>
-                    ))}
-                  </select>
-                </div>
+                {accounts.length > 0 && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Bank / Cash Account</label>
+                    <select
+                      value={founderForm.account}
+                      onChange={(e) => setFounderForm({ ...founderForm, account: e.target.value })}
+                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
+                    >
+                      <option value="">-- No Specific Account --</option>
+                      {accounts.map((a) => (
+                        <option key={a._id} value={a._id}>{a.accountName}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date</label>
                   <input
                     type="date"
                     value={founderForm.date}
                     onChange={(e) => setFounderForm({ ...founderForm, date: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs"
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs cursor-pointer"
                   />
                 </div>
               </div>
@@ -1122,34 +1153,41 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
           {/* 7. INTERNAL TRANSFER FORM */}
           {activeAction === 'transfer' && (
             <form id="finance-modal-form" onSubmit={handleTransferSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">From Account (Source Outflow) *</label>
-                  <select
-                    value={transferForm.fromAccount}
-                    onChange={(e) => setTransferForm({ ...transferForm, fromAccount: e.target.value })}
-                    required
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
-                  >
-                    {accounts.map((a) => (
-                      <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
-                    ))}
-                  </select>
+              {accounts.length < 2 ? (
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-xs flex items-center gap-2.5">
+                  <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                  <span>No company bank accounts configured yet. Once bank accounts are added, you can record internal transfers between accounts here.</span>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">To Account (Destination Inflow) *</label>
-                  <select
-                    value={transferForm.toAccount}
-                    onChange={(e) => setTransferForm({ ...transferForm, toAccount: e.target.value })}
-                    required
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
-                  >
-                    {accounts.map((a) => (
-                      <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
-                    ))}
-                  </select>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">From Account (Source Outflow) *</label>
+                    <select
+                      value={transferForm.fromAccount}
+                      onChange={(e) => setTransferForm({ ...transferForm, fromAccount: e.target.value })}
+                      required
+                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
+                    >
+                      {accounts.map((a) => (
+                        <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">To Account (Destination Inflow) *</label>
+                    <select
+                      value={transferForm.toAccount}
+                      onChange={(e) => setTransferForm({ ...transferForm, toAccount: e.target.value })}
+                      required
+                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
+                    >
+                      {accounts.map((a) => (
+                        <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
@@ -1178,7 +1216,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     type="date"
                     value={transferForm.date}
                     onChange={(e) => setTransferForm({ ...transferForm, date: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs"
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs cursor-pointer"
                   />
                 </div>
               </div>
@@ -1241,7 +1280,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     type="date"
                     value={subForm.nextRenewalDate}
                     onChange={(e) => setSubForm({ ...subForm, nextRenewalDate: e.target.value })}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs"
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs cursor-pointer"
                   />
                 </div>
               </div>

@@ -110,8 +110,9 @@ export const DateRangePicker = ({
               type="date"
               value={fromDate || ''}
               onChange={handleFromChange}
+              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
               placeholder="From"
-              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 cursor-pointer"
             />
           </AppTooltip>
           <span className="text-muted-foreground font-bold text-[10px]">to</span>
@@ -120,8 +121,9 @@ export const DateRangePicker = ({
               type="date"
               value={toDate || ''}
               onChange={handleToChange}
+              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
               placeholder="To"
-              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              className="bg-secondary/60 border border-border rounded-lg px-2 py-1 text-[11px] font-medium text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 cursor-pointer"
             />
           </AppTooltip>
         </div>
@@ -187,7 +189,8 @@ export const DateRangePicker = ({
             type="date"
             value={fromDate || ''}
             onChange={handleFromChange}
-            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
           />
         </div>
 
@@ -197,7 +200,8 @@ export const DateRangePicker = ({
             type="date"
             value={toDate || ''}
             onChange={handleToChange}
-            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+            className="w-full bg-secondary/50 border border-border rounded-xl px-3 py-1.5 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
           />
         </div>
 

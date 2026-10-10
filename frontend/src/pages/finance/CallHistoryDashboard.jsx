@@ -613,7 +613,8 @@ export default function CallHistoryDashboard() {
                       type="date"
                       value={form.callDate}
                       onChange={(e) => setForm((prev) => ({ ...prev, callDate: e.target.value }))}
-                      className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                      className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -622,7 +623,8 @@ export default function CallHistoryDashboard() {
                       type="time"
                       value={form.callTime}
                       onChange={(e) => setForm((prev) => ({ ...prev, callTime: e.target.value }))}
-                      className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                      className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     />
                   </div>
                 </div>
@@ -681,7 +683,8 @@ export default function CallHistoryDashboard() {
                       type="date"
                       value={form.nextFollowUpDate}
                       onChange={(e) => setForm((prev) => ({ ...prev, nextFollowUpDate: e.target.value }))}
-                      className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                      className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     />
                   </div>
                   {formType === 'client' && (

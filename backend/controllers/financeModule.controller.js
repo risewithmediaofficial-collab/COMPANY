@@ -198,30 +198,7 @@ export const getFinanceOverview = async (req, res) => {
 
 export const getFinanceAccounts = async (req, res) => {
   try {
-    let accounts = await FinanceAccount.find().sort({ accountType: 1, accountName: 1 });
-
-    // Seed default bank and cash accounts if none exist
-    if (accounts.length === 0) {
-      const defaultBank = await FinanceAccount.create({
-        accountName: 'HDFC Current Account',
-        accountType: 'bank',
-        bankName: 'HDFC Bank',
-        accountNumber: '50200012345678',
-        ifscCode: 'HDFC0001234',
-        openingBalance: 0,
-        currentBalance: 0,
-        isDefault: true,
-      });
-
-      const defaultCash = await FinanceAccount.create({
-        accountName: 'Petty Cash Box',
-        accountType: 'cash',
-        openingBalance: 0,
-        currentBalance: 0,
-      });
-
-      accounts = [defaultBank, defaultCash];
-    }
+    const accounts = await FinanceAccount.find().sort({ accountType: 1, accountName: 1 });
 
     // Reconcile and calculate real-time balances for each account
     const detailed = await Promise.all(

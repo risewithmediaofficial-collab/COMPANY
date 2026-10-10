@@ -43,7 +43,7 @@ export default function IncomeSection({ onQuickAdd }) {
       client: r.client?.company || r.client?.name || 'Client',
       amount: r.amount,
       mode: r.paymentMode,
-      account: r.destinationAccount?.accountName || 'Bank',
+      account: r.destinationAccount?.accountName || '-',
       reference: r.reference || '',
       invoice: r.invoice?.invoiceNumber || 'Advance Credit',
       unappliedCredit: r.unappliedCredit || 0,
@@ -180,10 +180,10 @@ export default function IncomeSection({ onQuickAdd }) {
                     </td>
                     <td className="p-3">
                       <span className="px-2 py-0.5 rounded bg-slate-100 font-medium text-slate-700 text-[10px]">
-                        {r.paymentMode || r.method || 'Bank'}
+                        {r.paymentMode || r.method || 'Direct'}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-600">{r.destinationAccount?.accountName || 'Bank Account'}</td>
+                    <td className="p-3 text-slate-600">{r.destinationAccount?.accountName || '-'}</td>
                     <td className="p-3 font-mono text-slate-500">{r.reference || '-'}</td>
                     <td className="p-3 text-right font-bold text-emerald-600 text-sm">+{formatINR(r.amount)}</td>
                   </tr>

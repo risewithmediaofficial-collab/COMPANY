@@ -182,7 +182,7 @@ export default function FoundersSection({ onQuickAdd }) {
                       </span>
                     </td>
                     <td className="p-3 text-slate-600">
-                      {tx.account?.accountName || 'Bank'} · {tx.paymentMode}
+                      {tx.account?.accountName ? `${tx.account.accountName} · ` : ''}{tx.paymentMode || 'Direct'}
                     </td>
                     <td className="p-3 text-slate-500 font-mono">{tx.reference || tx.notes || '-'}</td>
                     <td

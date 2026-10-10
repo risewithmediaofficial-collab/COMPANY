@@ -205,7 +205,7 @@ export default function PayrollSection() {
         deductionReason: form.deductionReason,
         netSalary: Number(form.netSalary),
         status: form.status,
-        paymentAccount: form.status === 'paid' ? form.paymentAccount : undefined,
+        paymentAccount: (form.status === 'paid' && form.paymentAccount) ? form.paymentAccount : undefined,
         notes: form.notes,
       };
 
@@ -237,7 +237,7 @@ export default function PayrollSection() {
     try {
       await payPayroll.mutateAsync({
         id: payModalRecord._id,
-        paymentAccount: fundingAccount || (accounts[0] ? accounts[0]._id : undefined),
+        paymentAccount: fundingAccount || undefined,
       });
       setPayModalRecord(null);
     } catch (err) {}
@@ -591,7 +591,7 @@ export default function PayrollSection() {
                             <button
                               onClick={() => {
                                 setPayModalRecord(rec);
-                                if (accounts[0]) setFundingAccount(accounts[0]._id);
+                                setFundingAccount(accounts[0]?._id || '');
                               }}
                               className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] transition-colors shadow-2xs"
                             >
@@ -756,16 +756,16 @@ export default function PayrollSection() {
               </div>
             </div>
 
-            {/* If marked paid, choose account */}
-            {form.status === 'paid' && (
+            {/* If marked paid, choose account if any exist */}
+            {form.status === 'paid' && accounts.length > 0 && (
               <div>
-                <label className="block font-semibold text-foreground mb-1.5">Funding Bank / Cash Account *</label>
+                <label className="block font-semibold text-foreground mb-1.5">Funding Bank / Cash Account (Optional)</label>
                 <select
                   value={form.paymentAccount}
                   onChange={(e) => setForm({ ...form, paymentAccount: e.target.value })}
-                  required
                   className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
                 >
+                  <option value="">-- No Account Selected --</option>
                   {accounts.map((a) => (
                     <option key={a._id} value={a._id}>
                       {a.accountName} (Balance: ₹{a.currentBalance})
@@ -830,24 +830,33 @@ export default function PayrollSection() {
           </DialogHeader>
 
           <form onSubmit={handleExecutePayment} className="space-y-4 text-xs">
-            <div>
-              <label className="block font-semibold text-foreground mb-1.5">Disbursement Bank / Cash Account *</label>
-              <select
-                value={fundingAccount}
-                onChange={(e) => setFundingAccount(e.target.value)}
-                className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-medium text-foreground bg-background shadow-2xs"
-              >
-                {accounts.map((a) => (
-                  <option key={a._id} value={a._id}>
-                    {a.accountName} (₹{a.currentBalance?.toLocaleString('en-IN')})
-                  </option>
-                ))}
-              </select>
-            </div>
+            {accounts.length > 0 ? (
+              <div>
+                <label className="block font-semibold text-foreground mb-1.5">Disbursement Bank / Cash Account (Optional)</label>
+                <select
+                  value={fundingAccount}
+                  onChange={(e) => setFundingAccount(e.target.value)}
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-medium text-foreground bg-background shadow-2xs"
+                >
+                  <option value="">-- Direct Disbursement (No Bank) --</option>
+                  {accounts.map((a) => (
+                    <option key={a._id} value={a._id}>
+                      {a.accountName} (₹{a.currentBalance?.toLocaleString('en-IN')})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="p-3 bg-muted/40 rounded-xl text-muted-foreground text-xs border border-border">
+                No bank accounts configured. This salary will be marked as disbursed directly.
+              </div>
+            )}
 
-            <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl text-emerald-800 dark:text-emerald-300 text-[11px] border border-emerald-100 dark:border-emerald-800">
-              💡 <strong>Double-Entry Rule:</strong> Marking disbursed creates a cash outflow from the chosen bank account and clears the payable without duplicating the recognized salary expense.
-            </div>
+            {accounts.length > 0 && (
+              <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl text-emerald-800 dark:text-emerald-300 text-[11px] border border-emerald-100 dark:border-emerald-800">
+                💡 <strong>Double-Entry Rule:</strong> Marking disbursed creates a cash outflow from the chosen bank account and clears the payable without duplicating the recognized salary expense.
+              </div>
+            )}
 
             <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
               <button
