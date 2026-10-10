@@ -53,12 +53,15 @@ import {
   createInternalTransfer,
   getModuleInvoices,
   createModuleInvoice,
+  deleteModuleInvoice,
   updateInvoiceWorkflow,
   generateMonthlyRetainerInvoices,
   recordClientPaymentReceipt,
   getPaymentReceipts,
   getModuleExpenses,
   createModuleExpense,
+  updateModuleExpense,
+  deleteModuleExpense,
   payVendorBill,
   getSubscriptions,
   createSubscription,
@@ -114,6 +117,7 @@ router.post('/transfers', authorize('superAdmin', 'admin', 'financeManager'), cr
 // 4. Invoices & Revenue Master
 router.get('/module/invoices', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager'), getModuleInvoices);
 router.post('/module/invoices', authorize('superAdmin', 'admin', 'financeManager'), createModuleInvoice);
+router.delete('/module/invoices/:id', authorize('superAdmin', 'admin', 'financeManager'), deleteModuleInvoice);
 router.patch('/module/invoices/:id/workflow', authorize('superAdmin', 'admin', 'financeManager'), updateInvoiceWorkflow);
 router.post('/module/invoices/retainer-generate', authorize('superAdmin', 'admin', 'financeManager'), generateMonthlyRetainerInvoices);
 
@@ -124,6 +128,8 @@ router.post('/receipts', authorize('superAdmin', 'admin', 'financeManager'), rec
 // 6. Expenses & Vendor Bills
 router.get('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), getModuleExpenses);
 router.post('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), createModuleExpense);
+router.put('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), updateModuleExpense);
+router.delete('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), deleteModuleExpense);
 router.post('/module/expenses/:id/pay', authorize('superAdmin', 'admin', 'financeManager'), payVendorBill);
 
 // 7. Recurring Subscriptions

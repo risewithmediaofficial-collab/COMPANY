@@ -309,11 +309,20 @@ export default function ClientsSection({ onQuickAdd }) {
                   const margin = prof.marginPercent ?? (planFee > 0 ? Number(((netProfit / planFee) * 100).toFixed(1)) : null);
 
                   return (
-                    <tr key={client._id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr
+                      key={client._id}
+                      onClick={() => setSelectedClientForLedger(client)}
+                      className="hover:bg-indigo-50/40 transition-colors cursor-pointer group"
+                      title="Click row to view financial ledger in sidebar"
+                    >
                       <td className="p-3">
                         <button
-                          onClick={() => setSelectedClientForLedger(client)}
-                          className="font-bold text-slate-900 hover:text-indigo-600 text-left hover:underline cursor-pointer flex items-center gap-1.5 group"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedClientForLedger(client);
+                          }}
+                          className="font-bold text-slate-900 group-hover:text-indigo-600 text-left hover:underline cursor-pointer flex items-center gap-1.5"
                           title="Click to view full financial ledger & invoices statement"
                         >
                           <span>{client.company || client.name}</span>
@@ -357,15 +366,17 @@ export default function ClientsSection({ onQuickAdd }) {
                         )}
                       </td>
                       <td className="p-3 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <button
+                            type="button"
                             onClick={() => setSelectedClientForLedger(client)}
                             className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs transition-colors cursor-pointer"
-                            title="Open Invoices, Receipts & Dues Statement"
+                            title="Open Invoices, Receipts & Dues Statement in sidebar"
                           >
                             <Receipt className="h-3 w-3" /> Ledger
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleOpenEditClient(client)}
                             className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                             title="Edit Plan Fee, Deliverables & Billing"
@@ -373,6 +384,7 @@ export default function ClientsSection({ onQuickAdd }) {
                             <Edit2 className="h-3 w-3" /> Edit
                           </button>
                           <button
+                            type="button"
                             onClick={() => {
                               setSelectedClientForCost(client);
                               setShowCostModal(true);
@@ -632,23 +644,25 @@ export default function ClientsSection({ onQuickAdd }) {
         )}
       </Dialog>
 
-      {/* CLIENT FINANCIAL STATEMENT & LEDGER MODAL */}
+      {/* CLIENT FINANCIAL STATEMENT & LEDGER SIDE BAR DRAWER */}
       <Dialog open={Boolean(selectedClientForLedger)} onOpenChange={(open) => !open && setSelectedClientForLedger(null)}>
         {selectedClientForLedger && activeClientLedger && (
-          <DialogContent variant="center" size="lg" className="rounded-2xl p-6 text-xs max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="border-b border-border pb-3 mb-4">
+          <DialogContent variant="side" size="xl" className="flex flex-col h-full bg-white text-xs border-l border-border shadow-2xl p-0">
+            <DialogHeader className="p-5 border-b border-border bg-slate-50/80 pr-12">
               <div className="flex items-center justify-between">
                 <div>
                   <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
                     <Receipt className="h-4 w-4 text-indigo-600" />
-                    <span>Client Ledger: {activeClientLedger.client.company || activeClientLedger.client.name}</span>
+                    <span>Client Statement & Ledger: {activeClientLedger.client.company || activeClientLedger.client.name}</span>
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                    Complete statement of all invoices, collected payments, and pending client dues
+                    {activeClientLedger.client.contactName || activeClientLedger.client.name} · {activeClientLedger.client.servicePlan || 'Retainer'} · Complete statement of invoices, receipts, and dues
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
 
             {/* Top KPI Cards Strip */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
@@ -767,9 +781,10 @@ export default function ClientsSection({ onQuickAdd }) {
                   </table>
                 </div>
               </div>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-border mt-4">
+            <div className="p-4 border-t border-border bg-slate-50/80 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
