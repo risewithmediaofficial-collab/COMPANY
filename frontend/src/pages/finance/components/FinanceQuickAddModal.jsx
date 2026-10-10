@@ -43,8 +43,24 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
   const [activeAction, setActiveAction] = useState(initialAction);
 
   useEffect(() => {
-    if (initialAction) {
-      setActiveAction(initialAction);
+    if (open) {
+      if (initialAction) {
+        setActiveAction(initialAction);
+      }
+      setInvForm({
+        client: '',
+        invoiceDate: new Date().toISOString().slice(0, 10),
+        dueDate: new Date(Date.now() + 15 * 86400000).toISOString().slice(0, 10),
+        servicePeriod: '',
+        taxType: 'exclusive',
+        taxRate: 18,
+        isRetainer: false,
+        workflowStatus: 'issued',
+        notes: '',
+        lineItems: [
+          { serviceName: '', description: '', quantity: '', rate: '', itemType: 'service' },
+        ],
+      });
     }
   }, [initialAction, open]);
 
@@ -82,11 +98,11 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     servicePeriod: '',
     taxType: 'exclusive',
     taxRate: 18,
-    isRetainer: true,
+    isRetainer: false,
     workflowStatus: 'issued',
     notes: '',
     lineItems: [
-      { serviceName: 'Marketing Retainer', description: 'Monthly Content & Management', quantity: 1, rate: 25000, itemType: 'service' },
+      { serviceName: '', description: '', quantity: '', rate: '', itemType: 'service' },
     ],
   });
 
@@ -125,21 +141,21 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     email: '',
     phone: '',
     monthlyPlanFee: '',
-    servicePlan: 'Growth Retainer',
-    deliverables: '8 reels + 6 posts',
-    billingDate: 1,
+    servicePlan: '',
+    deliverables: '',
+    billingDate: '',
     billingCycle: 'monthly',
   });
 
   // 5. Payroll Form
   const [payrollForm, setPayrollForm] = useState({
     employee: '',
-    month: 'October',
+    month: new Date().toLocaleString('default', { month: 'long' }),
     year: new Date().getFullYear(),
     baseSalary: '',
-    additions: 0,
+    additions: '',
     additionReason: '',
-    deductions: 0,
+    deductions: '',
     deductionReason: '',
     netSalary: '',
     status: 'pending',
@@ -152,7 +168,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     fromAccount: '',
     toAccount: '',
     amount: '',
-    bankFee: 0,
+    bankFee: '',
     date: new Date().toISOString().slice(0, 10),
     reference: '',
     notes: '',
@@ -199,11 +215,19 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
 
   // Invoice Totals Calculation
   const invoiceSubtotal = useMemo(() => {
-    return invForm.lineItems.reduce((acc, item) => acc + (Number(item.quantity || 1) * Number(item.rate || 0)), 0);
+    return invForm.lineItems.reduce((acc, item) => {
+      const hasRate = item.rate !== '' && item.rate != null && !isNaN(Number(item.rate));
+      if (!hasRate) return acc;
+      const q = (item.quantity !== '' && item.quantity != null && !isNaN(Number(item.quantity)))
+        ? Number(item.quantity)
+        : 1;
+      const r = Number(item.rate || 0);
+      return acc + (q * r);
+    }, 0);
   }, [invForm.lineItems]);
 
   const invoiceTaxAmount = useMemo(() => {
-    if (invForm.taxType === 'exclusive') {
+    if (invForm.taxType === 'exclusive' && invoiceSubtotal > 0) {
       return Math.round(invoiceSubtotal * (Number(invForm.taxRate || 18) / 100));
     }
     return 0;
@@ -215,10 +239,25 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
   const handleInvoiceSubmit = async (e) => {
     e.preventDefault();
     if (!invForm.client) return toast.error('Select a client');
+
+    const validItems = invForm.lineItems
+      .filter((item) => (item.serviceName && item.serviceName.trim() !== '') || Number(item.rate || 0) > 0)
+      .map((item) => ({
+        ...item,
+        serviceName: item.serviceName?.trim() || 'Service Item',
+        quantity: Number(item.quantity) > 0 ? Number(item.quantity) : 1,
+        rate: Number(item.rate || 0),
+      }));
+
+    if (validItems.length === 0) {
+      return toast.error('Please enter at least one line item with service details');
+    }
+
     try {
       await createInvoice.mutateAsync({
         ...invForm,
-        taxRate: invForm.taxType === 'exempt' ? 0 : Number(invForm.taxRate),
+        lineItems: validItems,
+        taxRate: invForm.taxType === 'exempt' ? 0 : Number(invForm.taxRate || 18),
       });
       onOpenChange(false);
     } catch (err) {}
@@ -326,7 +365,6 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     { id: 'expense', label: 'Expense / Bill', icon: CreditCard },
     { id: 'client', label: 'New Client', icon: UserPlus },
     { id: 'payroll', label: 'Payroll Entry', icon: Banknote },
-    { id: 'founder', label: 'Founder Entry', icon: ShieldCheck },
     { id: 'transfer', label: 'Internal Transfer', icon: ArrowRightLeft },
     { id: 'subscription', label: 'Subscription', icon: CalendarCheck },
   ];
@@ -447,7 +485,10 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
               {/* Line Items Card */}
               <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-slate-800 text-xs">Deliverable Line Items</span>
+                  <div>
+                    <span className="font-bold text-slate-800 text-xs">Deliverable Line Items</span>
+                    <p className="text-[11px] text-slate-400">Add deliverables or services with customized rates</p>
+                  </div>
                   <button
                     type="button"
                     onClick={() =>
@@ -455,23 +496,24 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                         ...invForm,
                         lineItems: [
                           ...invForm.lineItems,
-                          { serviceName: 'Service Item', description: '', quantity: 1, rate: 5000, itemType: 'service' },
+                          { serviceName: '', description: '', quantity: '', rate: '', itemType: 'service' },
                         ],
                       })
                     }
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-xs hover:bg-indigo-100 transition-colors border border-indigo-200/60"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 font-semibold text-xs hover:bg-indigo-100 transition-colors border border-indigo-200/60 shadow-2xs cursor-pointer"
                   >
-                    <Plus className="h-3 w-3" /> Add Line Item
+                    <Plus className="h-3.5 w-3.5" /> Add Line Item
                   </button>
                 </div>
 
                 {/* Column Headers */}
                 <div className="grid grid-cols-12 gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">
                   <div className="col-span-4">Service / Deliverable</div>
-                  <div className="col-span-3">Description</div>
+                  <div className="col-span-2">Description</div>
                   <div className="col-span-2">Type</div>
                   <div className="col-span-1 text-center">Qty</div>
-                  <div className="col-span-2 text-right pr-6">Rate (₹)</div>
+                  <div className="col-span-2 text-right">Rate (₹)</div>
+                  <div className="col-span-1 text-center">Delete</div>
                 </div>
 
                 {/* Item Rows */}
@@ -480,8 +522,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     <div className="col-span-4">
                       <input
                         type="text"
-                        placeholder="Service title"
-                        value={item.serviceName}
+                        placeholder="Service name / Deliverable"
+                        value={item.serviceName || ''}
                         onChange={(e) => {
                           const copy = [...invForm.lineItems];
                           copy[idx].serviceName = e.target.value;
@@ -490,11 +532,11 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                         className="h-8.5 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div className="col-span-2">
                       <input
                         type="text"
                         placeholder="Description"
-                        value={item.description}
+                        value={item.description || ''}
                         onChange={(e) => {
                           const copy = [...invForm.lineItems];
                           copy[idx].description = e.target.value;
@@ -505,13 +547,13 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     </div>
                     <div className="col-span-2">
                       <select
-                        value={item.itemType}
+                        value={item.itemType || 'service'}
                         onChange={(e) => {
                           const copy = [...invForm.lineItems];
                           copy[idx].itemType = e.target.value;
                           setInvForm({ ...invForm, lineItems: copy });
                         }}
-                        className="h-8.5 w-full rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="h-8.5 w-full rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                       >
                         <option value="service">Service Fee</option>
                         <option value="ad_budget_pass_through">Ad Budget (Pass)</option>
@@ -523,42 +565,76 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                         type="number"
                         min="1"
                         placeholder="1"
-                        value={item.quantity}
+                        value={item.quantity === '' || item.quantity == null ? '' : item.quantity}
                         onChange={(e) => {
                           const copy = [...invForm.lineItems];
-                          copy[idx].quantity = Number(e.target.value || 1);
+                          copy[idx].quantity = e.target.value;
                           setInvForm({ ...invForm, lineItems: copy });
                         }}
                         className="h-8.5 w-full text-center rounded-lg border border-slate-200 bg-white px-1 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                     </div>
-                    <div className="col-span-2 flex items-center gap-1.5">
+                    <div className="col-span-2">
                       <input
                         type="number"
-                        placeholder="Rate"
-                        value={item.rate}
+                        placeholder="0.00"
+                        value={item.rate === '' || item.rate == null ? '' : item.rate}
                         onChange={(e) => {
                           const copy = [...invForm.lineItems];
-                          copy[idx].rate = Number(e.target.value || 0);
+                          copy[idx].rate = e.target.value;
                           setInvForm({ ...invForm, lineItems: copy });
                         }}
                         className="h-8.5 w-full text-right rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
-                      {invForm.lineItems.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setInvForm({ ...invForm, lineItems: invForm.lineItems.filter((_, i) => i !== idx) });
-                          }}
-                          className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
-                          title="Remove item"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+                    </div>
+                    <div className="col-span-1 flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (invForm.lineItems.length > 1) {
+                            setInvForm({
+                              ...invForm,
+                              lineItems: invForm.lineItems.filter((_, i) => i !== idx),
+                            });
+                          } else {
+                            setInvForm({
+                              ...invForm,
+                              lineItems: [
+                                { serviceName: '', description: '', quantity: '', rate: '', itemType: 'service' },
+                              ],
+                            });
+                          }
+                        }}
+                        className="h-8.5 w-8.5 inline-flex items-center justify-center rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+                        title={invForm.lineItems.length > 1 ? 'Delete line item' : 'Clear item fields'}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
+
+                {/* Add Item Bottom Row */}
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setInvForm({
+                        ...invForm,
+                        lineItems: [
+                          ...invForm.lineItems,
+                          { serviceName: '', description: '', quantity: '', rate: '', itemType: 'service' },
+                        ],
+                      })
+                    }
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50/80 border border-dashed border-indigo-300 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add Line Item
+                  </button>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    {invForm.lineItems.length} {invForm.lineItems.length === 1 ? 'item' : 'items'}
+                  </span>
+                </div>
 
                 {/* Subtotal & Totals Strip */}
                 <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-600 font-medium px-1">

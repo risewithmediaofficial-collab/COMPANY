@@ -27,7 +27,6 @@ import ExpensesSection from './sections/ExpensesSection';
 import ClientsSection from './sections/ClientsSection';
 import InvoicesSection from './sections/InvoicesSection';
 import PayrollSection from './sections/PayrollSection';
-import FoundersSection from './sections/FoundersSection';
 import ForecastReportsSection from './sections/ForecastReportsSection';
 import SettingsSection from './sections/SettingsSection';
 import FinanceQuickAddModal from './components/FinanceQuickAddModal';
@@ -42,7 +41,6 @@ const TABS = [
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'invoices', label: 'Invoices', icon: FileText },
   { id: 'payroll', label: 'Payroll', icon: Banknote },
-  { id: 'founders', label: 'Founders', icon: ShieldCheck },
   { id: 'forecast-reports', label: 'Forecast & Reports', icon: TrendingUp },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
@@ -55,7 +53,7 @@ export default function Finance() {
 
   // Active section (from URL query param, route param, or default 'overview')
   const rawTab = section || searchParams.get('tab') || 'overview';
-  const initialTab = rawTab === 'cash-flow' ? 'overview' : rawTab;
+  const initialTab = rawTab === 'cash-flow' || rawTab === 'founders' ? 'overview' : rawTab;
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Quick Add Modal state
@@ -256,8 +254,6 @@ export default function Finance() {
         )}
 
         {activeTab === 'payroll' && <PayrollSection onQuickAdd={openQuickAdd} />}
-
-        {activeTab === 'founders' && <FoundersSection onQuickAdd={openQuickAdd} />}
 
         {activeTab === 'forecast-reports' && <ForecastReportsSection />}
 

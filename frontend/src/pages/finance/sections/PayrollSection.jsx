@@ -91,15 +91,16 @@ export default function PayrollSection() {
   // Open Add Modal
   const handleOpenAdd = () => {
     setEditingRecord(null);
-    const firstEmp = employees[0];
     setForm({
-      employee: firstEmp?._id || '',
-      baseSalary: firstEmp?.salary ? String(firstEmp.salary) : '30000',
-      additions: 0,
+      employee: '',
+      month: selectedMonth,
+      year: selectedYear,
+      baseSalary: '',
+      additions: '',
       additionReason: '',
-      deductions: 0,
+      deductions: '',
       deductionReason: '',
-      netSalary: firstEmp?.salary ? String(firstEmp.salary) : '30000',
+      netSalary: '',
       status: 'pending',
       paymentAccount: accounts[0]?._id || '',
       notes: '',
@@ -112,12 +113,12 @@ export default function PayrollSection() {
     setEditingRecord(rec);
     setForm({
       employee: rec.employee?._id || rec.employee || '',
-      baseSalary: String(rec.baseSalary || 0),
-      additions: rec.ots || rec.additions || 0,
+      baseSalary: rec.baseSalary != null ? String(rec.baseSalary) : '',
+      additions: rec.ots || rec.additions || '',
       additionReason: rec.additionReason || '',
-      deductions: rec.deductions || 0,
+      deductions: rec.deductions || '',
       deductionReason: rec.deductionReason || '',
-      netSalary: String(rec.netSalary || 0),
+      netSalary: rec.netSalary != null ? String(rec.netSalary) : '',
       status: rec.status || 'pending',
       paymentAccount: rec.paymentAccount?._id || rec.paymentAccount || (accounts[0]?._id || ''),
       notes: rec.notes || '',
@@ -128,53 +129,56 @@ export default function PayrollSection() {
   // When employee dropdown changes in modal, auto-populate base salary from employee profile
   const handleEmployeeSelect = (empId) => {
     const selected = employees.find((e) => e._id === empId);
-    const salary = selected?.salary ? Number(selected.salary) : 30000;
+    const salary = selected?.salary ? Number(selected.salary) : null;
     const additions = Number(form.additions || 0);
     const deductions = Number(form.deductions || 0);
-    const computedNet = Math.max(0, salary + additions - deductions);
+    const computedNet = salary != null ? Math.max(0, salary + additions - deductions) : null;
 
     setForm((prev) => ({
       ...prev,
       employee: empId,
-      baseSalary: String(salary),
-      netSalary: String(computedNet),
+      baseSalary: salary != null ? String(salary) : '',
+      netSalary: computedNet != null ? String(computedNet) : '',
     }));
   };
 
   // Handle salary inputs auto-calc
   const handleBaseSalaryChange = (val) => {
-    const base = Number(val || 0);
+    const hasBase = val !== '' && !isNaN(Number(val));
+    const base = hasBase ? Number(val) : 0;
     const additions = Number(form.additions || 0);
     const deductions = Number(form.deductions || 0);
-    const computedNet = Math.max(0, base + additions - deductions);
+    const computedNet = hasBase ? Math.max(0, base + additions - deductions) : '';
     setForm((prev) => ({
       ...prev,
       baseSalary: val,
-      netSalary: String(computedNet),
+      netSalary: computedNet !== '' ? String(computedNet) : '',
     }));
   };
 
   const handleAdditionsChange = (val) => {
-    const base = Number(form.baseSalary || 0);
+    const hasBase = form.baseSalary !== '' && !isNaN(Number(form.baseSalary));
+    const base = hasBase ? Number(form.baseSalary) : 0;
     const additions = Number(val || 0);
     const deductions = Number(form.deductions || 0);
-    const computedNet = Math.max(0, base + additions - deductions);
+    const computedNet = hasBase ? Math.max(0, base + additions - deductions) : '';
     setForm((prev) => ({
       ...prev,
       additions: val,
-      netSalary: String(computedNet),
+      netSalary: computedNet !== '' ? String(computedNet) : '',
     }));
   };
 
   const handleDeductionsChange = (val) => {
-    const base = Number(form.baseSalary || 0);
+    const hasBase = form.baseSalary !== '' && !isNaN(Number(form.baseSalary));
+    const base = hasBase ? Number(form.baseSalary) : 0;
     const additions = Number(form.additions || 0);
     const deductions = Number(val || 0);
-    const computedNet = Math.max(0, base + additions - deductions);
+    const computedNet = hasBase ? Math.max(0, base + additions - deductions) : '';
     setForm((prev) => ({
       ...prev,
       deductions: val,
-      netSalary: String(computedNet),
+      netSalary: computedNet !== '' ? String(computedNet) : '',
     }));
   };
 
