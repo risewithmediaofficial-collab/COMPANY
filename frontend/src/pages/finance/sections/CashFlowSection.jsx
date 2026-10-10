@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Building,
   ArrowRightLeft,
@@ -11,6 +11,8 @@ import {
   Calendar,
   Layers,
   Download,
+  ArrowUpDown,
+  X,
 } from 'lucide-react';
 import {
   useFinanceAccounts,
@@ -23,10 +25,37 @@ import { toast } from 'sonner';
 
 export default function CashFlowSection({ onQuickAdd }) {
   const [activeTab, setActiveTab] = useState('accounts'); // 'accounts' | 'transfers' | 'cashbook'
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
 
   const { data: accounts = [], isLoading: accountsLoading } = useFinanceAccounts();
-  const { data: transfers = [] } = useInternalTransfers();
-  const { data: cashbookData = { items: [], totalInflow: 0, totalOutflow: 0, netCashFlow: 0 } } = useDailyCashbook();
+  const { data: transfers = [] } = useInternalTransfers({
+    startDate: fromDate || undefined,
+    endDate: toDate || undefined,
+    sortOrder: dateSort,
+  });
+  const { data: cashbookData = { items: [], totalInflow: 0, totalOutflow: 0, netCashFlow: 0 } } = useDailyCashbook({
+    startDate: fromDate || undefined,
+    endDate: toDate || undefined,
+    sortOrder: dateSort,
+  });
+
+  const sortedTransfers = useMemo(() => {
+    return [...transfers].sort((a, b) => {
+      const timeA = new Date(a.date || 0).getTime();
+      const timeB = new Date(b.date || 0).getTime();
+      return dateSort === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  }, [transfers, dateSort]);
+
+  const sortedCashbookItems = useMemo(() => {
+    return [...(cashbookData.items || [])].sort((a, b) => {
+      const timeA = new Date(a.date || 0).getTime();
+      const timeB = new Date(b.date || 0).getTime();
+      return dateSort === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  }, [cashbookData.items, dateSort]);
 
   const reconcileAccount = useReconcileAccount();
 
@@ -188,27 +217,84 @@ export default function CashFlowSection({ onQuickAdd }) {
       {/* 2. TRANSFERS TAB */}
       {activeTab === 'transfers' && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Internal Account Transfers</h3>
               <p className="text-xs text-slate-500">
                 Transfers move money between accounts without altering net profit or sales revenue
               </p>
             </div>
-            <button
-              onClick={() => onQuickAdd('transfer')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold text-xs hover:bg-teal-700"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              + Execute Transfer
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Date to Date Filter */}
+              <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
+                <Calendar className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+                <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  title="From Date"
+                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-teal-500"
+                />
+                <span className="text-[10px] text-slate-400 font-bold">to</span>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  title="To Date"
+                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-teal-500"
+                />
+                {(fromDate || toDate) && (
+                  <button
+                    onClick={() => {
+                      setFromDate('');
+                      setToDate('');
+                    }}
+                    className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
+                    title="Reset Date Range"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Date Sorting Dropdown */}
+              <select
+                value={dateSort}
+                onChange={(e) => setDateSort(e.target.value)}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
+              >
+                <option value="desc">Date: Newest First (Desc)</option>
+                <option value="asc">Date: Oldest First (Asc)</option>
+              </select>
+
+              <button
+                onClick={() => onQuickAdd('transfer')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white font-semibold text-xs hover:bg-teal-700"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                + Execute Transfer
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto text-xs">
             <table className="w-full text-left">
               <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="p-3">Date</th>
+                  <th
+                    onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                    className="p-3 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    title="Click to toggle date sort (Newest / Oldest)"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Date</span>
+                      <ArrowUpDown className="h-3 w-3 text-slate-400" />
+                      <span className="text-teal-700 font-bold">{dateSort === 'desc' ? '↓' : '↑'}</span>
+                    </div>
+                  </th>
                   <th className="p-3">From Account (Outflow)</th>
                   <th className="p-3">To Account (Inflow)</th>
                   <th className="p-3">Bank Fee</th>
@@ -217,14 +303,14 @@ export default function CashFlowSection({ onQuickAdd }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {transfers.length === 0 ? (
+                {sortedTransfers.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="p-8 text-center text-slate-400">
-                      No internal transfers recorded.
+                      No internal transfers recorded matching the criteria.
                     </td>
                   </tr>
                 ) : (
-                  transfers.map((t) => (
+                  sortedTransfers.map((t) => (
                     <tr key={t._id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-3 text-slate-600 font-medium">{formatDateIST(t.date)}</td>
                       <td className="p-3 font-semibold text-rose-700">{t.fromAccount?.accountName}</td>
@@ -251,12 +337,58 @@ export default function CashFlowSection({ onQuickAdd }) {
                 Chronological statement of client receipts, paid expenses, salaries, and account movements
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-4 text-xs font-semibold">
                 <span className="text-emerald-600">Inflows: {formatINR(cashbookData.totalInflow)}</span>
                 <span className="text-rose-600">Outflows: {formatINR(cashbookData.totalOutflow)}</span>
                 <span className="text-slate-800">Net: {formatINR(cashbookData.netCashFlow)}</span>
               </div>
+
+              {/* Date to Date Filter */}
+              <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
+                <Calendar className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+                <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  title="From Date"
+                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-teal-500"
+                />
+                <span className="text-[10px] text-slate-400 font-bold">to</span>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  title="To Date"
+                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-teal-500"
+                />
+                {(fromDate || toDate) && (
+                  <button
+                    onClick={() => {
+                      setFromDate('');
+                      setToDate('');
+                    }}
+                    className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
+                    title="Reset Date Range"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Date Sorting Dropdown */}
+              <select
+                value={dateSort}
+                onChange={(e) => setDateSort(e.target.value)}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
+              >
+                <option value="desc">Date: Newest First (Desc)</option>
+                <option value="asc">Date: Oldest First (Asc)</option>
+              </select>
+
               <button
                 onClick={handleExportCashbook}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50"
@@ -270,7 +402,17 @@ export default function CashFlowSection({ onQuickAdd }) {
             <table className="w-full text-left">
               <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="p-3">Date</th>
+                  <th
+                    onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                    className="p-3 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                    title="Click to toggle date sort (Newest / Oldest)"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>Date</span>
+                      <ArrowUpDown className="h-3 w-3 text-slate-400" />
+                      <span className="text-teal-700 font-bold">{dateSort === 'desc' ? '↓' : '↑'}</span>
+                    </div>
+                  </th>
                   <th className="p-3">Movement</th>
                   <th className="p-3">Category</th>
                   <th className="p-3">Party / Particulars</th>
@@ -280,14 +422,14 @@ export default function CashFlowSection({ onQuickAdd }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {(cashbookData.items || []).length === 0 ? (
+                {sortedCashbookItems.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="p-8 text-center text-slate-400">
                       No cashbook transactions found for this period.
                     </td>
                   </tr>
                 ) : (
-                  (cashbookData.items || []).map((item, idx) => (
+                  sortedCashbookItems.map((item, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-3 text-slate-600 font-medium">{formatDateIST(item.date)}</td>
                       <td className="p-3">

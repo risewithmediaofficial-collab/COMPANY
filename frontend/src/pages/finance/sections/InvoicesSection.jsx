@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Download,
   Filter,
@@ -12,6 +12,9 @@ import {
   Receipt,
   XCircle,
   Eye,
+  Calendar,
+  ArrowUpDown,
+  X,
 } from 'lucide-react';
 import { useModuleInvoices, useUpdateInvoiceWorkflow } from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
@@ -22,23 +25,48 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [clientFilter, setClientFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   const { data: invoices = [], isLoading } = useModuleInvoices({
     status: statusFilter !== 'all' ? statusFilter : undefined,
     client: clientFilter !== 'all' ? clientFilter : undefined,
+    startDate: fromDate || undefined,
+    endDate: toDate || undefined,
+    sortOrder: dateSort,
   });
 
   const { data: clients = [] } = useClients();
   const updateWorkflow = useUpdateInvoiceWorkflow();
 
-  const filteredInvoices = invoices.filter((i) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    const invNum = (i.invoiceNumber || '').toLowerCase();
-    const clientName = (i.client?.company || i.client?.name || i.clientDetails?.businessName || '').toLowerCase();
-    return invNum.includes(q) || clientName.includes(q);
-  });
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((i) => {
+      const invDate = i.invoiceDate || i.issueDate || i.createdAt;
+      if (fromDate && invDate) {
+        const d = new Date(invDate).toISOString().slice(0, 10);
+        if (d < fromDate) return false;
+      }
+      if (toDate && invDate) {
+        const d = new Date(invDate).toISOString().slice(0, 10);
+        if (d > toDate) return false;
+      }
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      const invNum = (i.invoiceNumber || '').toLowerCase();
+      const clientName = (i.client?.company || i.client?.name || i.clientDetails?.businessName || '').toLowerCase();
+      return invNum.includes(q) || clientName.includes(q);
+    });
+  }, [invoices, fromDate, toDate, search]);
+
+  const sortedInvoices = useMemo(() => {
+    return [...filteredInvoices].sort((a, b) => {
+      const timeA = new Date(a.invoiceDate || a.issueDate || a.createdAt || 0).getTime();
+      const timeB = new Date(b.invoiceDate || b.issueDate || b.createdAt || 0).getTime();
+      return dateSort === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  }, [filteredInvoices, dateSort]);
 
   const totalInvoiced = filteredInvoices.reduce((sum, i) => sum + Number(i.total || i.totalAmount || 0), 0);
   const totalOutstanding = filteredInvoices.reduce((sum, i) => sum + Number(i.balanceAmount || 0), 0);
@@ -112,7 +140,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       {/* Filter and Action Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative w-64">
+          <div className="relative w-56">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
@@ -126,7 +154,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700"
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="draft">Drafts</option>
@@ -139,7 +167,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           <select
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700"
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium cursor-pointer"
           >
             <option value="all">All Clients</option>
             {clients.map((c) => (
@@ -148,6 +176,53 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
               </option>
             ))}
           </select>
+
+          {/* Date to Date Filter */}
+          <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
+            <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+            <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+              title="From Date"
+              className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+            />
+            <span className="text-[10px] text-slate-400 font-bold">to</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+              title="To Date"
+              className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+            />
+            {(fromDate || toDate) && (
+              <button
+                onClick={() => {
+                  setFromDate('');
+                  setToDate('');
+                }}
+                className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
+                title="Reset Date Range"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Date Sorting Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <select
+              value={dateSort}
+              onChange={(e) => setDateSort(e.target.value)}
+              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
+            >
+              <option value="desc">Date: Newest First (Desc)</option>
+              <option value="asc">Date: Oldest First (Asc)</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -177,7 +252,17 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                 <th className="p-3">Invoice #</th>
                 <th className="p-3">Client</th>
                 <th className="p-3">Period</th>
-                <th className="p-3">Invoice Date</th>
+                <th
+                  onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                  className="p-3 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                  title="Click to toggle date sort (Newest / Oldest)"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Invoice Date</span>
+                    <ArrowUpDown className="h-3 w-3 text-slate-400" />
+                    <span className="text-indigo-600 font-bold">{dateSort === 'desc' ? '↓' : '↑'}</span>
+                  </div>
+                </th>
                 <th className="p-3">Due Date</th>
                 <th className="p-3">Total Payable</th>
                 <th className="p-3">Balance Due</th>
@@ -186,14 +271,14 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredInvoices.length === 0 ? (
+              {sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="p-8 text-center text-slate-400">
                     No invoices found.
                   </td>
                 </tr>
               ) : (
-                filteredInvoices.map((inv) => (
+                sortedInvoices.map((inv) => (
                   <tr key={inv._id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-3 font-bold text-slate-900 flex items-center gap-1.5">
                       <FileText className="h-3.5 w-3.5 text-indigo-500" />

@@ -86,13 +86,19 @@ export const getFinanceOverview = async (req, res) => {
     }
 
     // Expense category breakdown
+    const categoryMatch = { approvalStatus: { $ne: 'rejected' } };
+    if (startDate || endDate) {
+      categoryMatch.date = {};
+      if (startDate) categoryMatch.date.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        categoryMatch.date.$lte = end;
+      }
+    }
+
     const categoryAgg = await Expense.aggregate([
-      {
-        $match: {
-          approvalStatus: { $ne: 'rejected' },
-          ...(startDate && endDate ? { date: { $gte: new Date(startDate), $lte: new Date(endDate) } } : {}),
-        },
-      },
+      { $match: categoryMatch },
       {
         $group: {
           _id: '$category',
@@ -284,11 +290,24 @@ export const reconcileAccount = async (req, res) => {
 
 export const getInternalTransfers = async (req, res) => {
   try {
-    const transfers = await InternalTransfer.find()
+    const { startDate, endDate, sortOrder = 'desc' } = req.query;
+    const query = {};
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+    const sort = { date: sortOrder === 'asc' ? 1 : -1 };
+
+    const transfers = await InternalTransfer.find(query)
       .populate('fromAccount', 'accountName accountType')
       .populate('toAccount', 'accountName accountType')
       .populate('createdBy', 'name')
-      .sort({ date: -1 })
+      .sort(sort)
       .lean();
 
     res.json({ success: true, transfers });
@@ -383,8 +402,14 @@ export const getModuleInvoices = async (req, res) => {
     if (workflowStatus && workflowStatus !== 'all') filter.workflowStatus = workflowStatus;
     if (servicePeriod && servicePeriod !== 'all') filter.servicePeriod = servicePeriod;
 
-    if (startDate && endDate) {
-      filter.invoiceDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    if (startDate || endDate) {
+      filter.invoiceDate = {};
+      if (startDate) filter.invoiceDate.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.invoiceDate.$lte = end;
+      }
     }
 
     if (search) {
@@ -396,10 +421,11 @@ export const getModuleInvoices = async (req, res) => {
       ];
     }
 
+    const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
     const invoices = await Invoice.find(filter)
       .populate('client', 'name company email phone monthlyPlanFee servicePlan deliverables billingDate')
       .populate('issuedBy', 'name email')
-      .sort({ invoiceDate: -1, createdAt: -1 })
+      .sort({ invoiceDate: sortDirection, createdAt: sortDirection })
       .lean();
 
     // Dynamically derive overdue flag for any unpaid/partially paid past due date
@@ -765,16 +791,23 @@ export const getPaymentReceipts = async (req, res) => {
     const filter = { status: 'paid' };
     if (client) filter.client = client;
     if (invoice) filter.invoice = invoice;
-    if (startDate && endDate) {
-      filter.receivedDate = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    if (startDate || endDate) {
+      filter.receivedDate = {};
+      if (startDate) filter.receivedDate.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.receivedDate.$lte = end;
+      }
     }
 
+    const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
     const receipts = await Payment.find(filter)
       .populate('client', 'name company email phone')
       .populate('invoice', 'invoiceNumber total balanceAmount servicePeriod')
       .populate('destinationAccount', 'accountName accountType bankName')
       .populate('recordedBy', 'name')
-      .sort({ receivedDate: -1 })
+      .sort({ receivedDate: sortDirection, paidAt: sortDirection })
       .lean();
 
     res.json({ success: true, receipts });
@@ -797,8 +830,14 @@ export const getModuleExpenses = async (req, res) => {
     if (paymentStatus && paymentStatus !== 'all') filter.paymentStatus = paymentStatus;
     if (approvalStatus && approvalStatus !== 'all') filter.approvalStatus = approvalStatus;
 
-    if (startDate && endDate) {
-      filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    if (startDate || endDate) {
+      filter.date = {};
+      if (startDate) filter.date.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.date.$lte = end;
+      }
     }
 
     if (search) {
@@ -810,13 +849,14 @@ export const getModuleExpenses = async (req, res) => {
       ];
     }
 
+    const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
     const expenses = await Expense.find(filter)
       .populate('client', 'name company')
       .populate('project', 'name')
       .populate('fundingAccount', 'accountName accountType')
       .populate('submittedBy', 'name email role')
       .populate('approvedBy', 'name email')
-      .sort({ date: -1 })
+      .sort({ date: sortDirection, createdAt: sortDirection })
       .lean();
 
     res.json({ success: true, expenses });
@@ -1735,11 +1775,15 @@ export const getCashForecastReport = async (req, res) => {
 
 export const getDailyCashbookReport = async (req, res) => {
   try {
-    const { startDate, endDate, accountId } = req.query;
+    const { startDate, endDate, accountId, sortOrder = 'desc' } = req.query;
     const matchRange = {};
-    if (startDate && endDate) {
-      matchRange.$gte = new Date(startDate);
-      matchRange.$lte = new Date(endDate);
+    if (startDate || endDate) {
+      if (startDate) matchRange.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        matchRange.$lte = end;
+      }
     } else {
       // Default to current month
       const now = new Date();
@@ -1859,7 +1903,11 @@ export const getDailyCashbookReport = async (req, res) => {
       });
     });
 
-    items.sort((a, b) => new Date(a.date) - new Date(b.date));
+    items.sort((a, b) => {
+      const timeA = new Date(a.date).getTime();
+      const timeB = new Date(b.date).getTime();
+      return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
 
     const totalInflow = items.filter((i) => i.type === 'Inflow').reduce((sum, i) => sum + i.amount, 0);
     const totalOutflow = items.filter((i) => i.type === 'Outflow').reduce((sum, i) => sum + i.amount, 0);

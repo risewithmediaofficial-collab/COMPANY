@@ -685,11 +685,11 @@ export const useReconcileAccount = () => {
   });
 };
 
-export const useInternalTransfers = (options = {}) => {
+export const useInternalTransfers = (filters = {}, options = {}) => {
   return useQuery({
-    queryKey: ['finance-transfers'],
+    queryKey: ['finance-transfers', filters],
     queryFn: async () => {
-      const response = await api.get('/finance/transfers');
+      const response = await api.get('/finance/transfers', { params: filters });
       return response.data?.transfers || [];
     },
     staleTime: 60 * 1000,

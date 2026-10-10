@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Download,
   Filter,
@@ -12,6 +12,9 @@ import {
   Check,
   AlertCircle,
   CalendarCheck,
+  Calendar,
+  ArrowUpDown,
+  X,
 } from 'lucide-react';
 import {
   useModuleExpenses,
@@ -26,10 +29,16 @@ export default function ExpensesSection({ onQuickAdd }) {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
 
   const { data: expenses = [] } = useModuleExpenses({
     category: categoryFilter !== 'all' ? categoryFilter : undefined,
     paymentStatus: paymentStatusFilter !== 'all' ? paymentStatusFilter : undefined,
+    startDate: fromDate || undefined,
+    endDate: toDate || undefined,
+    sortOrder: dateSort,
   });
 
   const { data: subscriptions = [] } = useSubscriptions();
@@ -37,14 +46,33 @@ export default function ExpensesSection({ onQuickAdd }) {
   const payVendorBill = usePayVendorBill();
   const postRenewal = usePostSubscriptionRenewal();
 
-  const filteredExpenses = expenses.filter((e) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    const title = (e.title || '').toLowerCase();
-    const vendor = (e.vendor || '').toLowerCase();
-    const cat = (e.category || '').toLowerCase();
-    return title.includes(q) || vendor.includes(q) || cat.includes(q);
-  });
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter((e) => {
+      const expDate = e.date || e.createdAt;
+      if (fromDate && expDate) {
+        const d = new Date(expDate).toISOString().slice(0, 10);
+        if (d < fromDate) return false;
+      }
+      if (toDate && expDate) {
+        const d = new Date(expDate).toISOString().slice(0, 10);
+        if (d > toDate) return false;
+      }
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      const title = (e.title || '').toLowerCase();
+      const vendor = (e.vendor || '').toLowerCase();
+      const cat = (e.category || '').toLowerCase();
+      return title.includes(q) || vendor.includes(q) || cat.includes(q);
+    });
+  }, [expenses, fromDate, toDate, search]);
+
+  const sortedExpenses = useMemo(() => {
+    return [...filteredExpenses].sort((a, b) => {
+      const timeA = new Date(a.date || a.createdAt || 0).getTime();
+      const timeB = new Date(b.date || b.createdAt || 0).getTime();
+      return dateSort === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  }, [filteredExpenses, dateSort]);
 
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const unpaidBills = filteredExpenses.filter((e) => e.paymentStatus === 'unpaid');
@@ -170,6 +198,53 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <option value="paid">Paid Expenses</option>
                 <option value="unpaid">Unpaid Vendor Bills</option>
               </select>
+
+              {/* Date to Date Filter */}
+              <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
+                <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  title="From Date"
+                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                />
+                <span className="text-[10px] text-slate-400 font-bold">to</span>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  title="To Date"
+                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                />
+                {(fromDate || toDate) && (
+                  <button
+                    onClick={() => {
+                      setFromDate('');
+                      setToDate('');
+                    }}
+                    className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
+                    title="Reset Date Range"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Date Sorting Dropdown */}
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={dateSort}
+                  onChange={(e) => setDateSort(e.target.value)}
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
+                >
+                  <option value="desc">Date: Newest First (Desc)</option>
+                  <option value="asc">Date: Oldest First (Asc)</option>
+                </select>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -196,7 +271,17 @@ export default function ExpensesSection({ onQuickAdd }) {
               <table className="w-full text-left">
                 <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
-                    <th className="p-3">Date</th>
+                    <th
+                      onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                      className="p-3 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                      title="Click to toggle date sort (Newest / Oldest)"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span>Date</span>
+                        <ArrowUpDown className="h-3 w-3 text-slate-400" />
+                        <span className="text-indigo-600 font-bold">{dateSort === 'desc' ? '↓' : '↑'}</span>
+                      </div>
+                    </th>
                     <th className="p-3">Item / Description</th>
                     <th className="p-3">Vendor / Payee</th>
                     <th className="p-3">Category</th>
@@ -207,14 +292,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredExpenses.length === 0 ? (
+                  {sortedExpenses.length === 0 ? (
                     <tr>
                       <td colSpan="8" className="p-8 text-center text-slate-400">
                         No expenses or vendor bills found matching your criteria.
                       </td>
                     </tr>
                   ) : (
-                    filteredExpenses.map((exp) => (
+                    sortedExpenses.map((exp) => (
                       <tr key={exp._id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="p-3 text-slate-600 font-medium">{formatDateIST(exp.date)}</td>
                         <td className="p-3 font-semibold text-slate-900">{exp.title}</td>

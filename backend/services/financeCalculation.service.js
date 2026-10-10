@@ -87,11 +87,15 @@ export const computeFinanceKPIs = async ({ startDate, endDate, clientId, project
   const matchRange = {};
   if (startDate && endDate) {
     matchRange.$gte = new Date(startDate);
-    matchRange.$lte = new Date(endDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    matchRange.$lte = end;
   } else if (startDate) {
     matchRange.$gte = new Date(startDate);
   } else if (endDate) {
-    matchRange.$lte = new Date(endDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    matchRange.$lte = end;
   }
 
   // 1. Invoices filter (Service Revenue recognized only on Issued/Sent/Viewed/Paid invoices, excluding Draft and Void)

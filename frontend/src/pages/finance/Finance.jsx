@@ -103,8 +103,11 @@ export default function Finance() {
       const start = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
       return { startDate: start };
     }
-    if (periodFilter === 'custom' && customStartDate && customEndDate) {
-      return { startDate: customStartDate, endDate: customEndDate };
+    if (periodFilter === 'custom') {
+      const res = {};
+      if (customStartDate) res.startDate = customStartDate;
+      if (customEndDate) res.endDate = customEndDate;
+      return res;
     }
     return {};
   }, [periodFilter, customStartDate, customEndDate]);
@@ -177,38 +180,84 @@ export default function Finance() {
 
       {/* ── MAIN CONTENT CONTAINER ────────────────────────────────────── */}
       <div className="space-y-5">
-        {/* PERIOD FILTER BAR (Active on Overview and Reports) */}
+        {/* PERIOD & DATE FILTER BAR (Active on Overview) */}
         {activeTab === 'overview' && (
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs text-xs">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-700">Period:</span>
-              <div className="flex flex-wrap gap-1">
-                {[
-                  { id: 'today', label: 'Today' },
-                  { id: 'this_week', label: 'This Week' },
-                  { id: 'this_month', label: 'This Month' },
-                  { id: 'this_quarter', label: 'This Quarter' },
-                  { id: 'this_year', label: 'This Year' },
-                  { id: 'all_time', label: 'All Time' },
-                ].map((p) => (
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-slate-700">Period:</span>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    { id: 'today', label: 'Today' },
+                    { id: 'this_week', label: 'This Week' },
+                    { id: 'this_month', label: 'This Month' },
+                    { id: 'this_quarter', label: 'This Quarter' },
+                    { id: 'this_year', label: 'This Year' },
+                    { id: 'all_time', label: 'All Time' },
+                  ].map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        setPeriodFilter(p.id);
+                        setCustomStartDate('');
+                        setCustomEndDate('');
+                      }}
+                      className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                        periodFilter === p.id
+                          ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200'
+                          : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date to Date Picker */}
+              <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+                <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span className="text-slate-500 font-medium text-[11px]">Date Range:</span>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => {
+                    setCustomStartDate(e.target.value);
+                    setPeriodFilter('custom');
+                  }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="px-2 py-1 rounded-lg border border-slate-200 text-xs bg-slate-50/50 text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                />
+                <span className="text-slate-400 font-bold text-[10px]">to</span>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => {
+                    setCustomEndDate(e.target.value);
+                    setPeriodFilter('custom');
+                  }}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="px-2 py-1 rounded-lg border border-slate-200 text-xs bg-slate-50/50 text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                />
+                {(customStartDate || customEndDate) && (
                   <button
-                    key={p.id}
-                    onClick={() => setPeriodFilter(p.id)}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-all ${
-                      periodFilter === p.id
-                        ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
+                    onClick={() => {
+                      setCustomStartDate('');
+                      setCustomEndDate('');
+                      setPeriodFilter('this_month');
+                    }}
+                    className="p-1 rounded-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors font-bold text-xs"
+                    title="Clear Date Range"
                   >
-                    {p.label}
+                    ✕
                   </button>
-                ))}
+                )}
               </div>
             </div>
 
             <button
               onClick={() => refetch()}
-              className="flex items-center gap-1 text-slate-500 hover:text-slate-800 font-semibold text-xs"
+              className="flex items-center gap-1 text-slate-500 hover:text-slate-800 font-semibold text-xs cursor-pointer"
             >
               <RefreshCw className="h-3 w-3" /> Refresh
             </button>

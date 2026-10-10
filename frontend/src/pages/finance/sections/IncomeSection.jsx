@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Download,
   Filter,
@@ -10,6 +10,9 @@ import {
   ArrowDownRight,
   CreditCard,
   Building,
+  Calendar,
+  ArrowUpDown,
+  X,
 } from 'lucide-react';
 import { usePaymentReceipts, useModuleInvoices } from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
@@ -18,21 +21,46 @@ import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFor
 export default function IncomeSection({ onQuickAdd }) {
   const [clientFilter, setClientFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
 
   const { data: receipts = [], isLoading } = usePaymentReceipts({
     client: clientFilter !== 'all' ? clientFilter : undefined,
+    startDate: fromDate || undefined,
+    endDate: toDate || undefined,
+    sortOrder: dateSort,
   });
 
   const { data: clients = [] } = useClients();
 
-  const filteredReceipts = receipts.filter((r) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    const clientName = (r.client?.company || r.client?.name || '').toLowerCase();
-    const ref = (r.reference || '').toLowerCase();
-    const mode = (r.paymentMode || '').toLowerCase();
-    return clientName.includes(q) || ref.includes(q) || mode.includes(q);
-  });
+  const filteredReceipts = useMemo(() => {
+    return receipts.filter((r) => {
+      const rDate = r.receivedDate || r.paidAt || r.createdAt;
+      if (fromDate && rDate) {
+        const d = new Date(rDate).toISOString().slice(0, 10);
+        if (d < fromDate) return false;
+      }
+      if (toDate && rDate) {
+        const d = new Date(rDate).toISOString().slice(0, 10);
+        if (d > toDate) return false;
+      }
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      const clientName = (r.client?.company || r.client?.name || '').toLowerCase();
+      const ref = (r.reference || '').toLowerCase();
+      const mode = (r.paymentMode || '').toLowerCase();
+      return clientName.includes(q) || ref.includes(q) || mode.includes(q);
+    });
+  }, [receipts, fromDate, toDate, search]);
+
+  const sortedReceipts = useMemo(() => {
+    return [...filteredReceipts].sort((a, b) => {
+      const timeA = new Date(a.receivedDate || a.paidAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.receivedDate || b.paidAt || b.createdAt || 0).getTime();
+      return dateSort === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  }, [filteredReceipts, dateSort]);
 
   const totalCollected = filteredReceipts.reduce((sum, r) => sum + Number(r.amount || 0), 0);
   const totalUnappliedCredit = filteredReceipts.reduce((sum, r) => sum + Number(r.unappliedCredit || 0), 0);
@@ -95,7 +123,7 @@ export default function IncomeSection({ onQuickAdd }) {
       {/* Filter and Action Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative w-64">
+          <div className="relative w-56">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
@@ -109,7 +137,7 @@ export default function IncomeSection({ onQuickAdd }) {
           <select
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700"
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium"
           >
             <option value="all">All Clients</option>
             {clients.map((c) => (
@@ -118,6 +146,53 @@ export default function IncomeSection({ onQuickAdd }) {
               </option>
             ))}
           </select>
+
+          {/* Date to Date Filter */}
+          <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
+            <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+            <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+              title="From Date"
+              className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+            />
+            <span className="text-[10px] text-slate-400 font-bold">to</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+              title="To Date"
+              className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+            />
+            {(fromDate || toDate) && (
+              <button
+                onClick={() => {
+                  setFromDate('');
+                  setToDate('');
+                }}
+                className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
+                title="Reset Date Range"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Date Sorting Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <select
+              value={dateSort}
+              onChange={(e) => setDateSort(e.target.value)}
+              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
+            >
+              <option value="desc">Date: Newest First (Desc)</option>
+              <option value="asc">Date: Oldest First (Asc)</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -144,7 +219,17 @@ export default function IncomeSection({ onQuickAdd }) {
           <table className="w-full text-left">
             <thead className="bg-slate-50/75 border-b border-slate-100 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="p-3">Received Date</th>
+                <th
+                  onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+                  className="p-3 cursor-pointer select-none hover:bg-slate-100 transition-colors"
+                  title="Click to toggle date sort (Newest / Oldest)"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Received Date</span>
+                    <ArrowUpDown className="h-3 w-3 text-slate-400" />
+                    <span className="text-indigo-600 font-bold">{dateSort === 'desc' ? '↓' : '↑'}</span>
+                  </div>
+                </th>
                 <th className="p-3">Client</th>
                 <th className="p-3">Invoice Allocation</th>
                 <th className="p-3">Payment Mode</th>
@@ -154,14 +239,14 @@ export default function IncomeSection({ onQuickAdd }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredReceipts.length === 0 ? (
+              {sortedReceipts.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="p-8 text-center text-slate-400">
                     No payment receipts found matching your filters.
                   </td>
                 </tr>
               ) : (
-                filteredReceipts.map((r) => (
+                sortedReceipts.map((r) => (
                   <tr key={r._id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-3 text-slate-600 font-medium">{formatDateIST(r.receivedDate || r.paidAt)}</td>
                     <td className="p-3 font-semibold text-slate-900">
