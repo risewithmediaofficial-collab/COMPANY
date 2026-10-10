@@ -334,7 +334,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 min-w-0 items-center justify-between border-b border-border bg-card/90 px-3.5 backdrop-blur-md sm:px-5 select-none">
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between border-b border-border bg-card/90 px-3.5 backdrop-blur-md sm:px-5 select-none">
         {/* Left: Mobile Toggle & Dynamic Interactive Breadcrumbs */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           <button

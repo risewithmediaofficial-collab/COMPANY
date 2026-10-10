@@ -104,16 +104,33 @@
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+  background: #94a3b8;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #64748b;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Premium Animations */
@@ -230,24 +247,45 @@ input[type="week"]::-webkit-calendar-picker-indicator {
   overscroll-behavior: contain;
 }
 
-/* Thin sleek custom scrollbar for inline scrolling */
+/* Visible sleek custom scrollbar for inline scrolling */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+  scrollbar-color: #94a3b8 rgba(0, 0, 0, 0.04);
 }
+
+.dark .custom-scrollbar {
+  scrollbar-color: #64748b rgba(255, 255, 255, 0.04);
+}
+
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.35);
+  background: rgba(0, 0, 0, 0.04);
   border-radius: 9999px;
 }
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 9999px;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.65);
+  background: #64748b;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #64748b;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Remove number input spin buttons / up-down arrows for keyboard-only input */
@@ -262,11 +300,5 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* ── PREVENT BACKGROUND SCROLLING ONLY WHEN A MODAL / DIALOG IS GENUINELY OPEN ── */
-body.dialog-open main,
-body:has([data-radix-portal] [role="dialog"][data-state="open"]) main {
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
-}
 
 

@@ -16,7 +16,7 @@ const MainLayout = () => {
   // Clear any residual scroll lock on main element across route changes
   useEffect(() => {
     const mainEl = document.querySelector('main');
-    if (mainEl && !document.body.classList.contains('dialog-open')) {
+    if (mainEl) {
       mainEl.style.removeProperty('overflow');
     }
   }, [location.pathname]);
@@ -27,11 +27,14 @@ const MainLayout = () => {
       <Sidebar onOpenSearch={() => setGlobalSearchOpen(true)} />
 
       {/* Main Content Area */}
-      <div className="flex min-w-0 flex-1 flex-col transition-all duration-250 md:ml-[260px]">
+      <div className="flex min-w-0 flex-1 flex-col h-full min-h-0 max-h-screen overflow-hidden transition-all duration-250 md:ml-[260px]">
         <Navbar onOpenSearch={() => setGlobalSearchOpen(true)} />
         <EnableBannerNotificationBar />
-        <main className="min-w-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-5 md:p-6 custom-scrollbar">
-          <div className="mx-auto min-w-0 max-w-7xl">
+        <main
+          id="main-content-scroll"
+          className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-5 md:p-6 custom-scrollbar overscroll-contain"
+        >
+          <div className="mx-auto min-w-0 max-w-7xl pb-16">
             <ErrorBoundary key={location.pathname}>
               <Outlet key={location.pathname} />
             </ErrorBoundary>
