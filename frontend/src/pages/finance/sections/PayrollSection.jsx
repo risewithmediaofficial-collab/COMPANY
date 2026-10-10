@@ -17,7 +17,14 @@ import {
   Building,
   HelpCircle,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   usePayrollRecords,
   usePayrollEmployees,
@@ -624,238 +631,248 @@ export default function PayrollSection() {
       </div>
 
       {/* ── MANUAL PAYROLL ENTRY MODAL (CREATE / EDIT) ──────────────────── */}
-      {entryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 text-xs">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  {editingRecord ? 'Edit Employee Payroll' : 'Manual Employee Payroll Entry'}
-                </h3>
-                <p className="text-slate-500 text-xs mt-0.5">
-                  Period: <strong>{selectedMonth} {selectedYear}</strong> · Directly enter base salary, bonus & deductions
-                </p>
-              </div>
-              <button
-                onClick={() => setEntryModalOpen(false)}
-                className="h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center font-bold"
+      <Dialog open={entryModalOpen} onOpenChange={setEntryModalOpen}>
+        <DialogContent variant="center" size="lg" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-lg">
+          <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
+            <DialogTitle className="text-base font-bold text-foreground">
+              {editingRecord ? 'Edit Employee Payroll' : 'Manual Employee Payroll Entry'}
+            </DialogTitle>
+            <p className="text-muted-foreground text-xs mt-0.5">
+              Period: <strong className="text-foreground">{selectedMonth} {selectedYear}</strong> · Directly enter base salary, bonus & deductions
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmitEntry} className="space-y-4 text-xs">
+            {/* Employee Selection */}
+            <div>
+              <label className="block font-semibold text-foreground mb-1.5">Select Employee *</label>
+              <select
+                value={form.employee}
+                onChange={(e) => handleEmployeeSelect(e.target.value)}
+                disabled={Boolean(editingRecord)}
+                required
+                className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-medium text-foreground bg-background focus:ring-2 focus:ring-indigo-500/20 shadow-2xs"
               >
-                ✕
-              </button>
+                <option value="">-- Choose Employee --</option>
+                {employees.map((emp) => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.name} ({emp.department || emp.role || 'Staff'}) {emp.salary ? `— Base: ₹${emp.salary}` : ''}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <form onSubmit={handleSubmitEntry} className="space-y-4">
-              {/* Employee Selection */}
+            {/* Base Salary & Approval Status */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Select Employee *</label>
-                <select
-                  value={form.employee}
-                  onChange={(e) => handleEmployeeSelect(e.target.value)}
-                  disabled={Boolean(editingRecord)}
-                  required
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-medium text-slate-800 bg-white focus:ring-1 focus:ring-indigo-500"
-                >
-                  <option value="">-- Choose Employee --</option>
-                  {employees.map((emp) => (
-                    <option key={emp._id} value={emp._id}>
-                      {emp.name} ({emp.department || emp.role || 'Staff'}) {emp.salary ? `— Base: ₹${emp.salary}` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Base Salary */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Base Monthly Salary (₹) *</label>
-                  <input
-                    type="number"
-                    value={form.baseSalary}
-                    onChange={(e) => handleBaseSalaryChange(e.target.value)}
-                    placeholder="e.g. 30000"
-                    required
-                    min="0"
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs font-bold text-slate-900 focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Approval Status</label>
-                  <select
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs font-semibold text-slate-800"
-                  >
-                    <option value="pending">Pending Approval (Draft)</option>
-                    <option value="approved">Approved (Expense Recognized)</option>
-                    <option value="paid">Paid / Disbursed</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Additions / Incentives */}
-              <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-2">
-                <div className="font-semibold text-emerald-900 text-xs flex items-center justify-between">
-                  <span>Additions / Incentives / OTS (+)</span>
-                  <span className="text-[11px] text-emerald-700 font-mono">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    value={form.additions}
-                    onChange={(e) => handleAdditionsChange(e.target.value)}
-                    placeholder="Addition Amount (₹)"
-                    min="0"
-                    className="rounded-lg border border-emerald-200 bg-white p-2 text-xs font-semibold text-emerald-700"
-                  />
-                  <input
-                    type="text"
-                    value={form.additionReason}
-                    onChange={(e) => setForm({ ...form, additionReason: e.target.value })}
-                    placeholder="Reason (e.g. Performance / OTS)"
-                    className="rounded-lg border border-emerald-200 bg-white p-2 text-xs text-slate-700"
-                  />
-                </div>
-              </div>
-
-              {/* Deductions */}
-              <div className="p-3 bg-rose-50/50 rounded-xl border border-rose-100 space-y-2">
-                <div className="font-semibold text-rose-900 text-xs flex items-center justify-between">
-                  <span>Deductions / TDS / Advances (-)</span>
-                  <span className="text-[11px] text-rose-700 font-mono">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    value={form.deductions}
-                    onChange={(e) => handleDeductionsChange(e.target.value)}
-                    placeholder="Deduction Amount (₹)"
-                    min="0"
-                    className="rounded-lg border border-rose-200 bg-white p-2 text-xs font-semibold text-rose-700"
-                  />
-                  <input
-                    type="text"
-                    value={form.deductionReason}
-                    onChange={(e) => setForm({ ...form, deductionReason: e.target.value })}
-                    placeholder="Reason (e.g. Leave / TDS / Advance)"
-                    className="rounded-lg border border-rose-200 bg-white p-2 text-xs text-slate-700"
-                  />
-                </div>
-              </div>
-
-              {/* Net Take-Home Salary Display */}
-              <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 flex items-center justify-between">
-                <div>
-                  <span className="text-indigo-950 font-bold block text-xs">Calculated Net Payable:</span>
-                  <span className="text-[11px] text-indigo-700">Base (₹{form.baseSalary || 0}) + Add (₹{form.additions || 0}) − Ded (₹{form.deductions || 0})</span>
-                </div>
-                <div className="text-xl font-extrabold text-indigo-700 tracking-tight">
-                  {formatINR(Number(form.netSalary || 0))}
-                </div>
-              </div>
-
-              {/* If marked paid, choose account */}
-              {form.status === 'paid' && (
-                <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Funding Bank / Cash Account *</label>
-                  <select
-                    value={form.paymentAccount}
-                    onChange={(e) => setForm({ ...form, paymentAccount: e.target.value })}
-                    required
-                    className="w-full rounded-lg border border-slate-300 p-2 text-xs"
-                  >
-                    {accounts.map((a) => (
-                      <option key={a._id} value={a._id}>
-                        {a.accountName} (Balance: ₹{a.currentBalance})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Notes */}
-              <div>
-                <label className="block font-medium text-slate-700 mb-1">Internal Notes (Optional)</label>
+                <label className="block font-semibold text-foreground mb-1.5">Base Monthly Salary (₹) *</label>
                 <input
-                  type="text"
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="e.g. Verified by Accounts"
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs"
+                  type="number"
+                  value={form.baseSalary}
+                  onChange={(e) => handleBaseSalaryChange(e.target.value)}
+                  placeholder="e.g. 30000"
+                  required
+                  min="0"
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-bold text-foreground bg-background focus:ring-2 focus:ring-indigo-500/20 shadow-2xs"
                 />
               </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setEntryModalOpen(false)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createPayroll.isPending || updatePayroll.isPending}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50"
-                >
-                  {createPayroll.isPending || updatePayroll.isPending ? 'Saving...' : editingRecord ? 'Update Entry' : 'Save Payroll Entry'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── DISBURSE SALARY MODAL ────────────────────────────────────────── */}
-      {payModalRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-xs">
-            <h3 className="text-base font-bold text-slate-900 mb-1">
-              Disburse Salary to {payModalRecord.employee?.name}
-            </h3>
-            <p className="text-slate-500 mb-4">
-              Net Amount: <strong className="text-slate-900 text-sm">{formatINR(payModalRecord.netSalary)}</strong> for {payModalRecord.month} {payModalRecord.year}
-            </p>
-
-            <form onSubmit={handleExecutePayment} className="space-y-4">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Disbursement Bank / Cash Account *</label>
+                <label className="block font-semibold text-foreground mb-1.5">Approval Status</label>
                 <select
-                  value={fundingAccount}
-                  onChange={(e) => setFundingAccount(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 p-2 text-xs font-medium"
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-semibold text-foreground bg-background shadow-2xs"
+                >
+                  <option value="pending">Pending Approval (Draft)</option>
+                  <option value="approved">Approved (Expense Recognized)</option>
+                  <option value="paid">Paid / Disbursed</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Additions / Incentives */}
+            <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-100 dark:border-emerald-800 space-y-2">
+              <div className="font-semibold text-emerald-900 dark:text-emerald-300 text-xs flex items-center justify-between">
+                <span>Additions / Incentives / OTS (+)</span>
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  value={form.additions}
+                  onChange={(e) => handleAdditionsChange(e.target.value)}
+                  placeholder="Addition Amount (₹)"
+                  min="0"
+                  className="h-9 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-400"
+                />
+                <input
+                  type="text"
+                  value={form.additionReason}
+                  onChange={(e) => setForm({ ...form, additionReason: e.target.value })}
+                  placeholder="Reason (e.g. Performance / OTS)"
+                  className="h-9 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-3 text-xs text-foreground"
+                />
+              </div>
+            </div>
+
+            {/* Deductions */}
+            <div className="p-3 bg-rose-50/60 dark:bg-rose-950/30 rounded-xl border border-rose-100 dark:border-rose-800 space-y-2">
+              <div className="font-semibold text-rose-900 dark:text-rose-300 text-xs flex items-center justify-between">
+                <span>Deductions / TDS / Advances (-)</span>
+                <span className="text-[11px] text-rose-700 dark:text-rose-400 font-mono font-bold">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  value={form.deductions}
+                  onChange={(e) => handleDeductionsChange(e.target.value)}
+                  placeholder="Deduction Amount (₹)"
+                  min="0"
+                  className="h-9 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-3 text-xs font-semibold text-rose-700 dark:text-rose-400"
+                />
+                <input
+                  type="text"
+                  value={form.deductionReason}
+                  onChange={(e) => setForm({ ...form, deductionReason: e.target.value })}
+                  placeholder="Reason (e.g. Leave / TDS / Advance)"
+                  className="h-9 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-3 text-xs text-foreground"
+                />
+              </div>
+            </div>
+
+            {/* Net Take-Home Salary Display */}
+            <div className="p-3 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center justify-between">
+              <div>
+                <span className="text-indigo-950 dark:text-indigo-200 font-bold block text-xs">Calculated Net Payable:</span>
+                <span className="text-[11px] text-indigo-700 dark:text-indigo-400">Base (₹{form.baseSalary || 0}) + Add (₹{form.additions || 0}) − Ded (₹{form.deductions || 0})</span>
+              </div>
+              <div className="text-xl font-extrabold text-indigo-700 dark:text-indigo-400 tracking-tight">
+                {formatINR(Number(form.netSalary || 0))}
+              </div>
+            </div>
+
+            {/* If marked paid, choose account */}
+            {form.status === 'paid' && (
+              <div>
+                <label className="block font-semibold text-foreground mb-1.5">Funding Bank / Cash Account *</label>
+                <select
+                  value={form.paymentAccount}
+                  onChange={(e) => setForm({ ...form, paymentAccount: e.target.value })}
+                  required
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
                 >
                   {accounts.map((a) => (
                     <option key={a._id} value={a._id}>
-                      {a.accountName} (₹{a.currentBalance?.toLocaleString('en-IN')})
+                      {a.accountName} (Balance: ₹{a.currentBalance})
                     </option>
                   ))}
                 </select>
               </div>
+            )}
 
-              <div className="p-3 bg-emerald-50 rounded-xl text-emerald-800 text-[11px] border border-emerald-100">
-                💡 <strong>Double-Entry Rule:</strong> Marking disbursed creates a cash outflow from the chosen bank account and clears the payable without duplicating the recognized salary expense.
-              </div>
+            {/* Notes */}
+            <div>
+              <label className="block font-medium text-foreground mb-1.5">Internal Notes (Optional)</label>
+              <input
+                type="text"
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                placeholder="e.g. Verified by Accounts"
+                className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
+              />
+            </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setPayModalRecord(null)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={payPayroll.isPending}
-                  className="px-5 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-xs"
-                >
-                  {payPayroll.isPending ? 'Disbursing...' : 'Confirm Outflow & Disburse'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setEntryModalOpen(false)}
+                className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={createPayroll.isPending || updatePayroll.isPending}
+                className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {createPayroll.isPending || updatePayroll.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    <span>{editingRecord ? 'Update Entry' : 'Save Payroll Entry'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── DISBURSE SALARY MODAL ────────────────────────────────────────── */}
+      <Dialog open={Boolean(payModalRecord)} onOpenChange={(open) => !open && setPayModalRecord(null)}>
+        <DialogContent variant="center" size="sm" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-md">
+          <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Disburse Salary to {payModalRecord?.employee?.name}
+            </DialogTitle>
+            <p className="text-muted-foreground text-xs mt-0.5">
+              Net Amount: <strong className="text-foreground text-sm">{formatINR(payModalRecord?.netSalary || 0)}</strong> for {payModalRecord?.month} {payModalRecord?.year}
+            </p>
+          </DialogHeader>
+
+          <form onSubmit={handleExecutePayment} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-semibold text-foreground mb-1.5">Disbursement Bank / Cash Account *</label>
+              <select
+                value={fundingAccount}
+                onChange={(e) => setFundingAccount(e.target.value)}
+                className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-medium text-foreground bg-background shadow-2xs"
+              >
+                {accounts.map((a) => (
+                  <option key={a._id} value={a._id}>
+                    {a.accountName} (₹{a.currentBalance?.toLocaleString('en-IN')})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl text-emerald-800 dark:text-emerald-300 text-[11px] border border-emerald-100 dark:border-emerald-800">
+              💡 <strong>Double-Entry Rule:</strong> Marking disbursed creates a cash outflow from the chosen bank account and clears the payable without duplicating the recognized salary expense.
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setPayModalRecord(null)}
+                className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={payPayroll.isPending}
+                className="h-9.5 px-5.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {payPayroll.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                    <span>Disbursing...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    <span>Confirm Outflow & Disburse</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

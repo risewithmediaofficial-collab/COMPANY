@@ -16,6 +16,7 @@ import {
 import { useModuleInvoices, useUpdateInvoiceWorkflow } from '../../../hooks/useFinance';
 import { useClients } from '../../../hooks/useClients';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
   const [statusFilter, setStatusFilter] = useState('all');
@@ -264,85 +265,87 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       </div>
 
       {/* DETAILED PRINTABLE / DOWNLOADABLE INVOICE VIEW MODAL */}
-      {selectedInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 text-xs overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-start border-b border-slate-100 pb-4 mb-4">
+      <Dialog open={Boolean(selectedInvoice)} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
+        {selectedInvoice && (
+          <DialogContent variant="center" size="xl" className="rounded-2xl border-border bg-card p-6 shadow-2xl text-xs max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b border-border pb-4 mb-4 pr-10">
               <div>
-                <span className="text-indigo-600 font-bold tracking-wider uppercase text-[11px]">Tax Invoice</span>
-                <h2 className="text-xl font-bold text-slate-900 mt-0.5">{selectedInvoice.invoiceNumber}</h2>
-                <div className="text-slate-500 mt-1">Rise With Media Agency OS</div>
+                <span className="text-indigo-600 dark:text-indigo-400 font-bold tracking-wider uppercase text-[11px]">Tax Invoice</span>
+                <h2 className="text-xl font-bold text-foreground mt-0.5">{selectedInvoice.invoiceNumber}</h2>
+                <div className="text-muted-foreground mt-1">Rise With Media Agency OS</div>
               </div>
               <div className="text-right">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                    selectedInvoice.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    selectedInvoice.status === 'paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'
                   }`}
                 >
                   {selectedInvoice.status}
                 </span>
-                <div className="text-[11px] text-slate-500 mt-1.5">
-                  Due: <strong>{formatDateIST(selectedInvoice.dueDate)}</strong>
+                <div className="text-[11px] text-muted-foreground mt-1.5">
+                  Due: <strong className="text-foreground">{formatDateIST(selectedInvoice.dueDate)}</strong>
                 </div>
               </div>
             </div>
 
             {/* Billed to */}
-            <div className="grid grid-cols-2 gap-4 p-3 bg-slate-50 rounded-xl mb-4">
+            <div className="grid grid-cols-2 gap-4 p-3.5 bg-muted/30 rounded-xl mb-4 border border-border">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Billed To</span>
-                <div className="font-bold text-slate-900 text-sm mt-0.5">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">Billed To</span>
+                <div className="font-bold text-foreground text-sm mt-0.5">
                   {selectedInvoice.client?.company || selectedInvoice.client?.name || selectedInvoice.clientDetails?.businessName}
                 </div>
-                <div className="text-slate-600 mt-0.5">{selectedInvoice.client?.email || selectedInvoice.clientDetails?.email}</div>
-                <div className="text-slate-600">{selectedInvoice.client?.phone || selectedInvoice.clientDetails?.phone}</div>
+                <div className="text-muted-foreground mt-0.5">{selectedInvoice.client?.email || selectedInvoice.clientDetails?.email}</div>
+                <div className="text-muted-foreground">{selectedInvoice.client?.phone || selectedInvoice.clientDetails?.phone}</div>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Service Period</span>
-                <div className="font-semibold text-slate-800 mt-0.5">{selectedInvoice.servicePeriod || 'General'}</div>
-                <div className="text-[11px] text-slate-500 mt-1">Tax: {selectedInvoice.taxType === 'exempt' ? 'Exempt' : 'GST 18% Exclusive'}</div>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">Service Period</span>
+                <div className="font-semibold text-foreground mt-0.5">{selectedInvoice.servicePeriod || 'General'}</div>
+                <div className="text-[11px] text-muted-foreground mt-1">Tax: {selectedInvoice.taxType === 'exempt' ? 'Exempt' : 'GST 18% Exclusive'}</div>
               </div>
             </div>
 
             {/* Items */}
-            <table className="w-full text-left mb-4">
-              <thead className="bg-slate-100 text-slate-600 uppercase text-[10px] font-semibold">
-                <tr>
-                  <th className="p-2.5">Item & Description</th>
-                  <th className="p-2.5">Type</th>
-                  <th className="p-2.5 text-center">Qty</th>
-                  <th className="p-2.5 text-right">Rate</th>
-                  <th className="p-2.5 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(selectedInvoice.lineItems || []).map((item, idx) => (
-                  <tr key={idx}>
-                    <td className="p-2.5">
-                      <div className="font-semibold text-slate-800">{item.serviceName}</div>
-                      <div className="text-slate-500 text-[11px]">{item.description}</div>
-                    </td>
-                    <td className="p-2.5">
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] capitalize">
-                        {item.itemType?.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td className="p-2.5 text-center">{item.quantity}</td>
-                    <td className="p-2.5 text-right">{formatINR(item.rate)}</td>
-                    <td className="p-2.5 text-right font-semibold">{formatINR(item.total || item.amount)}</td>
+            <div className="rounded-xl border border-border overflow-hidden mb-4">
+              <table className="w-full text-left">
+                <thead className="bg-muted/40 text-muted-foreground uppercase text-[10px] font-semibold border-b border-border">
+                  <tr>
+                    <th className="p-2.5">Item & Description</th>
+                    <th className="p-2.5">Type</th>
+                    <th className="p-2.5 text-center">Qty</th>
+                    <th className="p-2.5 text-right">Rate</th>
+                    <th className="p-2.5 text-right">Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {(selectedInvoice.lineItems || []).map((item, idx) => (
+                    <tr key={idx}>
+                      <td className="p-2.5">
+                        <div className="font-semibold text-foreground">{item.serviceName}</div>
+                        <div className="text-muted-foreground text-[11px]">{item.description}</div>
+                      </td>
+                      <td className="p-2.5">
+                        <span className="px-1.5 py-0.5 rounded bg-muted text-[10px] capitalize text-muted-foreground">
+                          {item.itemType?.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="p-2.5 text-center">{item.quantity}</td>
+                      <td className="p-2.5 text-right font-medium">{formatINR(item.rate)}</td>
+                      <td className="p-2.5 text-right font-semibold text-foreground">{formatINR(item.total || item.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {/* Financial Totals */}
-            <div className="border-t border-slate-200 pt-3 space-y-1.5 text-xs text-slate-700">
+            <div className="border-t border-border pt-3 space-y-1.5 text-xs text-foreground/80">
               <div className="flex justify-between">
                 <span>Agency Service Subtotal:</span>
-                <span className="font-semibold">{formatINR(selectedInvoice.serviceRevenue ?? selectedInvoice.subtotal)}</span>
+                <span className="font-semibold text-foreground">{formatINR(selectedInvoice.serviceRevenue ?? selectedInvoice.subtotal)}</span>
               </div>
               {selectedInvoice.passThroughAdBudget > 0 && (
-                <div className="flex justify-between text-indigo-700">
+                <div className="flex justify-between text-indigo-600 dark:text-indigo-400 font-medium">
                   <span>Client Pass-Through Ad Budget:</span>
                   <span className="font-semibold">{formatINR(selectedInvoice.passThroughAdBudget)}</span>
                 </div>
@@ -350,48 +353,48 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
               {selectedInvoice.taxAmount > 0 && (
                 <div className="flex justify-between">
                   <span>Applicable GST Tax:</span>
-                  <span className="font-semibold">{formatINR(selectedInvoice.taxAmount)}</span>
+                  <span className="font-semibold text-foreground">{formatINR(selectedInvoice.taxAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold text-slate-900 border-t border-slate-200 pt-2">
+              <div className="flex justify-between text-base font-bold text-foreground border-t border-border pt-2">
                 <span>Total Payable:</span>
-                <span>{formatINR(selectedInvoice.total || selectedInvoice.totalAmount)}</span>
+                <span className="text-indigo-600 dark:text-indigo-400">{formatINR(selectedInvoice.total || selectedInvoice.totalAmount)}</span>
               </div>
               <div className="flex justify-between text-emerald-600 font-semibold">
                 <span>Amount Paid:</span>
                 <span>-{formatINR(selectedInvoice.paidAmount || 0)}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold text-amber-600 border-t border-dashed border-slate-200 pt-1.5">
+              <div className="flex justify-between text-sm font-bold text-amber-600 border-t border-dashed border-border pt-1.5">
                 <span>Balance Outstanding:</span>
                 <span>{formatINR(selectedInvoice.balanceAmount || 0)}</span>
               </div>
             </div>
 
-            <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-100">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
               <button
                 onClick={() => updateWorkflow.mutate({ id: selectedInvoice._id, workflowStatus: 'void', voidReason: 'Cancelled by user' })}
-                className="text-rose-600 hover:underline font-semibold"
+                className="text-rose-600 hover:underline font-semibold cursor-pointer text-xs"
               >
                 Void Invoice
               </button>
-              <div className="flex gap-2">
+              <div className="flex gap-2.5">
                 <button
                   onClick={() => setSelectedInvoice(null)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50"
+                  className="h-9.5 px-4 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
                 >
                   Close
                 </button>
                 <button
                   onClick={() => handlePrint(selectedInvoice)}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 flex items-center gap-1.5"
+                  className="h-9.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Printer className="h-3.5 w-3.5" /> Print / Save PDF
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }

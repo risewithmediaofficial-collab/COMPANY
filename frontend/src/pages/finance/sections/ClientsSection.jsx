@@ -22,6 +22,7 @@ import {
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function ClientsSection({ onQuickAdd }) {
   const [search, setSearch] = useState('');
@@ -276,23 +277,25 @@ export default function ClientsSection({ onQuickAdd }) {
       </div>
 
       {/* COST ALLOCATION MODAL */}
-      {showCostModal && selectedClientForCost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl max-w-md w-full p-5 shadow-2xl border border-slate-200 text-xs">
-            <h3 className="text-base font-bold text-slate-900 mb-1">
-              Assign Cost to {selectedClientForCost.company || selectedClientForCost.name}
-            </h3>
-            <p className="text-slate-500 mb-4">
-              Period: {retainerPeriod}. Distribute direct service cost (editing, design, shoot) without creating another agency expense.
-            </p>
+      <Dialog open={Boolean(showCostModal && selectedClientForCost)} onOpenChange={(open) => !open && setShowCostModal(false)}>
+        {showCostModal && selectedClientForCost && (
+          <DialogContent variant="center" size="sm" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-md text-xs">
+            <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
+              <DialogTitle className="text-base font-bold text-foreground">
+                Assign Cost to {selectedClientForCost.company || selectedClientForCost.name}
+              </DialogTitle>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Period: {retainerPeriod}. Distribute direct service cost (editing, design, shoot) without creating another agency expense.
+              </p>
+            </DialogHeader>
 
-            <form onSubmit={handleSaveAllocation} className="space-y-3.5">
+            <form onSubmit={handleSaveAllocation} className="space-y-4">
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Activity / Deliverable *</label>
+                <label className="block font-semibold text-foreground mb-1.5">Activity / Deliverable *</label>
                 <select
                   value={allocForm.activityDeliverable}
                   onChange={(e) => setAllocForm({ ...allocForm, activityDeliverable: e.target.value })}
-                  className="w-full rounded-md border border-slate-300 p-2 text-xs"
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
                 >
                   <option value="Video Editing">Video Editing (Editor Cost)</option>
                   <option value="Graphic Design">Graphic Design (Designer Cost)</option>
@@ -304,11 +307,11 @@ export default function ClientsSection({ onQuickAdd }) {
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Cost Type</label>
+                <label className="block font-semibold text-foreground mb-1.5">Cost Type</label>
                 <select
                   value={allocForm.costType}
                   onChange={(e) => setAllocForm({ ...allocForm, costType: e.target.value })}
-                  className="w-full rounded-md border border-slate-300 p-2 text-xs"
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
                 >
                   <option value="direct">Direct Service Cost (Reduces Contribution)</option>
                   <option value="overhead">Shared Overhead (Reduces Net Profit)</option>
@@ -316,48 +319,48 @@ export default function ClientsSection({ onQuickAdd }) {
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Cost Amount (₹) *</label>
+                <label className="block font-semibold text-foreground mb-1.5">Cost Amount (₹) *</label>
                 <input
                   type="number"
                   value={allocForm.allocatedAmount}
                   onChange={(e) => setAllocForm({ ...allocForm, allocatedAmount: e.target.value })}
                   placeholder="e.g. 4000"
                   required
-                  className="w-full rounded-md border border-slate-300 p-2 text-xs font-semibold"
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-semibold text-foreground bg-background shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Notes</label>
+                <label className="block font-semibold text-foreground mb-1.5">Notes</label>
                 <input
                   type="text"
                   value={allocForm.notes}
                   onChange={(e) => setAllocForm({ ...allocForm, notes: e.target.value })}
                   placeholder="e.g. 8 Reels edited by senior editor"
-                  className="w-full rounded-md border border-slate-300 p-2 text-xs"
+                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setShowCostModal(false)}
-                  className="px-3.5 py-1.5 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50"
+                  className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createAllocation.isPending}
-                  className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                  className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {createAllocation.isPending ? 'Assigning...' : 'Assign Cost'}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }

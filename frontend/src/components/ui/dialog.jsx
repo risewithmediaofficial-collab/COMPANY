@@ -35,10 +35,33 @@ export const DialogContent = React.forwardRef(
       ? className.replace(/max-h-\[[^\]]+\]/g, '').replace(/my-auto/g, '').replace(/rounded-\S+/g, '')
       : className;
 
+    // Prevent background page (<main> and body) from scrolling while modal is open
+    React.useEffect(() => {
+      const mainEl = document.querySelector('main');
+      const prevMainOverflow = mainEl ? mainEl.style.overflow : '';
+      const prevBodyOverflow = document.body.style.overflow;
+      document.body.classList.add('modal-open');
+      if (mainEl) {
+        mainEl.style.overflow = 'hidden';
+      }
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.classList.remove('modal-open');
+        if (mainEl) {
+          mainEl.style.overflow = prevMainOverflow || '';
+        }
+        document.body.style.overflow = prevBodyOverflow || '';
+      };
+    }, []);
+
     return (
       <DialogPrimitive.Portal>
         {/* Backdrop Overlay (Clean Transparent Dim with Subtle Blur) */}
-        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/35 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-200" />
+        <DialogPrimitive.Overlay
+          className="fixed inset-0 z-50 bg-black/35 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-200"
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+        />
 
         {isSide ? (
           /* ── NOTION FULL-SCREEN HEIGHT SIDE PEEK / SLIDE-OVER FROM RIGHT ── */
