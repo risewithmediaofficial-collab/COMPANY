@@ -16,6 +16,7 @@ import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import { connectDB } from './config/db.js';
 import { getEnv, loadEnv } from './config/env.js';
+import { corsOptions, corsOptionsDelegate } from './config/cors.js';
 import { initSocket } from './config/socket.js';
 import { initCronJobs } from './services/cron.service.js';
 import User from './models/user.model.js';
@@ -114,32 +115,6 @@ if (process.env.TRUST_PROXY) {
   app.set('trust proxy', 1);
 }
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
-  : [env.clientUrl, 'http://localhost:5173', 'http://localhost:3000'].filter(Boolean);
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (!env.isProduction || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`CORS policy: Origin ${origin} not allowed`));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'X-Requested-With',
-    'Accept',
-    'X-Workspace-Id',
-    'x-workspace-id',
-    'Idempotency-Key',
-    'idempotency-key',
-  ],
-};
-
 const io = new SocketIO(httpServer, {
   cors: corsOptions,
 });
@@ -151,7 +126,7 @@ app.set('io', io);
 global.io = io;
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors(corsOptions));
+app.use(cors(corsOptionsDelegate));
 
 // Standard API rate limiter - NO Authorization header bypass
 const limiter = rateLimit({

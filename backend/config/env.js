@@ -17,10 +17,9 @@ export const loadEnv = () => {
 
   process.env.NODE_ENV ||= 'development';
   process.env.PORT ||= '5000';
-  process.env.CLIENT_URL ||= 'http://localhost:5173';
-  process.env.MONGO_URI ||= process.env.MONGODB_URI || 'mongodb://localhost:27017/agency_crm';
-
   const isProduction = process.env.NODE_ENV === 'production';
+  process.env.CLIENT_URL ||= isProduction ? 'https://company.risewithmedia.com' : 'http://localhost:5173';
+  process.env.MONGO_URI ||= process.env.MONGODB_URI || 'mongodb://localhost:27017/agency_crm';
 
   // Insecure placeholders that MUST never run in production
   const insecurePlaceholders = [

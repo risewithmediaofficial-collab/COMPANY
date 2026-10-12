@@ -41,6 +41,11 @@ export const errorHandler = (err, req, res, next) => {
     message = 'Token expired';
   }
 
+  // CORS policy rejection -> 403 Forbidden
+  if (err.isCors || (err.message && /CORS policy/i.test(err.message))) {
+    statusCode = 403;
+  }
+
   // Consistent 400/403/404/409 response without internal stack details
   res.status(statusCode).json({
     success: false,

@@ -85,12 +85,23 @@ export const sendTestNotification = async (req, res) => {
 
 export const subscribePush = async (req, res) => {
   try {
-    const { subscription } = req.body;
+    let subscription = req.body?.subscription;
+    if (typeof subscription === 'string') {
+      try {
+        subscription = JSON.parse(subscription);
+      } catch {
+        return res.status(400).json({ success: false, message: 'Malformed subscription JSON payload' });
+      }
+    }
+
     if (!subscription || !subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
       return res.status(400).json({ success: false, message: 'Invalid subscription payload. Endpoint and keys are required.' });
     }
 
-    const userId = req.user._id;
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
 
     // Remove any existing subscription with this same endpoint across all users to avoid crossed alerts
     await User.updateMany(
@@ -117,6 +128,10 @@ export const subscribePush = async (req, res) => {
       },
       { new: true }
     );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
     res.json({
       success: true,
