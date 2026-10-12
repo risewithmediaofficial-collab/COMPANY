@@ -21,6 +21,10 @@ import {
   Users,
   Receipt,
   ArrowRight,
+  Wallet,
+  DollarSign,
+  History,
+  Sparkles,
 } from 'lucide-react';
 import {
   Dialog,
@@ -32,12 +36,15 @@ import {
 import {
   useModuleExpenses,
   usePayVendorBill,
+  useAddExpensePayment,
+  useDeleteExpensePayment,
   useUpdateModuleExpense,
   useDeleteModuleExpense,
   useSubscriptions,
   useUpdateSubscription,
   useDeleteSubscription,
   usePostSubscriptionRenewal,
+  useFinanceAccounts,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 
@@ -54,6 +61,17 @@ export default function ExpensesSection({ onQuickAdd }) {
   // Payee / Vendor Ledger & Expense Details Sidebar State
   const [selectedPayeeForLedger, setSelectedPayeeForLedger] = useState(null);
   const [selectedExpenseForSidebar, setSelectedExpenseForSidebar] = useState(null);
+
+  // Add Payment / Installment State
+  const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState({
+    amount: '',
+    paymentDate: new Date().toISOString().slice(0, 10),
+    paymentMode: 'Bank',
+    fundingAccount: '',
+    reference: '',
+    notes: '',
+  });
 
   // Edit Expense State
   const [editingExpense, setEditingExpense] = useState(null);
@@ -89,13 +107,67 @@ export default function ExpensesSection({ onQuickAdd }) {
   });
 
   const { data: subscriptions = [] } = useSubscriptions();
+  const { data: accounts = [] } = useFinanceAccounts();
 
   const payVendorBill = usePayVendorBill();
+  const addExpensePayment = useAddExpensePayment();
+  const deleteExpensePayment = useDeleteExpensePayment();
   const updateExpense = useUpdateModuleExpense();
   const deleteExpense = useDeleteModuleExpense();
   const updateSubscription = useUpdateSubscription();
   const deleteSubscription = useDeleteSubscription();
   const postRenewal = usePostSubscriptionRenewal();
+
+  const handleOpenAddPayment = (exp) => {
+    const total = Number(exp.amount || 0);
+    const paid = Array.isArray(exp.payments) && exp.payments.length > 0
+      ? exp.payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+      : (exp.paidAmount != null ? Number(exp.paidAmount) : (exp.paymentStatus === 'paid' ? total : 0));
+    const balance = Math.max(0, total - paid);
+
+    setPaymentFormData({
+      amount: balance > 0 ? String(balance) : '',
+      paymentDate: new Date().toISOString().slice(0, 10),
+      paymentMode: 'Bank',
+      fundingAccount: exp.fundingAccount?._id || exp.fundingAccount || '',
+      reference: '',
+      notes: '',
+    });
+    setShowAddPaymentForm(true);
+  };
+
+  const handleAddPaymentSubmit = async (e) => {
+    e.preventDefault();
+    if (!currentSelectedExpense) return;
+    const amt = Number(paymentFormData.amount);
+    if (!amt || amt <= 0) return;
+    try {
+      await addExpensePayment.mutateAsync({
+        id: currentSelectedExpense._id,
+        data: {
+          amount: amt,
+          paymentDate: paymentFormData.paymentDate,
+          paymentMode: paymentFormData.paymentMode,
+          fundingAccount: paymentFormData.fundingAccount || undefined,
+          reference: paymentFormData.reference,
+          notes: paymentFormData.notes,
+        },
+      });
+      setShowAddPaymentForm(false);
+    } catch (_) {}
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    if (!currentSelectedExpense) return;
+    if (window.confirm('Are you sure you want to delete this payment record?')) {
+      try {
+        await deleteExpensePayment.mutateAsync({
+          expenseId: currentSelectedExpense._id,
+          paymentId,
+        });
+      } catch (_) {}
+    }
+  };
 
   const handleStartEditExpense = (exp) => {
     setEditingExpense(exp);
@@ -219,14 +291,16 @@ export default function ExpensesSection({ onQuickAdd }) {
         };
       }
       const amt = Number(e.amount || 0);
+      const paid = Number(e.paidAmount != null ? e.paidAmount : (e.paymentStatus === 'paid' ? amt : 0));
+      const pending = Number(e.balanceAmount != null ? e.balanceAmount : Math.max(0, amt - paid));
       map[key].totalAmount += amt;
+      map[key].paidAmount += paid;
+      map[key].pendingAmount += pending;
       map[key].totalCount += 1;
       map[key].items.push(e);
-      if (e.paymentStatus === 'paid') {
-        map[key].paidAmount += amt;
+      if (pending === 0 && amt > 0) {
         map[key].paidCount += 1;
       } else {
-        map[key].pendingAmount += amt;
         map[key].pendingCount += 1;
       }
     });
@@ -248,8 +322,8 @@ export default function ExpensesSection({ onQuickAdd }) {
       return v.toLowerCase() === target;
     });
     const totalAmount = matching.reduce((s, e) => s + Number(e.amount || 0), 0);
-    const paidAmount = matching.filter((e) => e.paymentStatus === 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
-    const pendingAmount = matching.filter((e) => e.paymentStatus !== 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
+    const paidAmount = matching.reduce((s, e) => s + Number(e.paidAmount != null ? e.paidAmount : (e.paymentStatus === 'paid' ? e.amount : 0)), 0);
+    const pendingAmount = matching.reduce((s, e) => s + Number(e.balanceAmount != null ? e.balanceAmount : Math.max(0, Number(e.amount || 0) - Number(e.paidAmount || 0))), 0);
     return {
       name: selectedPayeeForLedger,
       items: [...matching].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)),
@@ -257,8 +331,8 @@ export default function ExpensesSection({ onQuickAdd }) {
       paidAmount,
       pendingAmount,
       totalCount: matching.length,
-      paidCount: matching.filter((e) => e.paymentStatus === 'paid').length,
-      pendingCount: matching.filter((e) => e.paymentStatus !== 'paid').length,
+      paidCount: matching.filter((e) => Number(e.balanceAmount || 0) === 0 && e.paymentStatus === 'paid').length,
+      pendingCount: matching.filter((e) => Number(e.balanceAmount || 0) > 0 || e.paymentStatus !== 'paid').length,
     };
   }, [expenses, selectedPayeeForLedger]);
 
@@ -267,13 +341,39 @@ export default function ExpensesSection({ onQuickAdd }) {
     return expenses.find((e) => e._id === selectedExpenseForSidebar._id) || selectedExpenseForSidebar;
   }, [expenses, selectedExpenseForSidebar]);
 
+  const currentExpTotal = Number(currentSelectedExpense?.amount || 0);
+  const currentExpPaid = Array.isArray(currentSelectedExpense?.payments) && currentSelectedExpense.payments.length > 0
+    ? currentSelectedExpense.payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+    : (currentSelectedExpense?.paidAmount != null ? Number(currentSelectedExpense.paidAmount) : (currentSelectedExpense?.paymentStatus === 'paid' ? currentExpTotal : 0));
+  const currentExpBalance = Math.max(0, currentExpTotal - currentExpPaid);
+  const currentExpPercent = currentExpTotal > 0 ? Math.min(100, Math.round((currentExpPaid / currentExpTotal) * 100)) : 100;
+
+  const displayedPayments = useMemo(() => {
+    if (!currentSelectedExpense) return [];
+    if (Array.isArray(currentSelectedExpense.payments) && currentSelectedExpense.payments.length > 0) {
+      return [...currentSelectedExpense.payments].sort((a, b) => new Date(b.paymentDate || b.createdAt || 0) - new Date(a.paymentDate || a.createdAt || 0));
+    }
+    if (currentSelectedExpense.paymentStatus === 'paid' && currentExpPaid > 0) {
+      return [{
+        _id: 'legacy-settlement',
+        amount: currentExpPaid,
+        paymentDate: currentSelectedExpense.paymentDate || currentSelectedExpense.date,
+        paymentMode: currentSelectedExpense.paymentMode || 'Bank',
+        reference: 'Full Settlement',
+        notes: 'Initial payment recorded',
+        isLegacy: true,
+      }];
+    }
+    return [];
+  }, [currentSelectedExpense, currentExpPaid]);
+
   const relatedPayeeDetailsForExpense = useMemo(() => {
     if (!currentSelectedExpense?.vendor) return null;
     const target = currentSelectedExpense.vendor.trim().toLowerCase();
     const matching = expenses.filter((e) => (e.vendor || '').trim().toLowerCase() === target);
     const totalAmount = matching.reduce((s, e) => s + Number(e.amount || 0), 0);
-    const paidAmount = matching.filter((e) => e.paymentStatus === 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
-    const pendingAmount = matching.filter((e) => e.paymentStatus !== 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
+    const paidAmount = matching.reduce((s, e) => s + Number(e.paidAmount != null ? e.paidAmount : (e.paymentStatus === 'paid' ? e.amount : 0)), 0);
+    const pendingAmount = matching.reduce((s, e) => s + Number(e.balanceAmount != null ? e.balanceAmount : Math.max(0, Number(e.amount || 0) - Number(e.paidAmount || 0))), 0);
     return {
       name: currentSelectedExpense.vendor,
       items: [...matching].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)),
@@ -281,14 +381,14 @@ export default function ExpensesSection({ onQuickAdd }) {
       paidAmount,
       pendingAmount,
       totalCount: matching.length,
-      paidCount: matching.filter((e) => e.paymentStatus === 'paid').length,
-      pendingCount: matching.filter((e) => e.paymentStatus !== 'paid').length,
+      paidCount: matching.filter((e) => Number(e.balanceAmount || 0) === 0 && e.paymentStatus === 'paid').length,
+      pendingCount: matching.filter((e) => Number(e.balanceAmount || 0) > 0 || e.paymentStatus !== 'paid').length,
     };
   }, [expenses, currentSelectedExpense]);
 
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const unpaidBills = filteredExpenses.filter((e) => e.paymentStatus === 'unpaid');
-  const totalUnpaidBills = unpaidBills.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  const unpaidBills = filteredExpenses.filter((e) => e.paymentStatus !== 'paid');
+  const totalUnpaidBills = unpaidBills.reduce((sum, e) => sum + Number(e.balanceAmount != null ? e.balanceAmount : (e.paymentStatus === 'paid' ? 0 : e.amount)), 0);
 
   const handleExport = () => {
     const rows = filteredExpenses.map((e) => ({
@@ -417,7 +517,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                 className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700"
               >
                 <option value="all">All Payment Statuses</option>
-                <option value="paid">Paid Expenses</option>
+                <option value="paid">Fully Paid Expenses</option>
+                <option value="partially_paid">Partially Paid Bills</option>
                 <option value="unpaid">Unpaid Vendor Bills</option>
               </select>
 
@@ -584,23 +685,33 @@ export default function ExpensesSection({ onQuickAdd }) {
                             className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
                               exp.paymentStatus === 'paid'
                                 ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-amber-100 text-amber-700'
+                                : exp.paymentStatus === 'partially_paid'
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-rose-100 text-rose-700'
                             }`}
                           >
-                            {exp.paymentStatus === 'paid' ? 'Paid' : 'Unpaid Bill'}
+                            {exp.paymentStatus === 'paid'
+                              ? 'Paid'
+                              : exp.paymentStatus === 'partially_paid'
+                              ? `Partially Paid (${formatINR(exp.paidAmount || 0)})`
+                              : 'Unpaid Bill'}
                           </span>
                         </td>
                         <td className="p-3 text-right font-bold text-slate-900 text-sm">{formatINR(exp.amount)}</td>
                         <td className="p-3 text-right">
                           <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            {exp.paymentStatus === 'unpaid' ? (
+                            {exp.paymentStatus !== 'paid' ? (
                               <button
                                 type="button"
-                                onClick={() => payVendorBill.mutate({ id: exp._id })}
-                                disabled={payVendorBill.isPending}
-                                className="px-2.5 py-1 rounded bg-indigo-600 text-white font-semibold text-[11px] hover:bg-indigo-700 transition-colors disabled:opacity-50 cursor-pointer"
+                                onClick={() => {
+                                  setSelectedExpenseForSidebar(exp);
+                                  handleOpenAddPayment(exp);
+                                }}
+                                className="px-2.5 py-1 rounded bg-indigo-600 text-white font-semibold text-[11px] hover:bg-indigo-700 transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1 shadow-2xs"
+                                title="Add payment or pay bill"
                               >
-                                Pay Bill
+                                <Plus className="h-3 w-3" />
+                                Pay / Add
                               </button>
                             ) : (
                               <span className="text-emerald-700 font-semibold text-[10px] px-2 py-0.5 rounded bg-emerald-50">
@@ -958,7 +1069,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                     onChange={(e) => setExpenseForm({ ...expenseForm, paymentStatus: e.target.value })}
                     className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
                   >
-                    <option value="paid">Paid</option>
+                    <option value="paid">Paid (Fully Cleared)</option>
+                    <option value="partially_paid">Partially Paid</option>
                     <option value="unpaid">Unpaid Vendor Bill</option>
                   </select>
                 </div>
@@ -1114,9 +1226,15 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                         currentSelectedExpense.paymentStatus === 'paid'
                           ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
+                          : currentSelectedExpense.paymentStatus === 'partially_paid'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-rose-100 text-rose-800'
                       }`}>
-                        {currentSelectedExpense.paymentStatus === 'paid' ? 'Paid / Cleared' : 'Unpaid Bill'}
+                        {currentSelectedExpense.paymentStatus === 'paid'
+                          ? 'Paid / Cleared'
+                          : currentSelectedExpense.paymentStatus === 'partially_paid'
+                          ? `Partially Paid (${formatINR(currentExpPaid)} / ${formatINR(currentExpTotal)})`
+                          : 'Unpaid Bill'}
                       </span>
                       <span className="text-[11px] text-slate-500 font-medium">
                         {formatDateIST(currentSelectedExpense.date)}
@@ -1134,16 +1252,38 @@ export default function ExpensesSection({ onQuickAdd }) {
 
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 {/* Action Buttons Toolbar */}
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  {currentSelectedExpense.paymentStatus === 'unpaid' && (
+                <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                  {currentExpBalance > 0 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAddPayment(currentSelectedExpense)}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Add Payment
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => payVendorBill.mutate({ id: currentSelectedExpense._id })}
+                        disabled={payVendorBill.isPending}
+                        className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                        title={`Pay remaining balance of ${formatINR(currentExpBalance)}`}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        {payVendorBill.isPending ? 'Processing...' : `Pay Full Balance (${formatINR(currentExpBalance)})`}
+                      </button>
+                    </>
+                  )}
+                  {currentExpBalance === 0 && (
                     <button
                       type="button"
-                      onClick={() => payVendorBill.mutate({ id: currentSelectedExpense._id })}
-                      disabled={payVendorBill.isPending}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                      onClick={() => handleOpenAddPayment(currentSelectedExpense)}
+                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                      title="Add an additional payment adjustment"
                     >
-                      <Check className="h-3.5 w-3.5" />
-                      {payVendorBill.isPending ? 'Processing...' : 'Pay Bill'}
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Payment
                     </button>
                   )}
                   <button
@@ -1172,29 +1312,303 @@ export default function ExpensesSection({ onQuickAdd }) {
                 {/* Primary Financial Overview Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Amount</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Billed</span>
                     <div className="text-base font-extrabold text-slate-900 mt-0.5">
-                      {formatINR(currentSelectedExpense.amount)}
+                      {formatINR(currentExpTotal)}
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Cleared</span>
+                    <div className="text-base font-extrabold text-emerald-800 mt-0.5">
+                      {formatINR(currentExpPaid)}
+                    </div>
+                  </div>
+                  <div className={`p-3 rounded-xl border ${currentExpBalance > 0 ? 'bg-amber-50/70 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${currentExpBalance > 0 ? 'text-amber-800' : 'text-slate-500'}`}>Pending Balance</span>
+                    <div className={`text-base font-extrabold mt-0.5 ${currentExpBalance > 0 ? 'text-amber-700' : 'text-slate-400'}`}>
+                      {formatINR(currentExpBalance)}
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Date</span>
-                    <div className="text-xs font-bold text-slate-800 mt-1">
-                      {formatDateIST(currentSelectedExpense.date)}
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Category</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Category / Type</span>
                     <div className="text-xs font-bold text-slate-800 mt-1 capitalize truncate">
                       {currentSelectedExpense.category?.replace(/_/g, ' ')}
                     </div>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Cost Type</span>
-                    <div className="text-xs font-bold text-slate-800 mt-1 truncate">
+                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">
                       {currentSelectedExpense.costType === 'client_project' ? 'Client Direct' : 'Overhead'}
                     </div>
                   </div>
+                </div>
+
+                {/* Settlement Progress Bar Strip */}
+                <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                      <Wallet className="h-3.5 w-3.5 text-indigo-600" />
+                      Settlement Progress
+                    </span>
+                    <span className="font-extrabold text-slate-900">
+                      {currentExpPercent}% Settled ({formatINR(currentExpPaid)} / {formatINR(currentExpTotal)})
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        currentExpPercent === 100 ? 'bg-emerald-500' : currentExpPercent > 0 ? 'bg-amber-500' : 'bg-slate-300'
+                      }`}
+                      style={{ width: `${currentExpPercent}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] text-slate-500">
+                    <span>{displayedPayments.length} payment installment(s) recorded</span>
+                    {currentExpBalance > 0 ? (
+                      <span className="text-amber-700 font-bold">{formatINR(currentExpBalance)} pending clearance</span>
+                    ) : (
+                      <span className="text-emerald-700 font-bold">✓ Fully Cleared</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* PAYMENTS & INSTALLMENTS LIST & INLINE ADD FORM */}
+                <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <CreditCard className="h-4 w-4 text-indigo-600" />
+                      <span className="font-bold text-slate-900 text-xs">Payments & Installments</span>
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        {displayedPayments.length}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (showAddPaymentForm) {
+                          setShowAddPaymentForm(false);
+                        } else {
+                          handleOpenAddPayment(currentSelectedExpense);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] transition-colors cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3" />
+                      {showAddPaymentForm ? 'Cancel' : 'Add Payment'}
+                    </button>
+                  </div>
+
+                  {/* INLINE ADD PAYMENT FORM */}
+                  {showAddPaymentForm && (
+                    <form onSubmit={handleAddPaymentSubmit} className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
+                          <Plus className="h-3.5 w-3.5 text-indigo-600" />
+                          Record New Payment / Installment
+                        </span>
+                        {currentExpBalance > 0 && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPaymentFormData((prev) => ({ ...prev, amount: String(currentExpBalance) }))}
+                              className="text-[10px] font-bold text-indigo-700 hover:text-indigo-900 underline cursor-pointer"
+                            >
+                              Pay Remaining (₹{currentExpBalance})
+                            </button>
+                            {currentExpBalance > 500 && (
+                              <button
+                                type="button"
+                                onClick={() => setPaymentFormData((prev) => ({ ...prev, amount: String(Math.round(currentExpBalance / 2)) }))}
+                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 underline cursor-pointer"
+                              >
+                                50% (₹{Math.round(currentExpBalance / 2)})
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Payment Amount (₹) *
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            required
+                            placeholder="e.g. 1500"
+                            value={paymentFormData.amount}
+                            onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: e.target.value })}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:ring-1 focus:ring-indigo-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Payment Date *
+                          </label>
+                          <input
+                            type="date"
+                            required
+                            value={paymentFormData.paymentDate}
+                            onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentDate: e.target.value })}
+                            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Payment Mode *
+                          </label>
+                          <select
+                            value={paymentFormData.paymentMode}
+                            onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMode: e.target.value })}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                          >
+                            <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                            <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Debit / Credit Card</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Paid From Account
+                          </label>
+                          <select
+                            value={paymentFormData.fundingAccount}
+                            onChange={(e) => setPaymentFormData({ ...paymentFormData, fundingAccount: e.target.value })}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                          >
+                            <option value="">Default / Not specified</option>
+                            {accounts.map((acc) => (
+                              <option key={acc._id} value={acc._id}>
+                                {acc.accountName} ({acc.accountType})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Reference / UTR / Txn ID
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. UPI Ref / Cheque #"
+                            value={paymentFormData.reference}
+                            onChange={(e) => setPaymentFormData({ ...paymentFormData, reference: e.target.value })}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                          Payment Remarks / Notes
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 50% advance for shoot, balance payment..."
+                          value={paymentFormData.notes}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, notes: e.target.value })}
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddPaymentForm(false)}
+                          className="px-3 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={addExpensePayment.isPending}
+                          className="px-4 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs disabled:opacity-50 cursor-pointer"
+                        >
+                          {addExpensePayment.isPending ? 'Recording...' : 'Save Payment'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* TABLE / LIST OF PAYMENTS */}
+                  {displayedPayments.length === 0 ? (
+                    <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center bg-slate-50/50 space-y-1.5">
+                      <Clock className="h-6 w-6 text-slate-300 mx-auto" />
+                      <p className="text-xs font-semibold text-slate-600">No payments recorded yet</p>
+                      <p className="text-[11px] text-slate-400">
+                        Record partial installments or full settlement as payments are made.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAddPayment(currentSelectedExpense)}
+                        className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs cursor-pointer shadow-2xs"
+                      >
+                        <Plus className="h-3 w-3" />
+                        Record First Payment
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase">
+                          <tr>
+                            <th className="p-2.5">Date</th>
+                            <th className="p-2.5">Mode</th>
+                            <th className="p-2.5">Reference / Notes</th>
+                            <th className="p-2.5 text-right">Amount</th>
+                            <th className="p-2.5 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {displayedPayments.map((pmt, idx) => (
+                            <tr key={pmt._id || idx} className="hover:bg-slate-50/60 transition-colors">
+                              <td className="p-2.5 font-medium text-slate-700 whitespace-nowrap">
+                                {formatDateIST(pmt.paymentDate || pmt.createdAt)}
+                              </td>
+                              <td className="p-2.5">
+                                <div className="flex flex-col">
+                                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-semibold w-fit">
+                                    {pmt.paymentMode || 'Bank'}
+                                  </span>
+                                  {(pmt.fundingAccount?.accountName || accounts.find((a) => String(a._id) === String(pmt.fundingAccount))?.accountName) && (
+                                    <span className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[120px]">
+                                      {pmt.fundingAccount?.accountName || accounts.find((a) => String(a._id) === String(pmt.fundingAccount))?.accountName}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-2.5 text-[11px]">
+                                <div className="font-semibold text-slate-800">{pmt.reference || 'Payment'}</div>
+                                {pmt.notes && <div className="text-slate-400 text-[10px] truncate max-w-[180px]">{pmt.notes}</div>}
+                              </td>
+                              <td className="p-2.5 text-right font-extrabold text-emerald-600 whitespace-nowrap">
+                                +{formatINR(pmt.amount)}
+                              </td>
+                              <td className="p-2.5 text-right">
+                                {!pmt.isLegacy && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeletePayment(pmt._id)}
+                                    disabled={deleteExpensePayment.isPending}
+                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                                    title="Delete this payment record"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 {/* Payee / Vendor Section */}
@@ -1234,7 +1648,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => handleStartEditExpense(currentSelectedExpense)}
-                          className="px-2 py-1 rounded bg-white text-indigo-700 font-semibold text-[11px] border border-indigo-200 hover:bg-indigo-50"
+                          className="px-2 py-1 rounded bg-white text-indigo-700 font-semibold text-[11px] border border-indigo-200 hover:bg-indigo-50 cursor-pointer"
                         >
                           Change Payee
                         </button>
@@ -1261,7 +1675,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           <div className="rounded-lg border border-slate-200 overflow-hidden">
                             <div className="p-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                               <span className="font-bold text-slate-700 text-[10px] uppercase">
-                                All Payments to {currentSelectedExpense.vendor} ({relatedPayeeDetailsForExpense.items.length})
+                                Other Payments & Bills for {currentSelectedExpense.vendor} ({relatedPayeeDetailsForExpense.items.length})
                               </span>
                             </div>
                             <div className="max-h-40 overflow-y-auto divide-y divide-slate-100 text-[11px]">
@@ -1279,8 +1693,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                                   </div>
                                   <div className="text-right">
                                     <span className="font-bold text-slate-900 block">{formatINR(item.amount)}</span>
-                                    <span className={`text-[9px] font-bold uppercase ${item.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                      {item.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                                    <span className={`text-[9px] font-bold uppercase ${
+                                      item.paymentStatus === 'paid'
+                                        ? 'text-emerald-600'
+                                        : item.paymentStatus === 'partially_paid'
+                                        ? 'text-amber-600'
+                                        : 'text-rose-600'
+                                    }`}>
+                                      {item.paymentStatus === 'paid' ? 'Paid' : item.paymentStatus === 'partially_paid' ? 'Partial' : 'Unpaid'}
                                     </span>
                                   </div>
                                 </div>
@@ -1333,20 +1753,30 @@ export default function ExpensesSection({ onQuickAdd }) {
 
               {/* Sticky Footer */}
               <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex justify-between items-center">
-                {currentSelectedExpense.vendor ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedExpenseForSidebar(null);
-                      onQuickAdd('expense');
-                    }}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    + Record Another Expense for {currentSelectedExpense.vendor}
-                  </button>
-                ) : (
-                  <div />
-                )}
+                <div className="flex items-center gap-2">
+                  {currentExpBalance > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAddPayment(currentSelectedExpense)}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs cursor-pointer"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Payment
+                    </button>
+                  )}
+                  {currentSelectedExpense.vendor && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedExpenseForSidebar(null);
+                        onQuickAdd('expense');
+                      }}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      + Record Another Expense for {currentSelectedExpense.vendor}
+                    </button>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => setSelectedExpenseForSidebar(null)}
@@ -1419,9 +1849,22 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {activePayeeDetails.items.map((item) => (
-                          <tr key={item._id} className="hover:bg-slate-50/50">
+                          <tr
+                            key={item._id}
+                            onClick={() => {
+                              setSelectedPayeeForLedger(null);
+                              setSelectedExpenseForSidebar(item);
+                            }}
+                            className="hover:bg-indigo-50/40 transition-colors cursor-pointer group"
+                            title="Click to view all payments and settlement history for this bill"
+                          >
                             <td className="p-2.5 text-slate-600 font-medium whitespace-nowrap">{formatDateIST(item.date)}</td>
-                            <td className="p-2.5 font-semibold text-slate-900">{item.title}</td>
+                            <td className="p-2.5 font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                              <div className="flex items-center gap-1">
+                                <span>{item.title}</span>
+                                <ArrowRight className="h-3 w-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                              </div>
+                            </td>
                             <td className="p-2.5">
                               <span className="capitalize px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
                                 {item.category?.replace(/_/g, ' ')}
@@ -1429,30 +1872,30 @@ export default function ExpensesSection({ onQuickAdd }) {
                             </td>
                             <td className="p-2.5">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                                item.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                item.paymentStatus === 'paid'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : item.paymentStatus === 'partially_paid'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-rose-100 text-rose-800'
                               }`}>
-                                {item.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                                {item.paymentStatus === 'paid' ? 'Paid' : item.paymentStatus === 'partially_paid' ? 'Partial' : 'Unpaid'}
                               </span>
                             </td>
                             <td className="p-2.5 text-right font-bold text-slate-900">{formatINR(item.amount)}</td>
                             <td className="p-2.5 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
+                              <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                                 {item.paymentStatus !== 'paid' && (
                                   <button
                                     type="button"
-                                    onClick={async () => {
-                                      try {
-                                        await updateExpense.mutateAsync({
-                                          id: item._id,
-                                          data: { paymentStatus: 'paid' },
-                                        });
-                                      } catch (_) {}
+                                    onClick={() => {
+                                      setSelectedPayeeForLedger(null);
+                                      setSelectedExpenseForSidebar(item);
+                                      handleOpenAddPayment(item);
                                     }}
-                                    disabled={updateExpense.isPending}
-                                    className="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-2xs transition-colors cursor-pointer"
-                                    title="Clear and mark this bill as paid"
+                                    className="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+                                    title="Add payment or pay this bill"
                                   >
-                                    ✓ Pay
+                                    <Plus className="h-2.5 w-2.5" /> Pay / Add
                                   </button>
                                 )}
                                 <button

@@ -63,6 +63,8 @@ import {
   updateModuleExpense,
   deleteModuleExpense,
   payVendorBill,
+  addExpensePayment,
+  deleteExpensePayment,
   getSubscriptions,
   createSubscription,
   postSubscriptionRenewal,
@@ -131,6 +133,8 @@ router.post('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'fin
 router.put('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), updateModuleExpense);
 router.delete('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), deleteModuleExpense);
 router.post('/module/expenses/:id/pay', authorize('superAdmin', 'admin', 'financeManager'), payVendorBill);
+router.post('/module/expenses/:id/payments', authorize('superAdmin', 'admin', 'manager', 'financeManager'), addExpensePayment);
+router.delete('/module/expenses/:id/payments/:paymentId', authorize('superAdmin', 'admin', 'manager', 'financeManager'), deleteExpensePayment);
 
 // 7. Recurring Subscriptions
 router.get('/subscriptions', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getSubscriptions);

@@ -160,7 +160,9 @@ export const computeFinanceKPIs = async ({ startDate, endDate, clientId, project
   expenses.forEach((e) => {
     recognizedExpenses += Number(e.amount || 0);
     if (e.paymentStatus === 'paid') {
-      cashPaidExpenses += Number(e.amount || 0);
+      cashPaidExpenses += Number(e.paidAmount != null ? e.paidAmount : e.amount || 0);
+    } else if (e.paymentStatus === 'partially_paid') {
+      cashPaidExpenses += Number(e.paidAmount || 0);
     }
   });
 

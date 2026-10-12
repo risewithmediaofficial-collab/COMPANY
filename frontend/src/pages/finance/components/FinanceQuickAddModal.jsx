@@ -122,11 +122,13 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     title: '',
     vendor: '',
     amount: '',
+    advanceAmount: '',
     category: 'office',
     costType: 'agency_overhead',
     client: '',
     paymentStatus: 'paid',
     paymentMode: 'Bank',
+    fundingAccount: '',
     date: new Date().toISOString().slice(0, 10),
     notes: '',
   });
@@ -270,11 +272,18 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
   const handleExpenseSubmit = async (e) => {
     e.preventDefault();
     if (!expForm.title || !expForm.amount) return toast.error('Fill required expense details');
+    if (expForm.paymentStatus === 'partially_paid') {
+      const adv = Number(expForm.advanceAmount || 0);
+      const total = Number(expForm.amount || 0);
+      if (adv <= 0) return toast.error('Please enter a valid partial/advance amount greater than 0');
+      if (adv > total) return toast.error('Partial advance amount cannot exceed total bill amount');
+    }
     try {
       await createExpense.mutateAsync({
         ...expForm,
         amount: Number(expForm.amount),
-        fundingAccount: undefined,
+        advanceAmount: expForm.paymentStatus === 'partially_paid' ? Number(expForm.advanceAmount || 0) : undefined,
+        fundingAccount: expForm.fundingAccount || undefined,
         client: expForm.costType === 'client_project' ? expForm.client : undefined,
       });
       onOpenChange(false);
@@ -817,7 +826,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 </div>
               </div>
 
-              <div className={`grid grid-cols-1 gap-4 ${expForm.paymentStatus === 'paid' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">Payment Status</label>
                   <select
@@ -825,11 +834,49 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     onChange={(e) => setExpForm({ ...expForm, paymentStatus: e.target.value })}
                     className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
                   >
-                    <option value="paid">Paid Now (Cash Outflow)</option>
-                    <option value="unpaid">Unpaid Vendor Bill (Payable)</option>
+                    <option value="paid">Paid Now (Full Cash Outflow)</option>
+                    <option value="partially_paid">Partially Paid (Advance / 1st Installment)</option>
+                    <option value="unpaid">Unpaid Vendor Bill (Payable Later)</option>
                   </select>
                 </div>
-                {expForm.paymentStatus === 'paid' && (
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Expense / Bill Date</label>
+                  <input
+                    type="date"
+                    value={expForm.date}
+                    onChange={(e) => setExpForm({ ...expForm, date: e.target.value })}
+                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {(expForm.paymentStatus === 'paid' || expForm.paymentStatus === 'partially_paid') && (
+                <div className={`grid grid-cols-1 gap-4 ${expForm.paymentStatus === 'partially_paid' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} p-3 rounded-xl bg-slate-50 border border-slate-200`}>
+                  {expForm.paymentStatus === 'partially_paid' && (
+                    <div>
+                      <label className="block text-xs font-semibold text-indigo-700 mb-1.5">
+                        Advance / Paid Amount (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={expForm.amount || undefined}
+                        value={expForm.advanceAmount}
+                        onChange={(e) => setExpForm({ ...expForm, advanceAmount: e.target.value })}
+                        placeholder="e.g. 1500"
+                        required
+                        className="h-9.5 w-full rounded-xl border border-indigo-200 bg-white px-3 text-xs font-bold text-indigo-600 shadow-2xs"
+                      />
+                      {expForm.amount && expForm.advanceAmount && (
+                        <div className="text-[10px] text-slate-500 mt-1">
+                          Remaining due: ₹{Math.max(0, Number(expForm.amount) - Number(expForm.advanceAmount))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Payment Mode</label>
                     <select
@@ -841,20 +888,27 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                       <option value="UPI">UPI (GPay / PhonePe / QR)</option>
                       <option value="Cash">Cash</option>
                       <option value="Card">Corporate / Credit Card</option>
+                      <option value="Cheque">Cheque</option>
                     </select>
                   </div>
-                )}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Expense Date</label>
-                  <input
-                    type="date"
-                    value={expForm.date}
-                    onChange={(e) => setExpForm({ ...expForm, date: e.target.value })}
-                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                    className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs text-slate-900 shadow-2xs cursor-pointer"
-                  />
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Paid From Account</label>
+                    <select
+                      value={expForm.fundingAccount}
+                      onChange={(e) => setExpForm({ ...expForm, fundingAccount: e.target.value })}
+                      className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
+                    >
+                      <option value="">Default / Not specified</option>
+                      {accounts.map((acc) => (
+                        <option key={acc._id} value={acc._id}>
+                          {acc.accountName} ({acc.accountType})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
             </form>
           )}
 

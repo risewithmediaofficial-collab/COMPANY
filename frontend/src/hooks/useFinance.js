@@ -965,8 +965,8 @@ export const useCreateModuleExpense = () => {
 export const usePayVendorBill = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, fundingAccount, paymentMode, paymentDate }) => {
-      const response = await api.post(`/finance/module/expenses/${id}/pay`, { fundingAccount, paymentMode, paymentDate });
+    mutationFn: async ({ id, fundingAccount, paymentMode, paymentDate, amount, reference, notes }) => {
+      const response = await api.post(`/finance/module/expenses/${id}/pay`, { fundingAccount, paymentMode, paymentDate, amount, reference, notes });
       return response.data?.expense;
     },
     onSuccess: () => {
@@ -974,10 +974,50 @@ export const usePayVendorBill = () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
-      toast.success('Vendor bill paid successfully');
+      toast.success('Vendor bill payment recorded successfully');
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to pay vendor bill');
+    },
+  });
+};
+
+export const useAddExpensePayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.post(`/finance/module/expenses/${id}/payments`, data);
+      return response.data?.expense;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-module-expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Payment recorded successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to record payment');
+    },
+  });
+};
+
+export const useDeleteExpensePayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ expenseId, paymentId }) => {
+      const response = await api.delete(`/finance/module/expenses/${expenseId}/payments/${paymentId}`);
+      return response.data?.expense;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['finance-module-expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success('Payment deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete payment');
     },
   });
 };

@@ -52,15 +52,33 @@ const expenseSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['paid', 'unpaid'],
+      enum: ['paid', 'unpaid', 'partially_paid'],
       default: 'paid',
     },
+    paidAmount: { type: Number, default: 0, min: 0 },
+    balanceAmount: { type: Number, default: 0 },
     paymentDate: { type: Date },
     paymentMode: {
       type: String,
       enum: ['Bank', 'UPI', 'Cash', 'Card', 'Cheque', 'Other'],
       default: 'Bank',
     },
+    payments: [
+      {
+        amount: { type: Number, required: true, min: 0 },
+        paymentDate: { type: Date, default: Date.now },
+        paymentMode: {
+          type: String,
+          enum: ['Bank', 'UPI', 'Cash', 'Card', 'Cheque', 'Other'],
+          default: 'Bank',
+        },
+        reference: { type: String, default: '' },
+        notes: { type: String, default: '' },
+        fundingAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'FinanceAccount' },
+        recordedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     fundingAccount: { type: mongoose.Schema.Types.ObjectId, ref: 'FinanceAccount' },
     subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription' },
     receiptUrl: { type: String },
@@ -69,6 +87,44 @@ const expenseSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Synchronize payment amounts and status before saving
+expenseSchema.pre('save', function (next) {
+  if (Array.isArray(this.payments) && this.payments.length > 0) {
+    const totalPaid = this.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    this.paidAmount = totalPaid;
+    this.balanceAmount = Math.max(0, Number(this.amount || 0) - totalPaid);
+
+    if (this.balanceAmount === 0) {
+      this.paymentStatus = 'paid';
+    } else if (totalPaid > 0) {
+      this.paymentStatus = 'partially_paid';
+    } else {
+      this.paymentStatus = 'unpaid';
+    }
+
+    const lastPayment = this.payments[this.payments.length - 1];
+    if (lastPayment) {
+      if (lastPayment.paymentDate) this.paymentDate = lastPayment.paymentDate;
+      if (lastPayment.paymentMode) this.paymentMode = lastPayment.paymentMode;
+    }
+  } else {
+    if (this.paymentStatus === 'paid') {
+      this.paidAmount = Number(this.amount || 0);
+      this.balanceAmount = 0;
+    } else if (this.paymentStatus === 'unpaid') {
+      this.paidAmount = 0;
+      this.balanceAmount = Number(this.amount || 0);
+    } else if (this.paymentStatus === 'partially_paid') {
+      this.paidAmount = Number(this.paidAmount || 0);
+      this.balanceAmount = Math.max(0, Number(this.amount || 0) - this.paidAmount);
+      if (this.balanceAmount === 0) {
+        this.paymentStatus = 'paid';
+      }
+    }
+  }
+  next();
+});
 
 expenseSchema.index({ submittedBy: 1 });
 expenseSchema.index({ category: 1 });

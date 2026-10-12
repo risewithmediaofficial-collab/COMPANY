@@ -981,14 +981,39 @@ export const getModuleExpenses = async (req, res) => {
     }
 
     const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
-    const expenses = await Expense.find(filter)
+    const rawExpenses = await Expense.find(filter)
       .populate('client', 'name company')
       .populate('project', 'name')
       .populate('fundingAccount', 'accountName accountType')
+      .populate('payments.fundingAccount', 'accountName accountType')
+      .populate('payments.recordedBy', 'name email')
       .populate('submittedBy', 'name email role')
       .populate('approvedBy', 'name email')
       .sort({ date: sortDirection, createdAt: sortDirection })
       .lean();
+
+    const expenses = rawExpenses.map((e) => {
+      const hasPayments = Array.isArray(e.payments) && e.payments.length > 0;
+      const paidAmount = hasPayments
+        ? e.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
+        : (e.paymentStatus === 'paid' ? Number(e.amount || 0) : Number(e.paidAmount || 0));
+      const balanceAmount = Math.max(0, Number(e.amount || 0) - paidAmount);
+      let paymentStatus = e.paymentStatus;
+      if (hasPayments) {
+        paymentStatus = balanceAmount === 0 ? 'paid' : (paidAmount > 0 ? 'partially_paid' : 'unpaid');
+      } else if (e.paymentStatus === 'paid') {
+        paymentStatus = 'paid';
+      } else {
+        paymentStatus = 'unpaid';
+      }
+      return {
+        ...e,
+        paidAmount,
+        balanceAmount,
+        paymentStatus,
+        payments: Array.isArray(e.payments) ? e.payments : [],
+      };
+    });
 
     res.json({ success: true, expenses });
   } catch (error) {
@@ -1008,7 +1033,7 @@ export const createModuleExpense = async (req, res) => {
       costType = 'agency_overhead',
       client,
       project,
-      paymentStatus = 'paid', // 'paid' (immediate cash outflow) or 'unpaid' (vendor bill liability)
+      paymentStatus = 'paid', // 'paid' (immediate cash outflow) or 'unpaid' (vendor bill liability) or 'partially_paid'
       paymentMode = 'Bank',
       fundingAccount,
       paymentDate,
@@ -1017,6 +1042,8 @@ export const createModuleExpense = async (req, res) => {
       taxRate = 0,
       receiptUrl,
       notes,
+      advanceAmount,
+      reference,
     } = req.body;
 
     const expenseAmount = Number(amount);
@@ -1028,12 +1055,58 @@ export const createModuleExpense = async (req, res) => {
     await assertPeriodNotLocked(expenseDate);
 
     // If paid immediately, preserve actual payment date
-    const actualPayDate = paymentStatus === 'paid' ? (paymentDate ? new Date(paymentDate) : expenseDate) : null;
+    const actualPayDate = paymentStatus === 'paid' || paymentStatus === 'partially_paid'
+      ? (paymentDate ? new Date(paymentDate) : expenseDate)
+      : null;
+
+    const initialPayments = [];
+    let finalPaidAmount = 0;
+    let finalStatus = paymentStatus;
+
+    if (paymentStatus === 'paid') {
+      finalPaidAmount = expenseAmount;
+      initialPayments.push({
+        amount: expenseAmount,
+        paymentDate: actualPayDate || expenseDate,
+        paymentMode,
+        reference: reference || 'Initial Payment',
+        notes: notes || 'Paid upon recording',
+        fundingAccount: fundingAccount || null,
+        recordedBy: req.user?._id,
+      });
+    } else if (paymentStatus === 'partially_paid') {
+      const adv = Number(advanceAmount || req.body.paidAmount || 0);
+      finalPaidAmount = Math.min(expenseAmount, Math.max(0, adv));
+      if (finalPaidAmount >= expenseAmount) {
+        finalStatus = 'paid';
+      } else if (finalPaidAmount === 0) {
+        finalStatus = 'unpaid';
+      } else {
+        finalStatus = 'partially_paid';
+      }
+
+      if (finalPaidAmount > 0) {
+        initialPayments.push({
+          amount: finalPaidAmount,
+          paymentDate: actualPayDate || expenseDate,
+          paymentMode,
+          reference: reference || 'Advance Payment',
+          notes: notes || 'Initial partial payment',
+          fundingAccount: fundingAccount || null,
+          recordedBy: req.user?._id,
+        });
+      }
+    }
+
+    const finalBalanceAmount = Math.max(0, expenseAmount - finalPaidAmount);
 
     const expense = await Expense.create({
       title,
       description,
       amount: expenseAmount,
+      paidAmount: finalPaidAmount,
+      balanceAmount: finalBalanceAmount,
+      payments: initialPayments,
       category,
       subcategory,
       vendor,
@@ -1043,7 +1116,7 @@ export const createModuleExpense = async (req, res) => {
       taxTreatment,
       taxRate: Number(taxRate || 0),
       taxAmount: taxTreatment === 'exclusive' ? (expenseAmount * Number(taxRate || 0)) / 100 : 0,
-      paymentStatus,
+      paymentStatus: finalStatus,
       paymentMode,
       fundingAccount: fundingAccount || null,
       paymentDate: actualPayDate,
@@ -1056,8 +1129,8 @@ export const createModuleExpense = async (req, res) => {
       status: 'approved',
     });
 
-    // If immediately paid from a funding account, reconcile that account's balance
-    if (paymentStatus === 'paid' && fundingAccount) {
+    // If immediately paid or partially paid from a funding account, reconcile that account's balance
+    if (finalPaidAmount > 0 && fundingAccount) {
       await reconcileAccountBalance(fundingAccount);
     }
 
@@ -1080,19 +1153,42 @@ export const createModuleExpense = async (req, res) => {
 export const payVendorBill = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fundingAccount, paymentMode = 'Bank', paymentDate = new Date() } = req.body;
+    const { fundingAccount, paymentMode = 'Bank', paymentDate = new Date(), amount, reference, notes } = req.body;
 
     const expense = await Expense.findById(id);
     if (!expense) return res.status(404).json({ success: false, message: 'Expense bill not found' });
 
     if (expense.paymentStatus === 'paid') {
-      return res.status(400).json({ success: false, message: 'This bill has already been paid' });
+      return res.status(400).json({ success: false, message: 'This bill has already been fully paid' });
     }
 
     await assertPeriodNotLocked(paymentDate);
 
-    // Pay bill: updates cash movement without creating another cost
-    expense.paymentStatus = 'paid';
+    const currentPaid = Array.isArray(expense.payments) && expense.payments.length > 0
+      ? expense.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
+      : (expense.paymentStatus === 'paid' ? Number(expense.amount || 0) : Number(expense.paidAmount || 0));
+    const currentBalance = Math.max(0, Number(expense.amount || 0) - currentPaid);
+
+    const payAmount = amount != null && Number(amount) > 0 ? Math.min(Number(amount), currentBalance) : currentBalance;
+
+    if (!Array.isArray(expense.payments)) {
+      expense.payments = [];
+    }
+
+    expense.payments.push({
+      amount: payAmount,
+      paymentDate: new Date(paymentDate),
+      paymentMode,
+      reference: reference || 'Bill Settlement',
+      notes: notes || '',
+      fundingAccount: fundingAccount || null,
+      recordedBy: req.user?._id,
+    });
+
+    const newTotalPaid = expense.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    expense.paidAmount = newTotalPaid;
+    expense.balanceAmount = Math.max(0, Number(expense.amount || 0) - newTotalPaid);
+    expense.paymentStatus = expense.balanceAmount === 0 ? 'paid' : (newTotalPaid > 0 ? 'partially_paid' : 'unpaid');
     expense.paymentDate = new Date(paymentDate);
     expense.paymentMode = paymentMode;
     if (fundingAccount) expense.fundingAccount = fundingAccount;
@@ -1108,13 +1204,117 @@ export const payVendorBill = async (req, res) => {
       action: 'pay',
       entityType: 'Expense',
       entityId: expense._id,
-      description: `Paid vendor bill: ${expense.title} for ₹${expense.amount} via ${paymentMode}`,
+      description: `Paid ₹${payAmount} on vendor bill: ${expense.title} via ${paymentMode}`,
       changes: expense.toObject(),
     });
 
     res.json({ success: true, expense });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+export const addExpensePayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, paymentMode = 'Bank', paymentDate = new Date(), reference = '', notes = '', fundingAccount } = req.body;
+
+    const paymentAmount = Number(amount);
+    if (!paymentAmount || paymentAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be greater than 0' });
+    }
+
+    const expense = await Expense.findById(id);
+    if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
+
+    await assertPeriodNotLocked(paymentDate);
+
+    if (!Array.isArray(expense.payments)) {
+      expense.payments = [];
+    }
+
+    // If migrating legacy paid expense without payments items
+    if (expense.payments.length === 0 && expense.paymentStatus === 'paid' && (expense.paidAmount > 0 || expense.amount > 0)) {
+      expense.payments.push({
+        amount: Number(expense.paidAmount || expense.amount),
+        paymentDate: expense.paymentDate || expense.date || new Date(),
+        paymentMode: expense.paymentMode || 'Bank',
+        reference: 'Initial Payment',
+        notes: 'Legacy full payment',
+        fundingAccount: expense.fundingAccount || null,
+        recordedBy: expense.submittedBy,
+        createdAt: expense.paymentDate || expense.createdAt || new Date(),
+      });
+    }
+
+    expense.payments.push({
+      amount: paymentAmount,
+      paymentDate: new Date(paymentDate),
+      paymentMode,
+      reference,
+      notes,
+      fundingAccount: fundingAccount || null,
+      recordedBy: req.user?._id,
+      createdAt: new Date(),
+    });
+
+    const totalPaid = expense.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    expense.paidAmount = totalPaid;
+    expense.balanceAmount = Math.max(0, Number(expense.amount || 0) - totalPaid);
+    expense.paymentStatus = expense.balanceAmount === 0 ? 'paid' : (totalPaid > 0 ? 'partially_paid' : 'unpaid');
+    expense.paymentDate = new Date(paymentDate);
+    expense.paymentMode = paymentMode;
+
+    await expense.save();
+
+    if (fundingAccount) {
+      await reconcileAccountBalance(fundingAccount);
+    }
+
+    await recordFinanceAudit({
+      actorId: req.user?._id,
+      actorName: req.user?.name,
+      action: 'add_payment',
+      entityType: 'Expense',
+      entityId: expense._id,
+      description: `Added payment of ₹${paymentAmount} to ${expense.title} via ${paymentMode}`,
+      changes: expense.toObject(),
+    });
+
+    res.json({ success: true, expense });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteExpensePayment = async (req, res) => {
+  try {
+    const { id, paymentId } = req.params;
+
+    const expense = await Expense.findById(id);
+    if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
+
+    if (!Array.isArray(expense.payments)) {
+      return res.status(404).json({ success: false, message: 'No payments found on this expense' });
+    }
+
+    const initialLen = expense.payments.length;
+    expense.payments = expense.payments.filter((p) => String(p._id) !== String(paymentId));
+
+    if (expense.payments.length === initialLen) {
+      return res.status(404).json({ success: false, message: 'Payment record not found' });
+    }
+
+    const totalPaid = expense.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    expense.paidAmount = totalPaid;
+    expense.balanceAmount = Math.max(0, Number(expense.amount || 0) - totalPaid);
+    expense.paymentStatus = expense.balanceAmount === 0 ? 'paid' : (totalPaid > 0 ? 'partially_paid' : 'unpaid');
+
+    await expense.save();
+
+    res.json({ success: true, expense });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
