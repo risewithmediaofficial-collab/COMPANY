@@ -6,6 +6,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { Server as SocketIO } from 'socket.io';
 import cors from 'cors';
@@ -281,11 +282,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
+  const frontendDistPath = fs.existsSync(path.resolve(__dirname, '../frontend/dist'))
+    ? path.resolve(__dirname, '../frontend/dist')
+    : path.resolve(__dirname, '../client/dist');
+
+  app.use(express.static(frontendDistPath));
   
   // Any route that doesn't start with /api or /uploads gets sent to the React app
   app.get(/^(?!\/(api|uploads)).*/, (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client', 'dist', 'index.html'));
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
   });
 }
 
@@ -301,6 +306,29 @@ httpServer.on('error', (error) => {
   }
   process.exit(1);
 });
+
+// Coordinated SIGTERM/SIGINT graceful shutdown
+const handleShutdown = (signal) => {
+  console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+  httpServer.close(async () => {
+    console.log('HTTP and Socket.IO server closed.');
+    try {
+      await mongoose.connection.close(false);
+      console.log('MongoDB connection cleanly closed.');
+    } catch (err) {
+      console.error('Error closing MongoDB connection:', err.message);
+    }
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    console.error('Graceful shutdown timeout exceeded. Forcing exit.');
+    process.exit(1);
+  }, 10000).unref();
+};
+
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+process.on('SIGINT', () => handleShutdown('SIGINT'));
 
 httpServer.listen(env.port, () => {
   console.log(`\nAgency CRM Server running on port ${env.port}`);
