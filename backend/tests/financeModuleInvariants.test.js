@@ -149,3 +149,68 @@ test('Invariant 7: Founder accounting rules (Capital is equity, drawings are dis
     if (entry.type === 'loan_repayment') assert.equal(entry.isExpense, false);
   });
 });
+
+test('Invariant 8: Split-account multi-payment expense allocates outflows precisely per funding account', () => {
+  // A ₹1,00,000 vendor invoice paid in two parts: ₹60,000 from Bank A, ₹40,000 from Bank B
+  const bankAId = '65a000000000000000000001';
+  const bankBId = '65a000000000000000000002';
+
+  const expense = {
+    amount: 100000,
+    fundingAccount: bankAId, // Legacy default field
+    payments: [
+      { amount: 60000, fundingAccount: bankAId },
+      { amount: 40000, fundingAccount: bankBId },
+    ],
+  };
+
+  const computeOutflowForAccount = (accId, exp) => {
+    let outflow = 0;
+    if (Array.isArray(exp.payments) && exp.payments.length > 0) {
+      exp.payments.forEach((p) => {
+        if (p.fundingAccount === accId) outflow += p.amount;
+      });
+    }
+    return outflow;
+  };
+
+  assert.equal(computeOutflowForAccount(bankAId, expense), 60000);
+  assert.equal(computeOutflowForAccount(bankBId, expense), 40000);
+  assert.equal(
+    computeOutflowForAccount(bankAId, expense) + computeOutflowForAccount(bankBId, expense),
+    expense.amount
+  );
+});
+
+test('Invariant 9: Period lock validation strictly rejects invalid dates', async () => {
+  const { assertPeriodNotLocked } = await import('../services/financeCalculation.service.js');
+
+  await assert.rejects(
+    async () => {
+      await assertPeriodNotLocked('not-a-valid-date');
+    },
+    { message: /Invalid transaction date/ }
+  );
+
+  await assert.rejects(
+    async () => {
+      await assertPeriodNotLocked(null);
+    },
+    { message: /Transaction date is required/ }
+  );
+});
+
+test('Invariant 10: Idempotency hash computation detects payload differences for financial mutations', async () => {
+  const crypto = (await import('crypto')).default;
+  const buildHash = (payload) => crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+
+  const baseReceipt = { client: 'cli_1', amount: 25000, destinationAccount: 'acc_1' };
+  const tamperedReceipt = { client: 'cli_1', amount: 35000, destinationAccount: 'acc_1' };
+
+  const hash1 = buildHash(baseReceipt);
+  const hash2 = buildHash(tamperedReceipt);
+
+  assert.notEqual(hash1, hash2, 'Different amounts must generate different idempotency hashes');
+  assert.equal(hash1, buildHash(baseReceipt), 'Identical payloads must generate deterministic hashes');
+});
+

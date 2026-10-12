@@ -33,17 +33,38 @@ export const formatIndianNumber = (num, includeDecimals = true) => {
 
 /**
  * Check if a date falls into a locked accounting period
+ * Strict validation: rejects missing or invalid dates
  */
 export const assertPeriodNotLocked = async (date = new Date()) => {
+  if (!date) {
+    const error = new Error('Transaction date is required to check period lock');
+    error.statusCode = 400;
+    throw error;
+  }
+
   const d = new Date(date);
-  if (isNaN(d.getTime())) return;
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  if (isNaN(d.getTime())) {
+    const error = new Error('Invalid transaction date provided');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Align with Asia/Kolkata timezone to avoid day/month shift
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+  });
+  const parts = formatter.formatToParts(d);
+  const year = parts.find((p) => p.type === 'year')?.value || String(d.getFullYear());
+  const month = parts.find((p) => p.type === 'month')?.value || String(d.getMonth() + 1).padStart(2, '0');
   const period = `${year}-${month}`;
 
   const lock = await PeriodLock.findOne({ period, isLocked: true });
   if (lock) {
-    const error = new Error(`The financial period ${period} is closed and locked. Modifying or posting transactions in this period requires admin reopening.`);
+    const error = new Error(
+      `The financial period ${period} is closed and locked. Modifying or posting transactions in this period requires admin reopening.`
+    );
     error.statusCode = 403;
     throw error;
   }
@@ -51,6 +72,7 @@ export const assertPeriodNotLocked = async (date = new Date()) => {
 
 /**
  * Create immutable audit record
+ * Supports session for transactional persistence
  */
 export const recordFinanceAudit = async ({
   actorId,
@@ -62,9 +84,10 @@ export const recordFinanceAudit = async ({
   description = '',
   changes = {},
   ipAddress = '',
+  session = null,
 }) => {
   try {
-    await FinanceAuditLog.create({
+    const doc = {
       actor: actorId,
       actorName,
       action,
@@ -74,9 +97,15 @@ export const recordFinanceAudit = async ({
       description,
       changes,
       ipAddress,
-    });
+    };
+    if (session) {
+      await FinanceAuditLog.create([doc], { session });
+    } else {
+      await FinanceAuditLog.create(doc);
+    }
   } catch (err) {
     console.error('Failed to write financial audit log:', err.message);
+    if (session) throw err; // In a transaction, do not swallow audit failures
   }
 };
 
@@ -528,63 +557,109 @@ export const computeSixMonthCashForecast = async ({ scenario = 'expected' } = {}
 /**
  * Reconcile Account Balance
  * openingBalance + totalInflows - totalOutflows = closingBalance
+ * Accurately tracks partial payments and per-payment funding accounts without double counting
  */
-export const reconcileAccountBalance = async (accountId) => {
-  const account = await FinanceAccount.findById(accountId);
+export const reconcileAccountBalance = async (accountId, options = {}) => {
+  const { session = null, persist = true } = options;
+  const accountQuery = FinanceAccount.findById(accountId);
+  if (session) accountQuery.session(session);
+  const account = await accountQuery;
   if (!account) return null;
 
   // Inflows:
   // 1. Client Payment Receipts
-  const payments = await Payment.find({
+  const paymentQuery = Payment.find({
     destinationAccount: accountId,
     status: 'paid',
-  }).lean();
+  });
+  if (session) paymentQuery.session(session);
+  const payments = await paymentQuery.lean();
   const paymentInflow = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
   // 2. Transfers In
-  const transfersIn = await InternalTransfer.find({ toAccount: accountId }).lean();
+  const transfersInQuery = InternalTransfer.find({ toAccount: accountId });
+  if (session) transfersInQuery.session(session);
+  const transfersIn = await transfersInQuery.lean();
   const transferInflow = transfersIn.reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
   // 3. Founder Inflows (capital introduced, loans to company)
-  const founderInflows = await FounderTransaction.find({
+  const founderInflowsQuery = FounderTransaction.find({
     account: accountId,
     direction: 'inflow',
-  }).lean();
+  });
+  if (session) founderInflowsQuery.session(session);
+  const founderInflows = await founderInflowsQuery.lean();
   const founderInflowTotal = founderInflows.reduce((sum, f) => sum + Number(f.amount || 0), 0);
 
   // Outflows:
-  // 1. Paid Expenses
-  const expenses = await Expense.find({
-    fundingAccount: accountId,
-    paymentStatus: 'paid',
-  }).lean();
-  const expenseOutflow = expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  // 1. Paid Expenses (accurately counting partial expense payments, per-payment funding accounts, and legacy records)
+  const expenseMatch = {
+    $or: [
+      { 'payments.fundingAccount': accountId },
+      { fundingAccount: accountId },
+    ],
+    approvalStatus: { $ne: 'rejected' },
+  };
+  const expenseQuery = Expense.find(expenseMatch);
+  if (session) expenseQuery.session(session);
+  const expenses = await expenseQuery.lean();
+
+  let expenseOutflow = 0;
+  expenses.forEach((e) => {
+    if (Array.isArray(e.payments) && e.payments.length > 0) {
+      // Modern expense with payment array: count only payments drawn from this account
+      e.payments.forEach((p) => {
+        const pAcc = p.fundingAccount
+          ? p.fundingAccount.toString()
+          : (e.fundingAccount ? e.fundingAccount.toString() : null);
+        if (pAcc === accountId.toString()) {
+          expenseOutflow += Number(p.amount || 0);
+        }
+      });
+    } else if (e.fundingAccount && e.fundingAccount.toString() === accountId.toString()) {
+      // Legacy expense without payment array
+      if (e.paymentStatus === 'paid') {
+        const amt = e.paidAmount != null && e.paidAmount > 0 ? Number(e.paidAmount) : Number(e.amount || 0);
+        expenseOutflow += amt;
+      } else if (e.paymentStatus === 'partially_paid') {
+        expenseOutflow += Number(e.paidAmount || 0);
+      }
+    }
+  });
 
   // 2. Paid Salaries
-  const salaries = await SalaryRecord.find({
+  const salariesQuery = SalaryRecord.find({
     paymentAccount: accountId,
     status: 'paid',
-  }).lean();
+  });
+  if (session) salariesQuery.session(session);
+  const salaries = await salariesQuery.lean();
   const salaryOutflow = salaries.reduce((sum, s) => sum + Number(s.paidAmount || s.netSalary || 0), 0);
 
   // 3. Transfers Out (including transfer bank fee)
-  const transfersOut = await InternalTransfer.find({ fromAccount: accountId }).lean();
+  const transfersOutQuery = InternalTransfer.find({ fromAccount: accountId });
+  if (session) transfersOutQuery.session(session);
+  const transfersOut = await transfersOutQuery.lean();
   const transferOutflow = transfersOut.reduce((sum, t) => sum + Number(t.amount || 0) + Number(t.bankFee || 0), 0);
 
   // 4. Founder Outflows (drawings, loan repayments, profit distributions)
-  const founderOutflows = await FounderTransaction.find({
+  const founderOutflowsQuery = FounderTransaction.find({
     account: accountId,
     direction: 'outflow',
-  }).lean();
+  });
+  if (session) founderOutflowsQuery.session(session);
+  const founderOutflows = await founderOutflowsQuery.lean();
   const founderOutflowTotal = founderOutflows.reduce((sum, f) => sum + Number(f.amount || 0), 0);
 
   const totalInflows = paymentInflow + transferInflow + founderInflowTotal;
   const totalOutflows = expenseOutflow + salaryOutflow + transferOutflow + founderOutflowTotal;
   const calculatedClosing = Number(account.openingBalance || 0) + totalInflows - totalOutflows;
 
-  // Atomic sync
-  account.currentBalance = calculatedClosing;
-  await account.save();
+  // Atomic sync if persist is true
+  if (persist) {
+    account.currentBalance = calculatedClosing;
+    await account.save({ session });
+  }
 
   return {
     accountId: account._id,

@@ -20,6 +20,10 @@ import FinanceAuditLog from '../models/financeAuditLog.model.js';
 import Client from '../models/client.model.js';
 import User from '../models/user.model.js';
 import Attendance from '../models/attendance.model.js';
+import IdempotencyKey from '../models/idempotencyKey.model.js';
+import { runInTransaction } from '../utils/transactionRunner.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
+import crypto from 'crypto';
 
 import {
   computeFinanceKPIs,
@@ -205,19 +209,24 @@ export const getFinanceOverview = async (req, res) => {
 
 export const getFinanceAccounts = async (req, res) => {
   try {
-    const accounts = await FinanceAccount.find().sort({ accountType: 1, accountName: 1 });
+    const accounts = await FinanceAccount.find().sort({ accountType: 1, accountName: 1 }).lean();
 
-    // Reconcile and calculate real-time balances for each account
-    const detailed = await Promise.all(
-      accounts.map(async (acc) => {
-        const reconciliation = await reconcileAccountBalance(acc._id);
-        return {
-          ...acc.toObject(),
-          currentBalance: reconciliation?.closingBalance ?? acc.currentBalance,
-          reconciliation,
-        };
-      })
-    );
+    // Only compute live breakdown without DB writes if explicitly requested
+    const shouldComputeBreakdown = req.query.computeBreakdown === 'true';
+
+    let detailed = accounts;
+    if (shouldComputeBreakdown) {
+      detailed = await Promise.all(
+        accounts.map(async (acc) => {
+          const reconciliation = await reconcileAccountBalance(acc._id, { persist: false });
+          return {
+            ...acc,
+            currentBalance: reconciliation?.closingBalance ?? acc.currentBalance,
+            reconciliation,
+          };
+        })
+      );
+    }
 
     res.json({ success: true, accounts: detailed });
   } catch (error) {
@@ -349,48 +358,66 @@ export const createInternalTransfer = async (req, res) => {
       return res.status(404).json({ success: false, message: 'One or both accounts not found' });
     }
 
-    const transfer = await InternalTransfer.create({
-      fromAccount,
-      toAccount,
-      amount: transferAmount,
-      bankFee: fee,
-      date: date ? new Date(date) : new Date(),
-      reference,
-      notes,
-      proofUrl,
-      createdBy: req.user?._id,
-    });
+    const transfer = await runInTransaction(async (session) => {
+      let createdTransfer;
+      const transferData = {
+        fromAccount,
+        toAccount,
+        amount: transferAmount,
+        bankFee: fee,
+        date: date ? new Date(date) : new Date(),
+        reference,
+        notes,
+        proofUrl,
+        createdBy: req.user?._id,
+      };
 
-    // If an explicit bank fee was recorded, create an linked operational Expense for the fee
-    if (fee > 0) {
-      await Expense.create({
-        title: `Transfer Bank Fee: ${reference || 'Internal Transfer'}`,
-        description: `Bank transfer fee from ${fromAcc.accountName} to ${toAcc.accountName}`,
-        amount: fee,
-        category: 'office',
-        costType: 'agency_overhead',
-        paymentStatus: 'paid',
-        paymentMode: 'Bank',
-        fundingAccount: fromAccount,
-        date: transfer.date,
-        submittedBy: req.user?._id,
-        approvedBy: req.user?._id,
-        status: 'approved',
+      if (session) {
+        const created = await InternalTransfer.create([transferData], { session });
+        createdTransfer = created[0];
+      } else {
+        createdTransfer = await InternalTransfer.create(transferData);
+      }
+
+      // If an explicit bank fee was recorded, create an linked operational Expense for the fee
+      if (fee > 0) {
+        const expenseData = {
+          title: `Transfer Bank Fee: ${reference || 'Internal Transfer'}`,
+          description: `Bank transfer fee from ${fromAcc.accountName} to ${toAcc.accountName}`,
+          amount: fee,
+          category: 'office',
+          costType: 'agency_overhead',
+          paymentStatus: 'paid',
+          paymentMode: 'Bank',
+          fundingAccount: fromAccount,
+          date: createdTransfer.date,
+          submittedBy: req.user?._id,
+          approvedBy: req.user?._id,
+          status: 'approved',
+        };
+        if (session) {
+          await Expense.create([expenseData], { session });
+        } else {
+          await Expense.create(expenseData);
+        }
+      }
+
+      // Reconcile both accounts atomically within session
+      await reconcileAccountBalance(fromAccount, { session, persist: true });
+      await reconcileAccountBalance(toAccount, { session, persist: true });
+
+      await recordFinanceAudit({
+        actorId: req.user?._id,
+        actorName: req.user?.name,
+        action: 'transfer',
+        entityType: 'InternalTransfer',
+        entityId: createdTransfer._id,
+        description: `Transferred ₹${transferAmount} from ${fromAcc.accountName} to ${toAcc.accountName}`,
+        changes: createdTransfer.toObject ? createdTransfer.toObject() : createdTransfer,
+        session,
       });
-    }
 
-    // Reconcile both accounts atomically
-    await reconcileAccountBalance(fromAccount);
-    await reconcileAccountBalance(toAccount);
-
-    await recordFinanceAudit({
-      actorId: req.user?._id,
-      actorName: req.user?.name,
-      action: 'transfer',
-      entityType: 'InternalTransfer',
-      entityId: transfer._id,
-      description: `Transferred ₹${transferAmount} from ${fromAcc.accountName} to ${toAcc.accountName}`,
-      changes: transfer.toObject(),
+      return createdTransfer;
     });
 
     res.status(201).json({ success: true, transfer });
@@ -754,97 +781,219 @@ export const recordClientPaymentReceipt = async (req, res) => {
       proofUrl,
     } = req.body;
 
+    // 1. Amount validation: must be finite and > 0
     const receiptAmount = Number(amount);
-    if (receiptAmount <= 0) {
-      return res.status(400).json({ success: false, message: 'Receipt amount must be greater than zero' });
-    }
-    if (!client) {
-      return res.status(400).json({ success: false, message: 'Client is required' });
+    if (!Number.isFinite(receiptAmount) || receiptAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Receipt amount must be a finite positive number' });
     }
 
-    await assertPeriodNotLocked(receivedDate || new Date());
+    // 2. Client validation
+    if (!client || !mongoose.Types.ObjectId.isValid(client)) {
+      return res.status(400).json({ success: false, message: 'Valid client ID is required' });
+    }
+    const clientDoc = await Client.findById(client);
+    if (!clientDoc) {
+      return res.status(404).json({ success: false, message: 'Client not found' });
+    }
 
+    // 3. Date & Period Lock validation
+    const paymentDate = receivedDate ? new Date(receivedDate) : new Date();
+    if (isNaN(paymentDate.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid payment date provided' });
+    }
+    await assertPeriodNotLocked(paymentDate);
+
+    // 4. Destination Account validation
+    let destAccountDoc = null;
+    if (destinationAccount) {
+      if (!mongoose.Types.ObjectId.isValid(destinationAccount)) {
+        return res.status(400).json({ success: false, message: 'Invalid destination account ID' });
+      }
+      destAccountDoc = await FinanceAccount.findById(destinationAccount);
+      if (!destAccountDoc || !destAccountDoc.isActive) {
+        return res.status(400).json({ success: false, message: 'Destination account is not active or not found' });
+      }
+    }
+
+    // 5. Target Invoice validation & ownership check
     let targetInvoice = null;
-    let unappliedCredit = 0;
-
     if (invoice) {
+      if (!mongoose.Types.ObjectId.isValid(invoice)) {
+        return res.status(400).json({ success: false, message: 'Invalid invoice ID' });
+      }
       targetInvoice = await Invoice.findById(invoice);
-      if (!targetInvoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
+      if (!targetInvoice) {
+        return res.status(404).json({ success: false, message: 'Invoice not found' });
+      }
+      if (targetInvoice.client?.toString() !== client.toString()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invoice does not belong to the specified client',
+        });
+      }
+      if (['void', 'draft'].includes(targetInvoice.status) || targetInvoice.workflowStatus === 'void') {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot record payment for void or draft invoices',
+        });
+      }
+    }
 
-      const currentBalance = Number(targetInvoice.balanceAmount || 0);
+    // 6. Idempotency Key deduplication
+    const idempotencyKey = req.headers['idempotency-key'] || req.body.idempotencyKey;
+    const requestHash = crypto
+      .createHash('sha256')
+      .update(
+        JSON.stringify({
+          client,
+          invoice,
+          amount: receiptAmount,
+          receivedDate: paymentDate.toISOString(),
+          destinationAccount,
+        })
+      )
+      .digest('hex');
 
-      // Protect against overpayment leading to negative balance:
-      // Excess amount is preserved as unapplied client credit
-      if (receiptAmount > currentBalance) {
-        unappliedCredit = receiptAmount - currentBalance;
-        targetInvoice.paidAmount = (targetInvoice.paidAmount || 0) + currentBalance;
-        targetInvoice.balanceAmount = 0;
-        targetInvoice.status = 'paid';
-      } else {
-        targetInvoice.paidAmount = (targetInvoice.paidAmount || 0) + receiptAmount;
-        targetInvoice.balanceAmount = Math.max(0, currentBalance - receiptAmount);
-        if (targetInvoice.balanceAmount === 0) {
-          targetInvoice.status = 'paid';
-        } else {
-          targetInvoice.status = 'partially_paid';
+    if (idempotencyKey) {
+      const existingKeyRecord = await IdempotencyKey.findOne({
+        scope: 'payment-receipt',
+        key: idempotencyKey,
+      });
+      if (existingKeyRecord) {
+        if (existingKeyRecord.requestHash !== requestHash) {
+          return res.status(409).json({
+            success: false,
+            message: 'Idempotency key reused with mismatched request payload',
+          });
         }
+        return res.status(existingKeyRecord.responseStatus || 200).json(existingKeyRecord.responseBody);
+      }
+    }
+
+    // 7. Atomic Multi-Document Transaction
+    const txnResult = await runInTransaction(async (session) => {
+      let unappliedCredit = 0;
+      let updatedInvoice = null;
+
+      if (invoice) {
+        const invQuery = Invoice.findById(invoice);
+        if (session) invQuery.session(session);
+        updatedInvoice = await invQuery;
+
+        const currentBalance = Number(updatedInvoice.balanceAmount || 0);
+
+        if (receiptAmount > currentBalance) {
+          unappliedCredit = receiptAmount - currentBalance;
+          updatedInvoice.paidAmount = (updatedInvoice.paidAmount || 0) + currentBalance;
+          updatedInvoice.balanceAmount = 0;
+          updatedInvoice.status = 'paid';
+        } else {
+          updatedInvoice.paidAmount = (updatedInvoice.paidAmount || 0) + receiptAmount;
+          updatedInvoice.balanceAmount = Math.max(0, currentBalance - receiptAmount);
+          updatedInvoice.status = updatedInvoice.balanceAmount === 0 ? 'paid' : 'partially_paid';
+        }
+
+        updatedInvoice.payments = updatedInvoice.payments || [];
+        updatedInvoice.payments.push({
+          amount: receiptAmount - unappliedCredit,
+          method: paymentMode,
+          reference: reference || '',
+          paidAt: paymentDate,
+          notes: notes || '',
+        });
+
+        await updatedInvoice.save({ session });
+      } else {
+        unappliedCredit = receiptAmount;
       }
 
-      targetInvoice.payments = targetInvoice.payments || [];
-      targetInvoice.payments.push({
-        amount: receiptAmount - unappliedCredit,
+      // Record Payment document
+      const paymentData = {
+        invoice: invoice || null,
+        client,
+        amount: receiptAmount,
+        unappliedCredit,
+        paymentMode,
         method: paymentMode,
+        destinationAccount: destinationAccount || null,
         reference: reference || '',
-        paidAt: receivedDate ? new Date(receivedDate) : new Date(),
-        notes: notes || '',
+        proofUrl: proofUrl || '',
+        receivedDate: paymentDate,
+        paidAt: paymentDate,
+        status: 'paid',
+        notes,
+        recordedBy: req.user?._id,
+      };
+
+      let newPayment;
+      if (session) {
+        const created = await Payment.create([paymentData], { session });
+        newPayment = created[0];
+      } else {
+        newPayment = await Payment.create(paymentData);
+      }
+
+      // Reconcile account balance inside transaction
+      if (destinationAccount) {
+        await reconcileAccountBalance(destinationAccount, { session, persist: true });
+      }
+
+      // Record financial audit inside transaction
+      await recordFinanceAudit({
+        actorId: req.user?._id,
+        actorName: req.user?.name,
+        action: 'pay',
+        entityType: 'Payment',
+        entityId: newPayment._id,
+        referenceNumber: reference || newPayment._id.toString(),
+        description: `Recorded client receipt of ₹${receiptAmount} (${paymentMode}) for ${
+          updatedInvoice ? updatedInvoice.invoiceNumber : 'Client Advance'
+        }`,
+        changes: newPayment.toObject ? newPayment.toObject() : newPayment,
+        session,
       });
 
-      await targetInvoice.save();
-    } else {
-      // Direct advance payment without invoice allocation
-      unappliedCredit = receiptAmount;
-    }
-
-    // Record Payment transaction
-    const payment = await Payment.create({
-      invoice: invoice || null,
-      client,
-      amount: receiptAmount,
-      unappliedCredit,
-      paymentMode,
-      method: paymentMode,
-      destinationAccount: destinationAccount || null,
-      reference: reference || '',
-      proofUrl: proofUrl || '',
-      receivedDate: receivedDate ? new Date(receivedDate) : new Date(),
-      paidAt: receivedDate ? new Date(receivedDate) : new Date(),
-      status: 'paid',
-      notes,
-      recordedBy: req.user?._id,
+      return {
+        payment: newPayment,
+        invoice: updatedInvoice,
+        unappliedCredit,
+      };
     });
 
-    // Reconcile destination account balance (increases cash balance atomically)
-    if (destinationAccount) {
-      await reconcileAccountBalance(destinationAccount);
-    }
-
-    await recordFinanceAudit({
-      actorId: req.user?._id,
-      actorName: req.user?.name,
-      action: 'pay',
-      entityType: 'Payment',
-      entityId: payment._id,
-      referenceNumber: reference || payment._id.toString(),
-      description: `Recorded client receipt of ₹${receiptAmount} (${paymentMode}) for ${targetInvoice ? targetInvoice.invoiceNumber : 'Client Advance'}`,
-      changes: payment.toObject(),
-    });
-
-    res.status(201).json({
+    const responsePayload = {
       success: true,
-      payment,
-      invoice: targetInvoice,
-      unappliedCredit,
-    });
+      payment: txnResult.payment,
+      invoice: txnResult.invoice,
+      unappliedCredit: txnResult.unappliedCredit,
+    };
+
+    // 8. Persist Idempotency record post-commit
+    if (idempotencyKey) {
+      try {
+        await IdempotencyKey.create({
+          scope: 'payment-receipt',
+          key: idempotencyKey,
+          userId: req.user?._id,
+          requestHash,
+          responseStatus: 201,
+          responseBody: responsePayload,
+          status: 'completed',
+        });
+      } catch (err) {
+        // Ignore duplicate key collision
+      }
+    }
+
+    // 9. Emit scoped real-time events outside the transaction callback
+    emitLiveEvent(
+      'financeUpdated',
+      { id: txnResult.payment._id },
+      {
+        brandId: txnResult.invoice?.brandId || req.headers['x-workspace-id'],
+      }
+    );
+
+    res.status(201).json(responsePayload);
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
@@ -1220,68 +1369,85 @@ export const addExpensePayment = async (req, res) => {
     const { amount, paymentMode = 'Bank', paymentDate = new Date(), reference = '', notes = '', fundingAccount } = req.body;
 
     const paymentAmount = Number(amount);
-    if (!paymentAmount || paymentAmount <= 0) {
-      return res.status(400).json({ success: false, message: 'Payment amount must be greater than 0' });
+    if (!Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be a finite positive number' });
     }
 
     const expense = await Expense.findById(id);
     if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
 
-    await assertPeriodNotLocked(paymentDate);
-
-    if (!Array.isArray(expense.payments)) {
-      expense.payments = [];
+    const payDate = new Date(paymentDate);
+    if (isNaN(payDate.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid payment date' });
     }
+    await assertPeriodNotLocked(payDate);
 
-    // If migrating legacy paid expense without payments items
-    if (expense.payments.length === 0 && expense.paymentStatus === 'paid' && (expense.paidAmount > 0 || expense.amount > 0)) {
-      expense.payments.push({
-        amount: Number(expense.paidAmount || expense.amount),
-        paymentDate: expense.paymentDate || expense.date || new Date(),
-        paymentMode: expense.paymentMode || 'Bank',
-        reference: 'Initial Payment',
-        notes: 'Legacy full payment',
-        fundingAccount: expense.fundingAccount || null,
-        recordedBy: expense.submittedBy,
-        createdAt: expense.paymentDate || expense.createdAt || new Date(),
+    const targetAccount = fundingAccount || expense.fundingAccount;
+
+    const updatedExpense = await runInTransaction(async (session) => {
+      const expQuery = Expense.findById(id);
+      if (session) expQuery.session(session);
+      const exp = await expQuery;
+
+      if (!Array.isArray(exp.payments)) {
+        exp.payments = [];
+      }
+
+      // If migrating legacy paid expense without payments items
+      if (exp.payments.length === 0 && exp.paymentStatus === 'paid' && (exp.paidAmount > 0 || exp.amount > 0)) {
+        exp.payments.push({
+          amount: Number(exp.paidAmount || exp.amount),
+          paymentDate: exp.paymentDate || exp.date || new Date(),
+          paymentMode: exp.paymentMode || 'Bank',
+          reference: 'Initial Payment',
+          notes: 'Legacy full payment',
+          fundingAccount: exp.fundingAccount || null,
+          recordedBy: exp.submittedBy,
+          createdAt: exp.paymentDate || exp.createdAt || new Date(),
+        });
+      }
+
+      exp.payments.push({
+        amount: paymentAmount,
+        paymentDate: payDate,
+        paymentMode,
+        reference,
+        notes,
+        fundingAccount: targetAccount || null,
+        recordedBy: req.user?._id,
+        createdAt: new Date(),
       });
-    }
 
-    expense.payments.push({
-      amount: paymentAmount,
-      paymentDate: new Date(paymentDate),
-      paymentMode,
-      reference,
-      notes,
-      fundingAccount: fundingAccount || null,
-      recordedBy: req.user?._id,
-      createdAt: new Date(),
+      const totalPaid = exp.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      exp.paidAmount = totalPaid;
+      exp.balanceAmount = Math.max(0, Number(exp.amount || 0) - totalPaid);
+      exp.paymentStatus = exp.balanceAmount === 0 ? 'paid' : (totalPaid > 0 ? 'partially_paid' : 'unpaid');
+      exp.paymentDate = payDate;
+      exp.paymentMode = paymentMode;
+
+      await exp.save({ session });
+
+      if (targetAccount) {
+        await reconcileAccountBalance(targetAccount, { session, persist: true });
+      }
+
+      await recordFinanceAudit({
+        actorId: req.user?._id,
+        actorName: req.user?.name,
+        action: 'add_payment',
+        entityType: 'Expense',
+        entityId: exp._id,
+        description: `Added payment of ₹${paymentAmount} to ${exp.title} via ${paymentMode}`,
+        changes: exp.toObject ? exp.toObject() : exp,
+        session,
+      });
+
+      return exp;
     });
 
-    const totalPaid = expense.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-    expense.paidAmount = totalPaid;
-    expense.balanceAmount = Math.max(0, Number(expense.amount || 0) - totalPaid);
-    expense.paymentStatus = expense.balanceAmount === 0 ? 'paid' : (totalPaid > 0 ? 'partially_paid' : 'unpaid');
-    expense.paymentDate = new Date(paymentDate);
-    expense.paymentMode = paymentMode;
+    emitLiveEvent('financeUpdated', { id: updatedExpense._id });
 
-    await expense.save();
-
-    if (fundingAccount) {
-      await reconcileAccountBalance(fundingAccount);
-    }
-
-    await recordFinanceAudit({
-      actorId: req.user?._id,
-      actorName: req.user?.name,
-      action: 'add_payment',
-      entityType: 'Expense',
-      entityId: expense._id,
-      description: `Added payment of ₹${paymentAmount} to ${expense.title} via ${paymentMode}`,
-      changes: expense.toObject(),
-    });
-
-    res.json({ success: true, expense });
+    res.json({ success: true, expense: updatedExpense });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
@@ -1298,23 +1464,53 @@ export const deleteExpensePayment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'No payments found on this expense' });
     }
 
-    const initialLen = expense.payments.length;
-    expense.payments = expense.payments.filter((p) => String(p._id) !== String(paymentId));
-
-    if (expense.payments.length === initialLen) {
+    const targetPayment = expense.payments.find((p) => String(p._id) === String(paymentId));
+    if (!targetPayment) {
       return res.status(404).json({ success: false, message: 'Payment record not found' });
     }
 
-    const totalPaid = expense.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-    expense.paidAmount = totalPaid;
-    expense.balanceAmount = Math.max(0, Number(expense.amount || 0) - totalPaid);
-    expense.paymentStatus = expense.balanceAmount === 0 ? 'paid' : (totalPaid > 0 ? 'partially_paid' : 'unpaid');
+    // Check period lock on the payment being removed
+    await assertPeriodNotLocked(targetPayment.paymentDate || expense.date);
 
-    await expense.save();
+    const affectedAccount = targetPayment.fundingAccount || expense.fundingAccount;
 
-    res.json({ success: true, expense });
+    const updatedExpense = await runInTransaction(async (session) => {
+      const expQuery = Expense.findById(id);
+      if (session) expQuery.session(session);
+      const exp = await expQuery;
+
+      exp.payments = exp.payments.filter((p) => String(p._id) !== String(paymentId));
+
+      const totalPaid = exp.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      exp.paidAmount = totalPaid;
+      exp.balanceAmount = Math.max(0, Number(exp.amount || 0) - totalPaid);
+      exp.paymentStatus = exp.balanceAmount === 0 ? 'paid' : (totalPaid > 0 ? 'partially_paid' : 'unpaid');
+
+      await exp.save({ session });
+
+      if (affectedAccount) {
+        await reconcileAccountBalance(affectedAccount, { session, persist: true });
+      }
+
+      await recordFinanceAudit({
+        actorId: req.user?._id,
+        actorName: req.user?.name,
+        action: 'delete_payment',
+        entityType: 'Expense',
+        entityId: exp._id,
+        description: `Removed payment of ₹${targetPayment.amount} from expense: ${exp.title}`,
+        changes: { removedPayment: targetPayment, remainingPaidAmount: exp.paidAmount },
+        session,
+      });
+
+      return exp;
+    });
+
+    emitLiveEvent('financeUpdated', { id: updatedExpense._id });
+
+    res.json({ success: true, expense: updatedExpense });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

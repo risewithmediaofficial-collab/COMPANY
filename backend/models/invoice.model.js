@@ -4,6 +4,7 @@
 
 import mongoose from 'mongoose';
 import crypto from 'crypto';
+import { getNextSequence } from './counter.model.js';
 
 const lineItemSchema = new mongoose.Schema({
   serviceName: { type: String, default: '' },
@@ -107,11 +108,11 @@ const invoiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Auto generate invoice number
+// Auto generate invoice number using atomic counter
 invoiceSchema.pre('save', async function (next) {
   if (!this.invoiceNumber) {
-    const count = await mongoose.model('Invoice').countDocuments();
-    this.invoiceNumber = `INV-${String(count + 1).padStart(4, '0')}`;
+    const nextSeq = await getNextSequence('invoiceNumber');
+    this.invoiceNumber = `INV-${String(nextSeq).padStart(4, '0')}`;
   }
   if (!this.invoicePublicLink) {
     this.invoicePublicLink = crypto.randomBytes(10).toString('hex');
