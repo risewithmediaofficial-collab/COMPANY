@@ -67,12 +67,14 @@ export default function Finance() {
     let tabFromUrl = section || searchParams.get('tab');
     if (tabFromUrl === 'cash-flow' || tabFromUrl === 'founders' || tabFromUrl === 'settings') {
       tabFromUrl = 'overview';
-      setSearchParams({ tab: 'overview' });
+      if (searchParams.get('tab') !== 'overview') {
+        setSearchParams({ tab: 'overview' }, { replace: true });
+      }
     }
     if (tabFromUrl && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
-  }, [section, searchParams]);
+  }, [section, searchParams, activeTab]);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -87,7 +89,8 @@ export default function Finance() {
       return { startDate: todayStr, endDate: todayStr };
     }
     if (periodFilter === 'this_week') {
-      const firstDay = new Date(now.setDate(now.getDate() - now.getDay()));
+      const firstDay = new Date(now);
+      firstDay.setDate(now.getDate() - now.getDay());
       return { startDate: firstDay.toISOString().slice(0, 10) };
     }
     if (periodFilter === 'this_month') {
@@ -112,7 +115,10 @@ export default function Finance() {
     return {};
   }, [periodFilter, customStartDate, customEndDate]);
 
-  const { data: overviewData = {}, isLoading: overviewLoading, refetch } = useFinanceModuleOverview(dateParams);
+  // Only load heavy overview data when Overview tab is active
+  const { data: overviewData = {}, isLoading: overviewLoading, refetch } = useFinanceModuleOverview(dateParams, {
+    enabled: activeTab === 'overview',
+  });
 
   const openQuickAdd = (action = 'invoice') => {
     setQuickAddAction(action);

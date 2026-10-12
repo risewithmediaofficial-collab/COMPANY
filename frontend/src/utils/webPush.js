@@ -200,6 +200,8 @@ export const subscribeToWebPush = async () => {
       subscription: subscription.toJSON(),
     });
 
+    lastReconcileTime = Date.now();
+
     toast.success('Push notifications active on this device!', {
       description: 'You will receive alerts even when the website or PWA is closed.',
     });
@@ -211,44 +213,76 @@ export const subscribeToWebPush = async () => {
   }
 };
 
+let reconciliationPromise = null;
+let lastReconcileTime = 0;
+const RECONCILE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
+
 /**
  * Reconcile subscription on app launch / login
  * Silently syncs existing subscription with backend if permission was already granted
  */
-export const reconcilePushSubscription = async () => {
+export const reconcilePushSubscription = async (force = false) => {
   if (!isWebPushSupported()) return { success: false, reason: 'unsupported' };
+  if (typeof window === 'undefined') return { success: false, reason: 'ssr' };
   if (Notification.permission !== 'granted') return { success: false, reason: 'not_granted' };
 
-  const vapidPublicKey = getVapidPublicKey();
-  if (!vapidPublicKey) return { success: false, reason: 'missing_key' };
+  // Only reconcile for logged in users with valid access token
+  const token = localStorage.getItem('accessToken');
+  if (!token) return { success: false, reason: 'unauthenticated' };
 
-  try {
-    const reg = await getServiceWorkerRegistration();
-    let subscription = await reg.pushManager.getSubscription();
-
-    if (subscription && !doesKeyMatch(subscription, vapidPublicKey)) {
-      await subscription.unsubscribe().catch(() => {});
-      subscription = null;
-    }
-
-    if (!subscription) {
-      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-      subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey,
-      });
-    }
-
-    if (subscription) {
-      await api.post('/notifications/subscribe', {
-        subscription: subscription.toJSON(),
-      });
-      return { success: true, subscription };
-    }
-  } catch (err) {
-    console.warn('[WebPush] Background reconciliation notice:', err.message);
+  // Skip if recently reconciled unless forced
+  const now = Date.now();
+  if (!force && lastReconcileTime && now - lastReconcileTime < RECONCILE_COOLDOWN_MS) {
+    return { success: true, cached: true };
   }
-  return { success: false };
+
+  // Deduplicate concurrent in-flight calls
+  if (reconciliationPromise) {
+    return reconciliationPromise;
+  }
+
+  reconciliationPromise = (async () => {
+    try {
+      const vapidPublicKey = getVapidPublicKey();
+      if (!vapidPublicKey) return { success: false, reason: 'missing_key' };
+
+      const reg = await getServiceWorkerRegistration();
+      let subscription = await reg.pushManager.getSubscription();
+
+      if (subscription && !doesKeyMatch(subscription, vapidPublicKey)) {
+        await subscription.unsubscribe().catch(() => {});
+        subscription = null;
+      }
+
+      if (!subscription) {
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+        subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey,
+        });
+      }
+
+      if (subscription) {
+        const subData = subscription.toJSON();
+        if (subData && subData.endpoint && subData.keys?.p256dh && subData.keys?.auth) {
+          await api.post('/notifications/subscribe', {
+            subscription: subData,
+          });
+          lastReconcileTime = Date.now();
+          return { success: true, subscription };
+        }
+      }
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.debug('[WebPush] Background reconciliation skipped:', err?.message || err);
+      }
+    } finally {
+      reconciliationPromise = null;
+    }
+    return { success: false };
+  })();
+
+  return reconciliationPromise;
 };
 
 /**
