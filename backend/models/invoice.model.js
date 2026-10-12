@@ -189,11 +189,11 @@ invoiceSchema.pre('save', async function (next) {
   next();
 });
 
-invoiceSchema.index({ client: 1 });
-invoiceSchema.index({ organizationId: 1 });
-invoiceSchema.index({ brandId: 1 });
-invoiceSchema.index({ status: 1 });
-invoiceSchema.index({ dueDate: 1 });
+invoiceSchema.index({ client: 1, invoiceDate: -1 });
+invoiceSchema.index({ organizationId: 1, invoiceDate: -1 });
+invoiceSchema.index({ brandId: 1, invoiceDate: -1 });
+invoiceSchema.index({ status: 1, invoiceDate: -1 });
+invoiceSchema.index({ status: 1, dueDate: 1 });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
 export default Invoice;

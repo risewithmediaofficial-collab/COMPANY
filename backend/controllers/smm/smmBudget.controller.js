@@ -305,7 +305,9 @@ export const exportBudgetReport = async (req, res) => {
 
     const budgets = await SmmBudget.find(query)
       .populate('client', 'name company companyName primaryContact')
-      .sort({ fromDate: -1 });
+      .sort({ fromDate: -1 })
+      .limit(5000)
+      .lean();
 
     const headers = [
       'Company Name',

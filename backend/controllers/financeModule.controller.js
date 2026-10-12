@@ -23,6 +23,7 @@ import Attendance from '../models/attendance.model.js';
 import IdempotencyKey from '../models/idempotencyKey.model.js';
 import { runInTransaction } from '../utils/transactionRunner.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
+import { parsePagination } from '../utils/pagination.js';
 import crypto from 'crypto';
 
 import {
@@ -50,33 +51,84 @@ export const getFinanceOverview = async (req, res) => {
     const monthlySeries = [];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+    const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1, 0, 0, 0, 0);
+    const endOfCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const [invoicesByMonth, expensesByMonth, salariesByMonth] = await Promise.all([
+      Invoice.aggregate([
+        {
+          $match: {
+            status: { $nin: ['draft', 'void', 'cancelled'] },
+            invoiceDate: { $gte: sixMonthsAgo, $lte: endOfCurrentMonth },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: { date: '$invoiceDate', timezone: 'Asia/Kolkata' } },
+              month: { $month: { date: '$invoiceDate', timezone: 'Asia/Kolkata' } },
+            },
+            revenue: {
+              $sum: { $ifNull: ['$serviceRevenue', { $ifNull: ['$subtotal', 0] }] },
+            },
+          },
+        },
+      ]),
+      Expense.aggregate([
+        {
+          $match: {
+            approvalStatus: { $ne: 'rejected' },
+            date: { $gte: sixMonthsAgo, $lte: endOfCurrentMonth },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: { date: '$date', timezone: 'Asia/Kolkata' } },
+              month: { $month: { date: '$date', timezone: 'Asia/Kolkata' } },
+            },
+            total: { $sum: '$amount' },
+          },
+        },
+      ]),
+      SalaryRecord.aggregate([
+        {
+          $match: {
+            status: { $in: ['approved', 'paid'] },
+            createdAt: { $gte: sixMonthsAgo, $lte: endOfCurrentMonth },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: { date: '$createdAt', timezone: 'Asia/Kolkata' } },
+              month: { $month: { date: '$createdAt', timezone: 'Asia/Kolkata' } },
+            },
+            total: { $sum: '$netSalary' },
+          },
+        },
+      ]),
+    ]);
+
+    const revMap = new Map();
+    invoicesByMonth.forEach((r) => revMap.set(`${r._id.year}-${r._id.month}`, r.revenue || 0));
+
+    const expMap = new Map();
+    expensesByMonth.forEach((e) => expMap.set(`${e._id.year}-${e._id.month}`, e.total || 0));
+
+    const salMap = new Map();
+    salariesByMonth.forEach((s) => salMap.set(`${s._id.year}-${s._id.month}`, s.total || 0));
+
     for (let i = 5; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const start = new Date(d.getFullYear(), d.getMonth(), 1);
-      const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-      const mLabel = `${monthNames[start.getMonth()]} ${start.getFullYear()}`;
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const key = `${y}-${m}`;
+      const mLabel = `${monthNames[d.getMonth()]} ${y}`;
 
-      // Invoices in month
-      const monthInvoices = await Invoice.find({
-        status: { $nin: ['draft', 'void', 'cancelled'] },
-        invoiceDate: { $gte: start, $lte: end },
-      }).lean();
-      const revenue = monthInvoices.reduce((sum, inv) => sum + Number(inv.serviceRevenue ?? inv.subtotal ?? 0), 0);
-
-      // Expenses in month
-      const monthExpenses = await Expense.find({
-        approvalStatus: { $ne: 'rejected' },
-        date: { $gte: start, $lte: end },
-      }).lean();
-      const opExpenses = monthExpenses.reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
-
-      // Salaries in month
-      const monthSalaries = await SalaryRecord.find({
-        status: { $in: ['approved', 'paid'] },
-        createdAt: { $gte: start, $lte: end },
-      }).lean();
-      const salExpenses = monthSalaries.reduce((sum, sal) => sum + Number(sal.netSalary || 0), 0);
-
+      const revenue = revMap.get(key) || 0;
+      const opExpenses = expMap.get(key) || 0;
+      const salExpenses = salMap.get(key) || 0;
       const totalCosts = opExpenses + salExpenses;
       const profit = revenue - totalCosts;
 
@@ -451,6 +503,8 @@ export const deleteInternalTransfer = async (req, res) => {
 export const getModuleInvoices = async (req, res) => {
   try {
     const { status, workflowStatus, client, search, servicePeriod, startDate, endDate } = req.query;
+    const isPaginated = req.query.page !== undefined || req.query.limit !== undefined;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
     const filter = {};
 
     if (client) filter.client = client;
@@ -478,11 +532,20 @@ export const getModuleInvoices = async (req, res) => {
     }
 
     const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
-    const invoices = await Invoice.find(filter)
+    const findQuery = Invoice.find(filter)
       .populate('client', 'name company email phone monthlyPlanFee servicePlan deliverables billingDate')
       .populate('issuedBy', 'name email')
       .sort({ invoiceDate: sortDirection, createdAt: sortDirection })
       .lean();
+
+    if (isPaginated) {
+      findQuery.skip(skip).limit(limit);
+    }
+
+    const [total, invoices] = await Promise.all([
+      Invoice.countDocuments(filter),
+      findQuery,
+    ]);
 
     // Dynamically derive overdue flag for any unpaid/partially paid past due date
     const now = new Date();
@@ -495,9 +558,14 @@ export const getModuleInvoices = async (req, res) => {
       };
     });
 
-    res.json({ success: true, invoices: enriched });
+    res.json({
+      success: true,
+      total,
+      ...(isPaginated ? { page, pages: Math.ceil(total / limit) } : {}),
+      invoices: enriched,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -1002,6 +1070,8 @@ export const recordClientPaymentReceipt = async (req, res) => {
 export const getPaymentReceipts = async (req, res) => {
   try {
     const { client, invoice, startDate, endDate } = req.query;
+    const isPaginated = req.query.page !== undefined || req.query.limit !== undefined;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
     const filter = { status: 'paid' };
     if (client) filter.client = client;
     if (invoice) filter.invoice = invoice;
@@ -1016,7 +1086,7 @@ export const getPaymentReceipts = async (req, res) => {
     }
 
     const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
-    const receipts = await Payment.find(filter)
+    const findQuery = Payment.find(filter)
       .populate('client', 'name company email phone')
       .populate('invoice', 'invoiceNumber total balanceAmount servicePeriod')
       .populate('destinationAccount', 'accountName accountType bankName')
@@ -1024,9 +1094,23 @@ export const getPaymentReceipts = async (req, res) => {
       .sort({ receivedDate: sortDirection, paidAt: sortDirection })
       .lean();
 
-    res.json({ success: true, receipts });
+    if (isPaginated) {
+      findQuery.skip(skip).limit(limit);
+    }
+
+    const [total, receipts] = await Promise.all([
+      Payment.countDocuments(filter),
+      findQuery,
+    ]);
+
+    res.json({
+      success: true,
+      total,
+      ...(isPaginated ? { page, pages: Math.ceil(total / limit) } : {}),
+      receipts,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -1103,6 +1187,8 @@ export const deletePaymentReceipt = async (req, res) => {
 export const getModuleExpenses = async (req, res) => {
   try {
     const { category, costType, paymentStatus, approvalStatus, startDate, endDate, search } = req.query;
+    const isPaginated = req.query.page !== undefined || req.query.limit !== undefined;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
     const filter = {};
 
     if (category && category !== 'all') filter.category = category;
@@ -1130,7 +1216,7 @@ export const getModuleExpenses = async (req, res) => {
     }
 
     const sortDirection = req.query.sortOrder === 'asc' ? 1 : -1;
-    const rawExpenses = await Expense.find(filter)
+    const findQuery = Expense.find(filter)
       .populate('client', 'name company')
       .populate('project', 'name')
       .populate('fundingAccount', 'accountName accountType')
@@ -1140,6 +1226,15 @@ export const getModuleExpenses = async (req, res) => {
       .populate('approvedBy', 'name email')
       .sort({ date: sortDirection, createdAt: sortDirection })
       .lean();
+
+    if (isPaginated) {
+      findQuery.skip(skip).limit(limit);
+    }
+
+    const [total, rawExpenses] = await Promise.all([
+      Expense.countDocuments(filter),
+      findQuery,
+    ]);
 
     const expenses = rawExpenses.map((e) => {
       const hasPayments = Array.isArray(e.payments) && e.payments.length > 0;
@@ -1164,9 +1259,14 @@ export const getModuleExpenses = async (req, res) => {
       };
     });
 
-    res.json({ success: true, expenses });
+    res.json({
+      success: true,
+      total,
+      ...(isPaginated ? { page, pages: Math.ceil(total / limit) } : {}),
+      expenses,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

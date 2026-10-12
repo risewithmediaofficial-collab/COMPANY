@@ -15,6 +15,7 @@ import { createActivityLog } from '../utils/activity.js';
 import { matchesContentType, getMonthDateRange } from './projectMonthlyDeliverable.controller.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
+import { parsePagination } from '../utils/pagination.js';
 
 const taskStatusMap = {
   'To Do': 'todo',
@@ -601,9 +602,9 @@ export const getTasks = async (req, res) => {
       dueDate,
       search,
       parent,
-      page = 1,
-      limit = 50,
     } = req.query;
+
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
 
     const filter = {};
 
@@ -644,31 +645,34 @@ export const getTasks = async (req, res) => {
 
     const scopedFilter = withWorkspaceScope(req, await buildScopedTaskFilter(req, filter));
 
-    const total = await Task.countDocuments(scopedFilter);
-    const tasks = await Task.find(scopedFilter)
-      .populate('assignedTo', 'name avatar')
-      .populate('assignedManager', 'name avatar')
-      .populate('createdBy', 'name avatar')
-      .populate('scriptWriterAssigned', 'name avatar')
-      .populate('voiceArtistAssigned', 'name avatar')
-      .populate('videographerAssigned', 'name avatar')
-      .populate('editorAssigned', 'name avatar')
-      .populate('publisherAssigned', 'name avatar')
-      .populate('project', 'name')
-      .populate('client', 'name company')
-      .sort({ dueDate: 1, orderIndex: 1, createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+    const [total, tasks] = await Promise.all([
+      Task.countDocuments(scopedFilter),
+      Task.find(scopedFilter)
+        .populate('assignedTo', 'name avatar')
+        .populate('assignedManager', 'name avatar')
+        .populate('createdBy', 'name avatar')
+        .populate('scriptWriterAssigned', 'name avatar')
+        .populate('voiceArtistAssigned', 'name avatar')
+        .populate('videographerAssigned', 'name avatar')
+        .populate('editorAssigned', 'name avatar')
+        .populate('publisherAssigned', 'name avatar')
+        .populate('project', 'name')
+        .populate('client', 'name company')
+        .sort({ dueDate: 1, orderIndex: 1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
 
     res.json({
       success: true,
       total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit || 1)),
+      page,
+      pages: Math.ceil(total / limit),
       tasks: tasks.map(serializeTask),
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

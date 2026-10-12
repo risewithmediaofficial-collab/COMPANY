@@ -73,41 +73,26 @@ export const getSmmDashboardStats = async (req, res) => {
       ];
     }
 
-    const [
-      totalPosts,
-      totalReels,
-      totalStories,
-      totalVideos,
-      totalContentPublished,
-      contentPublishedThisMonth,
-      contentScheduled,
-      contentPendingApproval,
-      contentDrafts,
-      contentReady,
-      contentRevision,
-      allContents,
-    ] = await Promise.all([
-      SmmContent.countDocuments({ ...contentQuery, contentType: 'Post' }),
-      SmmContent.countDocuments({ ...contentQuery, contentType: { $in: ['Reel', 'Reel / Story'] } }),
-      SmmContent.countDocuments({ ...contentQuery, contentType: { $in: ['Story', 'Reel / Story'] } }),
-      SmmContent.countDocuments({ ...contentQuery, contentType: { $in: ['Video', 'Short'] } }),
-      SmmContent.countDocuments({ ...contentQuery, postingStatus: 'Published' }),
-      SmmContent.countDocuments({
-        ...contentQuery,
-        postingStatus: 'Published',
-        actualPostedDate: { $gte: startOfMonth },
-      }),
-      SmmContent.countDocuments({ ...contentQuery, postingStatus: 'Scheduled' }),
-      SmmContent.countDocuments({ ...contentQuery, postingStatus: 'Pending Approval' }),
-      SmmContent.countDocuments({ ...contentQuery, postingStatus: 'Draft' }),
-      SmmContent.countDocuments({ ...contentQuery, postingStatus: 'Ready' }),
-      SmmContent.countDocuments({ ...contentQuery, postingStatus: 'Revision Required' }),
-      SmmContent.find(contentQuery)
-        .populate('client', 'name company logo')
-        .populate('project', 'name')
-        .populate('advertising.campaign', 'name status dailyBudget amountSpent remainingBalance')
-        .sort({ performanceScore: -1, createdAt: -1 }),
-    ]);
+    const allContents = await SmmContent.find(contentQuery)
+      .populate('client', 'name company logo')
+      .populate('project', 'name')
+      .populate('advertising.campaign', 'name status dailyBudget amountSpent remainingBalance')
+      .sort({ performanceScore: -1, createdAt: -1 })
+      .lean();
+
+    const totalPosts = allContents.filter((c) => c.contentType === 'Post').length;
+    const totalReels = allContents.filter((c) => ['Reel', 'Reel / Story'].includes(c.contentType)).length;
+    const totalStories = allContents.filter((c) => ['Story', 'Reel / Story'].includes(c.contentType)).length;
+    const totalVideos = allContents.filter((c) => ['Video', 'Short'].includes(c.contentType)).length;
+    const totalContentPublished = allContents.filter((c) => c.postingStatus === 'Published').length;
+    const contentPublishedThisMonth = allContents.filter(
+      (c) => c.postingStatus === 'Published' && c.actualPostedDate && new Date(c.actualPostedDate) >= startOfMonth
+    ).length;
+    const contentScheduled = allContents.filter((c) => c.postingStatus === 'Scheduled').length;
+    const contentPendingApproval = allContents.filter((c) => c.postingStatus === 'Pending Approval').length;
+    const contentDrafts = allContents.filter((c) => c.postingStatus === 'Draft').length;
+    const contentReady = allContents.filter((c) => c.postingStatus === 'Ready').length;
+    const contentRevision = allContents.filter((c) => c.postingStatus === 'Revision Required').length;
 
     const totalContent = totalPosts + totalReels + totalStories + totalVideos;
     const notPostedCount = contentDrafts + contentReady + contentRevision + contentPendingApproval;
@@ -161,23 +146,17 @@ export const getSmmDashboardStats = async (req, res) => {
     if (platform) campaignQuery.platform = platform;
     if (campaignStatus) campaignQuery.status = campaignStatus;
 
-    const [
-      totalCampaigns,
-      activeCampaigns,
-      stoppedCampaigns,
-      completedCampaigns,
-      allCampaigns,
-    ] = await Promise.all([
-      Campaign.countDocuments(campaignQuery),
-      Campaign.countDocuments({ ...campaignQuery, status: 'Running' }),
-      Campaign.countDocuments({ ...campaignQuery, status: { $in: ['Stopped', 'Paused'] } }),
-      Campaign.countDocuments({ ...campaignQuery, status: 'Completed' }),
-      Campaign.find(campaignQuery)
-        .populate('client', 'name company logo')
-        .populate('project', 'name')
-        .populate('sourceContentId', 'name contentType thumbnail performanceScore')
-        .select('name status platform dailyBudget lifetimeBudget budgetType amountAdded amountSpent remainingBalance performance durationDays budgetAlerts'),
-    ]);
+    const allCampaigns = await Campaign.find(campaignQuery)
+      .populate('client', 'name company logo')
+      .populate('project', 'name')
+      .populate('sourceContentId', 'name contentType thumbnail performanceScore')
+      .select('name status platform dailyBudget lifetimeBudget budgetType amountAdded amountSpent remainingBalance performance durationDays budgetAlerts')
+      .lean();
+
+    const totalCampaigns = allCampaigns.length;
+    const activeCampaigns = allCampaigns.filter((c) => c.status === 'Running').length;
+    const stoppedCampaigns = allCampaigns.filter((c) => ['Stopped', 'Paused'].includes(c.status)).length;
+    const completedCampaigns = allCampaigns.filter((c) => c.status === 'Completed').length;
 
     // Spend logs for accurate spend calculations
     const spendQuery = { ...filter };

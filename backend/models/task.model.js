@@ -356,13 +356,14 @@ taskSchema.index({ 'development.isDevTask': 1, 'development.stage': 1 });
 taskSchema.index({ 'development.sprint': 1 });
 taskSchema.index({ 'development.release': 1 });
 
-taskSchema.index({ project: 1, status: 1 });
-taskSchema.index({ assignedTo: 1 });
-taskSchema.index({ dueDate: 1 });
+taskSchema.index({ project: 1, status: 1, dueDate: 1 });
+taskSchema.index({ assignedTo: 1, status: 1, dueDate: 1 });
+taskSchema.index({ client: 1, status: 1, dueDate: 1 });
+taskSchema.index({ organizationId: 1, status: 1, dueDate: 1 });
+taskSchema.index({ brandId: 1, status: 1, dueDate: 1 });
+taskSchema.index({ dueDate: 1, orderIndex: 1, createdAt: -1 });
 taskSchema.index({ parent: 1 });
 taskSchema.index({ assignedManager: 1 });
-taskSchema.index({ organizationId: 1 });
-taskSchema.index({ brandId: 1 });
 
 const Task = mongoose.model('Task', taskSchema);
 export default Task;

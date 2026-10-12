@@ -126,11 +126,13 @@ expenseSchema.pre('save', function (next) {
   next();
 });
 
-expenseSchema.index({ submittedBy: 1 });
-expenseSchema.index({ category: 1 });
-expenseSchema.index({ transactionType: 1 });
-expenseSchema.index({ status: 1 });
-expenseSchema.index({ date: -1 });
+expenseSchema.index({ approvalStatus: 1, date: -1 });
+expenseSchema.index({ organizationId: 1, date: -1 });
+expenseSchema.index({ client: 1, date: -1 });
+expenseSchema.index({ 'payments.fundingAccount': 1 });
+expenseSchema.index({ fundingAccount: 1 });
+expenseSchema.index({ category: 1, date: -1 });
+expenseSchema.index({ submittedBy: 1, date: -1 });
 
 const Expense = mongoose.model('Expense', expenseSchema);
 export default Expense;

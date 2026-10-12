@@ -17,6 +17,7 @@ import { createNotification } from '../utils/notification.js';
 import { sendEmail } from '../utils/email.js';
 import { createActivityLog } from '../utils/activity.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
+import { parsePagination } from '../utils/pagination.js';
 
 const invoiceStatusMap = {
   Draft: 'draft',
@@ -695,7 +696,8 @@ export const getOverdueFinanceRecords = async (req, res) => {
 
 export const getFinanceEntries = async (req, res) => {
   try {
-    const { search, type, status, page = 1, limit = 50 } = req.query;
+    const { search, type, status } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 25, maxLimit: 100 });
     const filter = {};
 
     if (type) filter.type = type;
@@ -709,18 +711,21 @@ export const getFinanceEntries = async (req, res) => {
       ];
     }
 
-    const total = await FinanceEntry.countDocuments(filter);
-    const entries = await FinanceEntry.find(filter)
-      .populate('createdBy', 'name email')
-      .populate('client', 'name company')
-      .populate('project', 'name')
-      .sort({ date: -1, createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+    const [total, entries] = await Promise.all([
+      FinanceEntry.countDocuments(filter),
+      FinanceEntry.find(filter)
+        .populate('createdBy', 'name email')
+        .populate('client', 'name company')
+        .populate('project', 'name')
+        .sort({ date: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
 
-    res.json({ success: true, total, entries });
+    res.json({ success: true, total, page, pages: Math.ceil(total / limit), entries });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
@@ -833,7 +838,8 @@ export const deleteFinanceEntry = async (req, res) => {
 
 export const getInvoices = async (req, res) => {
   try {
-    const { status, client, search, page = 1, limit = 20 } = req.query;
+    const { status, client, search } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 25, maxLimit: 100 });
     let filter = {};
 
     if (status) filter.status = normalizeStatus(status);
@@ -847,18 +853,27 @@ export const getInvoices = async (req, res) => {
 
     filter = await applyClientInvoiceScope(req, filter);
 
-    const total = await Invoice.countDocuments(filter);
-    const invoices = await Invoice.find(filter)
-      .populate('client', 'name email company')
-      .populate('project', 'name')
-      .populate('issuedBy', 'name')
-      .sort({ createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+    const [total, invoices] = await Promise.all([
+      Invoice.countDocuments(filter),
+      Invoice.find(filter)
+        .populate('client', 'name email company')
+        .populate('project', 'name')
+        .populate('issuedBy', 'name')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
 
-    res.json({ success: true, total, invoices: invoices.map(serializeInvoice) });
+    res.json({
+      success: true,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      invoices: invoices.map(serializeInvoice),
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

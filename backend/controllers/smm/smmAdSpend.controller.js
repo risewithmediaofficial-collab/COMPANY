@@ -386,7 +386,9 @@ export const exportAdSpendReport = async (req, res) => {
       .populate('client', 'name company')
       .populate('project', 'name')
       .populate('loggedBy', 'name')
-      .sort({ date: -1 });
+      .sort({ date: -1 })
+      .limit(5000)
+      .lean();
 
     const headers = [
       'Date', 'Client', 'Project', 'Campaign', 'Ad', 'Platform',

@@ -6,24 +6,30 @@ import Notification from '../models/notification.model.js';
 import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
 import { sendPushToUser, getEndpointProvider } from '../services/push.service.js';
+import { parsePagination } from '../utils/pagination.js';
 
 export const getNotifications = async (req, res) => {
   try {
-    const { page = 1, limit = 20, unreadOnly } = req.query;
+    const { unreadOnly } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 20, maxLimit: 100 });
     const filter = { recipient: req.user._id };
     if (unreadOnly === 'true' || unreadOnly === true) {
       filter.isRead = false;
     }
-    const notifications = await Notification.find(filter)
-      .populate('sender', 'name avatar')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
 
-    const unreadCount = await Notification.countDocuments({ recipient: req.user._id, isRead: false });
-    res.json({ success: true, notifications, unreadCount });
+    const [notifications, unreadCount] = await Promise.all([
+      Notification.find(filter)
+        .populate('sender', 'name avatar')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Notification.countDocuments({ recipient: req.user._id, isRead: false }),
+    ]);
+
+    res.json({ success: true, page, limit, notifications, unreadCount });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

@@ -17,6 +17,7 @@ import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import Notification from '../models/notification.model.js';
 import Campaign from '../models/smm/campaign.model.js';
 import SmmAdSpend from '../models/smm/smmAdSpend.model.js';
+import { parsePagination } from '../utils/pagination.js';
 
 // Helper: get client from logged-in user
 const getClientFromUser = async (userId) => {
@@ -105,7 +106,8 @@ export const getPortalDashboard = async (req, res) => {
 
 export const getContentItems = async (req, res) => {
   try {
-    const { status, view, search, platform, priority, page = 1, limit = 50 } = req.query;
+    const { status, view, search, platform, priority } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
 
     let filter = withWorkspaceScope(req);
 
@@ -127,20 +129,20 @@ export const getContentItems = async (req, res) => {
       ];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
     const [items, total] = await Promise.all([
       ContentItem.find(filter)
         .populate('assignedEditor', 'name avatar')
         .populate('approvedBy', 'name')
         .sort({ updatedAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(limit)
+        .lean(),
       ContentItem.countDocuments(filter),
     ]);
 
-    res.json({ success: true, items, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
+    res.json({ success: true, items, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

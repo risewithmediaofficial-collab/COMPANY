@@ -9,6 +9,7 @@ import ActivityLog from '../models/activityLog.model.js';
 import { sendEmail } from '../utils/email.js';
 import { createActivityLog } from '../utils/activity.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
+import { parsePagination } from '../utils/pagination.js';
 
 const statusMap = {
   Active: 'active',
@@ -75,7 +76,8 @@ const assertClientAccess = (req, client) => {
 
 export const getClients = async (req, res) => {
   try {
-    const { status, search, service, createdFrom, createdTo, page = 1, limit = 500 } = req.query;
+    const { status, search, service, createdFrom, createdTo } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
     const filter = {};
 
     if (status) {
@@ -112,16 +114,25 @@ export const getClients = async (req, res) => {
       ];
     }
 
-    const total = await Client.countDocuments(filter);
-    const clients = await Client.find(filter)
-      .populate(clientPopulate)
-      .sort({ createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+    const [total, clients] = await Promise.all([
+      Client.countDocuments(filter),
+      Client.find(filter)
+        .populate(clientPopulate)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
 
-    res.json({ success: true, total, clients: clients.map(serializeClient) });
+    res.json({
+      success: true,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      clients: clients.map(serializeClient),
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

@@ -8,6 +8,7 @@ import { createNotification } from '../utils/notification.js';
 import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
+import { parsePagination } from '../utils/pagination.js';
 
 const sourceMap = {
   Website: 'website',
@@ -133,7 +134,8 @@ const buildScopedLeadFilter = (req, filter = {}) => {
 // @route  GET /api/leads
 export const getLeads = async (req, res) => {
   try {
-    const { stage, priority, assignedTo, search, followUp, page = 1, limit = 50 } = req.query;
+    const { stage, priority, assignedTo, search, followUp } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 25, maxLimit: 100 });
     const filter = {};
 
     if (stage) filter.stage = stageMap[stage] || stage;
@@ -173,23 +175,26 @@ export const getLeads = async (req, res) => {
     }
 
     const scopedFilter = buildScopedLeadFilter(req, filter);
-    const total = await Lead.countDocuments(scopedFilter);
-    const leads = await Lead.find(scopedFilter)
-      .populate('assignedTo', 'name email avatar')
-      .populate('convertedToClient', 'name company')
-      .sort({ updatedAt: -1, createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+    const [total, leads] = await Promise.all([
+      Lead.countDocuments(scopedFilter),
+      Lead.find(scopedFilter)
+        .populate('assignedTo', 'name email avatar')
+        .populate('convertedToClient', 'name company')
+        .sort({ updatedAt: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
 
     res.json({
       success: true,
       total,
-      page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      page,
+      pages: Math.ceil(total / limit),
       leads: leads.map(serializeLead),
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

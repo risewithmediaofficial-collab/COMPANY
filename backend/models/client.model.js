@@ -89,9 +89,9 @@ const clientSchema = new mongoose.Schema(
 );
 
 clientSchema.index({ email: 1 });
-clientSchema.index({ status: 1 });
-clientSchema.index({ organizationId: 1 });
-clientSchema.index({ assignedManager: 1 });
+clientSchema.index({ organizationId: 1, status: 1, createdAt: -1 });
+clientSchema.index({ assignedManager: 1, createdAt: -1 });
+clientSchema.index({ userId: 1 });
 
 const Client = mongoose.model('Client', clientSchema);
 export default Client;

@@ -5,36 +5,51 @@
 import mongoose from 'mongoose';
 import { getEnv } from './env.js';
 
-// Register graceful shutdown once (prevents MaxListeners warning on nodemon restarts)
-process.once('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('MongoDB connection closed on app termination');
-  process.exit(0);
-});
+export const redactMongoUri = (uri = '') => {
+  if (!uri) return '';
+  return uri.replace(/\/\/(.*)@([^\/]+)/, '//***:***@$2');
+};
+
+let listenersAttached = false;
+
+const attachConnectionListeners = () => {
+  if (listenersAttached) return;
+  listenersAttached = true;
+
+  mongoose.connection.on('error', (err) => {
+    console.error('MongoDB connection error:', err.message);
+  });
+
+  mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected. Underlying driver is handling reconnect...');
+  });
+};
 
 export const connectDB = async () => {
+  const env = getEnv();
+  const safeUri = redactMongoUri(env.mongoUri);
+
   try {
-    const env = getEnv();
+    attachConnectionListeners();
+
+    const maxPoolSize = parseInt(process.env.MONGO_MAX_POOL_SIZE, 10) || 25;
+    const minPoolSize = parseInt(process.env.MONGO_MIN_POOL_SIZE, 10) || 2;
+
     const conn = await mongoose.connect(env.mongoUri, {
       dbName: env.mongoDbName,
+      maxPoolSize,
+      minPoolSize,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Connected: ${conn.connection.host} [Pool: ${minPoolSize}-${maxPoolSize}]`);
     console.log(`Database: ${conn.connection.name}`);
-
-    mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.warn('MongoDB disconnected. Attempting to reconnect...');
-      setTimeout(connectDB, 5000);
-    });
+    return conn;
   } catch (error) {
-    const env = getEnv();
-    console.error(`MongoDB connection failed (${env.mongoUri}): ${error.message}`);
+    console.error(`MongoDB connection failed (${safeUri}): ${error.message}`);
 
-    // Retry on connection refused (MongoDB not yet started)
+    // Retry on connection refused in development
     if (error.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED')) {
       console.warn('MongoDB not reachable. Retrying in 5 seconds...');
       setTimeout(connectDB, 5000);

@@ -32,6 +32,8 @@ const paymentSchema = new mongoose.Schema(
 
 paymentSchema.index({ invoice: 1, paidAt: -1 });
 paymentSchema.index({ client: 1, paidAt: -1 });
+paymentSchema.index({ destinationAccount: 1, status: 1 });
+paymentSchema.index({ status: 1, receivedDate: -1 });
 
 const Payment = mongoose.model('Payment', paymentSchema);
 export default Payment;

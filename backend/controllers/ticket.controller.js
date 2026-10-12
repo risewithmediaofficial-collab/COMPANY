@@ -4,10 +4,12 @@
 
 import Ticket from '../models/ticket.model.js';
 import Client from '../models/client.model.js';
+import { parsePagination } from '../utils/pagination.js';
 
 export const getTickets = async (req, res) => {
   try {
-    const { status, priority, page = 1, limit = 20 } = req.query;
+    const { status, priority } = req.query;
+    const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 20, maxLimit: 100 });
     const filter = {};
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
@@ -17,18 +19,21 @@ export const getTickets = async (req, res) => {
       if (client) filter.client = client._id;
     }
 
-    const total = await Ticket.countDocuments(filter);
-    const tickets = await Ticket.find(filter)
-      .populate('client', 'name email')
-      .populate('submittedBy', 'name avatar')
-      .populate('assignedTo', 'name avatar')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+    const [total, tickets] = await Promise.all([
+      Ticket.countDocuments(filter),
+      Ticket.find(filter)
+        .populate('client', 'name email')
+        .populate('submittedBy', 'name avatar')
+        .populate('assignedTo', 'name avatar')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
 
-    res.json({ success: true, total, tickets });
+    res.json({ success: true, total, page, pages: Math.ceil(total / limit), tickets });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
