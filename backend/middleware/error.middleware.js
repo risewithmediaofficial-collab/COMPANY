@@ -9,8 +9,8 @@ export const notFound = (req, res, next) => {
 };
 
 export const errorHandler = (err, req, res, next) => {
-  let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  let message = err.message;
+  let statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
+  let message = err.message || 'An unexpected error occurred';
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError' && err.kind === 'ObjectId') {
@@ -18,17 +18,17 @@ export const errorHandler = (err, req, res, next) => {
     message = 'Resource not found';
   }
 
-  // Mongoose duplicate key
+  // Mongoose duplicate key -> 409 Conflict
   if (err.code === 11000) {
-    statusCode = 400;
-    const field = Object.keys(err.keyValue)[0];
+    statusCode = 409;
+    const field = err.keyValue ? Object.keys(err.keyValue)[0] : 'Record';
     message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
   }
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {
     statusCode = 400;
-    message = Object.values(err.errors).map((e) => e.message).join(', ');
+    message = Object.values(err.errors || {}).map((e) => e.message).join(', ') || 'Validation error';
   }
 
   // JWT errors
@@ -41,9 +41,9 @@ export const errorHandler = (err, req, res, next) => {
     message = 'Token expired';
   }
 
+  // Consistent 400/403/404/409 response without internal stack details
   res.status(statusCode).json({
     success: false,
     message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 };

@@ -40,11 +40,14 @@ test('Proposals: Calculates total deliverables price and expiration timeline', (
     { title: '30 Days Social Media Campaign', price: 25000 },
   ];
 
-  const evalResult = evaluateProposal(deliverables, 30, '2026-09-01T00:00:00Z');
+  // Proposal created today with 30-day validity is active
+  const evalResult = evaluateProposal(deliverables, 30, new Date());
   assert.equal(evalResult.totalAmount, 75000);
   assert.equal(evalResult.isExpired, false);
 
-  const expiredResult = evaluateProposal(deliverables, 7, '2026-08-01T00:00:00Z');
+  // Proposal created 40 days ago with 7-day validity is expired
+  const pastDate = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000);
+  const expiredResult = evaluateProposal(deliverables, 7, pastDate);
   assert.equal(expiredResult.isExpired, true);
 });
 

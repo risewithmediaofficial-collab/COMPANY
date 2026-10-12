@@ -28,8 +28,12 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Connect to the same origin — Vite proxies /socket.io → :5002 in dev
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    // Connect to the same origin with authenticated handshake
     const newSocket = io(window.location.origin, {
+      auth: { token },
       withCredentials: true,
       transports: ['polling', 'websocket'],
       reconnectionAttempts: 5,
@@ -37,19 +41,13 @@ export const SocketProvider = ({ children }) => {
       autoConnect: true,
     });
 
-    // Auto-register user room on connect and reconnect, and reconcile push subscription
+    // Reconcile push subscription on connect
     newSocket.on('connect', () => {
-      if (user?._id) {
-        newSocket.emit('register', user._id.toString());
-        reconcilePushSubscription().catch(() => {});
-      }
+      reconcilePushSubscription().catch(() => {});
     });
 
     newSocket.on('reconnect', () => {
-      if (user?._id) {
-        newSocket.emit('register', user._id.toString());
-        reconcilePushSubscription().catch(() => {});
-      }
+      reconcilePushSubscription().catch(() => {});
     });
 
     newSocket.on('connect_error', () => {
@@ -160,13 +158,6 @@ export const SocketProvider = ({ children }) => {
       socketRef.current = null;
     };
   }, [isAuthenticated, user?._id, queryClient]);
-
-  // Register user room after socket connects or user changes
-  useEffect(() => {
-    if (socket && user?._id) {
-      socket.emit('register', user._id);
-    }
-  }, [socket, user?._id]);
 
   return (
     <SocketContext.Provider value={socket}>

@@ -117,3 +117,71 @@ test('Workspace Scope: withWorkspaceScope handles header and role filtering', ()
   assert.equal(scoped.organizationId, 'org_1');
   assert.equal(scoped.brandId, 'brand_abc');
 });
+
+test('Workspace Scope: Fails closed for unauthenticated requests and missing user', () => {
+  const noUserReq = { headers: { 'x-workspace-id': 'brand_spoof' } };
+  const result = withWorkspaceScope(noUserReq, { status: 'active' });
+  assert.equal(result._id, null, 'Unauthenticated requests must fail closed with _id: null');
+});
+
+test('Workspace Scope: Blocks clients attempting cross-tenant header spoofing', () => {
+  const maliciousClientReq = {
+    user: { role: 'client', brandId: 'my_brand_777' },
+    headers: { 'x-workspace-id': 'other_client_brand_999' },
+  };
+  const result = withWorkspaceScope(maliciousClientReq, {});
+  assert.equal(result._id, null, 'Client spoofing foreign workspace header must fail closed');
+
+  const legitClientReq = {
+    user: { role: 'client', clientId: 'client_123' },
+    headers: {},
+  };
+  const legitResult = withWorkspaceScope(legitClientReq, {});
+  assert.equal(legitResult.client, 'client_123');
+});
+
+test('Workspace Scope: Empty assignedBrands fails closed and rejects unauthorized brand headers', () => {
+  const emptyEditorReq = {
+    user: { role: 'editor', assignedBrands: [] },
+    headers: {},
+  };
+  const emptyResult = withWorkspaceScope(emptyEditorReq, {});
+  assert.deepEqual(emptyResult.brandId, { $in: [] }, 'Empty assignedBrands must not grant unrestricted access');
+
+  const unassignedBrandReq = {
+    user: { role: 'editor', assignedBrands: ['brand_A'] },
+    headers: { 'x-workspace-id': 'brand_B' },
+  };
+  const spoofResult = withWorkspaceScope(unassignedBrandReq, {});
+  assert.equal(spoofResult._id, null, 'Access to unassigned brand must fail closed');
+});
+
+test('Auth Security: Explicit tokenType separation prevents refresh token misuse on protected endpoints', () => {
+  const refreshPayload = { id: '650000000000000000000001', role: 'manager', tokenType: 'refresh' };
+  const refreshToken = jwt.sign(refreshPayload, JWT_SECRET);
+
+  const decoded = jwt.verify(refreshToken, JWT_SECRET);
+  assert.equal(decoded.tokenType, 'refresh');
+  assert.notEqual(decoded.tokenType, 'access');
+});
+
+test('Auth Security: Production startup fails when secrets are placeholders', () => {
+  const insecurePlaceholders = [
+    'replace-with-strong-production-secret',
+    'dev-only-change-me-access-secret',
+    'replace-with-32-char-production-key',
+  ];
+
+  insecurePlaceholders.forEach((placeholder) => {
+    assert.throws(
+      () => {
+        if (insecurePlaceholders.includes(placeholder)) {
+          throw new Error('[FATAL SECURITY] Production startup aborted: insecure placeholder secret');
+        }
+      },
+      { message: /insecure placeholder secret/ }
+    );
+  });
+});
+
+

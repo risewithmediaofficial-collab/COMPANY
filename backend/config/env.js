@@ -19,11 +19,36 @@ export const loadEnv = () => {
   process.env.PORT ||= '5000';
   process.env.CLIENT_URL ||= 'http://localhost:5173';
   process.env.MONGO_URI ||= process.env.MONGODB_URI || 'mongodb://localhost:27017/agency_crm';
-  process.env.JWT_SECRET ||= process.env.NODE_ENV === 'production' ? 'replace-with-strong-production-secret' : 'dev-only-change-me-access-secret';
+
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Insecure placeholders that MUST never run in production
+  const insecurePlaceholders = [
+    'replace-with-strong-production-secret',
+    'dev-only-change-me-access-secret',
+    'dev-super-secret-jwt-key',
+    'replace-with-32-char-production-key',
+    'rise-with-media-development-credential-key',
+  ];
+
+  if (isProduction) {
+    if (!process.env.JWT_SECRET || insecurePlaceholders.includes(process.env.JWT_SECRET)) {
+      throw new Error(
+        '[FATAL SECURITY] Production startup aborted: JWT_SECRET is missing or set to an insecure placeholder.'
+      );
+    }
+    if (!process.env.ENCRYPTION_KEY || insecurePlaceholders.includes(process.env.ENCRYPTION_KEY)) {
+      throw new Error(
+        '[FATAL SECURITY] Production startup aborted: ENCRYPTION_KEY is missing or set to an insecure placeholder.'
+      );
+    }
+  }
+
+  process.env.JWT_SECRET ||= 'dev-only-change-me-access-secret';
   process.env.JWT_REFRESH_SECRET ||= process.env.JWT_SECRET;
-  process.env.JWT_EXPIRE ||= '365d';
-  process.env.JWT_REFRESH_EXPIRE ||= '3650d';
-  process.env.ENCRYPTION_KEY ||= process.env.NODE_ENV === 'production' ? 'replace-with-32-char-production-key' : 'rise-with-media-development-credential-key';
+  process.env.JWT_EXPIRE ||= isProduction ? '15m' : '8h';
+  process.env.JWT_REFRESH_EXPIRE ||= isProduction ? '7d' : '30d';
+  process.env.ENCRYPTION_KEY ||= 'rise-with-media-development-credential-key';
   process.env.MAX_FILE_SIZE ||= String(10 * 1024 * 1024);
   process.env.PAGINATION_LIMIT ||= '20';
   process.env.UPLOAD_DIR ||= path.join(serverRoot, 'uploads');

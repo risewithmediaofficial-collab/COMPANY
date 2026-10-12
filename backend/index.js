@@ -76,6 +76,9 @@ const env = getEnv();
 await connectDB();
 
 const ensureDefaultAdmin = async () => {
+  // Never automatically create default admin with hardcoded password in production
+  if (env.isProduction) return;
+
   const existingUsers = await User.estimatedDocumentCount();
   if (existingUsers > 0) return;
 
@@ -95,7 +98,7 @@ const ensureDefaultAdmin = async () => {
       canViewReports: true,
     },
   });
-  console.log(`Default super admin created: ${email}`);
+  console.log(`[Dev Bootstrap] Default super admin created: ${email}`);
 };
 
 await ensureDefaultAdmin();
@@ -103,11 +106,37 @@ await ensureDefaultAdmin();
 const app = express();
 const httpServer = http.createServer(app);
 
+// Configure trust proxy
+if (process.env.TRUST_PROXY) {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
+} else if (env.isProduction) {
+  app.set('trust proxy', 1);
+}
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : [env.clientUrl, 'http://localhost:5173', 'http://localhost:3000'].filter(Boolean);
+
 const corsOptions = {
-  origin: (origin, callback) => callback(null, true),
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (!env.isProduction || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'X-Workspace-Id',
+    'x-workspace-id',
+    'Idempotency-Key',
+    'idempotency-key',
+  ],
 };
 
 const io = new SocketIO(httpServer, {
@@ -121,26 +150,62 @@ app.set('io', io);
 global.io = io;
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(mongoSanitize());
 app.use(cors(corsOptions));
 
+// Standard API rate limiter - NO Authorization header bypass
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: env.isProduction ? 50000 : 100000,
-  skip: (req) => {
-    // Skip rate limiting for authenticated CRM users and health checks
-    return req.path === '/health' || Boolean(req.headers.authorization);
-  },
+  max: env.isProduction ? 1500 : 5000,
+  skip: (req) => req.path === '/health',
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests, please try again later.' },
 });
 app.use('/api', limiter);
 
+// Strict rate limiters for sensitive endpoints
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: env.isProduction ? 15 : 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts. Please wait 15 minutes before retrying.' },
+});
+
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many password reset requests. Please try again after 1 hour.' },
+});
+
+export const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: env.isProduction ? 50 : 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many upload requests. Please slow down.' },
+});
+
+// Parse body BEFORE mongoSanitize so req.body is sanitized properly
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use('/uploads', express.static(env.uploadDir));
-app.use('/api/uploads', express.static(env.uploadDir));
+app.use(mongoSanitize());
+
+// Secure static uploads serving - prevent script execution on app origin
+const safeUploadStatic = express.static(env.uploadDir, {
+  setHeaders: (res, filePath) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    const ext = path.extname(filePath).toLowerCase();
+    if (['.html', '.htm', '.svg', '.xml'].includes(ext)) {
+      res.setHeader('Content-Disposition', 'attachment');
+      res.setHeader('Content-Type', 'text/plain');
+    }
+  },
+});
+app.use('/uploads', safeUploadStatic);
+app.use('/api/uploads', safeUploadStatic);
 
 if (env.nodeEnv === 'development') {
   app.use(morgan('dev'));
@@ -155,6 +220,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/forgot-password', passwordResetLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/leads', leadRoutes);
@@ -174,7 +241,7 @@ app.use('/api/automations', automationRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/communications', communicationRoutes);
 app.use('/api/settings', settingsRoutes);
-app.use('/api/upload', uploadRoutes);
+app.use('/api/upload', uploadLimiter, uploadRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/portal', portalRoutes);
 app.use('/api/brands', brandRoutes);

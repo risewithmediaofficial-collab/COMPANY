@@ -9,18 +9,18 @@ import Client from '../models/client.model.js';
 import { sendEmail } from '../utils/email.js';
 import { createNotification } from '../utils/notification.js';
 
-// Generate access token (set to long lifetime: 365 days so users stay logged in)
+// Generate access token with explicit tokenType
 const generateAccessToken = (id, role) => {
   const secret = process.env.JWT_SECRET || 'dev-super-secret-jwt-key';
-  const expire = process.env.JWT_EXPIRE || '365d';
-  return jwt.sign({ id, role }, secret, { expiresIn: expire });
+  const expire = process.env.JWT_EXPIRE || '15m';
+  return jwt.sign({ id, role, tokenType: 'access' }, secret, { expiresIn: expire });
 };
 
-// Generate refresh token (set to long lifetime: 3650 days)
+// Generate refresh token with explicit tokenType
 const generateRefreshToken = (id) => {
   const secret = process.env.JWT_REFRESH_SECRET || 'dev-super-secret-refresh-key';
-  const expire = process.env.JWT_REFRESH_EXPIRE || '3650d';
-  return jwt.sign({ id }, secret, { expiresIn: expire });
+  const expire = process.env.JWT_REFRESH_EXPIRE || '7d';
+  return jwt.sign({ id, tokenType: 'refresh' }, secret, { expiresIn: expire });
 };
 
 // @desc    Register user
@@ -149,7 +149,11 @@ export const refreshToken = async (req, res) => {
     const { refreshToken: token } = req.body;
     if (!token) return res.status(401).json({ success: false, message: 'Refresh token required' });
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    if (decoded.tokenType && decoded.tokenType !== 'refresh') {
+      return res.status(401).json({ success: false, message: 'Invalid token type for refresh' });
+    }
+
     const user = await User.findById(decoded.id).select('+refreshToken');
 
     if (!user || user.refreshToken !== token) {

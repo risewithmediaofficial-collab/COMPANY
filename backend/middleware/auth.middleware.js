@@ -21,6 +21,9 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-super-secret-jwt-key');
+    if (decoded.tokenType && decoded.tokenType !== 'access') {
+      return res.status(401).json({ success: false, message: 'Not authorized, invalid token type' });
+    }
     const user = await User.findById(decoded.id).select('+passwordChangedAt -password -refreshToken');
 
     if (!user) {
@@ -97,36 +100,83 @@ export const requirePermission = (permissionKey) => {
 
 /**
  * Filter query builder based on workspace
+ * Hardened to fail closed and validate membership against x-workspace-id headers
  * Usage: const query = withWorkspaceScope(req, baseQuery)
  */
 export const withWorkspaceScope = (req, baseQuery = {}) => {
-  const user = req.user;
-  if (!user) return baseQuery;
-  
-  if (user.role === 'superAdmin' || user.role === 'admin' || user.role === 'employee') {
-    if (req.headers['x-workspace-id']) {
-      return { ...baseQuery, brandId: req.headers['x-workspace-id'] };
-    }
-    return baseQuery;
+  const user = req?.user;
+  // Fail closed if user is missing
+  if (!user) {
+    return { ...baseQuery, _id: null };
   }
-  
+
   const query = user.organizationId ? { ...baseQuery, organizationId: user.organizationId } : { ...baseQuery };
-  
-  // Explicit workspace selection from UI
-  if (req.headers['x-workspace-id']) {
-    query.brandId = req.headers['x-workspace-id'];
+  const requestedWorkspace = req.headers?.['x-workspace-id'];
+
+  // 1. SuperAdmin & Admin: Universal visibility, with optional workspace filter
+  if (user.role === 'superAdmin' || user.role === 'admin') {
+    if (requestedWorkspace && requestedWorkspace !== 'global') {
+      query.brandId = requestedWorkspace;
+    }
     return query;
   }
-  
-  // If user is client-side, restrict to their specific brand
-  if (user.role === 'clientAdmin' || user.role === 'clientMember') {
-    query.brandId = user.brandId;
+
+  // 2. Client-side users: Strictly restricted to their own brand/client.
+  // Must NOT allow arbitrary x-workspace-id to access other brands.
+  if (['client', 'clientAdmin', 'clientMember'].includes(user.role)) {
+    if (user.brandId) {
+      if (requestedWorkspace && requestedWorkspace !== 'global' && String(requestedWorkspace) !== String(user.brandId)) {
+        return { ...query, brandId: null, _id: null };
+      }
+      query.brandId = user.brandId;
+    } else if (user.clientId) {
+      query.client = user.clientId;
+    } else {
+      // Client has neither brandId nor clientId: fail closed
+      return { ...query, _id: null };
+    }
+    return query;
   }
-  // If user is agency-side but not an owner/manager, restrict to assigned brands
-  else if (['editor', 'designer', 'adsManager'].includes(user.role)) {
-     if (user.assignedBrands && user.assignedBrands.length > 0) {
-       query.brandId = { $in: user.assignedBrands };
-     }
+
+  // 3. Agency specialists (editor, designer, adsManager):
+  // Must be restricted to assignedBrands. Empty assignedBrands MUST FAIL CLOSED ({ $in: [] }).
+  if (['editor', 'designer', 'adsManager'].includes(user.role)) {
+    const assigned = Array.isArray(user.assignedBrands) ? user.assignedBrands : [];
+    if (assigned.length === 0) {
+      return { ...query, brandId: { $in: [] } };
+    }
+
+    if (requestedWorkspace && requestedWorkspace !== 'global') {
+      const isAuthorized = assigned.map(String).includes(String(requestedWorkspace));
+      if (!isAuthorized) {
+        return { ...query, brandId: null, _id: null };
+      }
+      query.brandId = requestedWorkspace;
+      return query;
+    }
+
+    query.brandId = { $in: assigned };
+    return query;
+  }
+
+  // 4. Employees & Managers:
+  // If assignedBrands is defined and non-empty, scope to it.
+  if (Array.isArray(user.assignedBrands) && user.assignedBrands.length > 0) {
+    if (requestedWorkspace && requestedWorkspace !== 'global') {
+      const isAuthorized = user.assignedBrands.map(String).includes(String(requestedWorkspace));
+      if (!isAuthorized) {
+        return { ...query, brandId: null, _id: null };
+      }
+      query.brandId = requestedWorkspace;
+    } else {
+      query.brandId = { $in: user.assignedBrands };
+    }
+    return query;
+  }
+
+  // General employee with no specific brand restriction:
+  if (requestedWorkspace && requestedWorkspace !== 'global') {
+    query.brandId = requestedWorkspace;
   }
 
   return query;
