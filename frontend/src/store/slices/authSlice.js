@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { purgeQueryCache } from '../../queryClient';
 
 // ─── Async Thunks ────────────────────────────────────────────────────────────
 
@@ -91,6 +92,7 @@ const authSlice = createSlice({
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('activeWorkspace');
+      purgeQueryCache();
     },
     setAuth: (state, action) => {
       state.user = action.payload.user;
@@ -111,6 +113,7 @@ const authSlice = createSlice({
       } else {
         localStorage.removeItem('activeWorkspace');
       }
+      purgeQueryCache();
     },
     clearError: (state) => {
       state.error = null;

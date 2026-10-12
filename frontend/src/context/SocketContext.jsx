@@ -105,12 +105,24 @@ export const SocketProvider = ({ children }) => {
       }, 600);
     });
 
-    // Real-time invalidations across data models so changes reflect live without refresh
+    // Real-time invalidations across data models with burst batching (150ms window)
+    const pendingKeys = new Set();
+    let batchTimer = null;
+
     const handleInvalidate = (keys) => {
       if (Array.isArray(keys)) {
-        keys.forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
-      } else {
-        queryClient.invalidateQueries();
+        keys.forEach((key) => pendingKeys.add(key));
+      } else if (typeof keys === 'string') {
+        pendingKeys.add(keys);
+      }
+
+      if (!batchTimer) {
+        batchTimer = setTimeout(() => {
+          const keysToInvalidate = Array.from(pendingKeys);
+          pendingKeys.clear();
+          batchTimer = null;
+          keysToInvalidate.forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+        }, 150);
       }
     };
 
