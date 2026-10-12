@@ -25,6 +25,8 @@ import {
   DollarSign,
   History,
   Sparkles,
+  FileText,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   Dialog,
@@ -73,8 +75,9 @@ export default function ExpensesSection({ onQuickAdd }) {
     notes: '',
   });
 
-  // Edit Expense State
+  // Edit Expense State (integrated into right-hand slide-over drawer)
   const [editingExpense, setEditingExpense] = useState(null);
+  const [isEditingExpenseInSidebar, setIsEditingExpenseInSidebar] = useState(false);
   const [expenseForm, setExpenseForm] = useState({
     title: '',
     amount: '',
@@ -170,10 +173,13 @@ export default function ExpensesSection({ onQuickAdd }) {
   };
 
   const handleStartEditExpense = (exp) => {
+    setSelectedExpenseForSidebar(exp);
+    setSelectedPayeeForLedger(null);
+    setIsEditingExpenseInSidebar(true);
     setEditingExpense(exp);
     setExpenseForm({
       title: exp.title || '',
-      amount: exp.amount || '',
+      amount: exp.amount != null ? String(exp.amount) : '',
       category: exp.category || 'office',
       vendor: exp.vendor || '',
       costType: exp.costType || 'agency_overhead',
@@ -185,15 +191,17 @@ export default function ExpensesSection({ onQuickAdd }) {
 
   const handleSaveEditExpense = async (e) => {
     e.preventDefault();
-    if (!editingExpense) return;
+    const targetId = editingExpense?._id || currentSelectedExpense?._id || selectedExpenseForSidebar?._id;
+    if (!targetId) return;
     try {
       await updateExpense.mutateAsync({
-        id: editingExpense._id,
+        id: targetId,
         data: {
           ...expenseForm,
           amount: Number(expenseForm.amount),
         },
       });
+      setIsEditingExpenseInSidebar(false);
       setEditingExpense(null);
     } catch (_) {}
   };
@@ -958,249 +966,150 @@ export default function ExpensesSection({ onQuickAdd }) {
         </div>
       )}
 
-      {/* EDIT EXPENSE MODAL */}
-      <Dialog open={Boolean(editingExpense)} onOpenChange={(open) => !open && setEditingExpense(null)}>
-        {editingExpense && (
-          <DialogContent variant="center" size="md" className="rounded-2xl p-6 text-xs max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold text-slate-900">Edit Expense / Vendor Bill</DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Update details for {editingExpense.title}
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleSaveEditExpense} className="space-y-3.5 mt-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Item Title / Description</label>
-                <input
-                  type="text"
-                  required
-                  value={expenseForm.title}
-                  onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Amount (₹)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={expenseForm.amount}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={expenseForm.date}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
-                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Vendor / Payee</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. VJ, Videographer, Saran"
-                    value={expenseForm.vendor}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                    <span className="text-[10px] text-slate-400">Quick set:</span>
-                    {['VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
-                      <button
-                        key={sug}
-                        type="button"
-                        onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: sug }))}
-                        className="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-[10px] font-medium text-slate-600 border border-slate-200 transition-colors cursor-pointer"
-                      >
-                        + {sug}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Category</label>
-                  <select
-                    value={expenseForm.category}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                  >
-                    <option value="production_shoot">Production / Shoot</option>
-                    <option value="travel">Travel Allowance</option>
-                    <option value="freelancers">Freelancers</option>
-                    <option value="software_subscriptions">Software / Subscriptions</option>
-                    <option value="rent">Rent</option>
-                    <option value="internet">Internet & Utilities</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="office">Office Expenses</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Cost Type</label>
-                  <select
-                    value={expenseForm.costType}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, costType: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                  >
-                    <option value="agency_overhead">Agency Overhead</option>
-                    <option value="client_project">Client Direct</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Status</label>
-                  <select
-                    value={expenseForm.paymentStatus}
-                    onChange={(e) => setExpenseForm({ ...expenseForm, paymentStatus: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                  >
-                    <option value="paid">Paid (Fully Cleared)</option>
-                    <option value="partially_paid">Partially Paid</option>
-                    <option value="unpaid">Unpaid Vendor Bill</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Notes</label>
-                <textarea
-                  rows="2"
-                  value={expenseForm.notes}
-                  onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
-                  placeholder="Optional internal remarks..."
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setEditingExpense(null)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateExpense.isPending}
-                  className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {updateExpense.isPending ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </DialogContent>
-        )}
-      </Dialog>
-
-      {/* EDIT SUBSCRIPTION MODAL */}
+      {/* EDIT SUBSCRIPTION SLIDE-OVER DRAWER */}
       <Dialog open={Boolean(editingSubscription)} onOpenChange={(open) => !open && setEditingSubscription(null)}>
         {editingSubscription && (
-          <DialogContent variant="center" size="md" className="rounded-2xl p-6 text-xs max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold text-slate-900">Edit Subscription</DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Update commitment for {editingSubscription.serviceName}
-              </DialogDescription>
+          <DialogContent variant="side" size="lg" className="flex flex-col h-full bg-white text-xs border-l border-slate-200 shadow-2xl p-0">
+            <DialogHeader className="p-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50/40 pr-12">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-sm shrink-0">
+                  <CalendarCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-slate-900">
+                    Edit Subscription
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-slate-500">
+                    Update recurring commitment for {editingSubscription.serviceName}
+                  </DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
 
-            <form onSubmit={handleSaveEditSubscription} className="space-y-3.5 mt-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Service / Tool Name</label>
-                <input
-                  type="text"
-                  required
-                  value={subscriptionForm.serviceName}
-                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, serviceName: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+            <form id="edit-subscription-form" onSubmit={handleSaveEditSubscription} className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <FileText className="h-4 w-4 text-indigo-600" />
+                    Subscription Info
+                  </span>
+                </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Expected Amount (₹)</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Service / Tool Name</label>
                   <input
-                    type="number"
-                    step="0.01"
+                    type="text"
                     required
-                    value={subscriptionForm.expectedAmount}
-                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, expectedAmount: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                    value={subscriptionForm.serviceName}
+                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, serviceName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Frequency</label>
-                  <select
-                    value={subscriptionForm.frequency}
-                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, frequency: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="annual">Annual</option>
-                    <option value="quarterly">Quarterly</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Next Renewal Date</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Vendor / Provider</label>
                   <input
-                    type="date"
-                    required
-                    value={subscriptionForm.nextRenewalDate}
-                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, nextRenewalDate: e.target.value })}
-                    onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                    type="text"
+                    value={subscriptionForm.vendor}
+                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, vendor: e.target.value })}
+                    placeholder="e.g. Adobe, AWS, Figma..."
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Classification</label>
-                  <select
-                    value={subscriptionForm.costClassification}
-                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, costClassification: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                  >
-                    <option value="software">Software / SaaS</option>
-                    <option value="tools">Tools & Utilities</option>
-                    <option value="hosting">Hosting / Cloud</option>
-                    <option value="other">Other</option>
-                  </select>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <CreditCard className="h-4 w-4 text-indigo-600" />
+                    Billing Cycle & Amount
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-semibold text-slate-700">Expected Amount (₹)</label>
+                      {Number(subscriptionForm.expectedAmount) > 0 && (
+                        <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                          {formatINR(Number(subscriptionForm.expectedAmount))}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={subscriptionForm.expectedAmount}
+                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, expectedAmount: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Frequency</label>
+                    <select
+                      value={subscriptionForm.frequency}
+                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, frequency: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="annual">Annual</option>
+                      <option value="quarterly">Quarterly</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setEditingSubscription(null)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateSubscription.isPending}
-                  className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {updateSubscription.isPending ? 'Saving...' : 'Save Changes'}
-                </button>
+              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4 text-indigo-600" />
+                    Renewal & Category
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Next Renewal Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={subscriptionForm.nextRenewalDate}
+                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, nextRenewalDate: e.target.value })}
+                      onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Classification</label>
+                    <select
+                      value={subscriptionForm.costClassification}
+                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, costClassification: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                    >
+                      <option value="software">Software / SaaS</option>
+                      <option value="tools">Tools & Utilities</option>
+                      <option value="hosting">Hosting / Cloud</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </form>
+
+            <div className="p-4 border-t border-slate-200 bg-slate-50/90 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingSubscription(null)}
+                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-white cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="edit-subscription-form"
+                disabled={updateSubscription.isPending}
+                className="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
+              >
+                {updateSubscription.isPending ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
           </DialogContent>
         )}
       </Dialog>
@@ -1212,14 +1121,378 @@ export default function ExpensesSection({ onQuickAdd }) {
           if (!open) {
             setSelectedPayeeForLedger(null);
             setSelectedExpenseForSidebar(null);
+            setIsEditingExpenseInSidebar(false);
           }
         }}
       >
         <DialogContent variant="side" size="xl" className="flex flex-col h-full bg-white text-xs border-l border-slate-200 shadow-2xl p-0">
           {/* CASE 1: INDIVIDUAL EXPENSE DETAILS SIDEBAR */}
           {selectedExpenseForSidebar && currentSelectedExpense && (
-            <>
-              <DialogHeader className="p-5 border-b border-slate-200 bg-slate-50/80 pr-12">
+            isEditingExpenseInSidebar ? (
+              <>
+                {/* ── HIGH-END EDIT EXPENSE SLIDE-OVER DRAWER FORM ── */}
+                <DialogHeader className="p-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-indigo-50/50 pr-12">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                        <Edit2 className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-indigo-100 text-indigo-800">
+                            Edit Mode
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            {formatDateIST(currentSelectedExpense.date)}
+                          </span>
+                        </div>
+                        <DialogTitle className="text-base font-bold text-slate-900 truncate">
+                          Edit Expense / Vendor Bill
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500 truncate">
+                          Update billing details, vendor allocation, and settlement status
+                        </DialogDescription>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingExpenseInSidebar(false)}
+                      className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-white text-slate-600 hover:text-slate-900 font-semibold text-xs transition-colors cursor-pointer mr-6 shadow-2xs"
+                      title="Switch back to view mode"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      View Details
+                    </button>
+                  </div>
+                </DialogHeader>
+
+                <form
+                  id="edit-expense-sidebar-form"
+                  onSubmit={handleSaveEditExpense}
+                  className="flex-1 overflow-y-auto p-5 space-y-4"
+                >
+                  {/* CARD 1: TITLE & AMOUNT & DATE */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <FileText className="h-4 w-4 text-indigo-600" />
+                        Basic Bill Details
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        Required
+                      </span>
+                    </div>
+
+                    {/* Item Title */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Item Title / Description <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={expenseForm.title}
+                        onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })}
+                        placeholder="e.g. Saran bro - vshoot payment, Office Fiber Broadband..."
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs"
+                      />
+                    </div>
+
+                    {/* Amount & Date Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-semibold text-slate-700">
+                            Total Bill Amount (₹) <span className="text-rose-500">*</span>
+                          </label>
+                          {Number(expenseForm.amount) > 0 && (
+                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                              {formatINR(Number(expenseForm.amount))}
+                            </span>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
+                            ₹
+                          </span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            required
+                            value={expenseForm.amount}
+                            onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                            placeholder="0.00"
+                            className="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-semibold text-slate-700">
+                            Bill / Expense Date <span className="text-rose-500">*</span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setExpenseForm((prev) => ({ ...prev, date: new Date().toISOString().slice(0, 10) }))}
+                            className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer"
+                          >
+                            Set Today
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="date"
+                            required
+                            value={expenseForm.date}
+                            onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
+                            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors cursor-pointer shadow-2xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARD 2: VENDOR / PAYEE ALLOCATION */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <User className="h-4 w-4 text-indigo-600" />
+                        Vendor / Payee Allocation
+                      </span>
+                      {expenseForm.vendor && (
+                        <button
+                          type="button"
+                          onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: '' }))}
+                          className="text-[10px] text-slate-400 hover:text-rose-600 font-semibold cursor-pointer"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                        Payee / Vendor Name
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="e.g. Saran, VJ, Office Landlord, Videographer..."
+                          value={expenseForm.vendor}
+                          onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
+                          className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quick Role & Vendor Chips */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                          1-Click Payee Presets:
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {['VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
+                          <button
+                            key={sug}
+                            type="button"
+                            onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: sug }))}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all cursor-pointer ${
+                              expenseForm.vendor === sug
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold'
+                                : 'bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 border-slate-200'
+                            }`}
+                          >
+                            + {sug}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-2">
+                        💡 Bills assigned to a payee will automatically synchronize with their dedicated balance statement and payment ledger.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* CARD 3: CATEGORY & COST TYPE */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3.5">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <Building className="h-4 w-4 text-indigo-600" />
+                        Classification & Cost Allocation
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                          Expense Category
+                        </label>
+                        <select
+                          value={expenseForm.category}
+                          onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs cursor-pointer"
+                        >
+                          <option value="production_shoot">🎬 Production / Shoot</option>
+                          <option value="travel">✈️ Travel Allowance</option>
+                          <option value="freelancers">🤝 Freelancers & Crew</option>
+                          <option value="software_subscriptions">💻 Software & Subscriptions</option>
+                          <option value="rent">🏢 Office Rent</option>
+                          <option value="internet">⚡ Internet & Utilities</option>
+                          <option value="marketing">📣 Marketing & Promotion</option>
+                          <option value="office">📎 Office Supplies & Expenses</option>
+                          <option value="other">📦 Other Operations</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                          Cost Allocation Type
+                        </label>
+                        <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-lg border border-slate-200">
+                          <button
+                            type="button"
+                            onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'agency_overhead' }))}
+                            className={`py-1 px-2 rounded-md text-[11px] font-bold transition-all text-center cursor-pointer ${
+                              expenseForm.costType === 'agency_overhead'
+                                ? 'bg-white text-slate-900 shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            Overhead
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'client_project' }))}
+                            className={`py-1 px-2 rounded-md text-[11px] font-bold transition-all text-center cursor-pointer ${
+                              expenseForm.costType === 'client_project'
+                                ? 'bg-indigo-600 text-white shadow-2xs'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            Client Direct
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARD 4: PAYMENT STATUS CARDS */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <CreditCard className="h-4 w-4 text-indigo-600" />
+                        Clearance & Payment Status
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      {/* Paid */}
+                      <button
+                        type="button"
+                        onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'paid' }))}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                          expenseForm.paymentStatus === 'paid'
+                            ? 'bg-emerald-50/80 border-emerald-400 ring-2 ring-emerald-500/20 shadow-2xs'
+                            : 'bg-white border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <CheckCircle2 className={`h-4 w-4 ${expenseForm.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                          {expenseForm.paymentStatus === 'paid' && (
+                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                          )}
+                        </div>
+                        <div className="font-bold text-xs text-slate-900">Paid</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Fully cleared</div>
+                      </button>
+
+                      {/* Partially Paid */}
+                      <button
+                        type="button"
+                        onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'partially_paid' }))}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                          expenseForm.paymentStatus === 'partially_paid'
+                            ? 'bg-amber-50/80 border-amber-400 ring-2 ring-amber-500/20 shadow-2xs'
+                            : 'bg-white border-slate-200 hover:border-amber-200 hover:bg-amber-50/30'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Clock className={`h-4 w-4 ${expenseForm.paymentStatus === 'partially_paid' ? 'text-amber-600' : 'text-slate-400'}`} />
+                          {expenseForm.paymentStatus === 'partially_paid' && (
+                            <span className="h-2 w-2 rounded-full bg-amber-500" />
+                          )}
+                        </div>
+                        <div className="font-bold text-xs text-slate-900">Partially Paid</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Advance / split</div>
+                      </button>
+
+                      {/* Unpaid */}
+                      <button
+                        type="button"
+                        onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'unpaid' }))}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                          expenseForm.paymentStatus === 'unpaid'
+                            ? 'bg-rose-50/80 border-rose-400 ring-2 ring-rose-500/20 shadow-2xs'
+                            : 'bg-white border-slate-200 hover:border-rose-200 hover:bg-rose-50/30'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <AlertCircle className={`h-4 w-4 ${expenseForm.paymentStatus === 'unpaid' ? 'text-rose-600' : 'text-slate-400'}`} />
+                          {expenseForm.paymentStatus === 'unpaid' && (
+                            <span className="h-2 w-2 rounded-full bg-rose-500" />
+                          )}
+                        </div>
+                        <div className="font-bold text-xs text-slate-900">Unpaid Bill</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">Pending liability</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* CARD 5: NOTES & REMARKS */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
+                    <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
+                      <Receipt className="h-4 w-4 text-indigo-600" />
+                      Internal Remarks & Notes
+                    </span>
+                    <textarea
+                      rows="3"
+                      value={expenseForm.notes}
+                      onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
+                      placeholder="Optional notes, invoice reference, approval notes, or vendor payment arrangements..."
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs resize-none"
+                    />
+                  </div>
+                </form>
+
+                {/* Sticky Action Footer */}
+                <div className="p-4 border-t border-slate-200 bg-slate-50/90 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingExpenseInSidebar(false)}
+                    className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-white transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="submit"
+                      form="edit-expense-sidebar-form"
+                      disabled={updateExpense.isPending}
+                      className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm hover:shadow transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      {updateExpense.isPending ? 'Saving Changes...' : 'Save Changes'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <DialogHeader className="p-5 border-b border-slate-200 bg-slate-50/80 pr-12">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -1786,6 +2059,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </button>
               </div>
             </>
+            )
           )}
 
           {/* CASE 2: PAYEE / VENDOR STATEMENT & LEDGER SIDEBAR */}
