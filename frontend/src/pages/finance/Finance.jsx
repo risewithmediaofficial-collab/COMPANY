@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { useSelector } from 'react-redux';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
 import {
@@ -20,14 +20,21 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-import OverviewSection from './sections/OverviewSection';
-import IncomeSection from './sections/IncomeSection';
-import ExpensesSection from './sections/ExpensesSection';
-import ClientsSection from './sections/ClientsSection';
-import InvoicesSection from './sections/InvoicesSection';
-import PayrollSection from './sections/PayrollSection';
-import ForecastReportsSection from './sections/ForecastReportsSection';
-import FinanceQuickAddModal from './components/FinanceQuickAddModal';
+const OverviewSection = lazy(() => import('./sections/OverviewSection'));
+const IncomeSection = lazy(() => import('./sections/IncomeSection'));
+const ExpensesSection = lazy(() => import('./sections/ExpensesSection'));
+const ClientsSection = lazy(() => import('./sections/ClientsSection'));
+const InvoicesSection = lazy(() => import('./sections/InvoicesSection'));
+const PayrollSection = lazy(() => import('./sections/PayrollSection'));
+const ForecastReportsSection = lazy(() => import('./sections/ForecastReportsSection'));
+const FinanceQuickAddModal = lazy(() => import('./components/FinanceQuickAddModal'));
+
+const FinanceSectionSkeleton = () => (
+  <div className="w-full py-12 flex flex-col items-center justify-center space-y-3">
+    <div className="h-7 w-7 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+    <span className="text-[11px] font-medium text-muted-foreground animate-pulse">Loading finance data...</span>
+  </div>
+);
 
 import { useFinanceModuleOverview } from '../../hooks/useFinance';
 import { formatINR } from '../../utils/financeFormatters';
@@ -270,40 +277,46 @@ export default function Finance() {
         )}
 
         {/* ── SECTION SWITCHER ────────────────────────────────────────── */}
-        {activeTab === 'overview' && (
-          <OverviewSection
-            overviewData={overviewData}
-            onQuickAdd={openQuickAdd}
-            onNavigateSection={handleTabChange}
-          />
-        )}
+        <Suspense fallback={<FinanceSectionSkeleton />}>
+          {activeTab === 'overview' && (
+            <OverviewSection
+              overviewData={overviewData}
+              onQuickAdd={openQuickAdd}
+              onNavigateSection={handleTabChange}
+            />
+          )}
 
-        {activeTab === 'income' && <IncomeSection onQuickAdd={openQuickAdd} />}
+          {activeTab === 'income' && <IncomeSection onQuickAdd={openQuickAdd} />}
 
-        {activeTab === 'expenses' && <ExpensesSection onQuickAdd={openQuickAdd} />}
+          {activeTab === 'expenses' && <ExpensesSection onQuickAdd={openQuickAdd} />}
 
-        {activeTab === 'clients' && <ClientsSection onQuickAdd={openQuickAdd} />}
+          {activeTab === 'clients' && <ClientsSection onQuickAdd={openQuickAdd} />}
 
-        {activeTab === 'invoices' && (
-          <InvoicesSection
-            onQuickAdd={openQuickAdd}
-            onRecordPayment={(inv) => {
-              openQuickAdd('receipt');
-            }}
-          />
-        )}
+          {activeTab === 'invoices' && (
+            <InvoicesSection
+              onQuickAdd={openQuickAdd}
+              onRecordPayment={(inv) => {
+                openQuickAdd('receipt');
+              }}
+            />
+          )}
 
-        {activeTab === 'payroll' && <PayrollSection onQuickAdd={openQuickAdd} />}
+          {activeTab === 'payroll' && <PayrollSection onQuickAdd={openQuickAdd} />}
 
-        {activeTab === 'forecast-reports' && <ForecastReportsSection />}
+          {activeTab === 'forecast-reports' && <ForecastReportsSection />}
+        </Suspense>
       </div>
 
       {/* ── CENTRAL QUICK ADD MODAL (Handles all 8 action flows) ────── */}
-      <FinanceQuickAddModal
-        open={quickAddOpen}
-        onOpenChange={setQuickAddOpen}
-        initialAction={quickAddAction}
-      />
+      {quickAddOpen && (
+        <Suspense fallback={null}>
+          <FinanceQuickAddModal
+            open={quickAddOpen}
+            onOpenChange={setQuickAddOpen}
+            initialAction={quickAddAction}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

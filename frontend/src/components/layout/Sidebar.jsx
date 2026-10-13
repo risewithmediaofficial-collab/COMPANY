@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -43,6 +43,7 @@ import { toggleSidebar } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
 import { AppTooltip } from '../ui/tooltip';
+import { preloadRoute } from '../../utils/routePreload';
 
 const badgePaths = {
   'Portal Manager': 'accessRequests',
@@ -300,15 +301,16 @@ export default function Sidebar({ onOpenSearch }) {
     return sections;
   };
 
-  const navSections = getNavSections();
+  const navSections = useMemo(() => getNavSections(), [user?.role, user?.permissions]);
 
   // Auto-expand section containing the currently active route
   useEffect(() => {
     const activeSection = navSections.find((s) =>
       s.items.some((item) => item.path === location.pathname)
     );
-    if (activeSection && !openSections[activeSection.title]) {
+    if (activeSection) {
       setOpenSections((prev) => {
+        if (prev[activeSection.title]) return prev;
         const updated = { ...prev, [activeSection.title]: true, 'COMMAND CENTER': true };
         try {
           localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(updated));
@@ -318,7 +320,7 @@ export default function Sidebar({ onOpenSearch }) {
         return updated;
       });
     }
-  }, [location.pathname, navSections, openSections]);
+  }, [location.pathname, navSections]);
 
   // Extract all available items for pinned lookup
   const allItems = navSections.flatMap((s) => s.items);
@@ -412,6 +414,9 @@ export default function Sidebar({ onOpenSearch }) {
                   <Link
                     key={`pinned-${item.path}`}
                     to={item.path}
+                    onMouseEnter={() => preloadRoute(item.path)}
+                    onFocus={() => preloadRoute(item.path)}
+                    onTouchStart={() => preloadRoute(item.path)}
                     onClick={() => isMobile && dispatch(toggleSidebar())}
                     className={`group relative flex items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                       isActive
@@ -465,6 +470,9 @@ export default function Sidebar({ onOpenSearch }) {
                       <Link
                         key={item.path}
                         to={item.path}
+                        onMouseEnter={() => preloadRoute(item.path)}
+                        onFocus={() => preloadRoute(item.path)}
+                        onTouchStart={() => preloadRoute(item.path)}
                         onClick={() => isMobile && dispatch(toggleSidebar())}
                         className={`group relative flex items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                           isActive
@@ -516,6 +524,9 @@ export default function Sidebar({ onOpenSearch }) {
         <div className="p-3 border-t border-border bg-card shrink-0">
           <Link
             to="/settings"
+            onMouseEnter={() => preloadRoute('/settings')}
+            onFocus={() => preloadRoute('/settings')}
+            onTouchStart={() => preloadRoute('/settings')}
             onClick={() => isMobile && dispatch(toggleSidebar())}
             className={`flex items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
               location.pathname === '/settings'

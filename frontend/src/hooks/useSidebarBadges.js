@@ -7,7 +7,7 @@ export const useSidebarBadges = (enabled = true) => {
     queryFn: async () => {
       const [accessRes, usersRes] = await Promise.allSettled([
         api.get('/access-requests'),
-        api.get('/users'),
+        api.get('/users', { params: { approvalStatus: 'pending', countOnly: true } }),
       ]);
 
       const accessRequests =
@@ -25,8 +25,9 @@ export const useSidebarBadges = (enabled = true) => {
         pendingUsers: pendingUsers.length,
       };
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    refetchOnWindowFocus: false,
     enabled,
-    staleTime: 10000,
+    staleTime: 60000,
   });
 };

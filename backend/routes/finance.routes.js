@@ -63,6 +63,7 @@ import {
   updateModuleExpense,
   deleteModuleExpense,
   payVendorBill,
+  payeeOverallPay,
   addExpensePayment,
   deleteExpensePayment,
   getSubscriptions,
@@ -138,6 +139,7 @@ router.post('/receipts', authorize('superAdmin', 'admin', 'financeManager'), rec
 // 6. Expenses & Vendor Bills
 router.get('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), getModuleExpenses);
 router.post('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), createModuleExpense);
+router.post('/module/expenses/payee-overall-pay', authorize('superAdmin', 'admin', 'manager', 'financeManager'), payeeOverallPay);
 router.put('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), updateModuleExpense);
 router.delete('/module/expenses/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), deleteModuleExpense);
 router.post('/module/expenses/:id/pay', authorize('superAdmin', 'admin', 'financeManager'), payVendorBill);

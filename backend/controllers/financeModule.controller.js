@@ -1553,6 +1553,136 @@ export const addExpensePayment = async (req, res) => {
   }
 };
 
+export const payeeOverallPay = async (req, res) => {
+  try {
+    const { payee, amount, paymentDate = new Date(), paymentMode = 'Bank', reference = '', notes = '', fundingAccount } = req.body;
+
+    const totalToPay = Number(amount);
+    if (!Number.isFinite(totalToPay) || totalToPay <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
+    }
+
+    if (!payee || typeof payee !== 'string' || !payee.trim()) {
+      return res.status(400).json({ success: false, message: 'Payee name is required' });
+    }
+
+    const payDate = new Date(paymentDate);
+    if (isNaN(payDate.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid payment date' });
+    }
+    await assertPeriodNotLocked(payDate);
+    const targetAccount = fundingAccount || null;
+    let filter;
+    if (payee.trim().toLowerCase() === 'unassigned / general') {
+      filter = {
+        $or: [{ vendor: { $exists: false } }, { vendor: null }, { vendor: '' }],
+        paymentStatus: { $ne: 'paid' },
+      };
+    } else {
+      const escaped = payee.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter = {
+        vendor: { $regex: new RegExp(`^${escaped}$`, 'i') },
+        paymentStatus: { $ne: 'paid' },
+      };
+    }
+
+    // Find unpaid/partially paid expenses sorted from oldest to newest (FIFO)
+    const unpaidExpenses = await Expense.find(filter).sort({ date: 1, createdAt: 1 });
+
+    if (unpaidExpenses.length === 0) {
+      return res.status(400).json({ success: false, message: `No pending unpaid bills found for ${payee}` });
+    }
+
+    let remainingFund = totalToPay;
+    const settledExpenses = [];
+
+    await runInTransaction(async (session) => {
+      for (const exp of unpaidExpenses) {
+        if (remainingFund <= 0) break;
+
+        const totalExpAmount = Number(exp.amount || 0);
+        let existingPaid = 0;
+        if (Array.isArray(exp.payments) && exp.payments.length > 0) {
+          existingPaid = exp.payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+        } else if (exp.paidAmount != null) {
+          existingPaid = Number(exp.paidAmount);
+        }
+
+        const currentBalance = Math.max(0, totalExpAmount - existingPaid);
+        if (currentBalance <= 0) continue;
+
+        const paymentForThisExp = Math.min(currentBalance, remainingFund);
+        remainingFund -= paymentForThisExp;
+
+        if (!Array.isArray(exp.payments)) {
+          exp.payments = [];
+        }
+
+        if (exp.payments.length === 0 && exp.paidAmount > 0) {
+          exp.payments.push({
+            amount: Number(exp.paidAmount),
+            paymentDate: exp.paymentDate || exp.date || new Date(),
+            paymentMode: exp.paymentMode || 'Bank',
+            reference: 'Initial Payment',
+            notes: 'Legacy payment',
+            fundingAccount: exp.fundingAccount || null,
+            recordedBy: exp.submittedBy,
+            createdAt: exp.paymentDate || exp.createdAt || new Date(),
+          });
+        }
+
+        exp.payments.push({
+          amount: paymentForThisExp,
+          paymentDate: payDate,
+          paymentMode,
+          reference: reference || `Overall Pay: ${payee}`,
+          notes: notes || `Bulk settlement payment for ${payee}`,
+          fundingAccount: targetAccount || exp.fundingAccount || null,
+          recordedBy: req.user?._id,
+          createdAt: new Date(),
+        });
+
+        const newTotalPaid = exp.payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+        exp.paidAmount = newTotalPaid;
+        exp.balanceAmount = Math.max(0, totalExpAmount - newTotalPaid);
+        exp.paymentStatus = exp.balanceAmount === 0 ? 'paid' : 'partially_paid';
+        exp.paymentDate = payDate;
+        exp.paymentMode = paymentMode;
+
+        await exp.save({ session });
+        settledExpenses.push(exp);
+
+        await recordFinanceAudit({
+          actorId: req.user?._id,
+          actorName: req.user?.name,
+          action: 'payee_overall_pay',
+          entityType: 'Expense',
+          entityId: exp._id,
+          description: `Overall settlement of ₹${paymentForThisExp} to ${exp.title} (${payee}) via ${paymentMode}`,
+          changes: exp.toObject ? exp.toObject() : exp,
+          session,
+        });
+      }
+
+      if (targetAccount) {
+        await reconcileAccountBalance(targetAccount, { session, persist: true });
+      }
+    });
+
+    emitLiveEvent('financeUpdated', { payee });
+
+    res.json({
+      success: true,
+      message: `Successfully applied ₹${totalToPay - remainingFund} across ${settledExpenses.length} bills for ${payee}`,
+      settledBillsCount: settledExpenses.length,
+      allocatedAmount: totalToPay - remainingFund,
+      unallocatedAmount: remainingFund,
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
+  }
+};
+
 export const deleteExpensePayment = async (req, res) => {
   try {
     const { id, paymentId } = req.params;

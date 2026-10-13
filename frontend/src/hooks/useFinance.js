@@ -1002,6 +1002,26 @@ export const useAddExpensePayment = () => {
   });
 };
 
+export const usePayeeOverallPay = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await api.post('/finance/module/expenses/payee-overall-pay', data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['finance-module-expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['finance-module-overview'] });
+      toast.success(data?.message || 'Overall payee payment recorded successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to record overall payment');
+    },
+  });
+};
+
 export const useDeleteExpensePayment = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -20,11 +20,17 @@ const mapEmploymentStatus = (status) => {
 
 router.get('/', authorize('superAdmin', 'admin', 'manager', 'employee'), async (req, res) => {
   try {
-    const users = await User.find()
-      .select(safeUserProjection)
+    const filter = {};
+    if (req.query.approvalStatus) {
+      filter.approvalStatus = req.query.approvalStatus;
+    }
+    const selectProjection = req.query.countOnly ? '_id approvalStatus' : safeUserProjection;
+
+    const users = await User.find(filter)
+      .select(selectProjection)
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, users });
+    res.json({ success: true, users, count: users.length });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

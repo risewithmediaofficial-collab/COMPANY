@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import {
   Download,
   Filter,
@@ -39,6 +39,7 @@ import {
   useModuleExpenses,
   usePayVendorBill,
   useAddExpensePayment,
+  usePayeeOverallPay,
   useDeleteExpensePayment,
   useUpdateModuleExpense,
   useDeleteModuleExpense,
@@ -49,7 +50,8 @@ import {
   useFinanceAccounts,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
-import PaymentRemindersTab from './PaymentRemindersTab';
+
+const PaymentRemindersTab = lazy(() => import('./PaymentRemindersTab'));
 
 export default function ExpensesSection({ onQuickAdd }) {
   const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions' | 'payment_reminders'
@@ -68,6 +70,17 @@ export default function ExpensesSection({ onQuickAdd }) {
   // Add Payment / Installment State
   const [showAddPaymentForm, setShowAddPaymentForm] = useState(false);
   const [paymentFormData, setPaymentFormData] = useState({
+    amount: '',
+    paymentDate: new Date().toISOString().slice(0, 10),
+    paymentMode: 'Bank',
+    fundingAccount: '',
+    reference: '',
+    notes: '',
+  });
+
+  // Overall Pay State (bulk settlement for payee)
+  const [isOverallPaying, setIsOverallPaying] = useState(false);
+  const [overallPayFormData, setOverallPayFormData] = useState({
     amount: '',
     paymentDate: new Date().toISOString().slice(0, 10),
     paymentMode: 'Bank',
@@ -115,6 +128,7 @@ export default function ExpensesSection({ onQuickAdd }) {
 
   const payVendorBill = usePayVendorBill();
   const addExpensePayment = useAddExpensePayment();
+  const payeeOverallPay = usePayeeOverallPay();
   const deleteExpensePayment = useDeleteExpensePayment();
   const updateExpense = useUpdateModuleExpense();
   const deleteExpense = useDeleteModuleExpense();
@@ -171,6 +185,40 @@ export default function ExpensesSection({ onQuickAdd }) {
         });
       } catch (_) {}
     }
+  };
+
+  const handleOpenOverallPay = (payee) => {
+    const pendingAmt = Number(payee?.pendingAmount || 0);
+    setOverallPayFormData({
+      amount: pendingAmt > 0 ? String(pendingAmt) : '',
+      paymentDate: new Date().toISOString().slice(0, 10),
+      paymentMode: 'Bank',
+      fundingAccount: '',
+      reference: `Overall Pay: ${payee?.name}`,
+      notes: `Settlement across ${payee?.pendingCount || 'unpaid'} bills`,
+    });
+    setIsOverallPaying(true);
+  };
+
+  const handleOverallPaySubmit = async (e) => {
+    e.preventDefault();
+    const payeeName = activePayeeDetails?.name || selectedPayeeForLedger;
+    if (!payeeName) return;
+    const amt = Number(overallPayFormData.amount);
+    if (!amt || amt <= 0) return;
+
+    try {
+      await payeeOverallPay.mutateAsync({
+        payee: payeeName,
+        amount: amt,
+        paymentDate: overallPayFormData.paymentDate,
+        paymentMode: overallPayFormData.paymentMode,
+        fundingAccount: overallPayFormData.fundingAccount || undefined,
+        reference: overallPayFormData.reference,
+        notes: overallPayFormData.notes,
+      });
+      setIsOverallPaying(false);
+    } catch (_) {}
   };
 
   const handleStartEditExpense = (exp) => {
@@ -344,6 +392,42 @@ export default function ExpensesSection({ onQuickAdd }) {
       pendingCount: matching.filter((e) => Number(e.balanceAmount || 0) > 0 || e.paymentStatus !== 'paid').length,
     };
   }, [expenses, selectedPayeeForLedger]);
+
+  const unpaidBillsForActivePayee = useMemo(() => {
+    if (!activePayeeDetails?.items) return [];
+    return activePayeeDetails.items
+      .filter((item) => {
+        const total = Number(item.amount || 0);
+        const paid = Array.isArray(item.payments) && item.payments.length > 0
+          ? item.payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+          : (item.paidAmount != null ? Number(item.paidAmount) : (item.paymentStatus === 'paid' ? total : 0));
+        return Math.max(0, total - paid) > 0 && item.paymentStatus !== 'paid';
+      })
+      .sort((a, b) => new Date(a.date || a.createdAt || 0) - new Date(b.date || b.createdAt || 0)); // FIFO: oldest first
+  }, [activePayeeDetails]);
+
+  const simulatedSettlement = useMemo(() => {
+    let rem = Number(overallPayFormData.amount || 0);
+    return unpaidBillsForActivePayee.map((item, idx) => {
+      const total = Number(item.amount || 0);
+      const paid = Array.isArray(item.payments) && item.payments.length > 0
+        ? item.payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+        : (item.paidAmount != null ? Number(item.paidAmount) : (item.paymentStatus === 'paid' ? total : 0));
+      const currentBalance = Math.max(0, total - paid);
+      const allocated = Math.min(currentBalance, Math.max(0, rem));
+      rem = Math.max(0, rem - allocated);
+      const remainingBal = Math.max(0, currentBalance - allocated);
+      const willBeStatus = remainingBal === 0 ? 'paid' : (allocated > 0 ? 'partially_paid' : 'unpaid');
+      return {
+        ...item,
+        fifoIndex: idx + 1,
+        currentBalance,
+        allocated,
+        remainingBal,
+        willBeStatus,
+      };
+    });
+  }, [unpaidBillsForActivePayee, overallPayFormData.amount]);
 
   const currentSelectedExpense = useMemo(() => {
     if (!selectedExpenseForSidebar) return null;
@@ -872,17 +956,34 @@ export default function ExpensesSection({ onQuickAdd }) {
                           )}
                         </td>
                         <td className="p-3 text-right">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPayeeForLedger(p.name);
-                            }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-colors cursor-pointer"
-                          >
-                            <span>Open Ledger</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            {p.pendingAmount > 0 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPayeeForLedger(p.name);
+                                  handleOpenOverallPay(p);
+                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                                title={`Overall Pay ${formatINR(p.pendingAmount)} for ${p.name}`}
+                              >
+                                <Wallet className="h-3 w-3" />
+                                <span>Overall Pay</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPayeeForLedger(p.name);
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition-colors cursor-pointer"
+                            >
+                              <span>Open Ledger</span>
+                              <ArrowRight className="h-3 w-3" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -978,7 +1079,16 @@ export default function ExpensesSection({ onQuickAdd }) {
       )}
 
       {/* 4. PAYMENT REMINDERS (ISOLATED REFERRAL / CLIENT SETTLEMENTS) */}
-      {activeTab === 'payment_reminders' && <PaymentRemindersTab />}
+      {activeTab === 'payment_reminders' && (
+        <Suspense fallback={
+          <div className="w-full py-12 flex flex-col items-center justify-center space-y-3">
+            <div className="h-7 w-7 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+            <span className="text-[11px] font-medium text-muted-foreground animate-pulse">Loading payment reminders...</span>
+          </div>
+        }>
+          <PaymentRemindersTab />
+        </Suspense>
+      )}
 
       {/* EDIT SUBSCRIPTION SLIDE-OVER DRAWER */}
       <Dialog open={Boolean(editingSubscription)} onOpenChange={(open) => !open && setEditingSubscription(null)}>
@@ -1136,6 +1246,7 @@ export default function ExpensesSection({ onQuickAdd }) {
             setSelectedPayeeForLedger(null);
             setSelectedExpenseForSidebar(null);
             setIsEditingExpenseInSidebar(false);
+            setIsOverallPaying(false);
           }
         }}
       >
@@ -2078,156 +2189,460 @@ export default function ExpensesSection({ onQuickAdd }) {
 
           {/* CASE 2: PAYEE / VENDOR STATEMENT & LEDGER SIDEBAR */}
           {selectedPayeeForLedger && activePayeeDetails && !selectedExpenseForSidebar && (
-            <>
-              <DialogHeader className="p-5 border-b border-slate-200 bg-slate-50/80 pr-12">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                      <User className="h-4 w-4 text-indigo-600" />
-                      <span>Payee Statement & Ledger: {activePayeeDetails.name}</span>
-                    </DialogTitle>
-                    <DialogDescription className="text-xs text-slate-500 mt-0.5">
-                      Detailed payment ledger, clearance history, and pending balances
-                    </DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-
-              <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                {/* KPI Cards Strip */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Billed / Tasks</span>
-                    <div className="text-lg font-bold text-slate-900 mt-0.5">{formatINR(activePayeeDetails.totalAmount)}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">{activePayeeDetails.totalCount} total entries</div>
-                  </div>
-                  <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Cleared / Paid</span>
-                    <div className="text-lg font-bold text-emerald-800 mt-0.5">{formatINR(activePayeeDetails.paidAmount)}</div>
-                    <div className="text-[10px] text-emerald-600 mt-0.5">{activePayeeDetails.paidCount} cleared</div>
-                  </div>
-                  <div className={`p-3 rounded-xl border ${activePayeeDetails.pendingAmount > 0 ? 'bg-amber-50/80 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-800' : 'text-slate-500'}`}>Pending to Pay</span>
-                    <div className={`text-lg font-bold mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-700 font-extrabold' : 'text-slate-900'}`}>
-                      {formatINR(activePayeeDetails.pendingAmount)}
-                    </div>
-                    <div className={`text-[10px] mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
-                      {activePayeeDetails.pendingCount > 0 ? `${activePayeeDetails.pendingCount} unpaid bills` : 'All cleared'}
+            isOverallPaying ? (
+              <>
+                {/* ── HIGH-END OVERALL SETTLEMENT PAY FORM ── */}
+                <DialogHeader className="p-5 border-b border-slate-200 bg-gradient-to-r from-emerald-50/70 via-white to-slate-50 pr-12">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsOverallPaying(false)}
+                        className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                        title="Back to Ledger"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </button>
+                      <div>
+                        <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                          <Wallet className="h-4 w-4 text-emerald-600" />
+                          <span>Overall Pay: {activePayeeDetails.name}</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                          Record a lump-sum payment to settle outstanding bills (FIFO: oldest bills cleared first)
+                        </DialogDescription>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </DialogHeader>
 
-                {/* List of Transactions */}
-                <div className="rounded-xl border border-slate-200 overflow-hidden">
-                  <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                    <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Payment Transactions</span>
-                    <span className="text-[10px] text-slate-500">{activePayeeDetails.items.length} records</span>
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  {/* Overview Balance Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Total Pending Balance</span>
+                      <div className="text-xl font-extrabold text-amber-700 mt-0.5">{formatINR(activePayeeDetails.pendingAmount)}</div>
+                      <div className="text-[11px] text-amber-600 mt-0.5 font-medium">
+                        {unpaidBillsForActivePayee.length} unpaid / partially paid bills pending
+                      </div>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 flex flex-col justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Settlement Allocation</span>
+                      <div className="text-xl font-extrabold text-emerald-800 mt-0.5">
+                        {Number(overallPayFormData.amount) > 0 ? formatINR(Number(overallPayFormData.amount)) : '₹0.00'}
+                      </div>
+                      <div className="text-[11px] text-emerald-600 mt-0.5 font-medium">
+                        {Number(overallPayFormData.amount) >= activePayeeDetails.pendingAmount
+                          ? '✨ Full settlement of all pending bills'
+                          : Number(overallPayFormData.amount) > 0
+                          ? `Partial payment (₹${Math.max(0, activePayeeDetails.pendingAmount - Number(overallPayFormData.amount)).toLocaleString('en-IN')} remaining)`
+                          : 'Enter an amount to preview settlement'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="overflow-x-auto max-h-[420px] overflow-y-auto text-xs">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
-                        <tr>
-                          <th className="p-2.5">Date</th>
-                          <th className="p-2.5">Item / Description</th>
-                          <th className="p-2.5">Category</th>
-                          <th className="p-2.5">Status</th>
-                          <th className="p-2.5 text-right">Amount</th>
-                          <th className="p-2.5 text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {activePayeeDetails.items.map((item) => (
-                          <tr
-                            key={item._id}
-                            onClick={() => {
-                              setSelectedPayeeForLedger(null);
-                              setSelectedExpenseForSidebar(item);
-                            }}
-                            className="hover:bg-indigo-50/40 transition-colors cursor-pointer group"
-                            title="Click to view all payments and settlement history for this bill"
+
+                  {/* FORM INPUTS */}
+                  <form id="overall-pay-form" onSubmit={handleOverallPaySubmit} className="space-y-4">
+                    {/* Card 1: Amount with 1-Click Chips */}
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                          <span>Payment Amount (₹)</span>
+                          <span className="text-rose-500">*</span>
+                        </label>
+                        {activePayeeDetails.pendingAmount > 0 && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setOverallPayFormData((prev) => ({ ...prev, amount: String(activePayeeDetails.pendingAmount) }))}
+                              className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                            >
+                              Pay Full (₹{activePayeeDetails.pendingAmount.toLocaleString('en-IN')})
+                            </button>
+                            {activePayeeDetails.pendingAmount > 500 && (
+                              <button
+                                type="button"
+                                onClick={() => setOverallPayFormData((prev) => ({ ...prev, amount: String(Math.round(activePayeeDetails.pendingAmount / 2)) }))}
+                                className="text-[10px] font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                              >
+                                50% (₹{Math.round(activePayeeDetails.pendingAmount / 2).toLocaleString('en-IN')})
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-base">₹</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          placeholder="0.00"
+                          value={overallPayFormData.amount}
+                          onChange={(e) => setOverallPayFormData({ ...overallPayFormData, amount: e.target.value })}
+                          className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 bg-white text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Card 2: Date & Mode Grid */}
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Payment Date <span className="text-rose-500">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            required
+                            value={overallPayFormData.paymentDate}
+                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentDate: e.target.value })}
+                            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 cursor-pointer focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Payment Mode <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={overallPayFormData.paymentMode}
+                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentMode: e.target.value })}
+                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
                           >
-                            <td className="p-2.5 text-slate-600 font-medium whitespace-nowrap">{formatDateIST(item.date)}</td>
-                            <td className="p-2.5 font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                              <div className="flex items-center gap-1">
-                                <span>{item.title}</span>
-                                <ArrowRight className="h-3 w-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                              </div>
-                            </td>
-                            <td className="p-2.5">
-                              <span className="capitalize px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
-                                {item.category?.replace(/_/g, ' ')}
-                              </span>
-                            </td>
-                            <td className="p-2.5">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                                item.paymentStatus === 'paid'
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : item.paymentStatus === 'partially_paid'
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-rose-100 text-rose-800'
-                              }`}>
-                                {item.paymentStatus === 'paid' ? 'Paid' : item.paymentStatus === 'partially_paid' ? 'Partial' : 'Unpaid'}
-                              </span>
-                            </td>
-                            <td className="p-2.5 text-right font-bold text-slate-900">{formatINR(item.amount)}</td>
-                            <td className="p-2.5 text-right">
-                              <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                {item.paymentStatus !== 'paid' && (
+                            <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                            <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Debit / Credit Card</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Paid From Account
+                          </label>
+                          <select
+                            value={overallPayFormData.fundingAccount}
+                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, fundingAccount: e.target.value })}
+                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                          >
+                            <option value="">Default / Not specified</option>
+                            {accounts.map((acc) => (
+                              <option key={acc._id} value={acc._id}>
+                                {acc.accountName} ({acc.accountType})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                            Reference / UTR / Txn ID
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="e.g. UPI Ref / Cheque # / NEFT UTR"
+                            value={overallPayFormData.reference}
+                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, reference: e.target.value })}
+                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                          Payment Remarks / Notes
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Lump-sum shoot settlement, clearance notes..."
+                          value={overallPayFormData.notes}
+                          onChange={(e) => setOverallPayFormData({ ...overallPayFormData, notes: e.target.value })}
+                          className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Card 3: FIFO Settlement Breakdown & Bill Clearance Preview */}
+                    <div className="rounded-xl border border-slate-200 overflow-hidden bg-white shadow-2xs">
+                      <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                          <History className="h-3.5 w-3.5 text-indigo-600" />
+                          FIFO Bill Clearance Preview ({simulatedSettlement.length} pending bills)
+                        </span>
+                        <span className="text-[10px] text-slate-500">Oldest bills settled first</span>
+                      </div>
+                      <div className="overflow-x-auto max-h-[300px] overflow-y-auto text-xs">
+                        <table className="w-full text-left">
+                          <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
+                            <tr>
+                              <th className="p-2.5">Priority</th>
+                              <th className="p-2.5">Date</th>
+                              <th className="p-2.5">Item</th>
+                              <th className="p-2.5 text-right">Pending Balance</th>
+                              <th className="p-2.5 text-right">Paying Now</th>
+                              <th className="p-2.5 text-center">Status After Pay</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {simulatedSettlement.map((item) => (
+                              <tr key={item._id} className={item.allocated > 0 ? 'bg-emerald-50/30' : ''}>
+                                <td className="p-2.5">
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                                    #{item.fifoIndex}
+                                  </span>
+                                </td>
+                                <td className="p-2.5 text-slate-600 whitespace-nowrap">{formatDateIST(item.date)}</td>
+                                <td className="p-2.5 font-semibold text-slate-900 max-w-[160px] truncate" title={item.title}>
+                                  {item.title}
+                                </td>
+                                <td className="p-2.5 text-right font-medium text-slate-700">{formatINR(item.currentBalance)}</td>
+                                <td className="p-2.5 text-right font-bold text-emerald-700">
+                                  {item.allocated > 0 ? `+${formatINR(item.allocated)}` : '₹0.00'}
+                                </td>
+                                <td className="p-2.5 text-center">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                                    item.willBeStatus === 'paid'
+                                      ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                      : item.willBeStatus === 'partially_paid'
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : 'bg-slate-100 text-slate-500'
+                                  }`}>
+                                    {item.willBeStatus === 'paid' ? 'Paid' : item.willBeStatus === 'partially_paid' ? 'Partial' : 'Unpaid'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+                {/* OVERALL PAY FOOTER */}
+                <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={() => setIsOverallPaying(false)}
+                    className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-white cursor-pointer"
+                  >
+                    Back to Statement
+                  </button>
+                  <button
+                    type="submit"
+                    form="overall-pay-form"
+                    disabled={payeeOverallPay.isPending || !Number(overallPayFormData.amount)}
+                    className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95"
+                  >
+                    <Wallet className="h-4 w-4" />
+                    {payeeOverallPay.isPending
+                      ? 'Recording Overall Pay...'
+                      : `Confirm Overall Pay (${formatINR(Number(overallPayFormData.amount) || 0)})`}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <DialogHeader className="p-5 border-b border-slate-200 bg-slate-50/80 pr-12">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <User className="h-4 w-4 text-indigo-600" />
+                        <span>Payee Statement & Ledger: {activePayeeDetails.name}</span>
+                      </DialogTitle>
+                      <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                        Detailed payment ledger, clearance history, and pending balances
+                      </DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  {/* KPI Cards Strip */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Billed / Tasks</span>
+                      <div className="text-lg font-bold text-slate-900 mt-0.5">{formatINR(activePayeeDetails.totalAmount)}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{activePayeeDetails.totalCount} total entries</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Cleared / Paid</span>
+                      <div className="text-lg font-bold text-emerald-800 mt-0.5">{formatINR(activePayeeDetails.paidAmount)}</div>
+                      <div className="text-[10px] text-emerald-600 mt-0.5">{activePayeeDetails.paidCount} cleared</div>
+                    </div>
+                    <div className={`p-3 rounded-xl border flex flex-col justify-between ${activePayeeDetails.pendingAmount > 0 ? 'bg-amber-50/80 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-800' : 'text-slate-500'}`}>Pending to Pay</span>
+                          {activePayeeDetails.pendingAmount > 0 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-200 text-amber-900 uppercase">
+                              Due
+                            </span>
+                          )}
+                        </div>
+                        <div className={`text-lg font-bold mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-700 font-extrabold' : 'text-slate-900'}`}>
+                          {formatINR(activePayeeDetails.pendingAmount)}
+                        </div>
+                        <div className={`text-[10px] mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                          {activePayeeDetails.pendingCount > 0 ? `${activePayeeDetails.pendingCount} unpaid bills` : 'All cleared'}
+                        </div>
+                      </div>
+                      {activePayeeDetails.pendingAmount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenOverallPay(activePayeeDetails)}
+                          className="mt-2.5 w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
+                          title={`Pay overall balance of ${formatINR(activePayeeDetails.pendingAmount)}`}
+                        >
+                          <Wallet className="h-3.5 w-3.5" />
+                          <span>Overall Pay</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* List of Transactions */}
+                  <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Payment Transactions</span>
+                        <span className="text-[10px] text-slate-500">{activePayeeDetails.items.length} records</span>
+                      </div>
+                      {activePayeeDetails.pendingAmount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenOverallPay(activePayeeDetails)}
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-2xs transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                          title={`Settle ${formatINR(activePayeeDetails.pendingAmount)} across all unpaid bills`}
+                        >
+                          <Wallet className="h-3 w-3" />
+                          <span>Overall Pay ({formatINR(activePayeeDetails.pendingAmount)})</span>
+                        </button>
+                      )}
+                    </div>
+                    <div className="overflow-x-auto max-h-[420px] overflow-y-auto text-xs">
+                      <table className="w-full text-left">
+                        <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
+                          <tr>
+                            <th className="p-2.5">Date</th>
+                            <th className="p-2.5">Item / Description</th>
+                            <th className="p-2.5">Category</th>
+                            <th className="p-2.5">Status</th>
+                            <th className="p-2.5 text-right">Amount</th>
+                            <th className="p-2.5 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {activePayeeDetails.items.map((item) => (
+                            <tr
+                              key={item._id}
+                              onClick={() => {
+                                setSelectedPayeeForLedger(null);
+                                setSelectedExpenseForSidebar(item);
+                              }}
+                              className="hover:bg-indigo-50/40 transition-colors cursor-pointer group"
+                              title="Click to view all payments and settlement history for this bill"
+                            >
+                              <td className="p-2.5 text-slate-600 font-medium whitespace-nowrap">{formatDateIST(item.date)}</td>
+                              <td className="p-2.5 font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                <div className="flex items-center gap-1">
+                                  <span>{item.title}</span>
+                                  <ArrowRight className="h-3 w-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                                </div>
+                              </td>
+                              <td className="p-2.5">
+                                <span className="capitalize px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
+                                  {item.category?.replace(/_/g, ' ')}
+                                </span>
+                              </td>
+                              <td className="p-2.5">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                                  item.paymentStatus === 'paid'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : item.paymentStatus === 'partially_paid'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-rose-100 text-rose-800'
+                                }`}>
+                                  {item.paymentStatus === 'paid' ? 'Paid' : item.paymentStatus === 'partially_paid' ? 'Partial' : 'Unpaid'}
+                                </span>
+                              </td>
+                              <td className="p-2.5 text-right font-bold text-slate-900">{formatINR(item.amount)}</td>
+                              <td className="p-2.5 text-right">
+                                <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                  {item.paymentStatus !== 'paid' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedPayeeForLedger(null);
+                                        setSelectedExpenseForSidebar(item);
+                                        handleOpenAddPayment(item);
+                                      }}
+                                      className="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+                                      title="Add payment or pay this bill"
+                                    >
+                                      <Plus className="h-2.5 w-2.5" /> Pay / Add
+                                    </button>
+                                  )}
                                   <button
                                     type="button"
                                     onClick={() => {
                                       setSelectedPayeeForLedger(null);
-                                      setSelectedExpenseForSidebar(item);
-                                      handleOpenAddPayment(item);
+                                      handleStartEditExpense(item);
                                     }}
-                                    className="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
-                                    title="Add payment or pay this bill"
+                                    className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                    title="Edit item"
                                   >
-                                    <Plus className="h-2.5 w-2.5" /> Pay / Add
+                                    <Edit2 className="h-3 w-3" />
                                   </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedPayeeForLedger(null);
-                                    handleStartEditExpense(item);
-                                  }}
-                                  className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-                                  title="Edit item"
-                                >
-                                  <Edit2 className="h-3 w-3" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Sticky Footer */}
-              <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex justify-between items-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPayeeForLedger(null);
-                    onQuickAdd('expense');
-                  }}
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  + Record New Expense for {activePayeeDetails.name}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPayeeForLedger(null)}
-                  className="px-4 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </>
+                {/* Sticky Footer */}
+                <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPayeeForLedger(null);
+                      onQuickAdd('expense');
+                    }}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    + Record New Expense for {activePayeeDetails.name}
+                  </button>
+                  <div className="flex items-center gap-2">
+                    {activePayeeDetails.pendingAmount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenOverallPay(activePayeeDetails)}
+                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      >
+                        <Wallet className="h-3.5 w-3.5" />
+                        <span>Overall Pay ({formatINR(activePayeeDetails.pendingAmount)})</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPayeeForLedger(null)}
+                      className="px-4 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </>
+            )
           )}
         </DialogContent>
       </Dialog>
