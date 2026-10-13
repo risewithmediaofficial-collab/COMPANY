@@ -207,13 +207,13 @@ router.post('/invoices/:id/mark-paid', authorize('superAdmin', 'admin', 'finance
 router.delete('/invoices/:id', authorize('superAdmin', 'admin'), deleteInvoice);
 router.get('/payments', authorize('superAdmin', 'manager', 'employee', 'client'), getPayments);
 
-router.get('/call-history/followups/today', authorize('superAdmin', 'manager', 'employee', 'client'), getTodayFollowUpCalls);
-router.get('/call-history/client/:clientId', authorize('superAdmin', 'manager', 'employee', 'client'), getCallHistoryByClient);
-router.get('/call-history/project/:projectId', authorize('superAdmin', 'manager', 'employee', 'client'), getCallHistoryByProject);
-router.get('/call-history', authorize('superAdmin', 'manager', 'employee', 'client'), getCallHistory);
-router.post('/call-history', authorize('superAdmin', 'employee'), addCallHistory);
-router.put('/call-history/:id', authorize('superAdmin', 'employee'), updateCallHistory);
-router.delete('/call-history/:id', authorize('superAdmin'), deleteCallHistory);
+router.get('/call-history/followups/today', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern', 'client'), getTodayFollowUpCalls);
+router.get('/call-history/client/:clientId', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern', 'client'), getCallHistoryByClient);
+router.get('/call-history/project/:projectId', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern', 'client'), getCallHistoryByProject);
+router.get('/call-history', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern', 'client'), getCallHistory);
+router.post('/call-history', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern'), addCallHistory);
+router.put('/call-history/:id', authorize('superAdmin', 'admin', 'manager', 'employee', 'intern'), updateCallHistory);
+router.delete('/call-history/:id', authorize('superAdmin', 'admin', 'manager'), deleteCallHistory);
 
 router.get('/expenses/monthly-report', authorize('superAdmin', 'manager', 'admin', 'financeManager'), getMonthlyExpenseReport);
 router.get('/expenses', authorize('superAdmin', 'manager', 'employee', 'admin', 'financeManager'), getExpenses);

@@ -344,7 +344,7 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/call-history" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee', 'intern', 'editor', 'designer', 'adsManager']}>
               <CallHistoryDashboard />
             </ProtectedRoute>
           } />

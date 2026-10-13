@@ -51,6 +51,7 @@ import domainRenewalRoutes from './routes/domainRenewal.routes.js';
 import sopRoutes from './routes/sop.routes.js';
 import proposalRoutes from './routes/proposal.routes.js';
 import taskNoteRoutes from './routes/taskNote.routes.js';
+import weeklyTodoRoutes from './routes/weeklyTodo.routes.js';
 import dmCalendarRoutes from './routes/dmCalendar.routes.js';
 import influencerRoutes from './routes/influencer.routes.js';
 import smmClientRoutes from './routes/smm/smmClient.routes.js';
@@ -229,6 +230,8 @@ app.use('/api/domain-renewals', domainRenewalRoutes);
 app.use('/api/sop', sopRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/task-notes', taskNoteRoutes);
+app.use('/api/todos', weeklyTodoRoutes);
+app.use('/api/weekly-todos', weeklyTodoRoutes);
 app.use('/api/dm-calendar', dmCalendarRoutes);
 app.use('/api/influencers', influencerRoutes);
 

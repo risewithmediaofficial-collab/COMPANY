@@ -69,13 +69,13 @@ export default function Sidebar({ onOpenSearch }) {
     }
   });
 
-  // Track open sections: closed by default initially
+  // Track open sections: COMMAND CENTER open by default initially
   const [openSections, setOpenSections] = useState(() => {
     try {
       const saved = localStorage.getItem(SECTIONS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : {};
+      return saved ? JSON.parse(saved) : { 'COMMAND CENTER': true };
     } catch {
-      return {};
+      return { 'COMMAND CENTER': true };
     }
   });
 
@@ -150,7 +150,8 @@ export default function Sidebar({ onOpenSearch }) {
       ];
     }
 
-    if (role === 'employee') {
+    const isStaff = ['employee', 'intern', 'editor', 'designer', 'adsManager'].includes(role);
+    if (isStaff) {
       const employeeDelivery = [
         { name: 'My Tasks', icon: CheckSquare, path: '/tasks' },
         { name: 'Daily Calendar', icon: Calendar, path: '/daily-tasks' },
@@ -166,6 +167,7 @@ export default function Sidebar({ onOpenSearch }) {
           title: 'COMMAND CENTER',
           items: [
             { name: 'Overview', icon: LayoutDashboard, path: '/' },
+            { name: 'Call History', icon: PhoneCall, path: '/call-history' },
           ],
         },
         {
@@ -214,6 +216,7 @@ export default function Sidebar({ onOpenSearch }) {
         title: 'COMMAND CENTER',
         items: [
           { name: 'Overview', icon: LayoutDashboard, path: '/' },
+          { name: 'Call History', icon: PhoneCall, path: '/call-history' },
         ],
       },
       {
@@ -230,7 +233,7 @@ export default function Sidebar({ onOpenSearch }) {
         items: [
           { name: 'Clients 360', icon: Users, path: '/clients' },
           { name: 'Client Follow-ups', icon: PhoneCall, path: '/client-followups' },
-          ...(role !== 'employee' ? [{ name: 'Client Vault', icon: KeyRound, path: '/client-vault' }] : []),
+          { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
         ],
       },
       {
@@ -264,7 +267,6 @@ export default function Sidebar({ onOpenSearch }) {
         title: 'BUSINESS & FINANCE',
         items: [
           { name: 'Finance Hub', icon: IndianRupee, path: '/finance' },
-          { name: 'Call History', icon: PhoneCall, path: '/call-history' },
           { name: 'Domain Renewals', icon: Globe2, path: '/domain-renewals' },
         ],
       },
@@ -299,6 +301,24 @@ export default function Sidebar({ onOpenSearch }) {
   };
 
   const navSections = getNavSections();
+
+  // Auto-expand section containing the currently active route
+  useEffect(() => {
+    const activeSection = navSections.find((s) =>
+      s.items.some((item) => item.path === location.pathname)
+    );
+    if (activeSection && !openSections[activeSection.title]) {
+      setOpenSections((prev) => {
+        const updated = { ...prev, [activeSection.title]: true, 'COMMAND CENTER': true };
+        try {
+          localStorage.setItem(SECTIONS_STORAGE_KEY, JSON.stringify(updated));
+        } catch {
+          // ignore storage error
+        }
+        return updated;
+      });
+    }
+  }, [location.pathname, navSections, openSections]);
 
   // Extract all available items for pinned lookup
   const allItems = navSections.flatMap((s) => s.items);

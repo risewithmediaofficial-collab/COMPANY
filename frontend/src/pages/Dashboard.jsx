@@ -70,7 +70,7 @@ import { AddProjectModal } from '../components/modals/AddProjectModal';
 import { AddClientModal } from '../components/modals/AddClientModal';
 import { useEodReports } from '../hooks/useEodReports';
 import { AttendanceWidget } from '../components/attendance/AttendanceWidget';
-import { NotesWidget } from '../components/notes/NotesWidget';
+import { WeeklyTodosWidget } from '../components/todos/WeeklyTodosWidget';
 import api from '../api';
 import { formatINR } from '../utils/currency';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -295,6 +295,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
               {[
                 { id: 'command', label: 'Command Center', icon: Activity },
+                { id: 'todos', label: 'Weekly Todos', icon: CheckSquare },
                 { id: 'metrics', label: 'All Metrics & Analytics', icon: BarChart3 },
                 { id: 'operations', label: 'My Focus & Deliverables', icon: Target },
                 { id: 'team', label: 'Team Workload & EOD', icon: Users },
@@ -1262,8 +1263,17 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Team Task Notes & Change Logs Widget */}
-        <NotesWidget isEmployee={false} user={user} />
+        {/* ── TAB: WEEKLY TODOS & DELIVERABLES ──────────────────────────────── */}
+        {activeTab === 'todos' && (
+          <div className="space-y-6">
+            <WeeklyTodosWidget isManagerOrAdmin={true} user={user} />
+          </div>
+        )}
+
+        {/* Weekly Todos & Deliverables Hub (Overview widget) */}
+        {activeTab === 'command' && (
+          <WeeklyTodosWidget isManagerOrAdmin={true} user={user} />
+        )}
       </div>
     );
   };
@@ -1410,8 +1420,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Employee Task Change Notes & Quick Scratchpad */}
-        <NotesWidget isEmployee={true} user={user} />
+        {/* Employee Weekly Todos & Personal Goals */}
+        <WeeklyTodosWidget isManagerOrAdmin={false} user={user} />
       </div>
     );
   };
