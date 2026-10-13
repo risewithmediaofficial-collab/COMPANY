@@ -22,7 +22,6 @@ import { useClients, useUpdateClient } from '../../../hooks/useClients';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useClientProfitability,
-  useGenerateRetainerInvoices,
   useCreateCostAllocation,
   useDeleteCostAllocation,
   useModuleInvoices,
@@ -62,7 +61,6 @@ export default function ClientsSection({ onQuickAdd }) {
   const { data: allInvoices = [] } = useModuleInvoices();
   const { data: allReceipts = [] } = usePaymentReceipts();
 
-  const generateRetainers = useGenerateRetainerInvoices();
   const createAllocation = useCreateCostAllocation();
   const deleteAllocation = useDeleteCostAllocation();
   const updateClient = useUpdateClient();
@@ -149,12 +147,6 @@ export default function ClientsSection({ onQuickAdd }) {
     return name.includes(q) || company.includes(q) || plan.includes(q);
   });
 
-  const handleGenerateRetainers = async () => {
-    if (!retainerPeriod) return toast.error('Enter service period');
-    try {
-      await generateRetainers.mutateAsync({ servicePeriod: retainerPeriod });
-    } catch (err) {}
-  };
 
   const handleSaveAllocation = async (e) => {
     e.preventDefault();
@@ -209,34 +201,6 @@ export default function ClientsSection({ onQuickAdd }) {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner & Retainer Generator Bar */}
-      <div className="bg-gradient-to-r from-indigo-900 to-slate-900 p-5 rounded-2xl text-white flex flex-wrap items-center justify-between gap-4 shadow-sm">
-        <div>
-          <span className="text-indigo-300 text-[11px] font-bold uppercase tracking-wider">Client Master & Retainers</span>
-          <h2 className="text-xl font-bold mt-0.5">Recurring Retainer Billing Engine</h2>
-          <p className="text-xs text-slate-300 mt-1 max-w-xl">
-            Automatically generate tax-compliant monthly retainer invoices for all active clients. Built-in idempotency safeguards prevent duplicate billing for the same service period.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 bg-white/10 p-2 rounded-xl backdrop-blur-xs border border-white/10">
-          <input
-            type="text"
-            value={retainerPeriod}
-            onChange={(e) => setRetainerPeriod(e.target.value)}
-            placeholder="e.g. October 2026"
-            className="bg-white/20 border-none rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-300 focus:ring-1 focus:ring-white"
-          />
-          <button
-            onClick={handleGenerateRetainers}
-            disabled={generateRetainers.isPending}
-            className="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 font-semibold text-xs rounded-lg transition-colors shadow-xs disabled:opacity-50 shrink-0"
-          >
-            {generateRetainers.isPending ? 'Generating...' : '⚡ Generate Retainers'}
-          </button>
-        </div>
-      </div>
-
       {/* Search and Action Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="relative w-72">
