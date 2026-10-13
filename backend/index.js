@@ -206,9 +206,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/finance', financeRoutes);
-app.use('/api/call-history', financeRoutes);
 app.use('/api/finance/salaries', salaryRoutes);
-app.use('/api/salaries', salaryRoutes);
 app.use('/api/hr', hrRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/referrals', referralRoutes);
@@ -231,7 +229,6 @@ app.use('/api/sop', sopRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/task-notes', taskNoteRoutes);
 app.use('/api/todos', weeklyTodoRoutes);
-app.use('/api/weekly-todos', weeklyTodoRoutes);
 app.use('/api/dm-calendar', dmCalendarRoutes);
 app.use('/api/influencers', influencerRoutes);
 

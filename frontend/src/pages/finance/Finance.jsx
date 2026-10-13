@@ -49,8 +49,9 @@ export default function Finance() {
   const navigate = useNavigate();
 
   // Active section (from URL query param, route param, or default 'overview')
+  const validTabs = ['overview', 'income', 'expenses', 'clients', 'invoices', 'payroll', 'forecast-reports'];
   const rawTab = section || searchParams.get('tab') || 'overview';
-  const initialTab = rawTab === 'cash-flow' || rawTab === 'founders' || rawTab === 'settings' ? 'overview' : rawTab;
+  const initialTab = validTabs.includes(rawTab) ? rawTab : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Quick Add Modal state
@@ -64,15 +65,13 @@ export default function Finance() {
 
   // Sync tab with URL
   useEffect(() => {
-    let tabFromUrl = section || searchParams.get('tab');
-    if (tabFromUrl === 'cash-flow' || tabFromUrl === 'founders' || tabFromUrl === 'settings') {
-      tabFromUrl = 'overview';
-      if (searchParams.get('tab') !== 'overview') {
-        setSearchParams({ tab: 'overview' }, { replace: true });
-      }
+    const tabFromUrl = section || searchParams.get('tab') || 'overview';
+    const resolvedTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'overview';
+    if (resolvedTab !== activeTab) {
+      setActiveTab(resolvedTab);
     }
-    if (tabFromUrl && tabFromUrl !== activeTab) {
-      setActiveTab(tabFromUrl);
+    if (searchParams.get('tab') && !validTabs.includes(searchParams.get('tab'))) {
+      setSearchParams({ tab: 'overview' }, { replace: true });
     }
   }, [section, searchParams, activeTab]);
 
