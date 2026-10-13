@@ -1238,20 +1238,28 @@ export const getModuleExpenses = async (req, res) => {
 
     const expenses = rawExpenses.map((e) => {
       const hasPayments = Array.isArray(e.payments) && e.payments.length > 0;
-      const paidAmount = hasPayments
-        ? e.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
-        : (e.paymentStatus === 'paid' ? Number(e.amount || 0) : Number(e.paidAmount || 0));
-      const balanceAmount = Math.max(0, Number(e.amount || 0) - paidAmount);
-      let paymentStatus = e.paymentStatus;
+      const totalAmount = Number(e.amount || 0);
+      let paidAmount = 0;
       if (hasPayments) {
-        paymentStatus = balanceAmount === 0 ? 'paid' : (paidAmount > 0 ? 'partially_paid' : 'unpaid');
+        paidAmount = e.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      } else if (e.paidAmount != null && Number(e.paidAmount) > 0) {
+        paidAmount = Number(e.paidAmount);
       } else if (e.paymentStatus === 'paid') {
+        paidAmount = totalAmount;
+      }
+      paidAmount = Math.min(totalAmount, Math.max(0, paidAmount));
+      const balanceAmount = Math.max(0, totalAmount - paidAmount);
+      let paymentStatus = e.paymentStatus;
+      if (balanceAmount === 0 && totalAmount > 0) {
         paymentStatus = 'paid';
+      } else if (paidAmount > 0) {
+        paymentStatus = 'partially_paid';
       } else {
         paymentStatus = 'unpaid';
       }
       return {
         ...e,
+        amount: totalAmount,
         paidAmount,
         balanceAmount,
         paymentStatus,

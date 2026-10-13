@@ -27,6 +27,8 @@ import {
   Sparkles,
   FileText,
   ArrowLeft,
+  Printer,
+  ChevronDown,
 } from 'lucide-react';
 import {
   Dialog,
@@ -53,6 +55,30 @@ import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFor
 
 const PaymentRemindersTab = lazy(() => import('./PaymentRemindersTab'));
 
+export const calculateExpenseFinancials = (e) => {
+  if (!e) return { total: 0, paid: 0, balance: 0, status: 'unpaid' };
+  const total = Number(e.amount || 0);
+  let paid = 0;
+  if (Array.isArray(e.payments) && e.payments.length > 0) {
+    paid = e.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+  } else if (e.paidAmount != null && Number(e.paidAmount) > 0) {
+    paid = Number(e.paidAmount);
+  } else if (e.paymentStatus === 'paid') {
+    paid = total;
+  }
+  paid = Math.min(total, Math.max(0, paid));
+  const balance = Math.max(0, total - paid);
+  let status = e.paymentStatus || 'unpaid';
+  if (balance === 0 && total > 0) {
+    status = 'paid';
+  } else if (paid > 0) {
+    status = 'partially_paid';
+  } else {
+    status = 'unpaid';
+  }
+  return { total, paid, balance, status };
+};
+
 export default function ExpensesSection({ onQuickAdd }) {
   const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions' | 'payment_reminders'
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -61,7 +87,97 @@ export default function ExpensesSection({ onQuickAdd }) {
   const [payeeSearch, setPayeeSearch] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [datePreset, setDatePreset] = useState('all'); // 'all' | 'this_week' | 'this_month' | 'this_year' | 'custom'
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
+
+  // Payee ledger date filter state
+  const [payeeDatePreset, setPayeeDatePreset] = useState('all');
+  const [payeeFromDate, setPayeeFromDate] = useState('');
+  const [payeeToDate, setPayeeToDate] = useState('');
+  const [showPayeeExportMenu, setShowPayeeExportMenu] = useState(false);
+
+  const setQuickDatePreset = (preset) => {
+    setDatePreset(preset);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+
+    if (preset === 'all') {
+      setFromDate('');
+      setToDate('');
+      return;
+    }
+
+    if (preset === 'this_week') {
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMonday);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      setFromDate(`${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`);
+      setToDate(`${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`);
+      return;
+    }
+
+    if (preset === 'this_month') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      setFromDate(`${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`);
+      setToDate(`${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`);
+      return;
+    }
+
+    if (preset === 'this_year') {
+      const year = now.getFullYear();
+      setFromDate(`${year}-01-01`);
+      setToDate(`${year}-12-31`);
+      return;
+    }
+  };
+
+  const setQuickPayeeDatePreset = (preset) => {
+    setPayeeDatePreset(preset);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+
+    if (preset === 'all') {
+      setPayeeFromDate('');
+      setPayeeToDate('');
+      return;
+    }
+
+    if (preset === 'this_week') {
+      const day = now.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMonday);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      setPayeeFromDate(`${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`);
+      setPayeeToDate(`${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`);
+      return;
+    }
+
+    if (preset === 'this_month') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      setPayeeFromDate(`${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`);
+      setPayeeToDate(`${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`);
+      return;
+    }
+
+    if (preset === 'this_year') {
+      const year = now.getFullYear();
+      setPayeeFromDate(`${year}-01-01`);
+      setPayeeToDate(`${year}-12-31`);
+      return;
+    }
+  };
 
   // Payee / Vendor Ledger & Expense Details Sidebar State
   const [selectedPayeeForLedger, setSelectedPayeeForLedger] = useState(null);
@@ -187,15 +303,15 @@ export default function ExpensesSection({ onQuickAdd }) {
     }
   };
 
-  const handleOpenOverallPay = (payee) => {
-    const pendingAmt = Number(payee?.pendingAmount || 0);
+  const handleOpenOverallPay = (payee, customPendingAmount = null) => {
+    const pendingAmt = customPendingAmount != null ? Number(customPendingAmount) : Number(payee?.pendingAmount || 0);
     setOverallPayFormData({
       amount: pendingAmt > 0 ? String(pendingAmt) : '',
       paymentDate: new Date().toISOString().slice(0, 10),
       paymentMode: 'Bank',
       fundingAccount: '',
-      reference: `Overall Pay: ${payee?.name}`,
-      notes: `Settlement across ${payee?.pendingCount || 'unpaid'} bills`,
+      reference: `Overall Pay: ${payee?.name || payee || ''}`,
+      notes: `Settlement across unpaid bills`,
     });
     setIsOverallPaying(true);
   };
@@ -347,15 +463,13 @@ export default function ExpensesSection({ onQuickAdd }) {
           items: [],
         };
       }
-      const amt = Number(e.amount || 0);
-      const paid = Number(e.paidAmount != null ? e.paidAmount : (e.paymentStatus === 'paid' ? amt : 0));
-      const pending = Number(e.balanceAmount != null ? e.balanceAmount : Math.max(0, amt - paid));
-      map[key].totalAmount += amt;
-      map[key].paidAmount += paid;
-      map[key].pendingAmount += pending;
+      const fin = calculateExpenseFinancials(e);
+      map[key].totalAmount += fin.total;
+      map[key].paidAmount += fin.paid;
+      map[key].pendingAmount += fin.balance;
       map[key].totalCount += 1;
-      map[key].items.push(e);
-      if (pending === 0 && amt > 0) {
+      map[key].items.push({ ...e, ...fin });
+      if (fin.balance === 0 && fin.total > 0) {
         map[key].paidCount += 1;
       } else {
         map[key].pendingCount += 1;
@@ -378,42 +492,84 @@ export default function ExpensesSection({ onQuickAdd }) {
       if (target === 'unassigned / general') return !v;
       return v.toLowerCase() === target;
     });
-    const totalAmount = matching.reduce((s, e) => s + Number(e.amount || 0), 0);
-    const paidAmount = matching.reduce((s, e) => s + Number(e.paidAmount != null ? e.paidAmount : (e.paymentStatus === 'paid' ? e.amount : 0)), 0);
-    const pendingAmount = matching.reduce((s, e) => s + Number(e.balanceAmount != null ? e.balanceAmount : Math.max(0, Number(e.amount || 0) - Number(e.paidAmount || 0))), 0);
+
+    const enrichedItems = matching.map((e) => {
+      const fin = calculateExpenseFinancials(e);
+      return {
+        ...e,
+        total: fin.total,
+        paid: fin.paid,
+        balance: fin.balance,
+        calculatedStatus: fin.status,
+      };
+    }).sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+
+    const totalAmount = enrichedItems.reduce((s, e) => s + e.total, 0);
+    const paidAmount = enrichedItems.reduce((s, e) => s + e.paid, 0);
+    const pendingAmount = enrichedItems.reduce((s, e) => s + e.balance, 0);
+    const paidCount = enrichedItems.filter((e) => e.balance === 0 && e.total > 0).length;
+    const pendingCount = enrichedItems.filter((e) => e.balance > 0).length;
+
     return {
       name: selectedPayeeForLedger,
-      items: [...matching].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)),
+      items: enrichedItems,
       totalAmount,
       paidAmount,
       pendingAmount,
-      totalCount: matching.length,
-      paidCount: matching.filter((e) => Number(e.balanceAmount || 0) === 0 && e.paymentStatus === 'paid').length,
-      pendingCount: matching.filter((e) => Number(e.balanceAmount || 0) > 0 || e.paymentStatus !== 'paid').length,
+      totalCount: enrichedItems.length,
+      paidCount,
+      pendingCount,
     };
   }, [expenses, selectedPayeeForLedger]);
 
-  const unpaidBillsForActivePayee = useMemo(() => {
+  const displayedPayeeItems = useMemo(() => {
     if (!activePayeeDetails?.items) return [];
-    return activePayeeDetails.items
-      .filter((item) => {
-        const total = Number(item.amount || 0);
-        const paid = Array.isArray(item.payments) && item.payments.length > 0
-          ? item.payments.reduce((s, p) => s + Number(p.amount || 0), 0)
-          : (item.paidAmount != null ? Number(item.paidAmount) : (item.paymentStatus === 'paid' ? total : 0));
-        return Math.max(0, total - paid) > 0 && item.paymentStatus !== 'paid';
-      })
+    return activePayeeDetails.items.filter((item) => {
+      const expDate = item.date || item.createdAt;
+      if (payeeFromDate && expDate) {
+        const d = new Date(expDate).toISOString().slice(0, 10);
+        if (d < payeeFromDate) return false;
+      }
+      if (payeeToDate && expDate) {
+        const d = new Date(expDate).toISOString().slice(0, 10);
+        if (d > payeeToDate) return false;
+      }
+      return true;
+    });
+  }, [activePayeeDetails, payeeFromDate, payeeToDate]);
+
+  const payeeFilteredTotal = useMemo(
+    () => displayedPayeeItems.reduce((s, e) => s + e.total, 0),
+    [displayedPayeeItems]
+  );
+  const payeeFilteredPaid = useMemo(
+    () => displayedPayeeItems.reduce((s, e) => s + e.paid, 0),
+    [displayedPayeeItems]
+  );
+  const payeeFilteredPending = useMemo(
+    () => displayedPayeeItems.reduce((s, e) => s + e.balance, 0),
+    [displayedPayeeItems]
+  );
+  const payeeFilteredPaidCount = useMemo(
+    () => displayedPayeeItems.filter((e) => e.balance === 0 && e.total > 0).length,
+    [displayedPayeeItems]
+  );
+  const payeeFilteredPendingCount = useMemo(
+    () => displayedPayeeItems.filter((e) => e.balance > 0).length,
+    [displayedPayeeItems]
+  );
+
+  const unpaidBillsForActivePayee = useMemo(() => {
+    if (!displayedPayeeItems) return [];
+    return displayedPayeeItems
+      .filter((item) => item.balance > 0)
       .sort((a, b) => new Date(a.date || a.createdAt || 0) - new Date(b.date || b.createdAt || 0)); // FIFO: oldest first
-  }, [activePayeeDetails]);
+  }, [displayedPayeeItems]);
 
   const simulatedSettlement = useMemo(() => {
     let rem = Number(overallPayFormData.amount || 0);
     return unpaidBillsForActivePayee.map((item, idx) => {
-      const total = Number(item.amount || 0);
-      const paid = Array.isArray(item.payments) && item.payments.length > 0
-        ? item.payments.reduce((s, p) => s + Number(p.amount || 0), 0)
-        : (item.paidAmount != null ? Number(item.paidAmount) : (item.paymentStatus === 'paid' ? total : 0));
-      const currentBalance = Math.max(0, total - paid);
+      const currentBalance = item.balance;
       const allocated = Math.min(currentBalance, Math.max(0, rem));
       rem = Math.max(0, rem - allocated);
       const remainingBal = Math.max(0, currentBalance - allocated);
@@ -434,11 +590,13 @@ export default function ExpensesSection({ onQuickAdd }) {
     return expenses.find((e) => e._id === selectedExpenseForSidebar._id) || selectedExpenseForSidebar;
   }, [expenses, selectedExpenseForSidebar]);
 
-  const currentExpTotal = Number(currentSelectedExpense?.amount || 0);
-  const currentExpPaid = Array.isArray(currentSelectedExpense?.payments) && currentSelectedExpense.payments.length > 0
-    ? currentSelectedExpense.payments.reduce((s, p) => s + Number(p.amount || 0), 0)
-    : (currentSelectedExpense?.paidAmount != null ? Number(currentSelectedExpense.paidAmount) : (currentSelectedExpense?.paymentStatus === 'paid' ? currentExpTotal : 0));
-  const currentExpBalance = Math.max(0, currentExpTotal - currentExpPaid);
+  const currentExpFinancials = useMemo(
+    () => calculateExpenseFinancials(currentSelectedExpense),
+    [currentSelectedExpense]
+  );
+  const currentExpTotal = currentExpFinancials.total;
+  const currentExpPaid = currentExpFinancials.paid;
+  const currentExpBalance = currentExpFinancials.balance;
   const currentExpPercent = currentExpTotal > 0 ? Math.min(100, Math.round((currentExpPaid / currentExpTotal) * 100)) : 100;
 
   const displayedPayments = useMemo(() => {
@@ -446,86 +604,288 @@ export default function ExpensesSection({ onQuickAdd }) {
     if (Array.isArray(currentSelectedExpense.payments) && currentSelectedExpense.payments.length > 0) {
       return [...currentSelectedExpense.payments].sort((a, b) => new Date(b.paymentDate || b.createdAt || 0) - new Date(a.paymentDate || a.createdAt || 0));
     }
-    if (currentSelectedExpense.paymentStatus === 'paid' && currentExpPaid > 0) {
+    if (currentExpPaid > 0) {
       return [{
         _id: 'legacy-settlement',
         amount: currentExpPaid,
         paymentDate: currentSelectedExpense.paymentDate || currentSelectedExpense.date,
         paymentMode: currentSelectedExpense.paymentMode || 'Bank',
-        reference: 'Full Settlement',
+        reference: currentExpBalance === 0 ? 'Full Settlement' : 'Partial Settlement',
         notes: 'Initial payment recorded',
         isLegacy: true,
       }];
     }
     return [];
-  }, [currentSelectedExpense, currentExpPaid]);
+  }, [currentSelectedExpense, currentExpPaid, currentExpBalance]);
 
   const relatedPayeeDetailsForExpense = useMemo(() => {
     if (!currentSelectedExpense?.vendor) return null;
     const target = currentSelectedExpense.vendor.trim().toLowerCase();
     const matching = expenses.filter((e) => (e.vendor || '').trim().toLowerCase() === target);
-    const totalAmount = matching.reduce((s, e) => s + Number(e.amount || 0), 0);
-    const paidAmount = matching.reduce((s, e) => s + Number(e.paidAmount != null ? e.paidAmount : (e.paymentStatus === 'paid' ? e.amount : 0)), 0);
-    const pendingAmount = matching.reduce((s, e) => s + Number(e.balanceAmount != null ? e.balanceAmount : Math.max(0, Number(e.amount || 0) - Number(e.paidAmount || 0))), 0);
+    const enriched = matching.map((e) => ({ ...e, ...calculateExpenseFinancials(e) }));
+    const totalAmount = enriched.reduce((s, e) => s + e.total, 0);
+    const paidAmount = enriched.reduce((s, e) => s + e.paid, 0);
+    const pendingAmount = enriched.reduce((s, e) => s + e.balance, 0);
     return {
       name: currentSelectedExpense.vendor,
-      items: [...matching].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)),
+      items: [...enriched].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)),
       totalAmount,
       paidAmount,
       pendingAmount,
-      totalCount: matching.length,
-      paidCount: matching.filter((e) => Number(e.balanceAmount || 0) === 0 && e.paymentStatus === 'paid').length,
-      pendingCount: matching.filter((e) => Number(e.balanceAmount || 0) > 0 || e.paymentStatus !== 'paid').length,
+      totalCount: enriched.length,
+      paidCount: enriched.filter((e) => e.balance === 0 && e.total > 0).length,
+      pendingCount: enriched.filter((e) => e.balance > 0).length,
     };
   }, [expenses, currentSelectedExpense]);
 
-  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const unpaidBills = filteredExpenses.filter((e) => e.paymentStatus !== 'paid');
-  const totalUnpaidBills = unpaidBills.reduce((sum, e) => sum + Number(e.balanceAmount != null ? e.balanceAmount : (e.paymentStatus === 'paid' ? 0 : e.amount)), 0);
+  const totalExpenses = useMemo(
+    () => filteredExpenses.reduce((sum, e) => sum + calculateExpenseFinancials(e).total, 0),
+    [filteredExpenses]
+  );
+  const totalPaidExpenses = useMemo(
+    () => filteredExpenses.reduce((sum, e) => sum + calculateExpenseFinancials(e).paid, 0),
+    [filteredExpenses]
+  );
+  const totalUnpaidBills = useMemo(
+    () => filteredExpenses.reduce((sum, e) => sum + calculateExpenseFinancials(e).balance, 0),
+    [filteredExpenses]
+  );
+  const unpaidBillsCount = useMemo(
+    () => filteredExpenses.filter((e) => calculateExpenseFinancials(e).balance > 0).length,
+    [filteredExpenses]
+  );
+  const paidBillsCount = useMemo(
+    () => filteredExpenses.filter((e) => calculateExpenseFinancials(e).balance === 0 && calculateExpenseFinancials(e).total > 0).length,
+    [filteredExpenses]
+  );
 
-  const handleExport = () => {
-    const rows = filteredExpenses.map((e) => ({
-      date: formatDateIST(e.date),
-      title: e.title,
-      vendor: e.vendor || '',
-      category: e.category,
-      costType: e.costType,
-      amount: e.amount,
-      status: e.paymentStatus,
-      account: e.fundingAccount?.accountName || '-',
-    }));
-    exportToCSV('agency_expenses_and_bills', rows, [
+  const handleExportCSV = (items = filteredExpenses, filenamePrefix = 'agency_expenses_report', customPeriodLabel = '') => {
+    setShowExportMenu(false);
+    setShowPayeeExportMenu(false);
+
+    let periodLabel = customPeriodLabel;
+    if (!periodLabel) {
+      periodLabel = datePreset === 'this_week'
+        ? 'this_week'
+        : datePreset === 'this_month'
+        ? 'this_month'
+        : datePreset === 'this_year'
+        ? 'this_year'
+        : (fromDate && toDate ? `${fromDate}_to_${toDate}` : 'all_time');
+    }
+
+    const rows = items.map((e) => {
+      const fin = calculateExpenseFinancials(e);
+      return {
+        date: formatDateIST(e.date || e.createdAt),
+        title: e.title,
+        vendor: e.vendor || 'Unassigned',
+        category: (e.category || '').replace(/_/g, ' '),
+        costType: e.costType || 'agency_overhead',
+        amount: fin.total,
+        paidAmount: fin.paid,
+        balanceAmount: fin.balance,
+        status: fin.status === 'paid' ? 'Paid' : fin.status === 'partially_paid' ? 'Partially Paid' : 'Unpaid',
+        account: e.fundingAccount?.accountName || '-',
+        notes: e.notes || '',
+      };
+    });
+
+    exportToCSV(`${filenamePrefix}_${periodLabel}`, rows, [
       { key: 'date', label: 'Date' },
-      { key: 'title', label: 'Item / Title' },
-      { key: 'vendor', label: 'Vendor' },
+      { key: 'title', label: 'Item / Description' },
+      { key: 'vendor', label: 'Payee / Vendor' },
       { key: 'category', label: 'Category' },
       { key: 'costType', label: 'Cost Type' },
-      { key: 'amount', label: 'Amount (INR)' },
+      { key: 'amount', label: 'Total Amount (INR)' },
+      { key: 'paidAmount', label: 'Paid Amount (INR)' },
+      { key: 'balanceAmount', label: 'Pending Due (INR)' },
       { key: 'status', label: 'Payment Status' },
       { key: 'account', label: 'Funding Account' },
+      { key: 'notes', label: 'Remarks / Notes' },
     ]);
+  };
+
+  const handleExport = () => handleExportCSV();
+
+  const handlePrintReport = (
+    itemsToPrint = filteredExpenses,
+    reportTitle = 'Operational Expenses & Vendor Bills Report',
+    periodDescription = '',
+    customSubtitle = ''
+  ) => {
+    setShowExportMenu(false);
+    setShowPayeeExportMenu(false);
+
+    if (!itemsToPrint || !itemsToPrint.length) {
+      alert('No expense records found for the selected filter range to export.');
+      return;
+    }
+
+    const totalAmt = itemsToPrint.reduce((s, e) => s + calculateExpenseFinancials(e).total, 0);
+    const paidAmt = itemsToPrint.reduce((s, e) => s + calculateExpenseFinancials(e).paid, 0);
+    const pendingAmt = itemsToPrint.reduce((s, e) => s + calculateExpenseFinancials(e).balance, 0);
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Pop-up was blocked. Please allow pop-ups to open the printable report.');
+      return;
+    }
+
+    const dateScope = periodDescription || (
+      datePreset === 'this_week'
+        ? `This Week (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+        : datePreset === 'this_month'
+        ? `This Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+        : datePreset === 'this_year'
+        ? `This Year (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+        : fromDate && toDate
+        ? `${formatDateIST(fromDate)} – ${formatDateIST(toDate)}`
+        : 'All Time Records'
+    );
+
+    const rowsHtml = itemsToPrint.map((e, idx) => {
+      const fin = calculateExpenseFinancials(e);
+      return `
+      <tr>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${idx + 1}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; white-space: nowrap;">${formatDateIST(e.date || e.createdAt)}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 600;">${e.title || '-'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${e.vendor || 'Unassigned'}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-transform: capitalize;">${(e.category || '').replace(/_/g, ' ')}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-align: right; font-weight: 700;">${formatINR(fin.total)}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-align: right; color: #059669; font-weight: 600;">${formatINR(fin.paid)}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-align: right; color: #d97706; font-weight: 600;">${formatINR(fin.balance)}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 10px; text-align: center; text-transform: uppercase; font-weight: 700;">
+          <span style="padding: 2px 6px; border-radius: 9999px; background: ${fin.status === 'paid' ? '#d1fae5; color: #065f46;' : fin.status === 'partially_paid' ? '#fef3c7; color: #92400e;' : '#ffe4e6; color: #9f1239;'}">
+            ${fin.status === 'paid' ? 'Paid' : fin.status === 'partially_paid' ? 'Partial' : 'Unpaid'}
+          </span>
+        </td>
+      </tr>
+    `}).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${reportTitle} - RiseWithMedia</title>
+          <style>
+            @page { size: landscape; margin: 12mm; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; padding: 20px; }
+            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 16px; }
+            .title { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; }
+            .subtitle { font-size: 12px; color: #64748b; margin: 0; }
+            .badge { display: inline-block; padding: 4px 10px; background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 11px; border-radius: 6px; margin-top: 6px; }
+            .kpis { display: flex; gap: 12px; margin-bottom: 16px; }
+            .kpi-card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; background: #f8fafc; }
+            .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 2px; }
+            .kpi-value { font-size: 16px; font-weight: 800; color: #0f172a; }
+            table { width: 100%; border-collapse: collapse; text-align: left; }
+            th { padding: 8px 10px; background: #f1f5f9; border-bottom: 2px solid #cbd5e1; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #475569; }
+            .footer { margin-top: 24px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; }
+            .actions-bar { margin-bottom: 16px; display: flex; justify-content: flex-end; gap: 10px; }
+            .print-btn { background: #4f46e5; color: white; border: none; padding: 8px 16px; font-weight: 700; font-size: 12px; border-radius: 6px; cursor: pointer; }
+            @media print { .actions-bar { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="actions-bar">
+            <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+          </div>
+          <div class="header">
+            <div>
+              <h1 class="title">${reportTitle}</h1>
+              <p class="subtitle">${customSubtitle || 'RiseWithMedia Agency OS · Financial Statement & Expense Audit'}</p>
+              <div class="badge">Period: ${dateScope}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: 800; font-size: 16px; color: #4f46e5;">RiseWithMedia</div>
+              <div style="font-size: 11px; color: #64748b;">Generated: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</div>
+            </div>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi-card">
+              <div class="kpi-label">Total Billed</div>
+              <div class="kpi-value">${formatINR(totalAmt)}</div>
+            </div>
+            <div class="kpi-card" style="background: #ecfdf5; border-color: #a7f3d0;">
+              <div class="kpi-label" style="color: #047857;">Total Cleared / Paid</div>
+              <div class="kpi-value" style="color: #065f46;">${formatINR(paidAmt)}</div>
+            </div>
+            <div class="kpi-card" style="background: #fffbeb; border-color: #fde68a;">
+              <div class="kpi-label" style="color: #b45309;">Pending to Pay</div>
+              <div class="kpi-value" style="color: #92400e;">${formatINR(pendingAmt)}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Entries Count</div>
+              <div class="kpi-value">${itemsToPrint.length} Records</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Item / Description</th>
+                <th>Payee / Vendor</th>
+                <th>Category</th>
+                <th style="text-align: right;">Total Amount</th>
+                <th style="text-align: right;">Cleared Amount</th>
+                <th style="text-align: right;">Pending Due</th>
+                <th style="text-align: center;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <span>RiseWithMedia Agency Management OS · Confidential Finance Record</span>
+            <span>Page 1 of 1</span>
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); }, 400);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
     <div className="space-y-6">
       {/* Top Banner KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
           <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
             <span>TOTAL POSTED EXPENSES</span>
-            <ArrowUpRight className="h-4 w-4 text-rose-600" />
+            <ArrowUpRight className="h-4 w-4 text-slate-700" />
           </div>
           <div className="text-2xl font-bold text-slate-900">{formatINR(totalExpenses)}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Recognized operating agency costs</div>
+          <div className="text-[11px] text-slate-500 mt-1">{filteredExpenses.length} total recorded bills</div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <div className="flex justify-between items-center text-slate-500 text-xs font-semibold mb-1">
+        <div className="bg-white p-4 rounded-xl border border-emerald-200 bg-emerald-50/20 shadow-2xs">
+          <div className="flex justify-between items-center text-emerald-700 text-xs font-semibold mb-1">
+            <span>TOTAL CLEARED / PAID</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          </div>
+          <div className="text-2xl font-bold text-emerald-700">{formatINR(totalPaidExpenses)}</div>
+          <div className="text-[11px] text-emerald-600 mt-1">{paidBillsCount} settled bills</div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-amber-200 bg-amber-50/20 shadow-2xs">
+          <div className="flex justify-between items-center text-amber-700 text-xs font-semibold mb-1">
             <span>UNPAID VENDOR BILLS</span>
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-2xl font-bold text-amber-600">{formatINR(totalUnpaidBills)}</div>
-          <div className="text-[11px] text-slate-500 mt-1">{unpaidBills.length} vendor bills pending payment</div>
+          <div className="text-[11px] text-amber-700 mt-1">{unpaidBillsCount} vendor bills pending payment</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
@@ -625,14 +985,76 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <option value="unpaid">Unpaid Vendor Bills</option>
               </select>
 
-              {/* Date to Date Filter */}
+              {/* Quick Date Presets */}
+              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setQuickDatePreset('all')}
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    datePreset === 'all'
+                      ? 'bg-white text-indigo-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDatePreset('this_week')}
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    datePreset === 'this_week'
+                      ? 'bg-white text-indigo-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  This Week
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDatePreset('this_month')}
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    datePreset === 'this_month'
+                      ? 'bg-white text-indigo-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  This Month
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDatePreset('this_year')}
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    datePreset === 'this_year'
+                      ? 'bg-white text-indigo-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  This Year
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickDatePreset('custom')}
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                    datePreset === 'custom'
+                      ? 'bg-white text-indigo-700 shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Date to Date
+                </button>
+              </div>
+
+              {/* Date to Date Filter Inputs */}
               <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
                 <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
                 <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
                 <input
                   type="date"
                   value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
+                  onChange={(e) => {
+                    setFromDate(e.target.value);
+                    setDatePreset('custom');
+                  }}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
                   title="From Date"
                   className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
@@ -641,18 +1063,19 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <input
                   type="date"
                   value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
+                  onChange={(e) => {
+                    setToDate(e.target.value);
+                    setDatePreset('custom');
+                  }}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
                   title="To Date"
                   className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
                 />
                 {(fromDate || toDate) && (
                   <button
-                    onClick={() => {
-                      setFromDate('');
-                      setToDate('');
-                    }}
-                    className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors"
+                    type="button"
+                    onClick={() => setQuickDatePreset('all')}
+                    className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                     title="Reset Date Range"
                   >
                     <X className="h-3 w-3" />
@@ -674,16 +1097,42 @@ export default function ExpensesSection({ onQuickAdd }) {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleExport}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
-              >
-                <Download className="h-3.5 w-3.5" />
-                Export CSV
-              </button>
+              {/* Export as Report Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowExportMenu((prev) => !prev)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+                >
+                  <FileText className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>Export Report</span>
+                  <ChevronDown className="h-3 w-3 text-slate-400" />
+                </button>
+                {showExportMenu && (
+                  <div className="absolute right-0 mt-1.5 w-52 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 z-30 space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => handleExportCSV()}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
+                    >
+                      <Download className="h-3.5 w-3.5 text-indigo-500" />
+                      <span>Download CSV Report</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePrintReport()}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
+                    >
+                      <Printer className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>Print / Save PDF Report</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={() => onQuickAdd('expense')}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700 shadow-2xs"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700 shadow-2xs cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Record Expense / Bill
@@ -725,7 +1174,9 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </td>
                     </tr>
                   ) : (
-                    sortedExpenses.map((exp) => (
+                    sortedExpenses.map((exp) => {
+                      const fin = calculateExpenseFinancials(exp);
+                      return (
                       <tr
                         key={exp._id}
                         onClick={() => setSelectedExpenseForSidebar(exp)}
@@ -786,24 +1237,36 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <td className="p-3">
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                              exp.paymentStatus === 'paid'
+                              fin.status === 'paid'
                                 ? 'bg-emerald-100 text-emerald-700'
-                                : exp.paymentStatus === 'partially_paid'
+                                : fin.status === 'partially_paid'
                                 ? 'bg-amber-100 text-amber-700'
                                 : 'bg-rose-100 text-rose-700'
                             }`}
                           >
-                            {exp.paymentStatus === 'paid'
+                            {fin.status === 'paid'
                               ? 'Paid'
-                              : exp.paymentStatus === 'partially_paid'
-                              ? `Partially Paid (${formatINR(exp.paidAmount || 0)})`
+                              : fin.status === 'partially_paid'
+                              ? `Partially Paid (${formatINR(fin.paid)})`
                               : 'Unpaid Bill'}
                           </span>
                         </td>
-                        <td className="p-3 text-right font-bold text-slate-900 text-sm">{formatINR(exp.amount)}</td>
+                        <td className="p-3 text-right font-bold text-slate-900 text-sm whitespace-nowrap">
+                          <div>{formatINR(fin.total)}</div>
+                          {fin.paid > 0 && fin.balance > 0 && (
+                            <div className="text-[10px] text-emerald-600 font-semibold">
+                              Paid: {formatINR(fin.paid)}
+                            </div>
+                          )}
+                          {fin.balance > 0 && fin.paid > 0 && (
+                            <div className="text-[10px] text-amber-600 font-bold">
+                              Due: {formatINR(fin.balance)}
+                            </div>
+                          )}
+                        </td>
                         <td className="p-3 text-right">
                           <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                            {exp.paymentStatus !== 'paid' ? (
+                            {fin.balance > 0 ? (
                               <button
                                 type="button"
                                 onClick={() => {
@@ -841,7 +1304,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           </div>
                         </td>
                       </tr>
-                    ))
+                    );})
                   )}
                 </tbody>
               </table>
@@ -2463,41 +2926,234 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </DialogHeader>
 
                 <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  {/* Date Filters & Export Statement Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 bg-slate-100/70 rounded-xl border border-slate-200">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Preset Pills */}
+                      <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                        <button
+                          type="button"
+                          onClick={() => setQuickPayeeDatePreset('all')}
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                            payeeDatePreset === 'all'
+                              ? 'bg-indigo-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickPayeeDatePreset('this_week')}
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                            payeeDatePreset === 'this_week'
+                              ? 'bg-indigo-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          This Week
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickPayeeDatePreset('this_month')}
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                            payeeDatePreset === 'this_month'
+                              ? 'bg-indigo-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          This Month
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickPayeeDatePreset('this_year')}
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                            payeeDatePreset === 'this_year'
+                              ? 'bg-indigo-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          This Year
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickPayeeDatePreset('custom')}
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                            payeeDatePreset === 'custom'
+                              ? 'bg-indigo-600 text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          Date to Date
+                        </button>
+                      </div>
+
+                      {/* Date Range Inputs */}
+                      <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-2xs">
+                        <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                        <input
+                          type="date"
+                          value={payeeFromDate}
+                          onChange={(e) => {
+                            setPayeeFromDate(e.target.value);
+                            setPayeeDatePreset('custom');
+                          }}
+                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                          title="From Date"
+                          className="px-1 py-0.5 rounded border border-slate-200 text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                        />
+                        <span className="text-[10px] text-slate-400 font-bold">to</span>
+                        <input
+                          type="date"
+                          value={payeeToDate}
+                          onChange={(e) => {
+                            setPayeeToDate(e.target.value);
+                            setPayeeDatePreset('custom');
+                          }}
+                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                          title="To Date"
+                          className="px-1 py-0.5 rounded border border-slate-200 text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                        />
+                        {(payeeFromDate || payeeToDate) && (
+                          <button
+                            type="button"
+                            onClick={() => setQuickPayeeDatePreset('all')}
+                            className="p-0.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                            title="Reset Dates"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Export Statement Dropdown */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowPayeeExportMenu((prev) => !prev)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <FileText className="h-3.5 w-3.5 text-indigo-600" />
+                        <span>Export Statement</span>
+                        <ChevronDown className="h-3 w-3 text-slate-400" />
+                      </button>
+                      {showPayeeExportMenu && (
+                        <div className="absolute right-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 z-40 space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPayeeExportMenu(false);
+                              handleExportCSV(
+                                displayedPayeeItems,
+                                `statement_${(activePayeeDetails.name || 'payee').replace(/[^a-z0-9]/gi, '_')}`,
+                                payeeDatePreset === 'this_week'
+                                  ? 'this_week'
+                                  : payeeDatePreset === 'this_month'
+                                  ? 'this_month'
+                                  : payeeDatePreset === 'this_year'
+                                  ? 'this_year'
+                                  : payeeFromDate && payeeToDate
+                                  ? `${payeeFromDate}_to_${payeeToDate}`
+                                  : 'all_time'
+                              );
+                            }}
+                            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer"
+                          >
+                            <Download className="h-3.5 w-3.5 text-emerald-600" />
+                            <span>Download CSV Statement</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPayeeExportMenu(false);
+                              handlePrintReport(
+                                displayedPayeeItems,
+                                `Payee Statement & Ledger: ${activePayeeDetails.name}`,
+                                payeeDatePreset === 'this_week'
+                                  ? `This Week (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
+                                  : payeeDatePreset === 'this_month'
+                                  ? `This Month (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
+                                  : payeeDatePreset === 'this_year'
+                                  ? `This Year (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
+                                  : payeeFromDate && payeeToDate
+                                  ? `${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)}`
+                                  : 'All Time Statement',
+                                `Individual vendor statement & payment clearance ledger for ${activePayeeDetails.name}`
+                              );
+                            }}
+                            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer"
+                          >
+                            <Printer className="h-3.5 w-3.5 text-indigo-600" />
+                            <span>Print / Save PDF Statement</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Active Period Indicator Badge */}
+                  <div className="flex items-center justify-between text-xs px-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-500">Period:</span>
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        {payeeDatePreset === 'this_week'
+                          ? `This Week (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
+                          : payeeDatePreset === 'this_month'
+                          ? `This Month (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
+                          : payeeDatePreset === 'this_year'
+                          ? `This Year (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
+                          : payeeFromDate && payeeToDate
+                          ? `${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)}`
+                          : 'All Time Records'}
+                      </span>
+                    </div>
+                    {(payeeFromDate || payeeToDate || payeeDatePreset !== 'all') && (
+                      <button
+                        type="button"
+                        onClick={() => setQuickPayeeDatePreset('all')}
+                        className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to All Records
+                      </button>
+                    )}
+                  </div>
+
                   {/* KPI Cards Strip */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total Billed / Tasks</span>
-                      <div className="text-lg font-bold text-slate-900 mt-0.5">{formatINR(activePayeeDetails.totalAmount)}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">{activePayeeDetails.totalCount} total entries</div>
+                      <div className="text-lg font-bold text-slate-900 mt-0.5">{formatINR(payeeFilteredTotal)}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{displayedPayeeItems.length} entries in range</div>
                     </div>
                     <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Cleared / Paid</span>
-                      <div className="text-lg font-bold text-emerald-800 mt-0.5">{formatINR(activePayeeDetails.paidAmount)}</div>
-                      <div className="text-[10px] text-emerald-600 mt-0.5">{activePayeeDetails.paidCount} cleared</div>
+                      <div className="text-lg font-bold text-emerald-800 mt-0.5">{formatINR(payeeFilteredPaid)}</div>
+                      <div className="text-[10px] text-emerald-600 mt-0.5">{payeeFilteredPaidCount} cleared</div>
                     </div>
-                    <div className={`p-3 rounded-xl border flex flex-col justify-between ${activePayeeDetails.pendingAmount > 0 ? 'bg-amber-50/80 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`p-3 rounded-xl border flex flex-col justify-between ${payeeFilteredPending > 0 ? 'bg-amber-50/80 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
                       <div>
                         <div className="flex items-center justify-between">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-800' : 'text-slate-500'}`}>Pending to Pay</span>
-                          {activePayeeDetails.pendingAmount > 0 && (
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${payeeFilteredPending > 0 ? 'text-amber-800' : 'text-slate-500'}`}>Pending to Pay</span>
+                          {payeeFilteredPending > 0 && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-200 text-amber-900 uppercase">
                               Due
                             </span>
                           )}
                         </div>
-                        <div className={`text-lg font-bold mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-700 font-extrabold' : 'text-slate-900'}`}>
-                          {formatINR(activePayeeDetails.pendingAmount)}
+                        <div className={`text-lg font-bold mt-0.5 ${payeeFilteredPending > 0 ? 'text-amber-700 font-extrabold' : 'text-slate-900'}`}>
+                          {formatINR(payeeFilteredPending)}
                         </div>
-                        <div className={`text-[10px] mt-0.5 ${activePayeeDetails.pendingAmount > 0 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
-                          {activePayeeDetails.pendingCount > 0 ? `${activePayeeDetails.pendingCount} unpaid bills` : 'All cleared'}
+                        <div className={`text-[10px] mt-0.5 ${payeeFilteredPending > 0 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                          {payeeFilteredPendingCount > 0 ? `${payeeFilteredPendingCount} unpaid bills` : 'All cleared'}
                         </div>
                       </div>
-                      {activePayeeDetails.pendingAmount > 0 && (
+                      {payeeFilteredPending > 0 && (
                         <button
                           type="button"
-                          onClick={() => handleOpenOverallPay(activePayeeDetails)}
+                          onClick={() => handleOpenOverallPay(activePayeeDetails, payeeFilteredPending)}
                           className="mt-2.5 w-full py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
-                          title={`Pay overall balance of ${formatINR(activePayeeDetails.pendingAmount)}`}
+                          title={`Pay overall balance of ${formatINR(payeeFilteredPending)}`}
                         >
                           <Wallet className="h-3.5 w-3.5" />
                           <span>Overall Pay</span>
@@ -2511,100 +3167,125 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <div className="p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Payment Transactions</span>
-                        <span className="text-[10px] text-slate-500">{activePayeeDetails.items.length} records</span>
+                        <span className="text-[10px] text-slate-500">{displayedPayeeItems.length} records</span>
                       </div>
-                      {activePayeeDetails.pendingAmount > 0 && (
+                      {payeeFilteredPending > 0 && (
                         <button
                           type="button"
-                          onClick={() => handleOpenOverallPay(activePayeeDetails)}
+                          onClick={() => handleOpenOverallPay(activePayeeDetails, payeeFilteredPending)}
                           className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] shadow-2xs transition-all flex items-center gap-1 cursor-pointer active:scale-95"
-                          title={`Settle ${formatINR(activePayeeDetails.pendingAmount)} across all unpaid bills`}
+                          title={`Settle ${formatINR(payeeFilteredPending)} across unpaid bills in range`}
                         >
                           <Wallet className="h-3 w-3" />
-                          <span>Overall Pay ({formatINR(activePayeeDetails.pendingAmount)})</span>
+                          <span>Overall Pay ({formatINR(payeeFilteredPending)})</span>
                         </button>
                       )}
                     </div>
                     <div className="overflow-x-auto max-h-[420px] overflow-y-auto text-xs">
-                      <table className="w-full text-left">
-                        <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
-                          <tr>
-                            <th className="p-2.5">Date</th>
-                            <th className="p-2.5">Item / Description</th>
-                            <th className="p-2.5">Category</th>
-                            <th className="p-2.5">Status</th>
-                            <th className="p-2.5 text-right">Amount</th>
-                            <th className="p-2.5 text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {activePayeeDetails.items.map((item) => (
-                            <tr
-                              key={item._id}
-                              onClick={() => {
-                                setSelectedPayeeForLedger(null);
-                                setSelectedExpenseForSidebar(item);
-                              }}
-                              className="hover:bg-indigo-50/40 transition-colors cursor-pointer group"
-                              title="Click to view all payments and settlement history for this bill"
-                            >
-                              <td className="p-2.5 text-slate-600 font-medium whitespace-nowrap">{formatDateIST(item.date)}</td>
-                              <td className="p-2.5 font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                                <div className="flex items-center gap-1">
-                                  <span>{item.title}</span>
-                                  <ArrowRight className="h-3 w-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-all shrink-0" />
-                                </div>
-                              </td>
-                              <td className="p-2.5">
-                                <span className="capitalize px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
-                                  {item.category?.replace(/_/g, ' ')}
-                                </span>
-                              </td>
-                              <td className="p-2.5">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                                  item.paymentStatus === 'paid'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : item.paymentStatus === 'partially_paid'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-rose-100 text-rose-800'
-                                }`}>
-                                  {item.paymentStatus === 'paid' ? 'Paid' : item.paymentStatus === 'partially_paid' ? 'Partial' : 'Unpaid'}
-                                </span>
-                              </td>
-                              <td className="p-2.5 text-right font-bold text-slate-900">{formatINR(item.amount)}</td>
-                              <td className="p-2.5 text-right">
-                                <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                  {item.paymentStatus !== 'paid' && (
+                      {displayedPayeeItems.length === 0 ? (
+                        <div className="py-12 text-center text-slate-500 space-y-2">
+                          <p className="font-medium text-xs">No transaction records found for the selected date filter.</p>
+                          <button
+                            type="button"
+                            onClick={() => setQuickPayeeDatePreset('all')}
+                            className="px-3 py-1 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 cursor-pointer"
+                          >
+                            Reset Date Filter
+                          </button>
+                        </div>
+                      ) : (
+                        <table className="w-full text-left">
+                          <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
+                            <tr>
+                              <th className="p-2.5">Date</th>
+                              <th className="p-2.5">Item / Description</th>
+                              <th className="p-2.5">Category</th>
+                              <th className="p-2.5">Status</th>
+                              <th className="p-2.5 text-right">Amount (Billed / Due)</th>
+                              <th className="p-2.5 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {displayedPayeeItems.map((item) => (
+                              <tr
+                                key={item._id}
+                                onClick={() => {
+                                  setSelectedPayeeForLedger(null);
+                                  setSelectedExpenseForSidebar(item);
+                                }}
+                                className="hover:bg-indigo-50/40 transition-colors cursor-pointer group"
+                                title="Click to view all payments and settlement history for this bill"
+                              >
+                                <td className="p-2.5 text-slate-600 font-medium whitespace-nowrap">{formatDateIST(item.date)}</td>
+                                <td className="p-2.5 font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                  <div className="flex items-center gap-1">
+                                    <span>{item.title}</span>
+                                    <ArrowRight className="h-3 w-3 text-slate-300 opacity-0 group-hover:opacity-100 transition-all shrink-0" />
+                                  </div>
+                                </td>
+                                <td className="p-2.5">
+                                  <span className="capitalize px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
+                                    {item.category?.replace(/_/g, ' ')}
+                                  </span>
+                                </td>
+                                <td className="p-2.5">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                                    (item.calculatedStatus || item.paymentStatus) === 'paid'
+                                      ? 'bg-emerald-100 text-emerald-800'
+                                      : (item.calculatedStatus || item.paymentStatus) === 'partially_paid'
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : 'bg-rose-100 text-rose-800'
+                                  }`}>
+                                    {(item.calculatedStatus || item.paymentStatus) === 'paid' ? 'Paid' : (item.calculatedStatus || item.paymentStatus) === 'partially_paid' ? 'Partial' : 'Unpaid'}
+                                  </span>
+                                </td>
+                                <td className="p-2.5 text-right font-bold text-slate-900 whitespace-nowrap">
+                                  <div>{formatINR(item.total)}</div>
+                                  {item.paid > 0 && item.balance > 0 && (
+                                    <div className="text-[10px] text-emerald-600 font-semibold">
+                                      Paid: {formatINR(item.paid)}
+                                    </div>
+                                  )}
+                                  {item.balance > 0 && item.paid > 0 && (
+                                    <div className="text-[10px] text-amber-600 font-bold">
+                                      Due: {formatINR(item.balance)}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="p-2.5 text-right">
+                                  <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                    {item.balance > 0 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setSelectedPayeeForLedger(null);
+                                          setSelectedExpenseForSidebar(item);
+                                          handleOpenAddPayment(item);
+                                        }}
+                                        className="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+                                        title="Add payment or pay this bill"
+                                      >
+                                        <Plus className="h-2.5 w-2.5" /> Pay / Add
+                                      </button>
+                                    )}
                                     <button
                                       type="button"
                                       onClick={() => {
                                         setSelectedPayeeForLedger(null);
-                                        setSelectedExpenseForSidebar(item);
-                                        handleOpenAddPayment(item);
+                                        handleStartEditExpense(item);
                                       }}
-                                      className="px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
-                                      title="Add payment or pay this bill"
+                                      className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                      title="Edit item"
                                     >
-                                      <Plus className="h-2.5 w-2.5" /> Pay / Add
+                                      <Edit2 className="h-3 w-3" />
                                     </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedPayeeForLedger(null);
-                                      handleStartEditExpense(item);
-                                    }}
-                                    className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-                                    title="Edit item"
-                                  >
-                                    <Edit2 className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2622,14 +3303,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                     + Record New Expense for {activePayeeDetails.name}
                   </button>
                   <div className="flex items-center gap-2">
-                    {activePayeeDetails.pendingAmount > 0 && (
+                    {payeeFilteredPending > 0 && (
                       <button
                         type="button"
-                        onClick={() => handleOpenOverallPay(activePayeeDetails)}
+                        onClick={() => handleOpenOverallPay(activePayeeDetails, payeeFilteredPending)}
                         className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                       >
                         <Wallet className="h-3.5 w-3.5" />
-                        <span>Overall Pay ({formatINR(activePayeeDetails.pendingAmount)})</span>
+                        <span>Overall Pay ({formatINR(payeeFilteredPending)})</span>
                       </button>
                     )}
                     <button

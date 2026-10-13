@@ -187,12 +187,17 @@ export const computeFinanceKPIs = async ({ startDate, endDate, clientId, project
   let cashPaidExpenses = 0;
 
   expenses.forEach((e) => {
-    recognizedExpenses += Number(e.amount || 0);
-    if (e.paymentStatus === 'paid') {
-      cashPaidExpenses += Number(e.paidAmount != null ? e.paidAmount : e.amount || 0);
-    } else if (e.paymentStatus === 'partially_paid') {
-      cashPaidExpenses += Number(e.paidAmount || 0);
+    const total = Number(e.amount || 0);
+    recognizedExpenses += total;
+    let paid = 0;
+    if (Array.isArray(e.payments) && e.payments.length > 0) {
+      paid = e.payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+    } else if (e.paidAmount != null && Number(e.paidAmount) > 0) {
+      paid = Number(e.paidAmount);
+    } else if (e.paymentStatus === 'paid') {
+      paid = total;
     }
+    cashPaidExpenses += Math.min(total, Math.max(0, paid));
   });
 
   // 4. Approved & Paid Salaries
