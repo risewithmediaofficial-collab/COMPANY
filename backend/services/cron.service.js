@@ -8,6 +8,7 @@ import Task from '../models/task.model.js';
 import User from '../models/user.model.js';
 import Subscription from '../models/subscription.model.js';
 import FinanceBudget from '../models/financeBudget.model.js';
+import Loan from '../models/loan.model.js';
 import { createNotification } from '../utils/notification.js';
 import { sendWhatsAppMessage } from './whatsapp.service.js';
 
@@ -63,7 +64,7 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
         recipient: user._id,
         type: 'attendance_reminder',
         title: '⏰ Attendance Reminder',
-        message: `Good morning ${user.name}! You haven't marked attendance today (${timeString}). Please clock in before 9:30 AM.`,
+        message: `Good morning ${user.name}! You haven't marked attendance today. Please remember to clock in.`,
         link: '/attendance',
         metadata: {
           reminderType: 'morning_attendance',
@@ -83,7 +84,7 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
         recipient: testUser._id,
         type: 'attendance_reminder',
         title: '⏰ Attendance Reminder (Verified)',
-        message: `Good morning ${testUser.name}! Attendance check active (${timeString}). Please ensure your daily clock-in is registered.`,
+        message: `Good morning ${testUser.name}! Please remember to mark your attendance and clock in for today.`,
         link: '/attendance',
         metadata: {
           reminderType: 'morning_attendance_test',
@@ -172,14 +173,14 @@ export const checkAndSendEveningReminders = async (io, options = {}) => {
       }
 
       let title = '📋 Evening Reminder: Clock Out & EOD';
-      let message = `Good evening ${user.name}! Please remember to submit your EOD report and clock out for today (${timeString}).`;
+      let message = `Good evening ${user.name}! Please remember to submit your EOD report and clock out for today.`;
 
       if (needsClockOut && !needsEod) {
         title = '⏱️ Evening Reminder: Clock Out Attendance';
-        message = `Good evening ${user.name}! Your shift is still active. Please remember to clock out (${timeString}).`;
+        message = `Good evening ${user.name}! Your shift is still active. Please remember to clock out.`;
       } else if (!needsClockOut && needsEod) {
         title = '📋 Evening Reminder: Submit EOD Report';
-        message = `Good evening ${user.name}! You haven't submitted your EOD report today (${timeString}). Please submit it before wrapping up.`;
+        message = `Good evening ${user.name}! You haven't submitted your EOD report today. Please submit it before wrapping up.`;
       }
 
       await createNotification({
@@ -214,7 +215,7 @@ export const checkAndSendEveningReminders = async (io, options = {}) => {
         recipient: testUser._id,
         type: 'eod_clockout_reminder',
         title: '📋 Evening Reminder: Submit EOD & Clock Out (Verified)',
-        message: `Good evening ${testUser.name}! Please remember to submit your daily EOD report and clock out for today (${timeString}).`,
+        message: `Good evening ${testUser.name}! Please remember to submit your daily EOD report and clock out for today.`,
         link: '/attendance',
         metadata: {
           reminderType: 'evening_eod_clockout_test',
@@ -568,10 +569,100 @@ export const initCronJobs = (io) => {
           }
         }
       }
+
+      // 4. Loan EMI reminders (notifies 2 days before due date & on due date)
+      await checkAndSendLoanReminders(io);
     } catch (err) {
       console.error('CRON Error (Finance Reminders):', err);
     }
   }, { timezone: cronTz });
 
   console.log('Cron jobs initialized.');
+};
+
+/**
+ * Check and send loan EMI reminders:
+ * Reminds managers/admins in notifications 2 days before payment date (and on due date).
+ */
+export const checkAndSendLoanReminders = async (io) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayKey = today.toISOString().slice(0, 10);
+
+    const activeLoans = await Loan.find({ status: 'active' });
+    let sentCount = 0;
+
+    for (const loan of activeLoans) {
+      if (!loan.nextPaymentDate) continue;
+
+      const dueDate = new Date(loan.nextPaymentDate);
+      dueDate.setHours(0, 0, 0, 0);
+
+      const diffTime = dueDate.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      // Trigger reminder 2 days before due date (diffDays === 2) and on due date (diffDays === 0)
+      if (diffDays === 2 || diffDays === 0) {
+        const reminderType = diffDays === 2 ? 'loan_emi_due_2_days' : 'loan_emi_due_today';
+        const title = diffDays === 2
+          ? `💳 Loan EMI Due in 2 Days: ${loan.loanName}`
+          : `💳 Loan EMI Due Today: ${loan.loanName}`;
+
+        const formattedDueDate = dueDate.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+
+        const emiDisplay = loan.emiAmount ? `₹${Number(loan.emiAmount).toLocaleString('en-IN')}` : 'EMI';
+        const message = diffDays === 2
+          ? `Upcoming EMI of ${emiDisplay} for ${loan.lender || 'Lender'} (${loan.loanName}) is due in 2 days on ${formattedDueDate}.`
+          : `Loan EMI of ${emiDisplay} for ${loan.lender || 'Lender'} (${loan.loanName}) is due today!`;
+
+        const managers = await User.find({
+          ...(loan.organizationId ? { organizationId: loan.organizationId } : {}),
+          role: { $in: ['superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'] },
+          isActive: true,
+        }).select('_id');
+
+        for (const mgr of managers) {
+          const alreadySent = await Notification.findOne({
+            recipient: mgr._id,
+            'metadata.loanId': loan._id.toString(),
+            'metadata.reminderType': reminderType,
+            'metadata.reminderDate': todayKey,
+          });
+
+          if (alreadySent) continue;
+
+          await createNotification(
+            {
+              recipient: mgr._id,
+              type: 'general',
+              title,
+              message,
+              link: '/finance?tab=loans',
+              metadata: {
+                loanId: loan._id.toString(),
+                reminderType,
+                reminderDate: todayKey,
+                diffDays,
+              },
+            },
+            io
+          );
+          sentCount++;
+        }
+      }
+    }
+
+    if (sentCount > 0) {
+      console.log(`CRON: Loan EMI reminders dispatched to ${sentCount} recipient(s).`);
+    }
+    return { sentCount, totalActiveChecked: activeLoans.length };
+  } catch (error) {
+    console.error('CRON Error (Loan Reminders):', error);
+    return { error: error.message };
+  }
 };

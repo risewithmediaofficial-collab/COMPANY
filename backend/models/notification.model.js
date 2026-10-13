@@ -19,7 +19,7 @@ const notificationSchema = new mongoose.Schema(
         'client_approved', 'client_rework_requested', 'client_feedback',
         'attendance_reminder', 'eod_clockout_reminder', 'eod_reminder', 'clockout_reminder',
         'leave_approved', 'leave_rejected',
-        'mention', 'system', 'general',
+        'mention', 'system', 'general', 'loan_reminder',
       ],
     },
     title: { type: String, required: true },

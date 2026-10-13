@@ -1589,3 +1589,87 @@ export const useDeletePaymentReminder = () => {
   });
 };
 
+// =============================================
+// LOANS TRACKER HOOKS
+// =============================================
+
+export const useLoans = (filters = {}) => {
+  return useQuery({
+    queryKey: ['loans', filters],
+    queryFn: async () => {
+      const response = await api.get('/finance/loans', { params: filters });
+      return response.data || { data: [], summary: {} };
+    },
+    staleTime: 60 * 1000,
+  });
+};
+
+export const useCreateLoan = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await api.post('/finance/loans', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast.success('Loan added successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to add loan');
+    },
+  });
+};
+
+export const useUpdateLoan = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/loans/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast.success('Loan updated successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update loan');
+    },
+  });
+};
+
+export const useRecordLoanPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.post(`/finance/loans/${id}/payments`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast.success('Payment recorded successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to record loan payment');
+    },
+  });
+};
+
+export const useDeleteLoan = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const response = await api.delete(`/finance/loans/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      toast.success('Loan deleted successfully');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete loan');
+    },
+  });
+};
+
+

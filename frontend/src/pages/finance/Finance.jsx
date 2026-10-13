@@ -18,6 +18,7 @@ import {
   HelpCircle,
   Clock,
   RefreshCw,
+  Landmark,
 } from 'lucide-react';
 
 const OverviewSection = lazy(() => import('./sections/OverviewSection'));
@@ -26,6 +27,7 @@ const ExpensesSection = lazy(() => import('./sections/ExpensesSection'));
 const ClientsSection = lazy(() => import('./sections/ClientsSection'));
 const InvoicesSection = lazy(() => import('./sections/InvoicesSection'));
 const PayrollSection = lazy(() => import('./sections/PayrollSection'));
+const LoansSection = lazy(() => import('./sections/LoansSection'));
 const ForecastReportsSection = lazy(() => import('./sections/ForecastReportsSection'));
 const FinanceQuickAddModal = lazy(() => import('./components/FinanceQuickAddModal'));
 
@@ -46,6 +48,7 @@ const TABS = [
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'invoices', label: 'Invoices', icon: FileText },
   { id: 'payroll', label: 'Payroll', icon: Banknote },
+  { id: 'loans', label: 'Loans Tracker', icon: Landmark },
   { id: 'forecast-reports', label: 'Forecast & Reports', icon: TrendingUp },
 ];
 
@@ -56,7 +59,7 @@ export default function Finance() {
   const navigate = useNavigate();
 
   // Active section (from URL query param, route param, or default 'overview')
-  const validTabs = ['overview', 'income', 'expenses', 'clients', 'invoices', 'payroll', 'forecast-reports'];
+  const validTabs = ['overview', 'income', 'expenses', 'clients', 'invoices', 'payroll', 'loans', 'forecast-reports'];
   const rawTab = section || searchParams.get('tab') || 'overview';
   const initialTab = validTabs.includes(rawTab) ? rawTab : 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -302,6 +305,8 @@ export default function Finance() {
           )}
 
           {activeTab === 'payroll' && <PayrollSection onQuickAdd={openQuickAdd} />}
+
+          {activeTab === 'loans' && <LoansSection onQuickAdd={openQuickAdd} />}
 
           {activeTab === 'forecast-reports' && <ForecastReportsSection />}
         </Suspense>

@@ -102,6 +102,15 @@ import {
   deletePaymentReminder,
 } from '../controllers/paymentReminder.controller.js';
 
+import {
+  getLoans,
+  createLoan,
+  updateLoan,
+  recordLoanPayment,
+  deleteLoan,
+  triggerLoanRemindersManually,
+} from '../controllers/loan.controller.js';
+
 import { authorize, protect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -190,6 +199,14 @@ router.post('/payment-reminders', authorize('superAdmin', 'admin', 'manager', 'f
 router.put('/payment-reminders/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'organizationOwner'), updatePaymentReminder);
 router.post('/payment-reminders/:id/payments', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'organizationOwner'), recordPaymentOnReminder);
 router.delete('/payment-reminders/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'), deletePaymentReminder);
+
+// 14. Loans Tracker (Company loan & EMI tracking)
+router.get('/loans', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'), getLoans);
+router.post('/loans', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'), createLoan);
+router.put('/loans/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'), updateLoan);
+router.post('/loans/:id/payments', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'), recordLoanPayment);
+router.delete('/loans/:id', authorize('superAdmin', 'admin', 'financeManager', 'organizationOwner'), deleteLoan);
+router.post('/loans/trigger-reminders', authorize('superAdmin', 'admin', 'financeManager', 'organizationOwner'), triggerLoanRemindersManually);
 
 // =============================================
 // LEGACY CRM COMPATIBILITY ROUTES
