@@ -13,8 +13,10 @@ import {
   ExternalLink,
   MessageSquare,
   ListChecks,
+  Trash2,
 } from 'lucide-react';
-import { useUpdateTaskStatus, useUpdateTaskChecklist, useAddTaskNote } from '../../hooks/useTasks';
+import { useSelector } from 'react-redux';
+import { useUpdateTaskStatus, useUpdateTaskChecklist, useAddTaskNote, useDeleteTask } from '../../hooks/useTasks';
 import { normalizeToKanbanColumn } from './TasksKanbanPipeline';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { toast } from 'sonner';
@@ -107,17 +109,22 @@ export const PIPELINE_STAGES = [
 ];
 
 export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
+  const { user } = useSelector((state) => state.auth);
+  const canDelete = ['superAdmin', 'admin', 'manager', 'organizationOwner'].includes(user?.role);
   const updateStatusMutation = useUpdateTaskStatus();
   const updateChecklistMutation = useUpdateTaskChecklist();
   const addNoteMutation = useAddTaskNote();
+  const deleteTaskMutation = useDeleteTask();
 
   const [optimisticStatus, setOptimisticStatus] = useState(null);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Sync / reset optimistic status when task._id changes
   useEffect(() => {
     setOptimisticStatus(null);
+    setShowDeleteConfirm(false);
   }, [task?._id]);
 
   if (!isOpen || !task) return null;
@@ -224,13 +231,68 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose }) => {
             </span>
           </div>
 
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 shrink-0"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {canDelete && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm((prev) => !prev)}
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  showDeleteConfirm
+                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 ring-1 ring-rose-400'
+                    : 'text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:text-slate-400 dark:hover:bg-rose-950/40 dark:hover:text-rose-400'
+                }`}
+                title="Delete Task"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Delete Task</span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 shrink-0 cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
+
+        {/* Delete Confirmation Alert Banner */}
+        {showDeleteConfirm && (
+          <div className="border-b border-rose-200 bg-rose-50/95 dark:bg-rose-950/50 dark:border-rose-900/60 px-4 py-3 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200 shrink-0">
+            <div className="text-xs text-rose-900 dark:text-rose-200">
+              <span className="font-bold">Are you sure you want to delete this task?</span>
+              <p className="text-[11px] text-rose-700 dark:text-rose-300 mt-0.5">This action cannot be undone and will delete all associated subtasks.</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="rounded-lg px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-white dark:text-slate-200 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleteTaskMutation.isLoading}
+                onClick={async () => {
+                  try {
+                    await deleteTaskMutation.mutateAsync(task._id);
+                    toast.success('Task deleted successfully');
+                    setShowDeleteConfirm(false);
+                    onClose();
+                  } catch (err) {
+                    toast.error(err?.response?.data?.message || 'Failed to delete task');
+                  }
+                }}
+                className="rounded-lg bg-rose-600 px-3 py-1 text-xs font-bold text-white hover:bg-rose-700 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="h-3 w-3" />
+                <span>{deleteTaskMutation.isLoading ? 'Deleting...' : 'Confirm Delete'}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Scrollable Content Body */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-5 sm:space-y-6 custom-scrollbar">

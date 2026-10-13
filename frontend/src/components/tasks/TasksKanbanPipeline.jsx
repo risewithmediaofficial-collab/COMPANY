@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowDown,
+  Trash2,
 } from 'lucide-react';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -144,6 +145,8 @@ export const TasksKanbanPipeline = ({
   onSelectTask,
   onOpenCreateGeneral,
   canCreate = true,
+  canDelete = false,
+  onDeleteTask,
 }) => {
   const updateStatusMutation = useUpdateTaskStatus();
   const [draggedTaskId, setDraggedTaskId] = useState(null);
@@ -601,11 +604,25 @@ export const TasksKanbanPipeline = ({
                                 </span>
                               )}
 
+                              {canDelete && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteTask && onDeleteTask(task);
+                                  }}
+                                  title="Delete Task"
+                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all dark:hover:bg-rose-950/60 dark:hover:text-rose-400 cursor-pointer"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )}
+
                               {nextCol && (
                                 <button
                                   onClick={(e) => handleQuickAdvance(e, task, column.id)}
                                   title={`Move to ${nextCol.title}`}
-                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all dark:bg-indigo-950 dark:text-indigo-300"
+                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all dark:bg-indigo-950 dark:text-indigo-300 cursor-pointer"
                                 >
                                   <ArrowRight className="h-3 w-3" />
                                 </button>

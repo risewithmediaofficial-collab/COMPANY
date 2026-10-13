@@ -43,6 +43,6 @@ router.post('/:id/approve', authorize('superAdmin', 'admin', 'manager', 'client'
 router.get('/:id/response', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), getTaskResponseDetails);
 router.post('/:id/client-response', authorize('client'), submitClientTaskResponse);
 router.post('/:id/log-time', authorize('superAdmin', 'admin', 'manager', 'employee'), logTime);
-router.delete('/:id', authorize('superAdmin', 'admin', 'manager'), deleteTask);
+router.delete('/:id', authorize('superAdmin', 'admin', 'manager', 'organizationOwner'), deleteTask);
 
 export default router;

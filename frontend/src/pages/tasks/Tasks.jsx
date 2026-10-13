@@ -19,6 +19,8 @@ import {
   Megaphone,
   Kanban,
   Video,
+  Trash2,
+  Edit2,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
@@ -554,6 +556,7 @@ const Tasks = () => {
   }
 
   const canCreate = !isEmployee && ['superAdmin', 'admin', 'manager', 'organizationOwner'].includes(user?.role);
+  const canDelete = ['superAdmin', 'admin', 'manager', 'organizationOwner'].includes(user?.role);
 
   return (
     <WorkspacePage
@@ -787,7 +790,7 @@ const Tasks = () => {
                       }
                     : undefined
                 }
-                onDelete={canCreate ? (id) => setDeleteTaskId(id) : undefined}
+                onDelete={canDelete ? (id) => setDeleteTaskId(id) : undefined}
                 emptyTitle="No tasks found"
                 emptyDescription="Create a task to assign scripting, filming, editing, or publishing deliverables."
               />
@@ -837,6 +840,19 @@ const Tasks = () => {
                             title="Edit Task"
                           >
                             <Edit2 size={13} />
+                          </button>
+                        )}
+                        {canDelete && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTaskId(task._id);
+                            }}
+                            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
+                            title="Delete Task"
+                          >
+                            <Trash2 size={13} />
                           </button>
                         )}
                       </div>
@@ -985,6 +1001,8 @@ const Tasks = () => {
               onSelectTask={handleOpenWorkflowDrawer}
               onOpenCreateGeneral={handleOpenCreateGeneral}
               canCreate={canCreate}
+              canDelete={canDelete}
+              onDeleteTask={(task) => setDeleteTaskId(task._id)}
             />
           </div>
         )}
