@@ -9,7 +9,6 @@ import {
   Clock,
   ArrowUpRight,
   ArrowDownRight,
-  Building,
   CheckCircle,
   HelpCircle,
   Filter,
@@ -77,7 +76,7 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
       )}
 
       {/* TOP KPI CARDS GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Recognized Service Revenue */}
         <div
           onClick={() => onNavigateSection('invoices')}
@@ -151,20 +150,6 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
               Margin: <strong className="text-slate-800">{kpis.profitMargin !== null ? `${kpis.profitMargin}%` : 'N/A'}</strong>
             </span>
             <span className="text-indigo-600 font-medium group-hover:underline">P&L →</span>
-          </div>
-        </div>
-
-        {/* Card 5: Bank & Cash Total */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Bank & Cash Total</span>
-            <div className="p-1.5 rounded-lg bg-teal-50 text-teal-600">
-              <Building className="h-4 w-4" />
-            </div>
-          </div>
-          <div className="text-xl font-bold text-slate-900">{formatINR(kpis.totalCashBankBalance)}</div>
-          <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
-            <span>Closing liquid balance</span>
           </div>
         </div>
       </div>
