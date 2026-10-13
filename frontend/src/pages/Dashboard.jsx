@@ -13,7 +13,6 @@ import {
   Calendar,
   CheckSquare,
   Award,
-  IndianRupee,
   ShieldCheck,
   Target,
   ClipboardList,
@@ -341,55 +340,8 @@ const Dashboard = () => {
         {/* ── TAB 1: FULL DATA-DRIVEN COMMAND CENTER ─────────────────────────── */}
         {activeTab === 'command' && (
           <div className="space-y-6">
-            {/* 1. TOP 6 CORE METRIC CARDS (INTERACTIVE & CLICKABLE) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
-              {/* Revenue */}
-              <div
-                className="p-4 rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-secondary/30 transition-all shadow-sm group space-y-1.5"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Overall Revenue</span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setShowFinance((v) => !v)}
-                      className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-                      title={showFinance ? "Hide Revenue" : "Unhide Revenue"}
-                    >
-                      {showFinance ? <EyeOff size={13} /> : <Eye size={13} className="text-emerald-600" />}
-                    </button>
-                    <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                      <IndianRupee size={14} />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-baseline justify-between gap-1">
-                  <div className="text-xl sm:text-2xl font-black text-foreground">
-                    {!showFinance ? (
-                      <span className="text-muted-foreground/50 tracking-widest text-lg select-none">••••••••</span>
-                    ) : (
-                      formatINR(stats.grossAmount || 0)
-                    )}
-                  </div>
-                  {!showFinance && (
-                    <button
-                      type="button"
-                      onClick={() => setShowFinance(true)}
-                      className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-md transition-all cursor-pointer shrink-0"
-                    >
-                      Unhide
-                    </button>
-                  )}
-                </div>
-                <div
-                  onClick={() => navigate('/finance')}
-                  className="flex items-center justify-between text-[10px] text-muted-foreground group-hover:text-primary transition-colors cursor-pointer pt-0.5"
-                >
-                  <span>View ledger</span>
-                  <ArrowRight size={10} />
-                </div>
-              </div>
-
+            {/* 1. TOP 5 CORE METRIC CARDS (INTERACTIVE & CLICKABLE) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
               {/* Active Clients */}
               <div
                 onClick={() => navigate('/clients')}
