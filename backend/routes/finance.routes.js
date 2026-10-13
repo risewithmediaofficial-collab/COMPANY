@@ -93,6 +93,14 @@ import {
   setFinanceBudget,
 } from '../controllers/financeModule.controller.js';
 
+import {
+  getPaymentReminders,
+  createPaymentReminder,
+  updatePaymentReminder,
+  recordPaymentOnReminder,
+  deletePaymentReminder,
+} from '../controllers/paymentReminder.controller.js';
+
 import { authorize, protect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -173,6 +181,13 @@ router.post('/settings/period-locks/toggle', authorize('superAdmin', 'admin'), t
 router.get('/settings/audit-logs', authorize('superAdmin', 'admin'), getFinanceAuditLogs);
 router.get('/settings/budgets', authorize('superAdmin', 'admin', 'manager', 'financeManager'), getFinanceBudgets);
 router.post('/settings/budgets', authorize('superAdmin', 'admin', 'financeManager'), setFinanceBudget);
+
+// 13. Payment Reminders (Completely isolated from expenses and revenue)
+router.get('/payment-reminders', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'organizationOwner'), getPaymentReminders);
+router.post('/payment-reminders', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'organizationOwner'), createPaymentReminder);
+router.put('/payment-reminders/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'organizationOwner'), updatePaymentReminder);
+router.post('/payment-reminders/:id/payments', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'organizationOwner'), recordPaymentOnReminder);
+router.delete('/payment-reminders/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'organizationOwner'), deletePaymentReminder);
 
 // =============================================
 // LEGACY CRM COMPATIBILITY ROUTES

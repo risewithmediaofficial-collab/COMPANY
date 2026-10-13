@@ -1485,3 +1485,87 @@ export const useSetFinanceBudget = () => {
     },
   });
 };
+
+// =============================================
+// PAYMENT REMINDERS (ISOLATED FROM EXPENSES & REVENUE)
+// =============================================
+
+export const usePaymentReminders = (filters = {}) => {
+  return useQuery({
+    queryKey: ['payment-reminders', filters],
+    queryFn: async () => {
+      const response = await api.get('/finance/payment-reminders', { params: filters });
+      return response.data || { data: [], summary: {} };
+    },
+    staleTime: 30 * 1000,
+  });
+};
+
+export const useCreatePaymentReminder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await api.post('/finance/payment-reminders', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-reminders'] });
+      toast.success('Payment reminder added');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to add payment reminder');
+    },
+  });
+};
+
+export const useUpdatePaymentReminder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.put(`/finance/payment-reminders/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-reminders'] });
+      toast.success('Payment reminder updated');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update payment reminder');
+    },
+  });
+};
+
+export const useRecordReminderPayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await api.post(`/finance/payment-reminders/${id}/payments`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-reminders'] });
+      toast.success('Payment recorded');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to record payment');
+    },
+  });
+};
+
+export const useDeletePaymentReminder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const response = await api.delete(`/finance/payment-reminders/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payment-reminders'] });
+      toast.success('Payment reminder deleted');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to delete payment reminder');
+    },
+  });
+};
+

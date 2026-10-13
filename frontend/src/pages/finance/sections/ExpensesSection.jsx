@@ -49,9 +49,10 @@ import {
   useFinanceAccounts,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
+import PaymentRemindersTab from './PaymentRemindersTab';
 
 export default function ExpensesSection({ onQuickAdd }) {
-  const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions'
+  const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions' | 'payment_reminders'
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -453,11 +454,11 @@ export default function ExpensesSection({ onQuickAdd }) {
         </div>
       </div>
 
-      {/* Sub Tabs: Expenses / Payees / Subscriptions */}
-      <div className="flex border-b border-slate-200 gap-4 text-xs font-semibold">
+      {/* Sub Tabs: Expenses / Payees / Subscriptions / Payment Reminders */}
+      <div className="flex border-b border-slate-200 gap-4 text-xs font-semibold overflow-x-auto">
         <button
           onClick={() => setActiveTab('expenses')}
-          className={`pb-2.5 transition-all border-b-2 ${
+          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'expenses'
               ? 'border-indigo-600 text-indigo-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -467,7 +468,7 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('payees')}
-          className={`pb-2.5 transition-all border-b-2 ${
+          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'payees'
               ? 'border-indigo-600 text-indigo-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -477,13 +478,23 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('subscriptions')}
-          className={`pb-2.5 transition-all border-b-2 ${
+          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'subscriptions'
               ? 'border-indigo-600 text-indigo-600'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           Recurring Subscriptions ({subscriptions.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('payment_reminders')}
+          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'payment_reminders'
+              ? 'border-indigo-600 text-indigo-600'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          🔔 Payment Reminders
         </button>
       </div>
 
@@ -965,6 +976,9 @@ export default function ExpensesSection({ onQuickAdd }) {
           </div>
         </div>
       )}
+
+      {/* 4. PAYMENT REMINDERS (ISOLATED REFERRAL / CLIENT SETTLEMENTS) */}
+      {activeTab === 'payment_reminders' && <PaymentRemindersTab />}
 
       {/* EDIT SUBSCRIPTION SLIDE-OVER DRAWER */}
       <Dialog open={Boolean(editingSubscription)} onOpenChange={(open) => !open && setEditingSubscription(null)}>
