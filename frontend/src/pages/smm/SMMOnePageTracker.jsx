@@ -675,7 +675,7 @@ const SMMOnePageTracker = () => {
           fetchData(true);
         }
       }
-    }, 5000);
+    }, 60000);
 
     const handleFocus = () => {
       fetchData(true);

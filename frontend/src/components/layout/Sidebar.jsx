@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState, useMemo, memo } from 'react';
+import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   LayoutDashboard,
@@ -54,11 +54,12 @@ const badgePaths = {
 const SECTIONS_STORAGE_KEY = 'rwm_sidebar_open_sections_v4';
 const PINNED_STORAGE_KEY = 'rwm_sidebar_pinned_v2';
 
-export default function Sidebar({ onOpenSearch }) {
-  const location = useLocation();
+function SidebarComponent({ onOpenSearch, currentPath }) {
+  const pathname = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/');
   const dispatch = useDispatch();
-  const { sidebarOpen } = useSelector((state) => state.ui);
-  const { user } = useSelector((state) => state.auth);
+  const sidebarOpen = useSelector((state) => state.ui.sidebarOpen);
+  const userRole = useSelector((state) => state.auth.user?.role);
+  const userPermissions = useSelector((state) => state.auth.user?.permissions);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [pinnedPaths, setPinnedPaths] = useState(() => {
@@ -80,7 +81,7 @@ export default function Sidebar({ onOpenSearch }) {
     }
   });
 
-  const canViewBadges = ['superAdmin', 'admin', 'manager'].includes(user?.role);
+  const canViewBadges = ['superAdmin', 'admin', 'manager'].includes(userRole);
   const { data: badgeCounts } = useSidebarBadges(canViewBadges);
 
   useEffect(() => {
@@ -112,8 +113,8 @@ export default function Sidebar({ onOpenSearch }) {
     });
   };
 
-  const role = user?.role || 'employee';
-  const p = user?.permissions || {};
+  const role = userRole || 'employee';
+  const p = userPermissions || {};
 
   // Build hierarchical workspace navigation per role
   const getNavSections = () => {
@@ -301,12 +302,12 @@ export default function Sidebar({ onOpenSearch }) {
     return sections;
   };
 
-  const navSections = useMemo(() => getNavSections(), [user?.role, user?.permissions]);
+  const navSections = useMemo(() => getNavSections(), [userRole, userPermissions]);
 
   // Auto-expand section containing the currently active route
   useEffect(() => {
     const activeSection = navSections.find((s) =>
-      s.items.some((item) => item.path === location.pathname)
+      s.items.some((item) => item.path === pathname)
     );
     if (activeSection) {
       setOpenSections((prev) => {
@@ -320,11 +321,13 @@ export default function Sidebar({ onOpenSearch }) {
         return updated;
       });
     }
-  }, [location.pathname, navSections]);
+  }, [pathname, navSections]);
 
-  // Extract all available items for pinned lookup
-  const allItems = navSections.flatMap((s) => s.items);
-  const pinnedItems = allItems.filter((item) => pinnedPaths.includes(item.path));
+  // Extract all available items for pinned lookup with memoization
+  const pinnedItems = useMemo(() => {
+    const all = navSections.flatMap((s) => s.items);
+    return all.filter((item) => pinnedPaths.includes(item.path));
+  }, [navSections, pinnedPaths]);
 
   const sidebarVariants = {
     mobile: {
@@ -409,7 +412,7 @@ export default function Sidebar({ onOpenSearch }) {
                 <span>Favorites</span>
               </div>
               {pinnedItems.map((item) => {
-                const isActive = location.pathname === item.path;
+                const isActive = pathname === item.path;
                 return (
                   <Link
                     key={`pinned-${item.path}`}
@@ -461,7 +464,7 @@ export default function Sidebar({ onOpenSearch }) {
                 {/* Section Items */}
                 <div className={`${!isOpen ? 'hidden' : 'space-y-0.5'}`}>
                   {section.items.map((item) => {
-                    const isActive = location.pathname === item.path;
+                    const isActive = pathname === item.path;
                     const badgeKey = badgePaths[item.name];
                     const count = badgeKey ? badgeCounts?.[badgeKey] || 0 : 0;
                     const isPinned = pinnedPaths.includes(item.path);
@@ -529,7 +532,7 @@ export default function Sidebar({ onOpenSearch }) {
             onTouchStart={() => preloadRoute('/settings')}
             onClick={() => isMobile && dispatch(toggleSidebar())}
             className={`flex items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-              location.pathname === '/settings'
+              pathname === '/settings'
                 ? 'bg-primary/10 text-primary font-bold'
                 : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'
             }`}
@@ -542,3 +545,6 @@ export default function Sidebar({ onOpenSearch }) {
     </>
   );
 }
+
+const Sidebar = memo(SidebarComponent);
+export default Sidebar;

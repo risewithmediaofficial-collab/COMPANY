@@ -154,12 +154,14 @@ const Dashboard = () => {
     fetchStats(true);
   }, [user?.role, period, startDate, endDate]);
 
-  // Live Auto-Refresh Polling Interval (Every 12s)
+  // Controlled background fallback polling (3 minutes) — real-time updates are pushed instantaneously via WebSocket
   useEffect(() => {
     if (!user?.role) return;
     const interval = setInterval(() => {
-      fetchStats(false);
-    }, 12000);
+      if (document.visibilityState === 'visible') {
+        fetchStats(false);
+      }
+    }, 180000);
     return () => clearInterval(interval);
   }, [user?.role, period, startDate, endDate]);
 

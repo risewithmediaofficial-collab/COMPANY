@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useDeferredValue } from 'react';
 import { useSelector } from 'react-redux';
+import { useDebounce } from '../../hooks/useDebounce';
 import {
   CheckCircle2,
   Clock,
@@ -111,11 +112,37 @@ const Tasks = () => {
     dueDate: '',
   });
 
+  const deferredSearch = useDeferredValue(filters.search);
+  const debouncedSearch = useDebounce(filters.search, 300);
+
+  const queryFilters = useMemo(
+    () => ({
+      client: filters.client,
+      assignedTo: filters.assignedTo,
+      status: filters.status,
+      taskType: filters.taskType,
+      priority: filters.priority,
+      dueDate: filters.dueDate,
+      search: debouncedSearch,
+      limit: 300,
+      parent: 'all',
+    }),
+    [
+      filters.client,
+      filters.assignedTo,
+      filters.status,
+      filters.taskType,
+      filters.priority,
+      filters.dueDate,
+      debouncedSearch,
+    ]
+  );
+
   const { user } = useSelector((state) => state.auth);
   const isEmployee = user?.role === 'employee';
   const isClient = user?.role === 'client';
   const isManager = user?.role === 'manager';
-  const { data: tasks = [], isLoading } = useTasks({ ...filters, limit: 300, parent: 'all' });
+  const { data: tasks = [], isLoading } = useTasks(queryFilters);
   const { data: clients = [] } = useClients();
   const { data: users = [] } = useUsers();
   const deleteTaskMutation = useDeleteTask();
@@ -181,13 +208,13 @@ const Tasks = () => {
     return normalizedTasks;
   }, [normalizedTasks, globalStartDate, globalEndDate, isDateInRange]);
 
-  const taskMetrics = {
+  const taskMetrics = useMemo(() => ({
     total: dateFilteredTasks.length,
     inProgress: dateFilteredTasks.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status)).length,
     done: dateFilteredTasks.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status)).length,
     overdue: dateFilteredTasks.filter(isTaskOverdue).length,
     overTarget: dateFilteredTasks.filter((task) => task.isOverTarget).length,
-  };
+  }), [dateFilteredTasks]);
 
   const [quickFilter, setQuickFilter] = useState('all'); // 'all' | 'inProgress' | 'done' | 'overdue' | 'overTarget'
 
@@ -307,8 +334,8 @@ const Tasks = () => {
     }
 
     // Search query
-    if (filters.search?.trim()) {
-      const q = filters.search.toLowerCase().trim();
+    if (deferredSearch?.trim()) {
+      const q = deferredSearch.toLowerCase().trim();
       result = result.filter((task) =>
         (task.taskTitle || task.title || '').toLowerCase().includes(q) ||
         (task.client?.name || task.client?.company || task.clientName || '').toLowerCase().includes(q) ||
@@ -363,7 +390,7 @@ const Tasks = () => {
     });
 
     return result;
-  }, [dateFilteredTasks, categoryFilter, filters, quickFilter, sortBy]);
+  }, [dateFilteredTasks, categoryFilter, filters, deferredSearch, quickFilter, sortBy, currentView]);
 
   const columns = [
     {

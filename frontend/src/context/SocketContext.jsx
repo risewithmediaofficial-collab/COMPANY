@@ -126,6 +126,16 @@ export const SocketProvider = ({ children }) => {
       }
     };
 
+    // Specific registered named events
+    const handledNamedEvents = new Set([
+      'projectUpdated', 'projectCreated', 'projectDeleted',
+      'taskCreated', 'taskUpdated', 'taskDeleted', 'taskMoved',
+      'leadCreated', 'leadUpdated', 'leadDeleted',
+      'clientCreated', 'clientUpdated', 'clientDeleted',
+      'financeUpdated', 'attendanceUpdated', 'accessRequestCreated',
+      'smmTrackerUpdated', 'smmClientCreated', 'smmClientUpdated', 'smmClientDeleted',
+    ]);
+
     newSocket.on('projectUpdated', () => handleInvalidate(['projects', 'project', 'tasks']));
     newSocket.on('projectCreated', () => handleInvalidate(['projects']));
     newSocket.on('projectDeleted', () => handleInvalidate(['projects']));
@@ -152,9 +162,9 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('smmClientUpdated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
     newSocket.on('smmClientDeleted', () => handleInvalidate(['clients', 'client', 'smm-clients']));
 
-    // Universal catch-all for live CRM mutations
+    // Catch-all for other live CRM mutations that do not already have dedicated listeners
     newSocket.on('crmLiveUpdate', ({ event }) => {
-      if (!event) return;
+      if (!event || handledNamedEvents.has(event)) return; // Deduplicate: already handled by specific named listener
       if (event.startsWith('task')) handleInvalidate(['tasks', 'task', 'projects']);
       else if (event.startsWith('client') || event.startsWith('smmClient')) handleInvalidate(['clients', 'client', 'smm-clients']);
       else if (event.startsWith('lead')) handleInvalidate(['leads', 'lead', 'leads-kanban']);
@@ -166,6 +176,7 @@ export const SocketProvider = ({ children }) => {
     setSocket(newSocket);
 
     return () => {
+      if (batchTimer) clearTimeout(batchTimer);
       newSocket.disconnect();
       socketRef.current = null;
     };

@@ -8,6 +8,7 @@ import { PlatformBadge } from '../../components/smm/PlatformBadge';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { toast } from 'react-hot-toast';
+import { useDebounce } from '../../hooks/useDebounce';
 
 const ALL_PLATFORMS = ['Meta Ads', 'Google Ads', 'LinkedIn', 'YouTube', 'TikTok', 'Instagram'];
 
@@ -16,6 +17,7 @@ export default function SMMProjects() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [statusFilter, setStatusFilter] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -28,7 +30,7 @@ export default function SMMProjects() {
     try {
       if (showLoading) setLoading(true);
       const [projRes, clientRes] = await Promise.all([
-        smmApi.getProjects({ search, status: statusFilter }),
+        smmApi.getProjects({ search: debouncedSearch, status: statusFilter }),
         smmApi.getClients({ limit: 100 }),
       ]);
       if (projRes.data?.success) setProjects(projRes.data.data);
@@ -43,10 +45,12 @@ export default function SMMProjects() {
   useEffect(() => {
     fetchData(true);
     const interval = setInterval(() => {
-      fetchData(false);
-    }, 15000);
+      if (document.visibilityState === 'visible') {
+        fetchData(false);
+      }
+    }, 90000);
     return () => clearInterval(interval);
-  }, [search, statusFilter]);
+  }, [debouncedSearch, statusFilter]);
 
   const handleSave = async (e) => {
     e.preventDefault();

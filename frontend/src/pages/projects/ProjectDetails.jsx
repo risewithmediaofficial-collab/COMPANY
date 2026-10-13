@@ -146,8 +146,10 @@ const ProjectDetails = () => {
     fetchProjectData(true);
 
     const interval = setInterval(() => {
-      fetchProjectData(false);
-    }, 15000);
+      if (document.visibilityState === 'visible') {
+        fetchProjectData(false);
+      }
+    }, 90000);
 
     return () => clearInterval(interval);
   }, [id, user?.role]);

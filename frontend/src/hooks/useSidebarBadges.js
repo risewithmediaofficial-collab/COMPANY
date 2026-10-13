@@ -25,9 +25,9 @@ export const useSidebarBadges = (enabled = true) => {
         pendingUsers: pendingUsers.length,
       };
     },
-    refetchInterval: 60000,
+    refetchInterval: 120000,
     refetchOnWindowFocus: false,
     enabled,
-    staleTime: 60000,
+    staleTime: 120000,
   });
 };

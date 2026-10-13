@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense, startTransition } from 'react';
 import { useSelector } from 'react-redux';
 import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
 import {
@@ -78,7 +78,9 @@ export default function Finance() {
     const tabFromUrl = section || searchParams.get('tab') || 'overview';
     const resolvedTab = validTabs.includes(tabFromUrl) ? tabFromUrl : 'overview';
     if (resolvedTab !== activeTab) {
-      setActiveTab(resolvedTab);
+      startTransition(() => {
+        setActiveTab(resolvedTab);
+      });
     }
     if (searchParams.get('tab') && !validTabs.includes(searchParams.get('tab'))) {
       setSearchParams({ tab: 'overview' }, { replace: true });
@@ -86,8 +88,10 @@ export default function Finance() {
   }, [section, searchParams, activeTab]);
 
   const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-    setSearchParams({ tab: tabId });
+    startTransition(() => {
+      setActiveTab(tabId);
+      setSearchParams({ tab: tabId });
+    });
   };
 
   // Determine date ranges for overview query

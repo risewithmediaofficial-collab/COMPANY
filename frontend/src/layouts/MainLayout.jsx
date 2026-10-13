@@ -1,8 +1,7 @@
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
-import { useSelector } from 'react-redux';
 import GlobalSearchModal from '../components/modals/GlobalSearchModal';
 import MobileAppInstallButton from '../components/ui/MobileAppInstallButton';
 import EnableBannerNotificationBar from '../components/notifications/EnableBannerNotificationBar';
@@ -18,9 +17,12 @@ const PageLoadingFallback = () => (
 );
 
 const MainLayout = () => {
-  const { sidebarOpen } = useSelector((state) => state.ui);
   const location = useLocation();
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+
+  const handleOpenSearch = useCallback(() => {
+    setGlobalSearchOpen(true);
+  }, []);
 
   // Clear any residual scroll lock on main element across route changes
   useEffect(() => {
@@ -32,12 +34,12 @@ const MainLayout = () => {
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      {/* Sidebar with search callback */}
-      <Sidebar onOpenSearch={() => setGlobalSearchOpen(true)} />
+      {/* Sidebar with stable search callback and path */}
+      <Sidebar onOpenSearch={handleOpenSearch} currentPath={location.pathname} />
 
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col h-full min-h-0 max-h-screen overflow-hidden transition-all duration-250 md:ml-[260px]">
-        <Navbar onOpenSearch={() => setGlobalSearchOpen(true)} />
+        <Navbar onOpenSearch={handleOpenSearch} currentPath={location.pathname} />
         <EnableBannerNotificationBar />
         <main
           id="main-content-scroll"

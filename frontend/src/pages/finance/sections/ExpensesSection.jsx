@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, useDeferredValue, lazy, Suspense } from 'react';
 import {
   Download,
   Filter,
@@ -84,7 +84,9 @@ export default function ExpensesSection({ onQuickAdd }) {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
   const [payeeSearch, setPayeeSearch] = useState('');
+  const deferredPayeeSearch = useDeferredValue(payeeSearch);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [datePreset, setDatePreset] = useState('all'); // 'all' | 'this_week' | 'this_month' | 'this_year' | 'custom'
@@ -426,14 +428,14 @@ export default function ExpensesSection({ onQuickAdd }) {
         const d = new Date(expDate).toISOString().slice(0, 10);
         if (d > toDate) return false;
       }
-      if (!search.trim()) return true;
-      const q = search.toLowerCase();
+      if (!deferredSearch.trim()) return true;
+      const q = deferredSearch.toLowerCase();
       const title = (e.title || '').toLowerCase();
       const vendor = (e.vendor || '').toLowerCase();
       const cat = (e.category || '').toLowerCase();
       return title.includes(q) || vendor.includes(q) || cat.includes(q);
     });
-  }, [expenses, fromDate, toDate, search]);
+  }, [expenses, fromDate, toDate, deferredSearch]);
 
   const sortedExpenses = useMemo(() => {
     return [...filteredExpenses].sort((a, b) => {
@@ -479,10 +481,10 @@ export default function ExpensesSection({ onQuickAdd }) {
   }, [expenses]);
 
   const filteredPayees = useMemo(() => {
-    if (!payeeSearch.trim()) return payeeSummaries;
-    const q = payeeSearch.toLowerCase();
+    if (!deferredPayeeSearch.trim()) return payeeSummaries;
+    const q = deferredPayeeSearch.toLowerCase();
     return payeeSummaries.filter((p) => p.name.toLowerCase().includes(q));
-  }, [payeeSummaries, payeeSearch]);
+  }, [payeeSummaries, deferredPayeeSearch]);
 
   const activePayeeDetails = useMemo(() => {
     if (!selectedPayeeForLedger) return null;

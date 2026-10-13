@@ -140,7 +140,7 @@ export const normalizeToKanbanColumn = (status) => {
   return 'todo';
 };
 
-export const TasksKanbanPipeline = ({
+export const TasksKanbanPipeline = React.memo(({
   tasks = [],
   onSelectTask,
   onOpenCreateGeneral,
@@ -641,6 +641,6 @@ export const TasksKanbanPipeline = ({
       </div>
     </div>
   );
-};
+});
 
 export default TasksKanbanPipeline;

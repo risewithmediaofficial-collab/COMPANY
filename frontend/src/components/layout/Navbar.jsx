@@ -1,5 +1,6 @@
+import React, { useState, useEffect, useMemo, memo, lazy, Suspense } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   BellRing,
@@ -22,7 +23,6 @@ import {
   Smartphone,
   Activity
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import { toggleDarkMode, toggleSidebar } from '../../store/slices/uiSlice';
 import { logout } from '../../store/slices/authSlice';
 import api from '../../api';
@@ -55,10 +55,12 @@ import GlobalSearchModal from '../modals/GlobalSearchModal';
 import FavoritesPanel from '../modals/FavoritesPanel';
 import { DateRangePicker } from '../ui/DateRangePicker';
 import { AppTooltip } from '../ui/tooltip';
-import { AddTaskModal } from '../modals/AddTaskModal';
-import { AddProjectModal } from '../modals/AddProjectModal';
-import { AddClientModal } from '../modals/AddClientModal';
-import { AddLeadModal } from '../modals/AddLeadModal';
+
+// Lazy-load quick-create modals to reduce critical initial bundle & layout work
+const AddTaskModal = lazy(() => import('../modals/AddTaskModal').then((m) => ({ default: m.AddTaskModal })));
+const AddProjectModal = lazy(() => import('../modals/AddProjectModal').then((m) => ({ default: m.AddProjectModal })));
+const AddClientModal = lazy(() => import('../modals/AddClientModal').then((m) => ({ default: m.AddClientModal })));
+const AddLeadModal = lazy(() => import('../modals/AddLeadModal').then((m) => ({ default: m.AddLeadModal })));
 
 // Route path to structured breadcrumbs helper with clickable links
 const getBreadcrumbs = (pathname) => {
@@ -160,13 +162,13 @@ const getBreadcrumbs = (pathname) => {
   });
 };
 
-const Navbar = () => {
+function NavbarComponent({ onOpenSearch, currentPath }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
+  const pathname = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/');
   const queryClient = useQueryClient();
-  const { user } = useSelector((state) => state.auth);
-  const { darkMode } = useSelector((state) => state.ui);
+  const user = useSelector((state) => state.auth.user);
+  const darkMode = useSelector((state) => state.ui.darkMode);
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [pushPermission, setPushPermission] = useState(getWebPushPermission());
@@ -261,7 +263,8 @@ const Navbar = () => {
       const response = await api.get('/notifications', { params: { limit: 20, unreadOnly: true } });
       return response.data;
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000,
+    staleTime: 60000,
   });
 
   const markAllRead = useMutation({
@@ -316,7 +319,8 @@ const Navbar = () => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        setSearchOpen(true);
+        if (onOpenSearch) onOpenSearch();
+        else setSearchOpen(true);
       }
       if (e.key === 'Escape') {
         setSearchOpen(false);
@@ -325,10 +329,10 @@ const Navbar = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [onOpenSearch]);
 
-  // Compute structured dynamic breadcrumbs
-  const breadcrumbs = getBreadcrumbs(location.pathname);
+  // Compute structured dynamic breadcrumbs with memoization
+  const breadcrumbs = useMemo(() => getBreadcrumbs(pathname), [pathname]);
 
   const canCreate = ['superAdmin', 'admin', 'manager'].includes(user?.role);
 
@@ -384,7 +388,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2 sm:gap-3">
           <AppTooltip content="Search Workspace (Ctrl+K / Cmd+K)">
             <button
-              onClick={() => setSearchOpen(true)}
+              onClick={() => onOpenSearch ? onOpenSearch() : setSearchOpen(true)}
               className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border/80 bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all text-xs"
               title="Search Workspace (Cmd+K)"
             >
@@ -592,40 +596,43 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* Global Search Modal */}
-      <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+      {/* Global Search Modal fallback if not handled by layout */}
+      {!onOpenSearch && <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />}
 
       {/* Push Diagnostics & Closed-Tab Test Modal */}
       <PushDiagnosticsModal open={diagnosticsOpen} onOpenChange={setDiagnosticsOpen} />
 
-      {/* Global Quick Create Modals */}
-      {createTaskOpen && (
-        <AddTaskModal
-          open={createTaskOpen}
-          onOpenChange={setCreateTaskOpen}
-        />
-      )}
-      {createProjectOpen && (
-        <AddProjectModal
-          open={createProjectOpen}
-          onOpenChange={setCreateProjectOpen}
-        />
-      )}
-      {createClientOpen && (
-        <AddClientModal
-          open={createClientOpen}
-          onOpenChange={setCreateClientOpen}
-        />
-      )}
-      {createLeadOpen && (
-        <AddLeadModal
-          open={createLeadOpen}
-          onOpenChange={setCreateLeadOpen}
-        />
-      )}
+      {/* Global Quick Create Modals (Deferred & Shell-loaded) */}
+      <Suspense fallback={null}>
+        {createTaskOpen && (
+          <AddTaskModal
+            open={createTaskOpen}
+            onOpenChange={setCreateTaskOpen}
+          />
+        )}
+        {createProjectOpen && (
+          <AddProjectModal
+            open={createProjectOpen}
+            onOpenChange={setCreateProjectOpen}
+          />
+        )}
+        {createClientOpen && (
+          <AddClientModal
+            open={createClientOpen}
+            onOpenChange={setCreateClientOpen}
+          />
+        )}
+        {createLeadOpen && (
+          <AddLeadModal
+            open={createLeadOpen}
+            onOpenChange={setCreateLeadOpen}
+          />
+        )}
+      </Suspense>
     </>
   );
-};
+}
 
+const Navbar = memo(NavbarComponent);
 export default Navbar;
 

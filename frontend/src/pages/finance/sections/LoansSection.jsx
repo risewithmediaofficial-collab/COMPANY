@@ -40,10 +40,12 @@ import {
   useDeleteLoan,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST } from '../../../utils/financeFormatters';
+import { useDebounce } from '../../../hooks/useDebounce';
 import { toast } from 'sonner';
 
 export default function LoansSection({ onQuickAdd }) {
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 250);
   const [statusFilter, setStatusFilter] = useState('active'); // 'active' | 'all' | 'closed'
 
   // Modals state
@@ -81,7 +83,7 @@ export default function LoansSection({ onQuickAdd }) {
   // Queries & Mutations
   const { data: loanResponse = {}, isLoading, refetch } = useLoans({
     status: statusFilter,
-    search,
+    search: debouncedSearch,
   });
 
   const loans = loanResponse.data || [];
