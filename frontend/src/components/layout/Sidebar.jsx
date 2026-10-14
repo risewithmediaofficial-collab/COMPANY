@@ -39,6 +39,7 @@ import {
   Zap,
   FolderKanban,
   Megaphone,
+  Rocket,
 } from 'lucide-react';
 import { toggleSidebar } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';

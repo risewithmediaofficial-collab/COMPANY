@@ -163,7 +163,7 @@ const App = () => {
     <>
       <WebsiteLaunchLoader />
       {!isResolvingInitialAuth && (
-        <Router future={{ v7_relativeSplatPath: true }}>
+        <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <HotToaster position="top-right" reverseOrder={false} />
       <SonnerToaster position="top-right" richColors closeButton />
       <BannerNotificationHost />
