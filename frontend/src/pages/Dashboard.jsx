@@ -64,7 +64,7 @@ import {
 import { getAssetUrl } from '../utils/assetUrl';
 import { EODReportModal } from '../components/modals/EODReportModal';
 import { EODDetailModal } from '../components/modals/EODDetailModal';
-import { AddTaskModal } from '../components/modals/AddTaskModal';
+import { KanbanCreateTaskModal } from '../components/tasks/KanbanCreateTaskModal';
 import { AddProjectModal } from '../components/modals/AddProjectModal';
 import { AddClientModal } from '../components/modals/AddClientModal';
 import { useEodReports } from '../hooks/useEodReports';
@@ -1464,9 +1464,10 @@ const Dashboard = () => {
 
       {/* Quick Action Modals */}
       {createTaskOpen && (
-        <AddTaskModal
-          open={createTaskOpen}
-          onOpenChange={setCreateTaskOpen}
+        <KanbanCreateTaskModal
+          isOpen={createTaskOpen}
+          onClose={() => setCreateTaskOpen(false)}
+          onTaskCreated={() => fetchStats(false)}
         />
       )}
       {createProjectOpen && (

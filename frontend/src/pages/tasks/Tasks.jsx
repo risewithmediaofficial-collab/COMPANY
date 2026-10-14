@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
-import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { DataTable } from '../../components/ui/DataTable';
 import { Button } from '../../components/ui/button';
@@ -94,8 +93,6 @@ const priorityTone = {
 
 const Tasks = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [addModalInitialValues, setAddModalInitialValues] = useState({});
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
@@ -1035,12 +1032,6 @@ const Tasks = () => {
         )}
       </DatabaseView>
       </div>
-
-      <AddTaskModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        initialValues={addModalInitialValues}
-      />
 
       <TaskDetailModal
         open={showTaskDetail}

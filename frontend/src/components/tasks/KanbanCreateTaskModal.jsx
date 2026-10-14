@@ -43,10 +43,18 @@ const TECH_TYPE_OPTIONS = [
 
 export const KanbanCreateTaskModal = ({
   isOpen,
+  open,
   onClose,
+  onOpenChange,
   initialUser = null,
+  initialValues = null,
   onTaskCreated,
 }) => {
+  const isModalOpen = isOpen !== undefined ? Boolean(isOpen) : Boolean(open);
+  const handleClose = () => {
+    if (onClose) onClose();
+    if (onOpenChange) onOpenChange(false);
+  };
   const createTaskMutation = useCreateTask();
   const { data: clientsData = [] } = useClients();
   const { data: projectsData = [] } = useProjects();
@@ -108,9 +116,38 @@ export const KanbanCreateTaskModal = ({
     });
   }, [users]);
 
+  // Keyboard listener for Escape
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen]);
+
   // Reset or initialize when modal opens or initialUser changes
   useEffect(() => {
-    if (isOpen) {
+    if (isModalOpen) {
+      if (initialValues) {
+        if (initialValues.client) {
+          const cId = typeof initialValues.client === 'object' ? initialValues.client._id : initialValues.client;
+          setSingleClientId(cId || '');
+        }
+        if (initialValues.project) {
+          const pId = typeof initialValues.project === 'object' ? initialValues.project._id : initialValues.project;
+          setSingleProjectId(pId || '');
+        }
+        if (initialValues.assignedTo) {
+          const aId = Array.isArray(initialValues.assignedTo)
+            ? (initialValues.assignedTo[0]?._id || initialValues.assignedTo[0])
+            : (initialValues.assignedTo?._id || initialValues.assignedTo);
+          if (aId) setSelectedUserId(aId);
+        }
+        if (initialValues.priority) setPriority(initialValues.priority.toLowerCase());
+        if (initialValues.title || initialValues.taskTitle) setTitle(initialValues.title || initialValues.taskTitle);
+        if (initialValues.dueDate) setDueDate(new Date(initialValues.dueDate).toISOString().split('T')[0]);
+      }
       if (initialUser?._id) {
         setSelectedUserId(initialUser._id);
         const userDept = (initialUser.department || '').toLowerCase();
@@ -128,18 +165,13 @@ export const KanbanCreateTaskModal = ({
           setTaskCategory('content');
           setSubType('reel');
         }
-      } else if (users.length > 0 && !selectedUserId) {
+      } else if (users.length > 0 && !selectedUserId && !initialValues?.assignedTo) {
         setSelectedUserId(users[0]._id);
-      }
-
-      // Default client if available
-      if (clients.length > 0 && !singleClientId) {
-        setSingleClientId(clients[0]._id);
       }
     } else {
       setQueuedTasks([]);
     }
-  }, [isOpen, initialUser, users, clients]);
+  }, [isModalOpen, initialUser, initialValues, users, clients]);
 
   // Update default checklist when subtype changes
   useEffect(() => {
@@ -356,16 +388,21 @@ export const KanbanCreateTaskModal = ({
       setQueuedTasks([]);
       setTitle('');
       if (onTaskCreated) onTaskCreated();
-      onClose();
+      handleClose();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create task(s)');
     }
   };
 
-  if (!isOpen) return null;
+  if (!isModalOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[999] flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+      className="fixed inset-0 z-[999] flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+    >
       <div className="relative flex max-h-[94dvh] sm:max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-6 sm:py-4 dark:border-slate-800 shrink-0">
@@ -383,8 +420,8 @@ export const KanbanCreateTaskModal = ({
             </div>
           </div>
           <button
-            onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 shrink-0"
+            onClick={handleClose}
+            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 shrink-0 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -926,8 +963,8 @@ export const KanbanCreateTaskModal = ({
         <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-slate-100 bg-slate-50/90 px-4 py-3 sm:px-6 sm:py-3.5 dark:border-slate-800 dark:bg-slate-900/90 shrink-0">
           <button
             type="button"
-            onClick={onClose}
-            className="w-full sm:w-auto rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 text-center"
+            onClick={handleClose}
+            className="w-full sm:w-auto rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 text-center cursor-pointer"
           >
             Cancel
           </button>

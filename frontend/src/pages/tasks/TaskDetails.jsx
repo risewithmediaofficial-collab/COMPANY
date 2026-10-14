@@ -41,6 +41,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
+import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import { ProgressUpdateForm } from '../../components/ui/ProgressUpdateForm';
 import { useAddCompletedFiles, useTask, useUpdateTaskStatus, useDeleteTask } from '../../hooks/useTasks';
 import {
@@ -1133,11 +1134,11 @@ export const TaskDetails = () => {
 
       {/* Assign Another Task Modal */}
       {showAssignAnotherModal && (
-        <AddTaskModal
-          open={showAssignAnotherModal}
-          onOpenChange={(open) => {
-            setShowAssignAnotherModal(open);
-            if (!open) refetch();
+        <KanbanCreateTaskModal
+          isOpen={showAssignAnotherModal}
+          onClose={() => {
+            setShowAssignAnotherModal(false);
+            refetch();
           }}
           initialValues={{
             client: task.client?._id || task.client || '',
@@ -1147,6 +1148,7 @@ export const TaskDetails = () => {
             priority: task.priority || 'Medium',
             dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
           }}
+          onTaskCreated={() => refetch()}
         />
       )}
     </div>

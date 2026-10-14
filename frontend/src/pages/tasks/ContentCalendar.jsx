@@ -37,7 +37,6 @@ import {
   X,
   Palette,
 } from 'lucide-react';
-import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { ClientTaskResponsePanel } from '../../components/tasks/ClientTaskResponsePanel';
 import { DailyCalendarTaskDialog } from '../../components/tasks/DailyCalendarTaskDialog';
 import { DailyTaskUpdateDialog } from '../../components/tasks/DailyTaskUpdateDialog';

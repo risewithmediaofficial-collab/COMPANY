@@ -4,7 +4,7 @@ import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
-import { AddTaskModal } from '../../components/modals/AddTaskModal';
+import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import {
   Kanban,
   Search,
@@ -777,15 +777,16 @@ export default function DevelopmentBoard() {
         />
       )}
 
-      {/* ── Existing Task Creation Modal (Reused directly) ───────────── */}
+      {/* ── Task Creation Modal ───────────── */}
       {showAddTaskModal && (
-        <AddTaskModal
-          open={showAddTaskModal}
-          onOpenChange={(isOpen) => {
-            setShowAddTaskModal(isOpen);
-            if (!isOpen) {
-              fetchData();
-            }
+        <KanbanCreateTaskModal
+          isOpen={showAddTaskModal}
+          onClose={() => {
+            setShowAddTaskModal(false);
+            fetchData();
+          }}
+          onTaskCreated={() => {
+            fetchData();
           }}
         />
       )}

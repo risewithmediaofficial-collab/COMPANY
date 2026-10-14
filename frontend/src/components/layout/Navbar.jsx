@@ -57,7 +57,7 @@ import { DateRangePicker } from '../ui/DateRangePicker';
 import { AppTooltip } from '../ui/tooltip';
 
 // Lazy-load quick-create modals to reduce critical initial bundle & layout work
-const AddTaskModal = lazy(() => import('../modals/AddTaskModal').then((m) => ({ default: m.AddTaskModal })));
+const KanbanCreateTaskModal = lazy(() => import('../tasks/KanbanCreateTaskModal').then((m) => ({ default: m.default || m.KanbanCreateTaskModal })));
 const AddProjectModal = lazy(() => import('../modals/AddProjectModal').then((m) => ({ default: m.AddProjectModal })));
 const AddClientModal = lazy(() => import('../modals/AddClientModal').then((m) => ({ default: m.AddClientModal })));
 const AddLeadModal = lazy(() => import('../modals/AddLeadModal').then((m) => ({ default: m.AddLeadModal })));
@@ -604,7 +604,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
       {/* Global Quick Create Modals (Deferred & Shell-loaded) */}
       <Suspense fallback={null}>
         {createTaskOpen && (
-          <AddTaskModal
+          <KanbanCreateTaskModal
             open={createTaskOpen}
             onOpenChange={setCreateTaskOpen}
           />

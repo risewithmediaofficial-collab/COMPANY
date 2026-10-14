@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ProgressUpdateForm } from './ProgressUpdateForm';
 import { useAddCompletedFiles, useTask, useUpdateTaskStatus, useDeleteTask } from '../../hooks/useTasks';
 import { AddTaskModal } from '../modals/AddTaskModal';
+import { KanbanCreateTaskModal } from '../tasks/KanbanCreateTaskModal';
 import {
   CheckSquare,
   Edit,
@@ -1068,11 +1069,11 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
 
         {/* Assign Another Task Modal */}
         {showAssignAnotherModal && (
-          <AddTaskModal
-            open={showAssignAnotherModal}
-            onOpenChange={(val) => {
-              setShowAssignAnotherModal(val);
-              if (!val) refetch();
+          <KanbanCreateTaskModal
+            isOpen={showAssignAnotherModal}
+            onClose={() => {
+              setShowAssignAnotherModal(false);
+              refetch();
             }}
             initialValues={{
               client: task.client?._id || task.client || '',
@@ -1082,6 +1083,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
               priority: task.priority || 'Medium',
               dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
             }}
+            onTaskCreated={() => refetch()}
           />
         )}
       </DialogContent>

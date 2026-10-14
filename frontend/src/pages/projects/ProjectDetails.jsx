@@ -31,7 +31,7 @@ import { useSocket } from '../../context/SocketContext';
 import api from '../../api';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { AddTaskModal } from '../../components/modals/AddTaskModal';
+import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import ProjectMonthlyDeliverablesCard from '../../components/projects/ProjectMonthlyDeliverablesCard';
@@ -1172,16 +1172,17 @@ const ProjectDetails = () => {
 
       {user?.role !== 'client' && (
         <>
-          <AddTaskModal
-            open={showTaskModal}
-            onOpenChange={(open) => {
-              setShowTaskModal(open);
-              if (!open) {
-                setTaskDefaults({});
-                fetchProjectData();
-              }
+          <KanbanCreateTaskModal
+            isOpen={showTaskModal}
+            onClose={() => {
+              setShowTaskModal(false);
+              setTaskDefaults({});
+              fetchProjectData();
             }}
             initialValues={taskDefaults}
+            onTaskCreated={() => {
+              fetchProjectData();
+            }}
           />
 
           <AddProjectModal
