@@ -10,8 +10,15 @@ export const useUsers = (options = {}) => {
   return useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const response = await api.get('/users');
-      return response.data.users || [];
+      try {
+        const response = await api.get('/users');
+        return response.data?.users || [];
+      } catch (err) {
+        if (err?.response?.status === 403 || err?.response?.status === 401) {
+          return [];
+        }
+        throw err;
+      }
     },
     staleTime: 0,
     refetchOnMount: 'always',

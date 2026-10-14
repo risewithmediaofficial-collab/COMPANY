@@ -51,13 +51,10 @@ const AssetsLibrary = lazy(() => import('./pages/assets/AssetsLibrary'));
 const Settings = lazy(() => import('./pages/Settings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const PortalDashboard = lazy(() => import('./pages/portal/sections/PortalDashboard'));
-const PortalReports = lazy(() => import('./pages/portal/sections/PortalReports'));
-const PortalDownloads = lazy(() => import('./pages/portal/sections/PortalDownloads'));
-const BrandAssets = lazy(() => import('./pages/portal/sections/BrandAssets'));
-const PortalSupport = lazy(() => import('./pages/portal/sections/PortalSupport'));
-const PortalGuidelines = lazy(() => import('./pages/portal/sections/PortalGuidelines'));
 const PortalInvoices = lazy(() => import('./pages/portal/sections/PortalInvoices'));
 const PortalTasks = lazy(() => import('./pages/portal/sections/PortalTasks'));
+const PortalAdBudget = lazy(() => import('./pages/portal/sections/PortalAdBudget'));
+const PortalSMMTracker = lazy(() => import('./pages/portal/sections/PortalSMMTracker'));
 
 // Social Media Manager Module Pages
 const SMMDashboard = lazy(() => import('./pages/smm/SMMDashboard'));
@@ -271,9 +268,13 @@ const App = () => {
 
           {/* Tasks & Calendar */}
           <Route path="/tasks" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee', 'client']}>
-              <Tasks />
-            </ProtectedRoute>
+            user?.role === 'client' ? (
+              <PortalTasks />
+            ) : (
+              <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
+                <Tasks />
+              </ProtectedRoute>
+            )
           } />
           <Route path="/manager-tasks" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['manager']}>
@@ -336,14 +337,18 @@ const App = () => {
 
           {/* Finance OS */}
           <Route path="/finance" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee']}>
-              <Finance />
-            </ProtectedRoute>
+            user?.role === 'client' ? <Navigate to="/" replace /> : (
+              <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee']}>
+                <Finance />
+              </ProtectedRoute>
+            )
           } />
           <Route path="/finance/:section" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee']}>
-              <Finance />
-            </ProtectedRoute>
+            user?.role === 'client' ? <Navigate to="/" replace /> : (
+              <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee']}>
+                <Finance />
+              </ProtectedRoute>
+            )
           } />
           <Route path="/call-history" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee', 'intern', 'editor', 'designer', 'adsManager']}>
@@ -539,31 +544,21 @@ const App = () => {
               <PortalTasks />
             </ProtectedRoute>
           } />
-          <Route path="/portal/reports" element={
+          <Route path="/portal/tracker" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
-              <PortalReports dark={false} />
+              <PortalSMMTracker />
             </ProtectedRoute>
           } />
-          <Route path="/portal/downloads" element={
+          <Route path="/portal/ad-budget" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
-              <PortalDownloads dark={false} />
+              <PortalAdBudget />
             </ProtectedRoute>
           } />
-          <Route path="/portal/assets" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
-              <BrandAssets dark={false} />
-            </ProtectedRoute>
-          } />
-          <Route path="/portal/support" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
-              <PortalSupport dark={false} />
-            </ProtectedRoute>
-          } />
-          <Route path="/portal/guidelines" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
-              <PortalGuidelines dark={false} />
-            </ProtectedRoute>
-          } />
+          <Route path="/portal/downloads" element={<Navigate to="/" replace />} />
+          <Route path="/portal/reports" element={<Navigate to="/" replace />} />
+          <Route path="/portal/assets" element={<Navigate to="/" replace />} />
+          <Route path="/portal/support" element={<Navigate to="/" replace />} />
+          <Route path="/portal/guidelines" element={<Navigate to="/" replace />} />
           </Route>
 
           {/* 404 */}

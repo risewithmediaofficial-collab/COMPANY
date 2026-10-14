@@ -90,12 +90,116 @@ const resolveClientObj = async (clientId) => {
   return { _id: clientId, companyName: 'Client', status: 'Active' };
 };
 
+// ── Helper: resolve client details from logged-in client user ───────────────
+const resolveClientForUser = async (user) => {
+  if (!user) return null;
+  const userId = user._id;
+  let client = await Client.findOne({ userId }).select('_id company name email phone').lean();
+  if (!client && user.clientId) {
+    client = await Client.findById(user.clientId).select('_id company name email phone').lean();
+  }
+  if (!client && user.email) {
+    client = await Client.findOne({ email: user.email }).select('_id company name email phone').lean();
+  }
+  if (!client) {
+    let smmC = user.clientId ? await SmmClient.findById(user.clientId).select('_id companyName email phone').lean() : null;
+    if (!smmC && user.email) {
+      smmC = await SmmClient.findOne({ email: user.email }).select('_id companyName email phone').lean();
+    }
+    if (smmC) return { id: smmC._id.toString(), smmId: smmC._id.toString(), companyName: smmC.companyName };
+  }
+  if (client) {
+    let smmId = client._id.toString();
+    const smmC = await SmmClient.findById(client._id).select('_id companyName').lean()
+      || (client.company ? await SmmClient.findOne({ companyName: { $regex: new RegExp(`^${client.company.trim()}$`, 'i') } }).select('_id companyName').lean() : null);
+    return {
+      id: client._id.toString(),
+      smmId: smmC ? smmC._id.toString() : client._id.toString(),
+      companyName: client.company || client.name,
+    };
+  }
+  return null;
+};
+
 // ── GET all tracker rows for a given month/year ─────────────────────────────
 // GET /api/smm/tracker?month=9&year=2026
 export const getMonthlyTrackers = async (req, res) => {
   try {
     const month = parseInt(req.query.month) || new Date().getMonth() + 1;
     const year  = parseInt(req.query.year)  || new Date().getFullYear();
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    // STRICT CLIENT SCOPING: When logged in as client, ONLY return their own tracker
+    if (req.user.role === 'client') {
+      const client = await resolveClientForUser(req.user);
+      if (!client) {
+        return res.json({ success: true, data: { rows: [], month, year, daysInMonth } });
+      }
+
+      const clientIds = [client.id, client.smmId].filter(Boolean);
+      let tracker = await SmmMonthlyTracker.findOne({
+        client: { $in: clientIds },
+        month,
+        year,
+      }).lean();
+
+      if (!tracker && client.companyName) {
+        const smmC = await SmmClient.findOne({
+          companyName: { $regex: new RegExp(`^${client.companyName.trim()}$`, 'i') },
+        }).lean();
+        if (smmC) {
+          tracker = await SmmMonthlyTracker.findOne({ client: smmC._id, month, year }).lean();
+        }
+      }
+
+      const clientObj = {
+        _id: client.id,
+        companyName: client.companyName || 'My Company',
+        status: 'Active',
+      };
+
+      let rowData;
+      if (tracker && !tracker.isExcluded) {
+        let modified = false;
+        const updatedDays = (tracker.days || []).map((day) => {
+          const isPast = isDayBeforeToday(day.day, month, year);
+          let newDay = day;
+          if (isPast) {
+            if (hasPosterContent(day.postLabel) && (!day.postStatus || day.postStatus === 'todo')) {
+              if (newDay === day) newDay = { ...day };
+              newDay.postStatus = 'pending';
+              modified = true;
+            }
+            if (hasPosterContent(day.storyLabel) && (!day.storyStatus || day.storyStatus === 'todo')) {
+              if (newDay === day) newDay = { ...day };
+              newDay.storyStatus = 'pending';
+              modified = true;
+            }
+          }
+          return newDay;
+        });
+
+        if (modified && tracker._id) {
+          SmmMonthlyTracker.findByIdAndUpdate(tracker._id, { $set: { days: updatedDays } }).catch(() => {});
+        }
+
+        rowData = { ...tracker, days: updatedDays, client: clientObj };
+      } else {
+        rowData = {
+          _id: null,
+          client: clientObj,
+          team: 'RWM',
+          plan: '',
+          storyPlan: '30 STORIES',
+          month,
+          year,
+          days: buildEmptyDays(year, month),
+          _scaffold: true,
+        };
+      }
+
+      return res.json({ success: true, data: { rows: [rowData], month, year, daysInMonth } });
+    }
 
     // 1. Fetch all active clients from BOTH CRM Client and SMM Client
     const [crmClients, smmClientsList] = await Promise.all([
@@ -250,6 +354,13 @@ export const getTrackerByClient = async (req, res) => {
     const { clientId } = req.params;
     const month = parseInt(req.query.month) || new Date().getMonth() + 1;
     const year  = parseInt(req.query.year)  || new Date().getFullYear();
+
+    if (req.user.role === 'client') {
+      const client = await resolveClientForUser(req.user);
+      if (!client || (client.id !== clientId && client.smmId !== clientId)) {
+        return res.status(403).json({ success: false, message: 'Access denied to this client tracker' });
+      }
+    }
 
     const tracker = await SmmMonthlyTracker.findOne({ client: clientId, month, year }).lean();
 

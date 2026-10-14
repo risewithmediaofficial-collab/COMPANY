@@ -47,6 +47,10 @@ const routeLoaders = {
   '/assets': () => import('../pages/assets/AssetsLibrary'),
   '/reports': () => import('../pages/reports/Reports'),
   '/settings': () => import('../pages/Settings'),
+  '/portal/invoices': () => import('../pages/portal/sections/PortalInvoices'),
+  '/portal/tasks': () => import('../pages/portal/sections/PortalTasks'),
+  '/portal/tracker': () => import('../pages/portal/sections/PortalSMMTracker'),
+  '/portal/ad-budget': () => import('../pages/portal/sections/PortalAdBudget'),
 };
 
 const preloadedRoutes = new Set();

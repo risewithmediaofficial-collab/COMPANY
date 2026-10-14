@@ -36,8 +36,9 @@ import {
   Kanban,
   GitPullRequest,
   Bug,
-  Rocket,
   Zap,
+  FolderKanban,
+  Megaphone,
 } from 'lucide-react';
 import { toggleSidebar } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';
@@ -125,15 +126,10 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           items: [
             { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
             { name: 'My Projects', icon: FolderKanban, path: '/projects' },
-            { name: 'Tasks', icon: CheckSquare, path: '/tasks' },
-            { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
-            { name: 'Invoices', icon: Receipt, path: '/portal/invoices' },
-            { name: 'Proposals', icon: FileText, path: '/client/proposals' },
-            { name: 'Brand Assets', icon: Palette, path: '/portal/assets' },
-            { name: 'Reports', icon: BarChart3, path: '/portal/reports' },
-            { name: 'Downloads', icon: Download, path: '/portal/downloads' },
-            { name: 'Support', icon: HeadphonesIcon, path: '/portal/support' },
-            { name: 'Guidelines', icon: BookOpen, path: '/portal/guidelines' },
+            { name: 'Tasks & Deliverables', icon: CheckSquare, path: '/tasks' },
+            { name: 'SMM Tracker', icon: Calendar, path: '/portal/tracker' },
+            { name: 'Ad Budget & Campaigns', icon: Megaphone, path: '/portal/ad-budget' },
+            { name: 'Invoices & Billing', icon: Receipt, path: '/portal/invoices' },
           ],
         },
       ];

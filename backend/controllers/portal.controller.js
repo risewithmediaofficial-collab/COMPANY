@@ -28,6 +28,9 @@ const getClientFromUser = async (userOrId) => {
   if (!client && userOrId?.clientId) {
     client = await Client.findById(userOrId.clientId).populate('assignedManager', 'name email avatar');
   }
+  if (!client && userOrId?.email) {
+    client = await Client.findOne({ email: userOrId.email }).populate('assignedManager', 'name email avatar');
+  }
   return client;
 };
 
@@ -57,9 +60,16 @@ export const getPortalDashboard = async (req, res) => {
     const activeProjects = clientProjects.filter(p => ['active', 'in_progress', 'planning'].includes(p.status));
     const completedProjects = clientProjects.filter(p => ['completed', 'done'].includes(p.status));
 
-    // 2. Client Tasks & Task Metrics (Client-visible tasks only)
-    const clientTasks = await Task.find({ client: clientId, isClientVisible: true })
-      .select('taskTitle title status priority dueDate taskCategory taskType deliverables files attachments assignedPersonName')
+    // 2. Client Tasks & Task Metrics: show all tasks under this client or this client's projects
+    const projectIds = clientProjects.map((p) => p._id);
+    const clientTasks = await Task.find({
+      $or: [
+        { client: clientId },
+        { project: { $in: projectIds } },
+      ],
+    })
+      .select('taskTitle title status priority dueDate taskCategory taskType deliverables files attachments assignedPersonName project')
+      .populate('project', 'name')
       .sort({ dueDate: 1, createdAt: -1 });
 
     const totalTasks = clientTasks.length;
@@ -290,6 +300,15 @@ export const getPortalDashboard = async (req, res) => {
         tasks: clientTasks.slice(0, 10),
       },
       smmMetrics,
+      tracker: tracker ? {
+        _id: tracker._id,
+        plan: tracker.plan,
+        storyPlan: tracker.storyPlan,
+        team: tracker.team,
+        month: tracker.month || currentMonth,
+        year: tracker.year || currentYear,
+        days: tracker.days || [],
+      } : null,
       adBudget,
       invoiceMetrics: {
         totalQuoted,
@@ -450,7 +469,7 @@ export const getReportingData = async (req, res) => {
     
     const extraScope = {};
     if (req.user.role === 'client') {
-      const client = await getClientFromUser(req.user._id);
+      const client = await getClientFromUser(req.user);
       if (!client) {
         return res.status(404).json({ success: false, message: 'Client profile not found' });
       }
@@ -646,7 +665,7 @@ export const getClientInvoices = async (req, res) => {
 
 export const getClientFinanceOverview = async (req, res) => {
   try {
-    const client = await getClientFromUser(req.user._id);
+    const client = await getClientFromUser(req.user);
     if (!client) return res.status(404).json({ success: false, message: 'Client profile not found' });
 
     const [financeRecords, referrals, callHistory] = await Promise.all([
@@ -686,9 +705,14 @@ export const getClientTasks = async (req, res) => {
     }
 
     const { status, taskCategory, taskType } = req.query;
+    const clientProjects = await Project.find({ client: client._id }).select('_id');
+    const projectIds = clientProjects.map((p) => p._id);
+
     const filter = {
-      client: client._id,
-      isClientVisible: true,
+      $or: [
+        { client: client._id },
+        { project: { $in: projectIds } },
+      ],
     };
 
     if (status) filter.status = status;
@@ -697,6 +721,7 @@ export const getClientTasks = async (req, res) => {
 
     const tasks = await Task.find(filter)
       .populate('assignedTo', 'name avatar')
+      .populate('project', 'name')
       .populate('clientResponseBy', 'name')
       .sort({ dueDate: 1, createdAt: -1 });
 

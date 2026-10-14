@@ -269,6 +269,9 @@ const getClientRecordForUser = async (userOrId) => {
   if (!client && userOrId?.clientId) {
     client = await Client.findById(userOrId.clientId).select('_id assignedManager assignedTeam');
   }
+  if (!client && userOrId?.email) {
+    client = await Client.findOne({ email: userOrId.email }).select('_id assignedManager assignedTeam');
+  }
   return client;
 };
 
@@ -316,15 +319,20 @@ const buildScopedTaskFilter = async (req, baseFilter = {}) => {
   }
 
   if (req.user.role === 'client') {
-    const client = await getClientRecordForUser(req.user._id);
+    const client = await getClientRecordForUser(req.user);
     if (!client) {
       filter._id = null;
       return filter;
     }
 
-    filter.client = client._id;
-    filter.isClientVisible = true;
-    return baseOr ? { ...filter, $or: baseOr } : filter;
+    const clientProjects = await Project.find({ client: client._id }).select('_id');
+    const projectIds = clientProjects.map((p) => p._id);
+    const clientTaskFilter = [
+      { client: client._id },
+      { project: { $in: projectIds } },
+    ];
+
+    return baseOr ? { ...filter, $and: [{ $or: baseOr }, { $or: clientTaskFilter }] } : { ...filter, $or: clientTaskFilter };
   }
 
   filter._id = null;
@@ -348,9 +356,13 @@ const assertTaskAccess = async (req, task) => {
   }
 
   if (req.user.role === 'client') {
-    const client = await getClientRecordForUser(req.user._id);
-    if (client && toIdString(task.client) === client._id.toString() && task.isClientVisible) {
-      return { allowed: true };
+    const client = await getClientRecordForUser(req.user);
+    if (client) {
+      if (toIdString(task.client) === client._id.toString()) return { allowed: true };
+      if (task.project) {
+        const proj = await Project.findById(toIdString(task.project)).select('client');
+        if (proj && toIdString(proj.client) === client._id.toString()) return { allowed: true };
+      }
     }
 
     return { allowed: false, status: 403, message: 'Access denied' };

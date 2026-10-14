@@ -629,8 +629,19 @@ export const useFinanceModuleOverview = (filters = {}, options = {}) => {
   return useQuery({
     queryKey: ['finance-module-overview', filters],
     queryFn: async () => {
-      const response = await api.get('/finance/module/overview', { params: filters });
-      return response.data || {};
+      try {
+        const response = await api.get('/finance/module/overview', { params: filters });
+        return response.data || {};
+      } catch (err) {
+        if (err?.response?.status === 403 || err?.response?.status === 401) {
+          return {};
+        }
+        throw err;
+      }
+    },
+    retry: (failureCount, error) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) return false;
+      return failureCount < 2;
     },
     staleTime: 60 * 1000,
     ...options,

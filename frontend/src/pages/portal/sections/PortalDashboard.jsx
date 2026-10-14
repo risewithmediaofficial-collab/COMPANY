@@ -12,8 +12,6 @@ import {
 import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
 import { exportProposalToPDF, exportInvoiceToPDF } from '../../../utils/pdfExport';
-import { useEodReports } from '../../../hooks/useEodReports';
-import { EODDetailModal } from '../../../components/modals/EODDetailModal';
 import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
 
 const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
@@ -38,16 +36,13 @@ const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
 );
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
+const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function PortalDashboard({ dark, user, setPendingCount }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedEod, setSelectedEod] = useState(null);
-  const [showEodDetail, setShowEodDetail] = useState(false);
 
   const socket = useSocket();
-  const { data: eodData, refetch: refetchEod } = useEodReports(7);
-  const eodReports = eodData?.records || [];
 
   const fetchData = () => {
     api.get('/portal/dashboard')
@@ -68,19 +63,20 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
     const handleUpdate = () => {
       fetchData();
-      refetchEod();
     };
 
     socket.on('clientUpdated', handleUpdate);
     socket.on('portalUpdated', handleUpdate);
-    socket.on('eodSubmitted', handleUpdate);
+    socket.on('trackerUpdated', handleUpdate);
+    socket.on('smmTrackerUpdated', handleUpdate);
 
     return () => {
       socket.off('clientUpdated', handleUpdate);
       socket.off('portalUpdated', handleUpdate);
-      socket.off('eodSubmitted', handleUpdate);
+      socket.off('trackerUpdated', handleUpdate);
+      socket.off('smmTrackerUpdated', handleUpdate);
     };
-  }, [socket, refetchEod]);
+  }, [socket]);
 
   const txt = dark ? 'text-white' : 'text-slate-800';
   const sub = dark ? 'text-slate-400' : 'text-slate-500';
@@ -693,50 +689,114 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
         </div>
       )}
 
-      {/* ── SECTION 5: DAILY TEAM WORK & EOD REPORTS ── */}
+      {/* ── SECTION 5: SMM MONTHLY TRACKER SHEET (Day-by-Day Client Scope) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
-          <div className="flex items-center justify-between pb-3 border-b border-border/50">
-            <div className="flex items-center gap-2">
-              <FileText size={17} className="text-indigo-400" />
-              <h3 className={`text-sm font-bold ${txt}`}>Daily Team Work & EOD Reports</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+                <Calendar size={17} />
+              </div>
+              <div>
+                <h3 className={`text-sm font-bold ${txt}`}>
+                  {smmMetrics?.month || 'Monthly'} SMM Tracker Sheet
+                </h3>
+                <p className={`text-xs ${sub}`}>
+                  Live day-by-day status of your posts, reels, and daily stories
+                </p>
+              </div>
             </div>
-            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${dark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-              {eodReports.length} Reports
-            </span>
+            <Link
+              to="/portal/tracker"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-purple-700 transition-all self-start sm:self-center"
+            >
+              Full Tracker Sheet <ArrowRight size={13} />
+            </Link>
           </div>
 
-          {eodReports.length === 0 ? (
+          {!tracker || (tracker.days || []).length === 0 ? (
             <div className="text-center py-8">
-              <FileText size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
-              <p className={`text-xs ${sub}`}>No daily team EOD reports yet for your projects</p>
+              <Calendar size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
+              <p className={`text-xs ${sub}`}>SMM Monthly Tracker is being scheduled for your brand</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {eodReports.slice(0, 4).map((item) => (
-                <div
-                  key={item._id}
-                  onClick={() => { setSelectedEod(item); setShowEodDetail(true); }}
-                  className="p-3.5 rounded-xl cursor-pointer transition-all hover:scale-[1.01]"
-                  style={{
-                    background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-                    border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold">
-                        {item.user?.name ? item.user.name.charAt(0).toUpperCase() : 'T'}
-                      </div>
-                      <span className={`text-xs font-bold truncate ${txt}`}>{item.user?.name || 'Team Member'}</span>
-                    </div>
-                    <span className={`text-[10px] ${sub}`}>
-                      {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                  </div>
-                  <p className={`text-xs line-clamp-2 ${sub}`}>{item.eodReport?.summary}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-border/50 text-[10px] font-semibold text-muted-foreground uppercase">
+                    <th className="py-2.5 px-3 w-16">Day</th>
+                    <th className="py-2.5 px-3">Post / Reel Topic</th>
+                    <th className="py-2.5 px-3 w-24 text-center">Post</th>
+                    <th className="py-2.5 px-3">Story</th>
+                    <th className="py-2.5 px-3 w-24 text-center">Story</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {(tracker.days || []).slice(0, 15).map((d) => {
+                    const nowDay = new Date().getDate();
+                    const isToday = d.day === nowDay;
+                    const isSunday = new Date(tracker.year || new Date().getFullYear(), (tracker.month || new Date().getMonth() + 1) - 1, d.day).getDay() === 0;
+
+                    return (
+                      <tr
+                        key={d.day}
+                        className={`transition-colors ${
+                          isToday ? 'bg-blue-500/10 font-medium' : isSunday ? 'bg-amber-500/5' : 'hover:bg-secondary/30'
+                        }`}
+                      >
+                        <td className="py-2.5 px-3 font-bold">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] ${
+                            isToday ? 'bg-blue-600 text-white font-black' : isSunday ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' : 'text-muted-foreground'
+                          }`}>
+                            {d.day}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {d.postLabel ? (
+                            <span className="font-semibold text-foreground truncate max-w-xs block">
+                              {d.postLabel}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground/50 italic">—</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                            d.postStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600' :
+                            d.postStatus === 'pending' ? 'bg-amber-500/15 text-amber-600' :
+                            'bg-secondary text-muted-foreground'
+                          }`}>
+                            {d.postStatus === 'done' ? 'DONE' : d.postStatus === 'pending' ? 'PENDING' : 'TODO'}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-muted-foreground truncate max-w-[140px]">
+                          {d.storyLabel || '—'}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                            d.storyStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600' :
+                            d.storyStatus === 'pending' ? 'bg-amber-500/15 text-amber-600' :
+                            'bg-secondary text-muted-foreground'
+                          }`}>
+                            {d.storyStatus === 'done' ? 'DONE' : d.storyStatus === 'pending' ? 'PENDING' : 'TODO'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {(tracker.days || []).length > 15 && (
+                <div className="pt-3 text-center border-t border-border/40">
+                  <Link
+                    to="/portal/tracker"
+                    className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    View All {tracker.days.length} Days in SMM Tracker <ArrowRight size={12} />
+                  </Link>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
@@ -761,8 +821,6 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
           </div>
         </div>
       </div>
-
-      <EODDetailModal open={showEodDetail} onOpenChange={setShowEodDetail} record={selectedEod} />
     </div>
   );
 }

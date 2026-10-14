@@ -48,3 +48,32 @@ if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
   });
 }
 
+// Automatically reload window when a new production build invalidates stale dynamic chunks
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  const storageKey = 'vite_chunk_reload_ts';
+  const lastReload = parseInt(sessionStorage.getItem(storageKey) || '0', 10);
+  const now = Date.now();
+  if (now - lastReload > 10000) {
+    sessionStorage.setItem(storageKey, String(now));
+    window.location.reload();
+  }
+});
+
+window.addEventListener('error', (event) => {
+  const msg = event?.message || '';
+  if (
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('Expected a JavaScript-or-Wasm module script')
+  ) {
+    const storageKey = 'vite_chunk_reload_ts';
+    const lastReload = parseInt(sessionStorage.getItem(storageKey) || '0', 10);
+    const now = Date.now();
+    if (now - lastReload > 10000) {
+      sessionStorage.setItem(storageKey, String(now));
+      window.location.reload();
+    }
+  }
+});
+
