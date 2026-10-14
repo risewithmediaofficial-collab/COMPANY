@@ -4,6 +4,7 @@
 import Client from '../../models/client.model.js';
 import SmmClient from '../../models/smm/smmClient.model.js';
 import { emitLiveEvent } from '../../utils/socketEmitter.js';
+import { ensureClientUserAccount } from '../client.controller.js';
 
 export const getSmmClients = async (req, res) => {
   try {
@@ -94,7 +95,7 @@ export const createSmmClient = async (req, res) => {
     });
 
     try {
-      await Client.create({
+      const crmClient = await Client.create({
         name: companyName,
         company: companyName,
         email: req.body.email,
@@ -103,8 +104,24 @@ export const createSmmClient = async (req, res) => {
         logo: req.body.brandLogo,
         status: 'active',
       });
+      if (crmClient && crmClient.email) {
+        await ensureClientUserAccount(crmClient, req.user);
+      }
     } catch (e) {
-      // CRM Client creation is secondary, proceed with smmClient
+      if (req.body.email) {
+        try {
+          const existingCrmClient = await Client.findOne({ email: req.body.email.toLowerCase().trim() });
+          if (existingCrmClient) {
+            if (req.body.phone && !existingCrmClient.phone) {
+              existingCrmClient.phone = req.body.phone;
+              await existingCrmClient.save();
+            }
+            await ensureClientUserAccount(existingCrmClient, req.user);
+          }
+        } catch (innerErr) {
+          // secondary client sync fallback
+        }
+      }
     }
 
     emitLiveEvent('clientCreated', smmClient);
@@ -124,6 +141,14 @@ export const updateSmmClient = async (req, res) => {
       client = await SmmClient.findByIdAndUpdate(req.params.id, req.body, { new: true });
     }
     if (!client) return res.status(404).json({ success: false, message: 'Client not found' });
+
+    if (client.email) {
+      try {
+        await ensureClientUserAccount(client, req.user);
+      } catch (userErr) {
+        // ignore error during update
+      }
+    }
 
     emitLiveEvent('clientUpdated', client);
     emitLiveEvent('smmClientUpdated', client);

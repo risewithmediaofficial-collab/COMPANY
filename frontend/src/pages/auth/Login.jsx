@@ -44,7 +44,7 @@ const Login = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground ml-1" htmlFor="email">
-            Email address
+            Email address or Phone
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -53,13 +53,13 @@ const Login = () => {
             <input
               id="email"
               name="email"
-              type="email"
+              type="text"
               autoComplete="username"
               required
               value={formData.email}
               onChange={handleChange}
               className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-secondary/30 placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-              placeholder="name@company.com"
+              placeholder="name@company.com or phone number"
             />
           </div>
         </div>

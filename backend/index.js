@@ -20,6 +20,7 @@ import { corsOptions, corsOptionsDelegate } from './config/cors.js';
 import { initSocket } from './config/socket.js';
 import { initCronJobs } from './services/cron.service.js';
 import User from './models/user.model.js';
+import { syncAllClientUsers } from './controllers/client.controller.js';
 
 // Route imports
 import authRoutes from './routes/auth.routes.js';
@@ -105,6 +106,7 @@ const ensureDefaultAdmin = async () => {
 };
 
 await ensureDefaultAdmin();
+await syncAllClientUsers();
 
 const app = express();
 const httpServer = http.createServer(app);

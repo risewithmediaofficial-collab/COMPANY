@@ -35,11 +35,16 @@ export const useCreateClient = () => {
   return useMutation({
     mutationFn: async (data) => {
       const response = await api.post('/clients', data);
-      return response.data.client;
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
-      toast.success('Client created successfully!');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      if (data?.portalCredentials) {
+        toast.success(`Client created! Login: ${data.portalCredentials.email} | Pass: ${data.portalCredentials.password}`);
+      } else {
+        toast.success('Client created successfully!');
+      }
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to create client');
@@ -57,7 +62,8 @@ export const useUpdateClient = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['client', data._id] });
+      queryClient.invalidateQueries({ queryKey: ['client', data?._id] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Client updated successfully!');
     },
     onError: (error) => {
@@ -75,6 +81,7 @@ export const useDeleteClient = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Client deleted successfully!');
     },
     onError: (error) => {

@@ -93,8 +93,52 @@ export const login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide email and password' });
     }
 
-    const user = await User.findOne({ email }).select('+password +refreshToken');
-    if (!user || !(await user.matchPassword(password))) {
+    const cleanIdentifier = String(email).trim().toLowerCase();
+    const rawIdentifier = String(email).trim();
+    const cleanPassword = String(password).trim();
+
+    // Find user by email or phone
+    const user = await User.findOne({
+      $or: [
+        { email: cleanIdentifier },
+        { phone: rawIdentifier },
+        { phone: cleanIdentifier },
+      ],
+    }).select('+password +refreshToken');
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // Try standard bcrypt match first
+    let isMatch = await user.matchPassword(cleanPassword);
+
+    // Fallback for client accounts: verify against phone number
+    if (!isMatch && (user.role === 'client' || user.clientId)) {
+      const enteredDigits = cleanPassword.replace(/\D/g, '');
+      const userPhoneDigits = (user.phone || '').replace(/\D/g, '');
+      let clientPhoneDigits = '';
+
+      if (user.clientId) {
+        const clientObj = await Client.findById(user.clientId).select('phone');
+        if (clientObj?.phone) {
+          clientPhoneDigits = clientObj.phone.replace(/\D/g, '');
+        }
+      }
+
+      if (
+        (cleanPassword === user.phone) ||
+        (enteredDigits.length >= 6 && enteredDigits === userPhoneDigits) ||
+        (enteredDigits.length >= 6 && enteredDigits === clientPhoneDigits)
+      ) {
+        isMatch = true;
+        // Re-hash and persist clean password
+        user.password = cleanPassword;
+        await user.save();
+      }
+    }
+
+    if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 

@@ -28,6 +28,7 @@ router.get('/', authorize('superAdmin', 'admin', 'manager', 'employee'), async (
 
     const users = await User.find(filter)
       .select(selectProjection)
+      .populate('clientId', 'name company email phone')
       .sort({ createdAt: -1 });
 
     res.json({ success: true, users, count: users.length });

@@ -183,18 +183,16 @@ const Clients = () => {
 
   // Smooth side auto-scroll while dragging clients
   useAutoScrollOnDrag(clientsBoardRef, Boolean(draggingClientId));
-  const { startDate, endDate, isDateInRange } = useDateFilter();
-
+  // Note: We intentionally show all clients on the board by default (consistent with Projects board),
+  // instead of arbitrarily hiding them when a global date range is selected.
   const filters = {
     search: searchTerm,
     ...(statusFilter ? { status: statusFilter } : {}),
     ...(serviceFilter ? { service: serviceFilter } : {}),
-    ...(startDate ? { createdFrom: startDate } : {}),
-    ...(endDate ? { createdTo: endDate } : {}),
   };
 
   const { data: rawClients = [], isLoading } = useClients(filters);
-  const clients = rawClients.filter((c) => isDateInRange([c.createdAt, c.updatedAt, c.onboardingDate]));
+  const clients = rawClients;
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;

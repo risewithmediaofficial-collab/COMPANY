@@ -49,6 +49,7 @@ import DatabaseView from '../../components/ui/DatabaseView';
 const roles = [
   { value: 'superAdmin', label: 'Super Admin' },
   { value: 'admin', label: 'Admin' },
+  { value: 'organizationOwner', label: 'Organization Owner' },
   { value: 'manager', label: 'Manager' },
   { value: 'employee', label: 'Employee' },
   { value: 'client', label: 'Client' },
@@ -86,7 +87,9 @@ const Users = () => {
       const role = (u.role || '').toLowerCase();
       const dept = (u.department || '').toLowerCase();
 
-      const matchesSearch = !term || name.includes(term) || email.includes(term) || role.includes(term) || dept.includes(term);
+      const phone = (u.phone || '').toLowerCase();
+      const company = (u.clientId?.company || u.clientId?.name || '').toLowerCase();
+      const matchesSearch = !term || name.includes(term) || email.includes(term) || phone.includes(term) || company.includes(term) || role.includes(term) || dept.includes(term);
       const matchesRole = roleFilter === 'all' || u.role === roleFilter;
 
       return matchesSearch && matchesRole;
@@ -154,15 +157,25 @@ const Users = () => {
   const tableColumns = [
     {
       key: 'name',
-      label: 'Team Member',
+      label: 'Team Member / Client',
       render: (u) => (
         <div className="flex items-center gap-2.5">
           <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
             {u.name?.charAt(0) || 'U'}
           </div>
           <div>
-            <p className="font-bold text-foreground">{u.name}</p>
-            <p className="text-[11px] text-muted-foreground">{u.email}</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className="font-bold text-foreground">{u.name}</p>
+              {u.clientId?.company && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                  {u.clientId.company}
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <span>{u.email}</span>
+              {u.phone && <span className="text-[10px] opacity-80">· 📞 {u.phone}</span>}
+            </p>
           </div>
         </div>
       ),
