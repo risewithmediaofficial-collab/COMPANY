@@ -765,7 +765,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   />
                   <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                     <span className="text-[10px] text-slate-400 font-medium">Quick suggestions:</span>
-                    {['VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
+                    {['RJ', 'VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
                       <button
                         key={sug}
                         type="button"
@@ -803,6 +803,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     className="h-9.5 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 shadow-2xs cursor-pointer"
                   >
                     <option value="production_shoot">Production / Video Shoot</option>
+                    <option value="rj">RJ (Radio Jockey / Voice Talent)</option>
+                    <option value="vj">VJ (Video Jockey / Presenter / Anchor)</option>
                     <option value="travel">Client / Shoot Travel</option>
                     <option value="freelancers">Freelancers</option>
                     <option value="software_subscriptions">Software & Subscriptions</option>
@@ -909,6 +911,20 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   </div>
                 </div>
               )}
+
+              {/* Notes & Remarks text field */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Internal Remarks & Notes
+                </label>
+                <textarea
+                  rows="3"
+                  value={expForm.notes}
+                  onChange={(e) => setExpForm({ ...expForm, notes: e.target.value })}
+                  placeholder="Optional notes, invoice / receipt reference, vendor payment arrangements..."
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-900 shadow-2xs resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                />
+              </div>
             </form>
           )}
 

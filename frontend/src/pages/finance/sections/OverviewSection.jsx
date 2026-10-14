@@ -32,6 +32,14 @@ import { formatINR, formatDateIST } from '../../../utils/financeFormatters';
 
 const PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b', '#06b6d4', '#f97316'];
 
+const formatCategory = (cat) => {
+  if (!cat) return '';
+  const lower = String(cat).toLowerCase().trim();
+  if (lower === 'rj') return 'RJ';
+  if (lower === 'vj') return 'VJ';
+  return cat.replace(/_/g, ' ');
+};
+
 export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSection }) {
   const kpis = overviewData?.kpis || {};
   const monthlySeries = overviewData?.monthlySeries || [];
@@ -268,7 +276,9 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
               <div key={cat.category} className="flex items-center justify-between text-slate-600">
                 <span className="flex items-center gap-2 truncate">
                   <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="capitalize truncate">{cat.category.replace(/_/g, ' ')}</span>
+                  <span className={`truncate ${['rj', 'vj'].includes(cat.category?.toLowerCase()) ? 'uppercase font-bold' : 'capitalize'}`}>
+                    {formatCategory(cat.category)}
+                  </span>
                 </span>
                 <span className="font-semibold text-slate-800">{formatINR(cat.amount, false)}</span>
               </div>
@@ -371,7 +381,7 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
                   <td className="p-3 text-slate-600">{formatDateIST(exp.date)}</td>
                   <td className="p-3 font-semibold text-slate-900 flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full bg-rose-500" />
-                    Expense ({exp.category})
+                    Expense ({formatCategory(exp.category)})
                   </td>
                   <td className="p-3 text-slate-700">{exp.vendor || exp.title}</td>
                   <td className="p-3 font-bold text-rose-600">-{formatINR(exp.amount)}</td>

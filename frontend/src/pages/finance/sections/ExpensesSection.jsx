@@ -79,6 +79,16 @@ export const calculateExpenseFinancials = (e) => {
   return { total, paid, balance, status };
 };
 
+export const formatExpenseCategory = (cat) => {
+  if (!cat) return '';
+  const lower = String(cat).toLowerCase().trim();
+  if (lower === 'rj') return 'RJ';
+  if (lower === 'vj') return 'VJ';
+  if (lower === 'production_shoot') return 'Production / Shoot';
+  if (lower === 'software_subscriptions') return 'Software / Subscriptions';
+  return cat.replace(/_/g, ' ');
+};
+
 export default function ExpensesSection({ onQuickAdd }) {
   const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions' | 'payment_reminders'
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -682,7 +692,7 @@ export default function ExpensesSection({ onQuickAdd }) {
         date: formatDateIST(e.date || e.createdAt),
         title: e.title,
         vendor: e.vendor || 'Unassigned',
-        category: (e.category || '').replace(/_/g, ' '),
+        category: formatExpenseCategory(e.category),
         costType: e.costType || 'agency_overhead',
         amount: fin.total,
         paidAmount: fin.paid,
@@ -754,7 +764,7 @@ export default function ExpensesSection({ onQuickAdd }) {
         <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; white-space: nowrap;">${formatDateIST(e.date || e.createdAt)}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 600;">${e.title || '-'}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${e.vendor || 'Unassigned'}</td>
-        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-transform: capitalize;">${(e.category || '').replace(/_/g, ' ')}</td>
+        <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${formatExpenseCategory(e.category)}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-align: right; font-weight: 700;">${formatINR(fin.total)}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-align: right; color: #059669; font-weight: 600;">${formatINR(fin.paid)}</td>
         <td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-align: right; color: #d97706; font-weight: 600;">${formatINR(fin.balance)}</td>
@@ -967,6 +977,8 @@ export default function ExpensesSection({ onQuickAdd }) {
               >
                 <option value="all">All Categories</option>
                 <option value="production_shoot">Production / Shoot</option>
+                <option value="rj">RJ (Radio Jockey)</option>
+                <option value="vj">VJ (Video Jockey)</option>
                 <option value="travel">Travel</option>
                 <option value="freelancers">Freelancers</option>
                 <option value="software_subscriptions">Software / Subscriptions</option>
@@ -1221,8 +1233,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                           )}
                         </td>
                         <td className="p-3">
-                          <span className="capitalize px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
-                            {exp.category?.replace(/_/g, ' ')}
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                              ['rj', 'vj'].includes(exp.category?.toLowerCase())
+                                ? 'bg-indigo-50 text-indigo-700 font-bold uppercase'
+                                : 'bg-slate-100 text-slate-700 capitalize'
+                            }`}
+                          >
+                            {formatExpenseCategory(exp.category)}
                           </span>
                         </td>
                         <td className="p-3">
@@ -1886,7 +1904,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-1.5">
-                        {['VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
+                        {['RJ', 'VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
                           <button
                             key={sug}
                             type="button"
@@ -1927,6 +1945,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                           className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs cursor-pointer"
                         >
                           <option value="production_shoot">🎬 Production / Shoot</option>
+                          <option value="rj">🎙️ RJ (Radio Jockey / Voice Talent)</option>
+                          <option value="vj">📺 VJ (Video Jockey / Presenter / Anchor)</option>
                           <option value="travel">✈️ Travel Allowance</option>
                           <option value="freelancers">🤝 Freelancers & Crew</option>
                           <option value="software_subscriptions">💻 Software & Subscriptions</option>
@@ -2194,8 +2214,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Category / Type</span>
-                    <div className="text-xs font-bold text-slate-800 mt-1 capitalize truncate">
-                      {currentSelectedExpense.category?.replace(/_/g, ' ')}
+                    <div className="text-xs font-bold text-slate-800 mt-1 truncate">
+                      {formatExpenseCategory(currentSelectedExpense.category)}
                     </div>
                     <div className="text-[10px] text-slate-400 mt-0.5 truncate">
                       {currentSelectedExpense.costType === 'client_project' ? 'Client Direct' : 'Overhead'}
@@ -2581,7 +2601,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </div>
                       <div className="text-[10px] text-slate-500">1-click assign from common roles:</div>
                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        {['VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
+                        {['RJ', 'VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
                           <button
                             key={sug}
                             type="button"
@@ -3226,8 +3246,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                                   </div>
                                 </td>
                                 <td className="p-2.5">
-                                  <span className="capitalize px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
-                                    {item.category?.replace(/_/g, ' ')}
+                                  <span
+                                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                      ['rj', 'vj'].includes(item.category?.toLowerCase())
+                                        ? 'bg-indigo-50 text-indigo-700 font-bold uppercase'
+                                        : 'bg-slate-100 text-slate-700 capitalize'
+                                    }`}
+                                  >
+                                    {formatExpenseCategory(item.category)}
                                   </span>
                                 </td>
                                 <td className="p-2.5">
