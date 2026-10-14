@@ -20,6 +20,7 @@ import { corsOptions, corsOptionsDelegate } from './config/cors.js';
 import { initSocket } from './config/socket.js';
 import { initCronJobs } from './services/cron.service.js';
 import User from './models/user.model.js';
+import mongoose from 'mongoose';
 import { syncAllClientUsers } from './controllers/client.controller.js';
 
 // Route imports
@@ -105,8 +106,14 @@ const ensureDefaultAdmin = async () => {
   console.log(`[Dev Bootstrap] Default super admin created: ${email}`);
 };
 
-await ensureDefaultAdmin();
-await syncAllClientUsers();
+try {
+  await ensureDefaultAdmin();
+} catch (err) {
+  console.error('[Dev Bootstrap Error]', err.message);
+}
+
+// Background sync client portal user accounts without delaying HTTP server readiness
+syncAllClientUsers().catch((err) => console.error('[Sync Error]', err.message));
 
 const app = express();
 const httpServer = http.createServer(app);

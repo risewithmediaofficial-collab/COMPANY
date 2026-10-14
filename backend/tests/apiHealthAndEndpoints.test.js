@@ -70,3 +70,15 @@ test('API Routing: Non-existent routes return 404', async () => {
   }
 });
 
+test('Module Integrity: All controllers and routes load without syntax or declaration errors', async () => {
+  const smmTrackerController = await import('../controllers/smm/smmMonthlyTracker.controller.js');
+  assert.ok(smmTrackerController.getMonthlyTrackers);
+  assert.ok(smmTrackerController.upsertTracker);
+  assert.ok(smmTrackerController.updateDayCell);
+
+  const clientController = await import('../controllers/client.controller.js');
+  assert.ok(clientController.syncAllClientUsers);
+  assert.ok(clientController.ensureClientUserAccount);
+});
+
+

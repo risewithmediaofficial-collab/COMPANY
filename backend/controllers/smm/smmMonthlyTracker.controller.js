@@ -338,8 +338,6 @@ export const getMonthlyTrackers = async (req, res) => {
       }
     }
 
-    const daysInMonth = new Date(year, month, 0).getDate();
-
     res.json({ success: true, data: { rows, month, year, daysInMonth } });
   } catch (err) {
     console.error('getMonthlyTrackers error:', err);
