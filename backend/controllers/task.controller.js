@@ -263,7 +263,14 @@ const normalizeTaskPayload = (body = {}) => {
   return payload;
 };
 
-const getClientRecordForUser = async (userId) => Client.findOne({ userId }).select('_id assignedManager assignedTeam');
+const getClientRecordForUser = async (userOrId) => {
+  const userId = userOrId?._id || userOrId;
+  let client = await Client.findOne({ userId }).select('_id assignedManager assignedTeam');
+  if (!client && userOrId?.clientId) {
+    client = await Client.findById(userOrId.clientId).select('_id assignedManager assignedTeam');
+  }
+  return client;
+};
 
 const getManagedScope = async (userId) => {
   const [projects, clients] = await Promise.all([

@@ -121,6 +121,8 @@ const getBreadcrumbs = (pathname) => {
     '/settings': [{ label: 'System', path: '/settings' }, { label: 'Settings', path: '/settings' }],
 
     '/client/proposals': [{ label: 'Client Portal', path: '/' }, { label: 'Proposals', path: '/client/proposals' }],
+    '/portal/invoices': [{ label: 'Client Portal', path: '/' }, { label: 'Invoices', path: '/portal/invoices' }],
+    '/portal/tasks': [{ label: 'Client Portal', path: '/' }, { label: 'Tasks', path: '/portal/tasks' }],
     '/portal/reports': [{ label: 'Client Portal', path: '/' }, { label: 'Reports', path: '/portal/reports' }],
     '/portal/downloads': [{ label: 'Client Portal', path: '/' }, { label: 'Downloads', path: '/portal/downloads' }],
     '/portal/assets': [{ label: 'Client Portal', path: '/' }, { label: 'Brand Assets', path: '/portal/assets' }],

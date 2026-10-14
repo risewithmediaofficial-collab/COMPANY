@@ -56,6 +56,8 @@ const PortalDownloads = lazy(() => import('./pages/portal/sections/PortalDownloa
 const BrandAssets = lazy(() => import('./pages/portal/sections/BrandAssets'));
 const PortalSupport = lazy(() => import('./pages/portal/sections/PortalSupport'));
 const PortalGuidelines = lazy(() => import('./pages/portal/sections/PortalGuidelines'));
+const PortalInvoices = lazy(() => import('./pages/portal/sections/PortalInvoices'));
+const PortalTasks = lazy(() => import('./pages/portal/sections/PortalTasks'));
 
 // Social Media Manager Module Pages
 const SMMDashboard = lazy(() => import('./pages/smm/SMMDashboard'));
@@ -245,12 +247,12 @@ const App = () => {
 
           {/* Clients */}
           <Route path="/clients" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee', 'client']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <Clients />
             </ProtectedRoute>
           } />
           <Route path="/clients/:id" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee', 'client']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager', 'employee']}>
               <ClientDetails />
             </ProtectedRoute>
           } />
@@ -334,12 +336,12 @@ const App = () => {
 
           {/* Finance OS */}
           <Route path="/finance" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee', 'client']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee']}>
               <Finance />
             </ProtectedRoute>
           } />
           <Route path="/finance/:section" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee', 'client']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'employee']}>
               <Finance />
             </ProtectedRoute>
           } />
@@ -527,6 +529,16 @@ const App = () => {
           } />
 
           {/* Client Portal Sections */}
+          <Route path="/portal/invoices" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
+              <PortalInvoices dark={false} />
+            </ProtectedRoute>
+          } />
+          <Route path="/portal/tasks" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
+              <PortalTasks />
+            </ProtectedRoute>
+          } />
           <Route path="/portal/reports" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
               <PortalReports dark={false} />

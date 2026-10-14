@@ -5,11 +5,13 @@ import { motion } from 'framer-motion';
 import {
   FileCheck, BarChart3, CheckCircle2, Clock, FolderKanban,
   Receipt, TrendingUp, TrendingDown, AlertCircle, ArrowUpRight,
-  Layers, Star, Activity, Calendar, FileText, IndianRupee
+  Layers, Star, Activity, Calendar, FileText, IndianRupee,
+  Film, Sparkles, CheckSquare, ArrowRight, ExternalLink,
+  Megaphone, CreditCard, Download, ShieldCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
-import { exportProposalToPDF } from '../../../utils/pdfExport';
+import { exportProposalToPDF, exportInvoiceToPDF } from '../../../utils/pdfExport';
 import { useEodReports } from '../../../hooks/useEodReports';
 import { EODDetailModal } from '../../../components/modals/EODDetailModal';
 import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
@@ -17,21 +19,21 @@ import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
 const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
   <motion.div
     whileHover={{ y: -3 }}
-    className="rounded-2xl p-4 flex flex-col gap-3"
+    className="rounded-2xl p-4 flex flex-col gap-3 transition-all"
     style={{
       background: dark ? 'rgba(255,255,255,0.04)' : '#fff',
       border: dark ? `1px solid ${color}25` : '1px solid rgba(0,0,0,0.07)',
-      boxShadow: dark ? 'none' : '0 1px 8px rgba(0,0,0,0.06)',
+      boxShadow: dark ? 'none' : '0 1px 8px rgba(0,0,0,0.04)',
     }}
   >
     <div className="flex items-center justify-between">
       <span className="text-xs font-medium" style={{ color: dark ? '#94a3b8' : '#64748b' }}>{label}</span>
-      <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
-        <Icon size={15} style={{ color }} />
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18` }}>
+        <Icon size={16} style={{ color }} />
       </div>
     </div>
-    <p className="text-2xl font-black" style={{ color: dark ? '#fff' : '#0f172a' }}>{value}</p>
-    {sub && <p className="text-[11px]" style={{ color: dark ? '#64748b' : '#94a3b8' }}>{sub}</p>}
+    <p className="text-2xl font-black tracking-tight" style={{ color: dark ? '#fff' : '#0f172a' }}>{value}</p>
+    {sub && <p className="text-[11px] truncate" style={{ color: dark ? '#64748b' : '#94a3b8' }}>{sub}</p>}
   </motion.div>
 );
 
@@ -87,26 +89,40 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
   if (loading) return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto animate-pulse">
-      <div className="h-32 w-full rounded-2xl bg-muted/60 mb-6" />
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {[...Array(6)].map((_, i) => (
+      <div className="h-36 w-full rounded-2xl bg-muted/60 mb-6" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[...Array(4)].map((_, i) => (
           <CardSkeleton key={i} dark={dark} />
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-        <div className="lg:col-span-2">
-          <TableSkeleton columns={3} rows={5} dark={dark} />
-        </div>
-        <div className="space-y-4">
-          <div className="h-44 w-full bg-muted/60 rounded-2xl" />
-          <div className="h-44 w-full bg-muted/60 rounded-2xl" />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+        <TableSkeleton columns={3} rows={4} dark={dark} />
+        <TableSkeleton columns={3} rows={4} dark={dark} />
       </div>
     </div>
   );
 
   const stats = data?.stats || {};
   const client = data?.client || {};
+  const projectMetrics = data?.projectMetrics || { total: 0, active: 0, completed: 0, projects: [] };
+  const taskMetrics = data?.taskMetrics || { total: 0, completed: 0, inProgress: 0, review: 0, pending: 0, completionRate: 0, tasks: [] };
+  const smmMetrics = data?.smmMetrics || {
+    month: 'This Month',
+    year: new Date().getFullYear(),
+    reels: { planned: 0, posted: 0, pending: 0 },
+    posts: { planned: 0, posted: 0, pending: 0 },
+    stories: { planned: 0, posted: 0, pending: 0 },
+    total: { planned: 0, posted: 0, pending: 0, completionRate: 0 },
+  };
+  const invoiceMetrics = data?.invoiceMetrics || {
+    totalQuoted: 0,
+    totalPaid: 0,
+    balanceDue: 0,
+    openCount: 0,
+    overdueCount: 0,
+    recentInvoices: [],
+  };
+  const adBudget = data?.adBudget;
 
   const handleProposalDownload = (project) => {
     try {
@@ -127,233 +143,621 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
   const onboardingPct = Math.round((onboardingSteps.filter(s => s.done).length / onboardingSteps.length) * 100);
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Welcome Banner */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl p-6"
-        style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)' }}>
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, #fff 0%, transparent 60%)' }} />
-        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* ── Welcome Banner ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-3xl p-6 sm:p-8"
+        style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%)' }}
+      >
+        <div
+          className="absolute inset-0 opacity-15"
+          style={{ backgroundImage: 'radial-gradient(circle at 85% 15%, #fff 0%, transparent 55%)' }}
+        />
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-indigo-200 text-sm font-medium mb-1">Welcome back 👋</p>
-            <h2 className="text-white text-2xl font-black mb-1">{client.name || user?.name || 'Client'}</h2>
-            <p className="text-indigo-200 text-sm">{client.company || ''}</p>
-            <Link
-              to="/calendar"
-              className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-black text-indigo-700 shadow-lg shadow-indigo-950/20 transition-all hover:bg-indigo-50"
-            >
-              <Calendar size={16} />
-              Content Calendar
-            </Link>
-          </div>
-          <div className="text-left sm:text-right">
-            <div className="text-white/80 text-xs mb-1">Onboarding Progress</div>
-            <div className="text-white text-3xl font-black">{onboardingPct}%</div>
-            <div className="w-32 h-1.5 rounded-full bg-white/20 mt-1">
-              <div className="h-full rounded-full bg-white transition-all" style={{ width: `${onboardingPct}%` }} />
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-indigo-200 text-xs font-bold tracking-wider uppercase bg-white/10 px-2.5 py-0.5 rounded-full">
+                Client Portal
+              </span>
+              {client.company && (
+                <span className="text-white/80 text-xs font-semibold">
+                  • {client.company}
+                </span>
+              )}
+            </div>
+            <h1 className="text-white text-2xl sm:text-3xl font-black mb-1 tracking-tight">
+              Welcome back, {client.name || user?.name || 'Client'}
+            </h1>
+            <p className="text-indigo-100/90 text-xs sm:text-sm max-w-xl">
+              Track project deliverables, monitor SMM posts, review tasks, manage ad campaigns, and view invoices in one secure place.
+            </p>
+
+            {/* Quick Action Navigation Buttons */}
+            <div className="mt-5 flex flex-wrap items-center gap-2.5">
+              <Link
+                to="/projects"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-xs font-black text-indigo-700 shadow-md shadow-indigo-950/20 transition-all hover:bg-indigo-50"
+              >
+                <FolderKanban size={15} />
+                My Projects
+              </Link>
+              <Link
+                to="/tasks"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+              >
+                <CheckSquare size={15} />
+                My Tasks & Status
+              </Link>
+              <Link
+                to="/calendar"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+              >
+                <Calendar size={15} />
+                Content Calendar
+              </Link>
+              <Link
+                to="/portal/invoices"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+              >
+                <Receipt size={15} />
+                Invoices & Billing
+              </Link>
             </div>
           </div>
+
+          <div className="text-left sm:text-right shrink-0 bg-white/10 sm:bg-transparent p-4 sm:p-0 rounded-2xl border border-white/10 sm:border-0">
+            <div className="text-white/80 text-xs font-semibold mb-1">Onboarding Progress</div>
+            <div className="text-white text-3xl font-black">{onboardingPct}%</div>
+            <div className="w-36 h-2 rounded-full bg-white/20 mt-1.5 overflow-hidden">
+              <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${onboardingPct}%` }} />
+            </div>
+            <span className="text-indigo-200 text-[10px] mt-1 block">
+              {onboardingSteps.filter(s => s.done).length} of {onboardingSteps.length} stages ready
+            </span>
+          </div>
         </div>
-        <p className="relative text-indigo-100 text-xs mt-4 max-w-xl">
-          Welcome to your client portal. Here you can review content, approve posts, track campaign performance, access reports, and communicate with your team — all in one place.
-        </p>
       </motion.div>
 
-      {/* ── Client Ad Budget Overview ── */}
-      {data?.adBudget && (
-        <div
-          className="rounded-2xl p-5 space-y-3"
-          style={{ background: card, border }}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border/40">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                <IndianRupee size={17} />
+      {/* ── SECTION 1: SMM DELIVERABLES THIS MONTH (Reels, Posts, Stories Planned vs Posted) ── */}
+      <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+                <Sparkles size={17} />
               </div>
-              <div>
-                <h3 className={`text-sm font-bold ${txt}`}>Ad Budget & Spend Overview</h3>
-                <p className={`text-[11px] ${sub}`}>Live campaign budget status configured by your agency</p>
-              </div>
+              <h2 className={`text-base font-bold ${txt}`}>
+                SMM Deliverables — {smmMetrics.month} {smmMetrics.year}
+              </h2>
             </div>
-            {data.adBudget.notes && (
-              <div className="text-[11px] px-3 py-1 rounded-xl bg-primary/10 text-primary font-medium flex items-center gap-1.5 max-w-md truncate">
-                <FileText size={13} className="shrink-0" />
-                <span className="truncate">Note: {data.adBudget.notes}</span>
-              </div>
-            )}
+            <p className={`text-xs ${sub} mt-0.5`}>
+              Monthly quota tracking for Reels, Posts, and Stories configured for your brand
+            </p>
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
-            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Monthly Budget</span>
-              <p className={`text-lg font-black ${txt}`}>{fmt(data.adBudget.monthlyBudget)}</p>
-            </div>
-            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Daily Budget</span>
-              <p className={`text-lg font-black ${txt}`}>{fmt(data.adBudget.dailyBudget)}</p>
-            </div>
-            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Amount Added</span>
-              <p className="text-lg font-black text-amber-500">{fmt(data.adBudget.amountAdded)}</p>
-            </div>
-            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${sub}`}>Available Balance</span>
-              <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">{fmt(data.adBudget.balance)}</p>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              {smmMetrics.total.posted} of {smmMetrics.total.planned} Completed ({smmMetrics.total.completionRate}%)
+            </span>
           </div>
         </div>
-      )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <KPICard label="Pending Review" value={stats.pendingApproval ?? 0} icon={Clock} color="#f59e0b" dark={dark}
-          sub="Awaiting your approval" />
-        <KPICard label="Total Content" value={stats.totalContent ?? 0} icon={Layers} color="#6366f1" dark={dark}
-          sub="All content items" />
-        <KPICard label="Approved" value={stats.approvedContent ?? 0} icon={CheckCircle2} color="#10b981" dark={dark}
-          sub="Client approved" />
-        <KPICard label="Completed" value={stats.doneContent ?? 0} icon={Star} color="#8b5cf6" dark={dark}
-          sub="Fully done" />
-        <KPICard label="Active Projects" value={stats.activeProjects ?? 0} icon={FolderKanban} color="#3b82f6" dark={dark}
-          sub="In progress" />
-        <KPICard label="Open Invoices" value={stats.openInvoices ?? 0} icon={Receipt} color="#ec4899" dark={dark}
-          sub="Awaiting payment" />
-      </div>
-
-      {/* Body Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Left Column: Recent Activity & EOD Reports */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-2xl p-5" style={{ background: card, border }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Activity size={16} className="text-indigo-400" />
-              <h3 className={`text-sm font-bold ${txt}`}>Recent Content Activity</h3>
-            </div>
-            {(data?.recentContent || []).length === 0 ? (
-              <div className="text-center py-8">
-                <AlertCircle size={32} className="mx-auto text-slate-500 mb-2" />
-                <p className={`text-xs ${sub}`}>No recent content</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {(data?.recentContent || []).slice(0, 6).map(item => (
-                  <div key={item._id} className="flex items-center gap-3 p-2.5 rounded-xl"
-                    style={{ background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc' }}>
-                    <StatusDot status={item.status} />
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-semibold truncate ${txt}`}>{item.taskName}</p>
-                      <p className={`text-[10px] ${sub}`}>{item.platform} · {item.contentType}</p>
-                    </div>
-                    <StatusBadge status={item.status} dark={dark} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Daily Team EOD Reports Widget */}
-          <div className="rounded-2xl p-5" style={{ background: card, border }}>
-            <div className="flex items-center justify-between mb-4">
+        {/* Deliverables 3-Column Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* 1. Reels / Short Videos */}
+          <div className="rounded-2xl p-4 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-800/30 flex flex-col justify-between space-y-3">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText size={16} className="text-indigo-400" />
-                <h3 className={`text-sm font-bold ${txt}`}>Daily Team Work & EOD Reports</h3>
+                <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+                  <Film size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-foreground">Reels / Shorts</h3>
+                  <span className="text-[10px] text-muted-foreground font-medium">Video Deliverables</span>
+                </div>
               </div>
-              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${dark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                {eodReports.length} Reports
+              <span className="text-xs font-black text-purple-600 dark:text-purple-400">
+                {smmMetrics.reels.planned > 0
+                  ? `${Math.round((smmMetrics.reels.posted / smmMetrics.reels.planned) * 100)}%`
+                  : '0%'}
               </span>
             </div>
-
-            {eodReports.length === 0 ? (
-              <div className="text-center py-6">
-                <FileText size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
-                <p className={`text-xs ${sub}`}>No daily team EOD reports yet for your projects</p>
+            <div>
+              <div className="flex items-baseline justify-between mb-1">
+                <span className="text-2xl font-black text-purple-700 dark:text-purple-300">
+                  {smmMetrics.reels.posted}
+                  <span className="text-xs font-semibold text-muted-foreground ml-1">/ {smmMetrics.reels.planned} posted</span>
+                </span>
+                <span className="text-[11px] font-semibold text-purple-600/80 dark:text-purple-400">
+                  {smmMetrics.reels.pending} to post
+                </span>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {eodReports.slice(0, 4).map((item) => (
-                  <div
-                    key={item._id}
-                    onClick={() => { setSelectedEod(item); setShowEodDetail(true); }}
-                    className="p-3.5 rounded-xl cursor-pointer transition-all hover:scale-[1.01]"
-                    style={{
-                      background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-                      border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold">
-                          {item.user?.name ? item.user.name.charAt(0).toUpperCase() : 'T'}
-                        </div>
-                        <span className={`text-xs font-bold truncate ${txt}`}>{item.user?.name || 'Team Member'}</span>
-                      </div>
-                      <span className={`text-[10px] ${sub}`}>
-                        {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                    <p className={`text-xs line-clamp-2 ${sub}`}>{item.eodReport?.summary}</p>
-                  </div>
-                ))}
+              <div className="w-full h-2 rounded-full bg-purple-200/60 dark:bg-purple-900/50 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-purple-600 transition-all duration-500"
+                  style={{
+                    width: `${smmMetrics.reels.planned > 0 ? Math.min(100, Math.round((smmMetrics.reels.posted / smmMetrics.reels.planned) * 100)) : 0}%`,
+                  }}
+                />
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right column */}
-        <div className="space-y-4">
-          {/* Onboarding checklist */}
-          <div className="rounded-2xl p-4" style={{ background: card, border }}>
-            <h3 className={`text-sm font-bold mb-3 ${txt}`}>Onboarding Status</h3>
-            <div className="space-y-2">
-              {onboardingSteps.map(s => (
-                <div key={s.label} className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-black`}
-                    style={{ background: s.done ? '#10b981' : dark ? '#1e293b' : '#e2e8f0' }}>
-                    {s.done ? '✓' : ''}
-                  </div>
-                  <span className={`text-xs ${s.done ? (dark ? 'text-white' : 'text-slate-700') : sub}`}>{s.label}</span>
-                </div>
-              ))}
             </div>
           </div>
 
-          {/* Active Projects */}
-          <div className="rounded-2xl p-4" style={{ background: card, border }}>
-            <h3 className={`text-sm font-bold mb-3 ${txt}`}>Active Projects</h3>
-            {(data?.activeProjects || []).length === 0
-              ? <p className={`text-xs ${sub}`}>No active projects</p>
-              : (data?.activeProjects || []).map(p => (
-                <div key={p._id} className="mb-3 last:mb-0">
-                  <div className="mb-1 flex items-start justify-between gap-3">
+          {/* 2. Feed Posts & Carousels */}
+          <div className="rounded-2xl p-4 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-800/30 flex flex-col justify-between space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
+                  <Layers size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-foreground">Feed Posts</h3>
+                  <span className="text-[10px] text-muted-foreground font-medium">Graphics & Carousels</span>
+                </div>
+              </div>
+              <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">
+                {smmMetrics.posts.planned > 0
+                  ? `${Math.round((smmMetrics.posts.posted / smmMetrics.posts.planned) * 100)}%`
+                  : '0%'}
+              </span>
+            </div>
+            <div>
+              <div className="flex items-baseline justify-between mb-1">
+                <span className="text-2xl font-black text-indigo-700 dark:text-indigo-300">
+                  {smmMetrics.posts.posted}
+                  <span className="text-xs font-semibold text-muted-foreground ml-1">/ {smmMetrics.posts.planned} posted</span>
+                </span>
+                <span className="text-[11px] font-semibold text-indigo-600/80 dark:text-indigo-400">
+                  {smmMetrics.posts.pending} to post
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-indigo-200/60 dark:bg-indigo-900/50 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+                  style={{
+                    width: `${smmMetrics.posts.planned > 0 ? Math.min(100, Math.round((smmMetrics.posts.posted / smmMetrics.posts.planned) * 100)) : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Daily Stories */}
+          <div className="rounded-2xl p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/30 flex flex-col justify-between space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-300 flex items-center justify-center">
+                  <Sparkles size={16} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-foreground">Daily Stories</h3>
+                  <span className="text-[10px] text-muted-foreground font-medium">Stories & Updates</span>
+                </div>
+              </div>
+              <span className="text-xs font-black text-amber-600 dark:text-amber-400">
+                {smmMetrics.stories.planned > 0
+                  ? `${Math.round((smmMetrics.stories.posted / smmMetrics.stories.planned) * 100)}%`
+                  : '0%'}
+              </span>
+            </div>
+            <div>
+              <div className="flex items-baseline justify-between mb-1">
+                <span className="text-2xl font-black text-amber-700 dark:text-amber-300">
+                  {smmMetrics.stories.posted}
+                  <span className="text-xs font-semibold text-muted-foreground ml-1">/ {smmMetrics.stories.planned} posted</span>
+                </span>
+                <span className="text-[11px] font-semibold text-amber-600/80 dark:text-amber-400">
+                  {smmMetrics.stories.pending} to post
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-amber-200/60 dark:bg-amber-900/50 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                  style={{
+                    width: `${smmMetrics.stories.planned > 0 ? Math.min(100, Math.round((smmMetrics.stories.posted / smmMetrics.stories.planned) * 100)) : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── SECTION 2: PROJECTS & TASK METRICS (Side-by-side) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Project Metrics & Status Card */}
+        <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+          <div className="flex items-center justify-between pb-3 border-b border-border/50">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                <FolderKanban size={17} />
+              </div>
+              <div>
+                <h3 className={`text-sm font-bold ${txt}`}>My Projects</h3>
+                <p className={`text-[11px] ${sub}`}>Active pipelines and progress</p>
+              </div>
+            </div>
+            <Link
+              to="/projects"
+              className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+            >
+              View Projects <ArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 text-center">
+              <span className={`text-[10px] font-semibold uppercase tracking-wider ${sub}`}>Total</span>
+              <p className={`text-xl font-black ${txt}`}>{projectMetrics.total}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Active</span>
+              <p className="text-xl font-black text-blue-600 dark:text-blue-400">{projectMetrics.active}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Completed</span>
+              <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{projectMetrics.completed}</p>
+            </div>
+          </div>
+
+          {/* Project List */}
+          <div className="space-y-3 pt-1">
+            {(projectMetrics.projects || []).length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground text-xs">
+                No active projects found
+              </div>
+            ) : (
+              (projectMetrics.projects || []).slice(0, 3).map((p) => (
+                <div key={p._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border/50 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className={`text-xs font-medium ${txt}`}>{p.name}</span>
+                      <h4 className={`text-xs font-bold ${txt}`}>{p.name}</h4>
                       {p.dueDate && (
-                        <p className={`mt-1 text-[10px] ${sub}`}>
-                          Due {new Date(p.dueDate).toLocaleDateString('en-IN')}
+                        <p className={`text-[10px] ${sub}`}>
+                          Due: {new Date(p.dueDate).toLocaleDateString('en-IN')}
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-indigo-400">{p.progress || 0}%</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-xs font-extrabold text-blue-600 dark:text-blue-400">
+                        {p.progress || 0}%
+                      </span>
                       {p.proposalText?.trim() && (
                         <button
                           type="button"
                           onClick={() => handleProposalDownload(p)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 px-2 py-1 text-[10px] font-semibold text-indigo-600 transition-colors hover:bg-indigo-50"
+                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 px-2 py-0.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
                         >
-                          <FileCheck size={12} />
-                          Proposal PDF
+                          <FileCheck size={11} /> PDF
                         </button>
                       )}
                     </div>
                   </div>
-                  <div className="h-1.5 rounded-full" style={{ background: dark ? '#1e293b' : '#e2e8f0' }}>
-                    <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${p.progress || 0}%` }} />
+                  <div className="w-full h-1.5 rounded-full bg-secondary overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-blue-600 transition-all duration-500"
+                      style={{ width: `${p.progress || 0}%` }}
+                    />
                   </div>
                 </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Task Metrics & Status Card */}
+        <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+          <div className="flex items-center justify-between pb-3 border-b border-border/50">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <CheckSquare size={17} />
+              </div>
+              <div>
+                <h3 className={`text-sm font-bold ${txt}`}>Tasks & Deliverables</h3>
+                <p className={`text-[11px] ${sub}`}>Task status, progress & approvals</p>
+              </div>
+            </div>
+            <Link
+              to="/tasks"
+              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+            >
+              View Tasks <ArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 text-center">
+              <span className={`text-[10px] font-semibold uppercase tracking-wider ${sub}`}>Total</span>
+              <p className={`text-xl font-black ${txt}`}>{taskMetrics.total}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Done</span>
+              <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{taskMetrics.completed}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Process</span>
+              <p className="text-xl font-black text-blue-600 dark:text-blue-400">{taskMetrics.inProgress}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Review</span>
+              <p className="text-xl font-black text-amber-600 dark:text-amber-400">{taskMetrics.review}</p>
+            </div>
+          </div>
+
+          {/* Task Items List */}
+          <div className="space-y-2 pt-1">
+            {(taskMetrics.tasks || []).length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground text-xs">
+                No deliverables pending review right now.
+              </div>
+            ) : (
+              (taskMetrics.tasks || []).slice(0, 4).map((t) => (
+                <div key={t._id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/30 border border-border/40">
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-xs font-semibold truncate ${txt}`}>{t.taskTitle || t.title}</p>
+                    <p className={`text-[10px] ${sub}`}>
+                      {t.taskCategory === 'non_content' ? 'Development / Operations' : 'Content Deliverable'}
+                      {t.dueDate && ` • Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
+                    {t.status}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SECTION 3: CLIENT INVOICES & FINANCE (Strictly Client Scoped) ── */}
+      <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+              <Receipt size={17} />
+            </div>
+            <div>
+              <h2 className={`text-base font-bold ${txt}`}>Invoices & Billing Summary</h2>
+              <p className={`text-xs ${sub}`}>Individual invoicing details, amounts quoted, payments received, and balance</p>
+            </div>
+          </div>
+          <Link
+            to="/portal/invoices"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-indigo-700 transition-all self-start sm:self-center"
+          >
+            View All Invoices <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        {/* 4 Financial Metrics for the Client */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="p-3.5 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Total Quoted</span>
+            <p className="text-xl font-black text-indigo-700 dark:text-indigo-300">{fmt(invoiceMetrics.totalQuoted)}</p>
+            <span className="text-[10px] text-muted-foreground block">Cumulative invoice value</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Paid</span>
+            <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">{fmt(invoiceMetrics.totalPaid)}</p>
+            <span className="text-[10px] text-muted-foreground block">Verified payments received</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Balance Due</span>
+            <p className="text-xl font-black text-amber-700 dark:text-amber-300">{fmt(invoiceMetrics.balanceDue)}</p>
+            <span className="text-[10px] text-muted-foreground block">Pending balance to clear</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/50 dark:border-rose-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Open Invoices</span>
+            <p className="text-xl font-black text-rose-700 dark:text-rose-300">{invoiceMetrics.openCount}</p>
+            <span className="text-[10px] text-muted-foreground block">Awaiting payment</span>
+          </div>
+        </div>
+
+        {/* Recent Invoices Table */}
+        {(invoiceMetrics.recentInvoices || []).length > 0 && (
+          <div className="pt-2">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border/50 text-[11px] font-semibold text-muted-foreground uppercase">
+                    <th className="py-2.5 px-3">Invoice #</th>
+                    <th className="py-2.5 px-3">Project</th>
+                    <th className="py-2.5 px-3">Quoted Amount</th>
+                    <th className="py-2.5 px-3">Paid</th>
+                    <th className="py-2.5 px-3">Balance</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {invoiceMetrics.recentInvoices.map((inv) => (
+                    <tr key={inv._id} className="hover:bg-secondary/30 transition-colors">
+                      <td className="py-3 px-3 font-bold text-foreground">{inv.invoiceNumber}</td>
+                      <td className="py-3 px-3 text-muted-foreground">{inv.project?.name || 'Project'}</td>
+                      <td className="py-3 px-3 font-semibold text-foreground">{fmt(inv.totalAmount || inv.total)}</td>
+                      <td className="py-3 px-3 font-semibold text-emerald-600 dark:text-emerald-400">{fmt(inv.paidAmount)}</td>
+                      <td className="py-3 px-3 font-semibold text-amber-600 dark:text-amber-400">{fmt(inv.balanceAmount || ((inv.totalAmount || inv.total || 0) - (inv.paidAmount || 0)))}</td>
+                      <td className="py-3 px-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          inv.status === 'paid' ? 'bg-emerald-500/15 text-emerald-600' :
+                          inv.status === 'overdue' ? 'bg-rose-500/15 text-rose-600' :
+                          'bg-amber-500/15 text-amber-600'
+                        }`}>
+                          {inv.status ? inv.status.toUpperCase() : 'SENT'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => exportInvoiceToPDF(inv, { save: true })}
+                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary transition-colors"
+                        >
+                          <Download size={12} /> PDF
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 4: CLIENT AD BUDGET & CAMPAIGNS ── */}
+      {adBudget && (
+        <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <Megaphone size={17} />
+              </div>
+              <div>
+                <h2 className={`text-base font-bold ${txt}`}>Ad Budget & Live Campaigns</h2>
+                <p className={`text-xs ${sub}`}>Live campaign spend configured by your media team</p>
+              </div>
+            </div>
+            {adBudget.notes && (
+              <div className="text-[11px] px-3 py-1 rounded-xl bg-primary/10 text-primary font-medium flex items-center gap-1.5 max-w-md truncate">
+                <FileText size={13} className="shrink-0" />
+                <span className="truncate">Note: {adBudget.notes}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Monthly Budget</span>
+              <p className={`text-xl font-black ${txt}`}>{fmt(adBudget.monthlyBudget)}</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Daily Budget</span>
+              <p className={`text-xl font-black ${txt}`}>{fmt(adBudget.dailyBudget)}</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Amount Added</span>
+              <p className="text-xl font-black text-amber-500">{fmt(adBudget.amountAdded)}</p>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Available Balance</span>
+              <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{fmt(adBudget.balance)}</p>
+            </div>
+          </div>
+
+          {/* Active Campaigns List */}
+          {(adBudget.campaigns || []).length > 0 && (
+            <div className="pt-2">
+              <h3 className={`text-xs font-bold mb-2 ${txt}`}>Configured Campaigns</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {adBudget.campaigns.map((c) => (
+                  <div key={c._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border/50 flex flex-col justify-between space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+                          {c.platform || 'Meta Ads'}
+                        </span>
+                        <h4 className={`text-xs font-bold mt-1.5 ${txt}`}>{c.name}</h4>
+                        {c.objective && <p className={`text-[10px] ${sub}`}>{c.objective}</p>}
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        c.status === 'Active' ? 'bg-emerald-500/15 text-emerald-600' : 'bg-secondary text-muted-foreground'
+                      }`}>
+                        {c.status || 'Active'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/30 text-[11px]">
+                      <div>
+                        <span className={`text-[9px] font-semibold uppercase ${sub}`}>Added</span>
+                        <p className="font-bold text-foreground">{fmt(c.amountAdded)}</p>
+                      </div>
+                      <div>
+                        <span className={`text-[9px] font-semibold uppercase ${sub}`}>Spent</span>
+                        <p className="font-bold text-rose-500">{fmt(c.amountSpent)}</p>
+                      </div>
+                      <div>
+                        <span className={`text-[9px] font-semibold uppercase ${sub}`}>Balance</span>
+                        <p className="font-bold text-emerald-600">{fmt(c.balance)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SECTION 5: DAILY TEAM WORK & EOD REPORTS ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+          <div className="flex items-center justify-between pb-3 border-b border-border/50">
+            <div className="flex items-center gap-2">
+              <FileText size={17} className="text-indigo-400" />
+              <h3 className={`text-sm font-bold ${txt}`}>Daily Team Work & EOD Reports</h3>
+            </div>
+            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${dark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+              {eodReports.length} Reports
+            </span>
+          </div>
+
+          {eodReports.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
+              <p className={`text-xs ${sub}`}>No daily team EOD reports yet for your projects</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {eodReports.slice(0, 4).map((item) => (
+                <div
+                  key={item._id}
+                  onClick={() => { setSelectedEod(item); setShowEodDetail(true); }}
+                  className="p-3.5 rounded-xl cursor-pointer transition-all hover:scale-[1.01]"
+                  style={{
+                    background: dark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                    border: dark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold">
+                        {item.user?.name ? item.user.name.charAt(0).toUpperCase() : 'T'}
+                      </div>
+                      <span className={`text-xs font-bold truncate ${txt}`}>{item.user?.name || 'Team Member'}</span>
+                    </div>
+                    <span className={`text-[10px] ${sub}`}>
+                      {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                  <p className={`text-xs line-clamp-2 ${sub}`}>{item.eodReport?.summary}</p>
+                </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Onboarding Checklist Card */}
+        <div className="rounded-3xl p-5 sm:p-6 space-y-3" style={{ background: card, border }}>
+          <h3 className={`text-sm font-bold pb-2 border-b border-border/50 ${txt}`}>Onboarding Status</h3>
+          <div className="space-y-2.5 pt-1">
+            {onboardingSteps.map((s) => (
+              <div key={s.label} className="flex items-center gap-2.5">
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black shrink-0"
+                  style={{ background: s.done ? '#10b981' : dark ? '#1e293b' : '#e2e8f0' }}
+                >
+                  {s.done ? '✓' : ''}
+                </div>
+                <span className={`text-xs font-medium ${s.done ? (dark ? 'text-white' : 'text-slate-700') : sub}`}>
+                  {s.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -385,8 +789,10 @@ export function StatusBadge({ status, dark }) {
   };
   const s = map[status] || { bg: '#64748b20', color: '#94a3b8', label: status };
   return (
-    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-      style={{ background: s.bg, color: s.color }}>
+    <span
+      className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+      style={{ background: s.bg, color: s.color }}
+    >
       {s.label}
     </span>
   );

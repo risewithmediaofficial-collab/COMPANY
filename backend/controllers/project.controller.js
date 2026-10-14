@@ -234,7 +234,10 @@ const assertProjectAccess = async (req, project) => {
   if (req.user.role === 'employee' && project.team?.some((member) => member.toString() === req.user._id.toString())) return { allowed: true };
   if (req.user.role === 'client') {
     const client = await Client.findOne({ userId: req.user._id }).select('_id');
-    if (client && project.client?.toString() === client._id.toString()) return { allowed: true };
+    const userClientId = client?._id?.toString() || req.user.clientId?.toString();
+    const projectClientId = project.client?._id ? project.client._id.toString() : project.client?.toString();
+    if (userClientId && projectClientId === userClientId) return { allowed: true };
+    return { allowed: false, status: 403, message: 'Access denied: this project belongs to another client' };
   }
   return { allowed: false, status: 403, message: 'Access denied' };
 };
@@ -314,7 +317,12 @@ export const getProjects = async (req, res) => {
     if (req.user.role === 'employee') filter.team = req.user._id;
     if (req.user.role === 'client') {
       const clientRecord = await Client.findOne({ userId: req.user._id }).select('_id');
-      if (clientRecord) filter.client = clientRecord._id;
+      const targetClientId = clientRecord?._id || req.user.clientId;
+      if (targetClientId) {
+        filter.client = targetClientId;
+      } else {
+        filter._id = null; // Fail closed
+      }
     }
 
     const scopedFilter = withWorkspaceScope(req, filter);

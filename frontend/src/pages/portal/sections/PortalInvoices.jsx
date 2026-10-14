@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, Download, Receipt, Share2, TriangleAlert } from 'lucide-react';
+import { CheckCircle2, Clock, Download, Receipt, Share2, AlertTriangle } from 'lucide-react';
 import api from '../../../api';
 import { TableSkeleton } from '../../../components/ui/Skeleton';
 import { exportInvoiceToPDF } from '../../../utils/pdfExport';
@@ -16,10 +16,10 @@ const statusMeta = {
   Draft: { color: '#64748b', icon: Clock },
   Sent: { color: '#3b82f6', icon: Clock },
   Viewed: { color: '#0ea5e9', icon: Clock },
-  'Partially Paid': { color: '#f59e0b', icon: TriangleAlert },
+  'Partially Paid': { color: '#f59e0b', icon: AlertTriangle },
   Paid: { color: '#10b981', icon: CheckCircle2 },
-  Overdue: { color: '#ef4444', icon: TriangleAlert },
-  Cancelled: { color: '#64748b', icon: TriangleAlert },
+  Overdue: { color: '#ef4444', icon: AlertTriangle },
+  Cancelled: { color: '#64748b', icon: AlertTriangle },
 };
 
 const normalizeStatus = (status) => {
@@ -65,7 +65,7 @@ export default function PortalInvoices({ dark }) {
   const summary = useMemo(() => ({
     total: invoices.reduce((sum, item) => sum + Number(item.totalAmount || item.total || 0), 0),
     paid: invoices.reduce((sum, item) => sum + Number(item.paidAmount || 0), 0),
-    balance: invoices.reduce((sum, item) => sum + Number(item.balanceAmount || 0), 0),
+    balance: invoices.reduce((sum, item) => sum + Number(item.balanceAmount !== undefined ? item.balanceAmount : Math.max(0, (item.totalAmount || item.total || 0) - (item.paidAmount || 0))), 0),
     overdue: invoices.filter((item) => normalizeStatus(item.status) === 'Overdue').length,
   }), [invoices]);
 
@@ -73,15 +73,15 @@ export default function PortalInvoices({ dark }) {
     <div className="mx-auto max-w-6xl space-y-5 p-6">
       <div>
         <h2 className={`text-xl font-black ${txt}`}>Finance & Invoices</h2>
-        <p className={`mt-0.5 text-xs ${sub}`}>Review invoices, paid amount, balance amount, due date, payment instructions, and client-visible payment history.</p>
+        <p className={`mt-0.5 text-xs ${sub}`}>Review your quoted amounts, payments made, balance due, and download invoice PDFs.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
-          { label: 'Total Amount', val: currency.format(summary.total), color: '#6366f1' },
-          { label: 'Paid Amount', val: currency.format(summary.paid), color: '#10b981' },
-          { label: 'Balance Amount', val: currency.format(summary.balance), color: '#f59e0b' },
-          { label: 'Overdue', val: summary.overdue, color: '#ef4444' },
+          { label: 'Amount Quoted', val: currency.format(summary.total), color: '#6366f1' },
+          { label: 'Amount Paid', val: currency.format(summary.paid), color: '#10b981' },
+          { label: 'Balance Due', val: currency.format(summary.balance), color: '#f59e0b' },
+          { label: 'Overdue Invoices', val: summary.overdue, color: '#ef4444' },
         ].map((item) => (
           <motion.div key={item.label} whileHover={{ y: -2 }} className="rounded-2xl p-4" style={{ background: `${item.color}15`, border: `1px solid ${item.color}30` }}>
             <p className="mb-1 text-xs font-medium" style={{ color: item.color }}>{item.label}</p>
@@ -144,16 +144,16 @@ export default function PortalInvoices({ dark }) {
 
                 <div className="mt-4 grid gap-4 md:grid-cols-4">
                   <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Total</p>
+                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Amount Quoted</p>
                     <p className={`mt-2 text-sm font-semibold ${txt}`}>{currency.format(Number(invoice.totalAmount || invoice.total || 0))}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Paid</p>
+                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Amount Paid</p>
                     <p className={`mt-2 text-sm font-semibold ${txt}`}>{currency.format(Number(invoice.paidAmount || 0))}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Balance</p>
-                    <p className={`mt-2 text-sm font-semibold ${txt}`}>{currency.format(Number(invoice.balanceAmount || 0))}</p>
+                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Balance Due</p>
+                    <p className={`mt-2 text-sm font-semibold ${txt}`}>{currency.format(Number(invoice.balanceAmount !== undefined ? invoice.balanceAmount : Math.max(0, (invoice.totalAmount || invoice.total || 0) - (invoice.paidAmount || 0))))}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200/60 p-4">
                     <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Due Date</p>

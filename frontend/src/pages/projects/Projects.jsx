@@ -588,10 +588,10 @@ const Projects = () => {
 
   return (
     <WorkspacePage
-      title="Projects Workspace"
-      subtitle="Connected project delivery pipeline, milestone tracking, service categories, and client accounts."
+      title={user?.role === 'client' ? 'My Projects' : 'Projects Workspace'}
+      subtitle={user?.role === 'client' ? 'Your active projects, progress, deliverables, and timelines.' : 'Connected project delivery pipeline, milestone tracking, service categories, and client accounts.'}
       icon={FolderKanban}
-      breadcrumbs={[{ name: 'Delivery', path: '/tasks' }, { name: 'Projects' }]}
+      breadcrumbs={user?.role === 'client' ? [{ name: 'Portal', path: '/' }, { name: 'My Projects' }] : [{ name: 'Delivery', path: '/tasks' }, { name: 'Projects' }]}
       actions={
         canCreate && (
           <Button
@@ -692,23 +692,25 @@ const Projects = () => {
             </div>
           </div>
 
-          {/* Total Budget / Pipeline Value Card */}
-          <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-purple-500/40 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Pipeline Value</span>
-              <div className="h-7 w-7 rounded-xl bg-purple-500/10 text-purple-600 border border-purple-500/20 flex items-center justify-center">
-                <DollarSign size={14} />
+          {/* Total Budget / Pipeline Value Card (Agency Staff Only) */}
+          {user?.role !== 'client' && (
+            <div className="p-3.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-purple-500/40 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Pipeline Value</span>
+                <div className="h-7 w-7 rounded-xl bg-purple-500/10 text-purple-600 border border-purple-500/20 flex items-center justify-center">
+                  <DollarSign size={14} />
+                </div>
+              </div>
+              <div>
+                <div className="text-xl font-black text-purple-600 dark:text-purple-400 tracking-tight truncate">
+                  {formatINR(totalBudget)}
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
+                  Active project budget
+                </div>
               </div>
             </div>
-            <div>
-              <div className="text-xl font-black text-purple-600 dark:text-purple-400 tracking-tight truncate">
-                {formatINR(totalBudget)}
-              </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
-                Active project budget
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* DATABASE VIEW (TABLE & BOARD VIEWS + MULTI-FACETED FILTERS) */}
@@ -750,14 +752,16 @@ const Projects = () => {
                   allOptionLabel="All Priorities"
                 />
 
-                {/* Client Dropdown Filter */}
-                <SelectDropdown
-                  className="w-44 text-xs"
-                  value={clientFilter}
-                  onChange={(val) => setClientFilter(val)}
-                  options={clientOptions}
-                  placeholder="Filter by Client"
-                />
+                {/* Client Dropdown Filter (Hide for clients) */}
+                {user?.role !== 'client' && (
+                  <SelectDropdown
+                    className="w-44 text-xs"
+                    value={clientFilter}
+                    onChange={(val) => setClientFilter(val)}
+                    options={clientOptions}
+                    placeholder="Filter by Client"
+                  />
+                )}
 
                 {/* Sorting Filter Dropdown */}
                 <SelectDropdown

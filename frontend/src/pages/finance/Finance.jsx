@@ -58,6 +58,17 @@ export default function Finance() {
   const { section } = useParams();
   const navigate = useNavigate();
 
+  // Strict Client Protection: Clients only have access to their individual invoices
+  useEffect(() => {
+    if (user?.role === 'client') {
+      navigate('/portal/invoices', { replace: true });
+    }
+  }, [user, navigate]);
+
+  if (user?.role === 'client') {
+    return null;
+  }
+
   // Active section (from URL query param, route param, or default 'overview')
   const validTabs = ['overview', 'income', 'expenses', 'clients', 'invoices', 'payroll', 'loans', 'forecast-reports'];
   const rawTab = section || searchParams.get('tab') || 'overview';

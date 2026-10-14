@@ -17,11 +17,17 @@ import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import Notification from '../models/notification.model.js';
 import Campaign from '../models/smm/campaign.model.js';
 import SmmAdSpend from '../models/smm/smmAdSpend.model.js';
+import SmmMonthlyTracker from '../models/smm/smmMonthlyTracker.model.js';
+import SmmClient from '../models/smm/smmClient.model.js';
 import { parsePagination } from '../utils/pagination.js';
 
-// Helper: get client from logged-in user
-const getClientFromUser = async (userId) => {
-  const client = await Client.findOne({ userId }).populate('assignedManager', 'name email avatar');
+// Helper: get client from logged-in user (supports both userId and clientId)
+const getClientFromUser = async (userOrId) => {
+  const userId = userOrId?._id || userOrId;
+  let client = await Client.findOne({ userId }).populate('assignedManager', 'name email avatar');
+  if (!client && userOrId?.clientId) {
+    client = await Client.findById(userOrId.clientId).populate('assignedManager', 'name email avatar');
+  }
   return client;
 };
 
@@ -29,60 +35,237 @@ const getClientFromUser = async (userId) => {
 
 export const getPortalDashboard = async (req, res) => {
   try {
-    const scope = withWorkspaceScope(req);
-    
+    const client = await getClientFromUser(req.user);
+    if (!client) {
+      return res.status(404).json({ success: false, message: 'Client profile not found' });
+    }
+
+    const clientId = client._id;
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    const currentYear = now.getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const startOfMonth = new Date(currentYear, currentMonth - 1, 1);
+    const endOfMonth = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
+
+    // 1. Client Projects & Project Metrics
+    const clientProjects = await Project.find({ client: clientId })
+      .select('name status progress dueDate startDate description category proposalText')
+      .sort({ createdAt: -1 });
+
+    const totalProjects = clientProjects.length;
+    const activeProjects = clientProjects.filter(p => ['active', 'in_progress', 'planning'].includes(p.status));
+    const completedProjects = clientProjects.filter(p => ['completed', 'done'].includes(p.status));
+
+    // 2. Client Tasks & Task Metrics (Client-visible tasks only)
+    const clientTasks = await Task.find({ client: clientId, isClientVisible: true })
+      .select('taskTitle title status priority dueDate taskCategory taskType deliverables files attachments assignedPersonName')
+      .sort({ dueDate: 1, createdAt: -1 });
+
+    const totalTasks = clientTasks.length;
+    const completedTasks = clientTasks.filter(t => ['done', 'approved', 'completed', 'Completed', 'Done', 'Approved'].includes(t.status)).length;
+    const inProgressTasks = clientTasks.filter(t => ['in_progress', 'on_process', 'review', 'In Progress', 'Internal Approval', 'review_required', 'rework'].includes(t.status)).length;
+    const reviewTasks = clientTasks.filter(t => ['client_approval', 'waiting_for_client', 'Client Approval'].includes(t.status)).length;
+    const pendingTasks = clientTasks.filter(t => ['todo', 'To Do', 'Task Received'].includes(t.status)).length;
+    const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    // 3. Client Invoices (Exclusively client's individual invoices: Quoted, Paid, Balance Due)
+    const clientInvoices = await Invoice.find({ client: clientId })
+      .populate('project', 'name')
+      .sort({ dueDate: 1, createdAt: -1 });
+
+    const totalQuoted = clientInvoices.reduce((sum, item) => sum + Number(item.totalAmount || item.total || 0), 0);
+    const totalPaid = clientInvoices.reduce((sum, item) => sum + Number(item.paidAmount || 0), 0);
+    const balanceDue = clientInvoices.reduce((sum, item) => sum + Number(item.balanceAmount !== undefined ? item.balanceAmount : Math.max(0, (item.totalAmount || item.total || 0) - (item.paidAmount || 0))), 0);
+    const openInvoices = clientInvoices.filter(item => ['sent', 'overdue', 'partially_paid', 'draft'].includes(String(item.status).toLowerCase()));
+    const overdueInvoices = clientInvoices.filter(item => String(item.status).toLowerCase() === 'overdue' || (item.dueDate && new Date(item.dueDate) < now && String(item.status).toLowerCase() !== 'paid'));
+
+    // 4. Content Items overview
     const [
       totalContent,
       pendingApproval,
       approvedContent,
       doneContent,
-      activeProjects,
-      openInvoices,
       recentContent,
     ] = await Promise.all([
-      ContentItem.countDocuments(scope),
-      ContentItem.countDocuments({ ...scope, status: 'Send to Client', approved: false }),
-      ContentItem.countDocuments({ ...scope, approved: true }),
-      ContentItem.countDocuments({ ...scope, status: 'Done' }),
-      Project.find({ ...scope, status: { $in: ['active', 'in_progress'] } }).select('name status progress dueDate startDate description category proposalText'),
-      Invoice.find({ ...scope, status: { $in: ['sent', 'overdue'] } }).select('invoiceNumber total dueDate status').sort({ dueDate: 1 }).limit(5),
-      ContentItem.find(scope).sort({ updatedAt: -1 }).limit(10).populate('assignedEditor', 'name avatar'),
+      ContentItem.countDocuments({ client: clientId }),
+      ContentItem.countDocuments({ client: clientId, status: 'Send to Client', approved: false }),
+      ContentItem.countDocuments({ client: clientId, approved: true }),
+      ContentItem.countDocuments({ client: clientId, status: 'Done' }),
+      ContentItem.find({ client: clientId }).sort({ updatedAt: -1 }).limit(10).populate('assignedEditor', 'name avatar'),
     ]);
 
-    // Status breakdown for chart
-    const statusBreakdown = await ContentItem.aggregate([
-      { $match: scope },
-      { $group: { _id: '$status', count: { $sum: 1 } } },
-    ]);
+    // 5. SMM Deliverables this Month: Posts, Reels, Stories (Planned vs Posted)
+    let tracker = await SmmMonthlyTracker.findOne({
+      client: clientId,
+      month: currentMonth,
+      year: currentYear,
+      isExcluded: { $ne: true },
+    }).lean();
 
-    // Client Ad Budget: Monthly Budget, Daily Budget, Amount Added, Balance, and Notes
-    let adBudget = { monthlyBudget: 0, dailyBudget: 0, amountAdded: 0, balance: 0, notes: '', campaignCount: 0 };
-    try {
-      const client = await getClientFromUser(req.user._id);
-      if (client) {
-        const clientCampaigns = await Campaign.find({ client: client._id });
-        const mBudget = clientCampaigns.reduce((sum, c) => sum + (c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0), 0);
-        const dBudget = clientCampaigns.reduce((sum, c) => sum + (c.dailyBudget || 0), 0);
-        const added = clientCampaigns.reduce((sum, c) => sum + (c.amountAdded || 0), 0);
-        const spent = clientCampaigns.reduce((sum, c) => sum + (c.amountSpent || 0), 0);
-        const bal = Math.max(0, added - spent);
-        const latestSpendLog = await SmmAdSpend.findOne({ client: client._id }).sort({ date: -1 });
-        adBudget = {
-          monthlyBudget: mBudget,
-          dailyBudget: dBudget,
-          amountAdded: added,
-          amountSpent: spent,
-          balance: bal,
-          notes: latestSpendLog?.notes || clientCampaigns[0]?.internalNotes || 'Budget on track',
-          campaignCount: clientCampaigns.length,
-        };
+    if (!tracker && client.company) {
+      const smmC = await SmmClient.findOne({
+        companyName: { $regex: new RegExp(`^${client.company.trim()}$`, 'i') }
+      }).lean();
+      if (smmC) {
+        tracker = await SmmMonthlyTracker.findOne({
+          client: smmC._id,
+          month: currentMonth,
+          year: currentYear,
+          isExcluded: { $ne: true },
+        }).lean();
       }
-    } catch (e) {
-      console.error('Error fetching client adBudget for portal dashboard:', e);
     }
+
+    let trackerReelsPlanned = 0;
+    let trackerPostsPlanned = 0;
+    let trackerStoriesPlanned = 0;
+    let trackerReelsDone = 0;
+    let trackerPostsDone = 0;
+    let trackerStoriesDone = 0;
+
+    if (tracker) {
+      const planStr = tracker.plan || '';
+      const rMatch = planStr.match(/(\d+)\s*R/i);
+      if (rMatch) trackerReelsPlanned = parseInt(rMatch[1], 10);
+      const pMatch = planStr.match(/(\d+)\s*P/i);
+      if (pMatch) trackerPostsPlanned = parseInt(pMatch[1], 10);
+
+      const sPlanStr = tracker.storyPlan || '';
+      const sMatch = sPlanStr.match(/(\d+)/);
+      trackerStoriesPlanned = sMatch ? parseInt(sMatch[1], 10) : daysInMonth;
+
+      (tracker.days || []).forEach(day => {
+        if (Array.isArray(day.items) && day.items.length > 0) {
+          day.items.forEach(item => {
+            if (item.status === 'done') {
+              if (item.type === 'reel') trackerReelsDone++;
+              else if (item.type === 'post') trackerPostsDone++;
+              else if (item.type === 'story') trackerStoriesDone++;
+            }
+          });
+        } else {
+          if (day.postStatus === 'done') {
+            if (/R/i.test(day.postLabel || '')) trackerReelsDone++;
+            else trackerPostsDone++;
+          }
+          if (day.storyStatus === 'done') {
+            trackerStoriesDone++;
+          }
+        }
+      });
+    }
+
+    // Deliverables text fallback on Client record (e.g. "15 Reels, 4 Posts, 30 Stories")
+    const dStr = (client.deliverables || client.servicePlan || '').toLowerCase();
+    const dReelMatch = dStr.match(/(\d+)\s*(?:reel|r\b)/i);
+    const dPostMatch = dStr.match(/(\d+)\s*(?:post|p\b|graphic)/i);
+    const dStoryMatch = dStr.match(/(\d+)\s*(?:story|stories|s\b)/i);
+
+    const deliverablesReelsPlanned = dReelMatch ? parseInt(dReelMatch[1], 10) : 0;
+    const deliverablesPostsPlanned = dPostMatch ? parseInt(dPostMatch[1], 10) : 0;
+    const deliverablesStoriesPlanned = dStoryMatch ? parseInt(dStoryMatch[1], 10) : 0;
+
+    // Content items posted in the current month
+    const contentThisMonth = await ContentItem.find({
+      client: clientId,
+      $or: [
+        { datePosted: { $gte: startOfMonth, $lte: endOfMonth } },
+        { createdAt: { $gte: startOfMonth, $lte: endOfMonth } },
+        { scheduledFor: { $gte: startOfMonth, $lte: endOfMonth } },
+      ],
+    }).lean();
+
+    const ciReelsPosted = contentThisMonth.filter(i => ['Reel', 'Video'].includes(i.contentType) && ['Posted', 'Done'].includes(i.status)).length;
+    const ciPostsPosted = contentThisMonth.filter(i => ['Post', 'Carousel'].includes(i.contentType) && ['Posted', 'Done'].includes(i.status)).length;
+    const ciStoriesPosted = contentThisMonth.filter(i => i.contentType === 'Story' && ['Posted', 'Done'].includes(i.status)).length;
+
+    const reelsPlanned = Math.max(trackerReelsPlanned, deliverablesReelsPlanned);
+    const postsPlanned = Math.max(trackerPostsPlanned, deliverablesPostsPlanned);
+    const storiesPlanned = Math.max(trackerStoriesPlanned, deliverablesStoriesPlanned, (reelsPlanned || postsPlanned ? daysInMonth : 0));
+
+    const reelsPosted = Math.max(trackerReelsDone, ciReelsPosted);
+    const postsPosted = Math.max(trackerPostsDone, ciPostsPosted);
+    const storiesPosted = Math.max(trackerStoriesDone, ciStoriesPosted);
+
+    const totalDeliverablesPlanned = reelsPlanned + postsPlanned + storiesPlanned;
+    const totalDeliverablesPosted = reelsPosted + postsPosted + storiesPosted;
+    const smmCompletionRate = totalDeliverablesPlanned > 0
+      ? Math.min(100, Math.round((totalDeliverablesPosted / totalDeliverablesPlanned) * 100))
+      : 0;
+
+    const smmMetrics = {
+      month: now.toLocaleString('en-US', { month: 'long' }),
+      year: currentYear,
+      daysInMonth,
+      reels: {
+        planned: reelsPlanned,
+        posted: reelsPosted,
+        pending: Math.max(0, reelsPlanned - reelsPosted),
+      },
+      posts: {
+        planned: postsPlanned,
+        posted: postsPosted,
+        pending: Math.max(0, postsPlanned - postsPosted),
+      },
+      stories: {
+        planned: storiesPlanned,
+        posted: storiesPosted,
+        pending: Math.max(0, storiesPlanned - storiesPosted),
+      },
+      total: {
+        planned: totalDeliverablesPlanned,
+        posted: totalDeliverablesPosted,
+        pending: Math.max(0, totalDeliverablesPlanned - totalDeliverablesPosted),
+        completionRate: smmCompletionRate,
+      },
+    };
+
+    // 6. Client Ad Budget & Active Campaigns
+    const clientCampaigns = await Campaign.find({ client: clientId }).sort({ updatedAt: -1 }).lean();
+    const mBudget = clientCampaigns.reduce((sum, c) => sum + (c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0), 0);
+    const dBudget = clientCampaigns.reduce((sum, c) => sum + (c.dailyBudget || 0), 0);
+    const added = clientCampaigns.reduce((sum, c) => sum + (c.amountAdded || 0), 0);
+    const spent = clientCampaigns.reduce((sum, c) => sum + (c.amountSpent || 0), 0);
+    const bal = Math.max(0, added - spent);
+    const latestSpendLog = await SmmAdSpend.findOne({ client: clientId }).sort({ date: -1 }).lean();
+
+    const adBudget = {
+      monthlyBudget: mBudget,
+      dailyBudget: dBudget,
+      amountAdded: added,
+      amountSpent: spent,
+      balance: bal,
+      notes: latestSpendLog?.notes || clientCampaigns[0]?.internalNotes || 'Budget on track',
+      campaignCount: clientCampaigns.length,
+      campaigns: clientCampaigns.map(c => ({
+        _id: c._id,
+        name: c.name,
+        platform: c.platform,
+        objective: c.objective,
+        status: c.status,
+        monthlyBudget: c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0,
+        dailyBudget: c.dailyBudget || 0,
+        amountAdded: c.amountAdded || 0,
+        amountSpent: c.amountSpent || 0,
+        balance: c.remainingBalance ?? Math.max(0, (c.amountAdded || 0) - (c.amountSpent || 0)),
+      })),
+    };
 
     res.json({
       success: true,
+      client: {
+        _id: client._id,
+        name: client.name,
+        company: client.company,
+        email: client.email,
+        phone: client.phone,
+        logo: client.logo,
+        onboardingSteps: client.onboardingSteps,
+        assignedManager: client.assignedManager,
+        deliverables: client.deliverables,
+        servicePlan: client.servicePlan,
+      },
       stats: {
         totalContent,
         pendingApproval,
@@ -91,13 +274,37 @@ export const getPortalDashboard = async (req, res) => {
         activeProjects: activeProjects.length,
         openInvoices: openInvoices.length,
       },
+      projectMetrics: {
+        total: totalProjects,
+        active: activeProjects.length,
+        completed: completedProjects.length,
+        projects: clientProjects,
+      },
+      taskMetrics: {
+        total: totalTasks,
+        completed: completedTasks,
+        inProgress: inProgressTasks,
+        review: reviewTasks,
+        pending: pendingTasks,
+        completionRate: taskCompletionRate,
+        tasks: clientTasks.slice(0, 10),
+      },
+      smmMetrics,
       adBudget,
+      invoiceMetrics: {
+        totalQuoted,
+        totalPaid,
+        balanceDue,
+        openCount: openInvoices.length,
+        overdueCount: overdueInvoices.length,
+        recentInvoices: clientInvoices.slice(0, 5),
+      },
       activeProjects,
       openInvoices,
       recentContent,
-      statusBreakdown,
     });
   } catch (error) {
+    console.error('getPortalDashboard error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -380,16 +587,15 @@ export const deleteReportingEntry = async (req, res) => {
 
 export const getClientInvoices = async (req, res) => {
   try {
-    const client = await getClientFromUser(req.user._id);
+    const client = await getClientFromUser(req.user);
     if (!client) return res.status(404).json({ success: false, message: 'Client profile not found' });
 
     const invoices = await Invoice.find({
-      ...withWorkspaceScope(req),
       client: client._id,
     })
       .populate('project', 'name')
       .sort({ createdAt: -1 })
-      .limit(50);
+      .limit(100);
 
     const financeRecords = await Finance.find({
       ...withWorkspaceScope(req),
@@ -459,7 +665,10 @@ export const getClientFinanceOverview = async (req, res) => {
 
 export const getClientProjects = async (req, res) => {
   try {
-    const projects = await Project.find(withWorkspaceScope(req))
+    const client = await getClientFromUser(req.user);
+    if (!client) return res.status(404).json({ success: false, message: 'Client profile not found' });
+
+    const projects = await Project.find({ client: client._id })
       .populate('assignedTeam', 'name avatar')
       .sort({ createdAt: -1 });
 
@@ -471,14 +680,13 @@ export const getClientProjects = async (req, res) => {
 
 export const getClientTasks = async (req, res) => {
   try {
-    const client = await getClientFromUser(req.user._id);
+    const client = await getClientFromUser(req.user);
     if (!client) {
       return res.status(404).json({ success: false, message: 'Client profile not found' });
     }
 
     const { status, taskCategory, taskType } = req.query;
     const filter = {
-      ...withWorkspaceScope(req),
       client: client._id,
       isClientVisible: true,
     };
@@ -502,7 +710,7 @@ export const getClientTasks = async (req, res) => {
 
 export const getClientAdBudget = async (req, res) => {
   try {
-    const client = await getClientFromUser(req.user._id);
+    const client = await getClientFromUser(req.user);
     if (!client) {
       return res.status(404).json({ success: false, message: 'Client profile not found' });
     }
