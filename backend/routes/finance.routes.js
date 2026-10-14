@@ -58,6 +58,8 @@ import {
   generateMonthlyRetainerInvoices,
   recordClientPaymentReceipt,
   getPaymentReceipts,
+  updatePaymentReceipt,
+  deletePaymentReceipt,
   getModuleExpenses,
   createModuleExpense,
   updateModuleExpense,
@@ -143,7 +145,9 @@ router.post('/module/invoices/retainer-generate', authorize('superAdmin', 'admin
 
 // 5. Client Payment Receipts
 router.get('/receipts', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager'), getPaymentReceipts);
-router.post('/receipts', authorize('superAdmin', 'admin', 'financeManager'), recordClientPaymentReceipt);
+router.post('/receipts', authorize('superAdmin', 'admin', 'manager', 'financeManager'), recordClientPaymentReceipt);
+router.put('/receipts/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), updatePaymentReceipt);
+router.delete('/receipts/:id', authorize('superAdmin', 'admin', 'manager', 'financeManager'), deletePaymentReceipt);
 
 // 6. Expenses & Vendor Bills
 router.get('/module/expenses', authorize('superAdmin', 'admin', 'manager', 'financeManager', 'accountManager', 'editor', 'designer', 'employee'), getModuleExpenses);

@@ -1117,13 +1117,21 @@ export const getPaymentReceipts = async (req, res) => {
 export const updatePaymentReceipt = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ success: false, message: 'Payment receipt not found' });
+    }
+
     const payment = await Payment.findById(id);
     if (!payment) return res.status(404).json({ success: false, message: 'Payment receipt not found' });
 
     const { receivedDate, paymentMode, reference, notes, proofUrl } = req.body;
     if (receivedDate) {
-      payment.receivedDate = new Date(receivedDate);
-      payment.paidAt = new Date(receivedDate);
+      const d = new Date(receivedDate);
+      if (!isNaN(d.getTime())) {
+        await assertPeriodNotLocked(d);
+        payment.receivedDate = d;
+        payment.paidAt = d;
+      }
     }
     if (paymentMode) {
       payment.paymentMode = paymentMode;
@@ -1134,17 +1142,39 @@ export const updatePaymentReceipt = async (req, res) => {
     if (proofUrl !== undefined) payment.proofUrl = proofUrl;
 
     await payment.save();
+
+    await recordFinanceAudit({
+      actorId: req.user?._id,
+      actorName: req.user?.name,
+      action: 'update',
+      entityType: 'Payment',
+      entityId: payment._id,
+      referenceNumber: payment.reference || payment._id.toString(),
+      description: `Updated client receipt of ₹${payment.amount} (${payment.paymentMode || payment.method})`,
+      changes: req.body,
+    });
+
+    emitLiveEvent('financeUpdated', { id: payment._id });
+
     res.json({ success: true, payment });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 
 export const deletePaymentReceipt = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ success: false, message: 'Payment receipt not found' });
+    }
+
     const payment = await Payment.findById(id);
     if (!payment) return res.status(404).json({ success: false, message: 'Payment receipt not found' });
+
+    if (payment.receivedDate) {
+      await assertPeriodNotLocked(payment.receivedDate);
+    }
 
     // Restore invoice balance if payment was linked to an invoice
     if (payment.invoice) {
@@ -1174,9 +1204,21 @@ export const deletePaymentReceipt = async (req, res) => {
       await reconcileAccountBalance(destinationAccount);
     }
 
+    await recordFinanceAudit({
+      actorId: req.user?._id,
+      actorName: req.user?.name,
+      action: 'delete',
+      entityType: 'Payment',
+      entityId: payment._id,
+      referenceNumber: payment.reference || payment._id.toString(),
+      description: `Deleted client receipt of ₹${payment.amount} (${payment.paymentMode || payment.method})`,
+    });
+
+    emitLiveEvent('financeUpdated', { id: payment._id, deleted: true });
+
     res.json({ success: true, message: 'Payment receipt deleted successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(error.statusCode || 500).json({ success: false, message: error.message });
   }
 };
 

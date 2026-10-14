@@ -21,9 +21,11 @@ import {
   AlertTriangle,
   Send,
   Laptop,
+  Crop,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { ProfileImageCropModal } from '../components/modals/ProfileImageCropModal';
 import { toggleDarkMode } from '../store/slices/uiSlice';
 import { updateCurrentUser } from '../store/slices/authSlice';
 import {
@@ -78,6 +80,9 @@ const Settings = () => {
   });
   const [currentAvatar, setCurrentAvatar] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState('');
+  const [cropImageFile, setCropImageFile] = useState(null);
   const [companyProfile, setCompanyProfile] = useState({
     name: '',
     address: '',
@@ -256,40 +261,52 @@ const Settings = () => {
     dispatch(updateCurrentUser(saved));
   };
 
-  const handleAvatarUpload = async (event) => {
+  const handleAvatarFileSelect = (event) => {
     const file = event.target.files?.[0];
     event.target.value = '';
 
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Please choose an image file');
+      toast.error('Please choose a valid image file');
       return;
     }
 
-    const previewUrl = URL.createObjectURL(file);
-    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
-    setAvatarPreview(previewUrl);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      setCropImageFile(file);
+      setIsCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
 
+  const handleCropCurrentAvatar = () => {
+    if (!currentAvatar) return;
+    setCropImageSrc(getAssetUrl(currentAvatar));
+    setCropImageFile(null);
+    setIsCropModalOpen(true);
+  };
+
+  const handleCropComplete = async (croppedFile) => {
     try {
-      const uploadResult = await uploadProfileAvatar.mutateAsync(file);
+      const uploadResult = await uploadProfileAvatar.mutateAsync(croppedFile);
       const uploadedUrl = uploadResult.url || uploadResult.file?.url || uploadResult.data?.url;
 
       if (!uploadedUrl) {
         toast.error('Profile picture uploaded, but the image URL was missing');
-        setAvatarPreview('');
-        URL.revokeObjectURL(previewUrl);
         return;
       }
 
       const saved = await updateProfile.mutateAsync({ avatar: uploadedUrl });
       setCurrentAvatar(saved.avatar || uploadedUrl);
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
       setAvatarPreview('');
-      URL.revokeObjectURL(previewUrl);
       dispatch(updateCurrentUser(saved));
-    } catch (_error) {
-      setAvatarPreview('');
-      URL.revokeObjectURL(previewUrl);
+      setIsCropModalOpen(false);
+      toast.success('Profile picture updated successfully!');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to save profile picture');
     }
   };
 
@@ -389,7 +406,7 @@ const Settings = () => {
                       type="file"
                       accept="image/*"
                       className="hidden"
-                      onChange={handleAvatarUpload}
+                      onChange={handleAvatarFileSelect}
                     />
                     <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-primary to-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-xl overflow-hidden">
                       {avatarPreview || currentAvatar ? <img src={getAssetUrl(avatarPreview || currentAvatar)} alt="" className="h-full w-full object-cover" /> : profileUser?.name?.charAt(0)}
@@ -402,6 +419,7 @@ const Settings = () => {
                           ? 'pointer-events-none opacity-60'
                           : 'cursor-pointer hover:bg-primary hover:text-white'
                       }`}
+                      title="Upload and crop photo"
                     >
                       <Camera size={16} />
                     </label>
@@ -410,30 +428,44 @@ const Settings = () => {
                     <h3 className="text-xl font-bold">{profileUser?.name}</h3>
                     <p className="text-sm text-muted-foreground capitalize">{profileUser?.role} / {profileUser?.department || 'Operations'}</p>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {uploadProfileAvatar.isPending || updateProfile.isPending ? 'Uploading profile picture...' : 'Email changes are restricted to administrators.'}
+                      {uploadProfileAvatar.isPending || updateProfile.isPending ? 'Saving cropped profile picture...' : 'Upload a photo to crop, zoom, and rotate as you wish.'}
                     </p>
-                    <label
-                      htmlFor="profile-avatar-upload"
-                      className={`mt-4 inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm font-bold transition-all ${
-                        uploadProfileAvatar.isPending || updateProfile.isPending
-                          ? 'pointer-events-none opacity-60'
-                          : 'cursor-pointer hover:border-primary hover:text-primary'
-                      }`}
-                    >
-                      <Camera size={16} className="mr-2" />
-                      {currentAvatar ? 'Change Profile Picture' : 'Add Profile Picture'}
-                    </label>
-                    {currentAvatar ? (
-                      <button
-                        type="button"
-                        onClick={removeAvatar}
-                        disabled={updateProfile.isPending}
-                        className="ml-2 mt-4 inline-flex items-center rounded-xl border border-destructive/20 px-4 py-2 text-sm font-bold text-destructive transition-all hover:bg-destructive/10 disabled:opacity-60"
+                    <div className="mt-4 flex flex-wrap items-center gap-2.5 justify-center md:justify-start">
+                      <label
+                        htmlFor="profile-avatar-upload"
+                        className={`inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm font-bold transition-all shadow-xs ${
+                          uploadProfileAvatar.isPending || updateProfile.isPending
+                            ? 'pointer-events-none opacity-60'
+                            : 'cursor-pointer hover:border-primary hover:text-primary hover:bg-primary/5'
+                        }`}
                       >
-                        <Trash2 size={16} className="mr-2" />
-                        Remove
-                      </button>
-                    ) : null}
+                        <Camera size={16} className="mr-2" />
+                        {currentAvatar ? 'Change Photo & Crop' : 'Upload & Crop Photo'}
+                      </label>
+                      {currentAvatar ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleCropCurrentAvatar}
+                            disabled={uploadProfileAvatar.isPending || updateProfile.isPending}
+                            className="inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm font-bold text-foreground transition-all hover:border-primary hover:text-primary hover:bg-primary/5 shadow-xs disabled:opacity-60 cursor-pointer"
+                            title="Re-crop or adjust your current profile picture"
+                          >
+                            <Crop size={16} className="mr-2 text-primary" />
+                            Crop / Adjust Current
+                          </button>
+                          <button
+                            type="button"
+                            onClick={removeAvatar}
+                            disabled={updateProfile.isPending}
+                            className="inline-flex items-center rounded-xl border border-destructive/20 px-4 py-2 text-sm font-bold text-destructive transition-all hover:bg-destructive/10 disabled:opacity-60 cursor-pointer shadow-xs"
+                          >
+                            <Trash2 size={16} className="mr-2" />
+                            Remove
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
 
@@ -803,6 +835,19 @@ const Settings = () => {
           </motion.div>
         </div>
       </div>
+
+      <ProfileImageCropModal
+        open={isCropModalOpen}
+        onOpenChange={setIsCropModalOpen}
+        imageSrc={cropImageSrc}
+        imageFile={cropImageFile}
+        onCropComplete={handleCropComplete}
+        isSaving={uploadProfileAvatar.isPending || updateProfile.isPending}
+        profileUser={profileUser}
+        onSelectNewImage={() => {
+          document.getElementById('profile-avatar-upload')?.click();
+        }}
+      />
     </div>
   );
 };
