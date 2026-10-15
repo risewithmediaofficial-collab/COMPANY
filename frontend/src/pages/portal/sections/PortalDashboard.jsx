@@ -44,6 +44,16 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
   const [loading, setLoading] = useState(true);
 
   const socket = useSocket();
+  const { data: clientProposals = [] } = useProposals();
+
+  const proposalMetrics = useMemo(() => {
+    const list = Array.isArray(clientProposals) ? clientProposals : [];
+    const total = list.length;
+    const accepted = list.filter((p) => p.status === 'accepted').length;
+    const pending = list.filter((p) => ['sent', 'viewed', 'draft', 'pending'].includes(p.status)).length;
+    const totalValue = list.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    return { total, accepted, pending, totalValue, list: list.slice(0, 5) };
+  }, [clientProposals]);
 
   const fetchData = () => {
     api.get('/portal/dashboard')
@@ -121,16 +131,6 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
   };
   const adBudget = data?.adBudget;
   const tracker = data?.tracker || null;
-
-  const { data: clientProposals = [] } = useProposals();
-  const proposalMetrics = useMemo(() => {
-    const list = Array.isArray(clientProposals) ? clientProposals : [];
-    const total = list.length;
-    const accepted = list.filter((p) => p.status === 'accepted').length;
-    const pending = list.filter((p) => ['sent', 'viewed', 'draft', 'pending'].includes(p.status)).length;
-    const totalValue = list.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-    return { total, accepted, pending, totalValue, list: list.slice(0, 5) };
-  }, [clientProposals]);
 
   const handleProposalDownload = (project) => {
     try {
