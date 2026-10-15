@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../api';
 import { motion } from 'framer-motion';
@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
 import { exportProposalToPDF, exportInvoiceToPDF } from '../../../utils/pdfExport';
 import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
+import { useProposals } from '../../../hooks/useProposals';
 
 const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
   <motion.div
@@ -119,6 +120,17 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
     recentInvoices: [],
   };
   const adBudget = data?.adBudget;
+  const tracker = data?.tracker || null;
+
+  const { data: clientProposals = [] } = useProposals();
+  const proposalMetrics = useMemo(() => {
+    const list = Array.isArray(clientProposals) ? clientProposals : [];
+    const total = list.length;
+    const accepted = list.filter((p) => p.status === 'accepted').length;
+    const pending = list.filter((p) => ['sent', 'viewed', 'draft', 'pending'].includes(p.status)).length;
+    const totalValue = list.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    return { total, accepted, pending, totalValue, list: list.slice(0, 5) };
+  }, [clientProposals]);
 
   const handleProposalDownload = (project) => {
     try {
@@ -199,6 +211,13 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
               >
                 <Receipt size={15} />
                 Invoices & Billing
+              </Link>
+              <Link
+                to="/client/proposals"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3.5 py-2 text-xs font-bold text-white backdrop-blur-sm transition-all hover:bg-white/25"
+              >
+                <FileText size={15} />
+                Proposals & Agreements
               </Link>
             </div>
           </div>
@@ -605,6 +624,114 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
         )}
       </div>
 
+      {/* ── SECTION: PROPOSALS & CONTRACTS ── */}
+      <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+              <FileText size={17} />
+            </div>
+            <div>
+              <h2 className={`text-base font-bold ${txt}`}>Proposals & Scope Agreements</h2>
+              <p className={`text-xs ${sub}`}>Review project proposals, service scopes, deliverables, and confirm acceptance</p>
+            </div>
+          </div>
+          <Link
+            to="/client/proposals"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition-all self-start sm:self-center"
+          >
+            Proposal Dashboard <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        {/* Proposal KPI Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="p-3.5 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Total Proposals</span>
+            <p className="text-xl font-black text-amber-700 dark:text-amber-300">{proposalMetrics.total}</p>
+            <span className="text-[10px] text-muted-foreground block">Formal agreements</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Accepted</span>
+            <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">{proposalMetrics.accepted}</p>
+            <span className="text-[10px] text-muted-foreground block">Active signed agreements</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Awaiting Decision</span>
+            <p className="text-xl font-black text-blue-700 dark:text-blue-300">{proposalMetrics.pending}</p>
+            <span className="text-[10px] text-muted-foreground block">Pending your review</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-200/50 dark:border-indigo-900/40 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Agreement Value</span>
+            <p className="text-xl font-black text-indigo-700 dark:text-indigo-300">{fmt(proposalMetrics.totalValue)}</p>
+            <span className="text-[10px] text-muted-foreground block">Total contract value</span>
+          </div>
+        </div>
+
+        {/* Proposals Table */}
+        {proposalMetrics.list.length > 0 ? (
+          <div className="pt-2">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border/50 text-[11px] font-semibold text-muted-foreground uppercase">
+                    <th className="py-2.5 px-3">Proposal #</th>
+                    <th className="py-2.5 px-3">Title & Scope</th>
+                    <th className="py-2.5 px-3">Category</th>
+                    <th className="py-2.5 px-3">Amount</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {proposalMetrics.list.map((prop) => (
+                    <tr key={prop._id} className="hover:bg-secondary/30 transition-colors">
+                      <td className="py-3 px-3 font-bold text-foreground font-mono">{prop.proposalNumber || 'PROP-DRAFT'}</td>
+                      <td className="py-3 px-3">
+                        <span className="font-semibold text-foreground block truncate max-w-[200px]">{prop.title}</span>
+                        {prop.timeline && <span className="text-[11px] text-muted-foreground">{prop.timeline}</span>}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="capitalize px-2 py-0.5 rounded-md bg-secondary text-muted-foreground text-[10px] font-medium">
+                          {(prop.serviceCategory || prop.proposalType || 'General').replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-foreground">{fmt(prop.amount)}</td>
+                      <td className="py-3 px-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          prop.status === 'accepted' ? 'bg-emerald-500/15 text-emerald-600' :
+                          prop.status === 'rejected' ? 'bg-rose-500/15 text-rose-600' :
+                          'bg-amber-500/15 text-amber-600'
+                        }`}>
+                          {(prop.status || 'draft').toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <Link
+                          to={`/proposals/${prop._id}`}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-amber-600/10 text-amber-700 dark:text-amber-400 hover:bg-amber-600 hover:text-white transition-all font-semibold text-xs"
+                        >
+                          <span>{prop.status === 'accepted' ? 'View' : 'Review & Sign'}</span>
+                          <ArrowRight size={12} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border py-8 text-center bg-background/50">
+            <FileText size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
+            <p className={`text-xs ${sub}`}>No proposals active right now. Official proposals sent by RiseWithMedia will be displayed here.</p>
+          </div>
+        )}
+      </div>
+
       {/* ── SECTION 4: CLIENT AD BUDGET & CAMPAIGNS ── */}
       {adBudget && (
         <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
@@ -714,7 +841,7 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
             </Link>
           </div>
 
-          {!tracker || (tracker.days || []).length === 0 ? (
+          {!tracker || (tracker?.days || []).length === 0 ? (
             <div className="text-center py-8">
               <Calendar size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
               <p className={`text-xs ${sub}`}>SMM Monthly Tracker is being scheduled for your brand</p>
@@ -732,10 +859,10 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30">
-                  {(tracker.days || []).slice(0, 15).map((d) => {
+                  {(tracker?.days || []).slice(0, 15).map((d) => {
                     const nowDay = new Date().getDate();
                     const isToday = d.day === nowDay;
-                    const isSunday = new Date(tracker.year || new Date().getFullYear(), (tracker.month || new Date().getMonth() + 1) - 1, d.day).getDay() === 0;
+                    const isSunday = new Date(tracker?.year || new Date().getFullYear(), (tracker?.month || new Date().getMonth() + 1) - 1, d.day).getDay() === 0;
 
                     return (
                       <tr
@@ -787,13 +914,13 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                 </tbody>
               </table>
 
-              {(tracker.days || []).length > 15 && (
+              {(tracker?.days || []).length > 15 && (
                 <div className="pt-3 text-center border-t border-border/40">
                   <Link
                     to="/portal/tracker"
                     className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1"
                   >
-                    View All {tracker.days.length} Days in SMM Tracker <ArrowRight size={12} />
+                    View All {tracker?.days?.length || 0} Days in SMM Tracker <ArrowRight size={12} />
                   </Link>
                 </div>
               )}

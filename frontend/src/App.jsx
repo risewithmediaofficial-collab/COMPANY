@@ -210,9 +210,13 @@ const App = () => {
           } />
 
           <Route path="/proposals" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
-              <Proposals />
-            </ProtectedRoute>
+            user?.role === 'client' ? (
+              <ClientProposals />
+            ) : (
+              <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
+                <Proposals />
+              </ProtectedRoute>
+            )
           } />
           <Route path="/proposals/new" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>

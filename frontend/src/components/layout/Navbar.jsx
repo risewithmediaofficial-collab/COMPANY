@@ -76,9 +76,13 @@ const getBreadcrumbs = (pathname, role) => {
       '/portal/ad-budget': [{ label: 'Client Portal', path: '/' }, { label: 'Ad Budget & Campaigns', path: '/portal/ad-budget' }],
       '/portal/invoices': [{ label: 'Client Portal', path: '/' }, { label: 'Invoices & Billing', path: '/portal/invoices' }],
       '/client/proposals': [{ label: 'Client Portal', path: '/' }, { label: 'Proposals', path: '/client/proposals' }],
+      '/proposals': [{ label: 'Client Portal', path: '/' }, { label: 'Proposals', path: '/client/proposals' }],
     };
     if (clientMap[path]) {
       return clientMap[path];
+    }
+    if (path.startsWith('/proposals/')) {
+      return [{ label: 'Client Portal', path: '/' }, { label: 'Proposals', path: '/client/proposals' }, { label: 'Proposal Details' }];
     }
   }
 

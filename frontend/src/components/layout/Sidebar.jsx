@@ -128,6 +128,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
             { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
             { name: 'My Projects', icon: FolderKanban, path: '/projects' },
             { name: 'Tasks & Deliverables', icon: CheckSquare, path: '/tasks' },
+            { name: 'Proposals', icon: FileText, path: '/client/proposals' },
             { name: 'SMM Tracker', icon: Calendar, path: '/portal/tracker' },
             { name: 'Ad Budget & Campaigns', icon: Megaphone, path: '/portal/ad-budget' },
             { name: 'Invoices & Billing', icon: Receipt, path: '/portal/invoices' },
