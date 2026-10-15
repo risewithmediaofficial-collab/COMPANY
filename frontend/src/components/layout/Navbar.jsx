@@ -63,8 +63,24 @@ const AddClientModal = lazy(() => import('../modals/AddClientModal').then((m) =>
 const AddLeadModal = lazy(() => import('../modals/AddLeadModal').then((m) => ({ default: m.AddLeadModal })));
 
 // Route path to structured breadcrumbs helper with clickable links
-const getBreadcrumbs = (pathname) => {
+const getBreadcrumbs = (pathname, role) => {
   const path = pathname.replace(/\/$/, '') || '/';
+
+  if (role === 'client') {
+    const clientMap = {
+      '/': [{ label: 'Client Portal', path: '/' }, { label: 'Dashboard', path: '/' }],
+      '/tasks': [{ label: 'Client Portal', path: '/' }, { label: 'Tasks & Deliverables', path: '/tasks' }],
+      '/portal/tasks': [{ label: 'Client Portal', path: '/' }, { label: 'Tasks & Deliverables', path: '/tasks' }],
+      '/projects': [{ label: 'Client Portal', path: '/' }, { label: 'My Projects', path: '/projects' }],
+      '/portal/tracker': [{ label: 'Client Portal', path: '/' }, { label: 'SMM Tracker', path: '/portal/tracker' }],
+      '/portal/ad-budget': [{ label: 'Client Portal', path: '/' }, { label: 'Ad Budget & Campaigns', path: '/portal/ad-budget' }],
+      '/portal/invoices': [{ label: 'Client Portal', path: '/' }, { label: 'Invoices & Billing', path: '/portal/invoices' }],
+      '/client/proposals': [{ label: 'Client Portal', path: '/' }, { label: 'Proposals', path: '/client/proposals' }],
+    };
+    if (clientMap[path]) {
+      return clientMap[path];
+    }
+  }
 
   const exactMap = {
     '/': [{ label: 'Command Center', path: '/' }],
@@ -331,7 +347,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
   }, [onOpenSearch]);
 
   // Compute structured dynamic breadcrumbs with memoization
-  const breadcrumbs = useMemo(() => getBreadcrumbs(pathname), [pathname]);
+  const breadcrumbs = useMemo(() => getBreadcrumbs(pathname, user?.role), [pathname, user?.role]);
 
   const canCreate = ['superAdmin', 'admin', 'manager'].includes(user?.role);
 

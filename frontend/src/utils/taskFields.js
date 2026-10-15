@@ -203,9 +203,12 @@ export const getClientTaskStatusMeta = (status) => {
 
 export const canClientRespondToTask = (task) => {
   const status = normalizeTaskStatusLabel(task?.status);
+  const normalizedLower = String(task?.status || '').toLowerCase().replace(/\s+/g, '_');
+  const isEligibleStatus = CLIENT_RESPONSE_ELIGIBLE_STATUSES.includes(status)
+    || ['completed', 'waiting_for_client', 'rework_completed', 'review_required'].includes(normalizedLower);
+
   return Boolean(
-    task?.approvalRequired
-    && CLIENT_RESPONSE_ELIGIBLE_STATUSES.includes(status)
+    isEligibleStatus
     && (task?.clientResponse || 'pending') === 'pending',
   );
 };
