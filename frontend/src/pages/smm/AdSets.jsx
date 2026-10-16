@@ -307,12 +307,12 @@ export default function AdSets() {
 
       <SMMSubNav />
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 bg-card p-4 rounded-2xl border border-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl border border-border">
         <div className="flex-1 w-full">
           <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Ad Sets..." />
         </div>
         <div className="w-full sm:w-48">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="app-select">
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="app-select w-full">
             <option value="">All Statuses</option>
             <option value="Draft">Draft</option>
             <option value="Active">Active</option>

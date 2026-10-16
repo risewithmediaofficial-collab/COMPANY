@@ -277,12 +277,12 @@ export const SMMContent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 space-y-6">
+    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-8 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <Video className="text-primary" size={24} />
+          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+            <Video className="text-primary shrink-0" size={24} />
             Video & Content Database
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -292,7 +292,7 @@ export const SMMContent = () => {
 
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all w-full sm:w-auto"
         >
           <Plus size={16} />
           <span>Add Video / Content</span>
@@ -302,62 +302,62 @@ export const SMMContent = () => {
       <SMMSubNav />
 
       {/* ── TOP KPI STATUS CARDS (Posted vs Not Posted Dashboard) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
         <div
           onClick={() => setActiveTab('all')}
-          className={`cursor-pointer bg-card border p-3.5 rounded-2xl transition-all ${
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
             activeTab === 'all' ? 'border-primary shadow-sm bg-primary/5' : 'border-border hover:border-border/80'
           }`}
         >
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Total Videos</span>
-          <span className="text-2xl font-black text-foreground block mt-1">{totalCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Total Videos</span>
+          <span className="text-xl sm:text-2xl font-black text-foreground block mt-1">{totalCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('posted')}
-          className={`cursor-pointer bg-card border p-3.5 rounded-2xl transition-all ${
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
             activeTab === 'posted' ? 'border-emerald-500 shadow-sm bg-emerald-500/5' : 'border-border hover:border-emerald-500/30'
           }`}
         >
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Posted</span>
-          <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-1">{postedCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">Posted</span>
+          <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-1">{postedCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('not_posted')}
-          className={`cursor-pointer bg-card border p-3.5 rounded-2xl transition-all ${
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
             activeTab === 'not_posted' ? 'border-amber-500 shadow-sm bg-amber-500/5' : 'border-border hover:border-amber-500/30'
           }`}
         >
-          <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Not Posted</span>
-          <span className="text-2xl font-black text-amber-600 dark:text-amber-400 block mt-1">{notPostedCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Not Posted</span>
+          <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 block mt-1">{notPostedCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('scheduled')}
-          className={`cursor-pointer bg-card border p-3.5 rounded-2xl transition-all ${
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all ${
             activeTab === 'scheduled' ? 'border-sky-500 shadow-sm bg-sky-500/5' : 'border-border hover:border-sky-500/30'
           }`}
         >
-          <span className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Scheduled</span>
-          <span className="text-2xl font-black text-sky-600 dark:text-sky-400 block mt-1">{scheduledCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 block">Scheduled</span>
+          <span className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 block mt-1">{scheduledCount}</span>
         </div>
 
         <div
           onClick={() => setActiveTab('pending_approval')}
-          className={`cursor-pointer bg-card border p-3.5 rounded-2xl transition-all ${
+          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-all col-span-2 sm:col-span-1 ${
             activeTab === 'pending_approval' ? 'border-rose-500 shadow-sm bg-rose-500/5' : 'border-border hover:border-rose-500/30'
           }`}
         >
-          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-500 block">Approval Pending</span>
-          <span className="text-2xl font-black text-rose-500 block mt-1">{pendingApprovalCount}</span>
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-rose-500 block">Approval Pending</span>
+          <span className="text-xl sm:text-2xl font-black text-rose-500 block mt-1">{pendingApprovalCount}</span>
         </div>
       </div>
 
       <SMMFilterBar filters={filters} onFilterChange={handleFilterChange} onReset={() => setFilters({ client: '', project: '', platform: '', contentType: '', notPostedReason: '', campaignStatus: '', dateRange: 'all' })} />
 
       {/* Sub Tabs: All Videos, Posted, Not Posted, Scheduled, Pending Approval, Performance */}
-      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
         {[
           { id: 'all', label: 'All Videos', icon: Layers },
           { id: 'posted', label: 'Posted', icon: CheckCircle2 },
@@ -395,8 +395,8 @@ export const SMMContent = () => {
             <p>No video records match the selected filter. Click "+ Add Video / Content" to create one.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
+            <table className="min-w-[720px] w-full text-left text-xs">
               <thead className="bg-muted/40 text-muted-foreground border-b border-border font-bold">
                 <tr>
                   <th className="px-4 py-3">Video / Reel</th>
@@ -577,7 +577,7 @@ export const SMMContent = () => {
 
       {/* ── CREATE VIDEO MODAL ── */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent size="lg">
+        <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Add Video / Content Record</DialogTitle>
             <DialogDescription>
@@ -738,7 +738,7 @@ export const SMMContent = () => {
 
       {/* ── LOG PERFORMANCE MODAL ── */}
       <Dialog open={isPerfModalOpen} onOpenChange={setIsPerfModalOpen}>
-        <DialogContent size="md">
+        <DialogContent size="md" className="max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Log Organic Video Performance</DialogTitle>
             <DialogDescription>
@@ -747,7 +747,7 @@ export const SMMContent = () => {
           </DialogHeader>
 
           <form onSubmit={handlePerfSubmit} className="space-y-4 text-xs">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="font-semibold text-foreground block mb-1">Total Views / Plays</label>
                 <input
@@ -768,7 +768,7 @@ export const SMMContent = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div>
                 <label className="font-semibold text-foreground block mb-1">Likes</label>
                 <input
@@ -807,7 +807,7 @@ export const SMMContent = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="font-semibold text-foreground block mb-1">Followers Gained (+)</label>
                 <input
@@ -852,10 +852,10 @@ export const SMMContent = () => {
       {/* ── VIDEO 360 DETAIL MODAL (ORGANIC + AD PERFORMANCE IN ONE PLACE) ── */}
       {selectedContent && (
         <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-          <DialogContent size="lg">
+          <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
             <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <span>{selectedContent.name}</span>
+              <DialogTitle className="flex flex-wrap items-center justify-between gap-2">
+                <span className="truncate max-w-[240px] sm:max-w-none">{selectedContent.name}</span>
                 <span className="text-xs font-black text-primary px-3 py-1 bg-primary/10 rounded-full">
                   Score: {selectedContent.performanceScore || 85} / 100
                 </span>
@@ -867,7 +867,7 @@ export const SMMContent = () => {
 
             <div className="space-y-5 text-xs">
               {/* Top Overview */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">Client</span>
                   <span className="font-bold text-foreground text-xs">{selectedContent.client?.company || selectedContent.client?.name}</span>

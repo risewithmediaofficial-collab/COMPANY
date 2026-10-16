@@ -17,30 +17,30 @@ export const SMMDrawer = ({ isOpen, onClose, title, subtitle, children, maxWidth
           />
 
           {/* Slide-over panel */}
-          <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
+          <div className="fixed inset-y-0 right-0 flex max-w-full pl-0 sm:pl-10">
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className={`w-screen ${maxWidth} bg-card border-l border-border shadow-2xl flex flex-col`}
+              className={`w-screen ${maxWidth} bg-card border-l border-border shadow-2xl flex flex-col h-full`}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/80 backdrop-blur-md">
-                <div>
-                  <h3 className="text-lg font-bold text-foreground">{title}</h3>
-                  {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-card/80 backdrop-blur-md shrink-0">
+                <div className="min-w-0 pr-2">
+                  <h3 className="text-base sm:text-lg font-bold text-foreground truncate">{title}</h3>
+                  {subtitle && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{subtitle}</p>}
                 </div>
                 <button
                   onClick={onClose}
-                  className="rounded-xl p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  className="rounded-xl p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
                 >
                   <X size={20} />
                 </button>
               </div>
 
               {/* Body */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 custom-scrollbar">
                 {children}
               </div>
             </motion.div>

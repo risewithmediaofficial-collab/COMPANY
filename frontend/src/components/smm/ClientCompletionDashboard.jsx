@@ -128,35 +128,35 @@ export const ClientCompletionDashboard = ({
   ];
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
       {/* ── Section Header ── */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
         <div className="flex items-center gap-2">
-          <TrendingUp className="text-cyan-600 dark:text-cyan-400" size={20} />
-          <h2 className="text-base font-black text-foreground tracking-tight uppercase">
+          <TrendingUp className="text-cyan-600 dark:text-cyan-400 shrink-0" size={18} />
+          <h2 className="text-sm sm:text-base font-black text-foreground tracking-tight uppercase">
             Client Completion & Performance Analytics
           </h2>
         </div>
-        <span className="text-xs text-muted-foreground font-medium">
+        <span className="text-[11px] sm:text-xs text-muted-foreground font-medium">
           Real-time summary synced with monthly tracker status
         </span>
       </div>
 
       {/* ── Main Two-Column Layout ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* ── Left Column: Summary Table + Workflow Callout ── */}
         <div className="xl:col-span-7 flex flex-col space-y-3">
           <div className="border border-border/80 rounded-xl overflow-hidden shadow-xs bg-card">
             {/* Navy Header Banner */}
-            <div className="bg-[#0b1727] dark:bg-[#070d18] text-white text-center py-2.5 px-4">
+            <div className="bg-[#0b1727] dark:bg-[#070d18] text-white text-center py-2 sm:py-2.5 px-3 sm:px-4">
               <h3 className="text-xs md:text-sm font-black tracking-widest uppercase text-slate-100">
                 CLIENT COMPLETION DASHBOARD
               </h3>
             </div>
 
             {/* Table with crisp Excel-like grid borders */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs border-collapse">
+            <div className="overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
+              <table className="w-full text-xs border-collapse min-w-[500px]">
                 <thead>
                   <tr className="bg-[#0097a7] text-white uppercase text-[10.5px] font-black tracking-wider">
                     <th className="py-2.5 px-3 text-left w-36 border border-teal-700/60">CLIENT</th>
@@ -275,11 +275,11 @@ export const ClientCompletionDashboard = ({
         </div>
 
         {/* ── Right Column: Bar Graph Visual ── */}
-        <div className="xl:col-span-5 bg-card border border-border/80 rounded-xl p-4 shadow-xs flex flex-col">
-          <div className="w-full">
+        <div className="xl:col-span-5 bg-card border border-border/80 rounded-xl p-3 sm:p-4 shadow-xs flex flex-col overflow-hidden">
+          <div className="w-full overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] custom-scrollbar">
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-auto select-none"
+              className="w-full min-w-[340px] h-auto select-none"
               style={{ overflow: 'visible' }}
             >
               {/* Chart Title */}

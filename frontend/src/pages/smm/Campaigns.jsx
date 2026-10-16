@@ -686,24 +686,28 @@ export default function Campaigns() {
 
       <SMMSubNav />
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-4 rounded-2xl border border-border">
-        <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
-          <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search campaigns..." />
-          <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)} className="app-select w-36">
-            <option value="">All Networks</option>
-            <option value="Meta">Meta</option>
-            <option value="Google">Google</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="YouTube">YouTube</option>
-            <option value="TikTok">TikTok</option>
-          </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="app-select w-36">
-            <option value="">All Statuses</option>
-            <option value="Draft">Draft</option>
-            <option value="Active">Active</option>
-            <option value="Paused">Paused</option>
-            <option value="Completed">Completed</option>
-          </select>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl border border-border">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto flex-1">
+          <div className="w-full sm:w-auto sm:flex-1">
+            <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search campaigns..." />
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)} className="app-select flex-1 sm:w-36">
+              <option value="">All Networks</option>
+              <option value="Meta">Meta</option>
+              <option value="Google">Google</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="YouTube">YouTube</option>
+              <option value="TikTok">TikTok</option>
+            </select>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="app-select flex-1 sm:w-36">
+              <option value="">All Statuses</option>
+              <option value="Draft">Draft</option>
+              <option value="Active">Active</option>
+              <option value="Paused">Paused</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
         </div>
 
         {selectedIds.length > 0 && (

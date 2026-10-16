@@ -99,14 +99,16 @@ export const SMMDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 space-y-6">
+    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-8 space-y-4 sm:space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-              <Sparkles className="text-primary" size={24} />
-              {selectedClient ? `${selectedClient.company || selectedClient.name} Marketing OS` : 'Social Media + Ads Performance OS'}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+              <Sparkles className="text-primary shrink-0" size={22} />
+              <span className="truncate max-w-[280px] sm:max-w-none">
+                {selectedClient ? `${selectedClient.company || selectedClient.name} Marketing OS` : 'Social Media + Ads Performance OS'}
+              </span>
             </h1>
             {selectedClient && (
               <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full border border-primary/20">
@@ -119,31 +121,31 @@ export const SMMDashboard = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {/* Client Health Score Badge */}
-          <div className="flex items-center gap-2.5 bg-card border border-border px-3.5 py-2 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-2 sm:gap-2.5 bg-card border border-border px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl shadow-xs">
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider">Client Health</span>
-              <span className="text-sm font-black text-emerald-500">{clientHealthScore} / 100</span>
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground block tracking-wider">Client Health</span>
+              <span className="text-xs sm:text-sm font-black text-emerald-500">{clientHealthScore} / 100</span>
             </div>
-            <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center font-bold text-xs text-emerald-500">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center font-bold text-xs text-emerald-500 shrink-0">
               🟢
             </div>
           </div>
 
           <button
             onClick={() => navigate('/smm/daily-tracking')}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-all"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-all"
           >
-            <Clock size={14} className="text-primary" />
+            <Clock size={14} className="text-primary shrink-0" />
             <span>Daily Report</span>
           </button>
 
           <button
             onClick={() => navigate('/smm/content')}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-all"
           >
-            <Plus size={15} />
+            <Plus size={15} className="shrink-0" />
             <span>Add Video</span>
           </button>
         </div>
@@ -193,14 +195,14 @@ export const SMMDashboard = () => {
           Loading Unified Marketing OS data...
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* ── 3-COLUMN CORE OS SUMMARY ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* COLUMN 1: CONTENT DASHBOARD */}
-            <div className="bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-border/80 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500 font-bold">
+                  <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500 font-bold shrink-0">
                     <Video size={16} />
                   </div>
                   <div>
@@ -216,22 +218,22 @@ export const SMMDashboard = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[11px] font-semibold text-muted-foreground block">Total Videos</span>
-                  <span className="text-2xl font-black text-foreground block mt-0.5">{content.totalVideos || 0}</span>
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Total Videos</span>
+                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">{content.totalVideos || 0}</span>
                 </div>
-                <div className="bg-emerald-500/10 p-3.5 rounded-2xl border border-emerald-500/20">
-                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 block">Posted</span>
-                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-0.5">{content.posted || 0}</span>
+                <div className="bg-emerald-500/10 p-3 sm:p-3.5 rounded-2xl border border-emerald-500/20">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 block">Posted</span>
+                  <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-0.5">{content.posted || 0}</span>
                 </div>
-                <div className="bg-amber-500/10 p-3.5 rounded-2xl border border-amber-500/20">
-                  <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 block">Not Posted</span>
-                  <span className="text-2xl font-black text-amber-600 dark:text-amber-400 block mt-0.5">{content.notPosted || 0}</span>
+                <div className="bg-amber-500/10 p-3 sm:p-3.5 rounded-2xl border border-amber-500/20">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:text-amber-400 block">Not Posted</span>
+                  <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 block mt-0.5">{content.notPosted || 0}</span>
                 </div>
-                <div className="bg-sky-500/10 p-3.5 rounded-2xl border border-sky-500/20">
-                  <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 block">Scheduled</span>
-                  <span className="text-2xl font-black text-sky-600 dark:text-sky-400 block mt-0.5">{content.scheduled || 0}</span>
+                <div className="bg-sky-500/10 p-3 sm:p-3.5 rounded-2xl border border-sky-500/20">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-sky-600 dark:text-sky-400 block">Scheduled</span>
+                  <span className="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 block mt-0.5">{content.scheduled || 0}</span>
                 </div>
               </div>
 
@@ -244,10 +246,10 @@ export const SMMDashboard = () => {
             </div>
 
             {/* COLUMN 2: ORGANIC PERFORMANCE */}
-            <div className="bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-border/80 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 font-bold">
+                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500 font-bold shrink-0">
                     <TrendingUp size={16} />
                   </div>
                   <div>
@@ -255,33 +257,33 @@ export const SMMDashboard = () => {
                     <span className="text-[11px] text-muted-foreground">Natural audience growth</span>
                   </div>
                 </div>
-                <span className="text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2 sm:px-2.5 py-0.5 rounded-full shrink-0">
                   +{organic.followersGained || 0} Followers
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[11px] font-semibold text-muted-foreground block">Organic Views</span>
-                  <span className="text-2xl font-black text-foreground block mt-0.5">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Organic Views</span>
+                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">
                     {organic.views ? Number(organic.views).toLocaleString() : '0'}
                   </span>
                 </div>
-                <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[11px] font-semibold text-muted-foreground block">Organic Reach</span>
-                  <span className="text-2xl font-black text-foreground block mt-0.5">
+                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Organic Reach</span>
+                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">
                     {organic.reach ? Number(organic.reach).toLocaleString() : '0'}
                   </span>
                 </div>
-                <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[11px] font-semibold text-muted-foreground block">Interactions</span>
-                  <span className="text-2xl font-black text-foreground block mt-0.5">
+                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Interactions</span>
+                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">
                     {organic.engagement ? Number(organic.engagement).toLocaleString() : '0'}
                   </span>
                 </div>
-                <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border/60">
-                  <span className="text-[11px] font-semibold text-muted-foreground block">Engagement Rate</span>
-                  <span className="text-2xl font-black text-indigo-500 block mt-0.5">{organic.engagementRate || 0}%</span>
+                <div className="bg-secondary/40 p-3 sm:p-3.5 rounded-2xl border border-border/60">
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Engagement Rate</span>
+                  <span className="text-xl sm:text-2xl font-black text-indigo-500 block mt-0.5">{organic.engagementRate || 0}%</span>
                 </div>
               </div>
 
@@ -292,10 +294,10 @@ export const SMMDashboard = () => {
             </div>
 
             {/* COLUMN 3: ADS & SPEND LEDGER */}
-            <div className="bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-border/80 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold shrink-0">
                     <Megaphone size={16} />
                   </div>
                   <div>
@@ -311,29 +313,29 @@ export const SMMDashboard = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="bg-blue-500/10 p-2.5 rounded-2xl border border-blue-500/20">
-                  <span className="text-[10px] font-bold text-blue-500 block uppercase">Added</span>
-                  <span className="text-base font-black text-foreground block mt-0.5">₹{(paid.amountAdded || 0).toLocaleString()}</span>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center">
+                <div className="bg-blue-500/10 p-2 sm:p-2.5 rounded-2xl border border-blue-500/20">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-blue-500 block uppercase">Added</span>
+                  <span className="text-xs sm:text-sm md:text-base font-black text-foreground block mt-0.5 truncate">₹{(paid.amountAdded || 0).toLocaleString()}</span>
                 </div>
-                <div className="bg-rose-500/10 p-2.5 rounded-2xl border border-rose-500/20">
-                  <span className="text-[10px] font-bold text-rose-500 block uppercase">Spent</span>
-                  <span className="text-base font-black text-foreground block mt-0.5">₹{(paid.amountSpent || 0).toLocaleString()}</span>
+                <div className="bg-rose-500/10 p-2 sm:p-2.5 rounded-2xl border border-rose-500/20">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-rose-500 block uppercase">Spent</span>
+                  <span className="text-xs sm:text-sm md:text-base font-black text-foreground block mt-0.5 truncate">₹{(paid.amountSpent || 0).toLocaleString()}</span>
                 </div>
-                <div className="bg-emerald-500/10 p-2.5 rounded-2xl border border-emerald-500/20">
-                  <span className="text-[10px] font-bold text-emerald-500 block uppercase">Balance</span>
-                  <span className="text-base font-black text-emerald-600 dark:text-emerald-400 block mt-0.5">₹{(paid.remainingBalance || 0).toLocaleString()}</span>
+                <div className="bg-emerald-500/10 p-2 sm:p-2.5 rounded-2xl border border-emerald-500/20">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-emerald-500 block uppercase">Balance</span>
+                  <span className="text-xs sm:text-sm md:text-base font-black text-emerald-600 dark:text-emerald-400 block mt-0.5 truncate">₹{(paid.remainingBalance || 0).toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 <div className="bg-secondary/40 p-3 rounded-2xl border border-border/60">
-                  <span className="text-[11px] font-semibold text-muted-foreground block">Leads Generated</span>
-                  <span className="text-2xl font-black text-foreground block mt-0.5">{paid.leads || 0}</span>
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Leads Generated</span>
+                  <span className="text-xl sm:text-2xl font-black text-foreground block mt-0.5">{paid.leads || 0}</span>
                 </div>
                 <div className="bg-secondary/40 p-3 rounded-2xl border border-border/60">
-                  <span className="text-[11px] font-semibold text-muted-foreground block">Cost Per Lead (CPL)</span>
-                  <span className="text-2xl font-black text-emerald-500 block mt-0.5">₹{paid.costPerLead || 0}</span>
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground block">Cost Per Lead (CPL)</span>
+                  <span className="text-xl sm:text-2xl font-black text-emerald-500 block mt-0.5">₹{paid.costPerLead || 0}</span>
                 </div>
               </div>
 
@@ -345,12 +347,12 @@ export const SMMDashboard = () => {
           </div>
 
           {/* ── SECTION 2: TOP PERFORMING VIDEOS & APPROVAL AGING ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* TOP PERFORMING VIDEOS LEADERBOARD (2 cols) */}
-            <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-border pb-3">
+            <div className="lg:col-span-2 bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <Flame className="text-amber-500" size={18} />
+                  <Flame className="text-amber-500 shrink-0" size={18} />
                   <h3 className="text-sm font-bold text-foreground">Top Performing Videos & Ad Recommendations</h3>
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">Ranked by Virality & Engagement</span>
@@ -361,13 +363,13 @@ export const SMMDashboard = () => {
                   <div className="p-8 text-center text-xs text-muted-foreground">No video records found yet.</div>
                 ) : (
                   topVideos.map((video, idx) => (
-                    <div key={video._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border/70 hover:border-primary/40 transition-all flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center">
+                    <div key={video._id} className="p-3 sm:p-3.5 rounded-2xl bg-secondary/30 border border-border/70 hover:border-primary/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="flex items-start sm:items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
                           #{idx + 1}
                         </span>
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                             <h4 className="text-xs font-bold text-foreground">{video.name}</h4>
                             <span className="text-[10px] font-semibold text-muted-foreground px-2 py-0.5 rounded-md bg-muted">
                               {video.contentType}
@@ -378,7 +380,7 @@ export const SMMDashboard = () => {
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-4 text-[11px] text-muted-foreground mt-1">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-[11px] text-muted-foreground mt-1">
                             <span>👁 {(video.views || 0).toLocaleString()} Views</span>
                             <span>⚡ {video.engagementRate}% Engagement</span>
                             <span>🔄 {video.shares || 0} Shares</span>
@@ -387,20 +389,20 @@ export const SMMDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold block">Score</span>
-                          <span className="text-sm font-black text-primary">{video.performanceScore || 85} / 100</span>
+                      <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                        <div className="text-left sm:text-right">
+                          <span className="text-[9px] sm:text-[10px] text-muted-foreground uppercase font-bold block">Score</span>
+                          <span className="text-xs sm:text-sm font-black text-primary">{video.performanceScore || 85} / 100</span>
                         </div>
 
                         {video.usedAsAd ? (
-                          <span className="text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
+                          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-emerald-500/20">
                             Active Ad (₹{video.paidCpl || 0} CPL)
                           </span>
                         ) : (
                           <button
                             onClick={() => handleCreateAdFromVideo(video)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-all"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-all shrink-0"
                           >
                             <Megaphone size={12} />
                             <span>Create Ad</span>
@@ -414,10 +416,10 @@ export const SMMDashboard = () => {
             </div>
 
             {/* CONTENT APPROVAL AGING BOTTLENECK (1 col) */}
-            <div className="bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="text-rose-500" size={18} />
+                  <Clock className="text-rose-500 shrink-0" size={18} />
                   <h3 className="text-sm font-bold text-foreground">Approval Aging SLA</h3>
                 </div>
                 <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full">
@@ -433,12 +435,12 @@ export const SMMDashboard = () => {
                   </div>
                 ) : (
                   agingList.map((item) => (
-                    <div key={item.id} className="p-3 rounded-2xl bg-secondary/30 border border-border flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-foreground block">{item.name}</span>
-                        <span className="text-[11px] text-muted-foreground">{item.client}</span>
+                    <div key={item.id} className="p-3 rounded-2xl bg-secondary/30 border border-border flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-foreground block truncate">{item.name}</span>
+                        <span className="text-[11px] text-muted-foreground truncate block">{item.client}</span>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold ${
                           item.urgency === 'critical'
                             ? 'bg-rose-500 text-white animate-pulse'
@@ -457,24 +459,24 @@ export const SMMDashboard = () => {
           </div>
 
           {/* ── SECTION 3: ORGANIC VS PAID COMPARISON & TODAY'S TIMELINE ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* ORGANIC VS PAID COMPARISON TABLE & METRICS */}
-            <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-border pb-3">
+            <div className="lg:col-span-2 bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 border-b border-border pb-3">
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Activity className="text-primary" size={18} />
+                  <Activity className="text-primary shrink-0" size={18} />
                   Organic vs Paid Performance Comparison
                 </h3>
                 <button
                   onClick={() => navigate('/smm/analytics')}
-                  className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
+                  className="text-xs text-primary font-semibold hover:underline flex items-center gap-1 self-start sm:self-auto"
                 >
                   Full Analytics <ArrowUpRight size={13} />
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
+                <table className="min-w-[480px] w-full text-left text-xs">
                   <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
                     <tr>
                       <th className="px-4 py-3">Metric</th>
@@ -524,10 +526,10 @@ export const SMMDashboard = () => {
             </div>
 
             {/* TODAY'S AGENCY ACTIVITY TIMELINE */}
-            <div className="bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="text-primary" size={18} />
+                  <Clock className="text-primary shrink-0" size={18} />
                   <h3 className="text-sm font-bold text-foreground">Activity Timeline</h3>
                 </div>
                 <span className="text-xs text-muted-foreground">Real-time log</span>

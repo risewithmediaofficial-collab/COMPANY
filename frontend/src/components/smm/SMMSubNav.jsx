@@ -31,8 +31,8 @@ export const SMMSubNav = () => {
   const location = useLocation();
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-2 shadow-xs mb-6 overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
-      <div className="flex items-center gap-1.5 min-w-max">
+    <div className="bg-card border border-border rounded-2xl p-1.5 sm:p-2 shadow-xs mb-4 sm:mb-6 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+      <div className="flex items-center gap-1 sm:gap-1.5 min-w-max">
         {SMM_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = item.exact
@@ -46,23 +46,23 @@ export const SMMSubNav = () => {
           return (
             <React.Fragment key={item.path}>
               {showDivider && (
-                <div className="flex items-center gap-2 px-1.5">
-                  <div className="w-px h-5 bg-border/80" />
-                  <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider px-2 py-0.5 rounded-md bg-muted/60 border border-border/40 select-none">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-1.5">
+                  <div className="w-px h-4 sm:h-5 bg-border/80" />
+                  <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-md bg-muted/60 border border-border/40 select-none">
                     {SECTION_LABELS[item.path]}
                   </span>
                 </div>
               )}
               <Link
                 to={item.path}
-                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 transition-all duration-200 ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
                     : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
               >
-                <Icon size={15} />
-                <span>{item.name}</span>
+                <Icon size={14} className="sm:w-[15px] sm:h-[15px] shrink-0" />
+                <span className="whitespace-nowrap">{item.name}</span>
               </Link>
             </React.Fragment>
           );

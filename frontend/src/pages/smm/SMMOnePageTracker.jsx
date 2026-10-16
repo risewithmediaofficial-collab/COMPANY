@@ -7,7 +7,7 @@ import { TrackerDayDeliverablesDrawer } from '../../components/smm/TrackerDayDel
 import {
   ChevronLeft, ChevronRight, CheckCircle2, Clock, RefreshCw,
   LayoutGrid, AlertCircle, Check, X, Info, Plus, Sparkles, ArrowDownToLine,
-  Trash2, AlertTriangle, ListTodo, Radio
+  Trash2, AlertTriangle, ListTodo, Radio, Smartphone, CalendarDays
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -18,17 +18,19 @@ const MONTHS = [
 ];
 const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-// ── Fixed column pixel widths (must match sticky left offsets exactly) ───────
-const COL = { NO: 36, TEAM: 52, CLIENT: 176, PLAN: 104, DAY: 68, DONE: 68 };
-// Sticky left offsets:
-const L = {
+// ── Column pixel widths (Desktop & Responsive Mobile) ─────────────────────────
+const COL_DESKTOP = { NO: 36, TEAM: 52, CLIENT: 176, PLAN: 104, DAY: 68, DONE: 68 };
+const COL_MOBILE  = { NO: 28, TEAM: 48, CLIENT: 112, PLAN: 84,  DAY: 54, DONE: 54 };
+
+export const COL = COL_DESKTOP;
+export const L = {
   NO:     0,
   TEAM:   COL.NO,                          // 36
   CLIENT: COL.NO + COL.TEAM,               // 88
   PLAN:   COL.NO + COL.TEAM + COL.CLIENT,  // 264
 };
 // Total fixed width
-const FIXED_W = COL.NO + COL.TEAM + COL.CLIENT + COL.PLAN; // 368
+export const FIXED_W = COL.NO + COL.TEAM + COL.CLIENT + COL.PLAN; // 368
 
 const STATUS_CYCLE  = { todo:'pending', pending:'done', done:'skip', skip:'todo' };
 const STATUS_LABEL  = { todo:'TODO', pending:'PENDING', done:'DONE', skip:'SKIP' };
@@ -521,30 +523,63 @@ const SMMOnePageTracker = () => {
   const tableContainerRef = useRef(null);
   const hasAutoScrolledRef = useRef(false);
 
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') return window.innerWidth < 768;
+    return false;
+  });
+
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 640) return 'day';
+    return 'sheet';
+  });
+
+  const [focusedDay, setFocusedDay] = useState(() => {
+    const n = new Date();
+    if (month === n.getMonth() + 1 && year === n.getFullYear()) return n.getDate();
+    return 1;
+  });
+
+  useEffect(() => {
+    const checkResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', checkResize);
+    return () => window.removeEventListener('resize', checkResize);
+  }, []);
+
+  useEffect(() => {
+    const n = new Date();
+    if (month === n.getMonth() + 1 && year === n.getFullYear()) {
+      setFocusedDay(n.getDate());
+    } else {
+      setFocusedDay(1);
+    }
+  }, [month, year]);
+
   const scrollToToday = useCallback((smooth = true) => {
     if (isCurrentMonth && currentDayNumber && tableContainerRef.current) {
-      // (currentDayNumber - 1) * COL.DAY puts today at the first visible day spot next to sticky columns
-      const targetScroll = Math.max(0, (currentDayNumber - 1) * COL.DAY);
+      const colDay = isMobile ? COL_MOBILE.DAY : COL_DESKTOP.DAY;
+      const targetScroll = Math.max(0, (currentDayNumber - 1) * colDay);
       tableContainerRef.current.scrollTo({
         left: targetScroll,
         behavior: smooth ? 'smooth' : 'auto',
       });
     }
-  }, [isCurrentMonth, currentDayNumber]);
+  }, [isCurrentMonth, currentDayNumber, isMobile]);
 
   useEffect(() => {
     hasAutoScrolledRef.current = false;
   }, [month, year, section]);
 
   useEffect(() => {
-    if (!loading && rows.length > 0 && isCurrentMonth && !hasAutoScrolledRef.current) {
+    if (!loading && rows.length > 0 && isCurrentMonth && !hasAutoScrolledRef.current && viewMode === 'sheet') {
       const timer = setTimeout(() => {
         scrollToToday(true);
         hasAutoScrolledRef.current = true;
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [loading, rows.length, isCurrentMonth, scrollToToday]);
+  }, [loading, rows.length, isCurrentMonth, scrollToToday, viewMode]);
 
   const fetchData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -1102,25 +1137,31 @@ const SMMOnePageTracker = () => {
   const planField     = section === 'posts' ? 'plan'       : 'storyPlan';
   const planPH        = section === 'posts' ? 'e.g. 15R + 2P' : '30 STORIES';
 
-  const totalW = FIXED_W + COL.DONE + daysInMonth * COL.DAY;
+  const curCol = isMobile ? COL_MOBILE : COL_DESKTOP;
+  const curL = isMobile
+    ? { NO: 0, TEAM: undefined, CLIENT: COL_MOBILE.NO, PLAN: undefined, DONE: undefined }
+    : L;
+  const totalW = isMobile
+    ? (COL_MOBILE.NO + COL_MOBILE.TEAM + COL_MOBILE.CLIENT + COL_MOBILE.PLAN + COL_MOBILE.DONE + daysInMonth * COL_MOBILE.DAY)
+    : (FIXED_W + COL.DONE + daysInMonth * COL.DAY);
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6 space-y-4">
+    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6 space-y-4">
       {/* ── Header ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutGrid className="text-primary" size={22} />
-            <h1 className="text-xl font-black text-foreground tracking-tight">
+            <LayoutGrid className="text-primary shrink-0" size={20} />
+            <h1 className="text-base sm:text-xl font-black text-foreground tracking-tight">
               RWM — {MONTHS[month-1].toUpperCase()} {year} SOCIAL MEDIA ONE PAGE TRACKER
             </h1>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-            <Info size={11}/>
-            INSTAGRAM + FACEBOOK &nbsp;•&nbsp; IST &nbsp;•&nbsp; Click status badge to toggle DONE / PENDING / SKIP
+          <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+            <Info size={11} className="shrink-0" />
+            <span>INSTAGRAM + FACEBOOK • IST • Tap status badge to toggle DONE / PENDING / SKIP</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold shadow-2xs" title="Live sync connected: real-time updates active without page refresh">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1128,32 +1169,32 @@ const SMMOnePageTracker = () => {
             </span>
             <span>Live Sync</span>
           </div>
-          <div className="flex items-center gap-1 bg-card border border-border rounded-xl px-2 py-1.5 shadow-xs">
-            <button onClick={prevMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors"><ChevronLeft size={16}/></button>
-            <span className="text-xs font-bold text-foreground w-32 text-center">{MONTHS[month-1]} {year}</span>
-            <button onClick={nextMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors"><ChevronRight size={16}/></button>
+          <div className="flex items-center gap-1 bg-card border border-border rounded-xl px-1.5 sm:px-2 py-1 sm:py-1.5 shadow-xs">
+            <button onClick={prevMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors" title="Previous Month"><ChevronLeft size={15}/></button>
+            <span className="text-xs font-bold text-foreground w-28 sm:w-32 text-center">{MONTHS[month-1]} {year}</span>
+            <button onClick={nextMonth} className="p-1 rounded-lg hover:bg-secondary transition-colors" title="Next Month"><ChevronRight size={15}/></button>
           </div>
-          <button onClick={() => fetchData(false)} disabled={loading} className="p-2 rounded-xl border border-border bg-card hover:bg-secondary transition-colors" title="Manual Refresh">
-            <RefreshCw size={15} className={loading ? 'animate-spin text-primary' : 'text-muted-foreground'}/>
+          <button onClick={() => fetchData(false)} disabled={loading} className="p-1.5 sm:p-2 rounded-xl border border-border bg-card hover:bg-secondary transition-colors" title="Manual Refresh">
+            <RefreshCw size={14} className={loading ? 'animate-spin text-primary' : 'text-muted-foreground'}/>
           </button>
           <button
             onClick={handleSyncFromContent}
             disabled={isSyncing || loading}
-            className="flex items-center gap-1.5 px-3 py-2 border border-cyan-500/40 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 text-xs font-bold rounded-xl hover:bg-cyan-100 dark:hover:bg-cyan-900/50 shadow-xs transition-all"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 border border-cyan-500/40 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 text-xs font-bold rounded-xl hover:bg-cyan-100 dark:hover:bg-cyan-900/50 shadow-xs transition-all"
             title="Auto-populate Reels, Posts, and Stories from the Content module"
           >
-            <ArrowDownToLine size={14} className={isSyncing ? 'animate-bounce text-primary' : ''} />
-            <span>{isSyncing ? 'Syncing...' : 'Sync from Content'}</span>
+            <ArrowDownToLine size={13} className={isSyncing ? 'animate-bounce text-primary' : ''} />
+            <span className="hidden xs:inline sm:inline">{isSyncing ? 'Syncing...' : 'Sync from Content'}</span>
           </button>
           <button
             onClick={() => {
               setShowAddModal(true);
               fetchClients();
             }}
-            className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 shadow-sm transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:opacity-90 shadow-sm transition-all"
             title="Add a client to the tracker"
           >
-            <Plus size={15} />
+            <Plus size={14} />
             <span>Add Client</span>
           </button>
         </div>
@@ -1161,63 +1202,95 @@ const SMMOnePageTracker = () => {
 
       <SMMSubNav/>
 
-      {/* ── Section Tabs ── */}
-      <div className="flex items-center gap-2">
-        {[{id:'posts',label:'📸 Post & Reel Tracker'},{id:'stories',label:'🎬 30-Day Story Sheet'}].map(tab => (
-          <button key={tab.id} onClick={() => setSection(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all duration-200
-              ${section===tab.id ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20' : 'bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
-            {tab.label}
+      {/* ── Section Tabs & View Mode Switcher ── */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {[{id:'posts',label:'📸 Post & Reel Tracker'},{id:'stories',label:'🎬 30-Day Story Sheet'}].map(tab => (
+            <button key={tab.id} onClick={() => setSection(tab.id)}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold border transition-all duration-200
+                ${section===tab.id ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20' : 'bg-card border-border text-muted-foreground hover:bg-secondary hover:text-foreground'}`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* View Mode Toggle */}
+        <div className="flex items-center bg-card border border-border rounded-xl p-1 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setViewMode('sheet')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+              viewMode === 'sheet'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            title="Full monthly spreadsheet grid"
+          >
+            <LayoutGrid size={13} />
+            <span>Month Sheet</span>
           </button>
-        ))}
+          <button
+            type="button"
+            onClick={() => setViewMode('day')}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+              viewMode === 'day'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            title="Focused day cards with large touch buttons"
+          >
+            <Smartphone size={13} />
+            <span>Day Cards</span>
+          </button>
+        </div>
       </div>
 
-      {/* ── Legend & Navigation ── */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2.5 flex-wrap">
+      {/* ── Legend & Quick Jump ── */}
+      <div className="flex items-center justify-between gap-2.5 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
           {/* Todo badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#e0f2fe', color:'#0369a1', fontSize:11, fontWeight:700, border:'1px solid #7dd3fc' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#e0f2fe', color:'#0369a1', fontSize:10.5, fontWeight:700, border:'1px solid #7dd3fc' }}>
             <ListTodo size={11}/>
-            Todo (Initial)
+            Todo
           </span>
 
           {/* Pending badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#fef3c7', color:'#92400e', fontSize:11, fontWeight:700, border:'1px solid #fcd34d' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#fef3c7', color:'#92400e', fontSize:10.5, fontWeight:700, border:'1px solid #fcd34d' }}>
             <Clock size={11}/>
             Pending
           </span>
 
           {/* Done badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#10b981', color:'#ffffff', fontSize:11, fontWeight:700, border:'1px solid #059669' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#10b981', color:'#ffffff', fontSize:10.5, fontWeight:700, border:'1px solid #059669' }}>
             <CheckCircle2 size={11}/>
             Done
           </span>
 
           {/* Skip badge */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:11, fontWeight:700, border:'1px solid #d1d5db' }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'#f3f4f6', color:'#6b7280', fontSize:10.5, fontWeight:700, border:'1px solid #d1d5db' }}>
             Skip
           </span>
 
           {/* Sunday */}
-          <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'rgba(251,191,36,0.2)', color:'#92400e', fontSize:11, fontWeight:700, border:'1px solid rgba(251,191,36,0.4)' }}>
-            <span style={{ width:10, height:10, background:'rgba(251,191,36,0.8)', borderRadius:2, display:'inline-block' }}/>Sunday
+          <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'rgba(251,191,36,0.2)', color:'#92400e', fontSize:10.5, fontWeight:700, border:'1px solid rgba(251,191,36,0.4)' }}>
+            <span style={{ width:8, height:8, background:'rgba(251,191,36,0.8)', borderRadius:2, display:'inline-block' }}/>Sunday
           </span>
 
           {/* Today / Live */}
           {isCurrentMonth && (
-            <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:8, background:'linear-gradient(135deg, #2563eb, #1d4ed8)', color:'#ffffff', fontSize:11, fontWeight:800, border:'1px solid #60a5fa', boxShadow:'0 1px 4px rgba(37,99,235,0.25)' }}>
-              <span style={{ width:7, height:7, background:'#ef4444', borderRadius:'50%', display:'inline-block', boxShadow:'0 0 6px #ef4444' }}/>
-              Today (Live: Day {currentDayNumber})
+            <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:8, background:'linear-gradient(135deg, #2563eb, #1d4ed8)', color:'#ffffff', fontSize:10.5, fontWeight:800, border:'1px solid #60a5fa', boxShadow:'0 1px 4px rgba(37,99,235,0.25)' }}>
+              <span style={{ width:6, height:6, background:'#ef4444', borderRadius:'50%', display:'inline-block', boxShadow:'0 0 6px #ef4444' }}/>
+              Today (Day {currentDayNumber})
             </span>
           )}
         </div>
 
         {/* Quick jump to today button */}
-        {isCurrentMonth && (
+        {isCurrentMonth && viewMode === 'sheet' && (
           <button
             type="button"
             onClick={() => scrollToToday(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all cursor-pointer shadow-xs"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold bg-primary/10 text-primary hover:bg-primary/20 border border-primary/25 transition-all cursor-pointer shadow-xs shrink-0"
             title="Scroll horizontally to today's column"
           >
             <span>📍 Scroll to Today</span>
@@ -1225,18 +1298,18 @@ const SMMOnePageTracker = () => {
         )}
       </div>
 
-      {/* ── Table ── */}
+      {/* ── Content View (Loading, Empty, Day Cards or Month Sheet) ── */}
       {loading ? (
-        <div className="py-20 text-center">
+        <div className="py-20 text-center bg-card border border-border rounded-2xl">
           <RefreshCw size={28} className="mx-auto animate-spin text-primary mb-3"/>
           <p className="text-sm text-muted-foreground font-semibold">Loading tracker…</p>
         </div>
       ) : rows.length === 0 ? (
-        <div className="py-16 text-center bg-card border border-border rounded-2xl p-8 space-y-4 shadow-xs">
+        <div className="py-16 text-center bg-card border border-border rounded-2xl p-6 sm:p-8 space-y-4 shadow-xs">
           <AlertCircle size={36} className="mx-auto text-muted-foreground/80"/>
           <div>
             <h3 className="text-sm font-bold text-foreground">No Active Clients in Tracker</h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
               There are no clients listed for {MONTHS[month-1]} {year}. Add clients to start tracking.
             </p>
           </div>
@@ -1251,43 +1324,241 @@ const SMMOnePageTracker = () => {
             <span>Add Client to Tracker</span>
           </button>
         </div>
+      ) : viewMode === 'day' ? (
+        /* ── MOBILE DAY FOCUS VIEW ── */
+        <div className="space-y-4">
+          {/* Day Selector & Navigation Bar */}
+          <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFocusedDay((d) => Math.max(1, d - 1))}
+                  disabled={focusedDay <= 1}
+                  className="p-1.5 rounded-xl border border-border bg-background hover:bg-secondary disabled:opacity-40 transition-colors"
+                  title="Previous Day"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-extrabold text-foreground flex items-center gap-2">
+                    <span>Day {focusedDay} • {dayHeaders[focusedDay - 1]?.dow || ''}</span>
+                    {isCurrentMonth && focusedDay === currentDayNumber && (
+                      <span className="text-[9px] font-black uppercase bg-rose-500 text-white px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                        ● LIVE TODAY
+                      </span>
+                    )}
+                  </h3>
+                  <span className="text-[10px] text-muted-foreground">
+                    {MONTHS[month-1]} {focusedDay}, {year}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFocusedDay((d) => Math.min(daysInMonth, d + 1))}
+                  disabled={focusedDay >= daysInMonth}
+                  className="p-1.5 rounded-xl border border-border bg-background hover:bg-secondary disabled:opacity-40 transition-colors"
+                  title="Next Day"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              {isCurrentMonth && (
+                <button
+                  type="button"
+                  onClick={() => setFocusedDay(currentDayNumber)}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
+                    focusedDay === currentDayNumber
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-primary/10 text-primary border border-primary/25 hover:bg-primary/20'
+                  }`}
+                >
+                  {focusedDay === currentDayNumber ? 'Today Selected' : '📍 Go to Today'}
+                </button>
+              )}
+            </div>
+
+            {/* Scrollable Day Strip */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [touch-action:pan-x] [-webkit-overflow-scrolling:touch] custom-scrollbar">
+              {dayHeaders.map(({ d, dow, sun, isToday: isLiveToday }) => {
+                const isSelected = d === focusedDay;
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setFocusedDay(d)}
+                    className={`flex flex-col items-center justify-center min-w-[36px] py-1 px-1 rounded-xl text-xs font-bold transition-all shrink-0 border ${
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary shadow-xs scale-105'
+                        : isLiveToday
+                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/35'
+                        : sun
+                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25'
+                        : 'bg-secondary/40 text-muted-foreground border-border/60 hover:bg-secondary'
+                    }`}
+                  >
+                    <span className="text-[8.5px] font-medium opacity-80">{dow}</span>
+                    <span className="text-xs font-black">{d}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile Client Cards for selected focusedDay */}
+          <div className="space-y-3">
+            {rows.map((row, rowIdx) => {
+              const name = row.client?.companyName || 'Unknown';
+              const cell = (row.days || []).find((dc) => dc.day === focusedDay) || { day: focusedDay };
+              const rawSt = cell[statusField] || 'todo';
+              const st = resolveCellStatus(rawSt, cell[labelField], focusedDay, month, year);
+              const relevantItems = Array.isArray(cell.items)
+                ? (section === 'stories'
+                    ? cell.items.filter((it) => it.type === 'story')
+                    : cell.items.filter((it) => ['reel', 'post', 'video', 'carousel'].includes(it.type)))
+                : [];
+              const { done, total } = calcProgress(row, statusField);
+              const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+              const pctColor = pct === 100 ? '#10b981' : pct >= 60 ? '#3b82f6' : '#fbbf24';
+
+              return (
+                <div key={row.client?._id || rowIdx} className="bg-card border border-border rounded-2xl p-3.5 sm:p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-primary/10 text-primary font-black text-xs flex items-center justify-center shrink-0">
+                        {rowIdx + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-sm text-foreground truncate" title={name}>
+                          {name}
+                        </h4>
+                        <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.2 rounded border border-indigo-200 dark:border-indigo-900/50">
+                          Team: {row.team || 'RWM'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDeleteMode('month');
+                        setClientToDelete(row);
+                      }}
+                      className="p-1 rounded text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors shrink-0"
+                      title={`Delete ${name} from tracker`}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+
+                  {/* Quota & Progress Bar */}
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-secondary/30 p-2.5 rounded-xl border border-border/50">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-0.5">Plan Quota</span>
+                      <EditablePlan
+                        value={row[planField]}
+                        placeholder={planPH}
+                        onSave={(v) => handleMetaSave(rowIdx, planField, v)}
+                      />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-0.5">Monthly Progress</span>
+                      <div className="flex items-center justify-between font-bold text-[11px]">
+                        <span>{done}/{total} done</span>
+                        <span style={{ color: pctColor }}>{pct}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-border rounded-full overflow-hidden mt-1">
+                        <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pct}%`, background: pctColor }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deliverable Slot for this specific day */}
+                  <div className="bg-background border border-border rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] uppercase font-extrabold text-teal-700 dark:text-teal-400 tracking-wider">
+                        Day {focusedDay} Deliverable
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDayDrawer(rowIdx, focusedDay)}
+                        className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1"
+                      >
+                        Sidebar Details →
+                      </button>
+                    </div>
+
+                    <div className="py-1 min-h-[30px] flex items-center">
+                      <DayCellDeliverableSlot
+                        cell={cell}
+                        field={labelField}
+                        section={section}
+                        onSaveLabel={(v) => handleLabelSave(rowIdx, focusedDay, labelField, v)}
+                        onOpenDrawer={() => handleOpenDayDrawer(rowIdx, focusedDay)}
+                      />
+                    </div>
+
+                    <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-3">
+                      <span className="text-xs text-muted-foreground font-semibold">Status:</span>
+                      <div className="w-36">
+                        <StatusBadge
+                          status={st}
+                          items={relevantItems}
+                          onClick={() => handleStatusToggle(rowIdx, focusedDay, statusField)}
+                          onSelectStatus={(newSt) => handleStatusSet(rowIdx, focusedDay, statusField, newSt)}
+                          onOpenDrawer={() => handleOpenDayDrawer(rowIdx, focusedDay)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       ) : (
+        /* ── RESPONSIVE FULL MONTH SHEET (SPREADSHEET GRID) ── */
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
           {/* Title bar */}
-          <div className="bg-teal-600 dark:bg-teal-700 text-white px-5 py-2.5 flex items-center justify-between">
-            <span className="font-black text-sm tracking-wide">
+          <div className="bg-teal-600 dark:bg-teal-700 text-white px-4 sm:px-5 py-2.5 flex items-center justify-between flex-wrap gap-2">
+            <span className="font-black text-xs sm:text-sm tracking-wide">
               {section==='posts' ? 'POST & REEL TRACKER' : '30-DAY STORY SHEET — EVERY CLIENT / EVERY DAY'}
             </span>
-            <span className="text-[11px] font-semibold opacity-80">
+            <span className="text-[10px] sm:text-[11px] font-semibold opacity-80">
               {section==='posts' ? 'INSTAGRAM + FACEBOOK • IST • SELECT DONE → GREEN STATUS' : 'STORIES — EVERY CLIENT / EVERY DAY'}
             </span>
           </div>
 
-          {/* Scrollable wrapper — overflow-x ONLY on this div; vertical handled by the table height */}
+          {/* Scrollable wrapper — overflow-x with touch scrolling */}
           <div
             ref={tableContainerRef}
             className="custom-scrollbar"
-            style={{ overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 310px)' }}
+            style={{
+              overflowX: 'auto',
+              overflowY: 'auto',
+              maxHeight: 'calc(100vh - 280px)',
+              WebkitOverflowScrolling: 'touch',
+            }}
           >
-            <table style={{ borderCollapse:'separate', borderSpacing:0, minWidth:totalW, tableLayout:'fixed', width: totalW }}>
+            <table style={{ borderCollapse:'separate', borderSpacing:0, minWidth: totalW, tableLayout:'fixed', width: totalW }}>
 
-              {/* ── colgroup — single source of truth for widths ── */}
+              {/* ── colgroup — responsive column widths ── */}
               <colgroup>
-                <col style={{ width:COL.NO   }}/>
-                <col style={{ width:COL.TEAM }}/>
-                <col style={{ width:COL.CLIENT }}/>
-                <col style={{ width:COL.PLAN }}/>
-                {dayHeaders.map(({d}) => <col key={d} style={{ width:COL.DAY }}/>)}
-                <col style={{ width:COL.DONE }}/>
+                <col style={{ width: curCol.NO   }}/>
+                <col style={{ width: curCol.TEAM }}/>
+                <col style={{ width: curCol.CLIENT }}/>
+                <col style={{ width: curCol.PLAN }}/>
+                {dayHeaders.map(({d}) => <col key={d} style={{ width: curCol.DAY }}/>)}
+                <col style={{ width: curCol.DONE }}/>
               </colgroup>
 
               {/* ── THEAD ── */}
               <thead>
                 <tr>
-                  <th style={HDR_STICKY(L.NO,     COL.NO)}>NO</th>
-                  <th style={HDR_STICKY(L.TEAM,   COL.TEAM)}>TEAM</th>
-                  <th style={{ ...HDR_STICKY(L.CLIENT, COL.CLIENT), textAlign:'left', paddingLeft:8 }}>CLIENT</th>
-                  <th style={HDR_STICKY(L.PLAN,   COL.PLAN)}>PLAN</th>
+                  <th style={HDR_STICKY(curL.NO, curCol.NO)}>NO</th>
+                  <th style={isMobile ? { ...HDR_BASE, width: curCol.TEAM, minWidth: curCol.TEAM, maxWidth: curCol.TEAM, position: 'static' } : HDR_STICKY(curL.TEAM, curCol.TEAM)}>TEAM</th>
+                  <th style={{ ...HDR_STICKY(curL.CLIENT, curCol.CLIENT), textAlign:'left', paddingLeft: isMobile ? 4 : 8, boxShadow: isMobile ? '2px 0 6px -2px rgba(0,0,0,0.2)' : undefined }}>CLIENT</th>
+                  <th style={isMobile ? { ...HDR_BASE, width: curCol.PLAN, minWidth: curCol.PLAN, maxWidth: curCol.PLAN, position: 'static' } : HDR_STICKY(curL.PLAN, curCol.PLAN)}>PLAN</th>
                   {dayHeaders.map(({d, dow, sun, isToday}) => {
                     let thStyle = HDR_BASE;
                     if (isToday) {
@@ -1301,6 +1572,9 @@ const SMMOnePageTracker = () => {
                         key={d}
                         style={{
                           ...thStyle,
+                          width: curCol.DAY,
+                          minWidth: curCol.DAY,
+                          maxWidth: curCol.DAY,
                           position: 'sticky',
                           top: 0,
                           zIndex: isToday ? 25 : 20,
@@ -1314,7 +1588,7 @@ const SMMOnePageTracker = () => {
                                 fontWeight: 900,
                                 background: '#ef4444',
                                 color: '#ffffff',
-                                padding: '1px 5px',
+                                padding: '1px 4px',
                                 borderRadius: 4,
                                 letterSpacing: '0.06em',
                                 display: 'inline-flex',
@@ -1335,7 +1609,10 @@ const SMMOnePageTracker = () => {
                       </th>
                     );
                   })}
-                  <th style={{ ...HDR_STICKY('auto', COL.DONE), right:0, left:'auto', zIndex:32, boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.15)' }}>DONE%</th>
+                  <th style={isMobile
+                    ? { ...HDR_BASE, width: curCol.DONE, minWidth: curCol.DONE, maxWidth: curCol.DONE, position: 'static' }
+                    : { ...HDR_STICKY('auto', curCol.DONE), right:0, left:'auto', zIndex:32, boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.15)' }
+                  }>DONE%</th>
                 </tr>
               </thead>
 
@@ -1352,16 +1629,16 @@ const SMMOnePageTracker = () => {
 
                       {/* Content row */}
                       <tr>
-                        <td style={CELL_STICKY(L.NO, COL.NO)}>
-                          <span style={{ fontWeight:800, fontSize:11 }}>{rowIdx+1}</span>
+                        <td style={CELL_STICKY(curL.NO, curCol.NO)}>
+                          <span style={{ fontWeight:800, fontSize:10.5 }}>{rowIdx+1}</span>
                         </td>
-                        <td style={{ ...CELL_STICKY(L.TEAM, COL.TEAM), color:'#6366f1', fontWeight:700, fontSize:10 }}>
+                        <td style={isMobile ? { ...CELL_BASE, width: curCol.TEAM, minWidth: curCol.TEAM, maxWidth: curCol.TEAM, color:'#6366f1', fontWeight:700, fontSize:10 } : { ...CELL_STICKY(curL.TEAM, curCol.TEAM), color:'#6366f1', fontWeight:700, fontSize:10 }}>
                           {row.team || 'RWM'}
                         </td>
-                        <td style={{ ...CELL_STICKY(L.CLIENT, COL.CLIENT), textAlign:'left', paddingLeft:8, paddingRight:6 }}>
-                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:4 }}>
+                        <td style={{ ...CELL_STICKY(curL.CLIENT, curCol.CLIENT), textAlign:'left', paddingLeft: isMobile ? 4 : 8, paddingRight: isMobile ? 4 : 6, boxShadow: isMobile ? '2px 0 6px -2px rgba(0,0,0,0.12)' : undefined }}>
+                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:3 }}>
                             <span
-                              style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:700, fontSize:11 }}
+                              style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:700, fontSize: isMobile ? 10 : 11 }}
                               title={name}
                             >
                               {name}
@@ -1376,17 +1653,17 @@ const SMMOnePageTracker = () => {
                               className="p-1 rounded text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex-shrink-0 cursor-pointer"
                               title={`Delete ${name} from tracker`}
                             >
-                              <Trash2 size={12} />
+                              <Trash2 size={11} />
                             </button>
                           </div>
                         </td>
-                        <td style={CELL_STICKY(L.PLAN, COL.PLAN)}>
+                        <td style={isMobile ? { ...CELL_BASE, width: curCol.PLAN, minWidth: curCol.PLAN, maxWidth: curCol.PLAN } : CELL_STICKY(curL.PLAN, curCol.PLAN)}>
                           <EditablePlan value={row[planField]} placeholder={planPH} onSave={v => handleMetaSave(rowIdx, planField, v)}/>
                         </td>
                         {dayHeaders.map(({d, sun, isToday}) => {
                           const cell = row.days.find(dc => dc.day===d) || {};
                           return (
-                            <td key={d} style={DAY_CELL(sun, isToday)}>
+                            <td key={d} style={{ ...DAY_CELL(sun, isToday), width: curCol.DAY, minWidth: curCol.DAY, maxWidth: curCol.DAY }}>
                               <DayCellDeliverableSlot
                                 cell={cell}
                                 field={labelField}
@@ -1397,7 +1674,10 @@ const SMMOnePageTracker = () => {
                             </td>
                           );
                         })}
-                        <td style={{ ...CELL_STICKY('auto', COL.DONE), right:0, left:'auto', zIndex:15, background:'hsl(var(--card, 0 0% 100%))', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }}>
+                        <td style={isMobile
+                          ? { ...CELL_BASE, width: curCol.DONE, minWidth: curCol.DONE, maxWidth: curCol.DONE }
+                          : { ...CELL_STICKY('auto', curCol.DONE), right:0, left:'auto', zIndex:15, background:'hsl(var(--card, 0 0% 100%))', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }
+                        }>
                           <div style={{ fontWeight:800, fontSize:10 }}>{done}/{total}</div>
                           <div style={{ marginTop:2, height:4, background:'#e5e7eb', borderRadius:4, overflow:'hidden' }}>
                             <div style={{ height:'100%', width:`${pct}%`, background:pctColor, borderRadius:4, transition:'width 0.3s' }}/>
@@ -1407,14 +1687,14 @@ const SMMOnePageTracker = () => {
 
                       {/* Status row */}
                       <tr style={{ borderBottom:'2px solid rgba(0,0,0,0.08)' }}>
-                        <td style={STATUS_CELL_STICKY(L.NO, COL.NO)}/>
-                        <td style={STATUS_CELL_STICKY(L.TEAM, COL.TEAM)}/>
-                        <td style={{ ...STATUS_CELL_STICKY(L.CLIENT, COL.CLIENT), textAlign:'left', paddingLeft:8 }}>
-                          <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.08em', color:'#0f766e', whiteSpace:'nowrap' }}>
+                        <td style={STATUS_CELL_STICKY(curL.NO, curCol.NO)}/>
+                        <td style={isMobile ? { ...CELL_BASE, width: curCol.TEAM, minWidth: curCol.TEAM, maxWidth: curCol.TEAM, background:'var(--tracker-status-sticky, #f0fdfa)' } : STATUS_CELL_STICKY(curL.TEAM, curCol.TEAM)}/>
+                        <td style={{ ...STATUS_CELL_STICKY(curL.CLIENT, curCol.CLIENT), textAlign:'left', paddingLeft: isMobile ? 4 : 8, boxShadow: isMobile ? '2px 0 6px -2px rgba(0,0,0,0.12)' : undefined }}>
+                          <span style={{ fontSize:9, fontWeight:800, textTransform:'uppercase', letterSpacing:'0.06em', color:'#0f766e', whiteSpace:'nowrap' }}>
                             {statusRowLbl}
                           </span>
                         </td>
-                        <td style={STATUS_CELL_STICKY(L.PLAN, COL.PLAN)}/>
+                        <td style={isMobile ? { ...CELL_BASE, width: curCol.PLAN, minWidth: curCol.PLAN, maxWidth: curCol.PLAN, background:'var(--tracker-status-sticky, #f0fdfa)' } : STATUS_CELL_STICKY(curL.PLAN, curCol.PLAN)}/>
                         {dayHeaders.map(({d, sun, isToday}) => {
                           const cell = row.days.find(dc => dc.day===d) || {};
                           const rawSt = cell[statusField] || 'todo';
@@ -1425,7 +1705,7 @@ const SMMOnePageTracker = () => {
                                 : cell.items.filter((it) => ['reel', 'post', 'video', 'carousel'].includes(it.type)))
                             : [];
                           return (
-                            <td key={d} style={STATUS_DAY_CELL(sun, isToday)}>
+                            <td key={d} style={{ ...STATUS_DAY_CELL(sun, isToday), width: curCol.DAY, minWidth: curCol.DAY, maxWidth: curCol.DAY }}>
                               <StatusBadge
                                 status={st}
                                 items={relevantItems}
@@ -1436,7 +1716,10 @@ const SMMOnePageTracker = () => {
                             </td>
                           );
                         })}
-                        <td style={{ ...STATUS_CELL_STICKY('auto', COL.DONE), right:0, left:'auto', zIndex:15, background:'var(--tracker-status-sticky, #f0fdfa)', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }}/>
+                        <td style={isMobile
+                          ? { ...CELL_BASE, width: curCol.DONE, minWidth: curCol.DONE, maxWidth: curCol.DONE, background:'var(--tracker-status-sticky, #f0fdfa)' }
+                          : { ...STATUS_CELL_STICKY('auto', curCol.DONE), right:0, left:'auto', zIndex:15, background:'var(--tracker-status-sticky, #f0fdfa)', boxShadow:'-2px 0 6px -2px rgba(0,0,0,0.08)' }
+                        }/>
                       </tr>
 
                     </React.Fragment>
@@ -1491,8 +1774,8 @@ const SMMOnePageTracker = () => {
 
       {/* ── Add Client Modal ── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div>
                 <h3 className="font-bold text-base text-foreground">Add Client to Tracker</h3>
@@ -1645,17 +1928,17 @@ const SMMOnePageTracker = () => {
       )}
       {/* ── Delete Client Confirmation Modal ── */}
       {clientToDelete && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
             {/* Header */}
             <div className="flex items-start justify-between pb-3 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400">
-                  <Trash2 size={20} />
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 shrink-0">
+                  <Trash2 size={18} className="sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-base text-foreground">Delete Client from Tracker</h3>
-                  <p className="text-xs text-muted-foreground">Choose how you want to remove this client</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm sm:text-base text-foreground truncate">Delete Client from Tracker</h3>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">Choose how you want to remove this client</p>
                 </div>
               </div>
               <button

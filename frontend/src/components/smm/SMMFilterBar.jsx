@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { smmApi } from '../../api/smm';
-import { Building2, FolderKanban, Calendar as CalendarIcon, Share2, Filter, RefreshCw } from 'lucide-react';
+import { Building2, FolderKanban, Calendar as CalendarIcon, Share2, Filter, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 
 export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
   const [clients, setClients] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const activeCount = [
+    filters.client,
+    filters.project,
+    filters.platform,
+    filters.contentType,
+    filters.campaignStatus,
+    filters.dateRange && filters.dateRange !== 'all',
+  ].filter(Boolean).length;
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -76,27 +86,36 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 shadow-xs mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 pb-3 mb-3">
+    <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-xs mb-4 sm:mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/50 pb-2.5 sm:pb-3 mb-2.5 sm:mb-3">
         <div className="flex items-center gap-2">
-          <Filter size={18} className="text-primary" />
-          <h3 className="font-semibold text-sm text-foreground">Marketing System Filters</h3>
-          {filters.client && (
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-              Client Active
+          <Filter size={16} className="text-primary sm:w-[18px] sm:h-[18px]" />
+          <h3 className="font-semibold text-xs sm:text-sm text-foreground">Marketing Filters</h3>
+          {activeCount > 0 && (
+            <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+              {activeCount} Active
             </span>
           )}
         </div>
-        <button
-          onClick={onReset}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium px-2.5 py-1 rounded-lg border border-border hover:bg-secondary"
-        >
-          <RefreshCw size={13} />
-          Reset Filters
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="sm:hidden flex items-center gap-1 text-[11px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg border border-border"
+          >
+            <span>{mobileOpen ? 'Hide' : 'Show'} Filters</span>
+            {mobileOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          <button
+            onClick={onReset}
+            className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors font-medium px-2 sm:px-2.5 py-1 rounded-lg border border-border hover:bg-secondary"
+          >
+            <RefreshCw size={12} />
+            <span>Reset</span>
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className={`${mobileOpen ? 'grid' : 'hidden sm:grid'} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3`}>
         {/* 1. Client Select */}
         <div>
           <label className="text-[11px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
