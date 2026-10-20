@@ -126,7 +126,7 @@ DialogContent.displayName = 'DialogContent';
 export const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      'flex flex-col space-y-1.5 text-left border-b border-border/80 pb-5 mb-6 pr-24 select-none shrink-0',
+      'flex flex-col space-y-1.5 text-left border-b border-border/80 pt-5 pb-5 mb-6 pr-24 select-none shrink-0',
       className
     )}
     {...props}

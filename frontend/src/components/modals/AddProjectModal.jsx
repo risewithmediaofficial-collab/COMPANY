@@ -30,6 +30,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -456,18 +457,30 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="xl" noPadding className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
-        <DialogHeader className="px-6 py-4.5 border-b border-border bg-card shrink-0 pr-24 select-none">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-              <Briefcase size={16} />
+      <DialogContent size="xl" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
+        <DialogHeader className="px-6 py-4 sm:py-[18px] border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 pr-6 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <Briefcase size={18} />
             </div>
-            <div>
-              <DialogTitle className="text-base sm:text-lg font-bold text-foreground">{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+            <div className="min-w-0">
+              <DialogTitle className="text-base sm:text-lg font-bold text-foreground leading-tight truncate">
+                {project ? 'Edit Project' : 'Create New Project'}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground mt-0.5 leading-normal">
                 {project ? 'Update project scope, deliverables, budget, and timeline' : 'Create a new project pipeline for client deliverables and milestones'}
               </DialogDescription>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={15} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
           </div>
         </DialogHeader>
 
