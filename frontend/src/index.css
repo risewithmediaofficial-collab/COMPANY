@@ -81,7 +81,38 @@
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     font-feature-settings: "rlig" 1, "calt" 1;
+    letter-spacing: -0.011em;
+  }
+
+  /* Universal SaaS Typography Hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-foreground tracking-tight;
+    text-wrap: balance;
+  }
+  h1 {
+    letter-spacing: -0.03em;
+  }
+  h2 {
+    letter-spacing: -0.022em;
+  }
+  h3 {
+    letter-spacing: -0.018em;
+  }
+  h4 {
+    letter-spacing: -0.012em;
+  }
+
+  /* Ensure inputs, buttons & form controls inherit clean typography */
+  input, select, textarea, button {
+    font-family: inherit;
+    letter-spacing: inherit;
+  }
+
+  /* Financial and numerical tabular alignment */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
   :root body {
     background-image:

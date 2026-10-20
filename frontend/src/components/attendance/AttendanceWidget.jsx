@@ -234,18 +234,18 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
 
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
-        <div>
-          <h3 className="font-extrabold text-lg tracking-tight flex items-center text-foreground">
-            <Clock className="mr-2 h-5 w-5 text-primary animate-pulse" />
-            Daily Shift & Attendance
+      <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
+        <div className="min-w-0">
+          <h3 className="font-extrabold text-base sm:text-lg tracking-tight flex items-center text-foreground">
+            <Clock className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-primary animate-pulse shrink-0" />
+            <span className="truncate">Daily Shift &amp; Attendance</span>
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Today: {time.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            Today: {time.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
-        <div className="text-right">
-          <span className="text-2xl font-black text-foreground tracking-tight block">
+        <div className="text-right shrink-0">
+          <span className="text-xl sm:text-2xl font-black font-mono tabular-nums text-foreground tracking-tight whitespace-nowrap block">
             {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </span>
         </div>
@@ -292,25 +292,26 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           )}
         </div>
       ) : status && status !== 'present' ? (
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-secondary/30 border border-border">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Today&apos;s Status:</span>
+        <div className="p-3.5 rounded-2xl bg-secondary/30 border border-border space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Today&apos;s Status</span>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase ${
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase ${
                 status === 'absent'
-                  ? 'bg-destructive/10 text-destructive border border-destructive/20'
+                  ? 'bg-destructive/15 text-destructive border border-destructive/30'
                   : status === 'work_from_home'
-                  ? 'bg-purple-500/10 text-purple-600 border border-purple-500/20'
-                  : 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
+                  ? 'bg-purple-500/15 text-purple-600 border border-purple-500/30'
+                  : 'bg-blue-500/15 text-blue-600 border border-blue-500/30'
               }`}
             >
               {status.replace(/_/g, ' ')}
             </span>
           </div>
           {todayRecord?.notes && (
-            <span className="text-xs text-muted-foreground font-medium truncate max-w-[200px]" title={todayRecord.notes}>
-              Reason: &quot;{todayRecord.notes}&quot;
-            </span>
+            <div className="text-xs text-muted-foreground bg-background/60 p-2.5 rounded-xl border border-border/50 leading-relaxed font-normal">
+              <span className="font-semibold text-foreground/90">Note: </span>
+              {todayRecord.notes}
+            </div>
           )}
         </div>
       ) : null}
@@ -436,42 +437,47 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
 
         {/* If Absent or Leave already set */}
         {(isAbsent || isLeave) && !isClockedIn && (
-          <div className="p-4 rounded-2xl bg-secondary/40 border border-border space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Recorded as {isAbsent ? 'Absent' : 'Leave'}
+          <div className="p-4 rounded-2xl bg-secondary/30 border border-border space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full shrink-0 ${isAbsent ? 'bg-destructive' : 'bg-rose-500'}`} />
+                Recorded as {isAbsent ? 'Absent' : 'On Leave'}
               </span>
               <button
                 type="button"
                 onClick={handleSelectPresent}
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary/80 transition-colors self-start sm:self-auto cursor-pointer"
               >
-                Switch to Present & Clock In <ChevronRight size={14} />
+                <span>Switch to Present &amp; Clock In</span>
+                <ChevronRight size={14} className="shrink-0" />
               </button>
             </div>
-            <p className="text-xs text-foreground font-medium italic">
-              Reason: &quot;{todayRecord?.notes || 'No reason specified'}&quot;
-            </p>
+            {todayRecord?.notes && (
+              <p className="text-xs text-muted-foreground bg-background/60 p-2.5 rounded-xl border border-border/50 leading-relaxed font-normal">
+                <span className="font-semibold text-foreground/90">Reason: </span>
+                {todayRecord.notes}
+              </p>
+            )}
           </div>
         )}
 
         {/* Timings Summary Row */}
-        <div className="grid grid-cols-3 gap-3 pt-2 text-center border-t border-border">
+        <div className="grid grid-cols-3 gap-2 text-center border-t border-border pt-3">
           <div className="p-2.5 rounded-2xl bg-secondary/30 border border-border">
-            <span className="text-[10px] font-bold uppercase text-muted-foreground block">First Clock In</span>
-            <span className="text-xs font-extrabold text-emerald-600 mt-0.5 block">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">First In</span>
+            <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-1 block tabular-nums">
               {formatTime(todayRecord?.clockIn)}
             </span>
           </div>
           <div className="p-2.5 rounded-2xl bg-secondary/30 border border-border">
-            <span className="text-[10px] font-bold uppercase text-muted-foreground block">Last Clock Out</span>
-            <span className="text-xs font-extrabold text-amber-600 mt-0.5 block">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Last Out</span>
+            <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mt-1 block tabular-nums">
               {formatTime(todayRecord?.clockOut)}
             </span>
           </div>
           <div className="p-2.5 rounded-2xl bg-secondary/30 border border-border">
-            <span className="text-[10px] font-bold uppercase text-muted-foreground block">Total Logged</span>
-            <span className="text-xs font-extrabold text-primary mt-0.5 block">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Hours</span>
+            <span className="text-xs font-mono font-bold text-primary mt-1 block tabular-nums">
               {Number(todayRecord?.totalHours || 0).toFixed(2)} hrs
             </span>
           </div>
