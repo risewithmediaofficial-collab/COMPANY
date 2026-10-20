@@ -6,7 +6,7 @@ import {
 import {
   TrendingUp, IndianRupee, Users, Briefcase, CheckCircle2,
   AlertTriangle, Target, BarChart3, Award, ArrowUpRight, ArrowDownRight,
-  FileSpreadsheet, FileText, Calendar, Clock, PhoneCall
+  FileSpreadsheet, FileText, Calendar, Clock, PhoneCall, Eye,
 } from 'lucide-react';
 import { useAdminReport, useMonthlyEmployeeReport } from '../../hooks/useReports';
 import { motion } from 'framer-motion';
@@ -15,8 +15,22 @@ import { toast } from 'sonner';
 import { formatINR } from '../../utils/currency';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { DateRangePicker } from '../../components/ui/DateRangePicker';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../../components/ui/dialog';
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
+const formatTime = (isoString) => {
+  if (!isoString) return '--:--';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '--:--';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+};
 
 const MONTHS = [
   { value: 1, label: 'January' },
@@ -63,6 +77,7 @@ const Reports = () => {
   const [activeTab, setActiveTab] = useState('overall'); // 'overall' | 'employees'
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  const [selectedEmployeeLogs, setSelectedEmployeeLogs] = useState(null);
 
   const { data: employeeReportData, isLoading: isEmployeeLoading } = useMonthlyEmployeeReport({
     month: reportMonth,
@@ -235,7 +250,7 @@ const Reports = () => {
     },
   ] : [
     {
-      title: `Employee Monthly Report - ${MONTHS.find(m => m.value === reportMonth)?.label} ${reportYear}`,
+      title: `Employee Monthly Performance Summary - ${MONTHS.find(m => m.value === reportMonth)?.label} ${reportYear}`,
       columns: ['Employee', 'Role', 'Department', 'Present', 'Absent', 'Leave', 'Holiday', 'Hours', 'Calls'],
       rows: (employeeReportData?.summary || []).map(row => [
         row.user?.name || 'Unknown',
@@ -248,6 +263,35 @@ const Reports = () => {
         `${row.totalHours} hrs`,
         row.callCount,
       ]),
+    },
+    {
+      title: `Detailed Daily Attendance & Login/Logout Timings - ${MONTHS.find(m => m.value === reportMonth)?.label} ${reportYear}`,
+      columns: ['Employee', 'Date', 'Day', 'Status', 'First In', 'Last Out', 'All Login & Logout Sessions', 'Hours'],
+      rows: (employeeReportData?.summary || []).flatMap(emp =>
+        (emp.dailyRecords || []).map(d => {
+          const dObj = new Date(d.date);
+          const dateStr = d.date ? dObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+          const dayStr = dObj.toLocaleDateString([], { weekday: 'short' });
+          const cIn = d.clockIn ? formatTime(d.clockIn) : '--:--';
+          const cOut = d.clockOut ? formatTime(d.clockOut) : '--:--';
+          let sessionsStr = '--';
+          if (d.sessions && d.sessions.length > 0) {
+            sessionsStr = d.sessions.map((s, idx) => `#${idx + 1}: In ${formatTime(s.clockIn)} - Out ${s.clockOut ? formatTime(s.clockOut) : 'Active'} (${s.durationHours ? s.durationHours.toFixed(1) : 0}h)`).join('; ');
+          } else if (d.clockIn) {
+            sessionsStr = `In ${formatTime(d.clockIn)} - Out ${formatTime(d.clockOut)}`;
+          }
+          return [
+            emp.user?.name || 'Employee',
+            dateStr,
+            dayStr,
+            (d.status || '').toUpperCase().replace(/_/g, ' '),
+            cIn,
+            cOut,
+            sessionsStr,
+            `${Number(d.totalHours || 0).toFixed(2)} hrs`,
+          ];
+        })
+      ),
     }
   ];
 
@@ -615,6 +659,7 @@ const Reports = () => {
                     <th className="px-6 py-4 text-center">Holiday</th>
                     <th className="px-6 py-4 text-center">Hours Logged</th>
                     <th className="px-6 py-4 text-center">Calls Logged</th>
+                    <th className="px-6 py-4 text-center">Sessions Log</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -638,11 +683,22 @@ const Reports = () => {
                       <td className="px-6 py-4 text-center font-bold text-blue-600">{row.holiday} Days</td>
                       <td className="px-6 py-4 text-center font-bold">{row.totalHours} hrs</td>
                       <td className="px-6 py-4 text-center font-bold text-primary">{row.callCount} Calls</td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedEmployeeLogs(row)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs transition-colors cursor-pointer"
+                          title="View all daily login & logout timings"
+                        >
+                          <Eye size={13} />
+                          View Timings
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {(!employeeReportData?.summary || employeeReportData.summary.length === 0) && (
                     <tr>
-                      <td colSpan="8" className="px-6 py-12 text-center text-muted-foreground italic">
+                      <td colSpan="9" className="px-6 py-12 text-center text-muted-foreground italic">
                         No employee records found for this period.
                       </td>
                     </tr>
@@ -653,6 +709,136 @@ const Reports = () => {
           )}
         </div>
       )}
+
+      {/* Employee Daily Login & Logout Timings Modal */}
+      <Dialog open={Boolean(selectedEmployeeLogs)} onOpenChange={(open) => { if (!open) setSelectedEmployeeLogs(null); }}>
+        <DialogContent size="large">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="text-primary h-5 w-5" />
+              Daily Attendance &amp; Login/Logout Logs
+            </DialogTitle>
+            <DialogDescription>
+              {selectedEmployeeLogs?.user?.name} ({selectedEmployeeLogs?.user?.email}) — {MONTHS.find(m => m.value === reportMonth)?.label} {reportYear}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedEmployeeLogs && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-4 gap-3 text-center">
+                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Present</span>
+                  <div className="text-base font-black text-emerald-600 mt-0.5">{selectedEmployeeLogs.present} Days</div>
+                </div>
+                <div className="p-3 rounded-2xl bg-destructive/10 border border-destructive/20">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Absent</span>
+                  <div className="text-base font-black text-destructive mt-0.5">{selectedEmployeeLogs.absent} Days</div>
+                </div>
+                <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Holidays</span>
+                  <div className="text-base font-black text-blue-600 mt-0.5">{selectedEmployeeLogs.holiday} Days</div>
+                </div>
+                <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Total Hours</span>
+                  <div className="text-base font-black text-primary mt-0.5">{selectedEmployeeLogs.totalHours} hrs</div>
+                </div>
+              </div>
+
+              <div className="max-h-[55vh] overflow-y-auto custom-scrollbar rounded-2xl border border-border">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-muted/40 font-semibold sticky top-0 border-b border-border text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">First In / Last Out</th>
+                      <th className="px-4 py-3">All Login &amp; Logout Sessions</th>
+                      <th className="px-4 py-3 text-right">Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {(selectedEmployeeLogs.dailyRecords || []).map((record) => {
+                      const dObj = new Date(record.date);
+                      const isSunday = dObj.getDay() === 0;
+
+                      return (
+                        <tr key={record._id || record.date} className="hover:bg-secondary/20">
+                          <td className="px-4 py-3">
+                            <div className="font-bold text-foreground">
+                              {dObj.toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {dObj.toLocaleDateString([], { weekday: 'short' })}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                record.status === 'present'
+                                  ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                                  : record.status === 'absent'
+                                  ? 'bg-destructive/10 text-destructive border border-destructive/20'
+                                  : record.status === 'holiday' || isSunday
+                                  ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20'
+                                  : record.status === 'leave'
+                                  ? 'bg-rose-500/10 text-rose-600 border border-rose-500/20'
+                                  : 'bg-secondary text-muted-foreground'
+                              }`}
+                            >
+                              {record.status?.replace(/_/g, ' ') || (isSunday ? 'holiday' : '—')}
+                            </span>
+                            {record.notes && (
+                              <div className="text-[10px] text-muted-foreground truncate max-w-[140px] mt-0.5" title={record.notes}>
+                                {record.notes}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5 font-semibold text-[11px]">
+                              <span className="text-emerald-600">{formatTime(record.clockIn)}</span>
+                              <span className="text-muted-foreground">→</span>
+                              <span className="text-amber-600">{formatTime(record.clockOut)}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {record.sessions && record.sessions.length > 0 ? (
+                              <div className="flex flex-col gap-1 text-[11px]">
+                                {record.sessions.map((s, idx) => (
+                                  <div key={idx} className="flex items-center gap-2 bg-secondary/30 px-2 py-1 rounded-lg">
+                                    <span className="font-bold text-foreground/80">#{idx + 1}</span>
+                                    <span className="text-emerald-600 font-semibold">{formatTime(s.clockIn)}</span>
+                                    <span className="text-muted-foreground">→</span>
+                                    <span className="text-amber-600 font-semibold">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
+                                    <span className="text-primary font-bold ml-auto">({s.durationHours ? s.durationHours.toFixed(1) : 0}h)</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-[11px]">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-foreground">
+                            {Number(record.totalHours || 0).toFixed(2)} hrs
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedEmployeeLogs(null)}
+                  className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

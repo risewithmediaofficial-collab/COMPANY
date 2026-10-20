@@ -14,11 +14,19 @@ import { sendWhatsAppMessage } from './whatsapp.service.js';
 
 /**
  * Check and send morning attendance reminders to employees who have not clocked in
- * Scheduled 5 times between 9:00 AM and 9:30 AM (9:00, 9:07, 9:15, 9:22, 9:30 AM)
+ * Scheduled up to 10:20 AM morning (9:00, 9:15, 9:30, 9:45, 10:00, 10:10, 10:15, 10:20 AM)
+ * On Sunday, skipped automatically because Sunday is a default weekly holiday.
  */
 export const checkAndSendAttendanceReminders = async (io, options = {}) => {
   try {
-    console.log('CRON: Running 9:00 - 9:30 AM attendance reminder check...');
+    console.log('CRON: Running morning attendance reminder check (up to 10:20 AM cutoff)...');
+
+    const now = new Date();
+    // 0 is Sunday in JavaScript Date
+    if (now.getDay() === 0 && !options.isTest) {
+      console.log('CRON: Today is Sunday (Weekly Holiday). Skipping morning attendance reminders.');
+      return { sentCount: 0, skipped: true, reason: 'Sunday is a weekly holiday' };
+    }
 
     const start = new Date();
     start.setHours(0, 0, 0, 0);
@@ -53,25 +61,45 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
 
     console.log(`CRON: Attendance check: ${pendingUsers.length} of ${eligibleUsers.length} users have not marked attendance today.`);
 
-    const now = new Date();
     const timeString = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    // Determine message and urgency based on time approaching 10:20 AM cutoff
+    let title = '⏰ Attendance Reminder (10:20 AM Cutoff)';
+    let messageTemplate = (userName) =>
+      `Good morning ${userName}! Please remember to clock in. The daily cutoff is 10:20 AM, after which you will be automatically marked absent.`;
+
+    if (hours === 10 && minutes >= 18) {
+      title = '🚨 Final Warning: Clock In Before 10:20 AM!';
+      messageTemplate = (userName) =>
+        `URGENT ${userName}! 10:20 AM cutoff is right now. Clock in immediately or you will be automatically marked absent for today!`;
+    } else if (hours === 10 || (hours === 9 && minutes >= 45)) {
+      title = '⚠️ Urgent Attendance Reminder: 10:20 AM Cutoff';
+      messageTemplate = (userName) =>
+        `Good morning ${userName}! You have not clocked in yet. You must clock in before 10:20 AM to avoid being automatically marked absent.`;
+    }
 
     let sentCount = 0;
     const notifiedUserIds = new Set();
 
     for (const user of pendingUsers) {
-      await createNotification({
-        recipient: user._id,
-        type: 'attendance_reminder',
-        title: '⏰ Attendance Reminder',
-        message: `Good morning ${user.name}! You haven't marked attendance today. Please remember to clock in.`,
-        link: '/attendance',
-        metadata: {
-          reminderType: 'morning_attendance',
-          date: start.toISOString().slice(0, 10),
-          time: timeString,
+      await createNotification(
+        {
+          recipient: user._id,
+          type: 'attendance_reminder',
+          title,
+          message: messageTemplate(user.name),
+          link: '/attendance',
+          metadata: {
+            reminderType: 'morning_attendance',
+            cutoff: '10:20 AM',
+            date: start.toISOString().slice(0, 10),
+            time: timeString,
+          },
         },
-      }, io);
+        io
+      );
 
       notifiedUserIds.add(user._id.toString());
       sentCount++;
@@ -80,25 +108,247 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
     // 4. If options.testUser provided (manual trigger / test button), ensure caller ALWAYS receives reminder
     if (options.testUser && !notifiedUserIds.has(options.testUser._id?.toString())) {
       const testUser = options.testUser;
-      await createNotification({
-        recipient: testUser._id,
-        type: 'attendance_reminder',
-        title: '⏰ Attendance Reminder (Verified)',
-        message: `Good morning ${testUser.name}! Please remember to mark your attendance and clock in for today.`,
-        link: '/attendance',
-        metadata: {
-          reminderType: 'morning_attendance_test',
-          date: start.toISOString().slice(0, 10),
-          time: timeString,
-          isTest: true,
+      await createNotification(
+        {
+          recipient: testUser._id,
+          type: 'attendance_reminder',
+          title: `${title} (Verified)`,
+          message: messageTemplate(testUser.name),
+          link: '/attendance',
+          metadata: {
+            reminderType: 'morning_attendance_test',
+            cutoff: '10:20 AM',
+            date: start.toISOString().slice(0, 10),
+            time: timeString,
+            isTest: true,
+          },
         },
-      }, io);
+        io
+      );
       sentCount++;
     }
 
     return { sentCount, pendingCount: pendingUsers.length, totalChecked: eligibleUsers.length };
   } catch (error) {
     console.error('CRON Error (Attendance Reminders):', error);
+    return { error: error.message };
+  }
+};
+
+/**
+ * Automatically mark employees as absent if they have failed to clock in by 10:20 AM.
+ * Scheduled to run at 10:21 AM Monday - Saturday.
+ * Skipped on Sundays because Sunday is a default weekly holiday.
+ */
+export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
+  try {
+    console.log('CRON: Running 10:20 AM auto-absent cutoff check for unclocked staff...');
+
+    const now = new Date();
+    // Sunday check
+    if (now.getDay() === 0 && !options.isTest) {
+      console.log('CRON: Today is Sunday (Weekly Holiday). Skipping auto-absent cutoff check.');
+      return { markedCount: 0, skipped: true, reason: 'Sunday is a weekly holiday' };
+    }
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    // 1. Eligible active internal users
+    const eligibleUsers = await User.find({
+      isActive: true,
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+    }).select('_id name role email phone');
+
+    if (!eligibleUsers.length) {
+      console.log('CRON: No active eligible users found for auto-absent check.');
+      return { markedCount: 0, totalChecked: 0 };
+    }
+
+    // 2. Fetch existing attendances for today
+    const existingAttendances = await Attendance.find({
+      date: { $gte: start, $lte: end },
+    });
+
+    const attendanceByUser = new Map();
+    existingAttendances.forEach((att) => {
+      attendanceByUser.set(att.user.toString(), att);
+    });
+
+    let markedCount = 0;
+    const markedUsers = [];
+
+    for (const user of eligibleUsers) {
+      const att = attendanceByUser.get(user._id.toString());
+
+      // If user has clocked in or has approved leave/holiday/WFH, skip
+      if (att) {
+        const hasClockedIn = Boolean(att.clockIn || (att.sessions && att.sessions.length > 0));
+        const hasApprovedExcusal = ['present', 'leave', 'holiday', 'work_from_home'].includes(att.status);
+        if (hasClockedIn || hasApprovedExcusal) {
+          continue;
+        }
+        // If already marked absent for 10:20 AM cutoff
+        if (att.status === 'absent' && att.notes?.includes('10:20 AM')) {
+          continue;
+        }
+      }
+
+      // Automatically mark as absent
+      await Attendance.findOneAndUpdate(
+        { user: user._id, date: start },
+        {
+          $set: {
+            status: 'absent',
+            requestedStatus: 'absent',
+            approvalStatus: 'approved',
+            isApproved: true,
+            notes: 'Automatically marked absent: Failed to clock in by 10:20 AM cutoff',
+            clockIn: null,
+            clockOut: null,
+            totalHours: 0,
+            sessions: [],
+          },
+        },
+        { upsert: true, new: true }
+      );
+
+      markedCount++;
+      markedUsers.push({ id: user._id, name: user.name });
+
+      // Send immediate in-app notification to the employee
+      await createNotification(
+        {
+          recipient: user._id,
+          type: 'attendance',
+          title: 'Marked Absent (10:20 AM Cutoff) ❌',
+          message: `Dear ${user.name}, you have been automatically marked absent today because no clock-in was recorded before the 10:20 AM cutoff.`,
+          link: '/attendance',
+          metadata: {
+            autoAbsent: true,
+            cutoff: '10:20 AM',
+            date: start.toISOString().slice(0, 10),
+          },
+        },
+        io
+      );
+    }
+
+    // 3. Test user notification if manually triggered
+    if (options.testUser && options.isTest) {
+      await createNotification(
+        {
+          recipient: options.testUser._id,
+          type: 'attendance',
+          title: 'Auto-Absent Process Verified (10:20 AM)',
+          message: `The 10:20 AM auto-absent cutoff executed successfully. ${markedCount} unclocked staff marked absent out of ${eligibleUsers.length} total.`,
+          link: '/attendance',
+          metadata: { isTest: true, markedCount },
+        },
+        io
+      );
+    }
+
+    // 4. Notify managers and admins if any staff were marked absent
+    if (markedCount > 0) {
+      const managers = await User.find({
+        role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner'] },
+        isActive: true,
+      }).select('_id');
+
+      const namesSummary =
+        markedUsers.slice(0, 5).map((u) => u.name).join(', ') +
+        (markedUsers.length > 5 ? ` +${markedUsers.length - 5} more` : '');
+
+      for (const mgr of managers) {
+        await createNotification(
+          {
+            recipient: mgr._id,
+            type: 'attendance',
+            title: 'Auto-Absent Daily Report (10:20 AM Cutoff)',
+            message: `${markedCount} employee(s) were automatically marked absent today for missing the 10:20 AM cutoff: ${namesSummary}.`,
+            link: '/attendance',
+            metadata: {
+              autoAbsentSummary: true,
+              count: markedCount,
+            },
+          },
+          io
+        );
+      }
+    }
+
+    console.log(`CRON: Auto-absent cutoff check completed. ${markedCount} employee(s) marked absent.`);
+    return { markedCount, totalChecked: eligibleUsers.length, markedUsers };
+  } catch (error) {
+    console.error('CRON Error (Auto-Absent):', error);
+    return { error: error.message };
+  }
+};
+
+/**
+ * Automatically record Sunday as a default weekly holiday for all active staff.
+ * Scheduled to run every Sunday at 00:01 AM (1 0 * * 0).
+ */
+export const autoMarkSundayHolidays = async (io, options = {}) => {
+  try {
+    console.log('CRON: Ensuring default Sunday weekly holiday for staff...');
+
+    const now = new Date();
+    if (now.getDay() !== 0 && !options.isTest) {
+      return { markedCount: 0, skipped: true, reason: 'Not Sunday' };
+    }
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const eligibleUsers = await User.find({
+      isActive: true,
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+    }).select('_id name');
+
+    let markedCount = 0;
+
+    for (const user of eligibleUsers) {
+      // Don't overwrite if employee already clocked in for special overtime work on Sunday
+      const existing = await Attendance.findOne({
+        user: user._id,
+        date: { $gte: start, $lte: end },
+      });
+
+      if (
+        existing &&
+        (existing.clockIn || (existing.sessions && existing.sessions.length > 0) || existing.status === 'present')
+      ) {
+        continue;
+      }
+
+      await Attendance.findOneAndUpdate(
+        { user: user._id, date: start },
+        {
+          $set: {
+            status: 'holiday',
+            requestedStatus: 'none',
+            approvalStatus: 'approved',
+            isApproved: true,
+            notes: 'Sunday Weekly Holiday',
+            totalHours: 0,
+            sessions: [],
+          },
+        },
+        { upsert: true, new: true }
+      );
+      markedCount++;
+    }
+
+    console.log(`CRON: Default Sunday weekly holiday recorded for ${markedCount} staff members.`);
+    return { markedCount, totalChecked: eligibleUsers.length };
+  } catch (error) {
+    console.error('CRON Error (Sunday Holiday):', error);
     return { error: error.message };
   }
 };
@@ -247,11 +497,39 @@ export const initCronJobs = (io) => {
   console.log('Initializing cron jobs...');
   const cronTz = process.env.TZ || 'Asia/Kolkata';
 
-  // Morning Attendance Reminders: 9:00 AM, 9:07 AM, 9:15 AM, 9:22 AM, 9:30 AM (5 times total)
+  // Morning Attendance Reminders (Monday to Saturday):
+  // 9:00 AM, 9:15 AM, 9:30 AM, 9:45 AM
   cron.schedule(
-    '0,7,15,22,30 9 * * *',
+    '0,15,30,45 9 * * 1-6',
     async () => {
       await checkAndSendAttendanceReminders(io);
+    },
+    { timezone: cronTz }
+  );
+
+  // Reminders up to 10:20 AM morning (10:00, 10:10, 10:15, 10:20 AM)
+  cron.schedule(
+    '0,10,15,20 10 * * 1-6',
+    async () => {
+      await checkAndSendAttendanceReminders(io);
+    },
+    { timezone: cronTz }
+  );
+
+  // Automatic Cutoff at 10:21 AM: Auto-mark absent if failed to login/clock in by 10:20 AM
+  cron.schedule(
+    '21 10 * * 1-6',
+    async () => {
+      await autoMarkAbsentForUnclockedUsers(io);
+    },
+    { timezone: cronTz }
+  );
+
+  // Default Sunday Weekly Holiday: Runs every Sunday at 00:01 AM (skips unclocked staff on Sundays)
+  cron.schedule(
+    '1 0 * * 0',
+    async () => {
+      await autoMarkSundayHolidays(io);
     },
     { timezone: cronTz }
   );

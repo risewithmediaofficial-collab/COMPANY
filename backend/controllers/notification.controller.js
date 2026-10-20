@@ -285,3 +285,19 @@ export const triggerEveningReminders = async (req, res) => {
   }
 };
 
+export const triggerAutoAbsent = async (req, res) => {
+  try {
+    const io = req.app?.get('io') || global.io;
+    const { autoMarkAbsentForUnclockedUsers } = await import('../services/cron.service.js');
+    const result = await autoMarkAbsentForUnclockedUsers(io, { testUser: req.user, isTest: true });
+    res.json({
+      success: true,
+      message: `Auto-absent cutoff executed: ${result.markedCount || 0} staff marked absent out of ${result.totalChecked || 0} eligible staff. Verified notification sent.`,
+      result,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+

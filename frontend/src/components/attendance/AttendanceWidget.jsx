@@ -476,6 +476,33 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
             </span>
           </div>
         </div>
+
+        {/* Today's Login & Logout Sessions Log */}
+        {todayRecord?.sessions && todayRecord.sessions.length > 0 && (
+          <div className="p-3.5 rounded-2xl bg-secondary/25 border border-border space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold">
+              <span className="text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
+                <Clock size={12} className="text-primary" /> Today&apos;s Login &amp; Logout Log ({todayRecord.sessions.length} session{todayRecord.sessions.length > 1 ? 's' : ''})
+              </span>
+              <span className="text-foreground text-[11px] font-extrabold">{Number(todayRecord.totalHours || 0).toFixed(2)} hrs total</span>
+            </div>
+            <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
+              {todayRecord.sessions.map((s, idx) => (
+                <div key={idx} className="flex items-center justify-between text-xs p-2 rounded-xl bg-card border border-border/60">
+                  <span className="font-bold text-foreground/80 text-[11px]">Session #{idx + 1}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-600 font-bold">{formatTime(s.clockIn)}</span>
+                    <span className="text-muted-foreground">→</span>
+                    <span className="text-amber-600 font-bold">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
+                    <span className="text-primary font-bold text-[11px] bg-secondary px-1.5 py-0.5 rounded">
+                      {s.durationHours ? `${s.durationHours.toFixed(2)}h` : s.clockOut ? '0.00h' : 'Active'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal: Mark Absent */}

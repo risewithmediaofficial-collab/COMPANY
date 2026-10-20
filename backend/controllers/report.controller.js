@@ -635,6 +635,14 @@ export const getMonthlyEmployeeSummary = async (req, res) => {
     const start = new Date(targetYear, targetMonth - 1, 1);
     const end = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999);
 
+    // Ensure all Sundays in the selected month default to holiday records
+    try {
+      const { ensureSundayHolidaysForPeriod } = await import('./attendance.controller.js');
+      await ensureSundayHolidaysForPeriod(start, end);
+    } catch (err) {
+      console.error('Error ensuring Sunday holidays in monthly summary:', err);
+    }
+
     const users = await User.find({
       role: { $in: ['employee', 'manager'] },
       isActive: true,
@@ -645,7 +653,7 @@ export const getMonthlyEmployeeSummary = async (req, res) => {
         Attendance.find({
           user: userObj._id,
           date: { $gte: start, $lte: end },
-        }),
+        }).sort({ date: 1 }),
         CallHistory.countDocuments({
           addedBy: userObj._id,
           callDate: { $gte: start, $lte: end },
@@ -658,6 +666,20 @@ export const getMonthlyEmployeeSummary = async (req, res) => {
       const holiday = attendanceRecords.filter((r) => r.status === 'holiday').length;
       const totalHours = attendanceRecords.reduce((sum, r) => sum + (r.totalHours || 0), 0);
 
+      // Map daily records with full login & logout timestamps and all sessions
+      const dailyRecords = attendanceRecords.map((r) => ({
+        _id: r._id,
+        date: r.date,
+        status: r.status,
+        clockIn: r.clockIn,
+        clockOut: r.clockOut,
+        totalHours: r.totalHours || 0,
+        sessions: (r.sessions && r.sessions.length > 0)
+          ? r.sessions
+          : (r.clockIn ? [{ clockIn: r.clockIn, clockOut: r.clockOut, durationHours: r.totalHours || 0 }] : []),
+        notes: r.notes || '',
+      }));
+
       return {
         user: userObj,
         present,
@@ -666,6 +688,7 @@ export const getMonthlyEmployeeSummary = async (req, res) => {
         holiday,
         totalHours: parseFloat(totalHours.toFixed(2)),
         callCount,
+        dailyRecords,
       };
     });
 

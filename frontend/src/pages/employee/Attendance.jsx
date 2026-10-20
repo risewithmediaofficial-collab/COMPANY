@@ -123,6 +123,18 @@ const Attendance = () => {
     }
   };
 
+  const handleTriggerAutoAbsent = async () => {
+    setReminding(true);
+    try {
+      const res = await api.post('/notifications/trigger-auto-absent');
+      toast.success(res.data?.message || '10:20 AM Auto-absent cutoff processed!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to trigger auto-absent cutoff');
+    } finally {
+      setReminding(false);
+    }
+  };
+
   // Build query filters for useAttendance
   const attendanceFilters = useMemo(() => {
     const filters = {
@@ -491,8 +503,9 @@ const Attendance = () => {
       'Role',
       'Date',
       'Day of Week',
-      'Clock In Time (12-Hr)',
-      'Clock Out Time (12-Hr)',
+      'First Clock In (12-Hr)',
+      'Last Clock Out (12-Hr)',
+      'All Login & Logout Sessions (Complete Timings)',
       'Total Hours Logged',
       'Status',
       'EOD Report Status',
@@ -514,6 +527,14 @@ const Attendance = () => {
 
       const clockInStr = record.clockIn ? `"${formatTime(record.clockIn)}"` : '"--:--"';
       const clockOutStr = record.clockOut ? `"${formatTime(record.clockOut)}"` : '"--:--"';
+
+      let sessionsDetail = '"--"';
+      if (record.sessions && record.sessions.length > 0) {
+        sessionsDetail = `"${record.sessions.map((s, idx) => `#${idx + 1}: In ${formatTime(s.clockIn)} - Out ${s.clockOut ? formatTime(s.clockOut) : 'Active'} (${s.durationHours ? s.durationHours.toFixed(2) : 0}h)`).join('; ')}"`;
+      } else if (record.clockIn) {
+        sessionsDetail = `"In ${formatTime(record.clockIn)} - Out ${formatTime(record.clockOut)}"`;
+      }
+
       const hoursStr = record.totalHours ? record.totalHours.toFixed(2) : '0.00';
       const statusStr = `"${(record.status || '').replace(/_/g, ' ').toUpperCase()}"`;
       const eodStr = record.eodReport?.submittedAt ? '"Submitted"' : '"Pending"';
@@ -530,6 +551,7 @@ const Attendance = () => {
         dayStr,
         clockInStr,
         clockOutStr,
+        sessionsDetail,
         hoursStr,
         statusStr,
         eodStr,
@@ -597,10 +619,21 @@ const Attendance = () => {
               onClick={handleTriggerAttendanceReminder}
               disabled={reminding}
               className="inline-flex items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-sm font-bold text-amber-600 dark:text-amber-400 shadow-xs hover:bg-amber-500/20 transition-colors disabled:opacity-50 cursor-pointer"
-              title="Send 9:00 - 9:30 AM attendance reminder to unclocked staff"
+              title="Send morning attendance reminders (up to 10:20 AM cutoff) to unclocked staff"
             >
               <Clock size={16} className="mr-1.5" />
-              Remind Attendance
+              Remind Attendance (10:20 AM Cutoff)
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={handleTriggerAutoAbsent}
+              disabled={reminding}
+              className="inline-flex items-center justify-center rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2 text-sm font-bold text-destructive shadow-xs hover:bg-destructive/20 transition-colors disabled:opacity-50 cursor-pointer"
+              title="Run 10:20 AM cutoff check to automatically mark unclocked employees absent"
+            >
+              <AlertCircle size={16} className="mr-1.5" />
+              Auto-Absent (10:20 AM)
             </button>
           )}
           {isAdmin && (
@@ -1328,17 +1361,44 @@ const Attendance = () => {
                             </div>
                           </td>
 
-                          {/* Explicit 12-Hour AM/PM Format for Clock In and Out */}
+                          {/* Explicit 12-Hour AM/PM Format for Clock In and Out + All Sessions Logs */}
                           <td className="px-6 py-4">
-                            <div className="flex items-center space-x-2 text-xs">
-                              <span className="text-emerald-600 font-bold">
-                                {formatTime(record.clockIn)}
-                              </span>
-                              <span className="text-muted-foreground opacity-40">to</span>
-                              <span className="text-amber-600 font-bold">
-                                {formatTime(record.clockOut)}
-                              </span>
-                            </div>
+                            {record.sessions && record.sessions.length > 1 ? (
+                              <div className="space-y-1.5">
+                                <div className="flex items-center space-x-2 text-xs">
+                                  <span className="text-emerald-600 font-bold">
+                                    {formatTime(record.clockIn)}
+                                  </span>
+                                  <span className="text-muted-foreground opacity-40">to</span>
+                                  <span className="text-amber-600 font-bold">
+                                    {formatTime(record.clockOut)}
+                                  </span>
+                                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                    {record.sessions.length} sessions
+                                  </span>
+                                </div>
+                                <div className="flex flex-col gap-0.5 text-[10px] text-muted-foreground bg-secondary/30 p-2 rounded-xl border border-border/60 max-w-[260px]">
+                                  {record.sessions.map((s, idx) => (
+                                    <div key={idx} className="flex items-center justify-between gap-1">
+                                      <span className="font-semibold text-foreground/80">#{idx + 1}: {formatTime(s.clockIn)}</span>
+                                      <span className="text-muted-foreground">→</span>
+                                      <span className="font-semibold text-foreground/80">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
+                                      <span className="text-primary font-bold">({s.durationHours ? s.durationHours.toFixed(1) : 0}h)</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-2 text-xs">
+                                <span className="text-emerald-600 font-bold">
+                                  {formatTime(record.clockIn)}
+                                </span>
+                                <span className="text-muted-foreground opacity-40">to</span>
+                                <span className="text-amber-600 font-bold">
+                                  {formatTime(record.clockOut)}
+                                </span>
+                              </div>
+                            )}
                           </td>
 
                           <td className="px-6 py-4 font-bold">{record.totalHours?.toFixed(1) || '0.0'} hrs</td>
@@ -1750,6 +1810,47 @@ const Attendance = () => {
                   </div>
                 </div>
               </div>
+
+              {/* All Login & Logout Timings Breakdown */}
+              {selectedRecord.sessions && selectedRecord.sessions.length > 0 && (
+                <div className="space-y-2 p-3.5 rounded-2xl bg-secondary/20 border border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <Clock size={13} className="text-primary" />
+                      All Login &amp; Logout Timings ({selectedRecord.sessions.length} Sessions)
+                    </span>
+                    <span className="text-xs font-bold text-foreground">
+                      Total: {Number(selectedRecord.totalHours || 0).toFixed(2)} hrs
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar">
+                    {selectedRecord.sessions.map((session, sIdx) => (
+                      <div
+                        key={sIdx}
+                        className="p-2.5 rounded-xl bg-card border border-border/80 flex items-center justify-between text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="h-5 w-5 rounded-md bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center">
+                            #{sIdx + 1}
+                          </span>
+                          <div>
+                            <span className="font-bold text-emerald-600">
+                              In: {formatTime(session.clockIn)}
+                            </span>
+                            <span className="mx-1.5 text-muted-foreground">•</span>
+                            <span className="font-bold text-amber-600">
+                              Out: {session.clockOut ? formatTime(session.clockOut) : 'Currently Active'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-bold text-foreground bg-secondary/60 px-2 py-0.5 rounded-md text-[11px]">
+                          {session.durationHours ? `${session.durationHours.toFixed(2)} hrs` : session.clockOut ? '0.00 hrs' : 'Active'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* EOD Report if exists */}
               {selectedRecord.eodReport?.submittedAt && (

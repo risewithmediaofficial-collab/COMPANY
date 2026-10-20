@@ -184,6 +184,72 @@ export const submitEOD = async (req, res) => {
   }
 };
 
+/**
+ * Ensures all Sundays in a given date range exist as default holiday records
+ * for eligible active staff members who have not clocked in.
+ */
+export const ensureSundayHolidaysForPeriod = async (startDate, endDate, specificUserId = null) => {
+  try {
+    const User = (await import('../models/user.model.js')).default;
+    const userQuery = {
+      isActive: true,
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+    };
+    if (specificUserId && specificUserId !== 'all') {
+      userQuery._id = specificUserId;
+    }
+    const eligibleUsers = await User.find(userQuery).select('_id');
+    if (!eligibleUsers.length) return;
+
+    // Collect all Sundays between startDate and endDate
+    const sundays = [];
+    const cur = new Date(startDate);
+    cur.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    while (cur <= end) {
+      if (cur.getDay() === 0) {
+        sundays.push(new Date(cur));
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    if (!sundays.length) return;
+
+    for (const sundayDate of sundays) {
+      const sStart = new Date(sundayDate);
+      sStart.setHours(0, 0, 0, 0);
+      const sEnd = new Date(sundayDate);
+      sEnd.setHours(23, 59, 59, 999);
+
+      for (const u of eligibleUsers) {
+        const existing = await Attendance.findOne({
+          user: u._id,
+          date: { $gte: sStart, $lte: sEnd },
+        });
+
+        // If no record exists, make Sunday default holiday
+        if (!existing) {
+          await Attendance.create({
+            user: u._id,
+            date: sStart,
+            status: 'holiday',
+            requestedStatus: 'none',
+            approvalStatus: 'approved',
+            isApproved: true,
+            notes: 'Sunday Weekly Holiday',
+            totalHours: 0,
+            sessions: [],
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error ensuring Sunday holidays for period:', err);
+  }
+};
+
 export const getAttendance = async (req, res) => {
   try {
     const { userId, status, month, year, page = 1, limit = 1000 } = req.query;
@@ -207,6 +273,9 @@ export const getAttendance = async (req, res) => {
       const start = new Date(Number(year), Number(month) - 1, 1);
       const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
       filter.date = { $gte: start, $lte: end };
+
+      // Make all Sundays holiday by default
+      await ensureSundayHolidaysForPeriod(start, end, filter.user);
     }
 
     const records = await Attendance.find(filter)
@@ -238,6 +307,11 @@ export const getTeamAttendance = async (req, res) => {
     startOfToday.setHours(0, 0, 0, 0);
     const endOfToday = new Date();
     endOfToday.setHours(23, 59, 59, 999);
+
+    // If today is Sunday, ensure Sunday holiday exists for all team members
+    if (startOfToday.getDay() === 0) {
+      await ensureSundayHolidaysForPeriod(startOfToday, endOfToday);
+    }
 
     const records = await Attendance.find({
       date: { $gte: startOfToday, $lte: endOfToday },
