@@ -485,9 +485,14 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-            {/* Linear One-by-One Field Flow (Google Form Style) */}
-            <div className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, onFormError)}
+            className="flex flex-col flex-1 min-h-0 overflow-hidden"
+          >
+            {/* Scrollable Form Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              {/* Linear One-by-One Field Flow (Google Form Style) */}
+              <div className="space-y-6">
               {/* Field 1: Project Name */}
               <FormField
                 control={form.control}
@@ -948,25 +953,38 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+            </div>
+
+            {/* Modern Pinned Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
               <div className="flex items-center gap-2">
-                {isDevCategory && !project && (
-                  <span className="text-xs font-medium text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
-                    <Code2 size={14} className="text-blue-500" />
+                {isDevCategory && !project ? (
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 inline-flex items-center gap-1.5 shadow-2xs">
+                    <Code2 size={14} className="shrink-0" />
                     <span>Website & Software Workflow</span>
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                    <span>Press</span>
+                    <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                      ESC
+                    </kbd>
+                    <span>to close</span>
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2.5">
+
+              <div className="flex items-center gap-3 ml-auto">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   onClick={handleClose}
                   disabled={isLoading}
-                  className="h-10 sm:h-11 px-4.5 rounded-xl text-sm font-semibold cursor-pointer"
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
                 >
                   Cancel
                 </Button>
+
                 {isDevCategory && !project && (
                   <Button
                     type="button"
@@ -975,16 +993,17 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       setMoveToDevelopment(true);
                       form.handleSubmit(onSubmit, onFormError)();
                     }}
-                    className="h-10 sm:h-11 px-4.5 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm hover:bg-blue-700 gap-2 cursor-pointer"
+                    className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25 gap-2 cursor-pointer transition-all"
                   >
                     <Rocket size={15} />
                     <span>Create & Move to Dev 🚀</span>
                   </Button>
                 )}
+
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-10 sm:h-11 px-5 rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90 cursor-pointer"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
                 >
                   {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
                 </Button>
