@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../api';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
@@ -54,18 +55,27 @@ const PRIORITY_BADGES = {
 };
 
 export default function DevelopmentBoard() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlProjectId = searchParams.get('project') || searchParams.get('projectId') || '';
+
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sprints, setSprints] = useState([]);
 
   // Filters
   const [filterSprint, setFilterSprint] = useState('');
-  const [filterProject, setFilterProject] = useState('');
+  const [filterProject, setFilterProject] = useState(urlProjectId);
   const [filterDeveloper, setFilterDeveloper] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
   const [filterBlockedOnly, setFilterBlockedOnly] = useState(false);
   const [filterBugOnly, setFilterBugOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (urlProjectId && urlProjectId !== filterProject) {
+      setFilterProject(urlProjectId);
+    }
+  }, [urlProjectId]);
 
   // Sprints, Projects, Developers lists
   const [projectsList, setProjectsList] = useState([]);
@@ -244,6 +254,12 @@ export default function DevelopmentBoard() {
     setFilterBlockedOnly(false);
     setFilterBugOnly(false);
     setSearchQuery('');
+    if (urlProjectId) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('project');
+      next.delete('projectId');
+      setSearchParams(next, { replace: true });
+    }
   };
 
   // Handle stage transition (with optimistic UI update)

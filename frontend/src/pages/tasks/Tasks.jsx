@@ -22,6 +22,8 @@ import {
   Video,
   Trash2,
   Edit2,
+  Code2,
+  Layers,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
@@ -56,7 +58,157 @@ import {
   TEAM_STATUS_OPTIONS,
   formatTaskTypeLabel,
   normalizeTaskStatusLabel,
+  isWebsiteTaskType,
 } from '../../utils/taskFields';
+
+export const isDevelopmentTask = (task) => {
+  if (!task) return false;
+  if (task.development?.isDevTask || task.isDevTask) return true;
+  if (task.department === 'Development' || task.department === 'Engineering') return true;
+
+  const type = String(task.taskType || '').toLowerCase();
+  if ([
+    'website_development',
+    'website_update',
+    'landing_page',
+    'domain_hosting',
+    'crm_update',
+    'development_task',
+    'bug_fix',
+    'seo_work',
+  ].includes(type)) {
+    return true;
+  }
+
+  const projCat = String(task.project?.category || task.projectCategory || task.category || '').toLowerCase();
+  if ([
+    'web_development',
+    'web_design',
+    'saas_product',
+    'saas',
+    'internal_tool',
+    'internal_product',
+    'mobile_app',
+    'e_commerce',
+  ].includes(projCat)) {
+    return true;
+  }
+
+  if (task.taskCategory === 'non_content') return true;
+
+  const title = String(task.taskTitle || task.title || '').toLowerCase();
+  if (
+    title.includes('website') ||
+    title.includes('web dev') ||
+    title.includes('landing page') ||
+    title.includes('frontend') ||
+    title.includes('backend') ||
+    title.includes('api') ||
+    title.includes('database') ||
+    title.includes('bug') ||
+    title.includes('code') ||
+    title.includes('software') ||
+    title.includes('deploy')
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+export const isContentTask = (task) => {
+  if (!task) return false;
+  if (task.taskCategory === 'content') return true;
+
+  const dept = String(task.department || '').toLowerCase();
+  if (
+    dept.includes('content') ||
+    dept.includes('media') ||
+    dept.includes('creative') ||
+    dept.includes('design') ||
+    dept.includes('market') ||
+    dept.includes('smm')
+  ) {
+    return true;
+  }
+
+  const type = String(task.taskType || '').toLowerCase();
+  if ([
+    'reel',
+    'poster',
+    'social_media_post',
+    'blog',
+    'ad_creative',
+    'video_content',
+    'story',
+    'carousel_post',
+    'custom_content',
+    'video',
+  ].includes(type)) {
+    return true;
+  }
+
+  const projCat = String(task.project?.category || task.projectCategory || task.category || '').toLowerCase();
+  if ([
+    'social_media',
+    'video_content',
+    'video',
+    'graphic_design',
+    'branding',
+    'content',
+    'paid_ads',
+  ].includes(projCat)) {
+    return true;
+  }
+
+  if (
+    task.contentType ||
+    task.videoType ||
+    task.videographerAssigned ||
+    task.editorAssigned ||
+    task.publisherAssigned ||
+    task.rawFootageLink ||
+    (task.postingPlatforms && task.postingPlatforms.length > 0)
+  ) {
+    return true;
+  }
+
+  const title = String(task.taskTitle || task.title || '').toLowerCase();
+  if (
+    title.includes('reel') ||
+    title.includes('poster') ||
+    title.includes('video') ||
+    title.includes('shoot') ||
+    title.includes('post') ||
+    title.includes('thumbnail') ||
+    title.includes('script') ||
+    title.includes('caption') ||
+    title.includes('creative')
+  ) {
+    return true;
+  }
+
+  return !isDevelopmentTask(task);
+};
+
+export const DEV_CATEGORY_PILLS = [
+  { key: 'all', label: 'All Dev Deliverables', icon: CheckSquare },
+  { key: 'web_development', label: 'Website / Web Dev', icon: Globe },
+  { key: 'saas_product', label: 'SaaS / Software', icon: Sparkles },
+  { key: 'web_design', label: 'Web Design / UI-UX', icon: Palette },
+  { key: 'seo', label: 'SEO & Search', icon: Sparkles },
+];
+
+export const CONTENT_CATEGORY_PILLS = [
+  { key: 'all', label: 'All Content Deliverables', icon: CheckSquare },
+  { key: 'social_media', label: 'Social Media / SMM', icon: Share2 },
+  { key: 'reel', label: 'Reels / Shorts', icon: Film },
+  { key: 'video_content', label: 'Video Production', icon: Video },
+  { key: 'branding', label: 'Branding & Design', icon: Palette },
+  { key: 'poster', label: 'Graphic / Poster', icon: Palette },
+  { key: 'content', label: 'Content / Script', icon: FileEdit },
+  { key: 'paid_ads', label: 'Paid Ads', icon: Megaphone },
+];
 
 export const TASK_CATEGORY_PILLS = [
   { key: 'all', label: 'All Deliverables', icon: CheckSquare },
@@ -148,8 +300,19 @@ const Tasks = () => {
   // Kanban Flow State
   const [showKanbanCreateModal, setShowKanbanCreateModal] = useState(false);
   const [preSelectedEmployee, setPreSelectedEmployee] = useState(null);
+  const [createTaskInitialValues, setCreateTaskInitialValues] = useState(null);
   const [workflowTaskId, setWorkflowTaskId] = useState(null);
   const [showWorkflowDrawer, setShowWorkflowDrawer] = useState(false);
+  const [departmentFilter, setDepartmentFilter] = useState('all'); // 'all' | 'development' | 'content'
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') || searchParams.get('team');
+    if (tabParam === 'development' || tabParam === 'dev') {
+      setDepartmentFilter('development');
+    } else if (tabParam === 'content') {
+      setDepartmentFilter('content');
+    }
+  }, [searchParams]);
 
   const activeWorkflowTask = useMemo(() => {
     if (!workflowTaskId) return null;
@@ -163,12 +326,28 @@ const Tasks = () => {
 
   const handleQuickAssignEmployee = (employee) => {
     setPreSelectedEmployee(employee);
+    setCreateTaskInitialValues(null);
     setShowKanbanCreateModal(true);
   };
 
   const handleOpenCreateGeneral = () => {
     setPreSelectedEmployee(null);
+    setCreateTaskInitialValues(null);
     setShowKanbanCreateModal(true);
+  };
+
+  const handleOpenCreateWithCategory = (cat) => {
+    setPreSelectedEmployee(null);
+    setCreateTaskInitialValues({
+      taskCategory: cat,
+      subType: cat === 'non_content' ? 'website_development' : 'reel',
+    });
+    setShowKanbanCreateModal(true);
+  };
+
+  const handleDepartmentFilterChange = (filterType) => {
+    setDepartmentFilter(filterType);
+    setCategoryFilter('all');
   };
 
   const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange, isFiltered: isGlobalDateFiltered, resetDateFilter } = useDateFilter();
@@ -205,13 +384,31 @@ const Tasks = () => {
     return normalizedTasks;
   }, [normalizedTasks, globalStartDate, globalEndDate, isDateInRange]);
 
-  const taskMetrics = useMemo(() => ({
-    total: dateFilteredTasks.length,
-    inProgress: dateFilteredTasks.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status)).length,
-    done: dateFilteredTasks.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status)).length,
-    overdue: dateFilteredTasks.filter(isTaskOverdue).length,
-    overTarget: dateFilteredTasks.filter((task) => task.isOverTarget).length,
+  // Department partition counts across the entire current date-filtered set
+  const taskCountsByDepartment = useMemo(() => ({
+    all: dateFilteredTasks.length,
+    dev: dateFilteredTasks.filter(isDevelopmentTask).length,
+    content: dateFilteredTasks.filter(isContentTask).length,
   }), [dateFilteredTasks]);
+
+  // Tasks filtered by high-level team department (All | Development | Content)
+  const departmentFilteredTasks = useMemo(() => {
+    if (departmentFilter === 'development') {
+      return dateFilteredTasks.filter(isDevelopmentTask);
+    }
+    if (departmentFilter === 'content') {
+      return dateFilteredTasks.filter(isContentTask);
+    }
+    return dateFilteredTasks;
+  }, [dateFilteredTasks, departmentFilter]);
+
+  const taskMetrics = useMemo(() => ({
+    total: departmentFilteredTasks.length,
+    inProgress: departmentFilteredTasks.filter((task) => ['On Process', 'in_progress', 'on_process'].includes(task.status)).length,
+    done: departmentFilteredTasks.filter((task) => ['Completed', 'Approved', 'done', 'completed'].includes(task.status)).length,
+    overdue: departmentFilteredTasks.filter(isTaskOverdue).length,
+    overTarget: departmentFilteredTasks.filter((task) => task.isOverTarget).length,
+  }), [departmentFilteredTasks]);
 
   const [quickFilter, setQuickFilter] = useState('all'); // 'all' | 'inProgress' | 'done' | 'overdue' | 'overTarget'
 
@@ -219,25 +416,32 @@ const Tasks = () => {
     setQuickFilter((prev) => (prev === filterType ? 'all' : filterType));
   };
 
+  // Category pills adaptive to active department
+  const currentCategoryPills = useMemo(() => {
+    if (departmentFilter === 'development') return DEV_CATEGORY_PILLS;
+    if (departmentFilter === 'content') return CONTENT_CATEGORY_PILLS;
+    return TASK_CATEGORY_PILLS;
+  }, [departmentFilter]);
+
   // Category counts
   const categoryCounts = useMemo(() => {
-    const counts = { all: dateFilteredTasks.length };
-    dateFilteredTasks.forEach((t) => {
-      TASK_CATEGORY_PILLS.forEach((pill) => {
+    const counts = { all: departmentFilteredTasks.length };
+    departmentFilteredTasks.forEach((t) => {
+      currentCategoryPills.forEach((pill) => {
         if (pill.key !== 'all' && isCategoryMatch(t.taskType || t.taskCategory, pill.key, t.taskTitle || t.title)) {
           counts[pill.key] = (counts[pill.key] || 0) + 1;
         }
       });
     });
     return counts;
-  }, [dateFilteredTasks]);
+  }, [departmentFilteredTasks, currentCategoryPills]);
 
   const activeCategoryPills = useMemo(() => {
-    return TASK_CATEGORY_PILLS.map((pill) => ({
+    return currentCategoryPills.map((pill) => ({
       ...pill,
-      count: pill.key === 'all' ? dateFilteredTasks.length : (categoryCounts[pill.key] || 0),
+      count: pill.key === 'all' ? departmentFilteredTasks.length : (categoryCounts[pill.key] || 0),
     }));
-  }, [dateFilteredTasks, categoryCounts]);
+  }, [departmentFilteredTasks, categoryCounts, currentCategoryPills]);
 
   const clientOptions = useMemo(() => {
     return clients.map((c) => ({
@@ -256,6 +460,7 @@ const Tasks = () => {
   // Active filters counter
   const activeFiltersCount = useMemo(() => {
     let count = 0;
+    if (departmentFilter !== 'all') count++;
     if (categoryFilter !== 'all') count++;
     if (filters.client) count++;
     if (filters.priority) count++;
@@ -265,9 +470,10 @@ const Tasks = () => {
     if (quickFilter !== 'all') count++;
     if (isGlobalDateFiltered || globalStartDate || globalEndDate) count++;
     return count;
-  }, [categoryFilter, filters, quickFilter, isGlobalDateFiltered, globalStartDate, globalEndDate]);
+  }, [departmentFilter, categoryFilter, filters, quickFilter, isGlobalDateFiltered, globalStartDate, globalEndDate]);
 
   const clearAllFilters = () => {
+    setDepartmentFilter('all');
     setCategoryFilter('all');
     setQuickFilter('all');
     setSortBy('dueDate_asc');
@@ -284,7 +490,7 @@ const Tasks = () => {
   };
 
   const displayedTasks = useMemo(() => {
-    let result = [...dateFilteredTasks];
+    let result = [...departmentFilteredTasks];
 
     // Category filter
     if (categoryFilter && categoryFilter !== 'all') {
@@ -700,6 +906,127 @@ const Tasks = () => {
       }
     >
       <div className="space-y-4">
+        {/* High-Level Team Partition Bar: All Tasks | Development Team | Content & Creatives */}
+        <div className="p-2 sm:p-2.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1 hidden sm:inline-flex items-center gap-1">
+              <Layers size={13} className="text-primary" /> View Board:
+            </span>
+
+            {/* All Tasks Button */}
+            <button
+              type="button"
+              onClick={() => handleDepartmentFilterChange('all')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
+                departmentFilter === 'all'
+                  ? 'bg-primary text-primary-foreground shadow-xs ring-2 ring-primary/20 scale-[1.01]'
+                  : 'bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
+            >
+              <CheckSquare size={14} className={departmentFilter === 'all' ? 'text-primary-foreground' : 'text-primary'} />
+              <span>All Tasks</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                  departmentFilter === 'all'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-background text-muted-foreground border border-border/50'
+                }`}
+              >
+                {taskCountsByDepartment.all}
+              </span>
+            </button>
+
+            {/* Development Team Tasks Button */}
+            <button
+              type="button"
+              onClick={() => handleDepartmentFilterChange('development')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
+                departmentFilter === 'development'
+                  ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-500/25 scale-[1.01]'
+                  : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hover:bg-blue-500/20'
+              }`}
+            >
+              <Code2 size={14} />
+              <span>💻 Development Team</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                  departmentFilter === 'development'
+                    ? 'bg-white/25 text-white'
+                    : 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+                }`}
+              >
+                {taskCountsByDepartment.dev}
+              </span>
+            </button>
+
+            {/* Content Tasks Button */}
+            <button
+              type="button"
+              onClick={() => handleDepartmentFilterChange('content')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
+                departmentFilter === 'content'
+                  ? 'bg-pink-600 text-white shadow-xs ring-2 ring-pink-500/25 scale-[1.01]'
+                  : 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20 hover:bg-pink-500/20'
+              }`}
+            >
+              <Film size={14} />
+              <span>🎬 Content & Creative</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                  departmentFilter === 'content'
+                    ? 'bg-white/25 text-white'
+                    : 'bg-pink-500/20 text-pink-600 dark:text-pink-400'
+                }`}
+              >
+                {taskCountsByDepartment.content}
+              </span>
+            </button>
+          </div>
+
+          {/* Quick Context Actions */}
+          <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
+            {departmentFilter === 'development' && (
+              <Link
+                to="/development/board"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold hover:bg-blue-500/20 transition-all shadow-2xs"
+              >
+                <Kanban size={13} />
+                <span>Open Dev Kanban 🚀</span>
+              </Link>
+            )}
+            {canCreate && (
+              <div className="flex items-center gap-1.5">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleOpenCreateWithCategory('non_content')}
+                  className={`text-xs font-bold h-8 rounded-xl cursor-pointer ${
+                    departmentFilter === 'development'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-xs'
+                      : 'border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10'
+                  }`}
+                >
+                  <Code2 size={13} className="mr-1" />
+                  + Dev Task
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleOpenCreateWithCategory('content')}
+                  className={`text-xs font-bold h-8 rounded-xl cursor-pointer ${
+                    departmentFilter === 'content'
+                      ? 'bg-pink-600 text-white hover:bg-pink-700 border-transparent shadow-xs'
+                      : 'border-pink-500/30 text-pink-600 dark:text-pink-400 hover:bg-pink-500/10'
+                  }`}
+                >
+                  <Film size={13} className="mr-1" />
+                  + Content Task
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Team Quick Assign Roster categorized by Media / Developer / SMM / Management - for managers/admins */}
         {canCreate && (
           <TeamQuickAssignRoster
@@ -722,13 +1049,56 @@ const Tasks = () => {
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Filter Dropdowns Group */}
               <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {/* Category Filter Dropdown */}
+                {/* Fast In-Toolbar Team View Segmented Switcher */}
+                <div className="flex items-center p-0.5 rounded-xl border border-border bg-secondary/40 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleDepartmentFilterChange('all')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      departmentFilter === 'all'
+                        ? 'bg-primary text-primary-foreground shadow-2xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    All ({taskCountsByDepartment.all})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDepartmentFilterChange('development')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      departmentFilter === 'development'
+                        ? 'bg-blue-600 text-white shadow-2xs'
+                        : 'text-blue-600 dark:text-blue-400 hover:bg-blue-500/10'
+                    }`}
+                  >
+                    💻 Dev ({taskCountsByDepartment.dev})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDepartmentFilterChange('content')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      departmentFilter === 'content'
+                        ? 'bg-pink-600 text-white shadow-2xs'
+                        : 'text-pink-600 dark:text-pink-400 hover:bg-pink-500/10'
+                    }`}
+                  >
+                    🎬 Content ({taskCountsByDepartment.content})
+                  </button>
+                </div>
+
+                {/* Category Filter Dropdown (Adaptive to active department) */}
                 <SelectDropdown
                   className="w-44 text-xs"
                   value={categoryFilter}
                   onChange={(val) => setCategoryFilter(val || 'all')}
-                  options={TASK_CATEGORY_PILLS.map((p) => ({ value: p.key, label: p.label }))}
-                  allOptionLabel="All Categories"
+                  options={currentCategoryPills.map((p) => ({ value: p.key, label: p.label }))}
+                  allOptionLabel={
+                    departmentFilter === 'development'
+                      ? 'All Dev Categories'
+                      : departmentFilter === 'content'
+                      ? 'All Content Categories'
+                      : 'All Categories'
+                  }
                 />
 
                 {/* Client Filter */}
@@ -1045,8 +1415,10 @@ const Tasks = () => {
         onClose={() => {
           setShowKanbanCreateModal(false);
           setPreSelectedEmployee(null);
+          setCreateTaskInitialValues(null);
         }}
         initialUser={preSelectedEmployee}
+        initialValues={createTaskInitialValues}
       />
 
       {/* Interactive Workflow Drawer with live checklists and task notes */}

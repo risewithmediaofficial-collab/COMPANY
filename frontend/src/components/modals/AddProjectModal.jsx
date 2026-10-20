@@ -6,8 +6,22 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { X, CalendarDays, IndianRupee, Briefcase } from 'lucide-react';
+import {
+  X,
+  CalendarDays,
+  IndianRupee,
+  Briefcase,
+  Target,
+  Rocket,
+  CheckCircle2,
+  Globe,
+  Sparkles,
+  Layers,
+  Code2,
+  ArrowRight,
+} from 'lucide-react';
 import { useAcceptedProposals } from '../../hooks/useProposals';
 import { formatINR } from '../../utils/currency';
 import {
@@ -164,12 +178,22 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
     },
   });
 
+  const navigate = useNavigate();
+
+  const isDevOrSoftwareCategory = (cat) =>
+    ['web_development', 'web_design', 'saas_product', 'saas', 'internal_tool', 'internal_product', 'mobile_app', 'e_commerce'].includes(cat);
+
+  const isContentCategory = (cat) =>
+    ['social_media', 'video_content', 'video', 'content', 'graphic_design', 'branding', 'paid_ads'].includes(cat);
+
   const selectedClientId = form.watch('client');
   const selectedCategory = form.watch('category');
   const isInternalValue = form.watch('isInternal');
   const isSaasOrInternal =
     isInternalValue ||
     ['saas_product', 'saas', 'internal_tool', 'internal_product'].includes(selectedCategory);
+
+  const isDevCategory = isDevOrSoftwareCategory(selectedCategory);
 
   const { data: acceptedProposals = [] } = useAcceptedProposals(selectedClientId);
   const { data: clients = [] } = useClients();
@@ -181,6 +205,9 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   const [deliverableMonth, setDeliverableMonth] = useState(new Date().getMonth() + 1);
   const [deliverableYear, setDeliverableYear] = useState(new Date().getFullYear());
   const [monthlyDeliverables, setMonthlyDeliverables] = useState([]);
+  const [includeMonthlyDeliverables, setIncludeMonthlyDeliverables] = useState(false);
+  const [hasUserToggledDeliverables, setHasUserToggledDeliverables] = useState(false);
+  const [moveToDevelopment, setMoveToDevelopment] = useState(false);
 
   const { data: existingDeliverablesData } = useProjectMonthlyDeliverables(
     project?._id,
@@ -188,8 +215,25 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
     deliverableYear
   );
 
+  // Sync deliverables toggle when project category changes (for new projects)
   useEffect(() => {
-    if (existingDeliverablesData?.deliverables) {
+    if (!project && selectedCategory) {
+      if (isDevOrSoftwareCategory(selectedCategory)) {
+        if (!hasUserToggledDeliverables) {
+          setIncludeMonthlyDeliverables(false);
+        }
+        setMoveToDevelopment(true);
+      } else if (isContentCategory(selectedCategory)) {
+        if (!hasUserToggledDeliverables) {
+          setIncludeMonthlyDeliverables(true);
+        }
+        setMoveToDevelopment(false);
+      }
+    }
+  }, [selectedCategory, project, hasUserToggledDeliverables]);
+
+  useEffect(() => {
+    if (existingDeliverablesData?.deliverables && existingDeliverablesData.deliverables.length > 0) {
       setMonthlyDeliverables(
         existingDeliverablesData.deliverables.map((d) => ({
           _id: d._id,
@@ -197,6 +241,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
           targetQuantity: d.targetQuantity,
         }))
       );
+      setIncludeMonthlyDeliverables(true);
     } else if (!project) {
       setMonthlyDeliverables([]);
     }
@@ -359,11 +404,14 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
       if (project) {
         savedProject = await updateProject.mutateAsync({ id: project._id, data: payload });
       } else {
+        if (moveToDevelopment && payload.status === 'planning') {
+          payload.status = 'active';
+        }
         savedProject = await createProject.mutateAsync(payload);
       }
 
-      const targetProjectId = project?._id || savedProject?._id || savedProject?.project?._id;
-      if (targetProjectId && monthlyDeliverables !== undefined) {
+      const targetProjectId = project?._id || savedProject?._id || savedProject?.project?._id || savedProject?.data?._id;
+      if (includeMonthlyDeliverables && targetProjectId && monthlyDeliverables && monthlyDeliverables.length > 0) {
         try {
           await batchSaveDeliverables.mutateAsync({
             projectId: targetProjectId,
@@ -380,6 +428,11 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
       setMonthlyDeliverables([]);
       localStorage.removeItem(DRAFT_KEY);
       onOpenChange(false);
+
+      if (!project && moveToDevelopment && targetProjectId) {
+        toast.success('Project created & moved directly to Development Board! 🚀');
+        navigate(`/development/board?project=${targetProjectId}`);
+      }
     } catch (err) {
       console.error('Failed to save project:', err);
       toast.error(err.response?.data?.message || err.message || 'Failed to save project');
@@ -667,15 +720,121 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
               )}
             />
 
-            {/* Monthly Deliverables & Targets Section */}
-            <MonthlyDeliverablesSection
-              deliverables={monthlyDeliverables}
-              onChange={setMonthlyDeliverables}
-              month={deliverableMonth}
-              year={deliverableYear}
-              onMonthChange={setDeliverableMonth}
-              onYearChange={setDeliverableYear}
-            />
+            {/* Monthly Deliverables & Targets Toggle Section */}
+            <div className="rounded-2xl border border-border/80 bg-secondary/20 p-4 space-y-3 transition-all">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all ${
+                      includeMonthlyDeliverables
+                        ? 'bg-primary/10 text-primary border-primary/25'
+                        : 'bg-muted/60 text-muted-foreground border-border'
+                    }`}
+                  >
+                    <Target size={15} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-xs font-bold text-foreground">
+                        Monthly Deliverables & Content Quotas
+                      </h3>
+                      {isDevCategory && (
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                          Non-content (Optional)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {includeMonthlyDeliverables
+                        ? 'Set monthly deliverable quotas (videos, reels, designs) to track quotas & overages'
+                        : isDevCategory
+                        ? 'Websites & Software projects do not require monthly quotas. Tasks move directly to development sprints.'
+                        : 'Optional quotas for monthly retainer tracking. Enable if recurring quotas are needed.'}
+                    </p>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 text-xs font-bold text-foreground cursor-pointer select-none">
+                  <span className={includeMonthlyDeliverables ? 'text-primary' : 'text-muted-foreground'}>
+                    {includeMonthlyDeliverables ? 'Quotas Enabled' : 'Quotas Disabled'}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={includeMonthlyDeliverables}
+                    onChange={(e) => {
+                      setHasUserToggledDeliverables(true);
+                      setIncludeMonthlyDeliverables(e.target.checked);
+                    }}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+                  />
+                </label>
+              </div>
+
+              {includeMonthlyDeliverables ? (
+                <div className="pt-2 border-t border-border/60">
+                  <MonthlyDeliverablesSection
+                    deliverables={monthlyDeliverables}
+                    onChange={setMonthlyDeliverables}
+                    month={deliverableMonth}
+                    year={deliverableYear}
+                    onMonthChange={setDeliverableMonth}
+                    onYearChange={setDeliverableYear}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-background/60 border border-border/60 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-2">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    <span>
+                      {isDevCategory
+                        ? 'No monthly deliverables needed for website/software projects. Tasks will route directly to development milestones.'
+                        : 'Monthly quota tracking disabled. You can manage tasks freely without quota tracking.'}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHasUserToggledDeliverables(true);
+                      setIncludeMonthlyDeliverables(true);
+                    }}
+                    className="text-[11px] font-bold text-primary hover:underline shrink-0"
+                  >
+                    + Add Quotas
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Direct Move to Development Pipeline Toggle (for Dev / Software / Web projects) */}
+            {isDevCategory && !project && (
+              <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+                    <Rocket size={15} />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <span>Directly Move to Development Board</span>
+                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                        Dev Workflow
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Sets status to Active and automatically routes directly to the Development Kanban Pipeline upon creation
+                    </p>
+                  </div>
+                </div>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 cursor-pointer select-none shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={moveToDevelopment}
+                    onChange={(e) => setMoveToDevelopment(e.target.checked)}
+                    className="h-4 w-4 rounded border-blue-500 text-blue-600 focus:ring-blue-500/20 cursor-pointer"
+                  />
+                  <span>Move to Dev</span>
+                </label>
+              </div>
+            )}
 
             {/* Budget & Payment Section */}
             <div className="rounded-2xl border border-border/80 bg-secondary/25 p-4 space-y-3">
@@ -744,19 +903,47 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
               />
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-border pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isLoading}
-                className="h-9 rounded-xl text-xs font-semibold"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading} className="h-9 rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90">
-                {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
-              </Button>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+              <div className="flex items-center gap-2">
+                {isDevCategory && !project && (
+                  <span className="text-[11px] font-medium text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
+                    <Code2 size={13} className="text-blue-500" />
+                    <span>Website & Software Workflow</span>
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={isLoading}
+                  className="h-9 rounded-xl text-xs font-semibold"
+                >
+                  Cancel
+                </Button>
+                {isDevCategory && !project && (
+                  <Button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => {
+                      setMoveToDevelopment(true);
+                      form.handleSubmit(onSubmit, onFormError)();
+                    }}
+                    className="h-9 rounded-xl bg-blue-600 text-xs font-bold text-white shadow-sm hover:bg-blue-700 gap-1.5 cursor-pointer"
+                  >
+                    <Rocket size={13} />
+                    <span>Create & Move to Dev 🚀</span>
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-9 rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 cursor-pointer"
+                >
+                  {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>

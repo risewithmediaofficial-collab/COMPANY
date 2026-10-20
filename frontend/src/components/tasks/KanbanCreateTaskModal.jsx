@@ -147,6 +147,16 @@ export const KanbanCreateTaskModal = ({
         if (initialValues.priority) setPriority(initialValues.priority.toLowerCase());
         if (initialValues.title || initialValues.taskTitle) setTitle(initialValues.title || initialValues.taskTitle);
         if (initialValues.dueDate) setDueDate(new Date(initialValues.dueDate).toISOString().split('T')[0]);
+        if (initialValues.taskCategory) {
+          setTaskCategory(initialValues.taskCategory);
+          if (initialValues.subType) {
+            setSubType(initialValues.subType);
+          } else if (initialValues.taskCategory === 'non_content') {
+            setSubType('website_development');
+          } else {
+            setSubType('reel');
+          }
+        }
       }
       if (initialUser?._id) {
         setSelectedUserId(initialUser._id);
