@@ -250,9 +250,91 @@ export const ensureSundayHolidaysForPeriod = async (startDate, endDate, specific
   }
 };
 
+/**
+ * Automatically ensures employees who failed to clock in by 10:30 AM on Monday-Saturday
+ * are marked as absent for today.
+ */
+export const ensureAutoAbsentForToday = async (startOfToday, endOfToday) => {
+  try {
+    const now = new Date();
+    // Calculate IST time (UTC+5:30)
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffset);
+    const istDay = istNow.getDay(); // 0 is Sunday
+    const istHours = istNow.getHours();
+    const istMinutes = istNow.getMinutes();
+
+    // Skip Sunday (default weekly holiday)
+    if (istDay === 0) return;
+
+    // Cutoff is 10:30 AM IST
+    const isPast1030 = istHours > 10 || (istHours === 10 && istMinutes >= 30);
+    if (!isPast1030) return;
+
+    const User = (await import('../models/user.model.js')).default;
+    const eligibleUsers = await User.find({
+      isActive: true,
+      role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
+    }).select('_id name');
+
+    if (!eligibleUsers.length) return;
+
+    const start = startOfToday || new Date(new Date().setHours(0, 0, 0, 0));
+    const end = endOfToday || new Date(new Date().setHours(23, 59, 59, 999));
+
+    const todayAttendances = await Attendance.find({
+      date: { $gte: start, $lte: end },
+    });
+
+    const attByUser = new Map();
+    todayAttendances.forEach((a) => {
+      attByUser.set(a.user.toString(), a);
+    });
+
+    for (const u of eligibleUsers) {
+      const att = attByUser.get(u._id.toString());
+      const hasClockIn = Boolean(att && (att.clockIn || (att.sessions && att.sessions.some((s) => s.clockIn))));
+      const isApprovedExcusal = Boolean(att && att.approvalStatus === 'approved' && ['leave', 'holiday', 'work_from_home'].includes(att.status));
+      const isPendingRequest = Boolean(att && att.approvalStatus === 'pending');
+
+      // If already clocked in, or has approved leave/holiday/WFH, or has a pending leave/WFH application under review: skip
+      if (hasClockIn || isApprovedExcusal || isPendingRequest) {
+        continue;
+      }
+
+      // If already marked absent
+      if (att && att.status === 'absent') {
+        continue;
+      }
+
+      // Automatically mark absent
+      await Attendance.findOneAndUpdate(
+        { user: u._id, date: start },
+        {
+          $set: {
+            status: 'absent',
+            requestedStatus: 'absent',
+            approvalStatus: 'approved',
+            isApproved: true,
+            notes: 'Automatically marked absent: Failed to clock in by 10:30 AM cutoff',
+            clockIn: null,
+            clockOut: null,
+            totalHours: 0,
+            sessions: [],
+          },
+        },
+        { upsert: true, new: true }
+      );
+    }
+  } catch (err) {
+    console.error('Error ensuring auto absent for today:', err);
+  }
+};
+
 export const getAttendance = async (req, res) => {
   try {
     const { userId, status, month, year, page = 1, limit = 1000 } = req.query;
+    await ensureAutoAbsentForToday();
     const filter = {};
 
     const isPrivileged = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(req.user.role);
@@ -315,6 +397,9 @@ export const getTeamAttendance = async (req, res) => {
     // If today is Sunday, ensure Sunday holiday exists for all team members
     if (startOfToday.getDay() === 0) {
       await ensureSundayHolidaysForPeriod(startOfToday, endOfToday);
+    } else {
+      // If Monday - Saturday and past 10:30 AM cutoff, ensure unclocked staff are marked absent
+      await ensureAutoAbsentForToday(startOfToday, endOfToday);
     }
 
     const records = await Attendance.find({
@@ -547,6 +632,7 @@ export const submitLeave = async (req, res) => {
     const updateObj = {
       notes: reasonText.trim(),
       requestedStatus: 'leave',
+      status: 'leave',
       approvalStatus: isAdminOrManager ? 'approved' : 'pending',
       isApproved: isAdminOrManager,
       approvedBy: isAdminOrManager ? req.user._id : undefined,
@@ -633,6 +719,7 @@ export const submitWFH = async (req, res) => {
     const updateObj = {
       notes: reasonText.trim(),
       requestedStatus: 'work_from_home',
+      status: 'work_from_home',
       approvalStatus: isAdminOrManager ? 'approved' : 'pending',
       isApproved: isAdminOrManager,
       approvedBy: isAdminOrManager ? req.user._id : undefined,

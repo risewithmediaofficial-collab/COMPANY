@@ -127,7 +127,7 @@ const Attendance = () => {
     setReminding(true);
     try {
       const res = await api.post('/notifications/trigger-auto-absent');
-      toast.success(res.data?.message || '10:20 AM Auto-absent cutoff processed!');
+      toast.success(res.data?.message || '10:30 AM Auto-absent cutoff processed!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to trigger auto-absent cutoff');
     } finally {
@@ -261,20 +261,47 @@ const Attendance = () => {
   // Live today activity list for managers
   const todayTeamActivity = useMemo(() => {
     const employeeUsers = users.filter((u) => u.role !== 'client' && u.role !== 'referral');
+
+    // Calculate IST time (UTC+5:30)
+    const now = new Date();
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const istTime = new Date(utcTime + (330 * 60000));
+    const istDay = istTime.getDay(); // 0 is Sunday
+    const isPast1030 = istDay !== 0 && (istTime.getHours() > 10 || (istTime.getHours() === 10 && istTime.getMinutes() >= 30));
     
     return employeeUsers.map((emp) => {
       const att = teamTodayRecords.find(
         (r) => (r.user?._id || r.user) === emp._id
       );
 
+      const hasClockIn = Boolean(att?.clockIn || (att?.sessions && att.sessions.some((s) => s.clockIn)));
+      const isPending = att?.approvalStatus === 'pending';
+
+      let resolvedStatus = 'not_clocked_in';
+      if (hasClockIn) {
+        resolvedStatus = att.clockOut ? 'completed' : 'present';
+      } else if (isPending) {
+        resolvedStatus = att.requestedStatus === 'work_from_home' ? 'pending_wfh' : 'pending_leave';
+      } else if (att?.status === 'leave') {
+        resolvedStatus = 'leave';
+      } else if (att?.status === 'work_from_home') {
+        resolvedStatus = 'work_from_home';
+      } else if (att?.status === 'holiday') {
+        resolvedStatus = 'holiday';
+      } else if (att?.status === 'absent' || isPast1030) {
+        resolvedStatus = 'absent';
+      }
+
       return {
         user: emp,
         attendance: att || null,
-        status: att ? att.status : 'not_clocked_in',
+        status: resolvedStatus,
         clockIn: att?.clockIn ? formatTime(att.clockIn) : '--:--',
         clockOut: att?.clockOut ? formatTime(att.clockOut) : '--:--',
         totalHours: att?.totalHours || 0,
         eodSubmitted: Boolean(att?.eodReport?.submittedAt),
+        isPending,
+        appliedAt: att?.appliedAt,
       };
     });
   }, [users, teamTodayRecords]);
@@ -283,13 +310,12 @@ const Attendance = () => {
   const teamMetrics = useMemo(() => {
     const employeeUsers = users.filter((u) => u.role !== 'client' && u.role !== 'referral');
     const totalEmployees = employeeUsers.length;
-    const clockedIn = teamTodayRecords.filter((r) =>
-      r.sessions && r.sessions.length > 0 ? r.sessions.some((s) => !s.clockOut) : Boolean(r.clockIn && !r.clockOut)
-    ).length;
-    const completed = teamTodayRecords.filter((r) => r.clockOut).length;
-    const onLeave = teamTodayRecords.filter((r) => r.status === 'leave').length;
-    const wfh = teamTodayRecords.filter((r) => r.status === 'work_from_home').length;
-    const holiday = teamTodayRecords.filter((r) => r.status === 'holiday').length;
+    const clockedIn = todayTeamActivity.filter((item) => item.status === 'present').length;
+    const completed = todayTeamActivity.filter((item) => item.status === 'completed').length;
+    const onLeave = todayTeamActivity.filter((item) => item.status === 'leave' || item.status === 'pending_leave').length;
+    const wfh = todayTeamActivity.filter((item) => item.status === 'work_from_home' || item.status === 'pending_wfh').length;
+    const holiday = todayTeamActivity.filter((item) => item.status === 'holiday').length;
+    const absent = todayTeamActivity.filter((item) => item.status === 'absent').length;
 
     return {
       totalEmployees,
@@ -298,8 +324,9 @@ const Attendance = () => {
       onLeave,
       wfh,
       holiday,
+      absent,
     };
-  }, [users, teamTodayRecords]);
+  }, [users, todayTeamActivity]);
 
   // Filtered employee profile info & detailed performance metrics
   const selectedEmployeeInfo = useMemo(() => {
@@ -619,10 +646,10 @@ const Attendance = () => {
               onClick={handleTriggerAttendanceReminder}
               disabled={reminding}
               className="inline-flex items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-sm font-bold text-amber-600 dark:text-amber-400 shadow-xs hover:bg-amber-500/20 transition-colors disabled:opacity-50 cursor-pointer"
-              title="Send morning attendance reminders (up to 10:20 AM cutoff) to unclocked staff"
+              title="Send morning attendance reminders (up to 10:30 AM cutoff) to unclocked staff"
             >
               <Clock size={16} className="mr-1.5" />
-              Remind Attendance (10:20 AM Cutoff)
+              Remind Attendance (10:30 AM Cutoff)
             </button>
           )}
           {isAdmin && (
@@ -630,10 +657,10 @@ const Attendance = () => {
               onClick={handleTriggerAutoAbsent}
               disabled={reminding}
               className="inline-flex items-center justify-center rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2 text-sm font-bold text-destructive shadow-xs hover:bg-destructive/20 transition-colors disabled:opacity-50 cursor-pointer"
-              title="Run 10:20 AM cutoff check to automatically mark unclocked employees absent"
+              title="Run 10:30 AM cutoff check to automatically mark unclocked employees absent"
             >
               <AlertCircle size={16} className="mr-1.5" />
-              Auto-Absent (10:20 AM)
+              Auto-Absent (10:30 AM)
             </button>
           )}
           {isAdmin && (
@@ -738,6 +765,9 @@ const Attendance = () => {
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-600 border border-purple-500/20 text-xs font-bold">
                 WFH: {teamMetrics.wfh}
               </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 text-xs font-bold">
+                Absent: {teamMetrics.absent}
+              </div>
             </div>
           </div>
 
@@ -759,14 +789,20 @@ const Attendance = () => {
                   <div
                     key={item.user._id}
                     className={`p-3.5 rounded-2xl border flex items-center justify-between transition-all ${
-                      item.attendance?.clockIn && !item.attendance?.clockOut
+                      item.status === 'present'
                         ? 'bg-emerald-500/5 border-emerald-500/30'
-                        : item.attendance?.clockOut
+                        : item.status === 'completed'
                         ? 'bg-amber-500/5 border-amber-500/30'
                         : item.status === 'leave'
                         ? 'bg-rose-500/5 border-rose-500/30'
                         : item.status === 'work_from_home'
                         ? 'bg-purple-500/5 border-purple-500/30'
+                        : item.status === 'pending_leave'
+                        ? 'bg-amber-500/10 border-amber-500/30'
+                        : item.status === 'pending_wfh'
+                        ? 'bg-purple-500/10 border-purple-500/30'
+                        : item.status === 'absent'
+                        ? 'bg-destructive/10 border-destructive/30'
                         : 'bg-secondary/20 border-border'
                     }`}
                   >
@@ -796,28 +832,46 @@ const Attendance = () => {
                     <div className="flex flex-col items-end shrink-0 ml-2">
                       <span
                         className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                          item.attendance?.clockIn && !item.attendance?.clockOut
+                          item.status === 'present'
                             ? 'bg-emerald-500/20 text-emerald-600'
-                            : item.attendance?.clockOut
+                            : item.status === 'completed'
                             ? 'bg-amber-500/20 text-amber-600'
                             : item.status === 'leave'
                             ? 'bg-rose-500/20 text-rose-600'
                             : item.status === 'work_from_home'
                             ? 'bg-purple-500/20 text-purple-600'
+                            : item.status === 'pending_leave'
+                            ? 'bg-amber-500/20 text-amber-600'
+                            : item.status === 'pending_wfh'
+                            ? 'bg-purple-500/20 text-purple-600'
+                            : item.status === 'absent'
+                            ? 'bg-destructive/20 text-destructive'
                             : 'bg-secondary text-muted-foreground'
                         }`}
                       >
-                        {item.attendance?.clockIn && !item.attendance?.clockOut
+                        {item.status === 'present'
                           ? 'Active Now'
-                          : item.attendance?.clockOut
+                          : item.status === 'completed'
                           ? 'Completed'
+                          : item.status === 'pending_leave'
+                          ? 'Leave Pending'
+                          : item.status === 'pending_wfh'
+                          ? 'WFH Pending'
+                          : item.status === 'absent'
+                          ? 'Absent'
+                          : item.status === 'not_clocked_in'
+                          ? 'Not Clocked In'
                           : item.status?.replace(/_/g, ' ')}
                       </span>
-                      {item.totalHours > 0 && (
+                      {item.totalHours > 0 ? (
                         <span className="text-[10px] font-bold text-foreground mt-1">
                           {item.totalHours.toFixed(1)} hrs
                         </span>
-                      )}
+                      ) : item.status === 'absent' ? (
+                        <span className="text-[9px] font-semibold text-destructive mt-0.5">
+                          Cutoff 10:30 AM
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -1486,6 +1540,13 @@ const Attendance = () => {
                                 </span>
                               )}
 
+                              {record.appliedAt && (
+                                <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">
+                                  <Clock size={10} className="text-primary" />
+                                  Applied: {new Date(record.appliedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {formatTime(record.appliedAt)}
+                                </span>
+                              )}
+
                               {record.notes && (
                                 <span className="text-xs font-medium text-foreground/90 truncate max-w-[180px]" title={record.notes}>
                                   Reason: {record.notes}
@@ -1820,6 +1881,17 @@ const Attendance = () => {
                   {selectedRecord.status?.replace(/_/g, ' ')}
                 </span>
               </div>
+
+              {selectedRecord.appliedAt && (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/25 border border-border">
+                  <span className="font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Clock size={13} className="text-primary" /> Applied Date &amp; Time
+                  </span>
+                  <span className="font-bold text-foreground">
+                    {new Date(selectedRecord.appliedAt).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} at {formatTime(selectedRecord.appliedAt)}
+                  </span>
+                </div>
+              )}
 
               {/* Reason / Notes */}
               <div className="p-3.5 rounded-xl bg-secondary/20 border border-border space-y-1">

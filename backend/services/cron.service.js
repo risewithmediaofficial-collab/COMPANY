@@ -14,12 +14,12 @@ import { sendWhatsAppMessage } from './whatsapp.service.js';
 
 /**
  * Check and send morning attendance reminders to employees who have not clocked in
- * Scheduled up to 10:20 AM morning (9:00, 9:15, 9:30, 9:45, 10:00, 10:10, 10:15, 10:20 AM)
+ * Scheduled up to 10:30 AM morning (9:00, 9:15, 9:30, 9:45, 10:00, 10:15, 10:25, 10:30 AM)
  * On Sunday, skipped automatically because Sunday is a default weekly holiday.
  */
 export const checkAndSendAttendanceReminders = async (io, options = {}) => {
   try {
-    console.log('CRON: Running morning attendance reminder check (up to 10:20 AM cutoff)...');
+    console.log('CRON: Running morning attendance reminder check (up to 10:30 AM cutoff)...');
 
     const now = new Date();
     // 0 is Sunday in JavaScript Date
@@ -65,19 +65,19 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
     const hours = now.getHours();
     const minutes = now.getMinutes();
 
-    // Determine message and urgency based on time approaching 10:20 AM cutoff
-    let title = '⏰ Attendance Reminder (10:20 AM Cutoff)';
+    // Determine message and urgency based on time approaching 10:30 AM cutoff
+    let title = '⏰ Attendance Reminder (10:30 AM Cutoff)';
     let messageTemplate = (userName) =>
-      `Good morning ${userName}! Please remember to clock in. The daily cutoff is 10:20 AM, after which you will be automatically marked absent.`;
+      `Good morning ${userName}! Please remember to clock in. The daily cutoff is 10:30 AM, after which you will be automatically marked absent.`;
 
-    if (hours === 10 && minutes >= 18) {
-      title = '🚨 Final Warning: Clock In Before 10:20 AM!';
+    if (hours === 10 && minutes >= 25) {
+      title = '🚨 Final Warning: Clock In Before 10:30 AM!';
       messageTemplate = (userName) =>
-        `URGENT ${userName}! 10:20 AM cutoff is right now. Clock in immediately or you will be automatically marked absent for today!`;
+        `URGENT ${userName}! 10:30 AM cutoff is right now. Clock in immediately or you will be automatically marked absent for today!`;
     } else if (hours === 10 || (hours === 9 && minutes >= 45)) {
-      title = '⚠️ Urgent Attendance Reminder: 10:20 AM Cutoff';
+      title = '⚠️ Urgent Attendance Reminder: 10:30 AM Cutoff';
       messageTemplate = (userName) =>
-        `Good morning ${userName}! You have not clocked in yet. You must clock in before 10:20 AM to avoid being automatically marked absent.`;
+        `Good morning ${userName}! You have not clocked in yet. You must clock in before 10:30 AM to avoid being automatically marked absent.`;
     }
 
     let sentCount = 0;
@@ -93,7 +93,7 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
           link: '/attendance',
           metadata: {
             reminderType: 'morning_attendance',
-            cutoff: '10:20 AM',
+            cutoff: '10:30 AM',
             date: start.toISOString().slice(0, 10),
             time: timeString,
           },
@@ -117,7 +117,7 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
           link: '/attendance',
           metadata: {
             reminderType: 'morning_attendance_test',
-            cutoff: '10:20 AM',
+            cutoff: '10:30 AM',
             date: start.toISOString().slice(0, 10),
             time: timeString,
             isTest: true,
@@ -136,13 +136,13 @@ export const checkAndSendAttendanceReminders = async (io, options = {}) => {
 };
 
 /**
- * Automatically mark employees as absent if they have failed to clock in by 10:20 AM.
- * Scheduled to run at 10:21 AM Monday - Saturday.
+ * Automatically mark employees as absent if they have failed to clock in by 10:30 AM.
+ * Scheduled to run at 10:31 AM Monday - Saturday.
  * Skipped on Sundays because Sunday is a default weekly holiday.
  */
 export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
   try {
-    console.log('CRON: Running 10:20 AM auto-absent cutoff check for unclocked staff...');
+    console.log('CRON: Running 10:30 AM auto-absent cutoff check for unclocked staff...');
 
     const now = new Date();
     // Sunday check
@@ -185,13 +185,15 @@ export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
 
       // If user has clocked in or has approved leave/holiday/WFH, skip
       if (att) {
-        const hasClockedIn = Boolean(att.clockIn || (att.sessions && att.sessions.length > 0));
-        const hasApprovedExcusal = ['present', 'leave', 'holiday', 'work_from_home'].includes(att.status);
-        if (hasClockedIn || hasApprovedExcusal) {
+        const hasClockedIn = Boolean(att.clockIn || (att.sessions && att.sessions.some((s) => s.clockIn)));
+        const isApprovedExcusal = Boolean(att.approvalStatus === 'approved' && ['leave', 'holiday', 'work_from_home'].includes(att.status));
+        const isPendingRequest = Boolean(att.approvalStatus === 'pending');
+
+        if (hasClockedIn || isApprovedExcusal || isPendingRequest) {
           continue;
         }
-        // If already marked absent for 10:20 AM cutoff
-        if (att.status === 'absent' && att.notes?.includes('10:20 AM')) {
+        // If already marked absent
+        if (att.status === 'absent') {
           continue;
         }
       }
@@ -205,7 +207,7 @@ export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
             requestedStatus: 'absent',
             approvalStatus: 'approved',
             isApproved: true,
-            notes: 'Automatically marked absent: Failed to clock in by 10:20 AM cutoff',
+            notes: 'Automatically marked absent: Failed to clock in by 10:30 AM cutoff',
             clockIn: null,
             clockOut: null,
             totalHours: 0,
@@ -223,12 +225,12 @@ export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
         {
           recipient: user._id,
           type: 'attendance',
-          title: 'Marked Absent (10:20 AM Cutoff) ❌',
-          message: `Dear ${user.name}, you have been automatically marked absent today because no clock-in was recorded before the 10:20 AM cutoff.`,
+          title: 'Marked Absent (10:30 AM Cutoff) ❌',
+          message: `Dear ${user.name}, you have been automatically marked absent today because no clock-in was recorded before the 10:30 AM cutoff.`,
           link: '/attendance',
           metadata: {
             autoAbsent: true,
-            cutoff: '10:20 AM',
+            cutoff: '10:30 AM',
             date: start.toISOString().slice(0, 10),
           },
         },
@@ -242,8 +244,8 @@ export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
         {
           recipient: options.testUser._id,
           type: 'attendance',
-          title: 'Auto-Absent Process Verified (10:20 AM)',
-          message: `The 10:20 AM auto-absent cutoff executed successfully. ${markedCount} unclocked staff marked absent out of ${eligibleUsers.length} total.`,
+          title: 'Auto-Absent Process Verified (10:30 AM)',
+          message: `The 10:30 AM auto-absent cutoff executed successfully. ${markedCount} unclocked staff marked absent out of ${eligibleUsers.length} total.`,
           link: '/attendance',
           metadata: { isTest: true, markedCount },
         },
@@ -267,8 +269,8 @@ export const autoMarkAbsentForUnclockedUsers = async (io, options = {}) => {
           {
             recipient: mgr._id,
             type: 'attendance',
-            title: 'Auto-Absent Daily Report (10:20 AM Cutoff)',
-            message: `${markedCount} employee(s) were automatically marked absent today for missing the 10:20 AM cutoff: ${namesSummary}.`,
+            title: 'Auto-Absent Daily Report (10:30 AM Cutoff)',
+            message: `${markedCount} employee(s) were automatically marked absent today for missing the 10:30 AM cutoff: ${namesSummary}.`,
             link: '/attendance',
             metadata: {
               autoAbsentSummary: true,
@@ -507,18 +509,18 @@ export const initCronJobs = (io) => {
     { timezone: cronTz }
   );
 
-  // Reminders up to 10:20 AM morning (10:00, 10:10, 10:15, 10:20 AM)
+  // Reminders up to 10:30 AM morning (10:00, 10:15, 10:25, 10:30 AM)
   cron.schedule(
-    '0,10,15,20 10 * * 1-6',
+    '0,15,25,30 10 * * 1-6',
     async () => {
       await checkAndSendAttendanceReminders(io);
     },
     { timezone: cronTz }
   );
 
-  // Automatic Cutoff at 10:21 AM: Auto-mark absent if failed to login/clock in by 10:20 AM
+  // Automatic Cutoff at 10:31 AM: Auto-mark absent if failed to login/clock in by 10:30 AM
   cron.schedule(
-    '21 10 * * 1-6',
+    '31 10 * * 1-6',
     async () => {
       await autoMarkAbsentForUnclockedUsers(io);
     },
