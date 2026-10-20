@@ -437,18 +437,19 @@ export const TasksKanbanPipeline = React.memo(({
                           : null;
                       const assigneeName =
                         typeof assignee === 'object'
-                          ? assignee?.name
+                          ? (assignee?.name || 'Unassigned')
                           : task.assignedPersonName || 'Unassigned';
                       const assigneeAvatar =
                         typeof assignee === 'object' && assignee?.avatar
                           ? getAssetUrl(assignee.avatar)
                           : null;
-                      const initials = assigneeName
+                      const initials = (assigneeName || 'Unassigned')
                         .split(' ')
+                        .filter(Boolean)
                         .map((n) => n[0])
                         .join('')
                         .slice(0, 2)
-                        .toUpperCase();
+                        .toUpperCase() || 'U';
 
                       // Checklist status
                       const checklist = Array.isArray(task.checklist) ? task.checklist : [];

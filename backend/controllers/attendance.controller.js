@@ -266,7 +266,11 @@ export const getAttendance = async (req, res) => {
     }
 
     if (status && status !== 'all') {
-      filter.status = status;
+      if (status === 'shifts') {
+        filter.status = { $ne: 'holiday' };
+      } else {
+        filter.status = status;
+      }
     }
 
     if (month && year) {
@@ -463,6 +467,7 @@ export const submitAbsent = async (req, res) => {
       approvalStatus: isAdminOrManager ? 'approved' : 'pending',
       isApproved: isAdminOrManager,
       approvedBy: isAdminOrManager ? req.user._id : undefined,
+      appliedAt: new Date(),
     };
 
     if (isAdminOrManager) {
@@ -545,6 +550,7 @@ export const submitLeave = async (req, res) => {
       approvalStatus: isAdminOrManager ? 'approved' : 'pending',
       isApproved: isAdminOrManager,
       approvedBy: isAdminOrManager ? req.user._id : undefined,
+      appliedAt: new Date(),
     };
 
     if (isAdminOrManager) {
@@ -630,6 +636,7 @@ export const submitWFH = async (req, res) => {
       approvalStatus: isAdminOrManager ? 'approved' : 'pending',
       isApproved: isAdminOrManager,
       approvedBy: isAdminOrManager ? req.user._id : undefined,
+      appliedAt: new Date(),
     };
 
     if (isAdminOrManager) {

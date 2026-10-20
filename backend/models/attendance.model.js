@@ -52,6 +52,7 @@ const attendanceSchema = new mongoose.Schema(
     notes: { type: String, default: '' },
     isApproved: { type: Boolean, default: false },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    appliedAt: { type: Date },
     rejectionReason: { type: String, default: '' },
     eodReport: {
       summary: { type: String },

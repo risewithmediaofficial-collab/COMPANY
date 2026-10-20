@@ -95,7 +95,7 @@ const Attendance = () => {
     endDate: todayStr,
     notes: '',
   });
-  const [wfhForm, setWfhForm] = useState({ date: '', notes: '' });
+  const [wfhForm, setWfhForm] = useState({ date: todayStr, notes: '' });
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [reminding, setReminding] = useState(false);
 
@@ -205,7 +205,7 @@ const Attendance = () => {
     e.preventDefault();
     try {
       await submitWFHMutation.mutateAsync(wfhForm);
-      setWfhForm({ date: '', notes: '' });
+      setWfhForm({ date: todayStr, notes: '' });
       setShowWFHModal(false);
     } catch (err) {
       console.error(err);
@@ -826,78 +826,91 @@ const Attendance = () => {
           )}
 
           {/* Filter Bar for Manager/Admin */}
-          <div className="bg-card p-5 rounded-3xl border border-border shadow-sm flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-              {/* Employee Selector */}
-              {viewTab === 'team' && (
-                <div className="flex items-center gap-2">
-                  <User size={16} className="text-muted-foreground" />
-                  <select
-                    value={selectedUser}
-                    onChange={(e) => setSelectedUser(e.target.value)}
-                    className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20 min-w-[180px]"
-                  >
-                    <option value="all">All Employees ({users.length})</option>
-                    {users
-                      .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
-                      .map((u) => (
-                        <option key={u._id} value={u._id}>
-                          {u.name || u.email} {u.department ? `(${u.department})` : `(${u.role})`}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Status Filter */}
-              <div className="flex items-center gap-2">
-                <Filter size={16} className="text-muted-foreground" />
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20"
+          <div className="bg-card p-5 rounded-3xl border border-border shadow-sm space-y-4">
+            {/* Quick Status Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mr-1"><Filter size={12} /> Quick Filter:</span>
+              {[
+                { value: 'all', label: '🔘 All', activeClass: 'bg-primary text-primary-foreground border-primary' },
+                { value: 'present', label: '✅ Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
+                { value: 'holiday', label: '📅 Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
+                { value: 'leave', label: '🏖️ Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
+                { value: 'work_from_home', label: '🏠 WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
+                { value: 'absent', label: '❌ Absent', activeClass: 'bg-red-600 text-white border-red-600' },
+              ].map(({ value, label, activeClass }) => (
+                <button
+                  key={value}
+                  onClick={() => setSelectedStatus(value)}
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+                    selectedStatus === value
+                      ? activeClass + ' shadow-sm ring-2 ring-offset-1 ring-offset-card ring-current/30'
+                      : 'bg-secondary/30 border-border text-foreground hover:bg-secondary/60'
+                  }`}
                 >
-                  <option value="all">All Statuses</option>
-                  <option value="present">Present</option>
-                  <option value="leave">On Leave</option>
-                  <option value="work_from_home">Work From Home</option>
-                  <option value="holiday">Holiday</option>
-                  <option value="absent">Absent</option>
-                </select>
-              </div>
-
-              {/* Search Box */}
-              <div className="relative flex-1 min-w-[180px] max-w-xs">
-                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search employee name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs font-semibold rounded-xl border border-border bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
+                  {label}
+                  {selectedStatus === value && records.length > 0 && (
+                    <span className="ml-1.5 bg-white/20 text-inherit rounded-full px-1.5 py-0.5 text-[10px] font-extrabold">{records.length}</span>
+                  )}
+                </button>
+              ))}
             </div>
 
-            {/* Month & Year Navigation + CSV Download */}
-            <div className="flex items-center space-x-3 bg-secondary/20 px-3 py-1.5 rounded-2xl border border-border">
-              <button
-                onClick={handlePrevMonth}
-                className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
-                title="Previous Month"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <span className="text-xs font-extrabold uppercase tracking-wider min-w-[110px] text-center">
-                {monthName} {selectedYear}
-              </span>
-              <button
-                onClick={handleNextMonth}
-                className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
-                title="Next Month"
-              >
-                <ChevronRight size={16} />
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+                {/* Employee Selector */}
+                {viewTab === 'team' && (
+                  <div className="flex items-center gap-2">
+                    <User size={16} className="text-muted-foreground" />
+                    <select
+                      value={selectedUser}
+                      onChange={(e) => setSelectedUser(e.target.value)}
+                      className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20 min-w-[180px]"
+                    >
+                      <option value="all">All Employees ({users.length})</option>
+                      {users
+                        .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
+                        .map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name || u.email} {u.department ? `(${u.department})` : `(${u.role})`}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Search Box */}
+                <div className="relative flex-1 min-w-[180px] max-w-xs">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search employee name or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-xs font-semibold rounded-xl border border-border bg-secondary/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              {/* Month & Year Navigation */}
+              <div className="flex items-center space-x-3 bg-secondary/20 px-3 py-1.5 rounded-2xl border border-border">
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
+                  title="Previous Month"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-xs font-extrabold uppercase tracking-wider min-w-[110px] text-center">
+                  {monthName} {selectedYear}
+                </span>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-1.5 rounded-lg border border-border hover:bg-card transition-colors text-foreground"
+                  title="Next Month"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1265,38 +1278,64 @@ const Attendance = () => {
           {/* Right Column: Attendance Records Table */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-border flex flex-wrap items-center justify-between gap-4 bg-secondary/10">
-                <h3 className="font-bold flex items-center">
-                  <History size={18} className="mr-2 text-primary" />
-                  {viewTab === 'team' ? 'Employee Shift & Attendance Records' : 'Shift History'}
-                  <span className="ml-2 text-xs font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full">
-                    {records.length} records
-                  </span>
-                </h3>
-
-                {isAdmin && (
-                  <button
-                    onClick={handleExportCSV}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl transition-colors"
-                  >
-                    <Download size={14} />
-                    Export CSV Report
-                  </button>
-                )}
-
-                {!isAdmin && (
-                  <div className="flex items-center space-x-2">
-                    <button onClick={handlePrevMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
-                      <ChevronLeft size={16} />
-                    </button>
-                    <span className="text-xs font-bold uppercase tracking-widest">
-                      {monthName} {selectedYear}
+              <div className="p-6 border-b border-border bg-secondary/10 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <h3 className="font-bold flex items-center">
+                    <History size={18} className="mr-2 text-primary" />
+                    {viewTab === 'team' ? 'Employee Shift & Attendance Records' : 'Shift History'}
+                    <span className="ml-2 text-xs font-semibold text-muted-foreground bg-secondary px-2.5 py-0.5 rounded-full">
+                      {records.length} records
                     </span>
-                    <button onClick={handleNextMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
-                      <ChevronRight size={16} />
+                  </h3>
+
+                  {isAdmin && (
+                    <button
+                      onClick={handleExportCSV}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl transition-colors"
+                    >
+                      <Download size={14} />
+                      Export CSV Report
                     </button>
-                  </div>
-                )}
+                  )}
+
+                  {!isAdmin && (
+                    <div className="flex items-center space-x-2">
+                      <button onClick={handlePrevMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
+                        <ChevronLeft size={16} />
+                      </button>
+                      <span className="text-xs font-bold uppercase tracking-widest">
+                        {monthName} {selectedYear}
+                      </span>
+                      <button onClick={handleNextMonth} className="p-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Status Filter Pills - also for personal view */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { value: 'all', label: '🔘 All', activeClass: 'bg-primary text-primary-foreground border-primary' },
+                    { value: 'present', label: '✅ Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
+                    { value: 'holiday', label: '📅 Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
+                    { value: 'leave', label: '🏖️ Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
+                    { value: 'work_from_home', label: '🏠 WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
+                    { value: 'absent', label: '❌ Absent', activeClass: 'bg-red-600 text-white border-red-600' },
+                  ].map(({ value, label, activeClass }) => (
+                    <button
+                      key={value}
+                      onClick={() => setSelectedStatus(value)}
+                      className={`px-2.5 py-1 rounded-xl border text-[11px] font-bold transition-all ${
+                        selectedStatus === value
+                          ? activeClass + ' shadow-sm'
+                          : 'bg-secondary/30 border-border text-foreground hover:bg-secondary/60'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/60 [&::-webkit-scrollbar-track]:bg-transparent [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.35)_transparent]">
@@ -1704,11 +1743,12 @@ const Attendance = () => {
               <input
                 type="date"
                 required
-                value={wfhForm.date}
+                min={todayStr}
+                value={wfhForm.date || todayStr}
                 onChange={(e) => setWfhForm((prev) => ({ ...prev, date: e.target.value }))}
                 className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
               />
-              <span className="text-[11px] text-muted-foreground">Must be submitted at least one day in advance.</span>
+              <span className="text-[11px] text-muted-foreground">Defaults to today. You may change the date to submit a future WFH request.</span>
             </div>
             <div className="space-y-1.5">
               <label className="font-semibold text-foreground">Reason / Details *</label>
