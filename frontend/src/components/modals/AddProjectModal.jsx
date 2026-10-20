@@ -457,17 +457,17 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="xl" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
-        <DialogHeader className="px-6 py-4 sm:py-[18px] border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 pr-6 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 pr-6 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
-              <Briefcase size={18} />
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <Briefcase size={20} />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-base sm:text-lg font-bold text-foreground leading-tight truncate">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {project ? 'Edit Project' : 'Create New Project'}
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
                 {project ? 'Update project scope, deliverables, budget, and timeline' : 'Create a new project pipeline for client deliverables and milestones'}
               </DialogDescription>
             </div>
@@ -477,37 +477,47 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
             <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
-              <X size={15} className="stroke-[2.5]" />
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
           </div>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-5 p-5 sm:p-6 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-            <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
+          <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            {/* Linear One-by-One Field Flow (Google Form Style) */}
+            <div className="space-y-6">
+              {/* Field 1: Project Name */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-1">
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Project Name *</FormLabel>
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold text-foreground">
+                      Project Name <span className="text-rose-500">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input className="h-9 rounded-xl border-border bg-background px-3 text-xs focus:ring-2 focus:ring-primary/20" placeholder="e.g. Website Redesign & SEO" {...field} />
+                      <Input
+                        className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60 shadow-2xs"
+                        placeholder="e.g. Website Redesign & SEO"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Project Type / Category Selection */}
+              {/* Field 2: Project Type / Category Selection */}
               <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Project Type *</FormLabel>
+                    <FormLabel className="text-sm font-semibold text-foreground">
+                      Project Type <span className="text-rose-500">*</span>
+                    </FormLabel>
                     <Select
                       onValueChange={(val) => {
                         field.onChange(val);
@@ -521,7 +531,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       value={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
                           <SelectValue placeholder="Select project type" />
                         </SelectTrigger>
                       </FormControl>
@@ -551,18 +561,18 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 )}
               />
 
-              {/* Client Selection (Optional for SaaS / Internal Projects) */}
+              {/* Field 3: Client Selection (Optional for SaaS / Internal Projects) */}
               <FormField
                 control={form.control}
                 name="client"
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
-                      <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormLabel className="text-sm font-semibold text-foreground">
                         Client {isSaasOrInternal ? (
-                          <span className="text-[11px] font-bold text-emerald-500 ml-1">(Optional for SaaS)</span>
+                          <span className="text-xs font-semibold text-emerald-500 ml-1.5">(Optional for SaaS)</span>
                         ) : (
-                          <span className="text-destructive">*</span>
+                          <span className="text-rose-500">*</span>
                         )}
                       </FormLabel>
                     </div>
@@ -573,7 +583,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       value={field.value || (isSaasOrInternal ? 'none' : '')}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
                           <SelectValue placeholder={isSaasOrInternal ? 'None (Internal SaaS Product)' : 'Select client'} />
                         </SelectTrigger>
                       </FormControl>
@@ -597,23 +607,24 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
               {/* SaaS Mode Helpful Notice */}
               {isSaasOrInternal && (
-                <div className="md:col-span-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-2 animate-in fade-in duration-200">
-                  <span>🚀</span>
+                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-2.5 animate-in fade-in duration-200">
+                  <span className="text-base">🚀</span>
                   <span className="font-semibold">
                     SaaS Product Mode Active: You can create and build this SaaS platform without adding an external client.
                   </span>
                 </div>
               )}
 
+              {/* Field 4: Status */}
               <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Status</FormLabel>
+                    <FormLabel className="text-sm font-semibold text-foreground">Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
@@ -630,15 +641,16 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 )}
               />
 
+              {/* Field 5: Priority */}
               <FormField
                 control={form.control}
                 name="priority"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Priority</FormLabel>
+                    <FormLabel className="text-sm font-semibold text-foreground">Priority</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs focus:ring-2 focus:ring-primary/20">
+                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
@@ -654,18 +666,23 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 )}
               />
 
+              {/* Field 6: Start Date */}
               <FormField
                 control={form.control}
                 name="startDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">
-                      Start Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                    <FormLabel className="text-sm font-semibold text-foreground">
+                      Start Date <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                        <Input type="date" className="h-9 rounded-xl border-border bg-background pl-9 text-xs focus:ring-2 focus:ring-primary/20" {...field} />
+                        <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          type="date"
+                          className="h-11 rounded-xl border-border bg-background pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -673,18 +690,23 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 )}
               />
 
+              {/* Field 7: End Date */}
               <FormField
                 control={form.control}
                 name="endDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">
-                      End Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                    <FormLabel className="text-sm font-semibold text-foreground">
+                      End Date <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                        <Input type="date" className="h-9 rounded-xl border-border bg-background pl-9 text-xs focus:ring-2 focus:ring-primary/20" {...field} />
+                        <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          type="date"
+                          className="h-11 rounded-xl border-border bg-background pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -692,21 +714,22 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 )}
               />
 
+              {/* Field 8: Budget (₹ INR) */}
               <FormField
                 control={form.control}
                 name="budget"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">
-                      Budget (₹ INR) <span className="text-muted-foreground font-normal">(Optional)</span>
+                    <FormLabel className="text-sm font-semibold text-foreground">
+                      Budget (₹ INR) <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <IndianRupee className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                        <IndianRupee className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           type="number"
                           placeholder="e.g. 50000 (optional)"
-                          className="h-9 rounded-xl border-border bg-background pl-9 text-xs focus:ring-2 focus:ring-primary/20"
+                          className="h-11 rounded-xl border-border bg-background pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
                           {...field}
                           value={field.value ?? ''}
                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
@@ -717,47 +740,52 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   </FormItem>
                 )}
               />
+
+              {/* Field 9: Project Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-semibold text-foreground">Project Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="min-h-[105px] rounded-xl border-border bg-background p-3.5 text-sm leading-relaxed focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                        placeholder="Brief summary of goals, milestones, and deliverables..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-semibold text-foreground/90">Project Description</FormLabel>
-                  <FormControl>
-                    <Textarea className="min-h-[75px] rounded-xl border-border bg-background px-3 py-2 text-xs focus:ring-2 focus:ring-primary/20" placeholder="Brief summary of goals and deliverables..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Monthly Deliverables & Targets Toggle Section */}
-            <div className="rounded-2xl border border-border/80 bg-secondary/20 p-4 space-y-3 transition-all">
+            {/* Field 10: Monthly Deliverables & Targets Toggle Section */}
+            <div className="rounded-2xl border border-border/80 bg-secondary/20 p-5 space-y-3.5 transition-all shadow-2xs">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-xl border transition-all ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
                       includeMonthlyDeliverables
                         ? 'bg-primary/10 text-primary border-primary/25'
                         : 'bg-muted/60 text-muted-foreground border-border'
                     }`}
                   >
-                    <Target size={15} />
+                    <Target size={17} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-xs font-bold text-foreground">
+                      <h3 className="text-sm font-bold text-foreground">
                         Monthly Deliverables & Content Quotas
                       </h3>
                       {isDevCategory && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                           Non-content (Optional)
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {includeMonthlyDeliverables
                         ? 'Set monthly deliverable quotas (videos, reels, designs) to track quotas & overages'
                         : isDevCategory
@@ -795,9 +823,9 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   />
                 </div>
               ) : (
-                <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-background/60 border border-border/60 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-background/70 border border-border/70 text-xs text-muted-foreground">
                   <span className="flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
                     <span>
                       {isDevCategory
                         ? 'No monthly deliverables needed for website/software projects. Tasks will route directly to development milestones.'
@@ -810,7 +838,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       setHasUserToggledDeliverables(true);
                       setIncludeMonthlyDeliverables(true);
                     }}
-                    className="text-[11px] font-bold text-primary hover:underline shrink-0"
+                    className="text-xs font-bold text-primary hover:underline shrink-0 cursor-pointer"
                   >
                     + Add Quotas
                   </button>
@@ -818,26 +846,26 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
               )}
             </div>
 
-            {/* Direct Move to Development Pipeline Toggle (for Dev / Software / Web projects) */}
+            {/* Field 11: Direct Move to Development Pipeline Toggle (for Dev / Software / Web projects) */}
             {isDevCategory && !project && (
-              <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-3.5 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
-                    <Rocket size={15} />
+              <div className="rounded-2xl border border-blue-500/30 bg-blue-500/5 p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
+                    <Rocket size={17} />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <div className="text-sm font-bold text-foreground flex items-center gap-2">
                       <span>Directly Move to Development Board</span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-400">
                         Dev Workflow
                       </span>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       Sets status to Active and automatically routes directly to the Development Kanban Pipeline upon creation
                     </p>
                   </div>
                 </div>
-                <label className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 cursor-pointer select-none shrink-0">
+                <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 cursor-pointer select-none shrink-0">
                   <input
                     type="checkbox"
                     checked={moveToDevelopment}
@@ -849,22 +877,22 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
               </div>
             )}
 
-            {/* Budget & Payment Section */}
-            <div className="rounded-2xl border border-border/80 bg-secondary/25 p-4 space-y-3">
-              <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <IndianRupee className="h-3.5 w-3.5 text-primary" /> Budget & Payment Workflow
+            {/* Field 12: Budget & Payment Section (Linear Single Column) */}
+            <div className="rounded-2xl border border-border/80 bg-secondary/20 p-5 space-y-4 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <IndianRupee className="h-4 w-4 text-primary" /> Budget & Payment Workflow
               </h3>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
                   name="currency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold text-foreground/90">Currency</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Currency</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs">
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -884,10 +912,10 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   name="paymentStatus"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-semibold text-foreground/90">Payment Status</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Payment Status</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-9 rounded-xl border-border bg-background text-xs">
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -900,38 +928,42 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <FormField
-                control={form.control}
-                name="budgetNotes"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-xs font-semibold text-foreground/90">Budget Notes</FormLabel>
-                    <FormControl>
-                      <Textarea className="min-h-[60px] rounded-xl border-border bg-background px-3 py-2 text-xs" placeholder="Payment schedule, milestone terms..." {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="budgetNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Budget Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          className="min-h-[85px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                          placeholder="Payment schedule, milestone terms, invoice notes..."
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
               <div className="flex items-center gap-2">
                 {isDevCategory && !project && (
-                  <span className="text-[11px] font-medium text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
-                    <Code2 size={13} className="text-blue-500" />
+                  <span className="text-xs font-medium text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
+                    <Code2 size={14} className="text-blue-500" />
                     <span>Website & Software Workflow</span>
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleClose}
                   disabled={isLoading}
-                  className="h-9 rounded-xl text-xs font-semibold"
+                  className="h-10 sm:h-11 px-4.5 rounded-xl text-sm font-semibold cursor-pointer"
                 >
                   Cancel
                 </Button>
@@ -943,16 +975,16 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       setMoveToDevelopment(true);
                       form.handleSubmit(onSubmit, onFormError)();
                     }}
-                    className="h-9 rounded-xl bg-blue-600 text-xs font-bold text-white shadow-sm hover:bg-blue-700 gap-1.5 cursor-pointer"
+                    className="h-10 sm:h-11 px-4.5 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-sm hover:bg-blue-700 gap-2 cursor-pointer"
                   >
-                    <Rocket size={13} />
+                    <Rocket size={15} />
                     <span>Create & Move to Dev 🚀</span>
                   </Button>
                 )}
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-9 rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 cursor-pointer"
+                  className="h-10 sm:h-11 px-5 rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90 cursor-pointer"
                 >
                   {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
                 </Button>
