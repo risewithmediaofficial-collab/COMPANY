@@ -17,6 +17,7 @@ import {
   ChevronUp,
   PlusCircle,
   Minus,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useClients } from '../../hooks/useClients';
@@ -29,7 +30,7 @@ import {
   useUpdateCredential,
 } from '../../hooks/useClientCredentials';
 import { Button } from '../../components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import WorkspacePage from '../../components/ui/WorkspacePage';
@@ -102,11 +103,13 @@ const getClientName = (credential) => {
 };
 
 const FormField = ({ label, children, hint }) => (
-  <label className="space-y-1.5 text-xs font-semibold text-foreground block">
-    <span>{label}</span>
+  <div className="space-y-1.5 block">
+    <label className="text-sm font-semibold text-foreground flex items-center justify-between select-none mb-1">
+      <span>{label}</span>
+    </label>
     {children}
-    {hint && <span className="text-[10px] font-normal text-muted-foreground">{hint}</span>}
-  </label>
+    {hint && <span className="text-xs text-muted-foreground mt-1 block font-normal">{hint}</span>}
+  </div>
 );
 
 // ─── Social Account Row (inside form) ────────────────────────────────────────
@@ -127,17 +130,17 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
     onChange(index, 'pages', (account.pages || []).filter((_, i) => i !== pi));
 
   return (
-    <div className="border border-border rounded-xl overflow-hidden bg-secondary/20">
+    <div className="border border-border/80 rounded-2xl overflow-hidden bg-secondary/15 shadow-2xs transition-all">
       {/* Row header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/60 bg-secondary/30">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-background border border-border text-base leading-none">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-secondary/25">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-background border border-border text-base leading-none shadow-2xs">
             {platform.emoji}
           </span>
           <select
             value={account.platform}
             onChange={(e) => onChange(index, 'platform', e.target.value)}
-            className="h-8 px-2.5 pr-7 rounded-lg border border-border bg-background text-xs font-semibold appearance-none cursor-pointer"
+            className="h-10 px-3 pr-8 rounded-xl border border-border bg-background text-sm font-semibold appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 shadow-2xs"
           >
             {PLATFORMS.map((p) => (
               <option key={p.value} value={p.value}>{p.label}</option>
@@ -148,28 +151,28 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
               value={account.platformLabel}
               onChange={(e) => onChange(index, 'platformLabel', e.target.value)}
               placeholder="Platform name"
-              className="h-8 text-xs w-32 rounded-lg"
+              className="h-10 text-sm w-36 rounded-xl"
             />
           )}
         </div>
         <button
           type="button"
           onClick={() => onRemove(index)}
-          className="flex items-center justify-center w-7 h-7 rounded-lg text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+          className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
           title="Remove this account"
         >
-          <Minus size={13} />
+          <Minus size={15} />
         </button>
       </div>
 
-      {/* Fields grid */}
-      <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Fields Linear Stack */}
+      <div className="p-4 sm:p-5 space-y-4">
         <FormField label="Account Handle / Username">
           <Input
             value={account.accountHandle}
             onChange={(e) => onChange(index, 'accountHandle', e.target.value)}
             placeholder="@handle or username"
-            className="h-9 text-xs rounded-lg font-mono"
+            className="h-11 text-sm rounded-xl font-mono px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
           />
         </FormField>
 
@@ -179,7 +182,7 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
             value={account.email}
             onChange={(e) => onChange(index, 'email', e.target.value)}
             placeholder="login@email.com"
-            className="h-9 text-xs rounded-lg"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
           />
         </FormField>
 
@@ -188,7 +191,7 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
             value={account.mobileNumber}
             onChange={(e) => onChange(index, 'mobileNumber', e.target.value)}
             placeholder="+91 98765 43210"
-            className="h-9 text-xs rounded-lg"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
           />
         </FormField>
 
@@ -199,14 +202,14 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
               value={account.password}
               onChange={(e) => onChange(index, 'password', e.target.value)}
               placeholder={isEditing ? 'Leave blank to keep' : 'Enter password'}
-              className="h-9 text-xs rounded-lg font-mono pr-9"
+              className="h-11 text-sm rounded-xl font-mono px-3.5 pr-10 focus:ring-2 focus:ring-primary/20 shadow-2xs"
             />
             <button
               type="button"
               onClick={() => setShowPass((v) => !v)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
-              {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+              {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
         </FormField>
@@ -217,7 +220,7 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
             value={account.recoveryEmail}
             onChange={(e) => onChange(index, 'recoveryEmail', e.target.value)}
             placeholder="recovery@email.com"
-            className="h-9 text-xs rounded-lg"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
           />
         </FormField>
 
@@ -226,7 +229,7 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
             value={account.notes}
             onChange={(e) => onChange(index, 'notes', e.target.value)}
             placeholder="2FA via app / SMS to +91..."
-            className="h-9 text-xs rounded-lg"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
           />
         </FormField>
       </div>
@@ -498,190 +501,219 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border border-border max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-base font-black text-foreground">
-            {isEditing ? 'Edit Client Credential' : 'Add Secure Credential'}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            Credentials are encrypted with agency-grade AES security before storage.
-          </DialogDescription>
+      <DialogContent size="lg" noPadding hideCloseButton className="max-w-2xl bg-card border border-border p-0 overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 pr-6 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <LockKeyhole size={20} />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                {isEditing ? 'Edit Client Credential' : 'Add Secure Credential'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Credentials are encrypted with agency-grade AES security before storage.
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 pt-2">
-          {/* ── Basic Info ── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Client *">
-              <select
-                value={form.clientId}
-                onChange={(e) => updateField('clientId', e.target.value)}
-                required
-                className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs appearance-none cursor-pointer"
-              >
-                <option value="">Select client</option>
-                {clients.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.company || c.name}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-
-            <FormField label="Category Type *">
-              <select
-                value={form.credentialType}
-                onChange={(e) => updateField('credentialType', e.target.value)}
-                required
-                className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs appearance-none cursor-pointer"
-              >
-                {credentialTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          </div>
-
-          <FormField label="Credential Name / Account Title *">
-            <Input
-              value={form.credentialName}
-              onChange={(e) => updateField('credentialName', e.target.value)}
-              placeholder="e.g. Client Brand Social Accounts, Meta Business Manager"
-              required
-              className="h-9 text-xs rounded-xl"
-            />
-          </FormField>
-
-          {/* ── Primary Credential ── */}
-          <div className="rounded-xl border border-border bg-secondary/10 p-4 space-y-3">
-            <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <LockKeyhole size={13} /> Primary / Master Credential
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <FormField label="Username / Email / Account ID">
-                <Input
-                  value={form.username}
-                  onChange={(e) => updateField('username', e.target.value)}
-                  placeholder="login@brand.com or @handle"
-                  className="h-9 text-xs rounded-xl"
-                />
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Form Body */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            {/* Linear One-by-One Field Flow (Google Form Style) */}
+            <div className="space-y-6">
+              <FormField label="Client *">
+                <select
+                  value={form.clientId}
+                  onChange={(e) => updateField('clientId', e.target.value)}
+                  required
+                  className="w-full h-11 px-3.5 pr-8 rounded-xl border border-border bg-background text-sm font-medium appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                >
+                  <option value="">Select client</option>
+                  {clients.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.company || c.name}
+                    </option>
+                  ))}
+                </select>
               </FormField>
 
-              <FormField label={isEditing ? 'New Password (leave blank to keep)' : 'Password / API Secret'}>
-                <Input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => updateField('password', e.target.value)}
-                  placeholder={isEditing ? 'Leave blank to keep existing' : 'Enter password'}
-                  className="h-9 text-xs rounded-xl font-mono"
-                />
+              <FormField label="Category Type *">
+                <select
+                  value={form.credentialType}
+                  onChange={(e) => updateField('credentialType', e.target.value)}
+                  required
+                  className="w-full h-11 px-3.5 pr-8 rounded-xl border border-border bg-background text-sm font-medium appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                >
+                  {credentialTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
               </FormField>
 
-              <FormField label="Email">
+              <FormField label="Credential Name / Account Title *">
                 <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => updateField('email', e.target.value)}
-                  placeholder="primary@email.com"
-                  className="h-9 text-xs rounded-xl"
-                />
-              </FormField>
-
-              <FormField label="Mobile Number">
-                <Input
-                  value={form.mobileNumber}
-                  onChange={(e) => updateField('mobileNumber', e.target.value)}
-                  placeholder="+91 98765 43210"
-                  className="h-9 text-xs rounded-xl"
-                />
-              </FormField>
-
-              <FormField label="Login URL / Portal Link">
-                <Input
-                  value={form.url}
-                  onChange={(e) => updateField('url', e.target.value)}
-                  placeholder="https://business.facebook.com"
-                  className="h-9 text-xs rounded-xl"
-                />
-              </FormField>
-
-              <FormField label="Expiry Date (Optional)">
-                <Input
-                  type="date"
-                  value={form.expiryDate}
-                  onChange={(e) => updateField('expiryDate', e.target.value)}
-                  className="h-9 text-xs rounded-xl"
+                  value={form.credentialName}
+                  onChange={(e) => updateField('credentialName', e.target.value)}
+                  placeholder="e.g. Client Brand Social Accounts, Meta Business Manager"
+                  required
+                  className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
                 />
               </FormField>
             </div>
 
-            <FormField label="Tags (Comma separated)">
-              <Input
-                value={form.tags}
-                onChange={(e) => updateField('tags', e.target.value)}
-                placeholder="social, instagram, meta, ads"
-                className="h-9 text-xs rounded-xl"
-              />
-            </FormField>
-
-            <FormField label="Security Notes / 2FA Instructions">
-              <Textarea
-                value={form.notes}
-                onChange={(e) => updateField('notes', e.target.value)}
-                placeholder="e.g. 2FA sent to client phone number (+91 98765 43210)"
-                rows={2}
-                className="text-xs rounded-xl"
-              />
-            </FormField>
-          </div>
-
-          {/* ── Platform Accounts ── */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <AtSign size={13} /> Platform Accounts
-                <span className="ml-1 text-[10px] font-normal text-muted-foreground">
-                  (Instagram, Facebook, X, YouTube, etc.)
-                </span>
+            {/* ── Primary Credential Card (Linear Flow) ── */}
+            <div className="rounded-2xl border border-border/80 bg-secondary/15 p-5 sm:p-6 space-y-5 shadow-2xs">
+              <p className="text-sm font-bold text-foreground flex items-center gap-2">
+                <LockKeyhole size={16} className="text-primary" /> Primary / Master Credential
               </p>
-              <button
-                type="button"
-                onClick={addAccount}
-                className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-all px-2.5 py-1 rounded-lg border border-primary/30 hover:bg-primary/5"
-              >
-                <PlusCircle size={13} />
-                Add Platform
-              </button>
+              <div className="space-y-5">
+                <FormField label="Username / Email / Account ID">
+                  <Input
+                    value={form.username}
+                    onChange={(e) => updateField('username', e.target.value)}
+                    placeholder="login@brand.com or @handle"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  />
+                </FormField>
+
+                <FormField label={isEditing ? 'New Password (leave blank to keep)' : 'Password / API Secret'}>
+                  <Input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => updateField('password', e.target.value)}
+                    placeholder={isEditing ? 'Leave blank to keep existing' : 'Enter password'}
+                    className="h-11 text-sm rounded-xl px-4 font-mono focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  />
+                </FormField>
+
+                <FormField label="Email">
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => updateField('email', e.target.value)}
+                    placeholder="primary@email.com"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  />
+                </FormField>
+
+                <FormField label="Mobile Number">
+                  <Input
+                    value={form.mobileNumber}
+                    onChange={(e) => updateField('mobileNumber', e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  />
+                </FormField>
+
+                <FormField label="Login URL / Portal Link">
+                  <Input
+                    value={form.url}
+                    onChange={(e) => updateField('url', e.target.value)}
+                    placeholder="https://business.facebook.com"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  />
+                </FormField>
+
+                <FormField label="Expiry Date (Optional)">
+                  <Input
+                    type="date"
+                    value={form.expiryDate}
+                    onChange={(e) => updateField('expiryDate', e.target.value)}
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  />
+                </FormField>
+
+                <FormField label="Tags (Comma separated)">
+                  <Input
+                    value={form.tags}
+                    onChange={(e) => updateField('tags', e.target.value)}
+                    placeholder="social, instagram, meta, ads"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  />
+                </FormField>
+
+                <FormField label="Security Notes / 2FA Instructions">
+                  <Textarea
+                    value={form.notes}
+                    onChange={(e) => updateField('notes', e.target.value)}
+                    placeholder="e.g. 2FA sent to client phone number (+91 98765 43210)"
+                    className="min-h-[90px] text-sm rounded-xl p-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  />
+                </FormField>
+              </div>
             </div>
 
-            {form.socialAccounts.length === 0 && (
-              <div className="rounded-xl border border-dashed border-border py-5 text-center text-xs text-muted-foreground">
-                No platform accounts added yet.{' '}
-                <button type="button" onClick={addAccount} className="text-primary font-semibold hover:underline">
-                  Add one
-                </button>{' '}
-                to store Instagram, Facebook, X, YouTube passwords.
+            {/* ── Platform Accounts (Linear Flow) ── */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <AtSign size={16} className="text-primary" /> Platform Accounts
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    (Instagram, Facebook, X, YouTube, etc.)
+                  </span>
+                </p>
+                <button
+                  type="button"
+                  onClick={addAccount}
+                  className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-all px-3 py-1.5 rounded-xl border border-primary/30 hover:bg-primary/5 cursor-pointer shadow-2xs"
+                >
+                  <PlusCircle size={14} />
+                  Add Platform
+                </button>
               </div>
-            )}
 
-            {form.socialAccounts.map((account, index) => (
-              <SocialAccountRow
-                key={index}
-                account={account}
-                index={index}
-                onChange={updateAccount}
-                onRemove={removeAccount}
-                isEditing={isEditing}
-              />
-            ))}
+              {form.socialAccounts.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-border py-6 text-center text-xs text-muted-foreground bg-secondary/10">
+                  No platform accounts added yet.{' '}
+                  <button type="button" onClick={addAccount} className="text-primary font-bold hover:underline cursor-pointer">
+                    Add one
+                  </button>{' '}
+                  to store Instagram, Facebook, X, YouTube passwords.
+                </div>
+              )}
+
+              {form.socialAccounts.map((account, index) => (
+                <SocialAccountRow
+                  key={index}
+                  account={account}
+                  index={index}
+                  onChange={updateAccount}
+                  onRemove={removeAccount}
+                  isEditing={isEditing}
+                />
+              ))}
+            </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-border">
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs">
+          {/* Modern Pinned Sticky Bottom Action Bar */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-end gap-3 z-10 shadow-xs select-none">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => onOpenChange(false)}
+              className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+            >
               Cancel
             </Button>
-            <Button type="submit" size="sm" disabled={saving} className="rounded-xl text-xs font-bold">
+            <Button
+              type="submit"
+              disabled={saving}
+              className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+            >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Store Securely'}
             </Button>
           </div>
