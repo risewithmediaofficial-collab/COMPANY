@@ -39,8 +39,10 @@ export const useCreateCredential = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ clientId, data }) => {
-      const response = await api.post(`/credentials/clients/${clientId}`, data);
+    mutationFn: async (arg) => {
+      const clientId = arg?.clientId || arg?.data?.clientId;
+      const requestData = arg?.data ? arg.data : arg;
+      const response = await api.post(`/credentials/clients/${clientId}`, requestData);
       return response.data.credential;
     },
     onSuccess: () => {

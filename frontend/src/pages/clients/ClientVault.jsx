@@ -722,7 +722,7 @@ export default function ClientVault() {
     if (id) {
       await updateMutation.mutateAsync({ id, data });
     } else {
-      await createMutation.mutateAsync(data);
+      await createMutation.mutateAsync({ clientId: data.clientId, data });
     }
   };
 

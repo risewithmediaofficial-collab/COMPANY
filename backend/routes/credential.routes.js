@@ -15,10 +15,10 @@ router.use(protect);
 
 router.get('/', authorize('superAdmin', 'manager', 'employee'), getCredentialsVault);
 router.get('/clients/:clientId', authorize('superAdmin', 'manager', 'employee'), getClientCredentials);
-router.post('/clients/:clientId', authorize('superAdmin', 'manager'), createCredential);
+router.post('/clients/:clientId', authorize('superAdmin', 'manager', 'employee'), createCredential);
 router.get('/:credentialId', authorize('superAdmin', 'manager', 'employee'), getCredential);
-router.put('/:credentialId', authorize('superAdmin', 'manager'), updateCredential);
-router.delete('/:credentialId', authorize('superAdmin', 'manager'), deleteCredential);
-router.get('/:credentialId/logs', authorize('superAdmin', 'manager'), getCredentialLogs);
+router.put('/:credentialId', authorize('superAdmin', 'manager', 'employee'), updateCredential);
+router.delete('/:credentialId', authorize('superAdmin', 'manager', 'employee'), deleteCredential);
+router.get('/:credentialId/logs', authorize('superAdmin', 'manager', 'employee'), getCredentialLogs);
 
 export default router;
