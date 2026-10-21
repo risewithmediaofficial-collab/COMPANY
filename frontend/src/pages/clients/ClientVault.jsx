@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
 import {
   Copy,
   Eye,
@@ -833,6 +834,13 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
 export default function ClientVault() {
   const { user } = useSelector((state) => state.auth);
+  const isClientUser = user?.role === 'client';
+  const myClientId = user?.clientId?._id || user?.clientId || user?.client?._id || user?.client;
+
+  if (isClientUser && myClientId) {
+    return <Navigate to={`/clients/${myClientId}?tab=vault`} replace />;
+  }
+
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [clientFilter, setClientFilter] = useState('all');
@@ -1031,31 +1039,35 @@ export default function ClientVault() {
         </span>
       ),
     },
-    {
-      key: 'actions',
-      label: '',
-      render: (item) => (
-        <div className="flex items-center justify-end gap-1">
-          <button
-            onClick={() => {
-              setSelectedCredential(item);
-              setOpenDialog(true);
-            }}
-            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
-            title="Edit"
-          >
-            <Pencil size={14} />
-          </button>
-          <button
-            onClick={() => setDeleteId(item._id)}
-            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
-            title="Delete"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      ),
-    },
+    ...(!isClientUser
+      ? [
+          {
+            key: 'actions',
+            label: '',
+            render: (item) => (
+              <div className="flex items-center justify-end gap-1">
+                <button
+                  onClick={() => {
+                    setSelectedCredential(item);
+                    setOpenDialog(true);
+                  }}
+                  className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground"
+                  title="Edit"
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  onClick={() => setDeleteId(item._id)}
+                  className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+                  title="Delete"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ),
+          },
+        ]
+      : []),
   ];
 
   // Cards Renderer
@@ -1070,25 +1082,27 @@ export default function ClientVault() {
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
             {typeLabels[item.credentialType] || item.credentialType}
           </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => {
-                setSelectedCredential(item);
-                setOpenDialog(true);
-              }}
-              className="p-1 rounded hover:bg-secondary text-muted-foreground"
-              title="Edit"
-            >
-              <Pencil size={13} />
-            </button>
-            <button
-              onClick={() => setDeleteId(item._id)}
-              className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
-              title="Delete"
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
+          {!isClientUser && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  setSelectedCredential(item);
+                  setOpenDialog(true);
+                }}
+                className="p-1 rounded hover:bg-secondary text-muted-foreground"
+                title="Edit"
+              >
+                <Pencil size={13} />
+              </button>
+              <button
+                onClick={() => setDeleteId(item._id)}
+                className="p-1 rounded hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600"
+                title="Delete"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          )}
         </div>
 
         <div>
@@ -1203,9 +1217,17 @@ export default function ClientVault() {
 
   return (
     <WorkspacePage
-      breadcrumbs={['RiseWithMedia', 'Client Lifecycle', 'Client Vault']}
-      title="Client Vault & Credentials"
-      subtitle="Encrypted credential repository for client social media accounts, CMS, domain hosting, ad managers, and brand assets."
+      breadcrumbs={
+        isClientUser
+          ? ['RiseWithMedia', 'Client Portal', 'Client Vault']
+          : ['RiseWithMedia', 'Client Lifecycle', 'Client Vault']
+      }
+      title={isClientUser ? 'My Secure Credentials & Vault' : 'Client Vault & Credentials'}
+      subtitle={
+        isClientUser
+          ? "Encrypted credential repository for your brand's social media accounts, CMS, domain hosting, and ad managers."
+          : 'Encrypted credential repository for client social media accounts, CMS, domain hosting, ad managers, and brand assets.'
+      }
       icon="🔐"
       properties={[
         { label: 'Total Vault Items', value: total, icon: LockKeyhole },
@@ -1214,17 +1236,19 @@ export default function ClientVault() {
         { label: 'Ad Accounts', value: adCount, tone: 'warning' },
       ]}
       actions={
-        <Button
-          size="sm"
-          onClick={() => {
-            setSelectedCredential(null);
-            setOpenDialog(true);
-          }}
-          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
-        >
-          <Plus size={14} className="stroke-[2.5]" />
-          <span>Add Credential</span>
-        </Button>
+        !isClientUser ? (
+          <Button
+            size="sm"
+            onClick={() => {
+              setSelectedCredential(null);
+              setOpenDialog(true);
+            }}
+            className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+          >
+            <Plus size={14} className="stroke-[2.5]" />
+            <span>Add Credential</span>
+          </Button>
+        ) : null
       }
     >
       {/* Category Filter Tabs & Searchable Client Filter Dropdown */}
@@ -1243,25 +1267,27 @@ export default function ClientVault() {
             </button>
           ))}
         </div>
-        <div className="w-full sm:w-64 shrink-0">
-          <SelectDropdown
-            value={clientFilter}
-            onChange={(val) => setClientFilter(val || 'all')}
-            options={[
-              { value: 'all', label: 'All Clients (Filter)' },
-              ...clients.map((c) => ({
-                value: c._id,
-                label: c.company || c.name,
-                subLabel: c.email || undefined,
-              })),
-            ]}
-            placeholder="Filter by Client..."
-            searchPlaceholder="Search client..."
-            allowDeselect={false}
-            allowCustom={false}
-            buttonClassName="h-9 px-3 rounded-xl border border-border bg-card text-xs font-semibold shadow-2xs justify-between"
-          />
-        </div>
+        {!isClientUser && (
+          <div className="w-full sm:w-64 shrink-0">
+            <SelectDropdown
+              value={clientFilter}
+              onChange={(val) => setClientFilter(val || 'all')}
+              options={[
+                { value: 'all', label: 'All Clients (Filter)' },
+                ...clients.map((c) => ({
+                  value: c._id,
+                  label: c.company || c.name,
+                  subLabel: c.email || undefined,
+                })),
+              ]}
+              placeholder="Filter by Client..."
+              searchPlaceholder="Search client..."
+              allowDeselect={false}
+              allowCustom={false}
+              buttonClassName="h-9 px-3 rounded-xl border border-border bg-card text-xs font-semibold shadow-2xs justify-between"
+            />
+          </div>
+        )}
       </div>
 
       <DatabaseView

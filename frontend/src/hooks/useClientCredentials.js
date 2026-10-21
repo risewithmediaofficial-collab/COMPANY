@@ -64,6 +64,7 @@ export const useCreateCredential = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credentials-vault'] });
+      queryClient.invalidateQueries({ queryKey: ['client-credentials'] });
       toast.success('Credential stored securely');
     },
     onError: (error) => {
@@ -83,6 +84,7 @@ export const useUpdateCredential = () => {
     },
     onSuccess: (credential) => {
       queryClient.invalidateQueries({ queryKey: ['credentials-vault'] });
+      queryClient.invalidateQueries({ queryKey: ['client-credentials'] });
       queryClient.invalidateQueries({ queryKey: ['credential', credential._id] });
       toast.success('Credential updated successfully');
     },
@@ -102,6 +104,7 @@ export const useDeleteCredential = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credentials-vault'] });
+      queryClient.invalidateQueries({ queryKey: ['client-credentials'] });
       toast.success('Credential removed');
     },
     onError: (error) => {

@@ -59,9 +59,10 @@ const PINNED_STORAGE_KEY = 'rwm_sidebar_pinned_v2';
 function SidebarComponent({ onOpenSearch, currentPath }) {
   const pathname = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/');
   const dispatch = useDispatch();
-  const sidebarOpen = useSelector((state) => state.ui.sidebarOpen);
-  const userRole = useSelector((state) => state.auth.user?.role);
-  const userPermissions = useSelector((state) => state.auth.user?.permissions);
+  const user = useSelector((state) => state.auth.user);
+  const userRole = user?.role;
+  const userPermissions = user?.permissions;
+  const myClientId = user?.clientId?._id || user?.clientId || user?.client?._id || user?.client;
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [pinnedPaths, setPinnedPaths] = useState(() => {
@@ -132,6 +133,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
             { name: 'SMM Tracker', icon: Calendar, path: '/portal/tracker' },
             { name: 'Ad Budget & Campaigns', icon: Megaphone, path: '/portal/ad-budget' },
             { name: 'Invoices & Billing', icon: Receipt, path: '/portal/invoices' },
+            { name: 'Client Vault', icon: KeyRound, path: myClientId ? `/clients/${myClientId}?tab=vault` : '/client-vault' },
           ],
         },
       ];

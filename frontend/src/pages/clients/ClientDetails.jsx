@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams, Link, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
+import { toast } from 'sonner';
 import api from '../../api';
 import {
   Building2, Phone, Mail, IndianRupee,
   Briefcase, CheckCircle2, Clock, AlertCircle, Users,
-  FileText, TrendingUp, Edit2, FolderOpen, Calendar
+  FileText, TrendingUp, Edit2, FolderOpen, Calendar,
+  LockKeyhole, KeyRound, Eye, EyeOff, Copy, Check, ExternalLink, Plus, ChevronDown, ChevronUp, AtSign
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AddClientModal } from '../../components/modals/AddClientModal';
@@ -18,6 +20,21 @@ import {
   NotionTabs,
 } from '../../components/ui/NotionDetailTemplate';
 import { formatINR } from '../../utils/currency';
+import { useCredential } from '../../hooks/useClientCredentials';
+
+const PLATFORM_MAP = {
+  instagram: { label: 'Instagram', emoji: '📸' },
+  facebook: { label: 'Facebook', emoji: '📘' },
+  x: { label: 'X (Twitter)', emoji: '🐦' },
+  youtube: { label: 'YouTube', emoji: '▶️' },
+  linkedin: { label: 'LinkedIn', emoji: '💼' },
+  threads: { label: 'Threads', emoji: '🧵' },
+  tiktok: { label: 'TikTok', emoji: '🎵' },
+  snapchat: { label: 'Snapchat', emoji: '👻' },
+  pinterest: { label: 'Pinterest', emoji: '📌' },
+  other: { label: 'Other', emoji: '🔗' },
+};
+const getPlatformMeta = (val) => PLATFORM_MAP[val] || { label: val || 'Account', emoji: '🔐' };
 
 const onboardingStepLabels = {
   welcomeEmailSent: 'Welcome Email Sent',
@@ -37,10 +54,59 @@ const statusStyles = {
 
 const ClientDetails = () => {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useSelector((state) => state.auth);
-  const [activeTab, setActiveTab] = useState('overview');
+
+  // If user is a client, restrict access strictly to their own client record
+  const isClientUser = user?.role === 'client';
+  const myClientId = user?.clientId || user?.client?._id || user?.client;
+  if (isClientUser && myClientId && String(myClientId) !== String(id)) {
+    return <Navigate to={`/clients/${myClientId}`} replace />;
+  }
+
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || (isClientUser ? 'vault' : 'overview'));
   const [showEditModal, setShowEditModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [activePasswordId, setActivePasswordId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+  const [expandedCards, setExpandedCards] = useState({});
+
+  useEffect(() => {
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', newTab);
+      return next;
+    }, { replace: true });
+  };
+
+  const { data: revealedCredential } = useCredential(activePasswordId);
+
+  const { data: credentials = [] } = useQuery({
+    queryKey: ['client-credentials', id],
+    queryFn: async () => {
+      const res = await api.get(`/credentials/clients/${id}`);
+      return res.data?.credentials || [];
+    },
+    enabled: Boolean(id),
+  });
+
+  const handleCopy = (text, copyKey) => {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
+    setCopiedId(copyKey);
+    toast.success('Copied to clipboard!');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const toggleCard = (cardId) => setExpandedCards((prev) => ({ ...prev, [cardId]: !prev[cardId] }));
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['client', id],
@@ -109,6 +175,7 @@ const ClientDetails = () => {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: TrendingUp },
     { id: 'projects', label: `Projects (${projects.length})`, icon: Briefcase },
+    { id: 'vault', label: `Client Vault (${credentials.length})`, icon: LockKeyhole },
     ...(isFinanceVisible ? [
       { id: 'invoices', label: `Invoices (${invoices.length})`, icon: FileText },
       { id: 'paymentNotes', label: 'Payment Notes', icon: AlertCircle },
@@ -122,8 +189,8 @@ const ClientDetails = () => {
     <div className="space-y-6 animate-in fade-in duration-500">
 
       <NotionDetailPage
-        backTo="/clients"
-        backLabel="Clients"
+        backTo={isClientUser ? null : '/clients'}
+        backLabel={isClientUser ? null : 'Clients'}
         title={client.company || client.name}
         subtitle={[
           client.email,
@@ -136,6 +203,17 @@ const ClientDetails = () => {
         statusClassName={`border ${statusStyles[client.status] || statusStyles.Active}`}
         actions={(
           <>
+            <button
+              type="button"
+              onClick={() => handleTabChange('vault')}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+                activeTab === 'vault'
+                  ? 'border-primary bg-primary text-white shadow-sm'
+                  : 'border-primary/30 bg-primary/10 text-primary hover:bg-primary/20'
+              }`}
+            >
+              <LockKeyhole size={16} /> Client Vault
+            </button>
             {client.email && (
               <a
                 href={`mailto:${client.email}`}
@@ -187,7 +265,7 @@ const ClientDetails = () => {
       </NotionDetailPage>
 
       {/* Tabs */}
-      <NotionTabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+      <NotionTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
@@ -323,6 +401,428 @@ const ClientDetails = () => {
               <div className="p-12 text-center text-muted-foreground text-sm">No projects yet for this client.</div>
             )}
           </div>
+        </div>
+      )}
+
+      {activeTab === 'vault' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="bg-card rounded-3xl border border-border shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xl shadow-inner shrink-0">
+                <LockKeyhole size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  Client Vault & Logins
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-secondary text-foreground">
+                    {credentials.length} {credentials.length === 1 ? 'Record' : 'Records'}
+                  </span>
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Secure credentials, logins, and social accounts for {client.company || client.name}.
+                </p>
+              </div>
+            </div>
+
+            {!isClientUser && (
+              <Link
+                to="/client-vault"
+                className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20 border border-primary/30 px-3.5 py-2 rounded-xl transition-all shadow-2xs"
+              >
+                <KeyRound size={14} /> Open Full Vault Manager
+              </Link>
+            )}
+          </div>
+
+          {/* Cards or Empty State */}
+          {credentials.length === 0 ? (
+            <div className="bg-card rounded-3xl border border-border shadow-sm p-12 text-center space-y-3">
+              <div className="mx-auto w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground">
+                <LockKeyhole size={24} />
+              </div>
+              <h3 className="font-bold text-base">No Vault Credentials Added</h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                {isClientUser
+                  ? 'Your account credentials and social accounts have not been uploaded to the vault yet. Please contact your account manager.'
+                  : 'No credentials or social accounts have been stored for this client yet. Add them via the Client Vault.'}
+              </p>
+              {!isClientUser && (
+                <Link
+                  to="/client-vault"
+                  className="inline-flex items-center gap-2 text-xs font-bold bg-primary text-white px-4 py-2 rounded-xl shadow hover:bg-primary/90 transition-all mt-2"
+                >
+                  <Plus size={14} /> Add Credential in Vault
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {credentials.map((item) => {
+                const isRevealed = activePasswordId === item._id && Boolean(revealedCredential?.password);
+                const isExpanded = expandedCards[item._id];
+                const accounts = item.socialAccounts || [];
+
+                return (
+                  <div
+                    key={item._id}
+                    className="bg-card rounded-3xl border border-border shadow-sm p-5 space-y-4 flex flex-col justify-between hover:border-primary/40 transition-all"
+                  >
+                    <div className="space-y-3.5">
+                      {/* Top Bar */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-secondary uppercase tracking-wider text-muted-foreground border border-border/50">
+                          {item.credentialType?.replace(/_/g, ' ') || 'Credential'}
+                        </span>
+                        {item.url && (
+                          <a
+                            href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                            title="Open login URL"
+                          >
+                            <span>Login Portal</span>
+                            <ExternalLink size={11} />
+                          </a>
+                        )}
+                      </div>
+
+                      {/* Card Title */}
+                      <div>
+                        <h3 className="font-bold text-base text-foreground flex items-center gap-2">
+                          <LockKeyhole size={16} className="text-primary shrink-0" />
+                          <span className="truncate">{item.credentialName}</span>
+                        </h3>
+                        {item.notes && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {item.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Primary Credential Box */}
+                      <div className="p-3.5 rounded-2xl bg-secondary/35 border border-border/60 space-y-2 text-xs">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+                          <KeyRound size={11} /> Primary Credential
+                        </div>
+
+                        {/* Username */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-muted-foreground text-[11px]">User:</span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-mono font-medium truncate max-w-[170px]">
+                              {item.username || '—'}
+                            </span>
+                            {item.username && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(item.username, `user-${item._id}`)}
+                                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
+                                title="Copy username"
+                              >
+                                {copiedId === `user-${item._id}` ? (
+                                  <Check size={12} className="text-emerald-500" />
+                                ) : (
+                                  <Copy size={12} />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Password */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-muted-foreground text-[11px]">Pass:</span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-mono font-medium truncate max-w-[170px]">
+                              {isRevealed ? revealedCredential.password : '••••••••••••'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setActivePasswordId(activePasswordId === item._id ? null : item._id)}
+                              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
+                              title={isRevealed ? 'Hide password' : 'View password'}
+                            >
+                              {isRevealed ? <EyeOff size={12} /> : <Eye size={12} />}
+                            </button>
+                            {isRevealed && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(revealedCredential.password, `pass-${item._id}`)}
+                                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
+                                title="Copy password"
+                              >
+                                {copiedId === `pass-${item._id}` ? (
+                                  <Check size={12} className="text-emerald-500" />
+                                ) : (
+                                  <Copy size={12} />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Email */}
+                        {item.email && (
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground text-[11px]">Email:</span>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="font-mono font-medium truncate max-w-[170px]">
+                                {item.email}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(item.email, `email-${item._id}`)}
+                                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
+                              >
+                                {copiedId === `email-${item._id}` ? (
+                                  <Check size={12} className="text-emerald-500" />
+                                ) : (
+                                  <Copy size={12} />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Mobile */}
+                        {item.mobileNumber && (
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-muted-foreground text-[11px]">Mobile:</span>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="font-mono font-medium">{item.mobileNumber}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(item.mobileNumber, `mob-${item._id}`)}
+                                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
+                              >
+                                {copiedId === `mob-${item._id}` ? (
+                                  <Check size={12} className="text-emerald-500" />
+                                ) : (
+                                  <Copy size={12} />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Platform Accounts Expandable Section */}
+                      {accounts.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActivePasswordId(item._id);
+                              toggleCard(item._id);
+                            }}
+                            className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-3 py-2 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/40 transition-all cursor-pointer"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <AtSign size={13} className="text-primary" />
+                              <span>{accounts.length} Platform Account{accounts.length > 1 ? 's' : ''}</span>
+                              <span className="text-muted-foreground font-normal text-[11px] ml-1">
+                                {accounts.map((a) => getPlatformMeta(a.platform).emoji).join(' ')}
+                              </span>
+                            </span>
+                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                          </button>
+
+                          {isExpanded && (
+                            <div className="space-y-2.5 pt-1">
+                              {accounts.map((acc, accIdx) => {
+                                const meta = getPlatformMeta(acc.platform);
+                                const revealedAcc =
+                                  isRevealed && revealedCredential?.socialAccounts?.[accIdx]
+                                    ? { ...acc, password: revealedCredential.socialAccounts[accIdx].password }
+                                    : acc;
+                                const accPassRevealed = Boolean(revealedAcc.password);
+
+                                return (
+                                  <div
+                                    key={accIdx}
+                                    className="rounded-2xl border border-border/80 bg-background/80 p-3 space-y-2 text-xs"
+                                  >
+                                    <div className="flex items-center justify-between font-bold text-foreground">
+                                      <span className="flex items-center gap-1.5">
+                                        <span>{meta.emoji}</span>
+                                        <span>{acc.platformLabel || meta.label}</span>
+                                      </span>
+                                      {acc.pages && acc.pages.length > 0 && (
+                                        <span className="text-[10px] font-medium text-muted-foreground px-2 py-0.5 rounded bg-secondary">
+                                          {acc.pages.length} page{acc.pages.length > 1 ? 's' : ''}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1.5 text-[11px] pt-1">
+                                      {acc.accountHandle && (
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-muted-foreground">Handle:</span>
+                                          <div className="flex items-center gap-1">
+                                            <span className="font-mono font-medium truncate max-w-[120px]">
+                                              {acc.accountHandle}
+                                            </span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleCopy(acc.accountHandle, `hnd-${item._id}-${accIdx}`)}
+                                              className="cursor-pointer"
+                                            >
+                                              {copiedId === `hnd-${item._id}-${accIdx}` ? (
+                                                <Check size={10} className="text-emerald-500" />
+                                              ) : (
+                                                <Copy size={10} />
+                                              )}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {acc.email && (
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-muted-foreground">Email:</span>
+                                          <div className="flex items-center gap-1">
+                                            <span className="font-mono font-medium truncate max-w-[120px]">
+                                              {acc.email}
+                                            </span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleCopy(acc.email, `aem-${item._id}-${accIdx}`)}
+                                              className="cursor-pointer"
+                                            >
+                                              {copiedId === `aem-${item._id}-${accIdx}` ? (
+                                                <Check size={10} className="text-emerald-500" />
+                                              ) : (
+                                                <Copy size={10} />
+                                              )}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {acc.mobileNumber && (
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-muted-foreground">Mobile:</span>
+                                          <div className="flex items-center gap-1">
+                                            <span className="font-mono font-medium">
+                                              {acc.mobileNumber}
+                                            </span>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleCopy(acc.mobileNumber, `amob-${item._id}-${accIdx}`)}
+                                              className="cursor-pointer"
+                                            >
+                                              {copiedId === `amob-${item._id}-${accIdx}` ? (
+                                                <Check size={10} className="text-emerald-500" />
+                                              ) : (
+                                                <Copy size={10} />
+                                              )}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">Password:</span>
+                                        <div className="flex items-center gap-1">
+                                          <span className="font-mono font-medium truncate max-w-[120px]">
+                                            {accPassRevealed ? revealedAcc.password : '••••••••'}
+                                          </span>
+                                          {accPassRevealed ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => handleCopy(revealedAcc.password, `apass-${item._id}-${accIdx}`)}
+                                              className="cursor-pointer"
+                                            >
+                                              {copiedId === `apass-${item._id}-${accIdx}` ? (
+                                                <Check size={10} className="text-emerald-500" />
+                                              ) : (
+                                                <Copy size={10} />
+                                              )}
+                                            </button>
+                                          ) : (
+                                            <button
+                                              type="button"
+                                              onClick={() => setActivePasswordId(item._id)}
+                                              title="Reveal password"
+                                              className="cursor-pointer"
+                                            >
+                                              <Eye size={10} />
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Pages if any */}
+                                    {acc.pages && acc.pages.length > 0 && (
+                                      <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                          Pages & Roles
+                                        </p>
+                                        {acc.pages.map((p, pIdx) => (
+                                          <div
+                                            key={pIdx}
+                                            className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-secondary/40 text-[11px]"
+                                          >
+                                            <div className="min-w-0">
+                                              <span className="font-semibold">{p.pageName || 'Page'}</span>
+                                              {p.pageId && (
+                                                <span className="text-muted-foreground ml-1.5 text-[10px]">
+                                                  ID: {p.pageId}
+                                                </span>
+                                              )}
+                                            </div>
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-primary/10 text-primary">
+                                                {p.role || 'Admin'}
+                                              </span>
+                                              {p.pageUrl && (
+                                                <a
+                                                  href={p.pageUrl.startsWith('http') ? p.pageUrl : `https://${p.pageUrl}`}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="text-primary hover:underline"
+                                                >
+                                                  <ExternalLink size={10} />
+                                                </a>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Tags / Footer */}
+                    {item.tags && (Array.isArray(item.tags) ? item.tags.length > 0 : Boolean(item.tags)) && (
+                      <div className="pt-2 border-t border-border/40 flex items-center gap-1.5 flex-wrap">
+                        {(Array.isArray(item.tags) ? item.tags : item.tags.split(','))
+                          .map((t) => t.trim())
+                          .filter(Boolean)
+                          .map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-secondary/60 text-muted-foreground"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

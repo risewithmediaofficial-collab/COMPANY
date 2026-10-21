@@ -70,8 +70,16 @@ const clientPopulate = [
 const assertClientAccess = (req, client) => {
   if (!client) return { allowed: false, status: 404, message: 'Client not found' };
   if (['superAdmin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'employee'].includes(req.user.role)) return { allowed: true };
-  if (req.user.role === 'client' && client.userId?.toString() === req.user._id.toString()) return { allowed: true };
-  return { allowed: true }; // Fallback allow for company staff
+  if (req.user.role === 'client') {
+    const userClientId = req.user.clientId?._id || req.user.clientId;
+    const isOwner =
+      (client.userId && client.userId.toString() === req.user._id.toString()) ||
+      (userClientId && client._id.toString() === userClientId.toString()) ||
+      (client.email && req.user.email && client.email.toLowerCase() === req.user.email.toLowerCase());
+    if (isOwner) return { allowed: true };
+    return { allowed: false, status: 403, message: 'Access denied. You can only view your own details.' };
+  }
+  return { allowed: false, status: 403, message: 'Access denied.' };
 };
 
 export const getClients = async (req, res) => {
@@ -102,7 +110,11 @@ export const getClients = async (req, res) => {
     }
 
     if (req.user.role === 'client') {
-      filter.userId = req.user._id;
+      const userClientId = req.user.clientId?._id || req.user.clientId;
+      const clientConditions = [{ userId: req.user._id }];
+      if (userClientId) clientConditions.push({ _id: userClientId });
+      if (req.user.email) clientConditions.push({ email: req.user.email.toLowerCase().trim() });
+      filter.$and = [{ $or: clientConditions }];
     } else if (req.user.role === 'employee') {
       // Employees see assigned clients or unassigned organization clients
       filter.$or = [

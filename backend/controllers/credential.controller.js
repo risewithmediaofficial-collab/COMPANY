@@ -39,9 +39,25 @@ const hasOrgAccess = (user, entityOrgId) => {
 };
 
 /**
+ * Helper: Find client record associated with a user
+ */
+const getClientForUser = async (user) => {
+  if (!user) return null;
+  if (user.clientId) {
+    const client = await Client.findById(user.clientId);
+    if (client) return client;
+  }
+  let client = await Client.findOne({ userId: user._id });
+  if (!client && user.email) {
+    client = await Client.findOne({ email: user.email.toLowerCase().trim() });
+  }
+  return client;
+};
+
+/**
  * Assert access control for credentials
  */
-const assertCredentialAccess = (req, credential) => {
+const assertCredentialAccess = async (req, credential) => {
   if (!credential) {
     return { allowed: false, status: 404, message: 'Credential not found' };
   }
@@ -54,6 +70,18 @@ const assertCredentialAccess = (req, credential) => {
 
   if (req.user.role === 'employee' || req.user.role === 'intern') {
     return { allowed: true };
+  }
+
+  if (req.user.role === 'client') {
+    const credClientId = credential.clientId?._id || credential.clientId;
+    if (req.user.clientId && String(req.user.clientId) === String(credClientId)) {
+      return { allowed: true };
+    }
+    const userClient = await getClientForUser(req.user);
+    if (userClient && String(userClient._id) === String(credClientId)) {
+      return { allowed: true };
+    }
+    return { allowed: false, status: 403, message: 'Access denied: You can only view your own credentials' };
   }
 
   return { allowed: false, status: 403, message: 'Access denied to this credential' };
@@ -73,9 +101,16 @@ export const getClientCredentials = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Client not found' });
     }
 
-    // Check if client belongs to user's organization
-    if (!hasOrgAccess(req.user, client.organizationId)) {
-      return res.status(403).json({ success: false, message: 'Access denied to this client' });
+    if (req.user.role === 'client') {
+      const userClient = await getClientForUser(req.user);
+      if (!userClient || String(userClient._id) !== String(clientId)) {
+        return res.status(403).json({ success: false, message: 'Access denied: You can only view your own credentials' });
+      }
+    } else {
+      // Check if client belongs to user's organization
+      if (!hasOrgAccess(req.user, client.organizationId)) {
+        return res.status(403).json({ success: false, message: 'Access denied to this client' });
+      }
     }
 
     const filter = { clientId, isActive: true };
@@ -124,42 +159,58 @@ export const getCredentialsVault = async (req, res) => {
 
     const filter = { isActive: true };
 
-    if (req.user?.role !== 'superAdmin' && req.user?.role !== 'admin' && req.user?.organizationId) {
-      filter.$or = [
-        { organizationId: req.user.organizationId },
-        { organizationId: { $exists: false } },
-        { organizationId: null },
-      ];
+    if (req.user.role === 'client') {
+      const userClient = await getClientForUser(req.user);
+      if (!userClient) {
+        return res.json({
+          success: true,
+          total: 0,
+          page: 1,
+          limit: Number(limit),
+          credentials: [],
+        });
+      }
+      filter.clientId = userClient._id;
+    } else {
+      if (req.user?.role !== 'superAdmin' && req.user?.role !== 'admin' && req.user?.organizationId) {
+        filter.$or = [
+          { organizationId: req.user.organizationId },
+          { organizationId: { $exists: false } },
+          { organizationId: null },
+        ];
+      }
+
+      if (clientId && clientId !== 'all') {
+        filter.clientId = clientId;
+      }
     }
 
     if (credentialType && credentialType !== 'all') {
       filter.credentialType = credentialType;
     }
 
-    if (clientId && clientId !== 'all') {
-      filter.clientId = clientId;
-    }
-
     if (search) {
-      const clientQuery = {
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { company: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-        ],
-      };
-      if (req.user?.role !== 'superAdmin' && req.user?.role !== 'admin' && req.user?.organizationId) {
-        clientQuery.organizationId = req.user.organizationId;
-      }
-      const matchingClients = await Client.find(clientQuery).select('_id');
-
       const searchConditions = [
         { credentialName: { $regex: search, $options: 'i' } },
         { username: { $regex: search, $options: 'i' } },
         { url: { $regex: search, $options: 'i' } },
         { tags: { $regex: search, $options: 'i' } },
-        { clientId: { $in: matchingClients.map((c) => c._id) } },
       ];
+
+      if (req.user.role !== 'client') {
+        const clientQuery = {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { company: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+          ],
+        };
+        if (req.user?.role !== 'superAdmin' && req.user?.role !== 'admin' && req.user?.organizationId) {
+          clientQuery.organizationId = req.user.organizationId;
+        }
+        const matchingClients = await Client.find(clientQuery).select('_id');
+        searchConditions.push({ clientId: { $in: matchingClients.map((c) => c._id) } });
+      }
 
       if (filter.$or) {
         filter.$and = [{ $or: filter.$or }, { $or: searchConditions }];
@@ -203,7 +254,7 @@ export const getCredential = async (req, res) => {
       .populate('createdBy', 'name email')
       .populate('lastAccessedBy', 'name email');
 
-    const accessCheck = assertCredentialAccess(req, credential);
+    const accessCheck = await assertCredentialAccess(req, credential);
     if (!accessCheck.allowed) {
       return res.status(accessCheck.status).json({ success: false, message: accessCheck.message });
     }
@@ -397,7 +448,7 @@ export const updateCredential = async (req, res) => {
 
     const credential = await ClientCredential.findById(credentialId);
 
-    const accessCheck = assertCredentialAccess(req, credential);
+    const accessCheck = await assertCredentialAccess(req, credential);
     if (!accessCheck.allowed) {
       return res.status(accessCheck.status).json({ success: false, message: accessCheck.message });
     }
@@ -492,7 +543,7 @@ export const deleteCredential = async (req, res) => {
 
     const credential = await ClientCredential.findById(credentialId);
 
-    const accessCheck = assertCredentialAccess(req, credential);
+    const accessCheck = await assertCredentialAccess(req, credential);
     if (!accessCheck.allowed) {
       return res.status(accessCheck.status).json({ success: false, message: accessCheck.message });
     }
