@@ -35,6 +35,7 @@ import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
+import SelectDropdown from '../../components/ui/SelectDropdown';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,7 +114,15 @@ const FormField = ({ label, children, hint }) => (
 );
 
 // ─── Social Account Row (inside form) ────────────────────────────────────────
-const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => {
+const SocialAccountRow = ({
+  account,
+  index,
+  onChange,
+  onRemove,
+  isEditing,
+  masterPassword = '',
+  masterEmail = '',
+}) => {
   const [showPass, setShowPass] = useState(false);
   const platform = getPlatform(account.platform);
   const supportsPages = PAGES_PLATFORMS.includes(account.platform);
@@ -133,19 +142,26 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
     <div className="border border-border/80 rounded-2xl overflow-hidden bg-secondary/15 shadow-2xs transition-all">
       {/* Row header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-secondary/25">
-        <div className="flex items-center gap-2.5">
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-background border border-border text-base leading-none shadow-2xs">
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-background border border-border text-base leading-none shadow-2xs shrink-0">
             {platform.emoji}
           </span>
-          <select
-            value={account.platform}
-            onChange={(e) => onChange(index, 'platform', e.target.value)}
-            className="h-10 px-3 pr-8 rounded-xl border border-border bg-background text-sm font-semibold appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 shadow-2xs"
-          >
-            {PLATFORMS.map((p) => (
-              <option key={p.value} value={p.value}>{p.label}</option>
-            ))}
-          </select>
+          <div className="w-48 sm:w-56 shrink-0">
+            <SelectDropdown
+              value={account.platform}
+              onChange={(val) => onChange(index, 'platform', val || 'instagram')}
+              options={PLATFORMS.map((p) => ({
+                value: p.value,
+                label: `${p.emoji} ${p.label}`,
+              }))}
+              placeholder="Select platform..."
+              searchPlaceholder="Search platform (Instagram, Facebook...)"
+              allowCustom={false}
+              allowDeselect={false}
+              className="w-full"
+              buttonClassName="h-10 px-3 rounded-xl border border-border bg-background text-sm font-semibold shadow-2xs justify-between"
+            />
+          </div>
           {account.platform === 'other' && (
             <Input
               value={account.platformLabel}
@@ -158,7 +174,7 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
         <button
           type="button"
           onClick={() => onRemove(index)}
-          className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+          className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer shrink-0 ml-2"
           title="Remove this account"
         >
           <Minus size={15} />
@@ -176,7 +192,23 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
           />
         </FormField>
 
-        <FormField label="Email">
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-sm font-semibold text-foreground">Email</label>
+            {masterEmail && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(index, 'email', masterEmail);
+                  toast.success(`Copied master email to ${platform.label}!`);
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground hover:text-foreground bg-secondary/80 hover:bg-secondary border border-border px-2 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+                title="Use email from Primary / Master Credential"
+              >
+                <Copy size={11} /> Same as Master Email
+              </button>
+            )}
+          </div>
           <Input
             type="email"
             value={account.email}
@@ -184,7 +216,7 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
             placeholder="login@email.com"
             className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
           />
-        </FormField>
+        </div>
 
         <FormField label="Mobile Number">
           <Input
@@ -195,24 +227,45 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
           />
         </FormField>
 
-        <FormField label={isEditing ? 'Password (blank = keep existing)' : 'Password'}>
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-sm font-semibold text-foreground">
+              {isEditing ? 'Password (blank = keep existing)' : 'Password'}
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                if (!masterPassword) {
+                  toast.error('Please enter a password in Primary / Master Credential above first');
+                  return;
+                }
+                onChange(index, 'password', masterPassword);
+                toast.success(`Copied master password to ${platform.label}!`);
+              }}
+              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/20 border border-primary/25 px-2.5 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+              title="Use password from Primary / Master Credential"
+            >
+              <Copy size={11} /> Same as Master / Email Password
+            </button>
+          </div>
           <div className="relative">
             <Input
               type={showPass ? 'text' : 'password'}
               value={account.password}
               onChange={(e) => onChange(index, 'password', e.target.value)}
               placeholder={isEditing ? 'Leave blank to keep' : 'Enter password'}
-              className="h-11 text-sm rounded-xl font-mono px-3.5 pr-10 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+              className="h-11 text-sm rounded-xl font-mono px-3.5 pr-11 focus:ring-2 focus:ring-primary/20 shadow-2xs"
             />
             <button
               type="button"
               onClick={() => setShowPass((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1 rounded-lg hover:bg-secondary"
+              title={showPass ? 'Hide password' : 'View password'}
             >
               {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
-        </FormField>
+        </div>
 
         <FormField label="Recovery Email (Optional)">
           <Input
@@ -289,15 +342,16 @@ const SocialAccountRow = ({ account, index, onChange, onRemove, isEditing }) => 
                   />
                 </FormField>
                 <FormField label="Role">
-                  <select
-                    value={page.role}
-                    onChange={(e) => updatePage(pi, 'role', e.target.value)}
-                    className="w-full h-8 px-2.5 pr-7 rounded-lg border border-border bg-background text-xs appearance-none cursor-pointer"
-                  >
-                    {['Admin', 'Editor', 'Moderator', 'Advertiser', 'Analyst', 'Other'].map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
+                  <SelectDropdown
+                    value={page.role || 'Admin'}
+                    onChange={(val) => updatePage(pi, 'role', val || 'Admin')}
+                    options={['Admin', 'Editor', 'Moderator', 'Advertiser', 'Analyst', 'Other']}
+                    placeholder="Select role"
+                    searchPlaceholder="Search role..."
+                    allowDeselect={false}
+                    allowCustom={true}
+                    buttonClassName="h-8 text-xs rounded-lg px-2.5 py-1 justify-between"
+                  />
                 </FormField>
                 <FormField label="Ad Account Number (Optional)">
                   <Input
@@ -443,10 +497,12 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
 
 const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave, saving }) => {
   const [form, setForm] = useState(emptyForm);
+  const [showPrimaryPassword, setShowPrimaryPassword] = useState(false);
   const isEditing = Boolean(credential?._id);
 
   useEffect(() => {
     if (!open) return;
+    setShowPrimaryPassword(false);
     setForm({
       clientId: credential?.clientId?._id || credential?.clientId || '',
       credentialName: credential?.credentialName || '',
@@ -481,6 +537,10 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!form.clientId) {
+      toast.error('Please select a client from the dropdown.');
+      return;
+    }
     const payload = {
       ...form,
       clientId: form.clientId || undefined,
@@ -546,34 +606,36 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
             {/* Linear One-by-One Field Flow (Google Form Style) */}
             <div className="space-y-6">
               <FormField label="Client *">
-                <select
+                <SelectDropdown
                   value={form.clientId}
-                  onChange={(e) => updateField('clientId', e.target.value)}
-                  required
-                  className="w-full h-11 px-3.5 pr-8 rounded-xl border border-border bg-background text-sm font-medium appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                >
-                  <option value="">Select client</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.company || c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => updateField('clientId', val)}
+                  options={clients.map((c) => ({
+                    value: c._id,
+                    label: c.company || c.name,
+                    subLabel: c.email ? `${c.name ? c.name + ' • ' : ''}${c.email}` : c.name || undefined,
+                  }))}
+                  placeholder="Select client..."
+                  searchPlaceholder="Search client by company, name, or email..."
+                  allowDeselect={false}
+                  allowCustom={false}
+                  buttonClassName="h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium shadow-2xs justify-between"
+                />
               </FormField>
 
               <FormField label="Category Type *">
-                <select
+                <SelectDropdown
                   value={form.credentialType}
-                  onChange={(e) => updateField('credentialType', e.target.value)}
-                  required
-                  className="w-full h-11 px-3.5 pr-8 rounded-xl border border-border bg-background text-sm font-medium appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                >
-                  {credentialTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => updateField('credentialType', val || 'social_media')}
+                  options={credentialTypes.map((type) => ({
+                    value: type.value,
+                    label: type.label,
+                  }))}
+                  placeholder="Select category type..."
+                  searchPlaceholder="Search category..."
+                  allowDeselect={false}
+                  allowCustom={false}
+                  buttonClassName="h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium shadow-2xs justify-between"
+                />
               </FormField>
 
               <FormField label="Credential Name / Account Title *">
@@ -603,13 +665,23 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                 </FormField>
 
                 <FormField label={isEditing ? 'New Password (leave blank to keep)' : 'Password / API Secret'}>
-                  <Input
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => updateField('password', e.target.value)}
-                    placeholder={isEditing ? 'Leave blank to keep existing' : 'Enter password'}
-                    className="h-11 text-sm rounded-xl px-4 font-mono focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPrimaryPassword ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={(e) => updateField('password', e.target.value)}
+                      placeholder={isEditing ? 'Leave blank to keep existing' : 'Enter password'}
+                      className="h-11 text-sm rounded-xl px-4 pr-11 font-mono focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPrimaryPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1 rounded-lg hover:bg-secondary"
+                      title={showPrimaryPassword ? 'Hide password' : 'View password'}
+                    >
+                      {showPrimaryPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </FormField>
 
                 <FormField label="Email">
@@ -671,21 +743,43 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
             {/* ── Platform Accounts (Linear Flow) ── */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <p className="text-sm font-bold text-foreground flex items-center gap-2">
                   <AtSign size={16} className="text-primary" /> Platform Accounts
                   <span className="ml-1 text-xs font-normal text-muted-foreground">
                     (Instagram, Facebook, X, YouTube, etc.)
                   </span>
                 </p>
-                <button
-                  type="button"
-                  onClick={addAccount}
-                  className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-all px-3 py-1.5 rounded-xl border border-primary/30 hover:bg-primary/5 cursor-pointer shadow-2xs"
-                >
-                  <PlusCircle size={14} />
-                  Add Platform
-                </button>
+                <div className="flex items-center gap-2">
+                  {form.socialAccounts.length > 0 && form.password && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((cur) => ({
+                          ...cur,
+                          socialAccounts: cur.socialAccounts.map((acc) => ({
+                            ...acc,
+                            password: cur.password,
+                          })),
+                        }));
+                        toast.success('Applied master password to all platform accounts!');
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/20 border border-primary/30 transition-all px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs"
+                      title="Fill all platform accounts with the master password entered above"
+                    >
+                      <Copy size={13} />
+                      Apply Master Password to All
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={addAccount}
+                    className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-all px-3 py-1.5 rounded-xl border border-primary/30 hover:bg-primary/5 cursor-pointer shadow-2xs"
+                  >
+                    <PlusCircle size={14} />
+                    Add Platform
+                  </button>
+                </div>
               </div>
 
               {form.socialAccounts.length === 0 && (
@@ -706,6 +800,8 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                   onChange={updateAccount}
                   onRemove={removeAccount}
                   isEditing={isEditing}
+                  masterPassword={form.password}
+                  masterEmail={form.email}
                 />
               ))}
             </div>
@@ -1131,20 +1227,41 @@ export default function ClientVault() {
         </Button>
       }
     >
-      {/* Category Filter Tabs */}
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-        {['all', 'social_media', 'meta_ads', 'google_ads', 'wordpress', 'hosting', 'domain'].map((type) => (
-          <button
-            key={type}
-            onClick={() => setTypeFilter(type)}
-            className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${typeFilter === type
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
-              }`}
-          >
-            {type === 'all' ? 'All Categories' : typeLabels[type] || type.replace(/_/g, ' ')}
-          </button>
-        ))}
+      {/* Category Filter Tabs & Searchable Client Filter Dropdown */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 flex-1">
+          {['all', 'social_media', 'meta_ads', 'google_ads', 'wordpress', 'hosting', 'domain'].map((type) => (
+            <button
+              key={type}
+              onClick={() => setTypeFilter(type)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${typeFilter === type
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}
+            >
+              {type === 'all' ? 'All Categories' : typeLabels[type] || type.replace(/_/g, ' ')}
+            </button>
+          ))}
+        </div>
+        <div className="w-full sm:w-64 shrink-0">
+          <SelectDropdown
+            value={clientFilter}
+            onChange={(val) => setClientFilter(val || 'all')}
+            options={[
+              { value: 'all', label: 'All Clients (Filter)' },
+              ...clients.map((c) => ({
+                value: c._id,
+                label: c.company || c.name,
+                subLabel: c.email || undefined,
+              })),
+            ]}
+            placeholder="Filter by Client..."
+            searchPlaceholder="Search client..."
+            allowDeselect={false}
+            allowCustom={false}
+            buttonClassName="h-9 px-3 rounded-xl border border-border bg-card text-xs font-semibold shadow-2xs justify-between"
+          />
+        </div>
       </div>
 
       <DatabaseView

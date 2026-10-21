@@ -20,8 +20,10 @@ export const SelectDropdown = ({
   buttonClassName = '',
   allOptionLabel = null,
   allowCustom = true,
+  allowDeselect = true,
   otherOptionLabel = 'Other',
   customInputPlaceholder = 'Specify other / custom value...',
+  searchPlaceholder = 'Type to search...',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,7 +81,9 @@ export const SelectDropdown = ({
     if (!searchQuery.trim()) return normalizedOptions;
     const q = searchQuery.toLowerCase();
     return normalizedOptions.filter((opt) =>
-      opt.label.toLowerCase().includes(q) || String(opt.value).toLowerCase().includes(q)
+      opt.label.toLowerCase().includes(q) ||
+      String(opt.value).toLowerCase().includes(q) ||
+      (opt.subLabel && String(opt.subLabel).toLowerCase().includes(q))
     );
   }, [normalizedOptions, searchQuery]);
 
@@ -149,9 +153,11 @@ export const SelectDropdown = ({
       String(optValue) === String(value);
 
     if (isCurrentlySelected) {
-      setIsCustomMode(false);
-      setCustomText('');
-      if (onChange) onChange('');
+      if (allowDeselect) {
+        setIsCustomMode(false);
+        setCustomText('');
+        if (onChange) onChange('');
+      }
       setIsOpen(false);
       return;
     }
@@ -324,7 +330,7 @@ export const SelectDropdown = ({
                     setHighlightedIndex(0);
                   }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type to search..."
+                  placeholder={searchPlaceholder || 'Type to search...'}
                   className="w-full pl-7 pr-3 py-1.5 text-xs rounded-xl border border-border/80 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
                 />
               </div>
@@ -351,7 +357,14 @@ export const SelectDropdown = ({
                             : 'text-foreground/90 hover:bg-secondary/70'
                         )}
                       >
-                        <span className="truncate">{opt.label}</span>
+                        <div className="flex flex-col truncate min-w-0 pr-1">
+                          <span className="truncate">{opt.label}</span>
+                          {opt.subLabel && (
+                            <span className="text-[10px] text-muted-foreground font-normal truncate">
+                              {opt.subLabel}
+                            </span>
+                          )}
+                        </div>
                         {isSelected && <Check size={14} className="text-primary shrink-0 ml-2" />}
                       </button>
                     );
