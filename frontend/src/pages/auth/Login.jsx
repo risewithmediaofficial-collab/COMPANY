@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser } from '../../store/slices/authSlice';
+import { loginUser, clearError } from '../../store/slices/authSlice';
 import { Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -18,6 +18,9 @@ const Login = () => {
   });
 
   const handleChange = (e) => {
+    if (error) {
+      dispatch(clearError());
+    }
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -28,16 +31,19 @@ const Login = () => {
       toast.success('Welcome back!');
       navigate('/');
     } else {
-      toast.error(result.payload?.message || 'Login failed');
+      const errorMsg = result.payload?.message || 'Invalid email or password. Please check your credentials and try again.';
+      toast.error(errorMsg);
     }
   };
 
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm flex items-center border border-destructive/20 animate-in fade-in slide-in-from-top-1">
-          <AlertCircle size={16} className="mr-2 flex-shrink-0" />
-          {error}
+        <div className="p-3.5 rounded-xl bg-destructive/15 text-destructive text-sm font-medium flex items-center gap-2.5 border border-destructive/30 shadow-xs animate-in fade-in slide-in-from-top-2">
+          <div className="h-7 w-7 rounded-lg bg-destructive/20 text-destructive flex items-center justify-center shrink-0">
+            <AlertCircle size={16} />
+          </div>
+          <span className="leading-snug">{error}</span>
         </div>
       )}
 

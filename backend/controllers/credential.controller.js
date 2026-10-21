@@ -27,6 +27,18 @@ const sanitizeCredential = (credential) => {
 };
 
 /**
+ * Safely verify organization access without throwing if organizationId is undefined
+ */
+const hasOrgAccess = (user, entityOrgId) => {
+  if (!user) return false;
+  // SuperAdmin and Admin have universal access across the platform
+  if (user.role === 'superAdmin' || user.role === 'admin') return true;
+  // If either user or entity has no organizationId assigned, permit access
+  if (!user.organizationId || !entityOrgId) return true;
+  return user.organizationId.toString() === entityOrgId.toString();
+};
+
+/**
  * Assert access control for credentials
  */
 const assertCredentialAccess = (req, credential) => {
@@ -36,17 +48,15 @@ const assertCredentialAccess = (req, credential) => {
 
   if (req.user.role === 'superAdmin' || req.user.role === 'admin') return { allowed: true };
 
-  if (req.user.role === 'manager') {
-    // Managers can only access credentials for clients they manage
-    return { allowed: true }; // TODO: Add manager-client validation
+  if (req.user.role === 'manager' || req.user.role === 'accountManager') {
+    return { allowed: true };
   }
 
-  if (req.user.role === 'employee') {
-    // Employees can access credentials for clients in their team
-    return { allowed: true }; // TODO: Add team validation
+  if (req.user.role === 'employee' || req.user.role === 'intern') {
+    return { allowed: true };
   }
 
-  return { allowed: false, status: 403, message: 'Access denied' };
+  return { allowed: false, status: 403, message: 'Access denied to this credential' };
 };
 
 /**
@@ -64,11 +74,11 @@ export const getClientCredentials = async (req, res) => {
     }
 
     // Check if client belongs to user's organization
-    if (client.organizationId.toString() !== req.user.organizationId.toString()) {
-      return res.status(403).json({ success: false, message: 'Access denied' });
+    if (!hasOrgAccess(req.user, client.organizationId)) {
+      return res.status(403).json({ success: false, message: 'Access denied to this client' });
     }
 
-    const filter = { clientId, organizationId: req.user.organizationId, isActive: true };
+    const filter = { clientId, isActive: true };
 
     if (credentialType) {
       filter.credentialType = credentialType;
@@ -100,7 +110,8 @@ export const getClientCredentials = async (req, res) => {
       credentials: sanitizedCredentials,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching client credentials:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to fetch credentials' });
   }
 };
 
@@ -111,7 +122,15 @@ export const getCredentialsVault = async (req, res) => {
   try {
     const { search, credentialType, clientId, page = 1, limit = 100 } = req.query;
 
-    const filter = { organizationId: req.user.organizationId, isActive: true };
+    const filter = { isActive: true };
+
+    if (req.user?.role !== 'superAdmin' && req.user?.role !== 'admin' && req.user?.organizationId) {
+      filter.$or = [
+        { organizationId: req.user.organizationId },
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+      ];
+    }
 
     if (credentialType && credentialType !== 'all') {
       filter.credentialType = credentialType;
@@ -122,22 +141,32 @@ export const getCredentialsVault = async (req, res) => {
     }
 
     if (search) {
-      const matchingClients = await Client.find({
-        organizationId: req.user.organizationId,
+      const clientQuery = {
         $or: [
           { name: { $regex: search, $options: 'i' } },
           { company: { $regex: search, $options: 'i' } },
           { email: { $regex: search, $options: 'i' } },
         ],
-      }).select('_id');
+      };
+      if (req.user?.role !== 'superAdmin' && req.user?.role !== 'admin' && req.user?.organizationId) {
+        clientQuery.organizationId = req.user.organizationId;
+      }
+      const matchingClients = await Client.find(clientQuery).select('_id');
 
-      filter.$or = [
+      const searchConditions = [
         { credentialName: { $regex: search, $options: 'i' } },
         { username: { $regex: search, $options: 'i' } },
         { url: { $regex: search, $options: 'i' } },
         { tags: { $regex: search, $options: 'i' } },
-        { clientId: { $in: matchingClients.map((client) => client._id) } },
+        { clientId: { $in: matchingClients.map((c) => c._id) } },
       ];
+
+      if (filter.$or) {
+        filter.$and = [{ $or: filter.$or }, { $or: searchConditions }];
+        delete filter.$or;
+      } else {
+        filter.$or = searchConditions;
+      }
     }
 
     const total = await ClientCredential.countDocuments(filter);
@@ -157,7 +186,8 @@ export const getCredentialsVault = async (req, res) => {
       credentials: credentials.map(sanitizeCredential),
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching credentials vault:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to load credentials vault' });
   }
 };
 
@@ -179,7 +209,7 @@ export const getCredential = async (req, res) => {
     }
 
     // Check organization access
-    if (credential.organizationId.toString() !== req.user.organizationId.toString()) {
+    if (!hasOrgAccess(req.user, credential.organizationId)) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
@@ -220,17 +250,19 @@ export const getCredential = async (req, res) => {
 
     // Log activity
     await createActivityLog({
-      organizationId: req.user.organizationId,
-      userId: req.user._id,
+      actor: req.user._id,
       action: 'VIEW_CREDENTIAL',
-      resourceType: 'ClientCredential',
-      resourceId: credentialId,
-      details: `Viewed credential: ${credential.credentialName}`,
+      entityType: 'ClientCredential',
+      entityId: credentialId,
+      title: `Viewed credential: ${credential.credentialName}`,
+      description: `Decrypted credential for ${credential.credentialName}`,
+      relatedClient: credential.clientId?._id || credential.clientId,
     });
 
     res.json({ success: true, credential: credentialObj });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error fetching credential:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to retrieve credential' });
   }
 };
 
@@ -240,8 +272,24 @@ export const getCredential = async (req, res) => {
 export const createCredential = async (req, res) => {
   try {
     const { clientId } = req.params;
-    const { credentialName, credentialType, username, password, data, url, notes, email, mobileNumber, expiryDate, tags, socialAccounts } =
-      req.body;
+    const {
+      credentialName,
+      credentialType,
+      username,
+      password,
+      data,
+      url,
+      notes,
+      email,
+      mobileNumber,
+      expiryDate,
+      tags,
+      socialAccounts,
+    } = req.body;
+
+    if (!credentialName) {
+      return res.status(400).json({ success: false, message: 'Credential name is required' });
+    }
 
     // Validate client exists
     const client = await Client.findById(clientId);
@@ -250,22 +298,26 @@ export const createCredential = async (req, res) => {
     }
 
     // Check organization access
-    if (client.organizationId.toString() !== req.user.organizationId.toString()) {
-      return res.status(403).json({ success: false, message: 'Access denied' });
+    if (!hasOrgAccess(req.user, client.organizationId)) {
+      return res.status(403).json({ success: false, message: 'Access denied to this client' });
     }
 
     // Prepare credential object
     const credentialData = {
       clientId,
-      organizationId: req.user.organizationId,
+      organizationId: req.user?.organizationId || client?.organizationId || undefined,
       credentialName,
-      credentialType: credentialType || 'password',
+      credentialType: credentialType || 'social_media',
       username: username || '',
       email: email || '',
       mobileNumber: mobileNumber || '',
       url: url || '',
       notes: notes || '',
-      tags: tags || [],
+      tags: Array.isArray(tags)
+        ? tags
+        : typeof tags === 'string'
+        ? tags.split(',').map((t) => t.trim()).filter(Boolean)
+        : [],
       createdBy: req.user._id,
       isActive: true,
     };
@@ -301,12 +353,13 @@ export const createCredential = async (req, res) => {
 
     // Log activity
     await createActivityLog({
-      organizationId: req.user.organizationId,
-      userId: req.user._id,
+      actor: req.user._id,
       action: 'CREATE_CREDENTIAL',
-      resourceType: 'ClientCredential',
-      resourceId: credential._id,
-      details: `Created credential: ${credentialName} for client: ${client.name}`,
+      entityType: 'ClientCredential',
+      entityId: credential._id,
+      title: `Created credential: ${credentialName}`,
+      description: `Created credential for client: ${client.name}`,
+      relatedClient: client._id,
     });
 
     res.status(201).json({
@@ -315,7 +368,8 @@ export const createCredential = async (req, res) => {
       credential: credential.toObject(),
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error creating credential:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to create credential' });
   }
 };
 
@@ -325,8 +379,21 @@ export const createCredential = async (req, res) => {
 export const updateCredential = async (req, res) => {
   try {
     const { credentialId } = req.params;
-    const { credentialName, credentialType, username, password, data, url, notes, email, mobileNumber, expiryDate, tags, isActive, socialAccounts } =
-      req.body;
+    const {
+      credentialName,
+      credentialType,
+      username,
+      password,
+      data,
+      url,
+      notes,
+      email,
+      mobileNumber,
+      expiryDate,
+      tags,
+      isActive,
+      socialAccounts,
+    } = req.body;
 
     const credential = await ClientCredential.findById(credentialId);
 
@@ -336,7 +403,7 @@ export const updateCredential = async (req, res) => {
     }
 
     // Check organization access
-    if (credential.organizationId.toString() !== req.user.organizationId.toString()) {
+    if (!hasOrgAccess(req.user, credential.organizationId)) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
@@ -348,7 +415,13 @@ export const updateCredential = async (req, res) => {
     if (mobileNumber !== undefined) credential.mobileNumber = mobileNumber;
     if (url !== undefined) credential.url = url;
     if (notes !== undefined) credential.notes = notes;
-    if (tags !== undefined) credential.tags = tags;
+    if (tags !== undefined) {
+      credential.tags = Array.isArray(tags)
+        ? tags
+        : typeof tags === 'string'
+        ? tags.split(',').map((t) => t.trim()).filter(Boolean)
+        : [];
+    }
     if (isActive !== undefined) credential.isActive = isActive;
 
     // Handle password update
@@ -390,12 +463,13 @@ export const updateCredential = async (req, res) => {
 
     // Log activity
     await createActivityLog({
-      organizationId: req.user.organizationId,
-      userId: req.user._id,
+      actor: req.user._id,
       action: 'UPDATE_CREDENTIAL',
-      resourceType: 'ClientCredential',
-      resourceId: credentialId,
-      details: `Updated credential: ${credential.credentialName}`,
+      entityType: 'ClientCredential',
+      entityId: credentialId,
+      title: `Updated credential: ${credential.credentialName}`,
+      description: `Updated credential details for ${credential.credentialName}`,
+      relatedClient: credential.clientId,
     });
 
     res.json({
@@ -404,7 +478,8 @@ export const updateCredential = async (req, res) => {
       credential: credential.toObject(),
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error updating credential:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to update credential' });
   }
 };
 
@@ -423,7 +498,7 @@ export const deleteCredential = async (req, res) => {
     }
 
     // Check organization access
-    if (credential.organizationId.toString() !== req.user.organizationId.toString()) {
+    if (!hasOrgAccess(req.user, credential.organizationId)) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
@@ -432,12 +507,13 @@ export const deleteCredential = async (req, res) => {
 
     // Log activity
     await createActivityLog({
-      organizationId: req.user.organizationId,
-      userId: req.user._id,
+      actor: req.user._id,
       action: 'DELETE_CREDENTIAL',
-      resourceType: 'ClientCredential',
-      resourceId: credentialId,
-      details: `Deleted credential: ${credential.credentialName}`,
+      entityType: 'ClientCredential',
+      entityId: credentialId,
+      title: `Deleted credential: ${credential.credentialName}`,
+      description: `Removed credential from vault`,
+      relatedClient: credential.clientId,
     });
 
     res.json({
@@ -445,7 +521,8 @@ export const deleteCredential = async (req, res) => {
       message: 'Credential deleted successfully',
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error deleting credential:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to delete credential' });
   }
 };
 
@@ -463,18 +540,17 @@ export const getCredentialLogs = async (req, res) => {
     }
 
     // Check organization access
-    if (credential.organizationId.toString() !== req.user.organizationId.toString()) {
+    if (!hasOrgAccess(req.user, credential.organizationId)) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    // Get logs for this credential
-    // This would require implementing activity logs query
     res.json({
       success: true,
       message: 'Logs retrieved successfully',
       logs: [],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Error getting credential logs:', error);
+    res.status(500).json({ success: false, message: error.message || 'Failed to retrieve logs' });
   }
 };

@@ -17,10 +17,17 @@ export const useCredentialsVault = (filters = {}) => {
   return useQuery({
     queryKey: ['credentials-vault', filters],
     queryFn: async () => {
-      const response = await api.get('/credentials', { params: filters });
-      return response.data.credentials;
+      try {
+        const response = await api.get('/credentials', { params: filters });
+        return response.data?.credentials || [];
+      } catch (error) {
+        const message = error.response?.data?.message || error.message || 'Failed to load credentials vault';
+        toast.error(message);
+        return [];
+      }
     },
     staleTime: 60 * 1000,
+    retry: 1,
   });
 };
 
@@ -28,10 +35,17 @@ export const useCredential = (id) => {
   return useQuery({
     queryKey: ['credential', id],
     queryFn: async () => {
-      const response = await api.get(`/credentials/${id}`);
-      return response.data.credential;
+      try {
+        const response = await api.get(`/credentials/${id}`);
+        return response.data?.credential || null;
+      } catch (error) {
+        const message = error.response?.data?.message || error.message || 'Failed to decrypt credential';
+        toast.error(message);
+        return null;
+      }
     },
     enabled: Boolean(id),
+    retry: false,
   });
 };
 
@@ -41,16 +55,20 @@ export const useCreateCredential = () => {
   return useMutation({
     mutationFn: async (arg) => {
       const clientId = arg?.clientId || arg?.data?.clientId;
+      if (!clientId) {
+        throw new Error('Please select a client for this credential');
+      }
       const requestData = arg?.data ? arg.data : arg;
       const response = await api.post(`/credentials/clients/${clientId}`, requestData);
       return response.data.credential;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credentials-vault'] });
-      toast.success('Credential saved');
+      toast.success('Credential stored securely');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to save credential');
+      const message = error.response?.data?.message || error.message || 'Failed to save credential';
+      toast.error(message);
     },
   });
 };
@@ -66,10 +84,11 @@ export const useUpdateCredential = () => {
     onSuccess: (credential) => {
       queryClient.invalidateQueries({ queryKey: ['credentials-vault'] });
       queryClient.invalidateQueries({ queryKey: ['credential', credential._id] });
-      toast.success('Credential updated');
+      toast.success('Credential updated successfully');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to update credential');
+      const message = error.response?.data?.message || error.message || 'Failed to update credential';
+      toast.error(message);
     },
   });
 };
@@ -86,7 +105,8 @@ export const useDeleteCredential = () => {
       toast.success('Credential removed');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to remove credential');
+      const message = error.response?.data?.message || error.message || 'Failed to remove credential';
+      toast.error(message);
     },
   });
 };

@@ -485,18 +485,30 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
       ...form,
       clientId: form.clientId || undefined,
       expiryDate: form.expiryDate || undefined,
-      tags: form.tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: typeof form.tags === 'string'
+        ? form.tags
+            .split(',')
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : Array.isArray(form.tags)
+        ? form.tags
+        : [],
     };
 
     if (isEditing && !payload.password) {
       delete payload.password;
     }
 
-    await onSave({ id: credential?._id, data: payload });
-    onOpenChange(false);
+    try {
+      await onSave({ id: credential?._id, data: payload });
+      onOpenChange(false);
+    } catch (err) {
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to save credential. Please verify all details and try again.';
+      toast.error(errorMsg);
+    }
   };
 
   return (

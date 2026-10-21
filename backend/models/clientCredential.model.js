@@ -69,7 +69,6 @@ const clientCredentialSchema = new mongoose.Schema(
     organizationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Organization',
-      required: true,
     },
     credentialName: {
       type: String,
