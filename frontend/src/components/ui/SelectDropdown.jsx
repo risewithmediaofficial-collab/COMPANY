@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Check, Search, X, PenTool, Edit3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../utils/cn';
@@ -7,9 +6,11 @@ import { cn } from '../../utils/cn';
 /**
  * Enhanced SelectDropdown Component:
  * - Search-as-you-type with real-time alphabet & keyword filtering
+ * - Smooth mouse wheel & scrollbar scrolling (no Radix Dialog focus/scroll lock interference)
  * - Auto "Other" handling with seamless manual custom text typing
  * - Full keyboard navigation (ArrowUp, ArrowDown, Enter, Escape)
- * - Light and Dark theme optimized with portal positioning
+ * - Auto-detects available space to open downward or upward
+ * - Light and Dark theme optimized
  */
 export const SelectDropdown = ({
   value = '',
@@ -27,20 +28,21 @@ export const SelectDropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [customText, setCustomText] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [openUpward, setOpenUpward] = useState(false);
 
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const customInputRef = useRef(null);
+  const optionsListRef = useRef(null);
 
-  // Normalize raw options into standard { value, label } array
+  // Normalize raw options into standard { value, label, subLabel } array
   const rawOptions = useMemo(() => {
     return (options || []).map((opt) => {
-      if (typeof opt === 'string') {
-        return { value: opt, label: opt };
+      if (typeof opt === 'string' || typeof opt === 'number') {
+        return { value: opt, label: String(opt) };
       }
       return opt;
     });
@@ -79,72 +81,67 @@ export const SelectDropdown = ({
   // Filter options based on search query
   const filteredOptions = useMemo(() => {
     if (!searchQuery.trim()) return normalizedOptions;
-    const q = searchQuery.toLowerCase();
-    return normalizedOptions.filter((opt) =>
-      opt.label.toLowerCase().includes(q) ||
-      String(opt.value).toLowerCase().includes(q) ||
-      (opt.subLabel && String(opt.subLabel).toLowerCase().includes(q))
-    );
+    const q = searchQuery.toLowerCase().trim();
+    return normalizedOptions.filter((opt) => {
+      const label = String(opt.label ?? '').toLowerCase();
+      const val = String(opt.value ?? '').toLowerCase();
+      const subLabel = String(opt.subLabel ?? '').toLowerCase();
+      return label.includes(q) || val.includes(q) || subLabel.includes(q);
+    });
   }, [normalizedOptions, searchQuery]);
 
-  const updateCoords = useCallback(() => {
-    if (dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 6,
-        left: rect.left,
-        width: Math.max(rect.width, 180),
-      });
-    }
-  }, []);
-
   const toggleOpen = () => {
-    if (!isOpen) {
+    if (!isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      setOpenUpward(spaceBelow < 280 && spaceAbove > spaceBelow);
       setSearchQuery('');
       setHighlightedIndex(0);
-      updateCoords();
     }
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
 
+  // Auto-focus search input when opened
   useEffect(() => {
-    if (isOpen && searchInputRef.current) {
-      setTimeout(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
+  // Close on outside click
   useEffect(() => {
     if (!isOpen) return;
 
     const handleOutsideClick = (e) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target) &&
-        !e.target.closest?.('.select-dropdown-portal-menu')
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     };
 
-    const handleScrollOrResize = () => {
-      updateCoords();
-    };
-
     document.addEventListener('mousedown', handleOutsideClick);
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
+    document.addEventListener('touchstart', handleOutsideClick);
 
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
+      document.removeEventListener('touchstart', handleOutsideClick);
     };
-  }, [isOpen, updateCoords]);
+  }, [isOpen]);
+
+  // Keep highlighted option scrolled into view when using keyboard
+  useEffect(() => {
+    if (isOpen && optionsListRef.current) {
+      const activeEl = optionsListRef.current.children[highlightedIndex];
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex, isOpen]);
 
   const handleSelect = (optValue, optLabel) => {
-    // If clicking the already selected option, toggle/deselect it!
     const isCurrentlySelected =
       !isCustomMode &&
       value !== undefined &&
@@ -166,7 +163,6 @@ export const SelectDropdown = ({
 
     if (isOther && allowCustom) {
       if (isCustomMode) {
-        // Toggle custom mode off if already in custom mode
         setIsCustomMode(false);
         setCustomText('');
         if (onChange) onChange('');
@@ -220,19 +216,23 @@ export const SelectDropdown = ({
       if (filteredOptions[highlightedIndex]) {
         handleSelect(filteredOptions[highlightedIndex].value, filteredOptions[highlightedIndex].label);
       } else if (searchQuery.trim() && allowCustom) {
-        // Use typed search query as custom value
         setIsCustomMode(true);
         setCustomText(searchQuery.trim());
         if (onChange) onChange(searchQuery.trim());
         setIsOpen(false);
       }
     } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
       setIsOpen(false);
     }
   };
 
   return (
-    <div className={cn('relative w-full space-y-1.5', className)} ref={dropdownRef}>
+    <div
+      ref={dropdownRef}
+      className={cn('relative w-full space-y-1.5', isOpen && 'z-50', className)}
+    >
       {/* Standard Select Button */}
       <button
         type="button"
@@ -300,115 +300,125 @@ export const SelectDropdown = ({
         </div>
       )}
 
-      {/* Floating Dropdown Portal Menu with Live Search */}
-      {createPortal(
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.97, y: -4 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97, y: -4 }}
-              transition={{ duration: 0.16, ease: 'easeOut' }}
-              style={{
-                position: 'fixed',
-                top: `${coords.top}px`,
-                left: `${coords.left}px`,
-                width: `${coords.width}px`,
-                zIndex: 99999,
-              }}
-              className="select-dropdown-portal-menu max-h-72 flex flex-col rounded-2xl border border-border bg-card p-1.5 shadow-2xl backdrop-blur-xl custom-scrollbar"
-            >
-              {/* Search Bar inside Dropdown */}
-              <div className="relative p-1 border-b border-border/60 mb-1">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setHighlightedIndex(0);
+      {/* Dropdown Menu (Inline Absolute — never blocked by Radix Dialog focus/scroll lock) */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98, y: openUpward ? 4 : -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: openUpward ? 4 : -4 }}
+            transition={{ duration: 0.16, ease: 'easeOut' }}
+            className={cn(
+              'absolute left-0 z-50 w-full min-w-[200px] max-h-72 flex flex-col rounded-2xl border border-border bg-card p-1.5 shadow-2xl backdrop-blur-xl',
+              openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+            )}
+          >
+            {/* Search Bar inside Dropdown */}
+            <div className="relative p-1 border-b border-border/60 mb-1 shrink-0">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setHighlightedIndex(0);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder={searchPlaceholder || 'Type to search...'}
+                className="w-full pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border/80 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    searchInputRef.current?.focus();
                   }}
-                  onKeyDown={handleKeyDown}
-                  placeholder={searchPlaceholder || 'Type to search...'}
-                  className="w-full pl-7 pr-3 py-1.5 text-xs rounded-xl border border-border/80 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
-                />
-              </div>
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded cursor-pointer"
+                  title="Clear search"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
 
-              {/* Options List */}
-              <div className="flex-1 overflow-y-auto max-h-52 space-y-0.5 custom-scrollbar pr-0.5">
-                {filteredOptions.length > 0 ? (
-                  filteredOptions.map((opt, idx) => {
-                    const isSelected = String(opt.value) === String(value);
-                    const isHighlighted = idx === highlightedIndex;
+            {/* Options List with Native Mouse Wheel & Touch Scrolling */}
+            <div
+              ref={optionsListRef}
+              onWheel={(e) => e.stopPropagation()}
+              className="flex-1 overflow-y-auto max-h-52 space-y-0.5 custom-scrollbar overscroll-contain pr-0.5"
+            >
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map((opt, idx) => {
+                  const isSelected = String(opt.value) === String(value);
+                  const isHighlighted = idx === highlightedIndex;
 
-                    return (
-                      <button
-                        key={opt.value ?? `opt-${idx}`}
-                        type="button"
-                        onClick={() => handleSelect(opt.value, opt.label)}
-                        onMouseEnter={() => setHighlightedIndex(idx)}
-                        className={cn(
-                          'flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-all cursor-pointer',
-                          isSelected
-                            ? 'bg-primary/10 font-bold text-primary hover:bg-primary/15'
-                            : isHighlighted
-                            ? 'bg-secondary text-foreground'
-                            : 'text-foreground/90 hover:bg-secondary/70'
+                  return (
+                    <button
+                      key={opt.value ?? `opt-${idx}`}
+                      type="button"
+                      onClick={() => handleSelect(opt.value, opt.label)}
+                      onMouseEnter={() => setHighlightedIndex(idx)}
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-all cursor-pointer',
+                        isSelected
+                          ? 'bg-primary/10 font-bold text-primary hover:bg-primary/15'
+                          : isHighlighted
+                          ? 'bg-secondary text-foreground'
+                          : 'text-foreground/90 hover:bg-secondary/70'
+                      )}
+                    >
+                      <div className="flex flex-col truncate min-w-0 pr-1">
+                        <span className="truncate">{opt.label}</span>
+                        {opt.subLabel && (
+                          <span className="text-[10px] text-muted-foreground font-normal truncate">
+                            {opt.subLabel}
+                          </span>
                         )}
-                      >
-                        <div className="flex flex-col truncate min-w-0 pr-1">
-                          <span className="truncate">{opt.label}</span>
-                          {opt.subLabel && (
-                            <span className="text-[10px] text-muted-foreground font-normal truncate">
-                              {opt.subLabel}
-                            </span>
-                          )}
-                        </div>
-                        {isSelected && <Check size={14} className="text-primary shrink-0 ml-2" />}
-                      </button>
-                    );
-                  })
-                ) : (
-                  <div className="p-3 text-center text-xs text-muted-foreground space-y-2">
-                    <p>No matching options for "{searchQuery}"</p>
-                    {allowCustom && searchQuery.trim() && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCustomMode(true);
-                          setCustomText(searchQuery.trim());
-                          if (onChange) onChange(searchQuery.trim());
-                          setIsOpen(false);
-                        }}
-                        className="w-full px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs"
-                      >
-                        Use "{searchQuery}" as custom value
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Option for "Other (Specify...)" if not in filtered list */}
-                {allowCustom &&
-                  !filteredOptions.some((o) => String(o.value).toLowerCase() === 'other') && (
+                      </div>
+                      {isSelected && <Check size={14} className="text-primary shrink-0 ml-2" />}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="p-3 text-center text-xs text-muted-foreground space-y-2">
+                  <p>No matching options for "{searchQuery}"</p>
+                  {allowCustom && searchQuery.trim() && (
                     <button
                       type="button"
-                      onClick={() => handleSelect('Other', 'Other')}
-                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold text-primary hover:bg-primary/10 transition-colors border-t border-border/40 mt-1 cursor-pointer"
+                      onClick={() => {
+                        setIsCustomMode(true);
+                        setCustomText(searchQuery.trim());
+                        if (onChange) onChange(searchQuery.trim());
+                        setIsOpen(false);
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs cursor-pointer"
                     >
-                      <span className="flex items-center gap-1.5">
-                        <PenTool size={12} />
-                        <span>Other (Manual Type)</span>
-                      </span>
+                      Use "{searchQuery}" as custom value
                     </button>
                   )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
+                </div>
+              )}
+
+              {/* Option for "Other (Specify...)" if not in filtered list */}
+              {allowCustom &&
+                !filteredOptions.some((o) => String(o.value).toLowerCase() === 'other') && (
+                  <button
+                    type="button"
+                    onClick={() => handleSelect('Other', 'Other')}
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold text-primary hover:bg-primary/10 transition-colors border-t border-border/40 mt-1 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <PenTool size={12} />
+                      <span>Other (Manual Type)</span>
+                    </span>
+                  </button>
+                )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

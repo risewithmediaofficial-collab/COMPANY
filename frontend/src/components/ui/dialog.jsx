@@ -54,7 +54,16 @@ export const DialogContent = React.forwardRef(
               sizeClasses[size] || sizeClasses.default,
               sanitizedClassName
             )}
-            onPointerDownOutside={props.onPointerDownOutside || ((e) => e.preventDefault())}
+            onPointerDownOutside={(e) => {
+              if (e.target?.closest?.('.select-dropdown-portal-menu') || e.target?.closest?.('[data-radix-popper-content-wrapper]')) {
+                return;
+              }
+              if (props.onPointerDownOutside) {
+                props.onPointerDownOutside(e);
+              } else {
+                e.preventDefault();
+              }
+            }}
             onEscapeKeyDown={props.onEscapeKeyDown || ((e) => e.preventDefault())}
             {...props}
           >
@@ -91,7 +100,16 @@ export const DialogContent = React.forwardRef(
                 sizeClasses[size] || sizeClasses.sm,
                 className
               )}
-              onPointerDownOutside={props.onPointerDownOutside || ((e) => e.preventDefault())}
+              onPointerDownOutside={(e) => {
+                if (e.target?.closest?.('.select-dropdown-portal-menu') || e.target?.closest?.('[data-radix-popper-content-wrapper]')) {
+                  return;
+                }
+                if (props.onPointerDownOutside) {
+                  props.onPointerDownOutside(e);
+                } else {
+                  e.preventDefault();
+                }
+              }}
               onEscapeKeyDown={props.onEscapeKeyDown || ((e) => e.preventDefault())}
               {...props}
             >
