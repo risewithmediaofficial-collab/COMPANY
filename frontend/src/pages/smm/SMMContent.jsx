@@ -15,7 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
 
 const NOT_POSTED_REASONS = [
   'Waiting for Client',
@@ -577,23 +579,43 @@ export const SMMContent = () => {
 
       {/* ── CREATE VIDEO MODAL ── */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
-          <DialogHeader>
-            <DialogTitle>Add Video / Content Record</DialogTitle>
-            <DialogDescription>
-              Create a unified content item connected to client workflows, shoot schedules, and future ads.
-            </DialogDescription>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+                <Video size={20} />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                  Add Video / Content Record
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  Create a unified content item connected to client workflows and shoot schedules
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border/80">
+          <form onSubmit={handleCreateSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Select Client *</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Client *</label>
                 <select
                   required
                   value={formData.client}
                   onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '' })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="">-- Choose Client --</option>
                   {clientsList.map((c) => (
@@ -603,13 +625,13 @@ export const SMMContent = () => {
               </div>
 
               <div>
-                <label className="font-semibold text-foreground block mb-1">Select Project *</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Project *</label>
                 <select
                   required
                   disabled={!formData.client || loadingProjects}
                   value={formData.project}
                   onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs disabled:opacity-50"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs disabled:opacity-50 cursor-pointer"
                 >
                   <option value="">-- Choose Project --</option>
                   {projectsList.map((p) => (
@@ -617,27 +639,25 @@ export const SMMContent = () => {
                   ))}
                 </select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Content / Video Name *</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Content / Video Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Restaurant Reel #42 - Signature Dish"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-foreground block mb-1">Content Type</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Content Type</label>
                 <select
                   value={formData.contentType}
                   onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="Reel">Reel (Short Video)</option>
                   <option value="Story">Story</option>
@@ -647,15 +667,13 @@ export const SMMContent = () => {
                   <option value="Post">Static Post / Carousel</option>
                 </select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Publishing Status</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Publishing Status</label>
                 <select
                   value={formData.postingStatus}
                   onChange={(e) => setFormData({ ...formData, postingStatus: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="Draft">Draft</option>
                   <option value="Ready">Ready</option>
@@ -668,11 +686,11 @@ export const SMMContent = () => {
 
               {formData.postingStatus !== 'Published' ? (
                 <div>
-                  <label className="font-semibold text-amber-500 block mb-1">Not Posted Reason</label>
+                  <label className="text-sm font-semibold text-amber-500 mb-1.5 block">Not Posted Reason</label>
                   <select
                     value={formData.notPostedReason}
                     onChange={(e) => setFormData({ ...formData, notPostedReason: e.target.value })}
-                    className="w-full h-9 px-3 bg-background border border-amber-500/40 rounded-xl outline-none text-xs"
+                    className="w-full h-11 px-4 bg-background border border-amber-500/40 rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-amber-500/20 outline-none shadow-2xs cursor-pointer"
                   >
                     {NOT_POSTED_REASONS.map((r) => (
                       <option key={r} value={r}>{r}</option>
@@ -681,56 +699,63 @@ export const SMMContent = () => {
                 </div>
               ) : (
                 <div>
-                  <label className="font-semibold text-emerald-500 block mb-1">Live Status</label>
-                  <div className="h-9 px-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center font-bold text-xs">
+                  <label className="text-sm font-semibold text-emerald-500 mb-1.5 block">Live Status</label>
+                  <div className="h-11 px-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center font-bold text-sm shadow-2xs">
                     Published Live to Audience
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="font-semibold text-foreground">
-                    {formData.postingStatus === 'Published' ? 'Published / Live Date' : 'Scheduled / Target Date'}
-                  </label>
-                  <span className="text-[10px] text-muted-foreground font-medium">Auto: Live Date (Editable)</span>
-                </div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  {formData.postingStatus === 'Published' ? 'Published / Live Date' : 'Scheduled / Target Date'}
+                </label>
                 <input
                   type="date"
                   value={formData.publishedDate || formData.scheduledDate || new Date().toISOString().split('T')[0]}
                   onChange={(e) => setFormData({ ...formData, publishedDate: e.target.value, scheduledDate: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-foreground block mb-1">Live Posted URL (Optional)</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Live Posted URL (Optional)</label>
                 <input
                   type="url"
                   placeholder="https://instagram.com/reel/..."
                   value={formData.postedUrl}
                   onChange={(e) => setFormData({ ...formData, postedUrl: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-semibold rounded-xl text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shadow-md shadow-primary/20"
-              >
-                Save Video Record
-              </button>
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
+
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  Save Video Record
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -738,112 +763,145 @@ export const SMMContent = () => {
 
       {/* ── LOG PERFORMANCE MODAL ── */}
       <Dialog open={isPerfModalOpen} onOpenChange={setIsPerfModalOpen}>
-        <DialogContent size="md" className="max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
-          <DialogHeader>
-            <DialogTitle>Log Organic Video Performance</DialogTitle>
-            <DialogDescription>
-              Record views, likes, shares, and saves. The system will automatically compute virality score & ad potential.
-            </DialogDescription>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+                <TrendingUp size={20} />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                  Log Organic Video Performance
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  Record views, likes, shares, and saves to compute virality score & ad potential
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handlePerfSubmit} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form onSubmit={handlePerfSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Total Views / Plays</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Total Views / Plays</label>
                 <input
                   type="number"
                   value={perfData.views}
                   onChange={(e) => setPerfData({ ...perfData, views: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-foreground block mb-1">Reach</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Reach</label>
                 <input
                   type="number"
                   value={perfData.reach}
                   onChange={(e) => setPerfData({ ...perfData, reach: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Likes</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Likes</label>
                 <input
                   type="number"
                   value={perfData.likes}
                   onChange={(e) => setPerfData({ ...perfData, likes: Number(e.target.value) })}
-                  className="w-full h-9 px-2 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-foreground block mb-1">Comments</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Comments</label>
                 <input
                   type="number"
                   value={perfData.comments}
                   onChange={(e) => setPerfData({ ...perfData, comments: Number(e.target.value) })}
-                  className="w-full h-9 px-2 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-foreground block mb-1">Shares</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Shares</label>
                 <input
                   type="number"
                   value={perfData.shares}
                   onChange={(e) => setPerfData({ ...perfData, shares: Number(e.target.value) })}
-                  className="w-full h-9 px-2 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-foreground block mb-1">Saves</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Saves</label>
                 <input
                   type="number"
                   value={perfData.saves}
                   onChange={(e) => setPerfData({ ...perfData, saves: Number(e.target.value) })}
-                  className="w-full h-9 px-2 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Followers Gained (+)</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Followers Gained (+)</label>
                 <input
                   type="number"
                   value={perfData.followersGained}
                   onChange={(e) => setPerfData({ ...perfData, followersGained: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-foreground block mb-1">Engagement Rate (%)</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Engagement Rate (%)</label>
                 <input
                   type="number"
                   step="0.1"
                   placeholder="Auto-calculated if 0"
                   value={perfData.engagementRate}
                   onChange={(e) => setPerfData({ ...perfData, engagementRate: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setIsPerfModalOpen(false)}
-                className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-semibold rounded-xl text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shadow-md shadow-primary/20"
-              >
-                Save & Recalculate Score
-              </button>
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
+
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsPerfModalOpen(false)}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  Save & Recalculate Score
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

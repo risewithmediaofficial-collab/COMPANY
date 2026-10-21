@@ -14,6 +14,7 @@ import {
   ExternalLink,
   ArrowRight,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { DataTable } from '../../components/ui/DataTable';
@@ -27,8 +28,10 @@ import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
@@ -336,120 +339,169 @@ const SOPDashboard = () => {
 
       {/* Read-Only View SOP Modal */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl custom-scrollbar">
-          <DialogHeader>
-            <div className="flex items-start justify-between gap-4 pr-6">
-              <div className="space-y-1">
-                <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                  <BookOpen size={22} className="text-primary" />
-                  {viewingSOP?.title}
-                </DialogTitle>
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <span className="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
-                    {SOP_TYPES.find((t) => t.value === viewingSOP?.sopType)?.label || viewingSOP?.sopType}
-                  </span>
-                  {viewingSOP?.role && (
-                    <span className="text-xs font-semibold bg-secondary text-foreground px-2.5 py-0.5 rounded-full border border-border capitalize">
-                      Role: {viewingSOP.role.replace(/_/g, ' ')}
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <div className="flex flex-col min-h-0 h-full">
+            {/* Pinned Header */}
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                    {viewingSOP?.title || 'SOP Details'}
+                  </DialogTitle>
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <span className="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
+                      {SOP_TYPES.find((t) => t.value === viewingSOP?.sopType)?.label || viewingSOP?.sopType}
                     </span>
-                  )}
-                  <StatusBadge tone={viewingSOP?.status === 'active' ? 'success' : 'neutral'}>
-                    {viewingSOP?.status}
-                  </StatusBadge>
-                </div>
-              </div>
-            </div>
-          </DialogHeader>
-
-          {viewingSOP && (
-            <div className="space-y-6 pt-2">
-              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-secondary/30 p-3 rounded-xl border border-border">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <User size={14} className="text-primary" />
-                  Created by: <strong className="text-foreground">{viewingSOP.createdBy?.name || 'Admin'}</strong>
-                </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Clock size={14} className="text-primary" />
-                  Date: <strong className="text-foreground">{viewingSOP.createdAt ? new Date(viewingSOP.createdAt).toLocaleString() : '—'}</strong>
-                </span>
-              </div>
-
-              {viewingSOP.content && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <FileText size={14} className="text-primary" /> Overview & Objective
-                  </h4>
-                  <div className="bg-secondary/20 p-4 rounded-xl border border-border text-sm leading-relaxed whitespace-pre-wrap">
-                    {viewingSOP.content}
+                    {viewingSOP?.role && (
+                      <span className="text-xs font-semibold bg-secondary text-foreground px-2.5 py-0.5 rounded-full border border-border capitalize">
+                        Role: {viewingSOP.role.replace(/_/g, ' ')}
+                      </span>
+                    )}
+                    <StatusBadge tone={viewingSOP?.status === 'active' ? 'success' : 'neutral'}>
+                      {viewingSOP?.status}
+                    </StatusBadge>
                   </div>
                 </div>
-              )}
-
-              {viewingSOP.steps && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <ListOrdered size={14} className="text-primary" /> Step-by-Step Instructions
-                  </h4>
-                  <div className="bg-secondary/20 p-4 rounded-xl border border-border text-sm leading-relaxed whitespace-pre-wrap font-mono text-xs">
-                    {viewingSOP.steps}
-                  </div>
-                </div>
-              )}
-
-              {viewingSOP.links?.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <ExternalLink size={14} className="text-primary" /> Reference Resources & Links
-                  </h4>
-                  <LinksList links={viewingSOP.links} />
-                </div>
-              )}
-
-              <div className="flex justify-between items-center pt-4 border-t border-border">
-                <div className="flex gap-2">
-                  {canEditSop(viewingSOP) && (
-                    <Button variant="outline" size="sm" onClick={() => openEdit(viewingSOP)}>
-                      <Edit2 size={14} className="mr-1.5" /> Edit SOP
-                    </Button>
-                  )}
-                  {canDeleteSop(viewingSOP) && (
-                    <Button variant="destructive" size="sm" onClick={() => setDeleteId(viewingSOP._id)}>
-                      <Trash2 size={14} className="mr-1.5" /> Delete
-                    </Button>
-                  )}
-                </div>
-                <Button variant="secondary" size="sm" onClick={() => setShowViewModal(false)}>
-                  Close
-                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  ESC
+                </span>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </DialogClose>
               </div>
             </div>
-          )}
+
+            {/* Scrollable Body */}
+            {viewingSOP && (
+              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-secondary/30 p-3.5 rounded-xl border border-border">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <User size={14} className="text-primary" />
+                    Created by: <strong className="text-foreground">{viewingSOP.createdBy?.name || 'Admin'}</strong>
+                  </span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <Clock size={14} className="text-primary" />
+                    Date: <strong className="text-foreground">{viewingSOP.createdAt ? new Date(viewingSOP.createdAt).toLocaleString() : '—'}</strong>
+                  </span>
+                </div>
+
+                {viewingSOP.content && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <FileText size={14} className="text-primary" /> Overview & Objective
+                    </h4>
+                    <div className="bg-secondary/20 p-4 rounded-xl border border-border text-sm leading-relaxed whitespace-pre-wrap">
+                      {viewingSOP.content}
+                    </div>
+                  </div>
+                )}
+
+                {viewingSOP.steps && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <ListOrdered size={14} className="text-primary" /> Step-by-Step Instructions
+                    </h4>
+                    <div className="bg-secondary/20 p-4 rounded-xl border border-border text-xs leading-relaxed whitespace-pre-wrap font-mono">
+                      {viewingSOP.steps}
+                    </div>
+                  </div>
+                )}
+
+                {viewingSOP.links?.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <ExternalLink size={14} className="text-primary" /> Reference Resources & Links
+                    </h4>
+                    <LinksList links={viewingSOP.links} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="flex gap-2">
+                {canEditSop(viewingSOP) && (
+                  <Button variant="outline" size="sm" onClick={() => openEdit(viewingSOP)} className="h-10 px-4 rounded-xl">
+                    <Edit2 size={14} className="mr-1.5" /> Edit SOP
+                  </Button>
+                )}
+                {canDeleteSop(viewingSOP) && (
+                  <Button variant="destructive" size="sm" onClick={() => setDeleteId(viewingSOP._id)} className="h-10 px-4 rounded-xl">
+                    <Trash2 size={14} className="mr-1.5" /> Delete
+                  </Button>
+                )}
+              </div>
+              <Button variant="secondary" onClick={() => setShowViewModal(false)} className="h-10 px-5 rounded-xl font-medium">
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Create / Edit Form Modal */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl custom-scrollbar">
-          <DialogHeader>
-            <DialogTitle>{editing ? 'Edit SOP' : 'Create New SOP'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div>
-              <label className="text-xs font-semibold block mb-1">Title *</label>
-              <Input
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="e.g., Video Editing Review Pipeline"
-              />
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <div className="flex flex-col min-h-0 h-full">
+            {/* Pinned Header */}
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                    {editing ? 'Edit SOP' : 'Create New SOP'}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    Standard Operating Procedure guidelines and workflows
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  ESC
+                </span>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </DialogClose>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* Scrollable Linear Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="text-xs font-semibold block mb-1">Type</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Title *</label>
+                <Input
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="e.g., Video Editing Review Pipeline"
+                  className="h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">SOP Type</label>
                 <select
                   value={form.sopType}
                   onChange={(e) => setForm({ ...form, sopType: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                 >
                   {SOP_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -460,11 +512,11 @@ const SOPDashboard = () => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold block mb-1">Target Role</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Target Role</label>
                 <select
                   value={form.role}
                   onChange={(e) => setForm({ ...form, role: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                 >
                   <option value="">All Roles</option>
                   {SOP_ROLES.map((r) => (
@@ -474,38 +526,55 @@ const SOPDashboard = () => {
                   ))}
                 </select>
               </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Overview & Notes</label>
+                <Textarea
+                  rows={4}
+                  value={form.content}
+                  onChange={(e) => setForm({ ...form, content: e.target.value })}
+                  placeholder="Explain the purpose and scope of this procedure..."
+                  className="rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Step-by-Step Checklist</label>
+                <Textarea
+                  rows={5}
+                  value={form.steps}
+                  onChange={(e) => setForm({ ...form, steps: e.target.value })}
+                  placeholder="1. Step one&#10;2. Step two&#10;3. Quality check..."
+                  className="rounded-xl border border-border bg-background p-3.5 text-sm font-mono text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Resource Links</label>
+                <LinksEditor links={form.links} onChange={(links) => setForm({ ...form, links })} />
+              </div>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold block mb-1">Overview & Notes</label>
-              <Textarea
-                rows={4}
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-                placeholder="Explain the purpose and scope of this procedure..."
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold block mb-1">Step-by-Step Checklist</label>
-              <Textarea
-                rows={5}
-                value={form.steps}
-                onChange={(e) => setForm({ ...form, steps: e.target.value })}
-                placeholder="1. Step one&#10;2. Step two&#10;3. Quality check..."
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold block mb-1">Resource Links</label>
-              <LinksEditor links={form.links} onChange={(links) => setForm({ ...form, links })} />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-3 border-t">
-              <Button variant="outline" onClick={() => setShowForm(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave}>{editing ? 'Save Changes' : 'Create SOP'}</Button>
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForm(false)}
+                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSave}
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                >
+                  {editing ? 'Save Changes' : 'Create SOP'}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

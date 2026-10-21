@@ -36,6 +36,7 @@ import {
   TimerReset,
   X,
   Palette,
+  FileText,
 } from 'lucide-react';
 import { ClientTaskResponsePanel } from '../../components/tasks/ClientTaskResponsePanel';
 import { DailyCalendarTaskDialog } from '../../components/tasks/DailyCalendarTaskDialog';
@@ -49,6 +50,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '../../components/ui/dialog';
 import {
   EmptyState,
@@ -457,89 +459,130 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{task?.taskTitle || task?.title || 'Task details'}</DialogTitle>
-          <DialogDescription>
-            Review task details, delivery files, and confirm your response when action is needed.
-          </DialogDescription>
-        </DialogHeader>
-
-        {task ? (
-          <div className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Task Category</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
-                  {task.taskCategory === 'non_content' ? 'Non-Content Task' : 'Content Task'}
-                </p>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-3xl max-h-[90vh]">
+        <div className="flex flex-col min-h-0 h-full">
+          {/* Pinned Header */}
+          <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                <FileText className="h-5 w-5" />
               </div>
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Task Type</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">{formatTaskTypeLabel(task.taskType)}</p>
-              </div>
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Assigned Person</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">
-                  {task.assignedPersonName || task.assignedTo?.map((item) => item.name).join(', ') || 'Unassigned'}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Current Status</p>
-                <p className="mt-2 text-sm font-semibold text-foreground">{statusMeta.label}</p>
+              <div className="min-w-0">
+                <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                  {task?.taskTitle || task?.title || 'Task Details'}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                  Review task details, delivery files, and confirm your response
+                </DialogDescription>
               </div>
             </div>
-
-            <div className="rounded-2xl border border-border bg-background p-4 text-sm text-foreground">
-              <p className="font-semibold">Progress Alert</p>
-              <p className="mt-2 text-muted-foreground">{statusMeta.alert}</p>
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                ESC
+              </span>
+              <DialogClose asChild>
+                <button
+                  type="button"
+                  className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </DialogClose>
             </div>
+          </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Requirements</p>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
-                  {task.description || task.websiteRequirements || 'No requirements shared yet.'}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Notes Visible To You</p>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
-                  {task.clientVisibleNotes || 'No client-visible notes available.'}
-                </p>
-              </div>
-            </div>
-
-            {task.taskCategory !== 'non_content' ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-background p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Script / Script Link</p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
-                    {task.scriptText || task.scriptLink || 'No script shared.'}
-                  </p>
+          {/* Scrollable Linear Body */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            {task ? (
+              <div className="space-y-6">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Task Category</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
+                      {task.taskCategory === 'non_content' ? 'Non-Content Task' : 'Content Task'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Task Type</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{formatTaskTypeLabel(task.taskType)}</p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Assigned Person</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
+                      {task.assignedPersonName || task.assignedTo?.map((item) => item.name).join(', ') || 'Unassigned'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Current Status</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{statusMeta.label}</p>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-border bg-background p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Caption / Editor Guide</p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{task.caption || 'No caption shared.'}</p>
-                  {task.editorGuide ? <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{task.editorGuide}</p> : null}
+
+                <div className="rounded-xl border border-border bg-background p-4 text-sm text-foreground shadow-2xs">
+                  <p className="font-semibold text-sm">Progress Alert</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{statusMeta.alert}</p>
                 </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="text-xs font-semibold text-foreground mb-1">Requirements</p>
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                      {task.description || task.websiteRequirements || 'No requirements shared yet.'}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="text-xs font-semibold text-foreground mb-1">Notes Visible To You</p>
+                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                      {task.clientVisibleNotes || 'No client-visible notes available.'}
+                    </p>
+                  </div>
+                </div>
+
+                {task.taskCategory !== 'non_content' ? (
+                  <div className="space-y-4">
+                    <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                      <p className="text-xs font-semibold text-foreground mb-1">Script / Script Link</p>
+                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                        {task.scriptText || task.scriptLink || 'No script shared.'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                      <p className="text-xs font-semibold text-foreground mb-1">Caption / Editor Guide</p>
+                      <p className="whitespace-pre-wrap text-sm text-muted-foreground">{task.caption || 'No caption shared.'}</p>
+                      {task.editorGuide ? <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{task.editorGuide}</p> : null}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="mb-2 text-xs font-semibold text-foreground">Attachments</p>
+                    <FileLinks files={task.attachments || []} />
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <p className="mb-2 text-xs font-semibold text-foreground">Completed Files</p>
+                    <FileLinks files={task.completedFiles || []} />
+                  </div>
+                </div>
+
+                <ClientTaskResponsePanel task={task} onSubmitted={onSubmitted} compact />
               </div>
             ) : null}
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Attachments</p>
-                <FileLinks files={task.attachments || []} />
-              </div>
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Completed Files</p>
-                <FileLinks files={task.completedFiles || []} />
-              </div>
-            </div>
-
-            <ClientTaskResponsePanel task={task} onSubmitted={onSubmitted} compact />
           </div>
-        ) : null}
+
+          {/* Pinned Sticky Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -22,6 +22,7 @@ import {
   IndianRupee,
   FileText,
   Edit3,
+  X,
 } from 'lucide-react';
 import { formatINR } from '../../utils/currency';
 import { useUpdateProject } from '../../hooks/useProjects';
@@ -34,6 +35,7 @@ import toast from 'react-hot-toast';
 import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
+import { Button } from '../../components/ui/button';
 import ProjectMonthlyDeliverablesCard from '../../components/projects/ProjectMonthlyDeliverablesCard';
 import {
   NotionDetailPage,
@@ -49,6 +51,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../../components/ui/dialog';
 
 const statuses = ['todo', 'in_progress', 'review', 'approved', 'rejected', 'done'];
@@ -443,27 +446,66 @@ const ProjectDetails = () => {
     <>
       {/* Confirmation Dialog */}
       <Dialog open={Boolean(pendingDrop)} onOpenChange={(open) => { if (!open) setPendingDrop(null); }}>
-        <DialogContent size="sm">
-          <DialogHeader>
-            <DialogTitle>Confirm Status Change</DialogTitle>
-            <DialogDescription>
-              {pendingDrop?.message}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-md max-h-[90vh]">
+          <div className="flex flex-col min-h-0 h-full">
+            {/* Pinned Header */}
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                    Confirm Status Change
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    Verify deliverable transition
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  ESC
+                </span>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </DialogClose>
+              </div>
+            </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-border">
-            <button
-              onClick={() => setPendingDrop(null)}
-              className="px-4 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={confirmPendingDrop}
-              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm hover:bg-primary/90"
-            >
-              Yes, Confirm
-            </button>
+            {/* Body */}
+            <div className="p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div className="rounded-xl border border-border bg-secondary/30 p-4 text-sm text-foreground">
+                <p className="leading-relaxed">{pendingDrop?.message || 'Are you sure you want to update the status of this task?'}</p>
+              </div>
+            </div>
+
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPendingDrop(null)}
+                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={confirmPendingDrop}
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                >
+                  Yes, Confirm
+                </Button>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

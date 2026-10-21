@@ -25,7 +25,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
+import { Button } from '../../../components/ui/button';
 import {
   usePaymentReminders,
   useCreatePaymentReminder,
@@ -558,35 +560,57 @@ export default function PaymentRemindersTab() {
 
       {/* ── MODAL: ADD / EDIT PAYMENT REMINDER ── */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent size="md" className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {editingReminder ? 'Edit Payment Reminder' : 'New Payment Reminder'}
-            </DialogTitle>
-            <DialogDescription>
-              Track referral payouts, partner commissions, or client settlement notes. (Completely separate from agency revenue and expenses).
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmitForm} className="space-y-4 pt-2">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Title / Purpose <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Referral cut for ABC Client deal"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-              />
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <form onSubmit={handleSubmitForm} className="flex flex-col min-h-0 h-full">
+            {/* Pinned Header */}
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <DollarSign className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                    {editingReminder ? 'Edit Payment Reminder' : 'New Payment Reminder'}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    Track referral payouts, partner commissions, and settlement notes
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  ESC
+                </span>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </DialogClose>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Scrollable Linear Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Party / Client / Referrer Name <span className="text-rose-500">*</span>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Title / Purpose <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Referral cut for ABC Client deal"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Party / Client / Referrer Name <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="text"
@@ -594,18 +618,18 @@ export default function PaymentRemindersTab() {
                   placeholder="e.g. Rajesh Kumar or Brand X"
                   value={formData.partyName}
                   onChange={(e) => setFormData({ ...formData, partyName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Category
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                 >
                   <option value="referral">Referral Cut</option>
                   <option value="client_cut">Client-Side Share</option>
@@ -614,12 +638,10 @@ export default function PaymentRemindersTab() {
                   <option value="other">Other Settlement</option>
                 </select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Total Agreed Amount (₹) <span className="text-rose-500">*</span>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Total Agreed Amount (₹) <span className="text-destructive">*</span>
                 </label>
                 <input
                   type="number"
@@ -629,13 +651,13 @@ export default function PaymentRemindersTab() {
                   placeholder="e.g. 25000"
                   value={formData.totalAmount}
                   onChange={(e) => setFormData({ ...formData, totalAmount: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                 />
               </div>
 
               {!editingReminder && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Initial Paid Amount (₹, optional)
                   </label>
                   <input
@@ -645,47 +667,45 @@ export default function PaymentRemindersTab() {
                     placeholder="0 if completely unpaid"
                     value={formData.paidAmount}
                     onChange={(e) => setFormData({ ...formData, paidAmount: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
               )}
 
               {editingReminder && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Current Paid (₹)
                   </label>
                   <input
                     type="text"
                     disabled
                     value={formatINR(editingReminder.paidAmount || 0)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-slate-50 text-slate-500 cursor-not-allowed"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-muted/40 px-4 text-muted-foreground font-mono cursor-not-allowed"
                   />
                 </div>
               )}
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Due / Follow-up Date
                 </label>
                 <input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Expected Payment Mode
                 </label>
                 <select
                   value={formData.paymentMode}
                   onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                 >
                   <option value="Bank Transfer">Bank Transfer</option>
                   <option value="UPI">UPI</option>
@@ -694,17 +714,15 @@ export default function PaymentRemindersTab() {
                   <option value="Other">Other</option>
                 </select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Link to Client (Optional)
                 </label>
                 <select
                   value={formData.client}
                   onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                 >
                   <option value="">None / External Party</option>
                   {clients.map((c) => (
@@ -716,7 +734,7 @@ export default function PaymentRemindersTab() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Contact Info / Phone / Email
                 </label>
                 <input
@@ -724,39 +742,44 @@ export default function PaymentRemindersTab() {
                   placeholder="e.g. +91 98765 43210"
                   value={formData.contactInfo}
                   onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Notes & Deal Details
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Add any specific context, account details, or terms..."
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Notes & Deal Details
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Add any specific context, account details, or terms..."
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={createReminder.isPending || updateReminder.isPending}
-                className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                {editingReminder ? 'Save Changes' : 'Create Reminder'}
-              </button>
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddModal(false)}
+                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createReminder.isPending || updateReminder.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                >
+                  {editingReminder ? 'Save Changes' : 'Create Reminder'}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -764,80 +787,104 @@ export default function PaymentRemindersTab() {
 
       {/* ── MODAL: RECORD PAYMENT / PARTIAL INSTALLMENT ── */}
       <Dialog open={!!recordingPaymentReminder} onOpenChange={(open) => !open && setRecordingPaymentReminder(null)}>
-        <DialogContent size="sm" className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
-            <DialogDescription>
-              Record an installment or mark as paid for "{recordingPaymentReminder?.title}".
-            </DialogDescription>
-          </DialogHeader>
-
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
           {recordingPaymentReminder && (
-            <form onSubmit={handleSubmitPayment} className="space-y-4 pt-1">
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center text-xs">
-                <div>
-                  <span className="text-slate-500">Total:</span>{' '}
-                  <strong className="text-slate-800">{formatINR(recordingPaymentReminder.totalAmount)}</strong>
-                  <br />
-                  <span className="text-slate-500">Already Paid:</span>{' '}
-                  <strong className="text-emerald-600">{formatINR(recordingPaymentReminder.paidAmount || 0)}</strong>
-                </div>
-                <div className="text-right">
-                  <span className="text-slate-500">Current Balance Due:</span>
-                  <div className="text-sm font-bold text-amber-600">
-                    {formatINR(Math.max(0, (recordingPaymentReminder.totalAmount || 0) - (recordingPaymentReminder.paidAmount || 0)))}
+            <form onSubmit={handleSubmitPayment} className="flex flex-col min-h-0 h-full">
+              {/* Pinned Header */}
+              <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                    <DollarSign className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                      Record Payment
+                    </DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                      "{recordingPaymentReminder?.title}"
+                    </DialogDescription>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="markFullCheck"
-                  checked={paymentForm.markAsFull}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, markAsFull: e.target.checked })}
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <label htmlFor="markFullCheck" className="text-xs font-bold text-slate-800 cursor-pointer">
-                  Mark remainder as fully settled & paid
-                </label>
-              </div>
-
-              {!paymentForm.markAsFull && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Payment Amount Received (₹) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    step="any"
-                    placeholder="e.g. 10000"
-                    value={paymentForm.amount}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                  />
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                    ESC
+                  </span>
+                  <DialogClose asChild>
+                    <button
+                      type="button"
+                      className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </DialogClose>
                 </div>
-              )}
+              </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Scrollable Linear Body */}
+              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                <div className="bg-secondary/30 p-4 rounded-xl border border-border flex justify-between items-center text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Total:</span>{' '}
+                    <strong className="text-foreground">{formatINR(recordingPaymentReminder.totalAmount)}</strong>
+                    <br />
+                    <span className="text-muted-foreground">Already Paid:</span>{' '}
+                    <strong className="text-emerald-600">{formatINR(recordingPaymentReminder.paidAmount || 0)}</strong>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-muted-foreground">Current Balance Due:</span>
+                    <div className="text-sm font-bold text-amber-600 mt-0.5">
+                      {formatINR(Math.max(0, (recordingPaymentReminder.totalAmount || 0) - (recordingPaymentReminder.paidAmount || 0)))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3.5 bg-muted/20 border border-border rounded-xl">
+                  <input
+                    type="checkbox"
+                    id="markFullCheck"
+                    checked={paymentForm.markAsFull}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, markAsFull: e.target.checked })}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+                  />
+                  <label htmlFor="markFullCheck" className="text-sm font-semibold text-foreground cursor-pointer select-none">
+                    Mark remainder as fully settled & paid
+                  </label>
+                </div>
+
+                {!paymentForm.markAsFull && (
+                  <div>
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                      Payment Amount Received (₹) <span className="text-destructive">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      step="any"
+                      placeholder="e.g. 10000"
+                      value={paymentForm.amount}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                      className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-emerald-600 font-bold focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Date</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Payment Date</label>
                   <input
                     type="date"
                     value={paymentForm.paymentDate}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Mode</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Payment Mode</label>
                   <select
                     value={paymentForm.paymentMode}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentMode: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-white"
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                   >
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="UPI">UPI</option>
@@ -846,47 +893,52 @@ export default function PaymentRemindersTab() {
                     <option value="Other">Other</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Transaction / Reference ID (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. UTR / UPI Ref / Cheque No."
+                    value={paymentForm.reference}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Payment Notes</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. First installment received"
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Transaction / Reference ID (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. UTR / UPI Ref / Cheque No."
-                  value={paymentForm.reference}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Notes</label>
-                <input
-                  type="text"
-                  placeholder="e.g. First installment received"
-                  value={paymentForm.notes}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setRecordingPaymentReminder(null)}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={recordPayment.isPending}
-                  className="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  Confirm Payment
-                </button>
+              {/* Pinned Sticky Footer */}
+              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+                <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setRecordingPaymentReminder(null)}
+                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={recordPayment.isPending}
+                    className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  >
+                    Confirm Payment
+                  </Button>
+                </div>
               </div>
             </form>
           )}
@@ -895,67 +947,96 @@ export default function PaymentRemindersTab() {
 
       {/* ── MODAL: PAYMENT HISTORY / INSTALLMENTS ── */}
       <Dialog open={!!historyReminder} onOpenChange={(open) => !open && setHistoryReminder(null)}>
-        <DialogContent size="md" className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Payment Installments History</DialogTitle>
-            <DialogDescription>
-              Recorded payments for "{historyReminder?.title}" ({historyReminder?.partyName}).
-            </DialogDescription>
-          </DialogHeader>
-
-          {historyReminder && (
-            <div className="space-y-4 pt-2">
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 flex justify-between items-center text-xs">
-                <div>
-                  <span className="text-slate-500">Total Amount:</span>{' '}
-                  <strong className="text-slate-800">{formatINR(historyReminder.totalAmount)}</strong>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <div className="flex flex-col min-h-0 h-full">
+            {/* Pinned Header */}
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <History className="h-5 w-5" />
                 </div>
-                <div>
-                  <span className="text-slate-500">Paid:</span>{' '}
-                  <strong className="text-emerald-600">{formatINR(historyReminder.paidAmount || 0)}</strong>
-                </div>
-                <div>
-                  <span className="text-slate-500">Balance:</span>{' '}
-                  <strong className="text-amber-600">
-                    {formatINR(Math.max(0, (historyReminder.totalAmount || 0) - (historyReminder.paidAmount || 0)))}
-                  </strong>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                    Payment Installments History
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    "{historyReminder?.title}" ({historyReminder?.partyName})
+                  </DialogDescription>
                 </div>
               </div>
-
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {(historyReminder.paymentHistory || []).map((pay, pIdx) => (
-                  <div
-                    key={pay._id || pIdx}
-                    className="p-3 rounded-lg border border-slate-200 bg-white flex items-center justify-between text-xs"
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  ESC
+                </span>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                   >
-                    <div>
-                      <div className="font-bold text-slate-900">{formatINR(pay.amount)}</div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
-                        <span>{pay.paymentDate ? formatDateIST(pay.paymentDate) : 'Date N/A'}</span>
-                        <span>•</span>
-                        <span className="font-medium text-slate-700">{pay.paymentMode || 'Bank'}</span>
-                        {pay.reference && <span>({pay.reference})</span>}
-                      </div>
-                      {pay.notes && <div className="text-[11px] text-slate-400 mt-0.5">{pay.notes}</div>}
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
-                      Recorded
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-end pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setHistoryReminder(null)}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
-                >
-                  Close
-                </button>
+                    <X className="h-4 w-4" />
+                  </button>
+                </DialogClose>
               </div>
             </div>
-          )}
+
+            {/* Scrollable Body */}
+            {historyReminder && (
+              <div className="space-y-4 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                <div className="bg-secondary/30 p-4 rounded-xl border border-border flex justify-between items-center text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Total Amount:</span>{' '}
+                    <strong className="text-foreground">{formatINR(historyReminder.totalAmount)}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Paid:</span>{' '}
+                    <strong className="text-emerald-600">{formatINR(historyReminder.paidAmount || 0)}</strong>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Balance:</span>{' '}
+                    <strong className="text-amber-600">
+                      {formatINR(Math.max(0, (historyReminder.totalAmount || 0) - (historyReminder.paidAmount || 0)))}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {(historyReminder.paymentHistory || []).map((pay, pIdx) => (
+                    <div
+                      key={pay._id || pIdx}
+                      className="p-4 rounded-xl border border-border bg-card flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <div className="font-bold text-foreground text-sm">{formatINR(pay.amount)}</div>
+                        <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-1">
+                          <span>{pay.paymentDate ? formatDateIST(pay.paymentDate) : 'Date N/A'}</span>
+                          <span>•</span>
+                          <span className="font-medium text-foreground">{pay.paymentMode || 'Bank'}</span>
+                          {pay.reference && <span>({pay.reference})</span>}
+                        </div>
+                        {pay.notes && <div className="text-[11px] text-muted-foreground mt-1">"{pay.notes}"</div>}
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                        Recorded
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setHistoryReminder(null)}
+                className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto ml-auto"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

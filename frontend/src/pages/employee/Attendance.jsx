@@ -25,6 +25,7 @@ import {
   Send,
   Eye,
   BellRing,
+  X,
 } from 'lucide-react';
 import api from '../../api';
 import { getAssetUrl } from '../../utils/assetUrl';
@@ -52,6 +53,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../../components/ui/dialog';
 
 // Helper function to format 12-Hour AM/PM Time
@@ -1630,51 +1632,93 @@ const Attendance = () => {
 
       {/* Assign Holiday Modal */}
       <Dialog open={showHolidayModal} onOpenChange={setShowHolidayModal}>
-        <DialogContent size="default">
-          <DialogHeader>
-            <DialogTitle>Assign Company Holiday</DialogTitle>
-            <DialogDescription>
-              Record an official agency holiday across all employee attendance calendars.
-            </DialogDescription>
+        <DialogContent
+          size="lg"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        >
+          {/* Pinned Header */}
+          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                  Assign Company Holiday
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  Record an official agency holiday across all employee attendance calendars.
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleAssignHoliday} className="space-y-4 text-xs">
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Select Holiday Date *</label>
-              <input
-                type="date"
-                required
-                value={holidayForm.date}
-                onChange={(e) => setHolidayForm((prev) => ({ ...prev, date: e.target.value }))}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
-              />
+          <form onSubmit={handleAssignHoliday} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Select Holiday Date <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={holidayForm.date}
+                  onChange={(e) => setHolidayForm((prev) => ({ ...prev, date: e.target.value }))}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Reason / Description <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Christmas, Independence Day, Diwali"
+                  value={holidayForm.notes}
+                  onChange={(e) => setHolidayForm((prev) => ({ ...prev, notes: e.target.value }))}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Reason / Description *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Christmas, Independence Day, Diwali"
-                value={holidayForm.notes}
-                onChange={(e) => setHolidayForm((prev) => ({ ...prev, notes: e.target.value }))}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setShowHolidayModal(false)}
-                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={assignHolidayMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm hover:bg-primary/90 disabled:opacity-50"
-              >
-                {assignHolidayMutation.isPending ? 'Assigning...' : 'Assign Holiday'}
-              </button>
+
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
+                Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
+              </span>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowHolidayModal(false)}
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted font-semibold text-sm cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={assignHolidayMutation.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {assignHolidayMutation.isPending ? 'Assigning...' : 'Assign Holiday'}
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -1682,40 +1726,70 @@ const Attendance = () => {
 
       {/* Assign / Apply Leave Modal */}
       <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
-        <DialogContent size="default">
-          <DialogHeader>
-            <DialogTitle>{isAdmin ? 'Assign Employee Leave / Apply Leave' : 'Apply for Leave'}</DialogTitle>
-            <DialogDescription>
-              {isAdmin
-                ? 'Record an approved leave on behalf of a team member, or submit your own leave request.'
-                : 'Submit a formal leave application to Super Admin & Admin for review and approval.'}
-            </DialogDescription>
+        <DialogContent
+          size="lg"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        >
+          {/* Pinned Header */}
+          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+                <Briefcase className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                  {isAdmin ? 'Assign Employee Leave / Apply Leave' : 'Apply for Leave'}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  {isAdmin
+                    ? 'Record an approved leave on behalf of a team member, or submit your own leave request.'
+                    : 'Submit a formal leave application to Super Admin & Admin for review and approval.'}
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleAssignLeave} className="space-y-4 text-xs">
-            {isAdmin && (
-              <div className="space-y-1.5">
-                <label className="font-semibold text-foreground">Select Employee (Optional / Self)</label>
-                <select
-                  value={leaveForm.userId}
-                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, userId: e.target.value }))}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="">Myself ({user?.name || user?.email})</option>
-                  {users
-                    .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
-                    .map((u) => (
-                      <option key={u._id} value={u._id}>
-                        {u.name || u.email} ({u.role})
-                      </option>
-                    ))}
-                </select>
-              </div>
-            )}
+          <form onSubmit={handleAssignLeave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              {isAdmin && (
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Select Employee (Optional / Self)
+                  </label>
+                  <select
+                    value={leaveForm.userId}
+                    onChange={(e) => setLeaveForm((prev) => ({ ...prev, userId: e.target.value }))}
+                    className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  >
+                    <option value="">Myself ({user?.name || user?.email})</option>
+                    {users
+                      .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
+                      .map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name || u.email} ({u.role})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="font-semibold text-foreground">Leave Start Date *</label>
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Leave Start Date <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="date"
                   required
@@ -1728,61 +1802,75 @@ const Attendance = () => {
                       endDate: prev.endDate < newStart ? newStart : prev.endDate,
                     }));
                   }}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-2xs"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="font-semibold text-foreground">Leave End Date *</label>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Leave End Date <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="date"
                   required
                   min={leaveForm.startDate}
                   value={leaveForm.endDate}
                   onChange={(e) => setLeaveForm((prev) => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-2xs"
                 />
               </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Reason / Description *</label>
-              <textarea
-                required
-                rows={3}
-                placeholder="Explain the reason for leave (e.g. Medical emergency, Family function, Casual leave)..."
-                value={leaveForm.notes}
-                onChange={(e) => setLeaveForm((prev) => ({ ...prev, notes: e.target.value }))}
-                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none"
-              />
-            </div>
-
-            {!isAdmin && (
-              <div className="p-3 rounded-xl bg-secondary/40 border border-border text-[11px] text-muted-foreground flex items-center gap-2">
-                <Info size={14} className="text-primary shrink-0" />
-                <span>Your application will be sent to Super Admin and Admin. Once approved, the status will show <strong>Leave Approved ✅</strong>.</span>
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Reason / Description <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Explain the reason for leave (e.g. Medical emergency, Family function, Casual leave)..."
+                  value={leaveForm.notes}
+                  onChange={(e) => setLeaveForm((prev) => ({ ...prev, notes: e.target.value }))}
+                  className="w-full rounded-xl border border-border bg-background p-4 text-sm outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none shadow-2xs"
+                />
               </div>
-            )}
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setShowLeaveModal(false)}
-                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitLeaveMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
-              >
-                <Send size={13} />
-                {submitLeaveMutation.isPending
-                  ? 'Submitting...'
-                  : isAdmin && leaveForm.userId && leaveForm.userId !== user?._id
-                  ? 'Assign Leave'
-                  : 'Submit Leave Application'}
-              </button>
+              {!isAdmin && (
+                <div className="p-3.5 rounded-xl bg-secondary/40 border border-border text-xs text-muted-foreground flex items-center gap-2.5">
+                  <Info size={16} className="text-primary shrink-0" />
+                  <span>Your application will be sent to Super Admin and Admin. Once approved, the status will show <strong>Leave Approved ✅</strong>.</span>
+                </div>
+              )}
+            </div>
+
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
+                Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
+              </span>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowLeaveModal(false)}
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted font-semibold text-sm cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLeaveMutation.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer transition-all"
+                >
+                  <Send size={15} />
+                  {submitLeaveMutation.isPending
+                    ? 'Submitting...'
+                    : isAdmin && leaveForm.userId && leaveForm.userId !== user?._id
+                    ? 'Assign Leave'
+                    : 'Submit Leave Application'}
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -1790,53 +1878,95 @@ const Attendance = () => {
 
       {/* Inform WFH Modal */}
       <Dialog open={showWFHModal} onOpenChange={setShowWFHModal}>
-        <DialogContent size="default">
-          <DialogHeader>
-            <DialogTitle>Inform Work From Home (WFH)</DialogTitle>
-            <DialogDescription>
-              Submit in advance when working remotely.
-            </DialogDescription>
+        <DialogContent
+          size="lg"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        >
+          {/* Pinned Header */}
+          <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                  Inform Work From Home (WFH)
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  Submit in advance when working remotely.
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleInformWFH} className="space-y-4 text-xs">
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Select WFH Date *</label>
-              <input
-                type="date"
-                required
-                min={todayStr}
-                value={wfhForm.date || todayStr}
-                onChange={(e) => setWfhForm((prev) => ({ ...prev, date: e.target.value }))}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              <span className="text-[11px] text-muted-foreground">Defaults to today. You may change the date to submit a future WFH request.</span>
+          <form onSubmit={handleInformWFH} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Select WFH Date <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  min={todayStr}
+                  value={wfhForm.date || todayStr}
+                  onChange={(e) => setWfhForm((prev) => ({ ...prev, date: e.target.value }))}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-2xs"
+                />
+                <span className="text-xs text-muted-foreground mt-1.5 block">Defaults to today. You may change the date to submit a future WFH request.</span>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Reason / Details <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Remote work, commute issue"
+                  value={wfhForm.notes}
+                  onChange={(e) => setWfhForm((prev) => ({ ...prev, notes: e.target.value }))}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Reason / Details *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Remote work, commute issue"
-                value={wfhForm.notes}
-                onChange={(e) => setWfhForm((prev) => ({ ...prev, notes: e.target.value }))}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setShowWFHModal(false)}
-                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitWFHMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm hover:bg-primary/90 disabled:opacity-50"
-              >
-                {submitWFHMutation.isPending ? 'Submitting...' : 'Submit WFH Notice'}
-              </button>
+
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
+                Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
+              </span>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowWFHModal(false)}
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted font-semibold text-sm cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitWFHMutation.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {submitWFHMutation.isPending ? 'Submitting...' : 'Submit WFH Notice'}
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>

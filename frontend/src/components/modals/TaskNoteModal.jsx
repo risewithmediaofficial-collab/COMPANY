@@ -22,7 +22,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../ui/dialog';
+import { Button } from '../ui/button';
 import { useTasks } from '../../hooks/useTasks';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
@@ -248,75 +250,86 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent size="lg" className="max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar p-6">
-        <DialogHeader>
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-              <StickyNote size={18} />
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <StickyNote size={20} />
             </div>
-            <div>
-              <DialogTitle className="text-base font-bold text-foreground">
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {initial ? 'Edit Task Note / Change Log' : 'Create Task Note & Change Log'}
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Record task revisions, client feedback, action checklists, or quick scratchpads.
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Record task revisions, client feedback, action checklists, or quick scratchpads
               </DialogDescription>
             </div>
           </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
-        {/* 1. Quick Template Selector (only when creating new) */}
-        {!initial && (
-          <div className="pt-2">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
-              Select Note Template:
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {NOTE_TEMPLATES.map((tmpl) => (
-                <button
-                  key={tmpl.id}
-                  type="button"
-                  onClick={() => applyTemplate(tmpl)}
-                  className={`flex items-center gap-2 p-2 rounded-xl border text-xs font-semibold text-left transition-all ${
-                    category === tmpl.category
-                      ? 'border-primary bg-primary/10 text-primary shadow-xs ring-1 ring-primary/30'
-                      : 'border-border bg-secondary/30 text-foreground hover:bg-secondary hover:border-border/80'
-                  }`}
-                >
-                  <span className="text-base">{tmpl.icon}</span>
-                  <span className="truncate">{tmpl.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Form Body - Google Form Linear Stack */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            {/* 1. Quick Template Selector (only when creating new) */}
+            {!initial && (
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-2 block">
+                  Select Note Template
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {NOTE_TEMPLATES.map((tmpl) => (
+                    <button
+                      key={tmpl.id}
+                      type="button"
+                      onClick={() => applyTemplate(tmpl)}
+                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold text-left transition-all ${
+                        category === tmpl.category
+                          ? 'border-primary bg-primary/10 text-primary shadow-xs ring-1 ring-primary/30'
+                          : 'border-border bg-secondary/30 text-foreground hover:bg-secondary hover:border-border/80'
+                      }`}
+                    >
+                      <span className="text-base">{tmpl.icon}</span>
+                      <span className="truncate">{tmpl.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          {/* Note Title */}
-          <div>
-            <label className="block text-xs font-bold text-foreground mb-1">
-              Note Title / Change Subject *
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Revision: Update Instagram Hook & Thumbnail"
-              className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
-            />
-          </div>
-
-          {/* Linked Task & Client Dropdowns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Note Title */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1">
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Note Title / Change Subject *
+              </label>
+              <input
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Revision: Update Instagram Hook & Thumbnail"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+              />
+            </div>
+
+            {/* Linked Task */}
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Link to Active Task (Optional)
               </label>
               <select
                 value={taskId}
                 onChange={(e) => handleTaskSelect(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
               >
                 <option value="">-- No Linked Task --</option>
                 {tasks.map((t) => (
@@ -327,14 +340,15 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
               </select>
             </div>
 
+            {/* Linked Client */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1">
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Client (Optional)
               </label>
               <select
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
               >
                 <option value="">-- No Client --</option>
                 {clients.map((c) => (
@@ -344,16 +358,14 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
                 ))}
               </select>
             </div>
-          </div>
 
-          {/* Category & Scope & Priority */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Category */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1">Category</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
               >
                 <option value="task_change">📝 Task Change</option>
                 <option value="revision">🔄 Revision</option>
@@ -366,12 +378,13 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
               </select>
             </div>
 
+            {/* Change Scope */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1">Change Scope</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Change Scope</label>
               <select
                 value={changeScope}
                 onChange={(e) => setChangeScope(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
               >
                 <option value="minor_tweak">Minor Tweak (≤ 30 min)</option>
                 <option value="major_overhaul">Major Overhaul (&gt; 2 hrs)</option>
@@ -381,12 +394,13 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
               </select>
             </div>
 
+            {/* Priority */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1">Priority</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Priority</label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground outline-none focus:border-primary"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
               >
                 <option value="low">🟢 Low</option>
                 <option value="medium">🔵 Medium</option>
@@ -394,121 +408,121 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
                 <option value="urgent">🔴 Urgent</option>
               </select>
             </div>
-          </div>
 
-          {/* Description / Content Body */}
-          <div>
-            <label className="block text-xs font-bold text-foreground mb-1">
-              Detailed Notes & Specifications
-            </label>
-            <textarea
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Detail out the exact changes needed, client feedback verbatim, or links to assets..."
-              className="w-full rounded-xl border border-border bg-background p-3 text-xs font-medium text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 leading-relaxed"
-            />
-          </div>
-
-          {/* Checklist Builder */}
-          <div className="space-y-2 rounded-xl border border-border/80 bg-secondary/20 p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <CheckSquare size={13} className="text-primary" />
-                <span>Action Checklist ({checklists.filter((c) => c.completed).length}/{checklists.length})</span>
-              </span>
+            {/* Description / Content Body */}
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Detailed Notes & Specifications
+              </label>
+              <textarea
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Detail out the exact changes needed, client feedback verbatim, or links to assets..."
+                className="w-full min-h-[110px] rounded-xl border border-border bg-background p-3.5 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs leading-relaxed resize-y"
+              />
             </div>
 
-            <div className="space-y-1.5">
-              {checklists.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-card border border-border/60 text-xs">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      onChange={() => handleChecklistToggle(idx)}
-                      className="rounded border-border text-primary cursor-pointer h-3.5 w-3.5"
-                    />
-                    <span className={`text-xs font-medium truncate ${item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                      {item.text}
-                    </span>
+            {/* Checklist Builder */}
+            <div className="space-y-3 rounded-xl border border-border/80 bg-secondary/20 p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <CheckSquare size={16} className="text-primary" />
+                  <span>Action Checklist ({checklists.filter((c) => c.completed).length}/{checklists.length})</span>
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {checklists.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-card border border-border/60 text-sm">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={() => handleChecklistToggle(idx)}
+                        className="rounded border-border text-primary cursor-pointer h-4 w-4"
+                      />
+                      <span className={`text-sm font-medium truncate ${item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {item.text}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveChecklist(idx)}
+                      className="text-muted-foreground hover:text-destructive p-1"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
+                ))}
+
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="text"
+                    value={newChecklistText}
+                    onChange={(e) => setNewChecklistText(e.target.value)}
+                    onKeyDown={handleAddChecklist}
+                    placeholder="Type an action item and press Enter..."
+                    className="flex-1 h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  />
                   <button
                     type="button"
-                    onClick={() => handleRemoveChecklist(idx)}
-                    className="text-muted-foreground hover:text-destructive p-0.5"
+                    onClick={() => {
+                      if (newChecklistText.trim()) {
+                        setChecklists([...checklists, { text: newChecklistText.trim(), completed: false }]);
+                        setNewChecklistText('');
+                      }
+                    }}
+                    className="h-11 px-4 rounded-xl bg-secondary text-foreground text-sm font-bold hover:bg-secondary/80 flex items-center justify-center gap-1"
                   >
-                    <Trash2 size={12} />
+                    <Plus size={16} />
+                    <span>Add</span>
                   </button>
                 </div>
-              ))}
-
-              <div className="flex items-center gap-1.5 pt-1">
-                <input
-                  type="text"
-                  value={newChecklistText}
-                  onChange={(e) => setNewChecklistText(e.target.value)}
-                  onKeyDown={handleAddChecklist}
-                  placeholder="Type an action item and press Enter..."
-                  className="flex-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-primary"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (newChecklistText.trim()) {
-                      setChecklists([...checklists, { text: newChecklistText.trim(), completed: false }]);
-                      setNewChecklistText('');
-                    }
-                  }}
-                  className="px-2.5 py-1.5 rounded-lg bg-secondary text-foreground text-xs font-bold hover:bg-secondary/80"
-                >
-                  <Plus size={13} />
-                </button>
               </div>
             </div>
-          </div>
 
-          {/* Color Accent & Tags */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            {/* Note Card Highlight Color */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1.5">Note Card Highlight Color</label>
-              <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-foreground mb-2 block">Note Card Highlight Color</label>
+              <div className="flex items-center gap-3">
                 {NOTE_COLORS.map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     title={c.label}
                     onClick={() => setColor(c.id)}
-                    className={`h-6 w-6 rounded-full ${c.dot} transition-all flex items-center justify-center ${
+                    className={`h-8 w-8 rounded-full ${c.dot} transition-all flex items-center justify-center ${
                       color === c.id ? 'ring-2 ring-primary ring-offset-2 scale-110' : 'opacity-70 hover:opacity-100'
                     }`}
                   >
-                    {color === c.id && <CheckCircle2 size={12} className="text-white" />}
+                    {color === c.id && <CheckCircle2 size={16} className="text-white" />}
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Tags */}
             <div>
-              <label className="block text-xs font-bold text-foreground mb-1">Tags (Press Enter to add)</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Tags (Press Enter to add)</label>
               <input
                 type="text"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleAddTag}
                 placeholder="e.g. revision, urgent, client-fix"
-                className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-primary"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
               />
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1.5">
+                <div className="flex flex-wrap gap-1.5 mt-2">
                   {tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary text-[10px] font-bold text-muted-foreground"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary text-xs font-semibold text-muted-foreground"
                     >
                       #{t}
                       <button type="button" onClick={() => handleRemoveTag(t)} className="hover:text-destructive">
-                        <X size={10} />
+                        <X size={12} />
                       </button>
                     </span>
                   ))}
@@ -517,23 +531,34 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:bg-secondary hover:text-foreground"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !title.trim()}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm disabled:opacity-50"
-            >
-              <Send size={13} />
-              <span>{loading ? 'Saving Note...' : initial ? 'Update Note' : 'Save & Publish Note'}</span>
-            </button>
+          {/* Pinned Sticky Bottom Action Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+              <span>Press</span>
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                ESC
+              </kbd>
+              <span>to close</span>
+            </span>
+
+            <div className="flex items-center gap-3 ml-auto">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onClose}
+                className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || !title.trim()}
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all flex items-center gap-2"
+              >
+                <Send size={15} />
+                <span>{loading ? 'Saving Note...' : initial ? 'Update Note' : 'Save & Publish Note'}</span>
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

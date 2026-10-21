@@ -26,6 +26,7 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  X,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
@@ -37,7 +38,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
 
 const CALL_TYPES = [
   'Outgoing',
@@ -811,25 +814,39 @@ export default function SMMCallLogs() {
 
       {/* Log / Edit Call Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
-                <PhoneCall size={16} />
-              </span>
-              {editingId ? 'Edit SMM Call Note' : 'Log New SMM Call Note'}
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Select client and project, record discussion notes in text format, and set call status.
-            </DialogDescription>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+                <PhoneCall size={20} />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                  {editingId ? 'Edit SMM Call Note' : 'Log New SMM Call Note'}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  Record client discussion notes, set call status, and schedule action items
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmitForm} className="space-y-4 pt-2">
-            {/* Client & Project Pickers */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form onSubmit={handleSubmitForm} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
-                  Client *
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Select Client *
                 </label>
                 <select
                   required
@@ -845,7 +862,7 @@ export default function SMMCallLogs() {
                       projectName: '',
                     }));
                   }}
-                  className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs appearance-none cursor-pointer font-medium"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="">-- Choose Client --</option>
                   {clients.map((c) => (
@@ -857,8 +874,8 @@ export default function SMMCallLogs() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
-                  Project (Optional)
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Select Project (Optional)
                 </label>
                 <select
                   value={form.projectId}
@@ -871,7 +888,7 @@ export default function SMMCallLogs() {
                       projectName: pObj ? pObj.name : '',
                     }));
                   }}
-                  className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs appearance-none cursor-pointer font-medium"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="">
                     {form.clientId
@@ -885,18 +902,15 @@ export default function SMMCallLogs() {
                   ))}
                 </select>
               </div>
-            </div>
 
-            {/* Call Type, Purpose & Status */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Type
                 </label>
                 <select
                   value={form.callType}
                   onChange={(e) => setForm({ ...form, callType: e.target.value })}
-                  className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs appearance-none cursor-pointer"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   {CALL_TYPES.map((t) => (
                     <option key={t} value={t}>
@@ -907,13 +921,13 @@ export default function SMMCallLogs() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Purpose
                 </label>
                 <select
                   value={form.callPurpose}
                   onChange={(e) => setForm({ ...form, callPurpose: e.target.value })}
-                  className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs appearance-none cursor-pointer"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   {CALL_PURPOSES.map((p) => (
                     <option key={p} value={p}>
@@ -924,13 +938,13 @@ export default function SMMCallLogs() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Status *
                 </label>
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs font-bold appearance-none cursor-pointer"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-bold text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   {CALL_STATUSES.map((st) => (
                     <option key={st.value} value={st.value}>
@@ -939,12 +953,9 @@ export default function SMMCallLogs() {
                   ))}
                 </select>
               </div>
-            </div>
 
-            {/* Spoken with & Phone number */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Spoken With
                 </label>
                 <input
@@ -952,12 +963,12 @@ export default function SMMCallLogs() {
                   placeholder="e.g. Rahul Sharma (Owner)"
                   value={form.spokenWith}
                   onChange={(e) => setForm({ ...form, spokenWith: e.target.value })}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Contact Number
                 </label>
                 <input
@@ -965,12 +976,12 @@ export default function SMMCallLogs() {
                   placeholder="+91 98765 43210"
                   value={form.contactNumber}
                   onChange={(e) => setForm({ ...form, contactNumber: e.target.value })}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs font-mono"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-mono text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Duration
                 </label>
                 <input
@@ -978,15 +989,12 @@ export default function SMMCallLogs() {
                   placeholder="e.g. 15 mins"
                   value={form.duration}
                   onChange={(e) => setForm({ ...form, duration: e.target.value })}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
-            </div>
 
-            {/* Date & Time */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Date *
                 </label>
                 <input
@@ -994,30 +1002,30 @@ export default function SMMCallLogs() {
                   required
                   value={form.callDate}
                   onChange={(e) => setForm({ ...form, callDate: e.target.value })}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Call Time
                 </label>
                 <input
                   type="time"
                   value={form.callTime}
                   onChange={(e) => setForm({ ...form, callTime: e.target.value })}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Priority
                 </label>
                 <select
                   value={form.priority}
                   onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                  className="w-full h-9 px-3 pr-8 rounded-xl border border-border bg-background text-xs appearance-none cursor-pointer"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
@@ -1025,27 +1033,23 @@ export default function SMMCallLogs() {
                   <option value="Urgent">Urgent</option>
                 </select>
               </div>
-            </div>
 
-            {/* Notes in text format */}
-            <div>
-              <label className="block text-xs font-bold text-foreground mb-1">
-                Call Notes / Summary (Text Format) *
-              </label>
-              <textarea
-                required
-                rows={4}
-                placeholder="Write detailed call summary, client feedback, campaign decisions, ad budget discussions, or next action points..."
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                className="w-full p-3 rounded-xl border border-border bg-background text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-
-            {/* Next Action & Follow-up */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-secondary/30 border border-border">
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Call Notes / Summary (Text Format) *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Write detailed call summary, client feedback, campaign decisions, ad budget discussions, or next action points..."
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="w-full min-h-[110px] p-3.5 rounded-xl border border-border bg-background text-sm leading-relaxed text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Next Action Required
                 </label>
                 <input
@@ -1053,39 +1057,50 @@ export default function SMMCallLogs() {
                   placeholder="e.g. Share new reel creatives by Thursday"
                   value={form.nextAction}
                   onChange={(e) => setForm({ ...form, nextAction: e.target.value })}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-1">
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
                   Next Follow-up Date (Optional)
                 </label>
                 <input
                   type="date"
                   value={form.nextFollowUpDate}
                   onChange={(e) => setForm({ ...form, nextFollowUpDate: e.target.value })}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
             </div>
 
-            {/* Form Actions */}
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-xl border border-border bg-background text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50"
-              >
-                {submitting ? 'Saving...' : editingId ? 'Update Call Note' : 'Save Call Note'}
-              </button>
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
+
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsModalOpen(false)}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  {submitting ? 'Saving...' : editingId ? 'Update Call Note' : 'Save Call Note'}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

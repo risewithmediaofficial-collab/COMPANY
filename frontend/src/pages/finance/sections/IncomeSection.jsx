@@ -22,7 +22,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
+import { Button } from '../../../components/ui/button';
 import {
   usePaymentReceipts,
   useModuleInvoices,
@@ -358,33 +360,58 @@ export default function IncomeSection({ onQuickAdd }) {
       {/* EDIT RECEIPT MODAL */}
       <Dialog open={Boolean(editingReceipt)} onOpenChange={(open) => !open && setEditingReceipt(null)}>
         {editingReceipt && (
-          <DialogContent variant="center" size="md" className="rounded-2xl p-6 text-xs max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold text-slate-900">Edit Payment Receipt</DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Receipt for {editingReceipt.client?.company || editingReceipt.client?.name || 'Client'} ({formatINR(editingReceipt.amount)})
-              </DialogDescription>
-            </DialogHeader>
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+            <form onSubmit={handleSaveEditReceipt} className="flex flex-col min-h-0 h-full">
+              {/* Pinned Header */}
+              <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                    <Receipt className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                      Edit Payment Receipt
+                    </DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                      Receipt for {editingReceipt.client?.company || editingReceipt.client?.name || 'Client'} ({formatINR(editingReceipt.amount)})
+                    </DialogDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                    ESC
+                  </span>
+                  <DialogClose asChild>
+                    <button
+                      type="button"
+                      className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </DialogClose>
+                </div>
+              </div>
 
-            <form onSubmit={handleSaveEditReceipt} className="space-y-3.5 mt-3">
-              <div className="grid grid-cols-2 gap-3">
+              {/* Scrollable Linear Body */}
+              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Received Date</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Received Date *</label>
                   <input
                     type="date"
                     required
                     value={receiptForm.receivedDate}
                     onChange={(e) => setReceiptForm({ ...receiptForm, receivedDate: e.target.value })}
                     onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Payment Mode</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Payment Mode *</label>
                   <select
                     value={receiptForm.paymentMode}
                     onChange={(e) => setReceiptForm({ ...receiptForm, paymentMode: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                   >
                     <option value="Bank">Bank Transfer / NEFT / IMPS</option>
                     <option value="UPI">UPI / QR</option>
@@ -393,45 +420,50 @@ export default function IncomeSection({ onQuickAdd }) {
                     <option value="Stripe">Stripe / Card</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">UTR / Transaction Reference</label>
+                  <input
+                    type="text"
+                    value={receiptForm.reference}
+                    onChange={(e) => setReceiptForm({ ...receiptForm, reference: e.target.value })}
+                    placeholder="e.g. UTR12345678"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Notes / Remarks</label>
+                  <textarea
+                    rows={3}
+                    value={receiptForm.notes}
+                    onChange={(e) => setReceiptForm({ ...receiptForm, notes: e.target.value })}
+                    placeholder="Optional internal remarks..."
+                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">UTR / Transaction Reference</label>
-                <input
-                  type="text"
-                  value={receiptForm.reference}
-                  onChange={(e) => setReceiptForm({ ...receiptForm, reference: e.target.value })}
-                  placeholder="e.g. UTR12345678"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">Notes / Remarks</label>
-                <textarea
-                  rows="2"
-                  value={receiptForm.notes}
-                  onChange={(e) => setReceiptForm({ ...receiptForm, notes: e.target.value })}
-                  placeholder="Optional internal remarks..."
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setEditingReceipt(null)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateReceipt.isPending}
-                  className="px-4 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {updateReceipt.isPending ? 'Saving...' : 'Save Changes'}
-                </button>
+              {/* Pinned Sticky Footer */}
+              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+                <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditingReceipt(null)}
+                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateReceipt.isPending}
+                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  >
+                    {updateReceipt.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>

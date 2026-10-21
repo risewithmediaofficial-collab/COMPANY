@@ -31,7 +31,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
+import { Button } from '../../../components/ui/button';
 import {
   useLoans,
   useCreateLoan,
@@ -676,23 +678,43 @@ export default function LoansSection({ onQuickAdd }) {
       {/* ── ADD / EDIT LOAN MODAL ────────────────────────────────────────── */}
       {showAddModal && (
         <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-          <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Landmark className="h-5 w-5 text-indigo-600" />
-                {editingLoan ? 'Edit Loan Details' : 'Add New Loan'}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Track borrowing details, monthly EMIs, and get reminders 2 days prior to payment.
-              </DialogDescription>
-            </DialogHeader>
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+            <form onSubmit={handleSubmitLoan} className="flex flex-col min-h-0 h-full">
+              {/* Pinned Header */}
+              <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                    <Landmark className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                      {editingLoan ? 'Edit Loan Details' : 'Add New Loan'}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                      Track borrowing details, monthly EMIs, and automatic reminders
+                    </DialogDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                    ESC
+                  </span>
+                  <DialogClose asChild>
+                    <button
+                      type="button"
+                      className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </DialogClose>
+                </div>
+              </div>
 
-            <form onSubmit={handleSubmitLoan} className="space-y-4 mt-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Loan Name */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Loan Name / Purpose <span className="text-rose-500">*</span>
+              {/* Scrollable Linear Body */}
+              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Loan Name / Purpose <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="text"
@@ -700,14 +722,13 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. Workstation Laptops Loan, HDFC Business Loan"
                     value={formData.loanName}
                     onChange={(e) => setFormData({ ...formData, loanName: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Lender / Bank */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Lender / Bank Name <span className="text-rose-500">*</span>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Lender / Bank Name <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="text"
@@ -715,13 +736,12 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. HDFC Bank, ICICI Bank, SBI, Partner"
                     value={formData.lender}
                     onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Loan Account No. / Ref */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Loan Account / Ref No.
                   </label>
                   <input
@@ -729,14 +749,13 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. LN-98420-2026"
                     value={formData.accountNumber}
                     onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Loan Principal Amount */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Principal Amount (₹) <span className="text-rose-500">*</span>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Principal Amount (₹) <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="number"
@@ -745,13 +764,12 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 500000"
                     value={formData.loanAmount}
                     onChange={(e) => handleAmountOrInterestChange('loanAmount', e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-bold"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Interest Rate */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Annual Interest Rate (%)
                   </label>
                   <input
@@ -761,13 +779,12 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 10.5"
                     value={formData.interestRate}
                     onChange={(e) => handleAmountOrInterestChange('interestRate', e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Tenure Months */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Tenure (Months)
                   </label>
                   <input
@@ -776,14 +793,13 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 12, 24, 36"
                     value={formData.tenureMonths}
                     onChange={(e) => handleAmountOrInterestChange('tenureMonths', e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Total Payable Amount */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Total Payable (₹) <span className="text-slate-400 text-[10px]">(Principal + Interest)</span>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Total Payable (₹) <span className="text-muted-foreground text-xs font-normal">(Principal + Interest)</span>
                   </label>
                   <input
                     type="number"
@@ -791,14 +807,13 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 550000"
                     value={formData.totalPayable}
                     onChange={(e) => setFormData({ ...formData, totalPayable: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Monthly EMI Amount */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Monthly EMI Amount (₹) <span className="text-rose-500">*</span>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Monthly EMI Amount (₹) <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="number"
@@ -807,41 +822,38 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 15000"
                     value={formData.emiAmount}
                     onChange={(e) => setFormData({ ...formData, emiAmount: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-bold text-indigo-700"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-primary font-bold focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                   />
                 </div>
 
-                {/* Next Payment Date */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Next Payment Date <span className="text-rose-500">*</span>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Next Payment Date <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="date"
                     required
                     value={formData.nextPaymentDate}
                     onChange={(e) => setFormData({ ...formData, nextPaymentDate: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
-                {/* Start Date */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Loan Start Date
                   </label>
                   <input
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
-                {/* Initial Paid Amount (Only on new loan setup) */}
                 {!editingLoan && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">
                       Already Repaid So Far (₹)
                     </label>
                     <input
@@ -850,50 +862,52 @@ export default function LoansSection({ onQuickAdd }) {
                       placeholder="e.g. 30000 (if already begun)"
                       value={formData.initialPaidAmount}
                       onChange={(e) => setFormData({ ...formData, initialPaidAmount: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                     />
                   </div>
                 )}
 
-                {/* Notes */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Notes / Terms
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     placeholder="Additional notes about loan conditions, auto-debit bank account, or collateral..."
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
                   />
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 flex items-center gap-3 text-xs text-amber-600 dark:text-amber-400">
+                  <BellRing className="h-4 w-4 shrink-0" />
+                  <span>
+                    <strong>Automated Reminder:</strong> Notification will be dispatched to admins & managers <strong>2 days before</strong> the next payment date.
+                  </span>
                 </div>
               </div>
 
-              {/* Notification note */}
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-center gap-2 text-xs text-amber-800">
-                <BellRing className="h-4 w-4 text-amber-600 shrink-0" />
-                <span>
-                  <strong>Automated Reminder:</strong> A notification will be dispatched to admins & managers <strong>2 days before</strong> the next payment date.
-                </span>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createLoan.isPending || updateLoan.isPending}
-                  className="px-4 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs disabled:opacity-50 cursor-pointer"
-                >
-                  {editingLoan ? 'Save Changes' : 'Create Loan'}
-                </button>
+              {/* Pinned Sticky Footer */}
+              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+                <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAddModal(false)}
+                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createLoan.isPending || updateLoan.isPending}
+                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  >
+                    {editingLoan ? 'Save Changes' : 'Create Loan'}
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>
@@ -903,73 +917,91 @@ export default function LoansSection({ onQuickAdd }) {
       {/* ── RECORD EMI / REPAYMENT MODAL ─────────────────────────────────── */}
       {recordingPaymentLoan && (
         <Dialog open={!!recordingPaymentLoan} onOpenChange={() => setRecordingPaymentLoan(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-emerald-600" />
-                Record EMI Payment
-              </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Record an EMI or extra repayment for <strong>{recordingPaymentLoan.loanName}</strong> ({recordingPaymentLoan.lender}).
-              </DialogDescription>
-            </DialogHeader>
-
-            {/* Quick Summary Pill */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3 my-1 flex items-center justify-between text-xs">
-              <div>
-                <span className="text-slate-500 block text-[11px]">Remaining Balance</span>
-                <span className="font-bold text-rose-600 text-sm">
-                  {formatINR(recordingPaymentLoan.balanceAmount, false)}
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-slate-500 block text-[11px]">Standard EMI</span>
-                <span className="font-bold text-slate-800 text-sm">
-                  {formatINR(recordingPaymentLoan.emiAmount, false)}
-                </span>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmitPayment} className="space-y-3 mt-2">
-              {/* Payment Amount */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Payment Amount (₹) <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  required
-                  placeholder="e.g. 15000"
-                  value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm font-bold text-emerald-700 rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+            <form onSubmit={handleSubmitPayment} className="flex flex-col min-h-0 h-full">
+              {/* Pinned Header */}
+              <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                      Record EMI Payment
+                    </DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                      {recordingPaymentLoan.loanName} ({recordingPaymentLoan.lender})
+                    </DialogDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                    ESC
+                  </span>
+                  <DialogClose asChild>
+                    <button
+                      type="button"
+                      className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </DialogClose>
+                </div>
               </div>
 
-              {/* Payment Date & Mode */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Scrollable Linear Body */}
+              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                <div className="bg-secondary/30 border border-border rounded-xl p-4 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Remaining Balance</span>
+                    <span className="font-bold text-destructive text-sm mt-0.5 block">
+                      {formatINR(recordingPaymentLoan.balanceAmount, false)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-muted-foreground block text-[11px]">Standard EMI</span>
+                    <span className="font-bold text-foreground text-sm mt-0.5 block">
+                      {formatINR(recordingPaymentLoan.emiAmount, false)}
+                    </span>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Payment Date <span className="text-rose-500">*</span>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Payment Amount (₹) <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    placeholder="e.g. 15000"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-emerald-600 font-bold focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Payment Date <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="date"
                     required
                     value={paymentForm.paymentDate}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
                     Payment Mode
                   </label>
                   <select
                     value={paymentForm.paymentMode}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentMode: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
                   >
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="Auto Debit">Auto Debit (ECS/NACH)</option>
@@ -979,65 +1011,66 @@ export default function LoansSection({ onQuickAdd }) {
                     <option value="Other">Other</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Next Payment Date <span className="text-primary text-xs font-normal">(Auto +1 month)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentForm.nextPaymentDate}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, nextPaymentDate: e.target.value })}
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Transaction / UTR Reference
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. UTR-849204859"
+                    value={paymentForm.reference}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                    Notes
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Optional payment notes..."
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                    className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  />
+                </div>
               </div>
 
-              {/* Next Payment Date (Auto-advanced by 1 month) */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Next Payment Date <span className="text-indigo-600 font-normal">(Auto +1 month)</span>
-                </label>
-                <input
-                  type="date"
-                  value={paymentForm.nextPaymentDate}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, nextPaymentDate: e.target.value })}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
-                />
-              </div>
-
-              {/* Reference */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Transaction / UTR Reference
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. UTR-849204859"
-                  value={paymentForm.reference}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Notes
-                </label>
-                <input
-                  type="text"
-                  placeholder="Optional payment notes..."
-                  value={paymentForm.notes}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setRecordingPaymentLoan(null)}
-                  className="px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={recordPayment.isPending}
-                  className="px-4 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs disabled:opacity-50 cursor-pointer"
-                >
-                  Confirm Payment
-                </button>
+              {/* Pinned Sticky Footer */}
+              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+                <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setRecordingPaymentLoan(null)}
+                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={recordPayment.isPending}
+                    className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  >
+                    Confirm Payment
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>
@@ -1047,71 +1080,97 @@ export default function LoansSection({ onQuickAdd }) {
       {/* ── REPAYMENT HISTORY MODAL ──────────────────────────────────────── */}
       {historyLoan && (
         <Dialog open={!!historyLoan} onOpenChange={() => setHistoryLoan(null)}>
-          <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <History className="h-5 w-5 text-indigo-600" />
-                Repayment History: {historyLoan.loanName}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Total repaid: <strong className="text-emerald-700 font-bold">{formatINR(historyLoan.paidAmount, false)}</strong> • Lender: {historyLoan.lender}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="mt-3">
-              {!historyLoan.payments || historyLoan.payments.length === 0 ? (
-                <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-xl">
-                  <p className="text-xs text-slate-500">No repayment entries recorded yet.</p>
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+            <div className="flex flex-col min-h-0 h-full">
+              {/* Pinned Header */}
+              <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                    <History className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                      Repayment History: {historyLoan.loanName}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                      Total repaid: {formatINR(historyLoan.paidAmount, false)} • Lender: {historyLoan.lender}
+                    </DialogDescription>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {historyLoan.payments.map((p, idx) => (
-                    <div
-                      key={p._id || idx}
-                      className="p-3 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-lg flex items-center justify-between transition-colors"
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                    ESC
+                  </span>
+                  <DialogClose asChild>
+                    <button
+                      type="button"
+                      className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-slate-900">
-                            {formatINR(p.amount, false)}
-                          </span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
-                            {p.paymentMode || 'Bank Transfer'}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
-                          <span>{formatDateIST(p.paymentDate)}</span>
-                          {p.reference && (
-                            <>
-                              <span>•</span>
-                              <span className="font-mono">{p.reference}</span>
-                            </>
-                          )}
-                          {p.recordedBy?.name && (
-                            <>
-                              <span>•</span>
-                              <span>by {p.recordedBy.name}</span>
-                            </>
-                          )}
-                        </div>
-                        {p.notes && (
-                          <p className="text-[11px] text-slate-600 italic mt-0.5">"{p.notes}"</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                      <X className="h-4 w-4" />
+                    </button>
+                  </DialogClose>
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="flex justify-end pt-3 border-t border-slate-200 mt-4">
-              <button
-                type="button"
-                onClick={() => setHistoryLoan(null)}
-                className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
-              >
-                Close
-              </button>
+              {/* Scrollable Body */}
+              <div className="space-y-4 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                {!historyLoan.payments || historyLoan.payments.length === 0 ? (
+                  <div className="p-8 text-center bg-secondary/20 border border-border rounded-xl">
+                    <p className="text-xs text-muted-foreground">No repayment entries recorded yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {historyLoan.payments.map((p, idx) => (
+                      <div
+                        key={p._id || idx}
+                        className="p-4 bg-secondary/20 hover:bg-secondary/40 border border-border rounded-xl flex items-center justify-between transition-colors"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-foreground">
+                              {formatINR(p.amount, false)}
+                            </span>
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                              {p.paymentMode || 'Bank Transfer'}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
+                            <span>{formatDateIST(p.paymentDate)}</span>
+                            {p.reference && (
+                              <>
+                                <span>•</span>
+                                <span className="font-mono">{p.reference}</span>
+                              </>
+                            )}
+                            {p.recordedBy?.name && (
+                              <>
+                                <span>•</span>
+                                <span>by {p.recordedBy.name}</span>
+                              </>
+                            )}
+                          </div>
+                          {p.notes && (
+                            <p className="text-xs text-muted-foreground italic mt-1">"{p.notes}"</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Pinned Sticky Footer */}
+              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+                <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setHistoryLoan(null)}
+                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto ml-auto"
+                >
+                  Close
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

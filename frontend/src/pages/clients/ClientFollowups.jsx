@@ -23,7 +23,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { cn } from '../../utils/cn';
@@ -289,24 +289,43 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="bg-card border border-border">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <PhoneCall size={20} className="text-primary" />
-            {followup ? 'Edit Client Follow-up' : 'Log New Client Touchpoint'}
-          </DialogTitle>
-          <DialogDescription>
-            Record communication logs, meetings, notes, and action items for this client account.
-          </DialogDescription>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <PhoneCall size={20} />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                {followup ? 'Edit Client Follow-up' : 'Log New Client Touchpoint'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Record communication logs, meetings, notes, and action items for this client account
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-5 pt-1 max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Client *">
+
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Form Body - Google Form Linear Stack */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Client *</label>
               <select
                 value={form.client}
                 onChange={(e) => updateField('client', e.target.value)}
                 required
-                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
               >
                 <option value="">Select client</option>
                 {clients.map((c) => (
@@ -315,13 +334,14 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                   </option>
                 ))}
               </select>
-            </Field>
+            </div>
 
-            <Field label="Related Project (Optional)">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Related Project (Optional)</label>
               <select
                 value={form.project}
                 onChange={(e) => updateField('project', e.target.value)}
-                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
               >
                 <option value="">None / General</option>
                 {clientProjects.map((p) => (
@@ -330,136 +350,161 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                   </option>
                 ))}
               </select>
-            </Field>
-          </div>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Field label="Touchpoint Channel">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Touchpoint Channel</label>
               <select
                 value={form.type}
                 onChange={(e) => updateField('type', e.target.value)}
-                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
               >
                 <option value="call">Phone Call</option>
                 <option value="meeting">Video / In-Person Meeting</option>
                 <option value="whatsapp">WhatsApp</option>
                 <option value="email">Email</option>
               </select>
-            </Field>
+            </div>
 
-            <Field label="Status">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Status</label>
               <select
                 value={form.status}
                 onChange={(e) => updateField('status', e.target.value)}
-                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
               >
                 <option value="open">Open</option>
                 <option value="waiting">Waiting for Client</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-            </Field>
+            </div>
 
-            <Field label="Priority">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Priority</label>
               <select
                 value={form.priority}
                 onChange={(e) => updateField('priority', e.target.value)}
-                className="w-full h-10 px-3.5 rounded-xl border border-border/80 bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
                 <option value="urgent">Urgent</option>
               </select>
-            </Field>
-          </div>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Contact Person / Stakeholder">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Contact Person / Stakeholder</label>
               <Input
                 value={form.contactPerson}
                 onChange={(e) => updateField('contactPerson', e.target.value)}
                 placeholder="e.g. Rahul Sharma (Marketing Head)"
-                className="h-10 text-sm rounded-xl px-3.5"
+                className="h-11 text-sm rounded-xl px-4"
               />
-            </Field>
+            </div>
 
-            <Field label="Discussion Subject *">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Discussion Subject *</label>
               <Input
                 value={form.subject}
                 onChange={(e) => updateField('subject', e.target.value)}
                 placeholder="e.g. August Reel Plan & Retainer Review"
                 required
-                className="h-10 text-sm rounded-xl px-3.5"
+                className="h-11 text-sm rounded-xl px-4"
               />
-            </Field>
-          </div>
+            </div>
 
-          <Field label="Meeting Summary / Core Takeaway">
-            <Textarea
-              value={form.summary}
-              onChange={(e) => updateField('summary', e.target.value)}
-              placeholder="Brief summary of what was discussed..."
-              rows={2}
-              className="text-sm leading-relaxed rounded-xl p-3"
-            />
-          </Field>
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Meeting Summary / Core Takeaway</label>
+              <Textarea
+                value={form.summary}
+                onChange={(e) => updateField('summary', e.target.value)}
+                placeholder="Brief summary of what was discussed..."
+                rows={2}
+                className="text-sm leading-relaxed rounded-xl p-3.5 min-h-[80px] resize-y"
+              />
+            </div>
 
-          <Field label="Detailed Notes & Feedback">
-            <Textarea
-              value={form.discussionNotes}
-              onChange={(e) => updateField('discussionNotes', e.target.value)}
-              placeholder="Detailed notes, feedback on deliverables, client expectations..."
-              rows={3}
-              className="text-sm leading-relaxed rounded-xl p-3"
-            />
-          </Field>
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Detailed Notes & Feedback</label>
+              <Textarea
+                value={form.discussionNotes}
+                onChange={(e) => updateField('discussionNotes', e.target.value)}
+                placeholder="Detailed notes, feedback on deliverables, client expectations..."
+                rows={3}
+                className="text-sm leading-relaxed rounded-xl p-3.5 min-h-[100px] resize-y"
+              />
+            </div>
 
-          <Field label="Outcome">
-            <Input
-              value={form.outcome}
-              onChange={(e) => updateField('outcome', e.target.value)}
-              placeholder="e.g. Client approved Q3 content plan"
-              className="h-10 text-sm rounded-xl px-3.5"
-            />
-          </Field>
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Outcome</label>
+              <Input
+                value={form.outcome}
+                onChange={(e) => updateField('outcome', e.target.value)}
+                placeholder="e.g. Client approved Q3 content plan"
+                className="h-11 text-sm rounded-xl px-4"
+              />
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Field label="Meeting Date">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Meeting Date</label>
               <Input
                 type="date"
                 value={form.meetingDate}
                 onChange={(e) => updateField('meetingDate', e.target.value)}
-                className="h-10 text-sm rounded-xl px-3.5"
+                className="h-11 text-sm rounded-xl px-4"
               />
-            </Field>
+            </div>
 
-            <Field label="Next Follow-up Date">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Next Follow-up Date</label>
               <Input
                 type="date"
                 value={form.nextFollowUpDate}
                 onChange={(e) => updateField('nextFollowUpDate', e.target.value)}
-                className="h-10 text-sm rounded-xl px-3.5"
+                className="h-11 text-sm rounded-xl px-4"
               />
-            </Field>
+            </div>
 
-            <Field label="Next Action Item">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Next Action Item</label>
               <Input
                 value={form.nextAction}
                 onChange={(e) => updateField('nextAction', e.target.value)}
                 placeholder="e.g. Send revised video draft"
-                className="h-10 text-sm rounded-xl px-3.5"
+                className="h-11 text-sm rounded-xl px-4"
               />
-            </Field>
+            </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl text-sm h-10 px-4">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={saving} className="rounded-xl text-sm font-semibold h-10 px-6">
-              {saving ? 'Saving...' : followup ? 'Save Changes' : 'Log Touchpoint'}
-            </Button>
+          {/* Pinned Sticky Bottom Action Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+              <span>Press</span>
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                ESC
+              </kbd>
+              <span>to close</span>
+            </span>
+
+            <div className="flex items-center gap-3 ml-auto">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onOpenChange(false)}
+                className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+              >
+                {saving ? 'Saving...' : followup ? 'Save Changes' : 'Log Touchpoint'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

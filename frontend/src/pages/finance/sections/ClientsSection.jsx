@@ -29,7 +29,8 @@ import {
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 export default function ClientsSection({ onQuickAdd }) {
   const queryClient = useQueryClient();
@@ -371,83 +372,115 @@ export default function ClientsSection({ onQuickAdd }) {
       {/* COST ALLOCATION MODAL */}
       <Dialog open={Boolean(showCostModal && selectedClientForCost)} onOpenChange={(open) => !open && setShowCostModal(false)}>
         {showCostModal && selectedClientForCost && (
-          <DialogContent variant="center" size="sm" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-md text-xs">
-            <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
-              <DialogTitle className="text-base font-bold text-foreground">
-                Assign Cost to {selectedClientForCost.company || selectedClientForCost.name}
-              </DialogTitle>
-              <DialogDescription className="text-muted-foreground text-xs mt-0.5">
-                Period: {retainerPeriod}. Distribute direct service cost (editing, design, shoot) without creating another agency expense.
-              </DialogDescription>
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+            <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+                  <DollarSign size={20} />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                    Assign Cost to {selectedClientForCost.company || selectedClientForCost.name}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                    Period: {retainerPeriod} · Distribute direct service cost without creating agency expense
+                  </DialogDescription>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                  ESC
+                </kbd>
+                <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                  <X size={16} className="stroke-[2.5]" />
+                  <span className="sr-only">Close</span>
+                </DialogClose>
+              </div>
             </DialogHeader>
 
-            <form onSubmit={handleSaveAllocation} className="space-y-4">
-              <div>
-                <label className="block font-semibold text-foreground mb-1.5">Activity / Deliverable *</label>
-                <select
-                  value={allocForm.activityDeliverable}
-                  onChange={(e) => setAllocForm({ ...allocForm, activityDeliverable: e.target.value })}
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
-                >
-                  <option value="Video Editing">Video Editing (Editor Cost)</option>
-                  <option value="Graphic Design">Graphic Design (Designer Cost)</option>
-                  <option value="Production Shoot">Shoot & Travel Allowance</option>
-                  <option value="Freelancer Fee">Freelancer Deliverable Fee</option>
-                  <option value="Tools Allocation">Software Tools Allocation</option>
-                  <option value="Overhead Allocation">Shared Agency Overhead</option>
-                </select>
+            <form onSubmit={handleSaveAllocation} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Scrollable Form Body - Google Form Linear Stack */}
+              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Activity / Deliverable *</label>
+                  <select
+                    value={allocForm.activityDeliverable}
+                    onChange={(e) => setAllocForm({ ...allocForm, activityDeliverable: e.target.value })}
+                    className="w-full h-11 px-4 rounded-xl border border-border text-sm text-foreground bg-background focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  >
+                    <option value="Video Editing">Video Editing (Editor Cost)</option>
+                    <option value="Graphic Design">Graphic Design (Designer Cost)</option>
+                    <option value="Production Shoot">Shoot & Travel Allowance</option>
+                    <option value="Freelancer Fee">Freelancer Deliverable Fee</option>
+                    <option value="Tools Allocation">Software Tools Allocation</option>
+                    <option value="Overhead Allocation">Shared Agency Overhead</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Cost Type</label>
+                  <select
+                    value={allocForm.costType}
+                    onChange={(e) => setAllocForm({ ...allocForm, costType: e.target.value })}
+                    className="w-full h-11 px-4 rounded-xl border border-border text-sm text-foreground bg-background focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  >
+                    <option value="direct">Direct Service Cost (Reduces Contribution)</option>
+                    <option value="overhead">Shared Overhead (Reduces Net Profit)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Cost Amount (₹) *</label>
+                  <input
+                    type="number"
+                    value={allocForm.allocatedAmount}
+                    onChange={(e) => setAllocForm({ ...allocForm, allocatedAmount: e.target.value })}
+                    placeholder="e.g. 4000"
+                    required
+                    className="w-full h-11 px-4 rounded-xl border border-border text-sm font-semibold text-foreground bg-background focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Notes</label>
+                  <input
+                    type="text"
+                    value={allocForm.notes}
+                    onChange={(e) => setAllocForm({ ...allocForm, notes: e.target.value })}
+                    placeholder="e.g. 8 Reels edited by senior editor"
+                    className="w-full h-11 px-4 rounded-xl border border-border text-sm text-foreground bg-background focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-foreground mb-1.5">Cost Type</label>
-                <select
-                  value={allocForm.costType}
-                  onChange={(e) => setAllocForm({ ...allocForm, costType: e.target.value })}
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
-                >
-                  <option value="direct">Direct Service Cost (Reduces Contribution)</option>
-                  <option value="overhead">Shared Overhead (Reduces Net Profit)</option>
-                </select>
-              </div>
+              {/* Pinned Sticky Bottom Action Footer */}
+              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+                <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                  <span>Press</span>
+                  <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                    ESC
+                  </kbd>
+                  <span>to close</span>
+                </span>
 
-              <div>
-                <label className="block font-semibold text-foreground mb-1.5">Cost Amount (₹) *</label>
-                <input
-                  type="number"
-                  value={allocForm.allocatedAmount}
-                  onChange={(e) => setAllocForm({ ...allocForm, allocatedAmount: e.target.value })}
-                  placeholder="e.g. 4000"
-                  required
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-semibold text-foreground bg-background shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-foreground mb-1.5">Notes</label>
-                <input
-                  type="text"
-                  value={allocForm.notes}
-                  onChange={(e) => setAllocForm({ ...allocForm, notes: e.target.value })}
-                  placeholder="e.g. 8 Reels edited by senior editor"
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setShowCostModal(false)}
-                  className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createAllocation.isPending}
-                  className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  {createAllocation.isPending ? 'Assigning...' : 'Assign Cost'}
-                </button>
+                <div className="flex items-center gap-3 ml-auto">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setShowCostModal(false)}
+                    className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createAllocation.isPending}
+                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  >
+                    {createAllocation.isPending ? 'Assigning...' : 'Assign Cost'}
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>
@@ -457,20 +490,38 @@ export default function ClientsSection({ onQuickAdd }) {
       {/* EDIT CLIENT RETAINER MODAL */}
       <Dialog open={Boolean(showEditClientModal && editingClient)} onOpenChange={(open) => !open && setShowEditClientModal(false)}>
         {showEditClientModal && editingClient && (
-          <DialogContent variant="center" size="md" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-lg text-xs max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
-              <DialogTitle className="text-base font-bold text-foreground">
-                Edit Retainer Plan: {editingClient.company || editingClient.name}
-              </DialogTitle>
-              <DialogDescription className="text-muted-foreground text-xs mt-0.5">
-                Update monthly recurring fee, contracted deliverables, and billing dates. This immediately recalculates client net profit and margins.
-              </DialogDescription>
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+            <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+                  <Building size={20} />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                    Edit Retainer Plan: {editingClient.company || editingClient.name}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                    Update monthly recurring fee, contracted deliverables, and billing dates
+                  </DialogDescription>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                  ESC
+                </kbd>
+                <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                  <X size={16} className="stroke-[2.5]" />
+                  <span className="sr-only">Close</span>
+                </DialogClose>
+              </div>
             </DialogHeader>
 
-            <form onSubmit={handleSaveClient} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <form onSubmit={handleSaveClient} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Scrollable Form Body - Google Form Linear Stack */}
+              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
                 <div>
-                  <label className="block font-semibold text-foreground mb-1.5">Monthly Plan Fee (₹) *</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Monthly Plan Fee (₹) *</label>
                   <input
                     type="number"
                     value={clientForm.monthlyPlanFee}
@@ -478,41 +529,39 @@ export default function ClientsSection({ onQuickAdd }) {
                     placeholder="e.g. 25000"
                     required
                     min="0"
-                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-bold text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl border border-border px-4 text-sm font-bold text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-primary/20 outline-none"
                   />
-                  <span className="text-[10px] text-muted-foreground mt-0.5 block">Amount billed recurringly each month</span>
+                  <span className="text-xs text-muted-foreground mt-1 block">Amount billed recurringly each month</span>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-foreground mb-1.5">Service Plan / Package</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Service Plan / Package</label>
                   <input
                     type="text"
                     value={clientForm.servicePlan}
                     onChange={(e) => setClientForm({ ...clientForm, servicePlan: e.target.value })}
                     placeholder="e.g. Retainer, Social Media"
-                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block font-semibold text-foreground mb-1.5">Contracted Deliverables</label>
-                <textarea
-                  rows="2"
-                  value={clientForm.deliverables}
-                  onChange={(e) => setClientForm({ ...clientForm, deliverables: e.target.value })}
-                  placeholder="e.g. 12 Reels, 15 Graphic Posts, Ad Campaign Management"
-                  className="w-full rounded-xl border border-border p-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500 resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block font-semibold text-foreground mb-1.5">Billing Day of Month</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Contracted Deliverables</label>
+                  <textarea
+                    rows="3"
+                    value={clientForm.deliverables}
+                    onChange={(e) => setClientForm({ ...clientForm, deliverables: e.target.value })}
+                    placeholder="e.g. 12 Reels, 15 Graphic Posts, Ad Campaign Management"
+                    className="w-full min-h-[90px] rounded-xl border border-border p-3.5 text-sm text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-primary/20 outline-none resize-y"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Billing Day of Month</label>
                   <select
                     value={clientForm.billingDate}
                     onChange={(e) => setClientForm({ ...clientForm, billingDate: e.target.value })}
-                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                   >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                       <option key={d} value={d}>
@@ -523,11 +572,11 @@ export default function ClientsSection({ onQuickAdd }) {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-foreground mb-1.5">Billing Cycle</label>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Billing Cycle</label>
                   <select
                     value={clientForm.billingCycle}
                     onChange={(e) => setClientForm({ ...clientForm, billingCycle: e.target.value })}
-                    className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs focus:ring-1 focus:ring-indigo-500"
+                    className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                   >
                     <option value="monthly">Monthly</option>
                     <option value="quarterly">Quarterly</option>
@@ -535,73 +584,85 @@ export default function ClientsSection({ onQuickAdd }) {
                     <option value="one_time">One-time / Milestone</option>
                   </select>
                 </div>
+
+                {/* Direct Cost Allocations for this client in current period */}
+                {(() => {
+                  const clientProf = profitability.find((p) => String(p.clientId) === String(editingClient._id));
+                  const clientAllocations = clientProf?.allocations || [];
+                  if (clientAllocations.length === 0) return null;
+
+                  return (
+                    <div className="pt-4 border-t border-border space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-foreground text-sm">
+                          Direct Costs in {retainerPeriod} ({clientAllocations.length})
+                        </span>
+                        <span className="text-xs font-semibold text-rose-600">
+                          Total: {formatINR(clientProf?.directCosts || 0)}
+                        </span>
+                      </div>
+                      <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                        {clientAllocations.map((alloc) => (
+                          <div
+                            key={alloc._id}
+                            className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border text-xs"
+                          >
+                            <div>
+                              <span className="font-bold text-foreground">{alloc.activityDeliverable}</span>
+                              {alloc.notes && <span className="text-muted-foreground ml-1.5">· {alloc.notes}</span>}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-rose-600">{formatINR(alloc.allocatedAmount)}</span>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (window.confirm(`Delete this ${formatINR(alloc.allocatedAmount)} cost allocation?`)) {
+                                    await deleteAllocation.mutateAsync(alloc._id);
+                                    queryClient.invalidateQueries({ queryKey: ['finance-client-profitability'] });
+                                  }
+                                }}
+                                disabled={deleteAllocation.isPending}
+                                className="p-1 rounded text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+                                title="Delete Cost Allocation"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
-              {/* Direct Cost Allocations for this client in current period */}
-              {(() => {
-                const clientProf = profitability.find((p) => String(p.clientId) === String(editingClient._id));
-                const clientAllocations = clientProf?.allocations || [];
-                if (clientAllocations.length === 0) return null;
+              {/* Pinned Sticky Bottom Action Footer */}
+              <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+                <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                  <span>Press</span>
+                  <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                    ESC
+                  </kbd>
+                  <span>to close</span>
+                </span>
 
-                return (
-                  <div className="pt-3 border-t border-border space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-foreground text-xs">
-                        Direct Costs in {retainerPeriod} ({clientAllocations.length})
-                      </span>
-                      <span className="text-[11px] font-semibold text-rose-600">
-                        Total: {formatINR(clientProf?.directCosts || 0)}
-                      </span>
-                    </div>
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-                      {clientAllocations.map((alloc) => (
-                        <div
-                          key={alloc._id}
-                          className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px]"
-                        >
-                          <div>
-                            <span className="font-bold text-slate-800">{alloc.activityDeliverable}</span>
-                            {alloc.notes && <span className="text-slate-500 ml-1.5">· {alloc.notes}</span>}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-rose-600">{formatINR(alloc.allocatedAmount)}</span>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (window.confirm(`Delete this ${formatINR(alloc.allocatedAmount)} cost allocation?`)) {
-                                  await deleteAllocation.mutateAsync(alloc._id);
-                                  queryClient.invalidateQueries({ queryKey: ['finance-client-profitability'] });
-                                }
-                              }}
-                              disabled={deleteAllocation.isPending}
-                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                              title="Delete Cost Allocation"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setShowEditClientModal(false)}
-                  className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateClient.isPending}
-                  className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  {updateClient.isPending ? 'Saving...' : 'Save Retainer Details'}
-                </button>
+                <div className="flex items-center gap-3 ml-auto">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setShowEditClientModal(false)}
+                    className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateClient.isPending}
+                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                  >
+                    {updateClient.isPending ? 'Saving...' : 'Save Retainer Details'}
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>

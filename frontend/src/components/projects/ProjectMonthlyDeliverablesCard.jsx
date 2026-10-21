@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  X,
 } from 'lucide-react';
 import {
   useProjectMonthlyDeliverables,
@@ -29,6 +30,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -292,24 +295,41 @@ export const ProjectMonthlyDeliverablesCard = ({
       {/* Manage Targets Modal */}
       {showManageModal && (
         <Dialog open={showManageModal} onOpenChange={setShowManageModal}>
-          <DialogContent size="lg" className="rounded-3xl border border-border bg-card p-6 shadow-2xl">
-            <DialogHeader className="border-b border-border pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Target size={18} />
+          <DialogContent
+            size="lg"
+            noPadding
+            hideCloseButton
+            className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+          >
+            {/* Pinned Sticky Header */}
+            <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                    <Target size={20} />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                      Manage Monthly Deliverables
+                    </DialogTitle>
+                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      Configure targets for {project?.name} ({monthName} {selectedYear})
+                    </DialogDescription>
+                  </div>
                 </div>
-                <div>
-                  <DialogTitle className="text-base font-bold text-foreground">
-                    Manage Monthly Deliverables
-                  </DialogTitle>
-                  <p className="text-xs text-muted-foreground">
-                    Configure targets for {project?.name} ({monthName} {selectedYear})
-                  </p>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                    ESC
+                  </span>
+                  <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                    <X className="h-4 w-4" />
+                  </DialogClose>
                 </div>
               </div>
             </DialogHeader>
 
-            <div className="py-3">
+            {/* Scrollable Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <MonthlyDeliverablesSection
                 deliverables={editingDeliverables}
                 onChange={setEditingDeliverables}
@@ -320,23 +340,27 @@ export const ProjectMonthlyDeliverablesCard = ({
               />
             </div>
 
-            <div className="flex justify-end gap-2 border-t border-border pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowManageModal(false)}
-                className="h-9 rounded-xl text-xs font-semibold"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={handleSaveModal}
-                disabled={batchSave.isPending}
-                className="h-9 rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90"
-              >
-                {batchSave.isPending ? 'Saving...' : 'Save Targets'}
-              </Button>
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowManageModal(false)}
+                  className="h-11 px-5 rounded-xl border-border font-semibold text-sm"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSaveModal}
+                  disabled={batchSave.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary font-bold text-sm text-primary-foreground shadow-sm hover:bg-primary/90"
+                >
+                  {batchSave.isPending ? 'Saving...' : 'Save Targets'}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

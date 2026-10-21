@@ -18,6 +18,7 @@ import {
   TrendingUp,
   MessageSquarePlus,
   Clock,
+  X,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAddLeadActivity, useLeadsKanban, useLeads, useUpdateLeadStage, useDeleteLead } from '../../hooks/useLeads';
@@ -34,6 +35,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '../../components/ui/dialog';
 import {
   AlertDialog,
@@ -180,19 +182,51 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Add Follow-up Note</DialogTitle>
-          <DialogDescription>
-            Record what happened with {lead?.name || 'this lead'} and set the next action.
-          </DialogDescription>
+      <DialogContent
+        size="lg"
+        noPadding
+        hideCloseButton
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+      >
+        {/* Pinned Header */}
+        <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 select-none z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs shrink-0">
+              <MessageSquarePlus className="h-5 w-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                Add Follow-up Note
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Record what happened with {lead?.name || 'this lead'} and set the next action.
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="space-y-1.5 text-sm font-medium">
-              Activity Type
-              <select value={form.type} onChange={(event) => updateField('type', event.target.value)} className="app-input">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Body */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Activity Type
+              </label>
+              <select
+                value={form.type}
+                onChange={(event) => updateField('type', event.target.value)}
+                className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+              >
                 <option value="follow_up">Follow-up</option>
                 <option value="call">Call</option>
                 <option value="whatsapp">WhatsApp</option>
@@ -202,63 +236,101 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
                 <option value="refollow">Refollow</option>
                 <option value="note">Note</option>
               </select>
-            </label>
+            </div>
 
-            <label className="space-y-1.5 text-sm font-medium">
-              Outcome
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Outcome
+              </label>
               <Input
                 value={form.outcome}
                 onChange={(event) => updateField('outcome', event.target.value)}
                 placeholder="Interested, no response, call later..."
+                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
               />
-            </label>
+            </div>
 
-            <label className="space-y-1.5 text-sm font-medium">
-              Next Follow-up
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Next Follow-up Date
+              </label>
               <Input
                 type="date"
                 value={form.nextFollowUpDate}
                 onChange={(event) => updateField('nextFollowUpDate', event.target.value)}
+                onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
               />
-            </label>
+            </div>
 
-            <label className="space-y-1.5 text-sm font-medium">
-              Refollow Date
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Refollow Date
+              </label>
               <Input
                 type="date"
                 value={form.refollowDate}
                 onChange={(event) => updateField('refollowDate', event.target.value)}
+                onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
               />
-            </label>
+            </div>
 
-            <label className="space-y-1.5 text-sm font-medium md:col-span-2">
-              Move Stage
-              <select value={form.stage} onChange={(event) => updateField('stage', event.target.value)} className="app-input">
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Move Stage
+              </label>
+              <select
+                value={form.stage}
+                onChange={(event) => updateField('stage', event.target.value)}
+                className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+              >
                 <option value="">Keep current stage</option>
                 {PIPELINE_STAGES.map((stage) => (
                   <option key={stage} value={stage}>{STAGE_META[stage]?.label || stage}</option>
                 ))}
               </select>
-            </label>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                Note Summary <span className="text-rose-500">*</span>
+              </label>
+              <Textarea
+                rows={4}
+                value={form.description}
+                onChange={(event) => updateField('description', event.target.value)}
+                placeholder="Write the call/message summary and what to remember..."
+                required
+                className="rounded-xl border-border bg-background p-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs resize-none"
+              />
+            </div>
           </div>
 
-          <label className="space-y-1.5 text-sm font-medium">
-            Note
-            <Textarea
-              value={form.description}
-              onChange={(event) => updateField('description', event.target.value)}
-              placeholder="Write the call/message summary and what to remember..."
-              required
-            />
-          </label>
+          {/* Pinned Sticky Bottom Action Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
+              Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
+            </span>
 
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Note'}
-            </Button>
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={saving}
+                className="h-11 px-5 rounded-xl border-border hover:bg-muted font-semibold text-sm cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-md shadow-primary/20 transition-all cursor-pointer"
+              >
+                {saving ? 'Saving...' : 'Save Note'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

@@ -24,7 +24,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../ui/dialog';
+import { Button } from '../ui/button';
 import { useUsers } from '../../hooks/useUsers';
 
 const DAYS_OF_WEEK = [
@@ -128,209 +130,225 @@ export function WeeklyTodoModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl p-0 overflow-hidden rounded-2xl bg-card border-border shadow-2xl">
-        <DialogHeader className="p-6 pb-4 border-b border-border bg-card">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
-                <CheckSquare size={20} />
-              </div>
-              <div>
-                <DialogTitle className="text-base font-bold text-foreground">
-                  {todo ? 'Edit Weekly Todo' : isManagerOrAdmin ? 'Assign Weekly Todo' : 'Add Weekly Todo'}
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                  {isManagerOrAdmin
-                    ? 'Assign actionable weekly deliverables to team members, interns, or yourself.'
-                    : 'Track your personal priorities and deliverables for the week.'}
-                </DialogDescription>
-              </div>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <CheckSquare size={20} />
             </div>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            >
-              <X size={18} />
-            </button>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                {todo ? 'Edit Weekly Todo' : isManagerOrAdmin ? 'Assign Weekly Todo' : 'Add Weekly Todo'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                {isManagerOrAdmin
+                  ? 'Assign actionable weekly deliverables to team members, interns, or yourself.'
+                  : 'Track your personal priorities and deliverables for the week.'}
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
-          {/* Title */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center justify-between">
-              <span>Todo Title *</span>
-              <span className="text-[10px] text-muted-foreground font-normal">Action-oriented task</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Deliver Brand Guidelines v2, Complete QA test sprint..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-xs font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Form Body - Google Form Linear Stack */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div className="space-y-6">
+              {/* Title */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  <span>Todo Title *</span>
+                  <span className="text-xs text-muted-foreground font-normal">Action-oriented task</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Deliver Brand Guidelines v2, Complete QA test sprint..."
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                />
+              </div>
 
-          {/* Assignee (Shown for Manager / Admin) */}
-          {isManagerOrAdmin ? (
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <User size={13} className="text-primary" />
-                  <span>Assign To Team Member / Intern *</span>
-                </span>
-                <span className="text-[10px] text-muted-foreground font-normal">Who executes this todo</span>
-              </label>
-              <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              >
-                <option value={currentUser?._id}>👤 Myself ({currentUser?.name || 'Me'})</option>
-                {assignableUsers
-                  .filter((u) => u._id !== currentUser?._id)
-                  .map((u) => (
-                    <option key={u._id} value={u._id}>
-                      {u.name} — [{u.role?.toUpperCase() || 'EMPLOYEE'}] {u.department ? `(${u.department})` : ''}
+              {/* Assignee (Shown for Manager / Admin) */}
+              {isManagerOrAdmin ? (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-foreground flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <User size={15} className="text-primary" />
+                      <span>Assign To Team Member / Intern *</span>
+                    </span>
+                    <span className="text-xs text-muted-foreground font-normal">Who executes this todo</span>
+                  </label>
+                  <select
+                    value={assignedTo}
+                    onChange={(e) => setAssignedTo(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                  >
+                    <option value={currentUser?._id}>👤 Myself ({currentUser?.name || 'Me'})</option>
+                    {assignableUsers
+                      .filter((u) => u._id !== currentUser?._id)
+                      .map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} — [{u.role?.toUpperCase() || 'EMPLOYEE'}] {u.department ? `(${u.department})` : ''}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-xl bg-secondary/40 border border-border flex items-center gap-2.5 text-xs text-muted-foreground">
+                  <User size={15} className="text-primary shrink-0" />
+                  <span>
+                    Assignee: <strong className="text-foreground">{currentUser?.name}</strong> (Personal Todo)
+                  </span>
+                </div>
+              )}
+
+              {/* Day of Week */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <Calendar size={15} className="text-primary" />
+                  <span>Day of Week / Execution Target</span>
+                </label>
+                <select
+                  value={dayOfWeek}
+                  onChange={(e) => setDayOfWeek(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                >
+                  {DAYS_OF_WEEK.map((day) => (
+                    <option key={day} value={day}>
+                      {day === 'Weekly Target' ? '🎯 Whole Week Target' : `📅 ${day}`}
                     </option>
                   ))}
-              </select>
-            </div>
-          ) : (
-            <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 flex items-center gap-2 text-xs text-muted-foreground">
-              <User size={14} className="text-primary shrink-0" />
-              <span>
-                Assignee: <strong className="text-foreground">{currentUser?.name}</strong> (Personal Todo)
-              </span>
-            </div>
-          )}
+                </select>
+              </div>
 
-          {/* Grid: Day of Week & Priority */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {/* Day of Week */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Calendar size={13} className="text-primary" />
-                <span>Day of Week</span>
-              </label>
-              <select
-                value={dayOfWeek}
-                onChange={(e) => setDayOfWeek(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              {/* Priority */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <Flag size={15} className="text-primary" />
+                  <span>Priority</span>
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                >
+                  {PRIORITIES.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label} Priority
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category Selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <Tag size={15} className="text-primary" />
+                  <span>Category / Stream</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((c) => {
+                    const isSelected = category === c.value;
+                    return (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => setCategory(c.value)}
+                        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                            : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border'
+                        }`}
+                      >
+                        <span>{c.icon}</span>
+                        <span>{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  <span>Description / Instructions</span>
+                  <span className="text-xs text-muted-foreground font-normal">Optional details</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Add specifics, links, or requirements for this todo..."
+                  className="w-full p-3.5 rounded-xl border border-border bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all resize-none"
+                />
+              </div>
+
+              {/* Notes (Progress comments) */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  <span>Execution Notes</span>
+                  <span className="text-xs text-muted-foreground font-normal">Status notes or blockers</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g., Blocked on client review, Draft sent for feedback..."
+                  className="w-full p-3.5 rounded-xl border border-border bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all resize-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Pinned Sticky Bottom Action Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+              <span>Press</span>
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                ESC
+              </kbd>
+              <span>to close</span>
+            </span>
+
+            <div className="flex items-center gap-3 ml-auto">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onOpenChange(false)}
+                disabled={isPending}
+                className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
               >
-                {DAYS_OF_WEEK.map((day) => (
-                  <option key={day} value={day}>
-                    {day === 'Weekly Target' ? '🎯 Whole Week Target' : `📅 ${day}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Priority */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Flag size={13} className="text-primary" />
-                <span>Priority</span>
-              </label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending || !title.trim()}
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all gap-2"
               >
-                {PRIORITIES.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label} Priority
-                  </option>
-                ))}
-              </select>
+                {isPending ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckSquare size={16} />
+                    <span>{todo ? 'Save Changes' : isManagerOrAdmin ? 'Assign Todo' : 'Add Todo'}</span>
+                  </>
+                )}
+              </Button>
             </div>
-          </div>
-
-          {/* Category Selector */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-              <Tag size={13} className="text-primary" />
-              <span>Category / Stream</span>
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {CATEGORIES.map((c) => {
-                const isSelected = category === c.value;
-                return (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setCategory(c.value)}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
-                      isSelected
-                        ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                        : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/60'
-                    }`}
-                  >
-                    <span>{c.icon}</span>
-                    <span>{c.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center justify-between">
-              <span>Description / Instructions</span>
-              <span className="text-[10px] text-muted-foreground font-normal">Optional details</span>
-            </label>
-            <textarea
-              rows={2}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add specifics, links, or requirements for this todo..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-xs font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-            />
-          </div>
-
-          {/* Notes (Progress comments) */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground flex items-center justify-between">
-              <span>Execution Notes</span>
-              <span className="text-[10px] text-muted-foreground font-normal">Status notes or blockers</span>
-            </label>
-            <textarea
-              rows={2}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., Blocked on client review, Draft sent for feedback..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-xs font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-            />
-          </div>
-
-          {/* Footer Actions */}
-          <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="px-4 py-2 rounded-xl border border-border hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-semibold transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isPending || !title.trim()}
-              className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-            >
-              {isPending ? (
-                <>
-                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <CheckSquare size={14} />
-                  <span>{todo ? 'Save Changes' : isManagerOrAdmin ? 'Assign Todo' : 'Add Todo'}</span>
-                </>
-              )}
-            </button>
           </div>
         </form>
       </DialogContent>

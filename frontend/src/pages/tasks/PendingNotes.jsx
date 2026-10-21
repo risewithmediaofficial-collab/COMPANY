@@ -48,6 +48,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../../components/ui/dialog';
 import {
   AlertDialog,
@@ -599,63 +600,96 @@ export default function PendingNotes() {
 
       {/* Manager Assign Note Modal */}
       <Dialog open={Boolean(assigningNote)} onOpenChange={(open) => { if (!open) setAssigningNote(null); }}>
-        <DialogContent size="md">
-          <DialogHeader>
-            <DialogTitle>Assign Task Note to Team Member</DialogTitle>
-            <DialogDescription>
-              Assign this task change request or brief to an employee with manager notes.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleAssignSubmit} className="space-y-4 pt-2">
-            <div className="p-3 rounded-xl bg-secondary/30 border border-border text-xs">
-              <span className="font-bold text-foreground block">{assigningNote?.title}</span>
-              <span className="text-muted-foreground mt-0.5 block">{assigningNote?.description}</span>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <form onSubmit={handleAssignSubmit} className="flex flex-col min-h-0 h-full">
+            {/* Pinned Header */}
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <UserCheck className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                    Assign Task Note
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    Delegate this note or brief to a team member with instructions
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  ESC
+                </span>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </DialogClose>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-foreground mb-1">Assign to Employee *</label>
-              <select
-                required
-                value={assignedToUserId}
-                onChange={(e) => setAssignedToUserId(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary"
-              >
-                <option value="">-- Select Team Member --</option>
-                {users.map((u) => (
-                  <option key={u._id} value={u._id}>
-                    {u.name} ({u.role} {u.department ? `• ${u.department}` : ''})
-                  </option>
-                ))}
-              </select>
+            {/* Scrollable Linear Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div className="p-4 rounded-xl bg-secondary/30 border border-border">
+                <span className="text-sm font-bold text-foreground block">{assigningNote?.title}</span>
+                {assigningNote?.description && (
+                  <span className="text-xs text-muted-foreground mt-1 block whitespace-pre-wrap">{assigningNote.description}</span>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Assign to Employee *</label>
+                <select
+                  required
+                  value={assignedToUserId}
+                  onChange={(e) => setAssignedToUserId(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                >
+                  <option value="">-- Select Team Member --</option>
+                  {users.map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.name} ({u.role} {u.department ? `• ${u.department}` : ''})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Manager Instructions (Optional)</label>
+                <textarea
+                  rows={4}
+                  value={managerInstruction}
+                  onChange={(e) => setManagerInstruction(e.target.value)}
+                  placeholder="Add specific directives or deadline notes for the assignee..."
+                  className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-foreground mb-1">Manager Instructions (Optional)</label>
-              <textarea
-                rows={3}
-                value={managerInstruction}
-                onChange={(e) => setManagerInstruction(e.target.value)}
-                placeholder="Add specific directives or deadline notes for the assignee..."
-                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:border-primary"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setAssigningNote(null)}
-                className="px-4 py-2 rounded-xl border border-border text-xs font-bold hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={!assignedToUserId || assignMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm disabled:opacity-50"
-              >
-                {assignMutation.isPending ? 'Assigning...' : 'Confirm Assignment'}
-              </button>
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setAssigningNote(null)}
+                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={!assignedToUserId || assignMutation.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                >
+                  {assignMutation.isPending ? 'Assigning...' : 'Confirm Assignment'}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

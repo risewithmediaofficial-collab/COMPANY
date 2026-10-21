@@ -5,6 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Printer, FileText, Camera, Users, IndianRupee, MapPin, Calendar, Clock, Plus, Trash2 } from 'lucide-react';
+import { Printer, FileText, Camera, Users, IndianRupee, MapPin, Calendar, Clock, Plus, Trash2, X } from 'lucide-react';
 
 export const DMInvoiceModal = ({
   open,
@@ -302,208 +303,270 @@ export const DMInvoiceModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Printer className="h-5 w-5 text-primary" />
-            Customize & Generate Invoice / Work Order
-          </DialogTitle>
-          <DialogDescription>
-            Admin and Manager can switch preset modes, edit shoot amounts, custom expenses, client details, and choose whether to include itemized expenses for client or send minimal shoot & balance voucher to videographer.
-          </DialogDescription>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <Printer size={20} />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                Generate Invoice / Work Order
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Customize shoot amounts, expenses, client details, and print voucher
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6 pt-2">
-          {/* Preset Selector */}
-          <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 space-y-3">
-            <label className="text-xs font-bold text-foreground block">Select Invoice Preset / Target Audience *</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handlePresetChange('client_detailed')}
-                className={`p-3 rounded-xl text-left border transition-all ${
-                  invoicePreset === 'client_detailed'
-                    ? 'border-primary bg-background shadow-md ring-2 ring-primary/20'
-                    : 'border-border bg-card hover:bg-muted'
-                }`}
-              >
-                <div className="font-bold text-xs text-foreground flex items-center gap-1.5">
-                  <FileText className="h-4 w-4 text-primary" /> Client Detailed Invoice
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Body - Google Form Linear Stack */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div className="space-y-6">
+              {/* Preset Selector */}
+              <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 space-y-3">
+                <label className="text-sm font-semibold text-foreground block">Select Invoice Preset / Target Audience *</label>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => handlePresetChange('client_detailed')}
+                    className={`w-full p-4 rounded-xl text-left border transition-all cursor-pointer ${
+                      invoicePreset === 'client_detailed'
+                        ? 'border-primary bg-background shadow-md ring-2 ring-primary/20'
+                        : 'border-border bg-card hover:bg-muted'
+                    }`}
+                  >
+                    <div className="font-bold text-sm text-foreground flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-primary" /> Client Detailed Invoice
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Shows client name, itemized expenses breakdown list (Camera Rental, Travel, Food, etc.), total fee, paid, and balance due.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePresetChange('videographer_workorder')}
+                    className={`w-full p-4 rounded-xl text-left border transition-all cursor-pointer ${
+                      invoicePreset === 'videographer_workorder'
+                        ? 'border-primary bg-background shadow-md ring-2 ring-primary/20'
+                        : 'border-border bg-card hover:bg-muted'
+                    }`}
+                  >
+                    <div className="font-bold text-sm text-foreground flex items-center gap-2">
+                      <Camera className="h-4 w-4 text-emerald-500" /> Videographer / Crew Work Order
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Minimal voucher for crew. Shows Shoot Name, Location Address, Date & Time, Equipment, Shoot Fee, Amount Given, and Balance.
+                    </p>
+                  </button>
                 </div>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  Shows client name, itemized expenses breakdown list (Camera Rental, Travel, Food, etc.), total fee, paid, and balance due.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handlePresetChange('videographer_workorder')}
-                className={`p-3 rounded-xl text-left border transition-all ${
-                  invoicePreset === 'videographer_workorder'
-                    ? 'border-primary bg-background shadow-md ring-2 ring-primary/20'
-                    : 'border-border bg-card hover:bg-muted'
-                }`}
-              >
-                <div className="font-bold text-xs text-foreground flex items-center gap-1.5">
-                  <Camera className="h-4 w-4 text-emerald-500" /> Videographer / Crew Work Order
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  Minimal voucher for crew. Shows Shoot Name, Location Address, Date & Time, Equipment, Shoot Fee, Amount Given, and Balance.
-                </p>
-              </button>
-            </div>
-          </div>
-
-          {/* Visibility Checkboxes */}
-          <div className="flex flex-wrap items-center gap-6 p-3.5 rounded-xl border border-border/60 bg-card text-xs">
-            <span className="font-bold text-foreground">Section Visibility:</span>
-            <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
-              <input
-                type="checkbox"
-                checked={showExpenses}
-                onChange={(e) => setShowExpenses(e.target.checked)}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-primary accent-primary"
-              />
-              Include Itemized Expenses Breakdown List
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
-              <input
-                type="checkbox"
-                checked={showCrew}
-                onChange={(e) => setShowCrew(e.target.checked)}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-primary accent-primary"
-              />
-              Include Assigned Crew & Roles
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer font-medium text-foreground">
-              <input
-                type="checkbox"
-                checked={showEquipment}
-                onChange={(e) => setShowEquipment(e.target.checked)}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-primary accent-primary"
-              />
-              Include Equipment Gear List
-            </label>
-          </div>
-
-          {/* Editable Header Details */}
-          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-4">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Invoice & Header Customization</h3>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Invoice Header Title</label>
-                <Input value={invoiceTitle} onChange={(e) => setInvoiceTitle(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Invoice Number</label>
-                <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Client Name</label>
-                <Input value={clientName} onChange={(e) => setClientName(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Shoot / Activity Title</label>
-                <Input value={shootTitle} onChange={(e) => setShootTitle(e.target.value)} />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Shoot Location Address</label>
-                <Input value={shootLocation} onChange={(e) => setShootLocation(e.target.value)} placeholder="Type location address..." />
-              </div>
-            </div>
-          </div>
-
-          {/* Editable Itemized Expenses List */}
-          {showExpenses ? (
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Itemized Expenses Breakdown</h3>
-                <Button size="sm" variant="outline" onClick={handleAddExpenseRow}>
-                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Item
-                </Button>
               </div>
 
-              {expensesList.map((exp, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2.5 rounded-xl border border-border/40 bg-background">
-                  <Input
-                    className="flex-1 h-9"
-                    value={exp.title}
-                    onChange={(e) => handleExpenseChange(idx, 'title', e.target.value)}
-                    placeholder="Expense title (e.g., Camera Rental, Travel, Food)"
+              {/* Visibility Checkboxes */}
+              <div className="flex flex-col gap-2.5 p-4 rounded-2xl border border-border bg-card text-xs">
+                <span className="font-bold text-sm text-foreground">Section Visibility</span>
+                <label className="flex items-center gap-3 cursor-pointer py-1 font-medium text-foreground select-none">
+                  <input
+                    type="checkbox"
+                    checked={showExpenses}
+                    onChange={(e) => setShowExpenses(e.target.checked)}
+                    className="h-4.5 w-4.5 rounded border-border text-primary accent-primary cursor-pointer"
                   />
-                  <div className="w-[160px] relative">
-                    <span className="absolute left-3 top-2 text-xs font-bold text-muted-foreground">₹</span>
+                  <span>Include Itemized Expenses Breakdown List</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer py-1 font-medium text-foreground select-none">
+                  <input
+                    type="checkbox"
+                    checked={showCrew}
+                    onChange={(e) => setShowCrew(e.target.checked)}
+                    className="h-4.5 w-4.5 rounded border-border text-primary accent-primary cursor-pointer"
+                  />
+                  <span>Include Assigned Crew & Roles</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer py-1 font-medium text-foreground select-none">
+                  <input
+                    type="checkbox"
+                    checked={showEquipment}
+                    onChange={(e) => setShowEquipment(e.target.checked)}
+                    className="h-4.5 w-4.5 rounded border-border text-primary accent-primary cursor-pointer"
+                  />
+                  <span>Include Equipment Gear List</span>
+                </label>
+              </div>
+
+              {/* Editable Header Details */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Invoice & Header Details</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Invoice Header Title</label>
                     <Input
-                      type="number"
-                      className="h-9 pl-7 font-bold"
-                      value={exp.amount}
-                      onChange={(e) => handleExpenseChange(idx, 'amount', e.target.value)}
+                      value={invoiceTitle}
+                      onChange={(e) => setInvoiceTitle(e.target.value)}
+                      className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
                     />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-9 w-9 p-0 text-destructive"
-                    onClick={() => handleRemoveExpenseRow(idx)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Invoice Number</label>
+                    <Input
+                      value={invoiceNumber}
+                      onChange={(e) => setInvoiceNumber(e.target.value)}
+                      className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Client Name</label>
+                    <Input
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Shoot / Activity Title</label>
+                    <Input
+                      value={shootTitle}
+                      onChange={(e) => setShootTitle(e.target.value)}
+                      className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Shoot Location Address</label>
+                    <Input
+                      value={shootLocation}
+                      onChange={(e) => setShootLocation(e.target.value)}
+                      placeholder="Type location address..."
+                      className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : null}
-
-          {/* Editable Financial Totals */}
-          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Financial Totals & Payment Summary</h3>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Shoot Total Amount (₹)</label>
-                <Input
-                  type="number"
-                  value={totalAmount}
-                  onChange={(e) => setTotalAmount(Number(e.target.value))}
-                  className="font-bold text-foreground"
-                />
               </div>
 
-              <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Amount Paid / Given (₹)</label>
-                <Input
-                  type="number"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(Number(e.target.value))}
-                  className="font-bold text-emerald-600"
-                />
+              {/* Editable Itemized Expenses List */}
+              {showExpenses ? (
+                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Itemized Expenses Breakdown</h3>
+                    <Button size="sm" variant="outline" onClick={handleAddExpenseRow} className="h-9 px-3 rounded-xl gap-1.5">
+                      <Plus className="h-4 w-4" /> Add Item
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {expensesList.map((exp, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-2.5 rounded-xl border border-border bg-background">
+                        <Input
+                          className="flex-1 h-10 rounded-lg text-sm"
+                          value={exp.title}
+                          onChange={(e) => handleExpenseChange(idx, 'title', e.target.value)}
+                          placeholder="Expense title (e.g., Camera Rental, Travel, Food)"
+                        />
+                        <div className="w-[140px] sm:w-[160px] relative">
+                          <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground">₹</span>
+                          <Input
+                            type="number"
+                            className="h-10 pl-7 font-bold rounded-lg text-sm"
+                            value={exp.amount}
+                            onChange={(e) => handleExpenseChange(idx, 'amount', e.target.value)}
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-10 w-10 p-0 text-destructive rounded-lg hover:bg-destructive/10"
+                          onClick={() => handleRemoveExpenseRow(idx)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Editable Financial Totals */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Financial Totals & Payment Summary</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Shoot Total Amount (₹)</label>
+                    <Input
+                      type="number"
+                      value={totalAmount}
+                      onChange={(e) => setTotalAmount(Number(e.target.value))}
+                      className="h-11 rounded-xl border-border bg-background px-4 text-sm font-bold text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Amount Paid / Given (₹)</label>
+                    <Input
+                      type="number"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(Number(e.target.value))}
+                      className="h-11 rounded-xl border-border bg-background px-4 text-sm font-bold text-emerald-600 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Balance Due (₹)</label>
+                    <div className="h-11 px-4 flex items-center font-bold text-lg text-rose-500 bg-background rounded-xl border border-border/80 shadow-2xs">
+                      ₹{balanceAmount.toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                </div>
               </div>
 
+              {/* Editable Notes */}
               <div>
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1">Balance Due (₹)</label>
-                <div className="h-10 px-3 flex items-center font-bold text-lg text-rose-500 bg-background rounded-md border border-border/60 mt-1">
-                  ₹{balanceAmount.toLocaleString('en-IN')}
-                </div>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Footer Notes & Terms</label>
+                <Textarea
+                  className="min-h-[90px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  value={invoiceNotes}
+                  onChange={(e) => setInvoiceNotes(e.target.value)}
+                />
               </div>
             </div>
           </div>
 
-          {/* Editable Notes */}
-          <div>
-            <label className="text-xs font-bold text-foreground block mb-1">Footer Notes & Terms</label>
-            <Textarea
-              className="min-h-20 text-xs"
-              value={invoiceNotes}
-              onChange={(e) => setInvoiceNotes(e.target.value)}
-            />
-          </div>
+          {/* Pinned Sticky Bottom Action Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+              <span>Press</span>
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                ESC
+              </kbd>
+              <span>to close</span>
+            </span>
 
-          {/* Footer Action */}
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handlePrintInvoice}>
-              <Printer className="h-4 w-4 mr-2" /> Print / Save PDF Invoice
-            </Button>
+            <div className="flex items-center gap-3 ml-auto">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onOpenChange(false)}
+                className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePrintInvoice}
+                className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-bold text-white shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25 cursor-pointer transition-all gap-2"
+              >
+                <Printer className="h-4 w-4" /> Print / Save PDF Invoice
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

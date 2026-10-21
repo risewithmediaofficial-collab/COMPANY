@@ -8,6 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -27,7 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, IndianRupee, MapPin, User, Globe, Phone } from 'lucide-react';
+import { Sparkles, IndianRupee, MapPin, User, Globe, Phone, X } from 'lucide-react';
 import { useCreateInfluencer, useUpdateInfluencer } from '../../hooks/useInfluencers';
 
 const influencerSchema = z.object({
@@ -183,77 +184,98 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-amber-500" />
-            {isEditing ? 'Edit Influencer Profile' : 'Add New Influencer'}
-          </DialogTitle>
-          <DialogDescription>
-            Manually enter creator profile details, social reach, location, and commercial rate card for campaign planning.
-          </DialogDescription>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0 shadow-2xs">
+              <Sparkles size={20} />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                {isEditing ? 'Edit Influencer Profile' : 'Add New Influencer'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Creator profile details, social reach, location, and commercial rates
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            {/* Category / Type Selector */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="influencerType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Influencer Layout / Type *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Local Influencer">📍 Local Influencer (City / Regional)</SelectItem>
-                        <SelectItem value="Standard Influencer">🌐 Standard Influencer (Commercial / Macro)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="influencerType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Influencer Layout / Type *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Local Influencer">📍 Local Influencer (City / Regional)</SelectItem>
+                          <SelectItem value="Standard Influencer">🌐 Standard Influencer (Commercial / Macro)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="platform"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Primary Platform *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select platform" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PLATFORMS.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="platform"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Primary Platform *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select platform" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {PLATFORMS.map((p) => (
+                            <SelectItem key={p} value={p}>
+                              {p}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            {/* Profile Info */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-4">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Creator Basic Profile</h3>
-              <div className="grid gap-4 md:grid-cols-2">
+                {/* Creator Basic Profile */}
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Creator / Full Name *</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Creator / Full Name *</FormLabel>
                       <FormControl>
-                        <Input placeholder="E.g., Ananya V / Food Vlogs" {...field} />
+                        <Input
+                          placeholder="e.g. Ananya V / Chennai Food Vlogs"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -265,9 +287,13 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                   name="handle"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Social Handle (@username) *</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Social Handle (@username) *</FormLabel>
                       <FormControl>
-                        <Input placeholder="@chennai_foodie" {...field} />
+                        <Input
+                          placeholder="@chennai_foodie"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -279,10 +305,12 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category / Niche *</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Category / Niche *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {CATEGORIES.map((c) => (
@@ -302,9 +330,13 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                   name="cityLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City / Region Location</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">City / Region Location</FormLabel>
                       <FormControl>
-                        <Input placeholder="E.g. Chennai, Ambur, Bangalore..." {...field} />
+                        <Input
+                          placeholder="e.g. Chennai, Bangalore, Coimbatore..."
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -316,8 +348,17 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                   name="followersCount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Followers / Subscribers</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                      <FormLabel className="text-sm font-semibold text-foreground">Followers / Subscribers Count</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 50000"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -327,185 +368,300 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
                   name="engagementRate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Engagement Rate (%)</FormLabel>
-                      <FormControl><Input type="number" step="0.1" min="0" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Commercial Rate Card */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-4">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <IndianRupee className="h-4 w-4 text-emerald-500" /> Commercial Rates Breakdown
-              </h3>
-              <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-                <FormField
-                  control={form.control}
-                  name="pricing.reelCost"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px]">Reel Cost (₹)</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="pricing.storyCost"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px]">Story Cost (₹)</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="pricing.postCost"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px]">Post Cost (₹)</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="pricing.eventCost"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[11px]">Event Appearance (₹)</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Contact Information & Links */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-4">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <Phone className="h-4 w-4 text-primary" /> Contact & Links
-              </h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="contactName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Person / Manager Name</FormLabel>
-                      <FormControl><Input placeholder="E.g., Agent Kumar" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl><Input placeholder="+91 98765 43210" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="whatsapp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>WhatsApp Number</FormLabel>
-                      <FormControl><Input placeholder="+91 98765 43210" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email Address</FormLabel>
-                      <FormControl><Input placeholder="influencer@agency.com" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="profileUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Profile URL Link</FormLabel>
-                      <FormControl><Input placeholder="https://instagram.com/handle" {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="mediaKitUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Media Kit Drive / PDF Link</FormLabel>
-                      <FormControl><Input placeholder="https://drive.google.com/..." {...field} /></FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Notes & Rating */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <FormField
-                control={form.control}
-                name="rating"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Creator Rating (1 to 5 Stars)</FormLabel>
-                    <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value)}>
+                      <FormLabel className="text-sm font-semibold text-foreground">Engagement Rate (%)</FormLabel>
                       <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select rating" /></SelectTrigger>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          placeholder="e.g. 4.5"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="5">⭐⭐⭐⭐⭐ 5 Stars (Top Performing)</SelectItem>
-                        <SelectItem value="4">⭐⭐⭐⭐ 4 Stars (Great ROI)</SelectItem>
-                        <SelectItem value="3">⭐⭐⭐ 3 Stars (Average)</SelectItem>
-                        <SelectItem value="2">⭐⭐ 2 Stars (Below Avg)</SelectItem>
-                        <SelectItem value="1">⭐ 1 Star (Not Recommended)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Internal Notes / Past Campaign Feedback</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Specific deliverables, audience demographics, prompt delivery..." {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                {/* Commercial Rates */}
+                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <IndianRupee className="h-4 w-4 text-emerald-500" /> Commercial Rates Breakdown
+                  </h3>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="pricing.reelCost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Reel Cost (₹)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 15000"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="pricing.storyCost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Story Cost (₹)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 5000"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="pricing.postCost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Feed Post Cost (₹)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 10000"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="pricing.eventCost"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Event / Store Appearance Cost (₹)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="e.g. 25000"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Contact Information & Links */}
+                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Phone className="h-4 w-4 text-primary" /> Contact & Links
+                  </h3>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="contactName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Contact Person / Manager Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. Agent Kumar"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Phone Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="+91 98765 43210"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="whatsapp"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">WhatsApp Number</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="+91 98765 43210"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Email Address</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="influencer@agency.com"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="profileUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Profile URL Link</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://instagram.com/handle"
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="mediaKitUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-semibold text-foreground">Media Kit Drive / PDF Link</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://drive.google.com/..."
+                              className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Rating & Notes */}
+                <FormField
+                  control={form.control}
+                  name="rating"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Creator Rating (1 to 5 Stars)</FormLabel>
+                      <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value)}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select rating" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="5">⭐⭐⭐⭐⭐ 5 Stars (Top Performing)</SelectItem>
+                          <SelectItem value="4">⭐⭐⭐⭐ 4 Stars (Great ROI)</SelectItem>
+                          <SelectItem value="3">⭐⭐⭐ 3 Stars (Average)</SelectItem>
+                          <SelectItem value="2">⭐⭐ 2 Stars (Below Avg)</SelectItem>
+                          <SelectItem value="1">⭐ 1 Star (Not Recommended)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Internal Notes / Past Campaign Feedback</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Specific deliverables, audience demographics, prompt delivery..."
+                          className="min-h-[90px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : isEditing ? 'Update Profile' : 'Save Influencer'}
-              </Button>
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
+
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => onOpenChange(false)}
+                  disabled={isLoading}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  {isLoading ? 'Saving...' : isEditing ? 'Update Profile' : 'Save Influencer'}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>

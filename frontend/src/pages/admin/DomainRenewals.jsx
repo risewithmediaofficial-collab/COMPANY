@@ -28,7 +28,7 @@ import {
   useUpdateDomainRenewal,
 } from '../../hooks/useDomainRenewals';
 import { Button } from '../../components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import WorkspacePage from '../../components/ui/WorkspacePage';
@@ -126,123 +126,173 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl bg-card border border-border">
-        <DialogHeader>
-          <DialogTitle className="text-base font-black text-foreground">
-            {record ? 'Edit Domain / Renewal Asset' : 'Add Domain / Hosting Asset'}
-          </DialogTitle>
-          <DialogDescription className="text-xs text-muted-foreground">
-            Track registrar expiration dates and prevent website downtime for clients.
-          </DialogDescription>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <Globe2 size={20} />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                {record ? 'Edit Domain / Renewal Asset' : 'Add Domain / Hosting Asset'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Track registrar expiration dates and prevent website downtime for clients
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Asset / Domain Name *">
-              <Input
-                value={form.itemName}
-                onChange={(e) => updateField('itemName', e.target.value)}
-                placeholder="e.g. risewithmedia.com, Client AWS Hosting"
-                required
-                className="h-9 text-xs rounded-xl"
-              />
-            </FormField>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Scrollable Form Body - Google Form Linear Stack */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div className="space-y-6">
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Asset / Domain Name <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  value={form.itemName}
+                  onChange={(e) => updateField('itemName', e.target.value)}
+                  placeholder="e.g. risewithmedia.com, Client AWS Hosting"
+                  required
+                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                />
+              </div>
 
-            <FormField label="Asset Type *">
-              <select
-                value={form.itemType}
-                onChange={(e) => updateField('itemType', e.target.value)}
-                required
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
-              >
-                {renewalTypeOptions.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </FormField>
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Asset Type <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={form.itemType}
+                  onChange={(e) => updateField('itemType', e.target.value)}
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                >
+                  {renewalTypeOptions.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Linked Client</label>
+                <select
+                  value={form.clientId}
+                  onChange={(e) => updateField('clientId', e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                >
+                  <option value="all">None / Internal</option>
+                  {clients.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.company || c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Registrar / Hosting Provider</label>
+                <Input
+                  value={form.provider}
+                  onChange={(e) => updateField('provider', e.target.value)}
+                  placeholder="e.g. GoDaddy, Hostinger, AWS, Namecheap"
+                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Expiry Date <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  value={form.expiryDate}
+                  onChange={(e) => updateField('expiryDate', e.target.value)}
+                  required
+                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Renewal Cost (₹)</label>
+                <Input
+                  type="number"
+                  value={form.renewalCost}
+                  onChange={(e) => updateField('renewalCost', e.target.value)}
+                  placeholder="₹ Amount"
+                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Status</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => updateField('status', e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                >
+                  {renewalStatusOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Notes & Access Details</label>
+                <Textarea
+                  value={form.notes}
+                  onChange={(e) => updateField('notes', e.target.value)}
+                  placeholder="Auto-renewal enabled, primary billing card info, credentials location..."
+                  rows={3}
+                  className="min-h-[100px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs resize-y"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="Linked Client">
-              <select
-                value={form.clientId}
-                onChange={(e) => updateField('clientId', e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+          {/* Pinned Sticky Bottom Action Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+              <span>Press</span>
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                ESC
+              </kbd>
+              <span>to close</span>
+            </span>
+
+            <div className="flex items-center gap-3 ml-auto">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => onOpenChange(false)}
+                className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
               >
-                <option value="all">None / Internal</option>
-                {clients.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.company || c.name}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-
-            <FormField label="Registrar / Provider">
-              <Input
-                value={form.provider}
-                onChange={(e) => updateField('provider', e.target.value)}
-                placeholder="e.g. GoDaddy, Hostinger, AWS, Namecheap"
-                className="h-9 text-xs rounded-xl"
-              />
-            </FormField>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="Expiry Date *">
-              <Input
-                type="date"
-                value={form.expiryDate}
-                onChange={(e) => updateField('expiryDate', e.target.value)}
-                required
-                className="h-9 text-xs rounded-xl"
-              />
-            </FormField>
-
-            <FormField label="Renewal Cost (₹)">
-              <Input
-                type="number"
-                value={form.renewalCost}
-                onChange={(e) => updateField('renewalCost', e.target.value)}
-                placeholder="₹ Amount"
-                className="h-9 text-xs rounded-xl"
-              />
-            </FormField>
-
-            <FormField label="Status">
-              <select
-                value={form.status}
-                onChange={(e) => updateField('status', e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving}
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
               >
-                {renewalStatusOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </FormField>
-          </div>
-
-          <FormField label="Notes & Access Details">
-            <Textarea
-              value={form.notes}
-              onChange={(e) => updateField('notes', e.target.value)}
-              placeholder="Auto-renewal enabled, primary billing card info..."
-              rows={2}
-              className="text-xs rounded-xl"
-            />
-          </FormField>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-border">
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl text-xs">
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" disabled={saving} className="rounded-xl text-xs font-bold">
-              {saving ? 'Saving...' : record ? 'Save Changes' : 'Track Asset'}
-            </Button>
+                {saving ? 'Saving...' : record ? 'Save Changes' : 'Track Asset'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

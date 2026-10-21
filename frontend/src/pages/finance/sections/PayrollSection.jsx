@@ -18,6 +18,7 @@ import {
   HelpCircle,
   Sparkles,
   Loader2,
+  X,
 } from 'lucide-react';
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   usePayrollRecords,
@@ -637,40 +639,64 @@ export default function PayrollSection() {
 
       {/* ── MANUAL PAYROLL ENTRY MODAL (CREATE / EDIT) ──────────────────── */}
       <Dialog open={entryModalOpen} onOpenChange={setEntryModalOpen}>
-        <DialogContent variant="center" size="lg" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-lg">
-          <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
-            <DialogTitle className="text-base font-bold text-foreground">
-              {editingRecord ? 'Edit Employee Payroll' : 'Manual Employee Payroll Entry'}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs mt-0.5">
-              Period: <strong className="text-foreground">{selectedMonth} {selectedYear}</strong> · Directly enter base salary, bonus & deductions
-            </DialogDescription>
+        <DialogContent
+          size="lg"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        >
+          {/* Pinned Sticky Header */}
+          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                  <Banknote size={20} />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                    {editingRecord ? 'Edit Employee Payroll' : 'Manual Employee Payroll Entry'}
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Period: <strong className="text-foreground">{selectedMonth} {selectedYear}</strong> · Base salary, bonus & deductions
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                  ESC
+                </span>
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+              </div>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmitEntry} className="space-y-4 text-xs">
-            {/* Employee Selection */}
-            <div>
-              <label className="block font-semibold text-foreground mb-1.5">Select Employee *</label>
-              <select
-                value={form.employee}
-                onChange={(e) => handleEmployeeSelect(e.target.value)}
-                disabled={Boolean(editingRecord)}
-                required
-                className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-medium text-foreground bg-background focus:ring-2 focus:ring-indigo-500/20 shadow-2xs"
-              >
-                <option value="">-- Choose Employee --</option>
-                {employees.map((emp) => (
-                  <option key={emp._id} value={emp._id}>
-                    {emp.name} ({emp.department || emp.role || 'Staff'}) {emp.salary ? `— Base: ₹${emp.salary}` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Base Salary & Approval Status */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* Form with Scrollable Body and Pinned Footer */}
+          <form onSubmit={handleSubmitEntry} className="flex flex-col min-h-0 flex-1 overflow-hidden">
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              {/* Employee Selection */}
               <div>
-                <label className="block font-semibold text-foreground mb-1.5">Base Monthly Salary (₹) *</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Employee *</label>
+                <select
+                  value={form.employee}
+                  onChange={(e) => handleEmployeeSelect(e.target.value)}
+                  disabled={Boolean(editingRecord)}
+                  required
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                >
+                  <option value="">-- Choose Employee --</option>
+                  {employees.map((emp) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.name} ({emp.department || emp.role || 'Staff'}) {emp.salary ? `— Base: ₹${emp.salary}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Base Monthly Salary */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Base Monthly Salary (₹) *</label>
                 <input
                   type="number"
                   value={form.baseSalary}
@@ -678,123 +704,139 @@ export default function PayrollSection() {
                   placeholder="e.g. 30000"
                   required
                   min="0"
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-bold text-foreground bg-background focus:ring-2 focus:ring-indigo-500/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-bold text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
                 />
               </div>
+
+              {/* Approval Status */}
               <div>
-                <label className="block font-semibold text-foreground mb-1.5">Approval Status</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Approval Status</label>
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full h-9.5 rounded-xl border border-border px-3 text-xs font-semibold text-foreground bg-background shadow-2xs"
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-semibold text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
                 >
                   <option value="pending">Pending Approval (Draft)</option>
                   <option value="approved">Approved (Expense Recognized)</option>
                   <option value="paid">Paid / Disbursed</option>
                 </select>
               </div>
-            </div>
 
-            {/* Additions / Incentives */}
-            <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-100 dark:border-emerald-800 space-y-2">
-              <div className="font-semibold text-emerald-900 dark:text-emerald-300 text-xs flex items-center justify-between">
-                <span>Additions / Incentives / OTS (+)</span>
-                <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
+              {/* Additions / Incentives */}
+              <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-2xl border border-emerald-100 dark:border-emerald-800 space-y-3">
+                <div className="font-semibold text-emerald-900 dark:text-emerald-300 text-xs sm:text-sm flex items-center justify-between">
+                  <span>Additions / Incentives / OTS (+)</span>
+                  <span className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-400 font-mono font-bold">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-emerald-900 dark:text-emerald-300 mb-1 block">Addition Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={form.additions}
+                      onChange={(e) => handleAdditionsChange(e.target.value)}
+                      placeholder="e.g. 2000"
+                      min="0"
+                      className="w-full h-11 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-4 text-sm font-semibold text-emerald-700 dark:text-emerald-400 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-emerald-900 dark:text-emerald-300 mb-1 block">Reason for Addition</label>
+                    <input
+                      type="text"
+                      value={form.additionReason}
+                      onChange={(e) => setForm({ ...form, additionReason: e.target.value })}
+                      placeholder="e.g. Performance Bonus / Overtime"
+                      className="w-full h-11 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  value={form.additions}
-                  onChange={(e) => handleAdditionsChange(e.target.value)}
-                  placeholder="Addition Amount (₹)"
-                  min="0"
-                  className="h-9 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-3 text-xs font-semibold text-emerald-700 dark:text-emerald-400"
-                />
-                <input
-                  type="text"
-                  value={form.additionReason}
-                  onChange={(e) => setForm({ ...form, additionReason: e.target.value })}
-                  placeholder="Reason (e.g. Performance / OTS)"
-                  className="h-9 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-background px-3 text-xs text-foreground"
-                />
-              </div>
-            </div>
 
-            {/* Deductions */}
-            <div className="p-3 bg-rose-50/60 dark:bg-rose-950/30 rounded-xl border border-rose-100 dark:border-rose-800 space-y-2">
-              <div className="font-semibold text-rose-900 dark:text-rose-300 text-xs flex items-center justify-between">
-                <span>Deductions / TDS / Advances (-)</span>
-                <span className="text-[11px] text-rose-700 dark:text-rose-400 font-mono font-bold">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
+              {/* Deductions */}
+              <div className="p-4 bg-rose-50/60 dark:bg-rose-950/30 rounded-2xl border border-rose-100 dark:border-rose-800 space-y-3">
+                <div className="font-semibold text-rose-900 dark:text-rose-300 text-xs sm:text-sm flex items-center justify-between">
+                  <span>Deductions / TDS / Advances (-)</span>
+                  <span className="text-xs sm:text-sm text-rose-700 dark:text-rose-400 font-mono font-bold">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-rose-900 dark:text-rose-300 mb-1 block">Deduction Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={form.deductions}
+                      onChange={(e) => handleDeductionsChange(e.target.value)}
+                      placeholder="e.g. 1500"
+                      min="0"
+                      className="w-full h-11 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-4 text-sm font-semibold text-rose-700 dark:text-rose-400 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-rose-900 dark:text-rose-300 mb-1 block">Reason for Deduction</label>
+                    <input
+                      type="text"
+                      value={form.deductionReason}
+                      onChange={(e) => setForm({ ...form, deductionReason: e.target.value })}
+                      placeholder="e.g. Leave / TDS / Salary Advance"
+                      className="w-full h-11 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  value={form.deductions}
-                  onChange={(e) => handleDeductionsChange(e.target.value)}
-                  placeholder="Deduction Amount (₹)"
-                  min="0"
-                  className="h-9 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-3 text-xs font-semibold text-rose-700 dark:text-rose-400"
-                />
-                <input
-                  type="text"
-                  value={form.deductionReason}
-                  onChange={(e) => setForm({ ...form, deductionReason: e.target.value })}
-                  placeholder="Reason (e.g. Leave / TDS / Advance)"
-                  className="h-9 rounded-xl border border-rose-200 dark:border-rose-800 bg-background px-3 text-xs text-foreground"
-                />
-              </div>
-            </div>
 
-            {/* Net Take-Home Salary Display */}
-            <div className="p-3 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-800 flex items-center justify-between">
+              {/* Net Take-Home Salary Display */}
+              <div className="p-4 bg-indigo-50/80 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-800 flex items-center justify-between">
+                <div>
+                  <span className="text-indigo-950 dark:text-indigo-200 font-bold block text-xs sm:text-sm">Calculated Net Payable:</span>
+                  <span className="text-xs text-indigo-700 dark:text-indigo-400">Base (₹{form.baseSalary || 0}) + Add (₹{form.additions || 0}) − Ded (₹{form.deductions || 0})</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-extrabold text-indigo-700 dark:text-indigo-400 tracking-tight">
+                  {formatINR(Number(form.netSalary || 0))}
+                </div>
+              </div>
+
+              {/* Notes */}
               <div>
-                <span className="text-indigo-950 dark:text-indigo-200 font-bold block text-xs">Calculated Net Payable:</span>
-                <span className="text-[11px] text-indigo-700 dark:text-indigo-400">Base (₹{form.baseSalary || 0}) + Add (₹{form.additions || 0}) − Ded (₹{form.deductions || 0})</span>
-              </div>
-              <div className="text-xl font-extrabold text-indigo-700 dark:text-indigo-400 tracking-tight">
-                {formatINR(Number(form.netSalary || 0))}
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Internal Notes (Optional)</label>
+                <input
+                  type="text"
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="e.g. Verified by Accounts"
+                  className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                />
               </div>
             </div>
 
-
-
-            {/* Notes */}
-            <div>
-              <label className="block font-medium text-foreground mb-1.5">Internal Notes (Optional)</label>
-              <input
-                type="text"
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="e.g. Verified by Accounts"
-                className="w-full h-9.5 rounded-xl border border-border px-3 text-xs text-foreground bg-background shadow-2xs"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setEntryModalOpen(false)}
-                className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={createPayroll.isPending || updatePayroll.isPending}
-                className="h-9.5 px-5.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {createPayroll.isPending || updatePayroll.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    <span>{editingRecord ? 'Update Entry' : 'Save Payroll Entry'}</span>
-                  </>
-                )}
-              </button>
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setEntryModalOpen(false)}
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-sm transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createPayroll.isPending || updatePayroll.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-primary-foreground font-bold text-sm shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {createPayroll.isPending || updatePayroll.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      <span>{editingRecord ? 'Update Entry' : 'Save Payroll Entry'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -802,47 +844,81 @@ export default function PayrollSection() {
 
       {/* ── DISBURSE SALARY MODAL ────────────────────────────────────────── */}
       <Dialog open={Boolean(payModalRecord)} onOpenChange={(open) => !open && setPayModalRecord(null)}>
-        <DialogContent variant="center" size="sm" className="rounded-2xl border-border bg-card p-6 shadow-2xl max-w-md">
-          <DialogHeader className="border-b border-border pb-3 mb-4 pr-10">
-            <DialogTitle className="text-base font-bold text-foreground">
-              Disburse Salary to {payModalRecord?.employee?.name}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs mt-0.5">
-              Net Amount: <strong className="text-foreground text-sm">{formatINR(payModalRecord?.netSalary || 0)}</strong> for {payModalRecord?.month} {payModalRecord?.year}
-            </DialogDescription>
+        <DialogContent
+          size="md"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-lg max-h-[90vh]"
+        >
+          {/* Pinned Sticky Header */}
+          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 shrink-0">
+                  <CheckCircle2 size={20} />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                    Disburse Salary
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    {payModalRecord?.employee?.name} · {payModalRecord?.month} {payModalRecord?.year}
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                  ESC
+                </span>
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+              </div>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleExecutePayment} className="space-y-4 text-xs">
-            <div className="p-3.5 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs border border-emerald-100 dark:border-emerald-800 space-y-1">
-              <div>Confirming will record salary payout of <strong className="text-emerald-900 dark:text-emerald-200">{formatINR(payModalRecord?.netSalary || 0)}</strong> for <strong>{payModalRecord?.employee?.name}</strong>.</div>
-              <div className="text-[11px] text-emerald-700/80 dark:text-emerald-400">Status will update to <strong>Paid</strong> for {payModalRecord?.month} {payModalRecord?.year}.</div>
+          {/* Form with Body and Pinned Footer */}
+          <form onSubmit={handleExecutePayment} className="flex flex-col min-h-0 flex-1 overflow-hidden">
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl text-emerald-800 dark:text-emerald-300 text-sm border border-emerald-100 dark:border-emerald-800 space-y-1.5">
+                <div>
+                  Confirming will record salary payout of <strong className="text-emerald-900 dark:text-emerald-200">{formatINR(payModalRecord?.netSalary || 0)}</strong> for <strong>{payModalRecord?.employee?.name}</strong>.
+                </div>
+                <div className="text-xs text-emerald-700/80 dark:text-emerald-400">
+                  Status will update to <strong>Paid</strong> for {payModalRecord?.month} {payModalRecord?.year}.
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setPayModalRecord(null)}
-                className="h-9.5 px-4.5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors shadow-2xs cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={payPayroll.isPending}
-                className="h-9.5 px-5.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {payPayroll.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                    <span>Disbursing...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    <span>Confirm Outflow & Disburse</span>
-                  </>
-                )}
-              </button>
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setPayModalRecord(null)}
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-sm transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={payPayroll.isPending}
+                  className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {payPayroll.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                      <span>Disbursing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      <span>Confirm Outflow & Disburse</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>

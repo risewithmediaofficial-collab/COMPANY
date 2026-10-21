@@ -14,6 +14,7 @@ import {
   Building2,
   Phone,
   Mail,
+  X,
 } from 'lucide-react';
 import api from '../../api';
 import { formatINR } from '../../utils/currency';
@@ -26,6 +27,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
@@ -249,83 +251,126 @@ const ReferralDashboard = () => {
 
       {/* Refer Lead Modal */}
       <Dialog open={showLeadForm} onOpenChange={setShowLeadForm}>
-        <DialogContent className="max-w-md bg-card border border-border">
-          <DialogHeader>
-            <DialogTitle className="text-base font-black text-foreground">Refer a Business Client</DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Submit client details for our sales team to follow up. You earn 10% commission on deal close.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <form onSubmit={handleLeadSubmit} className="flex flex-col min-h-0 h-full">
+            {/* Pinned Header */}
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                    Refer a Business Client
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    Submit client details to earn 10% commission on deal close
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                  ESC
+                </span>
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </DialogClose>
+              </div>
+            </div>
 
-          <form onSubmit={handleLeadSubmit} className="space-y-3 pt-2">
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Contact Name *</label>
-              <input
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Rahul Sharma"
-                className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Company / Brand Name</label>
-              <input
-                value={formData.company}
-                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                placeholder="Apex Fitness / Modern Cafe"
-                className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+            {/* Scrollable Linear Body */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">Phone *</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Contact Name *</label>
+                <input
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Rahul Sharma"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Company / Brand Name</label>
+                <input
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  placeholder="Apex Fitness / Modern Cafe"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Phone Number *</label>
                 <input
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+91 98765 43210"
-                  className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs font-mono"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
                 />
               </div>
+
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">Email</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Email Address</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="client@brand.com"
-                  className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Estimated Deal / Budget (₹)</label>
+                <input
+                  type="number"
+                  value={formData.dealValue}
+                  onChange={(e) => setFormData({ ...formData, dealValue: e.target.value })}
+                  placeholder="e.g. 50000"
+                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Requirements / Notes</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Needs Instagram management and reels production..."
+                  rows={3}
+                  className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Estimated Deal / Budget (₹)</label>
-              <input
-                type="number"
-                value={formData.dealValue}
-                onChange={(e) => setFormData({ ...formData, dealValue: e.target.value })}
-                placeholder="e.g. 50000"
-                className="w-full h-9 rounded-xl border border-border bg-background px-3 text-xs font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Requirements / Notes</label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Needs Instagram management and reels production..."
-                rows={2}
-                className="w-full rounded-xl border border-border bg-background p-2.5 text-xs"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => setShowLeadForm(false)} className="rounded-xl text-xs">
-                Cancel
-              </Button>
-              <Button type="submit" size="sm" disabled={submitting} className="rounded-xl text-xs font-bold">
-                {submitting ? 'Submitting...' : 'Submit Lead'}
-              </Button>
+
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowLeadForm(false)}
+                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                >
+                  {submitting ? 'Submitting...' : 'Submit Lead'}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

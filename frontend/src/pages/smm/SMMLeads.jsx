@@ -13,7 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
 
 export const SMMLeads = () => {
   const [leads, setLeads] = useState([]);
@@ -339,118 +341,137 @@ export const SMMLeads = () => {
         )}
       </div>
 
-      {/* ADD LEAD MODAL (SLIDE-OVER SHEET) */}
+      {/* ADD LEAD MODAL */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent size="default">
-          <DialogHeader>
-            <DialogTitle>Record New Social Media Lead</DialogTitle>
-            <DialogDescription>
-              Capture new prospect information from Meta Ads, Google Ads, or organic social channels.
-            </DialogDescription>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+                <Target size={20} />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                  Record New Social Media Lead
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  Capture new prospect information from Meta Ads, Google Ads, or organic social channels
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleCreateSubmit} className="space-y-4 text-xs">
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Select Client *</label>
-              <select
-                required
-                value={formData.client}
-                onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '', campaign: '' })}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
-              >
-                <option value="">-- Choose Client --</option>
-                {clientsList.map((c) => {
-                  const comp = c.company || c.companyName || '';
-                  const name = c.name || '';
-                  const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
-                    ? `${comp} - ${name}`
-                    : (comp || name || 'Client');
-                  return (
-                    <option key={c._id} value={c._id}>
-                      {display}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Select Project *</label>
-              <select
-                required
-                value={formData.project}
-                onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                disabled={!formData.client}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-xs"
-              >
-                <option value="">-- Choose Project --</option>
-                {projectsList.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Campaign (Optional)</label>
-              <select
-                value={formData.campaign}
-                onChange={(e) => setFormData({ ...formData, campaign: e.target.value })}
-                disabled={!formData.client}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-xs"
-              >
-                <option value="">-- No Linked Campaign --</option>
-                {campaignsList.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name} ({c.platform})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Lead Name *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Rahul Sharma"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form onSubmit={handleCreateSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="font-medium text-muted-foreground block mb-1">Phone</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Client *</label>
+                <select
+                  required
+                  value={formData.client}
+                  onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '', campaign: '' })}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-foreground shadow-2xs cursor-pointer"
+                >
+                  <option value="">-- Choose Client --</option>
+                  {clientsList.map((c) => {
+                    const comp = c.company || c.companyName || '';
+                    const name = c.name || '';
+                    const display = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                      ? `${comp} - ${name}`
+                      : (comp || name || 'Client');
+                    return (
+                      <option key={c._id} value={c._id}>
+                        {display}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Project *</label>
+                <select
+                  required
+                  value={formData.project}
+                  onChange={(e) => setFormData({ ...formData, project: e.target.value })}
+                  disabled={!formData.client}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground shadow-2xs cursor-pointer"
+                >
+                  <option value="">-- Choose Project --</option>
+                  {projectsList.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Campaign (Optional)</label>
+                <select
+                  value={formData.campaign}
+                  onChange={(e) => setFormData({ ...formData, campaign: e.target.value })}
+                  disabled={!formData.client}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground shadow-2xs cursor-pointer"
+                >
+                  <option value="">-- No Linked Campaign --</option>
+                  {campaignsList.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name} ({c.platform})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Lead Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Rahul Sharma"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-foreground shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Phone Number</label>
                 <input
                   type="text"
                   placeholder="+91 98765 43210"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl font-mono text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl font-mono text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-medium text-muted-foreground block mb-1">Email</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Email Address</label>
                 <input
                   type="email"
                   placeholder="rahul@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="font-medium text-muted-foreground block mb-1">Source</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Source Channel</label>
                 <select
                   value={formData.source}
                   onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="Meta Ads">Meta Ads</option>
                   <option value="Google Ads">Google Ads</option>
@@ -460,12 +481,13 @@ export const SMMLeads = () => {
                   <option value="Website">Website Form</option>
                 </select>
               </div>
+
               <div>
-                <label className="font-medium text-muted-foreground block mb-1">Lead Status</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Lead Status</label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl text-xs"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
                   <option value="New">New</option>
                   <option value="Contacted">Contacted</option>
@@ -477,20 +499,32 @@ export const SMMLeads = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 border border-border rounded-xl font-semibold text-xs hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-sm hover:bg-primary/90"
-              >
-                Record Lead
-              </button>
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
+
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsModalOpen(false)}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  Record Lead
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

@@ -8,6 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -27,7 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Tv, UserPlus, Receipt } from 'lucide-react';
+import { Plus, Trash2, Tv, UserPlus, Receipt, X } from 'lucide-react';
 import { useClients } from '../../hooks/useClients';
 import { useUsers } from '../../hooks/useUsers';
 import { useCreateVjPromotion, useUpdateVjPromotion } from '../../hooks/useDMCalendar';
@@ -204,100 +205,138 @@ export const AddEditVjPromotionModal = ({ open, onOpenChange, promotion = null }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Tv className="h-5 w-5 text-purple-500" />
-            {isEditing ? 'Edit VJ Promotion' : 'Create VJ / Video Jockey Promotion'}
-          </DialogTitle>
-          <DialogDescription>
-            Schedule Video Jockey (VJ) interviews, Instagram / YouTube lives, TV appearances, and itemized expenses.
-          </DialogDescription>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 border border-purple-500/20 shrink-0 shadow-2xs">
+              <Tv size={20} />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                {isEditing ? 'Edit VJ Promotion' : 'Create VJ Promotion'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                Video Jockey appearances, live broadcasts, anchors, and itemized expenses
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="client"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Client Name *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="client"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Client Name *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select client" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {clients.map((c) => (
+                            <SelectItem key={c._id} value={c._id}>
+                              {c.company || c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="promotionTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Promotion Title *</FormLabel>
                       <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
+                        <Input
+                          placeholder="e.g. Instagram Live Launch & Product Unboxing Host"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {clients.map((c) => (
-                          <SelectItem key={c._id} value={c._id}>
-                            {c.company || c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="platform"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Platform *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                <FormField
+                  control={form.control}
+                  name="platform"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Broadcast Platform *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select platform" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {PLATFORM_OPTIONS.map((p) => (
+                            <SelectItem key={p} value={p}>
+                              {p}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="promotionDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Promotion Date *</FormLabel>
                       <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select platform" /></SelectTrigger>
+                        <Input
+                          type="date"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {PLATFORM_OPTIONS.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="promotionTitle"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Promotion Title *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="E.g., Instagram Live Launch & Product Unboxing Host" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="promotionDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Promotion Date *</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-2">
                 <FormField
                   control={form.control}
                   name="startTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Start Time *</FormLabel>
-                      <FormControl><Input type="time" {...field} /></FormControl>
+                      <FormLabel className="text-sm font-semibold text-foreground">Start Time *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -307,184 +346,203 @@ export const AddEditVjPromotionModal = ({ open, onOpenChange, promotion = null }
                   name="endTime"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>End Time *</FormLabel>
-                      <FormControl><Input type="time" {...field} /></FormControl>
+                      <FormLabel className="text-sm font-semibold text-foreground">End Time *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Status *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Scheduled">Scheduled</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                        <SelectItem value="Postponed">Postponed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* VJ Team Members */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                  <UserPlus className="h-4 w-4 text-purple-500" /> VJ Hosts / Team Members
-                </h3>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => appendMember({ user: '', name: '', role: 'VJ Host' })}
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" /> Add VJ Member
-                </Button>
-              </div>
-
-              {memberFields.map((field, index) => {
-                const currentUserId = form.watch(`vjMembers.${index}.user`);
-                return (
-                  <div key={field.id} className="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
-                    <div className="w-[180px]">
-                      <Select
-                        value={currentUserId || '_none'}
-                        onValueChange={(val) => {
-                          form.setValue(`vjMembers.${index}.user`, val === '_none' ? '' : val);
-                          const selectedU = users.find((u) => u._id === val);
-                          if (selectedU) form.setValue(`vjMembers.${index}.name`, selectedU.name);
-                        }}
-                      >
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Select Member" />
-                        </SelectTrigger>
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Promotion Status *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
                         <SelectContent>
-                          <SelectItem value="_none">Manual Name</SelectItem>
-                          {users.map((u) => (
-                            <SelectItem key={u._id} value={u._id}>
-                              {u.name} ({u.role})
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="Scheduled">Scheduled</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                          <SelectItem value="Postponed">Postponed</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                    <div className="flex-1 min-w-[160px]">
-                      <Input
-                        placeholder="Type VJ Host Name..."
-                        className="h-9"
-                        {...form.register(`vjMembers.${index}.name`)}
-                      />
+                {/* VJ Team Members */}
+                <div className="rounded-2xl border border-border/70 bg-secondary/10 p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                        <UserPlus className="h-4 w-4 text-purple-500" /> VJ Hosts / Team Members
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">Assign internal team members or custom anchor talent</p>
                     </div>
-
-                    <div className="w-[160px]">
-                      <Input
-                        placeholder="Role (e.g., Lead VJ, Anchor)"
-                        className="h-9"
-                        {...form.register(`vjMembers.${index}.role`)}
-                      />
-                    </div>
-
                     <Button
                       type="button"
-                      variant="ghost"
                       size="sm"
-                      className="h-9 w-9 p-0 text-destructive"
-                      onClick={() => removeMember(index)}
+                      variant="outline"
+                      className="rounded-xl h-9 text-xs font-semibold border-border hover:bg-secondary cursor-pointer"
+                      onClick={() => appendMember({ user: '', name: '', role: 'VJ Host' })}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Member
                     </Button>
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Expenses List & Fee Tracking */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                    <Receipt className="h-4 w-4 text-emerald-500" /> Promotion Expenses Breakdown List
-                  </h3>
-                  <p className="text-xs text-muted-foreground">Add specific expenses like VJ Host Fee, Stage & Lighting, Travel, Food, etc.</p>
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => appendExpense({ title: '', amount: 1000 })}
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Expense Item
-                </Button>
-              </div>
-
-              {/* Quick Suggestions */}
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-[11px] text-muted-foreground font-semibold mr-1">Quick Add:</span>
-                {COMMON_EXPENSES.map((exp) => (
-                  <button
-                    key={exp}
-                    type="button"
-                    onClick={() => appendExpense({ title: exp, amount: 2000 })}
-                    className="text-[11px] px-2 py-0.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 font-medium hover:bg-emerald-500/20 transition-colors"
-                  >
-                    + {exp}
-                  </button>
-                ))}
-              </div>
-
-              {expenseFields.map((field, index) => (
-                <div key={field.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/40 bg-background">
-                  <div className="flex-1">
-                    <Input
-                      placeholder="Expense Title (e.g., VJ Host Fee, Stage & Lighting)"
-                      className="h-9"
-                      {...form.register(`expensesList.${index}.title`)}
-                    />
-                  </div>
-                  <div className="w-[160px]">
-                    <div className="relative">
-                      <span className="absolute left-3 top-2 text-xs font-semibold text-muted-foreground">₹</span>
-                      <Input
-                        type="number"
-                        min="0"
-                        placeholder="Amount"
-                        className="h-9 pl-7"
-                        {...form.register(`expensesList.${index}.amount`)}
-                      />
+                  {memberFields.length === 0 ? (
+                    <div className="text-xs text-muted-foreground py-2 text-center border border-dashed border-border/80 rounded-xl">
+                      No VJ hosts assigned yet. Click "Add Member" above.
                     </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-9 w-9 p-0 text-destructive"
-                    onClick={() => removeExpense(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                  ) : (
+                    memberFields.map((field, index) => {
+                      const currentUserId = form.watch(`vjMembers.${index}.user`);
+                      return (
+                        <div key={field.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-3.5 rounded-xl border border-border/60 bg-card shadow-2xs">
+                          <div className="w-full sm:w-[190px]">
+                            <Select
+                              value={currentUserId || '_none'}
+                              onValueChange={(val) => {
+                                form.setValue(`vjMembers.${index}.user`, val === '_none' ? '' : val);
+                                const selectedU = users.find((u) => u._id === val);
+                                if (selectedU) form.setValue(`vjMembers.${index}.name`, selectedU.name);
+                              }}
+                            >
+                              <SelectTrigger className="h-10 rounded-xl text-xs bg-background border-border">
+                                <SelectValue placeholder="Select Member" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="_none">Manual Name</SelectItem>
+                                {users.map((u) => (
+                                  <SelectItem key={u._id} value={u._id}>
+                                    {u.name} ({u.role})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-              <div className="pt-3 border-t border-border/40 grid gap-4 md:grid-cols-3">
+                          <div className="flex-1 min-w-[140px]">
+                            <Input
+                              placeholder="Host / Anchor Name..."
+                              className="h-10 rounded-xl text-xs bg-background border-border"
+                              {...form.register(`vjMembers.${index}.name`)}
+                            />
+                          </div>
+
+                          <div className="w-full sm:w-[150px]">
+                            <Input
+                              placeholder="Role (e.g. Lead Anchor)"
+                              className="h-10 rounded-xl text-xs bg-background border-border"
+                              {...form.register(`vjMembers.${index}.role`)}
+                            />
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10 rounded-lg shrink-0 self-end sm:self-center"
+                            onClick={() => removeMember(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Expenses List & Fee Tracking */}
+                <div className="rounded-2xl border border-border/70 bg-secondary/10 p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                        <Receipt className="h-4 w-4 text-emerald-500" /> Promotion Expenses Breakdown
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">Itemized expenses for VJ host fees, lighting, camera setup, and food</p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl h-9 text-xs font-semibold border-border hover:bg-secondary cursor-pointer"
+                      onClick={() => appendExpense({ title: '', amount: 1000 })}
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" /> Add Item
+                    </Button>
+                  </div>
+
+                  {/* Quick Suggestions */}
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    <span className="text-[11px] text-muted-foreground font-semibold mr-1">Quick Add:</span>
+                    {COMMON_EXPENSES.map((exp) => (
+                      <button
+                        key={exp}
+                        type="button"
+                        onClick={() => appendExpense({ title: exp, amount: 2000 })}
+                        className="text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                      >
+                        + {exp}
+                      </button>
+                    ))}
+                  </div>
+
+                  {expenseFields.map((field, index) => (
+                    <div key={field.id} className="flex items-center gap-3 p-3.5 rounded-xl border border-border/60 bg-card shadow-2xs">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="Expense Title (e.g., VJ Host Fee, Stage & Lighting)"
+                          className="h-10 rounded-xl text-xs bg-background border-border"
+                          {...form.register(`expensesList.${index}.title`)}
+                        />
+                      </div>
+                      <div className="w-[140px]">
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-xs font-semibold text-muted-foreground">₹</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="Amount"
+                            className="h-10 pl-7 rounded-xl text-xs bg-background border-border"
+                            {...form.register(`expensesList.${index}.amount`)}
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10 rounded-lg shrink-0"
+                        onClick={() => removeExpense(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Financial Summary Linear Fields */}
                 <FormField
                   control={form.control}
                   name="totalAmount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total Amount (₹)</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Total Budget / Amount (₹)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -492,9 +550,12 @@ export const AddEditVjPromotionModal = ({ open, onOpenChange, promotion = null }
                           {...field}
                           value={expenseFields.length > 0 ? sumExpenses : field.value}
                           readOnly={expenseFields.length > 0}
-                          className={expenseFields.length > 0 ? 'bg-muted/50 font-bold' : ''}
+                          className={`h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs ${
+                            expenseFields.length > 0 ? 'bg-muted/50 font-bold' : ''
+                          }`}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -504,41 +565,75 @@ export const AddEditVjPromotionModal = ({ open, onOpenChange, promotion = null }
                   name="amountPaid"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Amount Paid (₹)</FormLabel>
-                      <FormControl><Input type="number" min="0" {...field} /></FormControl>
+                      <FormLabel className="text-sm font-semibold text-foreground">Amount Paid (₹)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div>
-                  <FormLabel className="text-xs font-medium text-muted-foreground">Balance Amount (₹)</FormLabel>
-                  <div className="h-10 px-3 flex items-center font-bold text-lg text-rose-500 bg-background rounded-md border border-border/60 mt-2">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-foreground block">Balance Due (₹)</label>
+                  <div className="h-11 px-4 flex items-center font-bold text-base text-rose-500 bg-background rounded-xl border border-border shadow-2xs">
                     ₹{balanceAmount.toLocaleString('en-IN')}
                   </div>
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="promotionDetails"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Promotion Details & Broadcast Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          className="min-h-[100px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          placeholder="Live stream link, broadcast agenda, TV channel slot..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="promotionDetails"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Promotion Details & Broadcast Notes</FormLabel>
-                  <FormControl>
-                    <Textarea className="min-h-20" placeholder="Live stream link, broadcast agenda, TV channel slot..." {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : isEditing ? 'Update VJ Promotion' : 'Save VJ Promotion'}
-              </Button>
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => onOpenChange(false)}
+                  disabled={isLoading}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  {isLoading ? 'Saving...' : isEditing ? 'Update VJ Promotion' : 'Save VJ Promotion'}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>

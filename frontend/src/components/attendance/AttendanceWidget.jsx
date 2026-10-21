@@ -11,6 +11,7 @@ import {
   ChevronRight,
   UserCheck,
   Send,
+  X,
 } from 'lucide-react';
 import {
   useClockIn,
@@ -26,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../ui/dialog';
 
 const formatTime = (isoString) => {
@@ -513,51 +515,89 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
 
       {/* Modal: Mark Absent */}
       <Dialog open={showAbsentModal} onOpenChange={setShowAbsentModal}>
-        <DialogContent size="default">
-          <DialogHeader>
-            <DialogTitle>Mark Absent</DialogTitle>
-            <DialogDescription>
-              Record your absence in the system with a date and reason for HR/Management.
-            </DialogDescription>
+        <DialogContent
+          size="md"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-lg max-h-[90vh]"
+        >
+          {/* Pinned Sticky Header */}
+          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-destructive/10 border border-destructive/20 text-destructive shrink-0">
+                  <XCircle size={20} />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                    Mark Absent
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Record your absence in the system for HR & Management
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                  ESC
+                </span>
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+              </div>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleMarkAbsentSubmit} className="space-y-4 text-xs">
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Absent Date *</label>
-              <input
-                type="date"
-                required
-                value={absentDate}
-                onChange={(e) => setAbsentDate(e.target.value)}
-                className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
-              />
+          {/* Form with Scrollable Body and Pinned Footer */}
+          <form onSubmit={handleMarkAbsentSubmit} className="flex flex-col min-h-0 flex-1 overflow-hidden">
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Absent Date *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={absentDate}
+                  onChange={(e) => setAbsentDate(e.target.value)}
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Reason for Absence *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Enter detailed reason for absence (e.g. Unwell, Personal Emergency)..."
+                  value={absentReason}
+                  onChange={(e) => setAbsentReason(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background p-4 text-sm outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none shadow-2xs min-h-[100px]"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Reason for Absence *</label>
-              <textarea
-                required
-                rows={3}
-                placeholder="Enter detailed reason for absence (e.g. Unwell, Emergency)..."
-                value={absentReason}
-                onChange={(e) => setAbsentReason(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setShowAbsentModal(false)}
-                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitAbsent.isPending}
-                className="px-4 py-2 rounded-xl bg-destructive text-destructive-foreground font-bold text-xs shadow-sm hover:bg-destructive/90 disabled:opacity-50"
-              >
-                {submitAbsent.isPending ? 'Submitting...' : 'Confirm Mark Absent'}
-              </button>
+
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowAbsentModal(false)}
+                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted font-semibold text-sm text-foreground transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitAbsent.isPending}
+                  className="h-11 px-6 rounded-xl bg-destructive text-destructive-foreground font-bold text-sm shadow-sm hover:bg-destructive/90 disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {submitAbsent.isPending ? 'Submitting...' : 'Confirm Mark Absent'}
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>
@@ -565,18 +605,47 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
 
       {/* Modal: Apply for Leave */}
       <Dialog open={showLeaveModal} onOpenChange={setShowLeaveModal}>
-        <DialogContent size="default">
-          <DialogHeader>
-            <DialogTitle>Apply for Leave</DialogTitle>
-            <DialogDescription>
-              Submit a formal leave application to Super Admin & Admin for review and approval.
-            </DialogDescription>
+        <DialogContent
+          size="lg"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        >
+          {/* Pinned Sticky Header */}
+          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                  <Calendar size={20} />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                    Apply for Leave
+                  </DialogTitle>
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                    Submit a formal leave application to Management for review
+                  </DialogDescription>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                  ESC
+                </span>
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+              </div>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleApplyLeaveSubmit} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <label className="font-semibold text-foreground">Leave Start Date *</label>
+          {/* Form with Scrollable Body and Pinned Footer */}
+          <form onSubmit={handleApplyLeaveSubmit} className="flex flex-col min-h-0 flex-1 overflow-hidden">
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              {/* Leave Start Date */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Leave Start Date *
+                </label>
                 <input
                   type="date"
                   required
@@ -587,55 +656,66 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                       setLeaveEndDate(e.target.value);
                     }
                   }}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="font-semibold text-foreground">Leave End Date *</label>
+
+              {/* Leave End Date */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Leave End Date *
+                </label>
                 <input
                   type="date"
                   required
                   min={leaveStartDate}
                   value={leaveEndDate}
                   onChange={(e) => setLeaveEndDate(e.target.value)}
-                  className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
                 />
+              </div>
+
+              {/* Reason for Leave */}
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">
+                  Reason for Leave *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Explain reason for leave (e.g. Medical appointment, Family event, Vacation, Casual leave)..."
+                  value={leaveReason}
+                  onChange={(e) => setLeaveReason(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background p-4 text-sm outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none shadow-2xs min-h-[100px]"
+                />
+              </div>
+
+              <div className="p-4 rounded-2xl bg-secondary/40 border border-border text-xs text-muted-foreground flex items-center gap-2.5">
+                <Info size={16} className="text-primary shrink-0" />
+                <span>This request will be sent to Super Admin and Admin. Once approved, your attendance status will update to <strong>Leave Approved</strong>.</span>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Reason for Leave *</label>
-              <textarea
-                required
-                rows={3}
-                placeholder="Explain reason for leave (e.g. Medical appointment, Family event, Vacation, Casual leave)..."
-                value={leaveReason}
-                onChange={(e) => setLeaveReason(e.target.value)}
-                className="w-full rounded-xl border border-border bg-background p-3 text-xs outline-none focus:ring-2 focus:ring-primary/20 text-foreground resize-none"
-              />
-            </div>
-
-            <div className="p-3 rounded-xl bg-secondary/40 border border-border text-[11px] text-muted-foreground flex items-center gap-2">
-              <Info size={14} className="text-primary shrink-0" />
-              <span>This request will be sent to Super Admin and Admin. Once approved, your attendance status will update to <strong>Leave Approved</strong>.</span>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setShowLeaveModal(false)}
-                className="px-4 py-2 rounded-xl border border-border font-semibold text-xs hover:bg-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitLeave.isPending}
-                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
-              >
-                <Send size={13} />
-                {submitLeave.isPending ? 'Submitting Application...' : 'Submit Leave Application'}
-              </button>
+            {/* Pinned Sticky Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+              <div className="flex items-center gap-2.5 ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowLeaveModal(false)}
+                  className="h-11 px-5 rounded-xl border border-border font-semibold text-sm text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLeave.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-sm hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Send size={14} />
+                  {submitLeave.isPending ? 'Submitting Application...' : 'Submit Leave Application'}
+                </button>
+              </div>
             </div>
           </form>
         </DialogContent>

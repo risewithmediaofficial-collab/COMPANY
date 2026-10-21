@@ -4,6 +4,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +22,7 @@ import {
   Move,
   Loader2,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -262,31 +265,40 @@ export const ProfileImageCropModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        variant="center"
         size="lg"
-        className="max-w-[760px] p-0 overflow-hidden bg-card border-border shadow-2xl"
+        noPadding
+        hideCloseButton
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
       >
-        {/* Modal Header */}
-        <div className="p-5 sm:p-6 border-b border-border bg-gradient-to-r from-card to-secondary/30">
-          <DialogHeader>
+        {/* Pinned Sticky Header */}
+        <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
                 <Sparkles size={20} />
               </div>
               <div>
-                <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
                   Crop & Adjust Profile Picture
                 </DialogTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Drag, zoom, and rotate the photo to position your profile image exactly as you wish.
-                </p>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  Drag, zoom, and rotate the photo to position your profile image
+                </DialogDescription>
               </div>
             </div>
-          </DialogHeader>
-        </div>
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                ESC
+              </span>
+              <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                <X className="h-4 w-4" />
+              </DialogClose>
+            </div>
+          </div>
+        </DialogHeader>
 
-        {/* Modal Body */}
-        <div className="p-5 sm:p-6 space-y-6">
+        {/* Scrollable Body */}
+        <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
           <div className="flex flex-col lg:flex-row gap-6 items-center justify-center">
             {/* ── Left Column: Interactive Viewport & Controls ── */}
             <div className="flex flex-col items-center space-y-4 w-full sm:w-auto">
@@ -605,36 +617,39 @@ export const ProfileImageCropModal = ({
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="p-4 sm:p-5 border-t border-border bg-secondary/10 flex flex-col sm:flex-row items-center justify-end gap-2.5">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => onOpenChange(false)}
-            disabled={isSaving || isProcessing}
-            className="w-full sm:w-auto text-xs font-bold rounded-xl"
-          >
-            Cancel
-          </Button>
+        {/* Pinned Sticky Footer */}
+        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+          <div className="flex items-center gap-2.5 ml-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSaving || isProcessing}
+              className="h-11 px-5 rounded-xl font-semibold text-sm"
+            >
+              Cancel
+            </Button>
 
-          <Button
-            type="button"
-            onClick={handleApplyCrop}
-            disabled={isSaving || isProcessing}
-            className="w-full sm:w-auto text-xs font-bold rounded-xl bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg shadow-primary/20"
-          >
-            {isSaving || isProcessing ? (
-              <>
-                <Loader2 size={15} className="animate-spin" />
-                <span>Saving Profile Picture...</span>
-              </>
-            ) : (
-              <>
-                <Check size={15} />
-                <span>Crop & Save Profile Picture</span>
-              </>
-            )}
-          </Button>
+            <Button
+              type="button"
+              onClick={handleApplyCrop}
+              disabled={isSaving || isProcessing}
+              className="h-11 px-6 rounded-xl text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shadow-md"
+            >
+              {isSaving || isProcessing ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Saving Profile Picture...</span>
+                </>
+              ) : (
+                <>
+                  <Check size={16} />
+                  <span>Crop & Save Profile Picture</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

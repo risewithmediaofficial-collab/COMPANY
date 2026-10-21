@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -34,7 +35,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useCreateClient, useUpdateClient } from '../../hooks/useClients';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
-import { FolderOpen } from 'lucide-react';
+import { FolderOpen, X } from 'lucide-react';
 
 const DRAFT_KEY = 'draft:client-modal';
 
@@ -284,399 +285,481 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
-      >
-        <DialogHeader>
-          <DialogTitle>{client ? 'Edit Client' : 'Add New Client'}</DialogTitle>
-          <DialogDescription>
-            {client ? 'Update the client information below' : 'Fill in the details below. Add a Google Drive folder link so all client files stay organized in one place.'}
-          </DialogDescription>
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <FolderOpen size={20} />
+            </div>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                {client ? 'Edit Client' : 'Add New Client'}
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                {client ? 'Update client profile, budget, contract and requirements' : 'Fill in client profile details, contract terms, and deliverables'}
+              </DialogDescription>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              ESC
+            </kbd>
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <X size={16} className="stroke-[2.5]" />
+              <span className="sr-only">Close</span>
+            </DialogClose>
+          </div>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="company"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Acme Corporation" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="john@acme.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+1 (555) 123-4567" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Website (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="www.company.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="driveLink"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Google Drive Folder Link</FormLabel>
-                    <FormControl>
-                      <Input placeholder="drive.google.com/drive/folders/..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      All files for this client should be uploaded to this Drive folder.
-                    </p>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="industry"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type / Sector</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select sector" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CLIENT_SECTORS.map((sector) => (
-                          <SelectItem key={sector} value={sector}>
-                            {sector}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {field.value === 'Other' && (
-                      <FormField
-                        control={form.control}
-                        name="customIndustry"
-                        render={({ field: customField }) => (
-                          <FormItem className="mt-1">
-                            <FormControl>
-                              <Input placeholder="Specify your sector..." {...customField} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Inactive">Inactive</SelectItem>
-                        <SelectItem value="Prospect">Prospect</SelectItem>
-                        <SelectItem value="Churned">Churned</SelectItem>
-                        <SelectItem value="Renew">Renew</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Budget & Contract Values */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="budgetType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Budget Type / Name</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select budget type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="monthly">Monthly Budget (Social Media / Retainer)</SelectItem>
-                        <SelectItem value="overall">Overall Budget (One-time Project)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="contractValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {form.watch('budgetType') === 'overall' ? 'Overall Budget Amount (₹)' : 'Monthly Budget Amount (₹)'}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="e.g. 50000"
-                        {...field}
-                        value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Contract Dates */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="contractStartDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contract Start Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="contractEndDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contract End Date (Optional)</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-[11px] text-muted-foreground">
-                      Leave blank for ongoing monthly retainers or SMM.
-                    </p>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="referredByMode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Referred By Mode</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select input mode" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">No referral</SelectItem>
-                        <SelectItem value="dropdown">Choose from dropdown</SelectItem>
-                        <SelectItem value="manual">Enter manually</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {form.watch('referredByMode') === 'dropdown' ? (
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
-                  name="referredBy"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Referred By</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Contact Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. John Doe"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Company Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Acme Corporation"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="e.g. john@acme.com"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Phone *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. +91 98765 43210"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Website (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. https://www.company.com"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="driveLink"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Google Drive Folder Link</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://drive.google.com/drive/folders/..."
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                        All files, creatives, and assets for this client will link to this Drive folder.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Type / Sector</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a user" />
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select sector" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {referralOptions.map((user) => (
-                            <SelectItem key={user._id} value={user._id}>
-                              {user.name} {user.role ? `- ${user.role}` : ''}
+                          {CLIENT_SECTORS.map((sector) => (
+                            <SelectItem key={sector} value={sector}>
+                              {sector}
                             </SelectItem>
                           ))}
+                        </SelectContent>
+                      </Select>
+                      {field.value === 'Other' && (
+                        <FormField
+                          control={form.control}
+                          name="customIndustry"
+                          render={({ field: customField }) => (
+                            <FormItem className="mt-2">
+                              <FormControl>
+                                <Input
+                                  placeholder="Specify your sector..."
+                                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                                  {...customField}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Status</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Inactive">Inactive</SelectItem>
+                          <SelectItem value="Prospect">Prospect</SelectItem>
+                          <SelectItem value="Churned">Churned</SelectItem>
+                          <SelectItem value="Renew">Renew</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              ) : (
+
+                {/* Budget & Contract */}
                 <FormField
                   control={form.control}
-                  name="referredByManual"
+                  name="budgetType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Referral Name</FormLabel>
+                      <FormLabel className="text-sm font-semibold text-foreground">Budget Type / Retainer Mode</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select budget type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="monthly">Monthly Budget (Social Media / Retainer)</SelectItem>
+                          <SelectItem value="overall">Overall Budget (One-time Project)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="contractValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">
+                        {form.watch('budgetType') === 'overall' ? 'Overall Budget Amount (₹)' : 'Monthly Budget Amount (₹)'}
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter referral name" {...field} />
+                        <Input
+                          type="number"
+                          placeholder="e.g. 50000"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              )}
+
+                {/* Contract Dates */}
+                <FormField
+                  control={form.control}
+                  name="contractStartDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Contract Start Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="contractEndDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Contract End Date (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Leave blank for ongoing monthly retainers or SMM contracts.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="referredByMode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Referred By Mode</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectValue placeholder="Select input mode" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">No referral</SelectItem>
+                          <SelectItem value="dropdown">Choose from dropdown</SelectItem>
+                          <SelectItem value="manual">Enter manually</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('referredByMode') === 'dropdown' && (
+                  <FormField
+                    control={form.control}
+                    name="referredBy"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-semibold text-foreground">Referred By User</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                              <SelectValue placeholder="Select a team member" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {referralOptions.map((user) => (
+                              <SelectItem key={user._id} value={user._id}>
+                                {user.name} {user.role ? `- ${user.role}` : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {form.watch('referredByMode') === 'manual' && (
+                  <FormField
+                    control={form.control}
+                    name="referredByManual"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-semibold text-foreground">Referral Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter referrer name"
+                            className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <FormField
+                  control={form.control}
+                  name="services"
+                  render={({ field }) => {
+                    const selected = field.value || [];
+
+                    return (
+                      <FormItem>
+                        <FormLabel className="text-sm font-semibold text-foreground">Client Requirements</FormLabel>
+                        <div className="flex flex-col gap-1.5 rounded-2xl border border-border bg-card/50 p-4">
+                          {CLIENT_REQUIREMENTS.map((requirement) => {
+                            const checked = selected.includes(requirement);
+
+                            return (
+                              <label
+                                key={requirement}
+                                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-secondary cursor-pointer select-none"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(event) => {
+                                    if (event.target.checked) {
+                                      field.onChange([...selected, requirement]);
+                                    } else {
+                                      field.onChange(selected.filter((item) => item !== requirement));
+                                    }
+                                  }}
+                                  className="h-4.5 w-4.5 rounded border-border accent-primary cursor-pointer"
+                                />
+                                <span>{requirement}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                        {selected.includes('Other') && (
+                          <FormField
+                            control={form.control}
+                            name="customService"
+                            render={({ field: customField }) => (
+                              <FormItem className="mt-2">
+                                <FormControl>
+                                  <Input
+                                    placeholder="Specify other requirement..."
+                                    className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                                    {...customField}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-semibold text-foreground">Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Add any additional notes about this client..."
+                          className="min-h-[100px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="services"
-              render={({ field }) => {
-                const selected = field.value || [];
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
 
-                return (
-                  <FormItem>
-                    <FormLabel>Client Requirements</FormLabel>
-                    <div className="grid gap-2 rounded-2xl border border-border bg-background p-3 sm:grid-cols-2">
-                      {CLIENT_REQUIREMENTS.map((requirement) => {
-                        const checked = selected.includes(requirement);
-
-                        return (
-                          <label
-                            key={requirement}
-                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={(event) => {
-                                if (event.target.checked) {
-                                  field.onChange([...selected, requirement]);
-                                } else {
-                                  field.onChange(selected.filter((item) => item !== requirement));
-                                }
-                              }}
-                              className="h-4 w-4 rounded border-border accent-primary"
-                            />
-                            {requirement}
-                          </label>
-                        );
-                      })}
-                    </div>
-                    {selected.includes('Other') && (
-                      <FormField
-                        control={form.control}
-                        name="customService"
-                        render={({ field: customField }) => (
-                          <FormItem className="mt-2">
-                            <FormControl>
-                              <Input placeholder="Specify other requirement..." {...customField} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Add notes about this client..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex gap-3 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : client ? 'Update Client' : 'Create Client'}
-              </Button>
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => handleClose(false)}
+                  disabled={isLoading}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  {isLoading ? 'Saving...' : client ? 'Update Client' : 'Create Client'}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>

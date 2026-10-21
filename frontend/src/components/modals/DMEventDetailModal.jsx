@@ -5,6 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '../ui/page';
@@ -25,6 +26,7 @@ import {
   Printer,
   Receipt,
   FileText,
+  X,
 } from 'lucide-react';
 import { useTrackVideoShootTime } from '../../hooks/useDMCalendar';
 import { DMInvoiceModal } from './DMInvoiceModal';
@@ -70,37 +72,52 @@ export const DMEventDetailModal = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between gap-3 pr-6">
-              <div className="flex items-center gap-2">
+        <DialogContent
+          size="lg"
+          noPadding
+          hideCloseButton
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+        >
+          {/* Pinned Sticky Header */}
+          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 {isVideoShoot ? (
-                  <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 shrink-0">
                     <Camera className="h-5 w-5" />
                   </div>
                 ) : isRj ? (
-                  <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 shrink-0">
                     <Radio className="h-5 w-5" />
                   </div>
                 ) : (
-                  <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-500 shrink-0">
                     <Tv className="h-5 w-5" />
                   </div>
                 )}
                 <div>
-                  <DialogTitle className="text-lg font-bold text-foreground">
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
                     {item.shootTitle || item.promotionTitle}
                   </DialogTitle>
-                  <DialogDescription className="text-xs">
+                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                     {clientName} • {isVideoShoot ? 'Video Shoot' : isRj ? 'RJ Promotion' : `VJ Promotion (${item.platform || 'TV'})`}
                   </DialogDescription>
                 </div>
               </div>
-              <StatusBadge tone={statusTone[item.status] || 'neutral'}>{item.status}</StatusBadge>
+              <div className="flex items-center gap-2">
+                <StatusBadge tone={statusTone[item.status] || 'neutral'}>{item.status}</StatusBadge>
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                  ESC
+                </span>
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+              </div>
             </div>
           </DialogHeader>
 
-          <div className="space-y-5 pt-2">
+          {/* Scrollable Body */}
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
             {/* Timing & Location */}
             <div className="grid gap-3 sm:grid-cols-2 p-4 rounded-2xl bg-muted/40 border border-border/40 text-xs">
               <div className="flex items-center gap-2">
@@ -294,25 +311,26 @@ export const DMEventDetailModal = ({
               </div>
             ) : null}
 
-            {/* Action Footer */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" onClick={() => { onOpenChange(false); onEdit(item); }}>
-                  <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
-                </Button>
-                <Button size="sm" variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => { onOpenChange(false); onDelete(item); }}>
-                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setShowInvoiceCustomizer(true)}>
-                  <Printer className="h-3.5 w-3.5 mr-1" /> Invoice / Work Order PDF
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-                  Close
-                </Button>
-              </div>
+          </div>
+
+          {/* Pinned Sticky Footer */}
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="flex items-center gap-2.5">
+              <Button size="sm" variant="outline" className="h-11 px-4 rounded-xl font-semibold text-sm" onClick={() => { onOpenChange(false); onEdit(item); }}>
+                <Pencil className="h-4 w-4 mr-1.5" /> Edit
+              </Button>
+              <Button size="sm" variant="outline" className="h-11 px-4 rounded-xl font-semibold text-sm text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => { onOpenChange(false); onDelete(item); }}>
+                <Trash2 className="h-4 w-4 mr-1.5" /> Delete
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2.5 ml-auto">
+              <Button size="sm" className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm" onClick={() => setShowInvoiceCustomizer(true)}>
+                <Printer className="h-4 w-4 mr-1.5" /> Invoice PDF
+              </Button>
+              <Button variant="outline" className="h-11 px-5 rounded-xl font-semibold text-sm" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
             </div>
           </div>
         </DialogContent>

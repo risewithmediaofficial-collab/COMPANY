@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../ui/dialog';
 import {
   Bell,
@@ -22,6 +23,7 @@ import {
   ShieldCheck,
   ChevronRight,
   ExternalLink,
+  X,
 } from 'lucide-react';
 import {
   fetchPushDiagnostics,
@@ -113,28 +115,46 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <BellRing size={20} />
+      <DialogContent
+        size="lg"
+        noPadding
+        hideCloseButton
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+      >
+        {/* Pinned Sticky Header */}
+        <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                <BellRing size={20} />
+              </div>
+              <div>
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                  Web Push Diagnostics
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  Verify background notification delivery across devices
+                </DialogDescription>
+              </div>
             </div>
-            <div>
-              <DialogTitle className="text-base font-bold">Web Push Diagnostics & Testing</DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Verify background delivery across Windows, Android, and iPhone/iPad
-              </DialogDescription>
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                ESC
+              </span>
+              <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                <X className="h-4 w-4" />
+              </DialogClose>
             </div>
           </div>
         </DialogHeader>
 
         {loading ? (
-          <div className="py-12 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
+          <div className="py-16 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
             <RefreshCw size={24} className="animate-spin text-primary" />
             <span>Scanning device PushManager capabilities...</span>
           </div>
         ) : (
-          <div className="space-y-4 pt-1">
+          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
             {/* Status Overview Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
               <div className="p-2.5 rounded-xl border border-border bg-card/60 flex flex-col gap-1">
@@ -360,6 +380,18 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
             </div>
           </div>
         )}
+
+        {/* Pinned Sticky Footer */}
+        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="h-11 px-6 rounded-xl border border-border font-semibold text-sm hover:bg-secondary cursor-pointer transition-colors ml-auto"
+          >
+            Close
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

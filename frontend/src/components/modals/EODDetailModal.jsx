@@ -4,8 +4,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
-import { FileText, CheckCircle2, AlertCircle, Clock, User, Calendar, Tag } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle, Clock, User, Calendar, Tag, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAssetUrl } from '@/utils/assetUrl';
 
@@ -28,19 +29,32 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent noPadding className="max-w-xl w-[92vw] sm:w-full max-h-[85vh] sm:max-h-[88vh] flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border rounded-2xl shadow-2xl">
-        {/* Header styling */}
-        <div className="shrink-0 bg-gradient-to-r from-primary/10 via-indigo-500/10 to-purple-500/10 p-5 sm:p-6 border-b border-border">
+      <DialogContent
+        size="lg"
+        noPadding
+        hideCloseButton
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+      >
+        {/* Pinned Sticky Header */}
+        <div className="shrink-0 bg-gradient-to-r from-primary/10 via-indigo-500/10 to-purple-500/10 p-5 sm:p-6 border-b border-border select-none">
           <DialogHeader className="border-b-0 mb-0 pb-0">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
                 <CheckCircle2 size={14} /> EOD Report Submitted
               </span>
-              {submittedTime && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock size={13} /> {submittedTime}
+              <div className="flex items-center gap-2">
+                {submittedTime && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1 mr-1">
+                    <Clock size={13} /> {submittedTime}
+                  </span>
+                )}
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                  ESC
                 </span>
-              )}
+                <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+              </div>
             </div>
             <DialogTitle className="text-xl font-bold mt-3 flex items-center gap-2 text-foreground">
               <FileText className="text-primary" size={22} />
@@ -70,7 +84,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
         </div>
 
         {/* Scrollable Modal content */}
-        <div className="p-4 sm:p-6 space-y-5 flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar">
+        <div className="p-6 sm:p-7 space-y-6 flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar">
           {/* Summary */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
@@ -119,9 +133,14 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
           )}
         </div>
 
-        {/* Fixed Footer */}
-        <div className="shrink-0 p-4 bg-secondary/20 border-t border-border flex justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl px-6 font-semibold">
+        {/* Pinned Sticky Footer */}
+        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="h-11 px-6 rounded-xl font-semibold text-sm ml-auto"
+          >
             Close
           </Button>
         </div>
@@ -129,3 +148,4 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
     </Dialog>
   );
 };
+

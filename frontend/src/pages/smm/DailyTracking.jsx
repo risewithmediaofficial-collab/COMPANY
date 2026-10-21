@@ -15,7 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from '../../components/ui/dialog';
+import { Button } from '../../components/ui/button';
 
 export default function DailyTracking() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -660,161 +662,192 @@ export default function DailyTracking() {
 
       {/* ── MODAL: LOG DAILY SPEND / FUND DEPOSIT ── */}
       <Dialog open={isSpendModalOpen} onOpenChange={setIsSpendModalOpen}>
-        <DialogContent size="md">
-          <DialogHeader>
-            <DialogTitle>Log Daily Ad Spend & Funds Added</DialogTitle>
-            <DialogDescription>
-              Record daily spend, leads generated, and any budget deposited for real-time ledger accounting.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleAddSpendSubmit} className="space-y-4 text-xs">
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Select Campaign *</label>
-              <select
-                required
-                value={spendForm.campaign}
-                onChange={(e) => setSpendForm({ ...spendForm, campaign: e.target.value, sourceContentId: '' })}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
-              >
-                <option value="">-- Choose Campaign --</option>
-                {campaignsList.map((c) => {
-                  const comp = c.client?.company || c.client?.companyName || '';
-                  const name = c.client?.name || '';
-                  const clientLabel = comp && name && comp.toLowerCase() !== name.toLowerCase()
-                    ? `${comp} - ${name}`
-                    : (comp || name);
-                  return (
-                    <option key={c._id} value={c._id}>
-                      {c.name} {clientLabel ? `(${clientLabel})` : ''} ({c.platform})
-                    </option>
-                  );
-                })}
-              </select>
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+                <DollarSign size={20} />
+              </div>
+              <div className="min-w-0">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+                  Log Daily Ad Spend & Funds Added
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+                  Record daily spend, leads generated, and budget deposited for real-time ledger accounting
+                </DialogDescription>
+              </div>
             </div>
 
-            {spendForm.campaign && (
+            <div className="flex items-center gap-2 shrink-0">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                ESC
+              </kbd>
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <X size={16} className="stroke-[2.5]" />
+                <span className="sr-only">Close</span>
+              </DialogClose>
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleAddSpendSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* Scrollable Form Body - Google Form Linear Stack */}
+            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Select Video in Campaign (Optional)</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Campaign *</label>
                 <select
-                  value={spendForm.sourceContentId}
-                  onChange={(e) => setSpendForm({ ...spendForm, sourceContentId: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                  required
+                  value={spendForm.campaign}
+                  onChange={(e) => setSpendForm({ ...spendForm, campaign: e.target.value, sourceContentId: '' })}
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
                 >
-                  <option value="">-- Entire Campaign Level --</option>
-                  {(campaignsList.find(c => String(c._id) === String(spendForm.campaign))?.sourceContentIds || []).map((v) => (
-                    <option key={v._id || v} value={v._id || v}>
-                      🎥 {v.name || 'Video'} ({v.contentType || 'Video'})
-                    </option>
-                  ))}
+                  <option value="">-- Choose Campaign --</option>
+                  {campaignsList.map((c) => {
+                    const comp = c.client?.company || c.client?.companyName || '';
+                    const name = c.client?.name || '';
+                    const clientLabel = comp && name && comp.toLowerCase() !== name.toLowerCase()
+                      ? `${comp} - ${name}`
+                      : (comp || name);
+                    return (
+                      <option key={c._id} value={c._id}>
+                        {c.name} {clientLabel ? `(${clientLabel})` : ''} ({c.platform})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
-            )}
 
-            <div className="grid grid-cols-2 gap-3">
+              {spendForm.campaign && (
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Video in Campaign (Optional)</label>
+                  <select
+                    value={spendForm.sourceContentId}
+                    onChange={(e) => setSpendForm({ ...spendForm, sourceContentId: e.target.value })}
+                    className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  >
+                    <option value="">-- Entire Campaign Level --</option>
+                    {(campaignsList.find(c => String(c._id) === String(spendForm.campaign))?.sourceContentIds || []).map((v) => (
+                      <option key={v._id || v} value={v._id || v}>
+                        🎥 {v.name || 'Video'} ({v.contentType || 'Video'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
-                <label className="font-semibold text-foreground block mb-1">Date</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Date *</label>
                 <input
                   type="date"
                   required
                   value={spendForm.date}
                   onChange={(e) => setSpendForm({ ...spendForm, date: e.target.value })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-blue-400 block mb-1">Deposited (₹)</label>
+                <label className="text-sm font-semibold text-blue-500 mb-1.5 block">Deposited Funds (₹)</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.amountAdded}
                   onChange={(e) => setSpendForm({ ...spendForm, amountAdded: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-rose-400 block mb-1">Amount Spent Today (₹) *</label>
+                <label className="text-sm font-semibold text-rose-500 mb-1.5 block">Amount Spent Today (₹) *</label>
                 <input
                   type="number"
                   required
                   placeholder="0"
                   value={spendForm.amountSpent}
                   onChange={(e) => setSpendForm({ ...spendForm, amountSpent: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-emerald-400 block mb-1">Leads Generated</label>
+                <label className="text-sm font-semibold text-emerald-500 mb-1.5 block">Leads Generated</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.leadsGenerated}
                   onChange={(e) => setSpendForm({ ...spendForm, leadsGenerated: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
-            </div>
 
-            {(Number(spendForm.amountAdded) > 0 || Number(spendForm.amountSpent) > 0) && (
-              <div className="p-2.5 bg-secondary/50 rounded-xl border border-border flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Balance Amount (Deposited - Spent):</span>
-                <span className="font-bold font-mono text-emerald-400">
-                  ₹{Math.max(0, (Number(spendForm.amountAdded) || 0) - (Number(spendForm.amountSpent) || 0)).toLocaleString()}
-                </span>
-              </div>
-            )}
+              {(Number(spendForm.amountAdded) > 0 || Number(spendForm.amountSpent) > 0) && (
+                <div className="p-3 bg-secondary/50 rounded-xl border border-border flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground font-medium">Balance Amount (Deposited - Spent):</span>
+                  <span className="font-bold font-mono text-emerald-500">
+                    ₹{Math.max(0, (Number(spendForm.amountAdded) || 0) - (Number(spendForm.amountSpent) || 0)).toLocaleString()}
+                  </span>
+                </div>
+              )}
 
-            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Messages Received</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Messages Received</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.messages}
                   onChange={(e) => setSpendForm({ ...spendForm, messages: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
                 />
               </div>
+
               <div>
-                <label className="font-semibold text-foreground block mb-1">Phone Calls Received</label>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Phone Calls Received</label>
                 <input
                   type="number"
                   placeholder="0"
                   value={spendForm.calls}
                   onChange={(e) => setSpendForm({ ...spendForm, calls: Number(e.target.value) })}
-                  className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
+                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground mb-1.5 block">Notes / Observations</label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Targeting changed today resulting in lower CPL..."
+                  value={spendForm.notes}
+                  onChange={(e) => setSpendForm({ ...spendForm, notes: e.target.value })}
+                  className="w-full min-h-[90px] p-3.5 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs resize-y"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="font-semibold text-foreground block mb-1">Notes / Observations</label>
-              <textarea
-                rows={2}
-                placeholder="e.g. Targeting changed today resulting in lower CPL..."
-                value={spendForm.notes}
-                onChange={(e) => setSpendForm({ ...spendForm, notes: e.target.value })}
-                className="w-full p-2.5 bg-background border border-border rounded-xl outline-none text-xs text-foreground"
-              />
-            </div>
+            {/* Pinned Sticky Bottom Action Footer */}
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
+                <span>Press</span>
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  ESC
+                </kbd>
+                <span>to close</span>
+              </span>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
-              <button
-                type="button"
-                onClick={() => setIsSpendModalOpen(false)}
-                className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-semibold rounded-xl text-xs cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shadow-md shadow-primary/20 cursor-pointer"
-              >
-                Save Spend Entry
-              </button>
+              <div className="flex items-center gap-3 ml-auto">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsSpendModalOpen(false)}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+                >
+                  Save Spend Entry
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

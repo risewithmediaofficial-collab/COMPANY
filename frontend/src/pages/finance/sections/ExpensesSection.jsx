@@ -1576,146 +1576,124 @@ export default function ExpensesSection({ onQuickAdd }) {
       {/* EDIT SUBSCRIPTION SLIDE-OVER DRAWER */}
       <Dialog open={Boolean(editingSubscription)} onOpenChange={(open) => !open && setEditingSubscription(null)}>
         {editingSubscription && (
-          <DialogContent variant="side" size="lg" className="flex flex-col h-full bg-white text-xs border-l border-slate-200 shadow-2xl p-0">
-            <DialogHeader className="p-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-indigo-50/40 pr-12">
+          <DialogContent variant="side" size="lg" className="flex flex-col h-full bg-card text-foreground border-l border-border shadow-2xl p-0">
+            <DialogHeader className="p-6 border-b border-border bg-muted/20 pr-16 select-none">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-sm shrink-0">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs shrink-0">
                   <CalendarCheck className="h-5 w-5" />
                 </div>
                 <div>
-                  <DialogTitle className="text-base font-bold text-slate-900">
+                  <DialogTitle className="text-lg font-bold text-foreground">
                     Edit Subscription
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-slate-500">
+                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
                     Update recurring commitment for {editingSubscription.serviceName}
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
 
-            <form id="edit-subscription-form" onSubmit={handleSaveEditSubscription} className="flex-1 overflow-y-auto p-5 space-y-4">
-              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                    <FileText className="h-4 w-4 text-indigo-600" />
-                    Subscription Info
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Service / Tool Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={subscriptionForm.serviceName}
-                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, serviceName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Vendor / Provider</label>
-                  <input
-                    type="text"
-                    value={subscriptionForm.vendor}
-                    onChange={(e) => setSubscriptionForm({ ...subscriptionForm, vendor: e.target.value })}
-                    placeholder="e.g. Adobe, AWS, Figma..."
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  />
-                </div>
+            <form id="edit-subscription-form" onSubmit={handleSaveEditSubscription} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar overscroll-contain">
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Service / Tool Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={subscriptionForm.serviceName}
+                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, serviceName: e.target.value })}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                />
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                    <CreditCard className="h-4 w-4 text-indigo-600" />
-                    Billing Cycle & Amount
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-[11px] font-semibold text-slate-700">Expected Amount (₹)</label>
-                      {Number(subscriptionForm.expectedAmount) > 0 && (
-                        <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
-                          {formatINR(Number(subscriptionForm.expectedAmount))}
-                        </span>
-                      )}
-                    </div>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      value={subscriptionForm.expectedAmount}
-                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, expectedAmount: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Frequency</label>
-                    <select
-                      value={subscriptionForm.frequency}
-                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, frequency: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                    >
-                      <option value="monthly">Monthly</option>
-                      <option value="annual">Annual</option>
-                      <option value="quarterly">Quarterly</option>
-                    </select>
-                  </div>
-                </div>
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Vendor / Provider</label>
+                <input
+                  type="text"
+                  value={subscriptionForm.vendor}
+                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, vendor: e.target.value })}
+                  placeholder="e.g. Adobe, AWS, Figma..."
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                />
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4 text-indigo-600" />
-                    Renewal & Category
-                  </span>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-semibold text-foreground">Expected Amount (₹) *</label>
+                  {Number(subscriptionForm.expectedAmount) > 0 && (
+                    <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/20">
+                      {formatINR(Number(subscriptionForm.expectedAmount))}
+                    </span>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Next Renewal Date</label>
-                    <input
-                      type="date"
-                      required
-                      value={subscriptionForm.nextRenewalDate}
-                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, nextRenewalDate: e.target.value })}
-                      onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs cursor-pointer focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-700 mb-1">Classification</label>
-                    <select
-                      value={subscriptionForm.costClassification}
-                      onChange={(e) => setSubscriptionForm({ ...subscriptionForm, costClassification: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-slate-800"
-                    >
-                      <option value="software">Software / SaaS</option>
-                      <option value="tools">Tools & Utilities</option>
-                      <option value="hosting">Hosting / Cloud</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                </div>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={subscriptionForm.expectedAmount}
+                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, expectedAmount: e.target.value })}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Frequency</label>
+                <select
+                  value={subscriptionForm.frequency}
+                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, frequency: e.target.value })}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="annual">Annual</option>
+                  <option value="quarterly">Quarterly</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Next Renewal Date *</label>
+                <input
+                  type="date"
+                  required
+                  value={subscriptionForm.nextRenewalDate}
+                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, nextRenewalDate: e.target.value })}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Classification</label>
+                <select
+                  value={subscriptionForm.costClassification}
+                  onChange={(e) => setSubscriptionForm({ ...subscriptionForm, costClassification: e.target.value })}
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                >
+                  <option value="software">Software / SaaS</option>
+                  <option value="tools">Tools & Utilities</option>
+                  <option value="hosting">Hosting / Cloud</option>
+                  <option value="other">Other</option>
+                </select>
               </div>
             </form>
 
-            <div className="p-4 border-t border-slate-200 bg-slate-50/90 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setEditingSubscription(null)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-white cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="edit-subscription-form"
-                disabled={updateSubscription.isPending}
-                className="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700 disabled:opacity-50 cursor-pointer"
-              >
-                {updateSubscription.isPending ? 'Saving...' : 'Save Changes'}
-              </button>
+            <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex items-center justify-between gap-3 select-none">
+              <span className="text-xs text-muted-foreground font-medium">Auto-renewing ledger commitment</span>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setEditingSubscription(null)}
+                  className="h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="edit-subscription-form"
+                  disabled={updateSubscription.isPending}
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer"
+                >
+                  {updateSubscription.isPending ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
             </div>
           </DialogContent>
         )}
@@ -1777,327 +1755,273 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <form
                   id="edit-expense-sidebar-form"
                   onSubmit={handleSaveEditExpense}
-                  className="flex-1 overflow-y-auto p-5 space-y-4"
+                  className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar overscroll-contain"
                 >
-                  {/* CARD 1: TITLE & AMOUNT & DATE */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3.5">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <FileText className="h-4 w-4 text-indigo-600" />
-                        Basic Bill Details
-                      </span>
-                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                        Required
-                      </span>
-                    </div>
+                  {/* Item Title */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-1.5">
+                      Item Title / Description <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={expenseForm.title}
+                      onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })}
+                      placeholder="e.g. Saran bro - vshoot payment, Office Fiber Broadband..."
+                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                    />
+                  </div>
 
-                    {/* Item Title */}
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                        Item Title / Description <span className="text-rose-500">*</span>
+                  {/* Amount */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-semibold text-foreground">
+                        Total Bill Amount (₹) <span className="text-rose-500">*</span>
                       </label>
-                      <input
-                        type="text"
-                        required
-                        value={expenseForm.title}
-                        onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })}
-                        placeholder="e.g. Saran bro - vshoot payment, Office Fiber Broadband..."
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs"
-                      />
+                      {Number(expenseForm.amount) > 0 && (
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/20">
+                          {formatINR(Number(expenseForm.amount))}
+                        </span>
+                      )}
                     </div>
-
-                    {/* Amount & Date Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="text-[11px] font-semibold text-slate-700">
-                            Total Bill Amount (₹) <span className="text-rose-500">*</span>
-                          </label>
-                          {Number(expenseForm.amount) > 0 && (
-                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
-                              {formatINR(Number(expenseForm.amount))}
-                            </span>
-                          )}
-                        </div>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
-                            ₹
-                          </span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            required
-                            value={expenseForm.amount}
-                            onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
-                            placeholder="0.00"
-                            className="w-full pl-7 pr-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <label className="text-[11px] font-semibold text-slate-700">
-                            Bill / Expense Date <span className="text-rose-500">*</span>
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => setExpenseForm((prev) => ({ ...prev, date: new Date().toISOString().slice(0, 10) }))}
-                            className="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold cursor-pointer"
-                          >
-                            Set Today
-                          </button>
-                        </div>
-                        <div className="relative">
-                          <input
-                            type="date"
-                            required
-                            value={expenseForm.date}
-                            onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
-                            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors cursor-pointer shadow-2xs"
-                          />
-                        </div>
-                      </div>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        required
+                        value={expenseForm.amount}
+                        onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                        placeholder="0.00"
+                        className="h-11 w-full pl-8 pr-4 rounded-xl border border-border bg-background text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                      />
                     </div>
                   </div>
 
-                  {/* CARD 2: VENDOR / PAYEE ALLOCATION */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <User className="h-4 w-4 text-indigo-600" />
-                        Vendor / Payee Allocation
-                      </span>
+                  {/* Date */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-semibold text-foreground">
+                        Bill / Expense Date <span className="text-rose-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setExpenseForm((prev) => ({ ...prev, date: new Date().toISOString().slice(0, 10) }))}
+                        className="text-xs text-primary hover:underline font-bold cursor-pointer"
+                      >
+                        Set Today
+                      </button>
+                    </div>
+                    <input
+                      type="date"
+                      required
+                      value={expenseForm.date}
+                      onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
+                      onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-2xs"
+                    />
+                  </div>
+
+                  {/* Vendor / Payee */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-sm font-semibold text-foreground">
+                        Payee / Vendor Name
+                      </label>
                       {expenseForm.vendor && (
                         <button
                           type="button"
                           onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: '' }))}
-                          className="text-[10px] text-slate-400 hover:text-rose-600 font-semibold cursor-pointer"
+                          className="text-xs text-rose-500 hover:underline font-semibold cursor-pointer"
                         >
                           Clear
                         </button>
                       )}
                     </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                        Payee / Vendor Name
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                        <input
-                          type="text"
-                          placeholder="e.g. Saran, VJ, Office Landlord, Videographer..."
-                          value={expenseForm.vendor}
-                          onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
-                          className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs"
-                        />
-                      </div>
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="e.g. Saran, VJ, Office Landlord, Videographer..."
+                        value={expenseForm.vendor}
+                        onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
+                        className="h-11 w-full pl-10 pr-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                      />
                     </div>
-
-                    {/* Quick Role & Vendor Chips */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                          1-Click Payee Presets:
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {['RJ', 'VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
-                          <button
-                            key={sug}
-                            type="button"
-                            onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: sug }))}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all cursor-pointer ${
-                              expenseForm.vendor === sug
-                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs font-bold'
-                                : 'bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 border-slate-200'
-                            }`}
-                          >
-                            + {sug}
-                          </button>
-                        ))}
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-2">
-                        💡 Bills assigned to a payee will automatically synchronize with their dedicated balance statement and payment ledger.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* CARD 3: CATEGORY & COST TYPE */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3.5">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <Building className="h-4 w-4 text-indigo-600" />
-                        Classification & Cost Allocation
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          Expense Category
-                        </label>
-                        <select
-                          value={expenseForm.category}
-                          onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs cursor-pointer"
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <span className="text-xs text-muted-foreground font-medium">1-Click Presets:</span>
+                      {['RJ', 'VJ', 'Videographer', 'Video Editor', 'Graphic Designer', 'Shoot Crew', 'Saran Bro'].map((sug) => (
+                        <button
+                          key={sug}
+                          type="button"
+                          onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: sug }))}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                            expenseForm.vendor === sug
+                              ? 'bg-primary text-primary-foreground border-primary font-bold shadow-2xs'
+                              : 'bg-secondary/60 hover:bg-secondary text-secondary-foreground border-border'
+                          }`}
                         >
-                          <option value="production_shoot">🎬 Production / Shoot</option>
-                          <option value="rj">🎙️ RJ (Radio Jockey / Voice Talent)</option>
-                          <option value="vj">📺 VJ (Video Jockey / Presenter / Anchor)</option>
-                          <option value="travel">✈️ Travel Allowance</option>
-                          <option value="freelancers">🤝 Freelancers & Crew</option>
-                          <option value="software_subscriptions">💻 Software & Subscriptions</option>
-                          <option value="rent">🏢 Office Rent</option>
-                          <option value="internet">⚡ Internet & Utilities</option>
-                          <option value="marketing">📣 Marketing & Promotion</option>
-                          <option value="office">📎 Office Supplies & Expenses</option>
-                          <option value="other">📦 Other Operations</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                          Cost Allocation Type
-                        </label>
-                        <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-lg border border-slate-200">
-                          <button
-                            type="button"
-                            onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'agency_overhead' }))}
-                            className={`py-1 px-2 rounded-md text-[11px] font-bold transition-all text-center cursor-pointer ${
-                              expenseForm.costType === 'agency_overhead'
-                                ? 'bg-white text-slate-900 shadow-2xs'
-                                : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                          >
-                            Overhead
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'client_project' }))}
-                            className={`py-1 px-2 rounded-md text-[11px] font-bold transition-all text-center cursor-pointer ${
-                              expenseForm.costType === 'client_project'
-                                ? 'bg-indigo-600 text-white shadow-2xs'
-                                : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                          >
-                            Client Direct
-                          </button>
-                        </div>
-                      </div>
+                          + {sug}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* CARD 4: PAYMENT STATUS CARDS */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                      <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <CreditCard className="h-4 w-4 text-indigo-600" />
-                        Clearance & Payment Status
-                      </span>
-                    </div>
+                  {/* Expense Category */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-1.5">
+                      Expense Category
+                    </label>
+                    <select
+                      value={expenseForm.category}
+                      onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
+                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                    >
+                      <option value="production_shoot">🎬 Production / Shoot</option>
+                      <option value="rj">🎙️ RJ (Radio Jockey / Voice Talent)</option>
+                      <option value="vj">📺 VJ (Video Jockey / Presenter / Anchor)</option>
+                      <option value="travel">✈️ Travel Allowance</option>
+                      <option value="freelancers">🤝 Freelancers & Crew</option>
+                      <option value="software_subscriptions">💻 Software & Subscriptions</option>
+                      <option value="rent">🏢 Office Rent</option>
+                      <option value="internet">⚡ Internet & Utilities</option>
+                      <option value="marketing">📣 Marketing & Promotion</option>
+                      <option value="office">📎 Office Supplies & Expenses</option>
+                      <option value="other">📦 Other Operations</option>
+                    </select>
+                  </div>
 
+                  {/* Cost Allocation Type */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-1.5">
+                      Cost Allocation Type
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-muted/40 rounded-xl border border-border">
+                      <button
+                        type="button"
+                        onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'agency_overhead' }))}
+                        className={`h-9 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
+                          expenseForm.costType === 'agency_overhead'
+                            ? 'bg-card text-foreground shadow-2xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Overhead
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'client_project' }))}
+                        className={`h-9 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
+                          expenseForm.costType === 'client_project'
+                            ? 'bg-primary text-primary-foreground shadow-2xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Client Direct
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Clearance & Payment Status */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-1.5">
+                      Clearance & Payment Status
+                    </label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                      {/* Paid */}
                       <button
                         type="button"
                         onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'paid' }))}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
                           expenseForm.paymentStatus === 'paid'
-                            ? 'bg-emerald-50/80 border-emerald-400 ring-2 ring-emerald-500/20 shadow-2xs'
-                            : 'bg-white border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30'
+                            ? 'bg-emerald-500/10 border-emerald-500/40 ring-2 ring-emerald-500/20 shadow-2xs'
+                            : 'bg-card border-border hover:bg-muted/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <CheckCircle2 className={`h-4 w-4 ${expenseForm.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                          <CheckCircle2 className={`h-4 w-4 ${expenseForm.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-muted-foreground'}`} />
                           {expenseForm.paymentStatus === 'paid' && (
                             <span className="h-2 w-2 rounded-full bg-emerald-500" />
                           )}
                         </div>
-                        <div className="font-bold text-xs text-slate-900">Paid</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">Fully cleared</div>
+                        <div className="font-bold text-xs text-foreground">Paid</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">Fully cleared</div>
                       </button>
 
-                      {/* Partially Paid */}
                       <button
                         type="button"
                         onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'partially_paid' }))}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
                           expenseForm.paymentStatus === 'partially_paid'
-                            ? 'bg-amber-50/80 border-amber-400 ring-2 ring-amber-500/20 shadow-2xs'
-                            : 'bg-white border-slate-200 hover:border-amber-200 hover:bg-amber-50/30'
+                            ? 'bg-amber-500/10 border-amber-500/40 ring-2 ring-amber-500/20 shadow-2xs'
+                            : 'bg-card border-border hover:bg-muted/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <Clock className={`h-4 w-4 ${expenseForm.paymentStatus === 'partially_paid' ? 'text-amber-600' : 'text-slate-400'}`} />
+                          <Clock className={`h-4 w-4 ${expenseForm.paymentStatus === 'partially_paid' ? 'text-amber-600' : 'text-muted-foreground'}`} />
                           {expenseForm.paymentStatus === 'partially_paid' && (
                             <span className="h-2 w-2 rounded-full bg-amber-500" />
                           )}
                         </div>
-                        <div className="font-bold text-xs text-slate-900">Partially Paid</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">Advance / split</div>
+                        <div className="font-bold text-xs text-foreground">Partially Paid</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">Advance / split</div>
                       </button>
 
-                      {/* Unpaid */}
                       <button
                         type="button"
                         onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'unpaid' }))}
                         className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
                           expenseForm.paymentStatus === 'unpaid'
-                            ? 'bg-rose-50/80 border-rose-400 ring-2 ring-rose-500/20 shadow-2xs'
-                            : 'bg-white border-slate-200 hover:border-rose-200 hover:bg-rose-50/30'
+                            ? 'bg-rose-500/10 border-rose-500/40 ring-2 ring-rose-500/20 shadow-2xs'
+                            : 'bg-card border-border hover:bg-muted/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <AlertCircle className={`h-4 w-4 ${expenseForm.paymentStatus === 'unpaid' ? 'text-rose-600' : 'text-slate-400'}`} />
+                          <AlertCircle className={`h-4 w-4 ${expenseForm.paymentStatus === 'unpaid' ? 'text-rose-600' : 'text-muted-foreground'}`} />
                           {expenseForm.paymentStatus === 'unpaid' && (
                             <span className="h-2 w-2 rounded-full bg-rose-500" />
                           )}
                         </div>
-                        <div className="font-bold text-xs text-slate-900">Unpaid Bill</div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">Pending liability</div>
+                        <div className="font-bold text-xs text-foreground">Unpaid Bill</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5">Pending liability</div>
                       </button>
                     </div>
                   </div>
 
-                  {/* CARD 5: NOTES & REMARKS */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
-                    <span className="font-bold text-slate-900 text-xs flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
-                      <Receipt className="h-4 w-4 text-indigo-600" />
+                  {/* Notes & Remarks */}
+                  <div>
+                    <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Internal Remarks & Notes
-                    </span>
+                    </label>
                     <textarea
                       rows="3"
                       value={expenseForm.notes}
                       onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
                       placeholder="Optional notes, invoice reference, approval notes, or vendor payment arrangements..."
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors shadow-2xs resize-none"
+                      className="w-full p-3.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs resize-none"
                     />
                   </div>
                 </form>
 
                 {/* Sticky Action Footer */}
-                <div className="p-4 border-t border-slate-200 bg-slate-50/90 flex items-center justify-between gap-3">
+                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex items-center justify-between gap-3 select-none">
                   <button
                     type="button"
                     onClick={() => setIsEditingExpenseInSidebar(false)}
-                    className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-white transition-colors cursor-pointer"
+                    className="h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="submit"
-                      form="edit-expense-sidebar-form"
-                      disabled={updateExpense.isPending}
-                      className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm hover:shadow transition-all disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                      {updateExpense.isPending ? 'Saving Changes...' : 'Save Changes'}
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    form="edit-expense-sidebar-form"
+                    disabled={updateExpense.isPending}
+                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer flex items-center gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    {updateExpense.isPending ? 'Saving Changes...' : 'Save Changes'}
+                  </button>
                 </div>
               </>
             ) : (
@@ -2280,10 +2204,10 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                   {/* INLINE ADD PAYMENT FORM */}
                   {showAddPaymentForm && (
-                    <form onSubmit={handleAddPaymentSubmit} className="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
-                          <Plus className="h-3.5 w-3.5 text-indigo-600" />
+                    <form onSubmit={handleAddPaymentSubmit} className="p-5 rounded-2xl bg-primary/5 border border-primary/20 space-y-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <span className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                          <Plus className="h-4 w-4 text-primary" />
                           Record New Payment / Installment
                         </span>
                         {currentExpBalance > 0 && (
@@ -2291,7 +2215,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                             <button
                               type="button"
                               onClick={() => setPaymentFormData((prev) => ({ ...prev, amount: String(currentExpBalance) }))}
-                              className="text-[10px] font-bold text-indigo-700 hover:text-indigo-900 underline cursor-pointer"
+                              className="text-xs font-bold text-primary hover:underline cursor-pointer"
                             >
                               Pay Remaining (₹{currentExpBalance})
                             </button>
@@ -2299,7 +2223,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                               <button
                                 type="button"
                                 onClick={() => setPaymentFormData((prev) => ({ ...prev, amount: String(Math.round(currentExpBalance / 2)) }))}
-                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 underline cursor-pointer"
+                                className="text-xs font-bold text-primary hover:underline cursor-pointer"
                               >
                                 50% (₹{Math.round(currentExpBalance / 2)})
                               </button>
@@ -2308,87 +2232,86 @@ export default function ExpensesSection({ onQuickAdd }) {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Payment Amount (₹) *
-                          </label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            required
-                            placeholder="e.g. 1500"
-                            value={paymentFormData.amount}
-                            onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Payment Date *
-                          </label>
-                          <input
-                            type="date"
-                            required
-                            value={paymentFormData.paymentDate}
-                            onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentDate: e.target.value })}
-                            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Payment Mode *
-                          </label>
-                          <select
-                            value={paymentFormData.paymentMode}
-                            onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMode: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-                          >
-                            <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                            <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Card">Debit / Credit Card</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Paid From Account
-                          </label>
-                          <select
-                            value={paymentFormData.fundingAccount}
-                            onChange={(e) => setPaymentFormData({ ...paymentFormData, fundingAccount: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-                          >
-                            <option value="">Default / Not specified</option>
-                            {accounts.map((acc) => (
-                              <option key={acc._id} value={acc._id}>
-                                {acc.accountName} ({acc.accountType})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Reference / UTR / Txn ID
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. UPI Ref / Cheque #"
-                            value={paymentFormData.reference}
-                            onChange={(e) => setPaymentFormData({ ...paymentFormData, reference: e.target.value })}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">
+                          Payment Amount (₹) *
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          placeholder="e.g. 1500"
+                          value={paymentFormData.amount}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: e.target.value })}
+                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">
+                          Payment Date *
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          value={paymentFormData.paymentDate}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentDate: e.target.value })}
+                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">
+                          Payment Mode *
+                        </label>
+                        <select
+                          value={paymentFormData.paymentMode}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMode: e.target.value })}
+                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                        >
+                          <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                          <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
+                          <option value="Cash">Cash</option>
+                          <option value="Card">Debit / Credit Card</option>
+                          <option value="Cheque">Cheque</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">
+                          Paid From Account
+                        </label>
+                        <select
+                          value={paymentFormData.fundingAccount}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, fundingAccount: e.target.value })}
+                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                        >
+                          <option value="">Default / Not specified</option>
+                          {accounts.map((acc) => (
+                            <option key={acc._id} value={acc._id}>
+                              {acc.accountName} ({acc.accountType})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">
+                          Reference / UTR / Txn ID
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. UPI Ref / Cheque #"
+                          value={paymentFormData.reference}
+                          onChange={(e) => setPaymentFormData({ ...paymentFormData, reference: e.target.value })}
+                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-foreground mb-1.5">
                           Payment Remarks / Notes
                         </label>
                         <input
@@ -2396,22 +2319,22 @@ export default function ExpensesSection({ onQuickAdd }) {
                           placeholder="e.g. 50% advance for shoot, balance payment..."
                           value={paymentFormData.notes}
                           onChange={(e) => setPaymentFormData({ ...paymentFormData, notes: e.target.value })}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-indigo-500"
+                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
                         />
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-1">
+                      <div className="flex items-center justify-end gap-3 pt-2">
                         <button
                           type="button"
                           onClick={() => setShowAddPaymentForm(false)}
-                          className="px-3 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs cursor-pointer"
+                          className="h-10 px-4 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
                           disabled={addExpensePayment.isPending}
-                          className="px-4 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-2xs disabled:opacity-50 cursor-pointer"
+                          className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-2xs disabled:opacity-50 cursor-pointer"
                         >
                           {addExpensePayment.isPending ? 'Recording...' : 'Save Payment'}
                         </button>
@@ -2727,20 +2650,19 @@ export default function ExpensesSection({ onQuickAdd }) {
                   </div>
 
                   {/* FORM INPUTS */}
-                  <form id="overall-pay-form" onSubmit={handleOverallPaySubmit} className="space-y-4">
-                    {/* Card 1: Amount with 1-Click Chips */}
-                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                          <span>Payment Amount (₹)</span>
-                          <span className="text-rose-500">*</span>
+                  <form id="overall-pay-form" onSubmit={handleOverallPaySubmit} className="space-y-6">
+                    {/* Payment Amount */}
+                    <div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1.5">
+                        <label className="text-sm font-semibold text-foreground">
+                          Payment Amount (₹) <span className="text-rose-500">*</span>
                         </label>
                         {activePayeeDetails.pendingAmount > 0 && (
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
                               onClick={() => setOverallPayFormData((prev) => ({ ...prev, amount: String(activePayeeDetails.pendingAmount) }))}
-                              className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
                             >
                               Pay Full (₹{activePayeeDetails.pendingAmount.toLocaleString('en-IN')})
                             </button>
@@ -2748,7 +2670,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                               <button
                                 type="button"
                                 onClick={() => setOverallPayFormData((prev) => ({ ...prev, amount: String(Math.round(activePayeeDetails.pendingAmount / 2)) }))}
-                                className="text-[10px] font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                className="text-xs font-bold text-primary hover:underline cursor-pointer"
                               >
                                 50% (₹{Math.round(activePayeeDetails.pendingAmount / 2).toLocaleString('en-IN')})
                               </button>
@@ -2758,7 +2680,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </div>
 
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-base">₹</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₹</span>
                         <input
                           type="number"
                           step="0.01"
@@ -2766,90 +2688,90 @@ export default function ExpensesSection({ onQuickAdd }) {
                           placeholder="0.00"
                           value={overallPayFormData.amount}
                           onChange={(e) => setOverallPayFormData({ ...overallPayFormData, amount: e.target.value })}
-                          className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 bg-white text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs"
+                          className="h-11 w-full pl-8 pr-4 rounded-xl border border-border bg-background text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs"
                         />
                       </div>
                     </div>
 
-                    {/* Card 2: Date & Mode Grid */}
-                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Payment Date <span className="text-rose-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            required
-                            value={overallPayFormData.paymentDate}
-                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentDate: e.target.value })}
-                            onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 cursor-pointer focus:ring-1 focus:ring-emerald-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Payment Mode <span className="text-rose-500">*</span>
-                          </label>
-                          <select
-                            value={overallPayFormData.paymentMode}
-                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentMode: e.target.value })}
-                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-                          >
-                            <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
-                            <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Card">Debit / Credit Card</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Other">Other</option>
-                          </select>
-                        </div>
-                      </div>
+                    {/* Payment Date */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-1.5">
+                        Payment Date <span className="text-rose-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={overallPayFormData.paymentDate}
+                        onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentDate: e.target.value })}
+                        onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs"
+                      />
+                    </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Paid From Account
-                          </label>
-                          <select
-                            value={overallPayFormData.fundingAccount}
-                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, fundingAccount: e.target.value })}
-                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-                          >
-                            <option value="">Default / Not specified</option>
-                            {accounts.map((acc) => (
-                              <option key={acc._id} value={acc._id}>
-                                {acc.accountName} ({acc.accountType})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                            Reference / UTR / Txn ID
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="e.g. UPI Ref / Cheque # / NEFT UTR"
-                            value={overallPayFormData.reference}
-                            onChange={(e) => setOverallPayFormData({ ...overallPayFormData, reference: e.target.value })}
-                            className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500"
-                          />
-                        </div>
-                      </div>
+                    {/* Payment Mode */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-1.5">
+                        Payment Mode <span className="text-rose-500">*</span>
+                      </label>
+                      <select
+                        value={overallPayFormData.paymentMode}
+                        onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentMode: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs cursor-pointer"
+                      >
+                        <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                        <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Debit / Credit Card</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
 
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                          Payment Remarks / Notes
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Lump-sum shoot settlement, clearance notes..."
-                          value={overallPayFormData.notes}
-                          onChange={(e) => setOverallPayFormData({ ...overallPayFormData, notes: e.target.value })}
-                          className="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:ring-1 focus:ring-emerald-500"
-                        />
-                      </div>
+                    {/* Paid From Account */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-1.5">
+                        Paid From Account
+                      </label>
+                      <select
+                        value={overallPayFormData.fundingAccount}
+                        onChange={(e) => setOverallPayFormData({ ...overallPayFormData, fundingAccount: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs cursor-pointer"
+                      >
+                        <option value="">Default / Not specified</option>
+                        {accounts.map((acc) => (
+                          <option key={acc._id} value={acc._id}>
+                            {acc.accountName} ({acc.accountType})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Reference / UTR */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-1.5">
+                        Reference / UTR / Txn ID
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. UPI Ref / Cheque # / NEFT UTR"
+                        value={overallPayFormData.reference}
+                        onChange={(e) => setOverallPayFormData({ ...overallPayFormData, reference: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs"
+                      />
+                    </div>
+
+                    {/* Remarks / Notes */}
+                    <div>
+                      <label className="block text-sm font-semibold text-foreground mb-1.5">
+                        Payment Remarks / Notes
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Lump-sum shoot settlement, clearance notes..."
+                        value={overallPayFormData.notes}
+                        onChange={(e) => setOverallPayFormData({ ...overallPayFormData, notes: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-2xs"
+                      />
                     </div>
 
                     {/* Card 3: FIFO Settlement Breakdown & Bill Clearance Preview */}
@@ -2910,11 +2832,11 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* OVERALL PAY FOOTER */}
-                <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex justify-between items-center">
+                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex justify-between items-center select-none">
                   <button
                     type="button"
                     onClick={() => setIsOverallPaying(false)}
-                    className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-white cursor-pointer"
+                    className="h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
                   >
                     Back to Statement
                   </button>
@@ -2922,7 +2844,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     type="submit"
                     form="overall-pay-form"
                     disabled={payeeOverallPay.isPending || !Number(overallPayFormData.amount)}
-                    className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95"
+                    className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Wallet className="h-4 w-4" />
                     {payeeOverallPay.isPending
