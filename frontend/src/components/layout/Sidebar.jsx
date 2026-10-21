@@ -59,6 +59,7 @@ const PINNED_STORAGE_KEY = 'rwm_sidebar_pinned_v2';
 function SidebarComponent({ onOpenSearch, currentPath }) {
   const pathname = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/');
   const dispatch = useDispatch();
+  const sidebarOpen = useSelector((state) => state.ui?.sidebarOpen ?? true);
   const user = useSelector((state) => state.auth.user);
   const userRole = user?.role;
   const userPermissions = user?.permissions;
