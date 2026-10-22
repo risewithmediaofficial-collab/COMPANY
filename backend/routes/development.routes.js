@@ -5,11 +5,17 @@ import express from 'express';
 import {
   getDevDashboard,
   getDevTasks,
+  getDevTaskById,
+  createDevTask,
+  updateDevTask,
+  deleteDevTask,
   updateDevStage,
   submitCodeReview,
   submitQAResult,
   toggleBlocked,
   updateDevMetadata,
+  updateDevChecklist,
+  addDevComment,
   getSprints,
   createSprint,
   updateSprint,
@@ -28,11 +34,18 @@ router.use(protect);
 // ── Dashboard & Task Board ───────────────────────────────────────────────────
 router.get('/dashboard', authorize('superAdmin', 'admin', 'manager', 'employee'), getDevDashboard);
 router.get('/tasks', authorize('superAdmin', 'admin', 'manager', 'employee'), getDevTasks);
+router.post('/tasks', authorize('superAdmin', 'admin', 'manager', 'employee'), createDevTask);
+router.get('/tasks/:id', authorize('superAdmin', 'admin', 'manager', 'employee'), getDevTaskById);
+router.put('/tasks/:id', authorize('superAdmin', 'admin', 'manager', 'employee'), updateDevTask);
+router.delete('/tasks/:id', authorize('superAdmin', 'admin', 'manager'), deleteDevTask);
+
 router.patch('/tasks/:id/stage', authorize('superAdmin', 'admin', 'manager', 'employee'), updateDevStage);
 router.patch('/tasks/:id/review', authorize('superAdmin', 'admin', 'manager', 'employee'), submitCodeReview);
 router.patch('/tasks/:id/qa', authorize('superAdmin', 'admin', 'manager', 'employee'), submitQAResult);
 router.patch('/tasks/:id/blocked', authorize('superAdmin', 'admin', 'manager', 'employee'), toggleBlocked);
 router.patch('/tasks/:id/metadata', authorize('superAdmin', 'admin', 'manager', 'employee'), updateDevMetadata);
+router.patch('/tasks/:id/checklist', authorize('superAdmin', 'admin', 'manager', 'employee'), updateDevChecklist);
+router.post('/tasks/:id/comments', authorize('superAdmin', 'admin', 'manager', 'employee'), addDevComment);
 
 // ── Sprints ──────────────────────────────────────────────────────────────────
 router.get('/sprints', authorize('superAdmin', 'admin', 'manager', 'employee'), getSprints);

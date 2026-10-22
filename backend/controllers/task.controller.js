@@ -4,6 +4,7 @@
 
 import mongoose from 'mongoose';
 import Task from '../models/task.model.js';
+import DevTask from '../models/development/devTask.model.js';
 import Client from '../models/client.model.js';
 import Project from '../models/project.model.js';
 import ProjectMonthlyDeliverable from '../models/projectMonthlyDeliverable.model.js';
@@ -625,7 +626,11 @@ export const getTasks = async (req, res) => {
 
     const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
 
-    const filter = {};
+    const filter = {
+      department: { $ne: 'Development' },
+      'development.isDevTask': { $ne: true },
+      isDevTask: { $ne: true },
+    };
 
     if (project) filter.project = project;
     if (client) filter.client = client;
@@ -697,8 +702,24 @@ export const getTasks = async (req, res) => {
 
 export const getTask = async (req, res) => {
   try {
-    const task = await hydrateTask(req.params.id);
+    let task = await hydrateTask(req.params.id);
     if (!task) {
+      const devTask = await DevTask.findById(req.params.id)
+        .populate('assignedTo', 'name email avatar role')
+        .populate('developer', 'name email avatar role')
+        .populate('reviewer', 'name email avatar role')
+        .populate('tester', 'name email avatar role')
+        .populate('project', 'name client')
+        .populate('client', 'name company email')
+        .populate('comments.author', 'name avatar');
+      if (devTask) {
+        return res.json({
+          success: true,
+          task: serializeTask(devTask),
+          subtasks: [],
+          recentActivity: [],
+        });
+      }
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
@@ -831,13 +852,33 @@ export const createTask = async (req, res) => {
 
         if (
           currentPayload.department === 'Development' ||
+          currentPayload.isDevTask === true ||
+          currentPayload.development?.isDevTask === true ||
           isWebsiteTaskType(currentPayload.taskType) ||
           ['development_task', 'bug_fix'].includes(currentPayload.nonContentCategory)
         ) {
-          if (!currentPayload.development) currentPayload.development = {};
-          currentPayload.development.isDevTask = true;
-          if (!currentPayload.development.stage) currentPayload.development.stage = 'backlog';
-          currentPayload.department = 'Development';
+          const devStage = currentPayload.stage || currentPayload.development?.stage || 'backlog';
+          const devTask = await DevTask.create({
+            ...currentPayload,
+            title: taskTitle,
+            taskTitle: taskTitle,
+            department: 'Development',
+            taskCategory: 'development',
+            isDevTask: true,
+            stage: devStage,
+            status: taskStatusMap[currentPayload.status] || mapDevStageToGlobalStatus(devStage),
+            dueDate: currentPayload.dueDate || currentPayload.deadline || new Date(),
+            organizationId: req.user.organizationId,
+            brandId: req.user.brandId,
+            createdBy: req.user._id,
+            development: {
+              ...(currentPayload.development || {}),
+              isDevTask: true,
+              stage: devStage,
+            },
+          });
+          createdTasks.push(devTask);
+          continue;
         }
 
         const task = await Task.create({
@@ -899,7 +940,14 @@ export const createTask = async (req, res) => {
 
 export const updateTask = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    let task = await Task.findById(req.params.id);
+    if (!task) {
+      const devTask = await DevTask.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      if (devTask) {
+        return res.json({ success: true, task: serializeTask(devTask) });
+      }
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
     const access = await assertTaskAccess(req, task);
     if (!access.allowed) {
       return res.status(access.status).json({ success: false, message: access.message });
@@ -1059,7 +1107,17 @@ export const updateTask = async (req, res) => {
 export const updateTaskStatus = async (req, res) => {
   try {
     const { status, orderIndex } = req.body;
-    const task = await Task.findById(req.params.id);
+    let task = await Task.findById(req.params.id);
+    if (!task) {
+      const devTask = await DevTask.findById(req.params.id);
+      if (devTask) {
+        devTask.status = taskStatusMap[status] || status;
+        if (orderIndex !== undefined) devTask.orderIndex = Number(orderIndex) || 0;
+        await devTask.save();
+        return res.json({ success: true, task: serializeTask(devTask) });
+      }
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
     const access = await assertTaskAccess(req, task);
     if (!access.allowed) {
       return res.status(access.status).json({ success: false, message: access.message });
@@ -1558,7 +1616,11 @@ export const getCalendarTasks = async (req, res) => {
       limit = 500,
     } = req.query;
 
-    const filter = {};
+    const filter = {
+      department: { $ne: 'Development' },
+      'development.isDevTask': { $ne: true },
+      isDevTask: { $ne: true },
+    };
 
     if (project) filter.project = project;
     if (client) filter.client = client;
@@ -1836,7 +1898,14 @@ export const submitClientTaskResponse = async (req, res) => {
 
 export const deleteTask = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    let task = await Task.findById(req.params.id);
+    if (!task) {
+      const devTask = await DevTask.findByIdAndDelete(req.params.id);
+      if (devTask) {
+        return res.json({ success: true, message: 'Task deleted' });
+      }
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
     const access = await assertTaskAccess(req, task);
     if (!access.allowed) {
       return res.status(access.status).json({ success: false, message: access.message });

@@ -22,6 +22,7 @@ import { initCronJobs } from './services/cron.service.js';
 import User from './models/user.model.js';
 import mongoose from 'mongoose';
 import { syncAllClientUsers } from './controllers/client.controller.js';
+import { migrateDevTasksFromTasksCollection } from './utils/devTaskMigration.js';
 
 // Route imports
 import authRoutes from './routes/auth.routes.js';
@@ -114,6 +115,9 @@ try {
 
 // Background sync client portal user accounts without delaying HTTP server readiness
 syncAllClientUsers().catch((err) => console.error('[Sync Error]', err.message));
+
+// Background migration to strictly separate dev tasks from tasks collection
+migrateDevTasksFromTasksCollection().catch((err) => console.error('[DevTask Migration Error]', err.message));
 
 const app = express();
 const httpServer = http.createServer(app);

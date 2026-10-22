@@ -5,7 +5,7 @@ import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
-import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
+import { CreateDevTaskModal } from '../../components/development/CreateDevTaskModal';
 import {
   Kanban,
   Search,
@@ -795,7 +795,7 @@ export default function DevelopmentBoard() {
 
       {/* ── Task Creation Modal ───────────── */}
       {showAddTaskModal && (
-        <KanbanCreateTaskModal
+        <CreateDevTaskModal
           isOpen={showAddTaskModal}
           onClose={() => {
             setShowAddTaskModal(false);
@@ -804,6 +804,8 @@ export default function DevelopmentBoard() {
           onTaskCreated={() => {
             fetchData();
           }}
+          defaultProject={filterProject}
+          defaultSprint={filterSprint}
         />
       )}
     </div>

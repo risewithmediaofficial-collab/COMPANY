@@ -387,15 +387,11 @@ const Tasks = () => {
   // Department partition counts across the entire current date-filtered set
   const taskCountsByDepartment = useMemo(() => ({
     all: dateFilteredTasks.length,
-    dev: dateFilteredTasks.filter(isDevelopmentTask).length,
     content: dateFilteredTasks.filter(isContentTask).length,
   }), [dateFilteredTasks]);
 
-  // Tasks filtered by high-level team department (All | Development | Content)
+  // Tasks filtered by high-level team department (All | Content)
   const departmentFilteredTasks = useMemo(() => {
-    if (departmentFilter === 'development') {
-      return dateFilteredTasks.filter(isDevelopmentTask);
-    }
     if (departmentFilter === 'content') {
       return dateFilteredTasks.filter(isContentTask);
     }
@@ -418,7 +414,6 @@ const Tasks = () => {
 
   // Category pills adaptive to active department
   const currentCategoryPills = useMemo(() => {
-    if (departmentFilter === 'development') return DEV_CATEGORY_PILLS;
     if (departmentFilter === 'content') return CONTENT_CATEGORY_PILLS;
     return TASK_CATEGORY_PILLS;
   }, [departmentFilter]);
@@ -795,25 +790,16 @@ const Tasks = () => {
       icon={CheckSquare}
       breadcrumbs={[{ name: 'Delivery', path: '/tasks' }, { name: 'Tasks Database' }]}
       actions={
-        <div className="flex items-center gap-2">
-          <Link
-            to={isEmployee ? '/development/my-tasks' : '/development/board'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all shadow-xs"
+        canCreate && (
+          <Button
+            size="sm"
+            onClick={handleOpenCreateGeneral}
+            className="bg-primary text-primary-foreground font-bold shadow-sm"
           >
-            <Kanban size={13} />
-            <span>Dev Pipeline Board</span>
-          </Link>
-          {canCreate && (
-            <Button
-              size="sm"
-              onClick={handleOpenCreateGeneral}
-              className="bg-primary text-primary-foreground font-bold shadow-sm"
-            >
-              <Plus size={15} className="mr-1.5 stroke-[2.5]" />
-              New Task
-            </Button>
-          )}
-        </div>
+            <Plus size={15} className="mr-1.5 stroke-[2.5]" />
+            New Task
+          </Button>
+        )
       }
       properties={
         <div className="flex flex-wrap items-center gap-2">
@@ -906,7 +892,7 @@ const Tasks = () => {
       }
     >
       <div className="space-y-4">
-        {/* High-Level Team Partition Bar: All Tasks | Development Team | Content & Creatives */}
+        {/* High-Level Team Partition Bar: All Delivery Tasks | Content & Creatives */}
         <div className="p-2 sm:p-2.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1 hidden sm:inline-flex items-center gap-1">
@@ -924,7 +910,7 @@ const Tasks = () => {
               }`}
             >
               <CheckSquare size={14} className={departmentFilter === 'all' ? 'text-primary-foreground' : 'text-primary'} />
-              <span>All Tasks</span>
+              <span>All Delivery Tasks</span>
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
                   departmentFilter === 'all'
@@ -933,29 +919,6 @@ const Tasks = () => {
                 }`}
               >
                 {taskCountsByDepartment.all}
-              </span>
-            </button>
-
-            {/* Development Team Tasks Button */}
-            <button
-              type="button"
-              onClick={() => handleDepartmentFilterChange('development')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
-                departmentFilter === 'development'
-                  ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-500/25 scale-[1.01]'
-                  : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 hover:bg-blue-500/20'
-              }`}
-            >
-              <Code2 size={14} />
-              <span>💻 Development Team</span>
-              <span
-                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
-                  departmentFilter === 'development'
-                    ? 'bg-white/25 text-white'
-                    : 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
-                }`}
-              >
-                {taskCountsByDepartment.dev}
               </span>
             </button>
 
@@ -985,42 +948,24 @@ const Tasks = () => {
 
           {/* Quick Context Actions */}
           <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
-            {departmentFilter === 'development' && (
-              <Link
-                to="/development/board"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-bold hover:bg-blue-500/20 transition-all shadow-2xs"
-              >
-                <Kanban size={13} />
-                <span>Open Dev Kanban 🚀</span>
-              </Link>
-            )}
             {canCreate && (
               <div className="flex items-center gap-1.5">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleOpenCreateWithCategory('non_content')}
-                  className={`text-xs font-bold h-8 rounded-xl cursor-pointer ${
-                    departmentFilter === 'development'
-                      ? 'bg-blue-600 text-white hover:bg-blue-700 border-transparent shadow-xs'
-                      : 'border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10'
-                  }`}
-                >
-                  <Code2 size={13} className="mr-1" />
-                  + Dev Task
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
                   onClick={() => handleOpenCreateWithCategory('content')}
-                  className={`text-xs font-bold h-8 rounded-xl cursor-pointer ${
-                    departmentFilter === 'content'
-                      ? 'bg-pink-600 text-white hover:bg-pink-700 border-transparent shadow-xs'
-                      : 'border-pink-500/30 text-pink-600 dark:text-pink-400 hover:bg-pink-500/10'
-                  }`}
+                  className="border-pink-500/30 text-pink-600 dark:text-pink-400 hover:bg-pink-500/10 text-xs font-bold h-8 rounded-xl cursor-pointer"
                 >
                   <Film size={13} className="mr-1" />
                   + Content Task
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleOpenCreateGeneral}
+                  className="bg-primary text-primary-foreground font-bold shadow-xs h-8 rounded-xl text-xs cursor-pointer"
+                >
+                  <Plus size={13} className="mr-1" />
+                  + New Task
                 </Button>
               </div>
             )}

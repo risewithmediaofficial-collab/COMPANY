@@ -1,58 +1,29 @@
 // =============================================
 // DEVELOPMENT MODULE CONTROLLER
-// Builds development-specific workflow around existing CRM Tasks
+// Dedicated development workflow powered by DevTask ('dev_tasks' collection)
+// Completely decoupled from CRM Tasks database
 // =============================================
 
 import mongoose from 'mongoose';
-import Task from '../../models/task.model.js';
+import DevTask, { mapDevStageToGlobalStatus } from '../../models/development/devTask.model.js';
 import Sprint from '../../models/development/sprint.model.js';
 import Release from '../../models/development/release.model.js';
 import User from '../../models/user.model.js';
 import Project from '../../models/project.model.js';
+import Client from '../../models/client.model.js';
 import { createNotification } from '../../utils/notification.js';
 import { createActivityLog } from '../../utils/activity.js';
-
-// ── Helper: Query for identifying Development tasks ──────────────────────────
-export const getDevTaskQuery = (additionalQuery = {}) => {
-  return {
-    $or: [
-      { department: { $regex: /^development$/i } },
-      { 'development.isDevTask': true },
-      { nonContentCategory: { $in: ['development_task', 'website', 'crm', 'bug_fix'] } },
-      { taskType: { $in: ['website_development', 'website_update', 'crm_update', 'custom_task'] } },
-    ],
-    ...additionalQuery,
-  };
-};
-
-// ── Helper: Safe mapping from Dev Stage to Global Task Status ─────────────────
-export const mapDevStageToGlobalStatus = (stage) => {
-  const map = {
-    backlog: 'todo',
-    analysis: 'todo',
-    ready_for_dev: 'todo',
-    in_development: 'in_progress',
-    code_review: 'review',
-    qa_testing: 'review',
-    client_uat: 'waiting_for_client',
-    approved: 'approved',
-    deployment: 'on_process',
-    live: 'completed',
-    closed: 'completed',
-    blocked: 'rejected',
-  };
-  return map[stage] || 'todo';
-};
 
 // ── GET Development Dashboard Metrics ─────────────────────────────────────────
 export const getDevDashboard = async (req, res) => {
   try {
-    const baseQuery = getDevTaskQuery();
-    const tasks = await Task.find(baseQuery)
+    const tasks = await DevTask.find()
       .populate('project', 'name')
       .populate('client', 'name company')
       .populate('assignedTo', 'name email avatar role')
+      .populate('developer', 'name email avatar')
       .populate('development.developer', 'name email avatar')
+      .populate('sprint', 'name status')
       .populate('development.sprint', 'name status');
 
     const totalTasks = tasks.length;
@@ -86,19 +57,18 @@ export const getDevDashboard = async (req, res) => {
     const developerWorkload = {};
 
     tasks.forEach((t) => {
-      const dev = t.development || {};
-      const currentStage = dev.stage || 'backlog';
+      const currentStage = t.development?.stage || t.stage || 'backlog';
       if (stageCounts[currentStage] !== undefined) {
         stageCounts[currentStage] += 1;
       }
 
-      if (dev.isBlocked || currentStage === 'blocked') {
+      if (t.isBlocked || t.development?.isBlocked || currentStage === 'blocked') {
         totalBlocked += 1;
       }
 
-      if (dev.isBug || t.nonContentCategory === 'bug_fix') {
+      if (t.isBug || t.development?.isBug) {
         totalBugs += 1;
-        const sev = dev.bugSeverity || 'medium';
+        const sev = t.bugSeverity || t.development?.bugSeverity || 'medium';
         if (bugSeverityCounts[sev] !== undefined) {
           bugSeverityCounts[sev] += 1;
         }
@@ -106,8 +76,9 @@ export const getDevDashboard = async (req, res) => {
 
       // Developer assignment
       const assignedUsers = [];
-      if (dev.developer) {
-        assignedUsers.push(dev.developer);
+      const devUser = t.developer || t.development?.developer;
+      if (devUser) {
+        assignedUsers.push(devUser);
       } else if (Array.isArray(t.assignedTo) && t.assignedTo.length > 0) {
         t.assignedTo.forEach((u) => assignedUsers.push(u));
       }
@@ -132,7 +103,7 @@ export const getDevDashboard = async (req, res) => {
         } else if (['live', 'closed'].includes(currentStage) || t.status === 'completed') {
           developerWorkload[uId].completed += 1;
         }
-        if (dev.isBlocked || currentStage === 'blocked') {
+        if (t.isBlocked || t.development?.isBlocked || currentStage === 'blocked') {
           developerWorkload[uId].blocked += 1;
         }
       });
@@ -142,14 +113,17 @@ export const getDevDashboard = async (req, res) => {
     const activeSprint = await Sprint.findOne({ status: 'active' }).sort({ endDate: 1 });
     let sprintStats = null;
     if (activeSprint) {
-      const sprintTasks = tasks.filter(
-        (t) => t.development?.sprint && t.development.sprint._id?.toString() === activeSprint._id.toString()
-      );
+      const activeSprintIdStr = activeSprint._id.toString();
+      const sprintTasks = tasks.filter((t) => {
+        const spId = t.sprint?._id?.toString() || t.sprint?.toString() || t.development?.sprint?._id?.toString() || t.development?.sprint?.toString();
+        return spId === activeSprintIdStr;
+      });
       const sprintTotal = sprintTasks.length;
-      const sprintCompleted = sprintTasks.filter((t) =>
-        ['live', 'closed'].includes(t.development?.stage) || t.status === 'completed'
-      ).length;
-      const sprintBlocked = sprintTasks.filter((t) => t.development?.isBlocked).length;
+      const sprintCompleted = sprintTasks.filter((t) => {
+        const s = t.development?.stage || t.stage;
+        return ['live', 'closed'].includes(s) || t.status === 'completed';
+      }).length;
+      const sprintBlocked = sprintTasks.filter((t) => t.isBlocked || t.development?.isBlocked).length;
 
       sprintStats = {
         _id: activeSprint._id,
@@ -200,16 +174,17 @@ export const getDevTasks = async (req, res) => {
     const query = {};
 
     if (stage) {
-      query['development.stage'] = stage;
+      query.$or = [{ stage }, { 'development.stage': stage }];
     }
     if (sprint) {
-      query['development.sprint'] = sprint;
+      query.$or = [{ sprint }, { 'development.sprint': sprint }];
     }
     if (release) {
-      query['development.release'] = release;
+      query.$or = [{ release }, { 'development.release': release }];
     }
     if (developer) {
       query.$or = [
+        { developer },
         { 'development.developer': developer },
         { assignedTo: developer },
       ];
@@ -221,13 +196,12 @@ export const getDevTasks = async (req, res) => {
       query.client = client;
     }
     if (isBlocked !== undefined) {
-      query['development.isBlocked'] = isBlocked === 'true';
+      const blockedBool = isBlocked === 'true';
+      query.$or = [{ isBlocked: blockedBool }, { 'development.isBlocked': blockedBool }];
     }
     if (isBug !== undefined) {
-      query.$or = [
-        { 'development.isBug': isBug === 'true' },
-        { nonContentCategory: 'bug_fix' },
-      ];
+      const bugBool = isBug === 'true';
+      query.$or = [{ isBug: bugBool }, { 'development.isBug': bugBool }];
     }
     if (search) {
       query.$and = [
@@ -235,23 +209,28 @@ export const getDevTasks = async (req, res) => {
           $or: [
             { title: { $regex: search, $options: 'i' } },
             { description: { $regex: search, $options: 'i' } },
+            { branch: { $regex: search, $options: 'i' } },
             { 'development.branch': { $regex: search, $options: 'i' } },
+            { pullRequestNumber: { $regex: search, $options: 'i' } },
             { 'development.pullRequestNumber': { $regex: search, $options: 'i' } },
           ],
         },
       ];
     }
 
-    const finalQuery = getDevTaskQuery(query);
-
-    const tasks = await Task.find(finalQuery)
+    const tasks = await DevTask.find(query)
       .populate('project', 'name client')
       .populate('client', 'name company')
       .populate('assignedTo', 'name email avatar role position department')
+      .populate('developer', 'name email avatar role position')
+      .populate('reviewer', 'name email avatar role position')
+      .populate('tester', 'name email avatar role position')
       .populate('development.developer', 'name email avatar role position')
       .populate('development.reviewer', 'name email avatar role position')
       .populate('development.tester', 'name email avatar role position')
       .populate('development.blockedBy', 'name email')
+      .populate('sprint', 'name status startDate endDate')
+      .populate('release', 'version name environment status')
       .populate('development.sprint', 'name status startDate endDate')
       .populate('development.release', 'version name environment status')
       .sort({ updatedAt: -1 });
@@ -267,45 +246,255 @@ export const getDevTasks = async (req, res) => {
   }
 };
 
+// ── GET Single Dev Task By ID ─────────────────────────────────────────────────
+export const getDevTaskById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await DevTask.findById(id)
+      .populate('project', 'name client')
+      .populate('client', 'name company')
+      .populate('assignedTo', 'name email avatar role position department')
+      .populate('developer', 'name email avatar role position')
+      .populate('reviewer', 'name email avatar role position')
+      .populate('tester', 'name email avatar role position')
+      .populate('development.developer', 'name email avatar role position')
+      .populate('development.reviewer', 'name email avatar role position')
+      .populate('development.tester', 'name email avatar role position')
+      .populate('development.blockedBy', 'name email')
+      .populate('sprint', 'name status startDate endDate')
+      .populate('release', 'version name environment status')
+      .populate('comments.author', 'name avatar email');
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Development task not found' });
+    }
+
+    res.json({ success: true, data: task });
+  } catch (error) {
+    console.error('getDevTaskById error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ── CREATE Development Task (Dedicated to dev_tasks collection) ───────────────
+export const createDevTask = async (req, res) => {
+  try {
+    const payload = { ...req.body };
+
+    const title = (payload.title || payload.taskTitle || '').trim();
+    if (!title) {
+      return res.status(400).json({ success: false, message: 'Task title is required' });
+    }
+
+    payload.title = title;
+    payload.taskTitle = title;
+    payload.department = 'Development';
+    payload.taskCategory = 'development';
+    payload.isDevTask = true;
+    payload.createdBy = req.user._id;
+    payload.stage = payload.stage || payload.development?.stage || 'backlog';
+    payload.status = mapDevStageToGlobalStatus(payload.stage);
+
+    // Resolve project & client names
+    if (payload.project) {
+      const proj = await Project.findById(payload.project).select('name client');
+      if (proj) {
+        payload.projectName = proj.name;
+        if (!payload.client && proj.client) {
+          payload.client = proj.client;
+        }
+      }
+    }
+    if (payload.client) {
+      const cli = await Client.findById(payload.client).select('name company');
+      if (cli) {
+        payload.clientName = cli.name || cli.company || '';
+      }
+    }
+
+    // Assignee normalization
+    const devId = payload.developer || payload.development?.developer || (Array.isArray(payload.assignedTo) && payload.assignedTo[0]);
+    if (devId) {
+      payload.developer = devId;
+      if (!Array.isArray(payload.assignedTo)) {
+        payload.assignedTo = [devId];
+      } else if (!payload.assignedTo.includes(devId)) {
+        payload.assignedTo.push(devId);
+      }
+      const devUser = await User.findById(devId).select('name');
+      if (devUser) {
+        payload.assignedPersonName = devUser.name;
+      }
+    }
+
+    // Ensure development subdocument exists and is populated
+    if (!payload.development) {
+      payload.development = {};
+    }
+    payload.development.isDevTask = true;
+    payload.development.stage = payload.stage;
+    if (payload.developer) payload.development.developer = payload.developer;
+    if (payload.reviewer) payload.development.reviewer = payload.reviewer;
+    if (payload.tester) payload.development.tester = payload.tester;
+    if (payload.sprint) payload.development.sprint = payload.sprint;
+    if (payload.release) payload.development.release = payload.release;
+    if (payload.branch) payload.development.branch = payload.branch;
+    if (payload.isBug) payload.development.isBug = payload.isBug;
+    if (payload.bugSeverity) payload.development.bugSeverity = payload.bugSeverity;
+
+    const task = await DevTask.create(payload);
+
+    const populated = await DevTask.findById(task._id)
+      .populate('project', 'name client')
+      .populate('client', 'name company')
+      .populate('assignedTo', 'name email avatar role position')
+      .populate('developer', 'name email avatar')
+      .populate('reviewer', 'name email avatar')
+      .populate('tester', 'name email avatar')
+      .populate('sprint', 'name status')
+      .populate('release', 'version name');
+
+    // Notify developer if assigned
+    if (payload.developer && payload.developer.toString() !== req.user._id.toString()) {
+      const io = req.app.get('io');
+      await createNotification(
+        {
+          recipient: payload.developer,
+          sender: req.user._id,
+          type: 'task_assigned',
+          title: 'Development Task Assigned',
+          message: `You were assigned dev task: "${task.title}"`,
+          link: '/development/board',
+          metadata: { taskId: task._id },
+        },
+        io
+      );
+    }
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'dev_task.created',
+      entityType: 'dev_task',
+      entityId: task._id,
+      title: 'Dev Task Created',
+      description: `Created development task "${task.title}" in stage ${task.stage}`,
+      relatedClient: task.client,
+      relatedProject: task.project,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Development task created successfully',
+      data: populated,
+    });
+  } catch (error) {
+    console.error('createDevTask error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ── UPDATE Development Task ───────────────────────────────────────────────────
+export const updateDevTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const payload = { ...req.body };
+
+    if (payload.stage) {
+      payload.status = mapDevStageToGlobalStatus(payload.stage);
+    }
+
+    const task = await DevTask.findByIdAndUpdate(id, payload, { new: true })
+      .populate('project', 'name client')
+      .populate('client', 'name company')
+      .populate('assignedTo', 'name email avatar role')
+      .populate('developer', 'name email avatar')
+      .populate('reviewer', 'name email avatar')
+      .populate('tester', 'name email avatar')
+      .populate('sprint', 'name status')
+      .populate('release', 'version name');
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    res.json({ success: true, message: 'Task updated successfully', data: task });
+  } catch (error) {
+    console.error('updateDevTask error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ── DELETE Development Task ───────────────────────────────────────────────────
+export const deleteDevTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await DevTask.findByIdAndDelete(id);
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'dev_task.deleted',
+      entityType: 'dev_task',
+      entityId: id,
+      title: 'Dev Task Deleted',
+      description: `Deleted development task "${task.title}"`,
+    });
+
+    res.json({ success: true, message: 'Development task deleted successfully' });
+  } catch (error) {
+    console.error('deleteDevTask error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ── UPDATE Development Stage (Pipeline Transitions) ──────────────────────────
 export const updateDevStage = async (req, res) => {
   try {
     const { id } = req.params;
     const { stage, blockedReason } = req.body;
 
-    const task = await Task.findById(id);
+    const task = await DevTask.findById(id);
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    if (!task.development) {
-      task.development = { isDevTask: true, stage: 'backlog' };
-    }
-    task.development.isDevTask = true;
-    task.department = 'Development';
-
-    const previousStage = task.development.stage || 'backlog';
+    const previousStage = task.stage || task.development?.stage || 'backlog';
 
     if (stage === 'blocked') {
-      task.development.previousStage = previousStage !== 'blocked' ? previousStage : (task.development.previousStage || 'in_development');
+      task.previousStage = previousStage !== 'blocked' ? previousStage : (task.previousStage || 'in_development');
+      task.stage = 'blocked';
+      task.isBlocked = true;
+      task.blockedReason = blockedReason || 'Blocked by team';
+      task.blockedBy = req.user._id;
+      task.blockedAt = new Date();
+
+      if (!task.development) task.development = {};
+      task.development.previousStage = task.previousStage;
       task.development.stage = 'blocked';
       task.development.isBlocked = true;
-      task.development.blockedReason = blockedReason || 'Blocked by team';
+      task.development.blockedReason = task.blockedReason;
       task.development.blockedBy = req.user._id;
-      task.development.blockedAt = new Date();
+      task.development.blockedAt = task.blockedAt;
     } else {
       // If moving out of blocked
-      if (task.development.isBlocked) {
-        task.development.isBlocked = false;
-        task.development.blockedReason = '';
+      if (task.isBlocked) {
+        task.isBlocked = false;
+        task.blockedReason = '';
       }
+      task.previousStage = previousStage;
+      task.stage = stage;
+
+      if (!task.development) task.development = {};
+      task.development.isBlocked = false;
+      task.development.blockedReason = '';
       task.development.previousStage = previousStage;
       task.development.stage = stage;
     }
 
-    // Sync global task status safely without breaking core CRM
-    task.status = mapDevStageToGlobalStatus(task.development.stage);
-    if (['live', 'closed'].includes(task.development.stage)) {
+    task.status = mapDevStageToGlobalStatus(task.stage);
+    if (['live', 'closed'].includes(task.stage)) {
       task.completedAt = new Date();
     }
 
@@ -315,7 +504,7 @@ export const updateDevStage = async (req, res) => {
     if (task.project) {
       io?.broadcastToProject?.(task.project.toString(), 'devTaskStageChanged', {
         taskId: task._id,
-        stage: task.development.stage,
+        stage: task.stage,
       });
     }
 
@@ -323,33 +512,32 @@ export const updateDevStage = async (req, res) => {
     await createActivityLog({
       actor: req.user,
       action: 'task.dev.stage_changed',
-      entityType: 'task',
+      entityType: 'dev_task',
       entityId: task._id,
-      title: `Task moved to ${task.development.stage.replace(/_/g, ' ').toUpperCase()}`,
-      description: task.development.isBlocked
-        ? `Task blocked: ${task.development.blockedReason}`
-        : `Task moved from ${previousStage.replace(/_/g, ' ')} to ${task.development.stage.replace(/_/g, ' ')}`,
+      title: `Task moved to ${task.stage.replace(/_/g, ' ').toUpperCase()}`,
+      description: task.isBlocked
+        ? `Task blocked: ${task.blockedReason}`
+        : `Task moved from ${previousStage.replace(/_/g, ' ')} to ${task.stage.replace(/_/g, ' ')}`,
       relatedClient: task.client,
       relatedProject: task.project,
-      relatedTask: task._id,
       metadata: {
         fromStage: previousStage,
-        toStage: task.development.stage,
-        isBlocked: task.development.isBlocked,
-        blockedReason: task.development.blockedReason,
+        toStage: task.stage,
+        isBlocked: task.isBlocked,
+        blockedReason: task.blockedReason,
       },
     });
 
     // Notify developer or assignees
-    const recipient = task.development.developer || (task.assignedTo && task.assignedTo[0]);
+    const recipient = task.developer || (task.assignedTo && task.assignedTo[0]);
     if (recipient && recipient.toString() !== req.user._id.toString()) {
       await createNotification(
         {
           recipient,
           sender: req.user._id,
-          type: task.development.isBlocked ? 'task_blocked' : 'task_stage_changed',
-          title: task.development.isBlocked ? 'Task Blocked' : 'Development Stage Updated',
-          message: `Task "${task.title}" is now ${task.development.stage.replace(/_/g, ' ')}`,
+          type: task.isBlocked ? 'task_blocked' : 'task_stage_changed',
+          title: task.isBlocked ? 'Task Blocked' : 'Development Stage Updated',
+          message: `Task "${task.title}" is now ${task.stage.replace(/_/g, ' ')}`,
           link: '/development/board',
           metadata: { taskId: task._id },
         },
@@ -357,19 +545,22 @@ export const updateDevStage = async (req, res) => {
       );
     }
 
-    const populated = await Task.findById(task._id)
+    const populated = await DevTask.findById(task._id)
       .populate('project', 'name client')
       .populate('client', 'name company')
       .populate('assignedTo', 'name email avatar role')
+      .populate('developer', 'name email avatar')
+      .populate('reviewer', 'name email avatar')
+      .populate('tester', 'name email avatar')
       .populate('development.developer', 'name email avatar')
       .populate('development.reviewer', 'name email avatar')
       .populate('development.tester', 'name email avatar')
-      .populate('development.sprint', 'name status')
-      .populate('development.release', 'version name');
+      .populate('sprint', 'name status')
+      .populate('release', 'version name');
 
     res.json({
       success: true,
-      message: `Task stage updated to ${task.development.stage}`,
+      message: `Task stage updated to ${task.stage}`,
       data: populated,
     });
   } catch (error) {
@@ -391,28 +582,30 @@ export const submitCodeReview = async (req, res) => {
       });
     }
 
-    const task = await Task.findById(id);
+    const task = await DevTask.findById(id);
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    if (!task.development) {
-      task.development = { isDevTask: true, stage: 'code_review' };
-    }
+    task.reviewer = req.user._id;
+    task.reviewStatus = reviewStatus;
+    task.reviewComments = reviewComments || '';
+    task.reviewedAt = new Date();
 
+    if (!task.development) task.development = {};
     task.development.reviewer = req.user._id;
     task.development.reviewStatus = reviewStatus;
     task.development.reviewComments = reviewComments || '';
     task.development.reviewedAt = new Date();
 
-    const previousStage = task.development.stage;
-
     // Rule: if changes_requested, route back to in_development.
     // Rule: if approved, route forward to qa_testing.
     if (reviewStatus === 'changes_requested') {
+      task.stage = 'in_development';
       task.development.stage = 'in_development';
       task.status = 'in_progress';
     } else if (reviewStatus === 'approved') {
+      task.stage = 'qa_testing';
       task.development.stage = 'qa_testing';
       task.status = 'review';
     }
@@ -426,18 +619,17 @@ export const submitCodeReview = async (req, res) => {
     await createActivityLog({
       actor: req.user,
       action: 'task.dev.code_review',
-      entityType: 'task',
+      entityType: 'dev_task',
       entityId: task._id,
       title: actionTitle,
       description: reviewComments ? `${actionDesc} — Note: ${reviewComments}` : actionDesc,
       relatedClient: task.client,
       relatedProject: task.project,
-      relatedTask: task._id,
       metadata: { reviewStatus, reviewComments },
     });
 
     // Notify developer
-    const devId = task.development.developer || (task.assignedTo && task.assignedTo[0]);
+    const devId = task.developer || (task.assignedTo && task.assignedTo[0]);
     if (devId && devId.toString() !== req.user._id.toString()) {
       await createNotification(
         {
@@ -453,12 +645,12 @@ export const submitCodeReview = async (req, res) => {
       );
     }
 
-    const populated = await Task.findById(task._id)
+    const populated = await DevTask.findById(task._id)
       .populate('project', 'name client')
       .populate('client', 'name company')
-      .populate('development.developer', 'name email avatar')
-      .populate('development.reviewer', 'name email avatar')
-      .populate('development.tester', 'name email avatar');
+      .populate('developer', 'name email avatar')
+      .populate('reviewer', 'name email avatar')
+      .populate('tester', 'name email avatar');
 
     res.json({
       success: true,
@@ -471,7 +663,7 @@ export const submitCodeReview = async (req, res) => {
   }
 };
 
-// ── SUBMIT QA Test Result (QA Testers) ───────────────────────────────────────
+// ── SUBMIT QA Testing Result (Testers) ────────────────────────────────────────
 export const submitQAResult = async (req, res) => {
   try {
     const { id } = req.params;
@@ -480,24 +672,28 @@ export const submitQAResult = async (req, res) => {
     if (!['passed', 'failed', 'blocked'].includes(testStatus)) {
       return res.status(400).json({
         success: false,
-        message: 'QA test status must be passed, failed, or blocked',
+        message: 'Test status must be passed, failed, or blocked',
       });
     }
 
-    const task = await Task.findById(id);
+    const task = await DevTask.findById(id);
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    if (!task.development) {
-      task.development = { isDevTask: true, stage: 'qa_testing' };
-    }
+    task.tester = req.user._id;
+    task.testStatus = testStatus;
+    task.testNotes = testNotes || '';
+    task.testDate = new Date();
 
+    if (!task.development) task.development = {};
     task.development.tester = req.user._id;
     task.development.testStatus = testStatus;
     task.development.testNotes = testNotes || '';
     task.development.testDate = new Date();
+
     if (Array.isArray(testAttachments)) {
+      task.testAttachments = testAttachments;
       task.development.testAttachments = testAttachments;
     }
 
@@ -505,12 +701,21 @@ export const submitQAResult = async (req, res) => {
     // Rule: If passed, move forward to client_uat
     // Rule: If blocked, move to blocked
     if (testStatus === 'failed') {
+      task.stage = 'in_development';
       task.development.stage = 'in_development';
       task.status = 'in_progress';
     } else if (testStatus === 'passed') {
+      task.stage = 'client_uat';
       task.development.stage = 'client_uat';
       task.status = 'waiting_for_client';
     } else if (testStatus === 'blocked') {
+      task.previousStage = 'qa_testing';
+      task.stage = 'blocked';
+      task.isBlocked = true;
+      task.blockedReason = testNotes || 'Blocked in QA testing';
+      task.blockedBy = req.user._id;
+      task.blockedAt = new Date();
+
       task.development.previousStage = 'qa_testing';
       task.development.stage = 'blocked';
       task.development.isBlocked = true;
@@ -528,18 +733,17 @@ export const submitQAResult = async (req, res) => {
     await createActivityLog({
       actor: req.user,
       action: 'task.dev.qa_result',
-      entityType: 'task',
+      entityType: 'dev_task',
       entityId: task._id,
       title: actionTitle,
       description: testNotes ? `${actionDesc} — Note: ${testNotes}` : actionDesc,
       relatedClient: task.client,
       relatedProject: task.project,
-      relatedTask: task._id,
       metadata: { testStatus, testNotes },
     });
 
     // Notify developer
-    const devId = task.development.developer || (task.assignedTo && task.assignedTo[0]);
+    const devId = task.developer || (task.assignedTo && task.assignedTo[0]);
     if (devId && devId.toString() !== req.user._id.toString()) {
       await createNotification(
         {
@@ -555,12 +759,12 @@ export const submitQAResult = async (req, res) => {
       );
     }
 
-    const populated = await Task.findById(task._id)
+    const populated = await DevTask.findById(task._id)
       .populate('project', 'name client')
       .populate('client', 'name company')
-      .populate('development.developer', 'name email avatar')
-      .populate('development.reviewer', 'name email avatar')
-      .populate('development.tester', 'name email avatar');
+      .populate('developer', 'name email avatar')
+      .populate('reviewer', 'name email avatar')
+      .populate('tester', 'name email avatar');
 
     res.json({
       success: true,
@@ -579,28 +783,37 @@ export const toggleBlocked = async (req, res) => {
     const { id } = req.params;
     const { isBlocked, blockedReason } = req.body;
 
-    const task = await Task.findById(id);
+    const task = await DevTask.findById(id);
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    if (!task.development) {
-      task.development = { isDevTask: true, stage: 'backlog' };
-    }
-
     if (isBlocked) {
-      task.development.previousStage = task.development.stage !== 'blocked' ? task.development.stage : (task.development.previousStage || 'in_development');
+      task.previousStage = task.stage !== 'blocked' ? task.stage : (task.previousStage || 'in_development');
+      task.stage = 'blocked';
+      task.isBlocked = true;
+      task.blockedReason = blockedReason || 'Task is blocked';
+      task.blockedBy = req.user._id;
+      task.blockedAt = new Date();
+
+      if (!task.development) task.development = {};
+      task.development.previousStage = task.previousStage;
       task.development.stage = 'blocked';
       task.development.isBlocked = true;
-      task.development.blockedReason = blockedReason || 'Task is blocked';
+      task.development.blockedReason = task.blockedReason;
       task.development.blockedBy = req.user._id;
-      task.development.blockedAt = new Date();
+      task.development.blockedAt = task.blockedAt;
     } else {
       // Unblock: return to previousStage
+      task.isBlocked = false;
+      task.blockedReason = '';
+      task.stage = task.previousStage || 'in_development';
+      task.status = mapDevStageToGlobalStatus(task.stage);
+
+      if (!task.development) task.development = {};
       task.development.isBlocked = false;
       task.development.blockedReason = '';
-      task.development.stage = task.development.previousStage || 'in_development';
-      task.status = mapDevStageToGlobalStatus(task.development.stage);
+      task.development.stage = task.stage;
     }
 
     await task.save();
@@ -609,21 +822,20 @@ export const toggleBlocked = async (req, res) => {
     await createActivityLog({
       actor: req.user,
       action: isBlocked ? 'task.dev.blocked' : 'task.dev.unblocked',
-      entityType: 'task',
+      entityType: 'dev_task',
       entityId: task._id,
       title: isBlocked ? 'Task Blocked' : 'Task Unblocked',
-      description: isBlocked ? `Task blocked: ${task.development.blockedReason}` : `Task unblocked, resumed at ${task.development.stage}`,
+      description: isBlocked ? `Task blocked: ${task.blockedReason}` : `Task unblocked, resumed at ${task.stage}`,
       relatedClient: task.client,
       relatedProject: task.project,
-      relatedTask: task._id,
-      metadata: { isBlocked, blockedReason: task.development.blockedReason },
+      metadata: { isBlocked, blockedReason: task.blockedReason },
     });
 
-    const populated = await Task.findById(task._id)
+    const populated = await DevTask.findById(task._id)
       .populate('project', 'name client')
       .populate('client', 'name company')
-      .populate('development.developer', 'name email avatar')
-      .populate('development.blockedBy', 'name email');
+      .populate('developer', 'name email avatar')
+      .populate('blockedBy', 'name email');
 
     res.json({
       success: true,
@@ -658,49 +870,88 @@ export const updateDevMetadata = async (req, res) => {
       environment,
     } = req.body;
 
-    const task = await Task.findById(id);
+    const task = await DevTask.findById(id);
     if (!task) {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    if (!task.development) {
-      task.development = { isDevTask: true, stage: 'backlog' };
+    if (!task.development) task.development = {};
+
+    if (developer !== undefined) {
+      task.developer = developer || null;
+      task.development.developer = developer || null;
+      if (developer && !task.assignedTo.some((u) => u.toString() === developer.toString())) {
+        task.assignedTo.push(developer);
+      }
     }
-    task.development.isDevTask = true;
-    task.department = 'Development';
-
-    if (developer !== undefined) task.development.developer = developer || null;
-    if (reviewer !== undefined) task.development.reviewer = reviewer || null;
-    if (tester !== undefined) task.development.tester = tester || null;
-    if (branch !== undefined) task.development.branch = branch;
-    if (pullRequestUrl !== undefined) task.development.pullRequestUrl = pullRequestUrl;
-    if (pullRequestNumber !== undefined) task.development.pullRequestNumber = pullRequestNumber;
-    if (commitHash !== undefined) task.development.commitHash = commitHash;
-    if (sprint !== undefined) task.development.sprint = sprint || null;
-    if (release !== undefined) task.development.release = release || null;
-    if (isBug !== undefined) task.development.isBug = Boolean(isBug);
-    if (bugSeverity !== undefined) task.development.bugSeverity = bugSeverity;
-    if (stepsToReproduce !== undefined) task.development.stepsToReproduce = stepsToReproduce;
-    if (expectedResult !== undefined) task.development.expectedResult = expectedResult;
-    if (actualResult !== undefined) task.development.actualResult = actualResult;
-    if (environment !== undefined) task.development.environment = environment;
-
-    // If developer is assigned, also ensure assignedTo has the user
-    if (developer && !task.assignedTo.some((u) => u.toString() === developer.toString())) {
-      task.assignedTo.push(developer);
+    if (reviewer !== undefined) {
+      task.reviewer = reviewer || null;
+      task.development.reviewer = reviewer || null;
+    }
+    if (tester !== undefined) {
+      task.tester = tester || null;
+      task.development.tester = tester || null;
+    }
+    if (branch !== undefined) {
+      task.branch = branch;
+      task.development.branch = branch;
+    }
+    if (pullRequestUrl !== undefined) {
+      task.pullRequestUrl = pullRequestUrl;
+      task.development.pullRequestUrl = pullRequestUrl;
+    }
+    if (pullRequestNumber !== undefined) {
+      task.pullRequestNumber = pullRequestNumber;
+      task.development.pullRequestNumber = pullRequestNumber;
+    }
+    if (commitHash !== undefined) {
+      task.commitHash = commitHash;
+      task.development.commitHash = commitHash;
+    }
+    if (sprint !== undefined) {
+      task.sprint = sprint || null;
+      task.development.sprint = sprint || null;
+    }
+    if (release !== undefined) {
+      task.release = release || null;
+      task.development.release = release || null;
+    }
+    if (isBug !== undefined) {
+      task.isBug = Boolean(isBug);
+      task.development.isBug = Boolean(isBug);
+    }
+    if (bugSeverity !== undefined) {
+      task.bugSeverity = bugSeverity;
+      task.development.bugSeverity = bugSeverity;
+    }
+    if (stepsToReproduce !== undefined) {
+      task.stepsToReproduce = stepsToReproduce;
+      task.development.stepsToReproduce = stepsToReproduce;
+    }
+    if (expectedResult !== undefined) {
+      task.expectedResult = expectedResult;
+      task.development.expectedResult = expectedResult;
+    }
+    if (actualResult !== undefined) {
+      task.actualResult = actualResult;
+      task.development.actualResult = actualResult;
+    }
+    if (environment !== undefined) {
+      task.environment = environment;
+      task.development.environment = environment;
     }
 
     await task.save();
 
-    const populated = await Task.findById(task._id)
+    const populated = await DevTask.findById(task._id)
       .populate('project', 'name client')
       .populate('client', 'name company')
       .populate('assignedTo', 'name email avatar')
-      .populate('development.developer', 'name email avatar')
-      .populate('development.reviewer', 'name email avatar')
-      .populate('development.tester', 'name email avatar')
-      .populate('development.sprint', 'name status')
-      .populate('development.release', 'version name');
+      .populate('developer', 'name email avatar')
+      .populate('reviewer', 'name email avatar')
+      .populate('tester', 'name email avatar')
+      .populate('sprint', 'name status')
+      .populate('release', 'version name');
 
     res.json({
       success: true,
@@ -713,6 +964,60 @@ export const updateDevMetadata = async (req, res) => {
   }
 };
 
+// ── UPDATE Dev Checklist ──────────────────────────────────────────────────────
+export const updateDevChecklist = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { checklist } = req.body;
+
+    const task = await DevTask.findById(id);
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    if (Array.isArray(checklist)) {
+      task.checklist = checklist;
+      await task.save();
+    }
+
+    res.json({ success: true, checklist: task.checklist });
+  } catch (error) {
+    console.error('updateDevChecklist error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ── ADD Comment to Dev Task ───────────────────────────────────────────────────
+export const addDevComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+
+    if (!content?.trim()) {
+      return res.status(400).json({ success: false, message: 'Comment content is required' });
+    }
+
+    const task = await DevTask.findById(id);
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    task.comments = task.comments || [];
+    const comment = {
+      content: content.trim(),
+      author: req.user._id,
+      createdAt: new Date(),
+    };
+    task.comments.push(comment);
+    await task.save();
+
+    res.json({ success: true, message: 'Comment added', comment });
+  } catch (error) {
+    console.error('addDevComment error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ── SPRINT MANAGEMENT (CRUD) ──────────────────────────────────────────────────
 export const getSprints = async (req, res) => {
   try {
@@ -721,19 +1026,25 @@ export const getSprints = async (req, res) => {
       .populate('createdBy', 'name email')
       .sort({ startDate: -1 });
 
-    // Calculate task counts per sprint
     const sprintIds = sprints.map((s) => s._id);
-    const sprintTasks = await Task.find({ 'development.sprint': { $in: sprintIds } })
-      .select('development.sprint development.stage status');
+    const sprintTasks = await DevTask.find({
+      $or: [
+        { sprint: { $in: sprintIds } },
+        { 'development.sprint': { $in: sprintIds } },
+      ],
+    }).select('sprint development.sprint stage development.stage status');
 
     const sprintStats = sprints.map((s) => {
-      const tasks = sprintTasks.filter(
-        (t) => t.development?.sprint?.toString() === s._id.toString()
-      );
+      const sIdStr = s._id.toString();
+      const tasks = sprintTasks.filter((t) => {
+        const tid = t.sprint?.toString() || t.development?.sprint?.toString();
+        return tid === sIdStr;
+      });
       const total = tasks.length;
-      const completed = tasks.filter(
-        (t) => ['live', 'closed'].includes(t.development?.stage) || t.status === 'completed'
-      ).length;
+      const completed = tasks.filter((t) => {
+        const st = t.stage || t.development?.stage;
+        return ['live', 'closed'].includes(st) || t.status === 'completed';
+      }).length;
       return {
         ...s.toObject(),
         totalTasks: total,
@@ -796,10 +1107,10 @@ export const deleteSprint = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Sprint not found' });
     }
 
-    // Unlink sprint from tasks
-    await Task.updateMany(
-      { 'development.sprint': id },
-      { $set: { 'development.sprint': null } }
+    // Unlink sprint from dev tasks
+    await DevTask.updateMany(
+      { $or: [{ sprint: id }, { 'development.sprint': id }] },
+      { $set: { sprint: null, 'development.sprint': null } }
     );
 
     res.json({ success: true, message: 'Sprint deleted' });
@@ -818,14 +1129,21 @@ export const getReleases = async (req, res) => {
       .sort({ createdAt: -1 });
 
     const releaseIds = releases.map((r) => r._id);
-    const releaseTasks = await Task.find({ 'development.release': { $in: releaseIds } })
-      .select('title status development.stage development.release')
+    const releaseTasks = await DevTask.find({
+      $or: [
+        { release: { $in: releaseIds } },
+        { 'development.release': { $in: releaseIds } },
+      ],
+    })
+      .select('title status stage development.stage release development.release')
       .populate('project', 'name');
 
     const result = releases.map((r) => {
-      const tasks = releaseTasks.filter(
-        (t) => t.development?.release?.toString() === r._id.toString()
-      );
+      const rIdStr = r._id.toString();
+      const tasks = releaseTasks.filter((t) => {
+        const rid = t.release?.toString() || t.development?.release?.toString();
+        return rid === rIdStr;
+      });
       return {
         ...r.toObject(),
         taskCount: tasks.length,
@@ -880,11 +1198,14 @@ export const updateRelease = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Release not found' });
     }
 
-    // If release was deployed, optionally update associated tasks stage to deployment/live
+    // If release was deployed, update associated dev tasks stage to live
     if (payload.status === 'deployed') {
-      await Task.updateMany(
-        { 'development.release': id, 'development.stage': { $in: ['approved', 'deployment'] } },
-        { $set: { 'development.stage': 'live', status: 'completed' } }
+      await DevTask.updateMany(
+        {
+          $or: [{ release: id }, { 'development.release': id }],
+          $or: [{ stage: { $in: ['approved', 'deployment'] } }, { 'development.stage': { $in: ['approved', 'deployment'] } }],
+        },
+        { $set: { stage: 'live', 'development.stage': 'live', status: 'completed' } }
       );
     }
 
@@ -903,9 +1224,9 @@ export const deleteRelease = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Release not found' });
     }
 
-    await Task.updateMany(
-      { 'development.release': id },
-      { $set: { 'development.release': null } }
+    await DevTask.updateMany(
+      { $or: [{ release: id }, { 'development.release': id }] },
+      { $set: { release: null, 'development.release': null } }
     );
 
     res.json({ success: true, message: 'Release deleted' });
