@@ -157,13 +157,15 @@ const App = () => {
     }
   }, [dispatch, isAuthenticated, user, loading, authChecked]);
 
-  const isResolvingInitialAuth = loading && !user && isAuthenticated && !authChecked;
+  const isResolvingInitialAuth = isAuthenticated && !user && !authChecked;
 
   return (
     <>
       <WebsiteLaunchLoader />
-      {!isResolvingInitialAuth && (
-        <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+      {isResolvingInitialAuth ? (
+        <LoadingScreen />
+      ) : (
+        <Router future={{ v7_relativeSplatPath: true }}>
       <HotToaster position="top-right" reverseOrder={false} />
       <SonnerToaster position="top-right" richColors closeButton />
       <BannerNotificationHost />

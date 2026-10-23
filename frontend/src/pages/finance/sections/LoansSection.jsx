@@ -665,7 +665,7 @@ export default function LoansSection({ onQuickAdd }) {
                       onClick={() => handleOpenPayEMI(loan)}
                       className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors cursor-pointer"
                     >
-                      <CreditCard className="h-3.5 w-3.5" /> + Pay EMI
+                      <CreditCard className="h-3.5 w-3.5" /> Pay EMI
                     </button>
                   )}
                 </div>

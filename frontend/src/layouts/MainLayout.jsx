@@ -24,10 +24,11 @@ const MainLayout = () => {
     setGlobalSearchOpen(true);
   }, []);
 
-  // Clear any residual scroll lock on main element across route changes
+  // Clear any residual scroll lock on main element and reset scroll to top across route changes
   useEffect(() => {
-    const mainEl = document.querySelector('main');
+    const mainEl = document.getElementById('main-content-scroll');
     if (mainEl) {
+      mainEl.scrollTop = 0;
       mainEl.style.removeProperty('overflow');
     }
   }, [location.pathname]);
@@ -46,9 +47,9 @@ const MainLayout = () => {
           className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-5 md:p-6 custom-scrollbar overscroll-contain pb-safe"
         >
           <div className="mx-auto min-w-0 max-w-7xl pb-16">
-            <ErrorBoundary locationKey={location.pathname}>
+            <ErrorBoundary key={location.pathname} locationKey={location.pathname}>
               <Suspense fallback={<PageLoadingFallback />}>
-                <Outlet />
+                <Outlet key={location.pathname} />
               </Suspense>
             </ErrorBoundary>
           </div>

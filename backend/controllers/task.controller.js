@@ -163,6 +163,7 @@ const buildUserTaskAssignmentOr = (userId) => [
   { videographerAssigned: userId },
   { editorAssigned: userId },
   { publisherAssigned: userId },
+  { designerAssigned: userId },
 ];
 
 const isTaskAssignedToUser = (task, userId) => {
@@ -173,7 +174,8 @@ const isTaskAssignedToUser = (task, userId) => {
     || toIdString(task.voiceArtistAssigned) === id
     || toIdString(task.videographerAssigned) === id
     || toIdString(task.editorAssigned) === id
-    || toIdString(task.publisherAssigned) === id;
+    || toIdString(task.publisherAssigned) === id
+    || toIdString(task.designerAssigned) === id;
 };
 
 const isTaskOverdue = (item) => {
@@ -222,6 +224,7 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.videographerAssigned !== undefined) payload.videographerAssigned = toObjectIdOrNull(payload.videographerAssigned);
   if (payload.editorAssigned !== undefined) payload.editorAssigned = toObjectIdOrNull(payload.editorAssigned);
   if (payload.publisherAssigned !== undefined) payload.publisherAssigned = toObjectIdOrNull(payload.publisherAssigned);
+  if (payload.designerAssigned !== undefined) payload.designerAssigned = toObjectIdOrNull(payload.designerAssigned);
   if (payload.client !== undefined) payload.client = toObjectIdOrNull(payload.client);
   if (payload.project !== undefined) payload.project = toObjectIdOrNull(payload.project);
   if (payload.parent !== undefined) payload.parent = toObjectIdOrNull(payload.parent);
@@ -252,6 +255,11 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.shootDate !== undefined) payload.shootDate = payload.shootDate ? new Date(payload.shootDate) : undefined;
   if (payload.shootLocation !== undefined) payload.shootLocation = payload.shootLocation ? payload.shootLocation.trim() : '';
   if (payload.rawFootageLink !== undefined) payload.rawFootageLink = normalizeLink(payload.rawFootageLink);
+  if (payload.editDueDate !== undefined) payload.editDueDate = payload.editDueDate ? new Date(payload.editDueDate) : undefined;
+  if (payload.editDate !== undefined) payload.editDate = payload.editDate ? new Date(payload.editDate) : undefined;
+  if (payload.editReminder !== undefined) payload.editReminder = payload.editReminder ? payload.editReminder.toString().trim() : '';
+  if (payload.designDueDate !== undefined) payload.designDueDate = payload.designDueDate ? new Date(payload.designDueDate) : undefined;
+  if (payload.nfId !== undefined) payload.nfId = payload.nfId ? payload.nfId.toString().trim() : '';
   if (payload.driveLink !== undefined) payload.driveLink = normalizeLink(payload.driveLink);
   if (payload.driveUploadLink !== undefined) payload.driveUploadLink = normalizeLink(payload.driveUploadLink);
   if (payload.postingScheduleDate !== undefined) payload.postingScheduleDate = payload.postingScheduleDate ? new Date(payload.postingScheduleDate) : undefined;
@@ -399,6 +407,7 @@ const hydrateTask = async (taskId) => Task.findById(taskId)
   .populate('videographerAssigned', 'name email avatar role')
   .populate('editorAssigned', 'name email avatar role')
   .populate('publisherAssigned', 'name email avatar role')
+  .populate('designerAssigned', 'name email avatar role')
   .populate('project', 'name client manager')
   .populate('client', 'name company email')
   .populate('clientResponseBy', 'name email avatar role')
@@ -445,6 +454,12 @@ const syncTaskDerivedFields = async (task) => {
   } else {
     task.publisherName = '';
   }
+  if (task.designerAssigned) {
+    const dUser = await User.findById(task.designerAssigned).select('name');
+    task.designerName = dUser ? dUser.name : '';
+  } else {
+    task.designerName = '';
+  }
 
   const allSubAssignees = [
     ...toArray(task.assignedTo),
@@ -453,6 +468,7 @@ const syncTaskDerivedFields = async (task) => {
     task.videographerAssigned,
     task.editorAssigned,
     task.publisherAssigned,
+    task.designerAssigned,
   ].filter(Boolean);
 
   const assigneeIds = uniqueIds(allSubAssignees);
@@ -622,6 +638,7 @@ export const getTasks = async (req, res) => {
       dueDate,
       search,
       parent,
+      scope,
     } = req.query;
 
     const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
@@ -631,6 +648,12 @@ export const getTasks = async (req, res) => {
       'development.isDevTask': { $ne: true },
       isDevTask: { $ne: true },
     };
+
+    // The delivery board is the SMM/content workspace. Development work has
+    // its own DevTask collection and /development/board lifecycle.
+    if (scope === 'smm') {
+      filter.taskCategory = 'content';
+    }
 
     if (project) filter.project = project;
     if (client) filter.client = client;
@@ -680,6 +703,7 @@ export const getTasks = async (req, res) => {
         .populate('videographerAssigned', 'name avatar')
         .populate('editorAssigned', 'name avatar')
         .populate('publisherAssigned', 'name avatar')
+        .populate('designerAssigned', 'name avatar')
         .populate('project', 'name')
         .populate('client', 'name company')
         .sort({ dueDate: 1, orderIndex: 1, createdAt: -1 })

@@ -136,6 +136,13 @@ const taskSchema = new mongoose.Schema(
 
     editorAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     editorName: { type: String, default: '' },
+    editDueDate: { type: Date },
+    editDate: { type: Date },
+    editReminder: { type: String, default: '' },
+
+    designerAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    designerName: { type: String, default: '' },
+    designDueDate: { type: Date },
 
     publisherAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     publisherName: { type: String, default: '' },
@@ -148,6 +155,7 @@ const taskSchema = new mongoose.Schema(
     postingScheduleDate: { type: Date },
     publishingDate: { type: Date },
     publishingTime: { type: String, default: '' },
+    nfId: { type: String, default: '' },
 
     // Role Workflow Sub-statuses
     voiceStatus: {

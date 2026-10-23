@@ -228,7 +228,7 @@ export default function ClientsSection({ onQuickAdd }) {
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-2xs"
           >
             <Plus className="h-3.5 w-3.5" />
-            + New Client Master
+            New Client Master
           </button>
         </div>
       </div>
@@ -356,7 +356,7 @@ export default function ClientsSection({ onQuickAdd }) {
                             }}
                             className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
                           >
-                            + Cost
+                            Add Cost
                           </button>
                         </div>
                       </td>
@@ -819,7 +819,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   }}
                   className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  + Issue Invoice
+                  Issue Invoice
                 </button>
                 <span className="text-slate-300">·</span>
                 <button
@@ -830,7 +830,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   }}
                   className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  + Record Receipt
+                  Record Receipt
                 </button>
               </div>
               <button

@@ -47,6 +47,10 @@ import {
   Bug,
   AlertTriangle,
   Trash2,
+  Scissors,
+  Camera,
+  Palette,
+  Share2,
 } from 'lucide-react';
 import {
   formatTaskTypeLabel,
@@ -185,9 +189,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
     task?.videographerAssigned ||
     task?.editorAssigned ||
     task?.publisherAssigned ||
+    task?.designerAssigned ||
     task?.voiceScriptText ||
     task?.videographerContentNeeded ||
     task?.shootDate ||
+    task?.editDueDate ||
+    task?.designDueDate ||
     (task?.postingPlatforms && task.postingPlatforms.length > 0)
   );
 
@@ -379,6 +386,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                   </NotionPropertyRow>
                 )}
 
+                {task.nfId && (
+                  <NotionPropertyRow icon={Hash} label="NF ID">
+                    <span className="font-mono font-bold text-xs text-primary">{task.nfId}</span>
+                  </NotionPropertyRow>
+                )}
+
                 <NotionPropertyRow icon={Tag} label="Task Type">
                   <span className="font-semibold text-foreground text-xs">{formatTaskTypeLabel(task.taskType)}</span>
                 </NotionPropertyRow>
@@ -395,6 +408,38 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                     {task.dueDate ? new Date(task.dueDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'}
                   </span>
                 </NotionPropertyRow>
+
+                {task.editDueDate && (
+                  <NotionPropertyRow icon={Scissors} label="Edit Due Date">
+                    <span className="text-foreground font-semibold text-xs">
+                      {new Date(task.editDueDate).toLocaleDateString([], { dateStyle: 'medium' })}
+                    </span>
+                  </NotionPropertyRow>
+                )}
+
+                {task.shootDate && (
+                  <NotionPropertyRow icon={Camera} label="Shoot Date">
+                    <span className="text-foreground font-semibold text-xs">
+                      {new Date(task.shootDate).toLocaleDateString([], { dateStyle: 'medium' })}
+                    </span>
+                  </NotionPropertyRow>
+                )}
+
+                {task.designDueDate && (
+                  <NotionPropertyRow icon={Palette} label="Design Due">
+                    <span className="text-foreground font-semibold text-xs">
+                      {new Date(task.designDueDate).toLocaleDateString([], { dateStyle: 'medium' })}
+                    </span>
+                  </NotionPropertyRow>
+                )}
+
+                {task.postingScheduleDate && (
+                  <NotionPropertyRow icon={Share2} label="Posting Date">
+                    <span className="text-foreground font-semibold text-xs">
+                      {new Date(task.postingScheduleDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                    </span>
+                  </NotionPropertyRow>
+                )}
 
                 <NotionPropertyRow icon={CheckCircle2} label="Client Approval">
                   <span className="capitalize font-semibold text-foreground text-xs">
@@ -438,7 +483,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                     )}
                   </div>
 
-                  <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
+                  <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
                     <div className="p-2.5 rounded-xl bg-card border border-border space-y-1">
                       <span className="text-[9px] font-bold uppercase text-muted-foreground block">✍️ Script</span>
                       <p className="font-bold text-foreground text-xs truncate">
@@ -468,6 +513,13 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                     </div>
 
                     <div className="p-2.5 rounded-xl bg-card border border-border space-y-1">
+                      <span className="text-[9px] font-bold uppercase text-muted-foreground block">🎨 Design</span>
+                      <p className="font-bold text-foreground text-xs truncate">
+                        {task.designerAssigned?.name || task.designerName || 'Unassigned'}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-card border border-border space-y-1">
                       <span className="text-[9px] font-bold uppercase text-muted-foreground block">📱 Post</span>
                       <p className="font-bold text-foreground text-xs truncate">
                         {task.publisherAssigned?.name || task.publisherName || 'Unassigned'}
@@ -482,6 +534,13 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                         <span>Open Drive</span>
                         <ExternalLink size={11} />
                       </a>
+                    </div>
+                  )}
+
+                  {task.editReminder && (
+                    <div className="pt-1 text-xs flex items-center justify-between border-t border-border/40">
+                      <span className="text-muted-foreground font-semibold">Edit Reminder:</span>
+                      <span className="font-semibold text-foreground">{task.editReminder}</span>
                     </div>
                   )}
                 </div>

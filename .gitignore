@@ -4,6 +4,7 @@ dist
 build
 .DS_Store
 *.log
+*.err
 db_data/
 test-results/
 playwright-report/

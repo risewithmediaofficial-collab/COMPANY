@@ -291,7 +291,7 @@ const Tasks = () => {
   const isEmployee = user?.role === 'employee';
   const isClient = user?.role === 'client';
   const isManager = user?.role === 'manager';
-  const { data: tasks = [], isLoading } = useTasks(queryFilters);
+  const { data: tasks = [], isLoading, refetch } = useTasks(queryFilters);
   const { data: clients = [] } = useClients();
   const { data: users = [] } = useUsers();
   const deleteTaskMutation = useDeleteTask();
@@ -303,14 +303,16 @@ const Tasks = () => {
   const [createTaskInitialValues, setCreateTaskInitialValues] = useState(null);
   const [workflowTaskId, setWorkflowTaskId] = useState(null);
   const [showWorkflowDrawer, setShowWorkflowDrawer] = useState(false);
-  const [departmentFilter, setDepartmentFilter] = useState('all'); // 'all' | 'development' | 'content'
+  const [departmentFilter, setDepartmentFilter] = useState('all');
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') || searchParams.get('team');
-    if (tabParam === 'development' || tabParam === 'dev') {
-      setDepartmentFilter('development');
-    } else if (tabParam === 'content') {
+    if (tabParam === 'content' || tabParam === 'smm') {
       setDepartmentFilter('content');
+    } else if (tabParam === 'non_content' || tabParam === 'tech' || tabParam === 'development' || tabParam === 'dev') {
+      setDepartmentFilter('non_content');
+    } else if (tabParam === 'all') {
+      setDepartmentFilter('all');
     }
   }, [searchParams]);
 
@@ -333,15 +335,6 @@ const Tasks = () => {
   const handleOpenCreateGeneral = () => {
     setPreSelectedEmployee(null);
     setCreateTaskInitialValues(null);
-    setShowKanbanCreateModal(true);
-  };
-
-  const handleOpenCreateWithCategory = (cat) => {
-    setPreSelectedEmployee(null);
-    setCreateTaskInitialValues({
-      taskCategory: cat,
-      subType: cat === 'non_content' ? 'website_development' : 'reel',
-    });
     setShowKanbanCreateModal(true);
   };
 
@@ -388,12 +381,16 @@ const Tasks = () => {
   const taskCountsByDepartment = useMemo(() => ({
     all: dateFilteredTasks.length,
     content: dateFilteredTasks.filter(isContentTask).length,
+    non_content: dateFilteredTasks.filter((t) => !isContentTask(t)).length,
   }), [dateFilteredTasks]);
 
-  // Tasks filtered by high-level team department (All | Content)
+  // Tasks filtered by high-level team department (All | Content | Non-Content)
   const departmentFilteredTasks = useMemo(() => {
     if (departmentFilter === 'content') {
       return dateFilteredTasks.filter(isContentTask);
+    }
+    if (departmentFilter === 'non_content') {
+      return dateFilteredTasks.filter((t) => !isContentTask(t));
     }
     return dateFilteredTasks;
   }, [dateFilteredTasks, departmentFilter]);
@@ -415,6 +412,7 @@ const Tasks = () => {
   // Category pills adaptive to active department
   const currentCategoryPills = useMemo(() => {
     if (departmentFilter === 'content') return CONTENT_CATEGORY_PILLS;
+    if (departmentFilter === 'non_content') return DEV_CATEGORY_PILLS;
     return TASK_CATEGORY_PILLS;
   }, [departmentFilter]);
 
@@ -892,93 +890,12 @@ const Tasks = () => {
       }
     >
       <div className="space-y-4">
-        {/* High-Level Team Partition Bar: All Delivery Tasks | Content & Creatives */}
-        <div className="p-2 sm:p-2.5 bg-card rounded-2xl border border-border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1 hidden sm:inline-flex items-center gap-1">
-              <Layers size={13} className="text-primary" /> View Board:
-            </span>
-
-            {/* All Tasks Button */}
-            <button
-              type="button"
-              onClick={() => handleDepartmentFilterChange('all')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
-                departmentFilter === 'all'
-                  ? 'bg-primary text-primary-foreground shadow-xs ring-2 ring-primary/20 scale-[1.01]'
-                  : 'bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground'
-              }`}
-            >
-              <CheckSquare size={14} className={departmentFilter === 'all' ? 'text-primary-foreground' : 'text-primary'} />
-              <span>All Delivery Tasks</span>
-              <span
-                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
-                  departmentFilter === 'all'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-background text-muted-foreground border border-border/50'
-                }`}
-              >
-                {taskCountsByDepartment.all}
-              </span>
-            </button>
-
-            {/* Content Tasks Button */}
-            <button
-              type="button"
-              onClick={() => handleDepartmentFilterChange('content')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
-                departmentFilter === 'content'
-                  ? 'bg-pink-600 text-white shadow-xs ring-2 ring-pink-500/25 scale-[1.01]'
-                  : 'bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20 hover:bg-pink-500/20'
-              }`}
-            >
-              <Film size={14} />
-              <span>🎬 Content & Creative</span>
-              <span
-                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
-                  departmentFilter === 'content'
-                    ? 'bg-white/25 text-white'
-                    : 'bg-pink-500/20 text-pink-600 dark:text-pink-400'
-                }`}
-              >
-                {taskCountsByDepartment.content}
-              </span>
-            </button>
-          </div>
-
-          {/* Quick Context Actions */}
-          <div className="flex items-center gap-2 self-end md:self-auto flex-wrap">
-            {canCreate && (
-              <div className="flex items-center gap-1.5">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleOpenCreateWithCategory('content')}
-                  className="border-pink-500/30 text-pink-600 dark:text-pink-400 hover:bg-pink-500/10 text-xs font-bold h-8 rounded-xl cursor-pointer"
-                >
-                  <Film size={13} className="mr-1" />
-                  + Content Task
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleOpenCreateGeneral}
-                  className="bg-primary text-primary-foreground font-bold shadow-xs h-8 rounded-xl text-xs cursor-pointer"
-                >
-                  <Plus size={13} className="mr-1" />
-                  + New Task
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Team Quick Assign Roster categorized by Media / Developer / SMM / Management - for managers/admins */}
         {canCreate && (
           <TeamQuickAssignRoster
             users={users}
             tasks={tasks}
             onQuickAssign={handleQuickAssignEmployee}
-            onOpenCreateGeneral={handleOpenCreateGeneral}
             canCreate={canCreate}
           />
         )}
@@ -994,40 +911,70 @@ const Tasks = () => {
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Filter Dropdowns Group */}
               <div className="flex items-center gap-2 flex-wrap min-w-0">
-                {/* Fast In-Toolbar Team View Segmented Switcher */}
-                <div className="flex items-center p-0.5 rounded-xl border border-border bg-secondary/40 shrink-0">
+                {/* Team Department Segmented Switcher */}
+                <div className="flex items-center p-0.5 rounded-xl border border-border bg-secondary/40 shrink-0 gap-0.5">
                   <button
                     type="button"
                     onClick={() => handleDepartmentFilterChange('all')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                       departmentFilter === 'all'
-                        ? 'bg-primary text-primary-foreground shadow-2xs'
+                        ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    All ({taskCountsByDepartment.all})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDepartmentFilterChange('development')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
-                      departmentFilter === 'development'
-                        ? 'bg-blue-600 text-white shadow-2xs'
-                        : 'text-blue-600 dark:text-blue-400 hover:bg-blue-500/10'
-                    }`}
-                  >
-                    💻 Dev ({taskCountsByDepartment.dev})
+                    <CheckSquare size={13} />
+                    <span>All Tasks</span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                        departmentFilter === 'all'
+                          ? 'bg-white/20 text-white'
+                          : 'bg-background text-muted-foreground border border-border/50'
+                      }`}
+                    >
+                      {taskCountsByDepartment.all}
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDepartmentFilterChange('content')}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                       departmentFilter === 'content'
-                        ? 'bg-pink-600 text-white shadow-2xs'
+                        ? 'bg-pink-600 text-white shadow-2xs font-bold'
                         : 'text-pink-600 dark:text-pink-400 hover:bg-pink-500/10'
                     }`}
                   >
-                    🎬 Content ({taskCountsByDepartment.content})
+                    <Film size={13} />
+                    <span>🎬 Content</span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                        departmentFilter === 'content'
+                          ? 'bg-white/25 text-white'
+                          : 'bg-pink-500/20 text-pink-600 dark:text-pink-400'
+                      }`}
+                    >
+                      {taskCountsByDepartment.content}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDepartmentFilterChange('non_content')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      departmentFilter === 'non_content'
+                        ? 'bg-sky-600 text-white shadow-2xs font-bold'
+                        : 'text-sky-600 dark:text-sky-400 hover:bg-sky-500/10'
+                    }`}
+                  >
+                    <Code2 size={13} />
+                    <span>💻 Non-Content</span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                        departmentFilter === 'non_content'
+                          ? 'bg-white/25 text-white'
+                          : 'bg-sky-500/20 text-sky-600 dark:text-sky-400'
+                      }`}
+                    >
+                      {taskCountsByDepartment.non_content}
+                    </span>
                   </button>
                 </div>
 
@@ -1038,10 +985,10 @@ const Tasks = () => {
                   onChange={(val) => setCategoryFilter(val || 'all')}
                   options={currentCategoryPills.map((p) => ({ value: p.key, label: p.label }))}
                   allOptionLabel={
-                    departmentFilter === 'development'
-                      ? 'All Dev Categories'
+                    departmentFilter === 'non_content'
+                      ? 'All Non-Content'
                       : departmentFilter === 'content'
-                      ? 'All Content Categories'
+                      ? 'All Content'
                       : 'All Categories'
                   }
                 />
@@ -1354,7 +1301,7 @@ const Tasks = () => {
         taskId={selectedTaskId}
       />
 
-      {/* New Fast Dynamic Kanban Task Creator */}
+      {/* Dynamic Kanban Task Creator */}
       <KanbanCreateTaskModal
         isOpen={showKanbanCreateModal}
         onClose={() => {
@@ -1364,6 +1311,7 @@ const Tasks = () => {
         }}
         initialUser={preSelectedEmployee}
         initialValues={createTaskInitialValues}
+        onTaskCreated={refetch}
       />
 
       {/* Interactive Workflow Drawer with live checklists and task notes */}

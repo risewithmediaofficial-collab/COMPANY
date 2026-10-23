@@ -1493,7 +1493,7 @@ export default function ExpensesSection({ onQuickAdd }) {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700"
             >
               <Plus className="h-3.5 w-3.5" />
-              + Schedule Subscription
+              Schedule Subscription
             </button>
           </div>
 
@@ -2579,7 +2579,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       }}
                       className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      + Record Another Expense for {currentSelectedExpense.vendor}
+                      Record Another Expense for {currentSelectedExpense.vendor}
                     </button>
                   )}
                 </div>
@@ -3250,7 +3250,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     }}
                     className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    + Record New Expense for {activePayeeDetails.name}
+                    Record New Expense for {activePayeeDetails.name}
                   </button>
                   <div className="flex items-center gap-2">
                     {payeeFilteredPending > 0 && (

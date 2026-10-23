@@ -27,10 +27,29 @@ export const fetchMe = createAsyncThunk(
   'auth/fetchMe',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem('accessToken');
+      let token = localStorage.getItem('accessToken');
       const refreshToken = localStorage.getItem('refreshToken');
       if (!token || !refreshToken) {
         return rejectWithValue({ isAuthError: true, message: 'No active session' });
+      }
+
+      // Refresh an expired (or nearly expired) access token before /me. This
+      // avoids an expected 401 during normal session restoration.
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        const expiresSoon = !payload.exp || payload.exp * 1000 <= Date.now() + 30_000;
+        if (expiresSoon) {
+          const refreshRes = await axios.post('/api/auth/refresh', { refreshToken });
+          token = refreshRes.data.accessToken;
+          localStorage.setItem('accessToken', token);
+          if (refreshRes.data.refreshToken) {
+            localStorage.setItem('refreshToken', refreshRes.data.refreshToken);
+          }
+        }
+      } catch (tokenError) {
+        // Malformed tokens are handled by the normal refresh path below.
+        if (!tokenError.response) token = localStorage.getItem('accessToken');
+        else return rejectWithValue({ isAuthError: true, message: 'Session expired. Please log in again.' });
       }
 
       const response = await axios.get('/api/auth/me', {

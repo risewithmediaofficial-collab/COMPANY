@@ -346,7 +346,7 @@ export default function PaymentRemindersTab() {
           className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-2xs cursor-pointer w-full sm:w-auto min-h-[36px]"
         >
           <Plus className="h-3.5 w-3.5" />
-          + New Payment Reminder
+          New Payment Reminder
         </button>
       </div>
 

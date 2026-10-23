@@ -845,7 +845,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     }}
                     className="text-xs font-bold text-primary hover:underline shrink-0 cursor-pointer"
                   >
-                    + Add Quotas
+                    Add Quotas
                   </button>
                 </div>
               )}

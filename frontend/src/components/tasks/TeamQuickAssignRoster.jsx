@@ -66,7 +66,6 @@ export const TeamQuickAssignRoster = ({
   users = [],
   tasks = [],
   onQuickAssign,
-  onOpenCreateGeneral,
   canCreate = true,
 }) => {
   const [activeTab, setActiveTab] = useState('all');
@@ -171,17 +170,6 @@ export const TeamQuickAssignRoster = ({
             {isCollapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
             <span>{isCollapsed ? 'Show Roster' : 'Hide'}</span>
           </button>
-
-          {/* General Create Button - only for managers/admins */}
-          {canCreate && onOpenCreateGeneral && (
-            <button
-              onClick={onOpenCreateGeneral}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 text-xs font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:from-indigo-500 hover:to-violet-500 active:scale-95"
-            >
-              <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-              <span>Create Task</span>
-            </button>
-          )}
         </div>
       </div>
 

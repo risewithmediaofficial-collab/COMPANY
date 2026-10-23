@@ -420,30 +420,35 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
               {pinnedItems.map((item) => {
                 const isActive = pathname === item.path;
                 return (
-                  <Link
+                  <div
                     key={`pinned-${item.path}`}
-                    to={item.path}
-                    onMouseEnter={() => preloadRoute(item.path)}
-                    onFocus={() => preloadRoute(item.path)}
-                    onTouchStart={() => preloadRoute(item.path)}
-                    onClick={() => isMobile && dispatch(toggleSidebar())}
-                    className={`group relative flex items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    className={`group relative flex items-center rounded-xl text-xs font-semibold transition-all ${
                       isActive
                         ? 'bg-primary text-primary-foreground font-bold shadow-xs'
                         : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'
                     }`}
                   >
-                    <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}`} />
-                    <span className="ml-2.5 truncate flex-1 font-sans">{item.name}</span>
+                    <Link
+                      to={item.path}
+                      onMouseEnter={() => preloadRoute(item.path)}
+                      onFocus={() => preloadRoute(item.path)}
+                      onTouchStart={() => preloadRoute(item.path)}
+                      onClick={() => isMobile && dispatch(toggleSidebar())}
+                      className="flex-1 min-w-0 flex items-center px-3 py-2"
+                    >
+                      <item.icon size={16} className={`shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'}`} />
+                      <span className="ml-2.5 truncate font-sans">{item.name}</span>
+                    </Link>
                     <button
                       type="button"
                       onClick={(e) => togglePin(e, item.path)}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-destructive transition-opacity"
+                      className="mr-2 p-1 opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
                       title="Unpin from favorites"
+                      aria-label="Unpin from favorites"
                     >
                       <Star size={12} className="fill-amber-400 text-amber-400" />
                     </button>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
@@ -476,51 +481,56 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                     const isPinned = pinnedPaths.includes(item.path);
 
                     return (
-                      <Link
+                      <div
                         key={item.path}
-                        to={item.path}
-                        onMouseEnter={() => preloadRoute(item.path)}
-                        onFocus={() => preloadRoute(item.path)}
-                        onTouchStart={() => preloadRoute(item.path)}
-                        onClick={() => isMobile && dispatch(toggleSidebar())}
-                        className={`group relative flex items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                        className={`group relative flex items-center rounded-xl text-xs font-semibold transition-all ${
                           isActive
                             ? 'bg-primary text-primary-foreground font-bold shadow-xs'
                             : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'
                         }`}
                       >
-                        <div className="relative shrink-0 flex items-center justify-center">
-                          <item.icon
-                            size={16}
-                            className={`${
-                              isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
-                            } transition-transform group-hover:scale-105`}
-                          />
-                        </div>
+                        <Link
+                          to={item.path}
+                          onMouseEnter={() => preloadRoute(item.path)}
+                          onFocus={() => preloadRoute(item.path)}
+                          onTouchStart={() => preloadRoute(item.path)}
+                          onClick={() => isMobile && dispatch(toggleSidebar())}
+                          className="flex-1 min-w-0 flex items-center px-3 py-2"
+                        >
+                          <div className="relative shrink-0 flex items-center justify-center">
+                            <item.icon
+                              size={16}
+                              className={`${
+                                isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-foreground'
+                              } transition-transform group-hover:scale-105`}
+                            />
+                          </div>
 
-                        <span className="ml-2.5 truncate flex-1 font-sans">{item.name}</span>
+                          <span className="ml-2.5 truncate font-sans">{item.name}</span>
 
-                        {/* Badge count if pending */}
-                        {count > 0 && (
-                          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                            isActive ? 'bg-white/20 text-white' : 'bg-red-500 text-white'
-                          }`}>
-                            {count}
-                          </span>
-                        )}
+                          {/* Badge count if pending */}
+                          {count > 0 && (
+                            <span className={`ml-2 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                              isActive ? 'bg-white/20 text-white' : 'bg-red-500 text-white'
+                            }`}>
+                              {count}
+                            </span>
+                          )}
+                        </Link>
 
                         {/* Pin / Star Toggle Icon */}
                         <button
                           type="button"
                           onClick={(e) => togglePin(e, item.path)}
-                          className={`p-0.5 transition-opacity ${
+                          className={`mr-2 p-1 transition-opacity ${
                             isPinned ? 'opacity-100 text-amber-400' : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-amber-400'
                           }`}
                           title={isPinned ? 'Unpin from favorites' : 'Pin to favorites'}
+                          aria-label={isPinned ? 'Unpin from favorites' : 'Pin to favorites'}
                         >
                           <Star size={12} className={isPinned ? 'fill-amber-400' : ''} />
                         </button>
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>

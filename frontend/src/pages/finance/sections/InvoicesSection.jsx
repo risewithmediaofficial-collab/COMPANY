@@ -294,7 +294,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-2xs"
           >
             <Plus className="h-3.5 w-3.5" />
-            + Create New Invoice
+            Create New Invoice
           </button>
         </div>
       </div>
@@ -392,7 +392,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                             onClick={() => onRecordPayment(inv)}
                             className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-[11px]"
                           >
-                            + Pay
+                            Pay
                           </button>
                         )}
                         <button

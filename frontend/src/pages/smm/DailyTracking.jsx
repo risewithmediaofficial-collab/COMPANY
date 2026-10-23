@@ -533,7 +533,7 @@ export default function DailyTracking() {
                     onClick={handleAddNote}
                     className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shrink-0 cursor-pointer shadow-xs"
                   >
-                    + Add Note
+                    Add Note
                   </button>
                 </form>
               </div>
@@ -598,7 +598,7 @@ export default function DailyTracking() {
                     onClick={handleAddTimeline}
                     className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-bold rounded-xl text-xs shrink-0 cursor-pointer border border-border"
                   >
-                    + Add Event
+                    Add Event
                   </button>
                 </form>
               </div>

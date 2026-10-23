@@ -298,7 +298,7 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
             onClick={() => onQuickAdd('invoice')}
             className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
           >
-            + Quick Entry
+            Quick Entry
           </button>
         </div>
 

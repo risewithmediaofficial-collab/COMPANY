@@ -1098,7 +1098,7 @@ export default function Campaigns() {
               </div>
 
               <p className="text-[10px] text-muted-foreground">
-                Deposit funds for daily ad spend. Use <strong>+ Add Deposit</strong> to add multiple deposit entries.
+                Deposit funds for daily ad spend. Use <strong>Add Deposit</strong> to add multiple deposit entries.
               </p>
 
               <div className="space-y-2.5">
