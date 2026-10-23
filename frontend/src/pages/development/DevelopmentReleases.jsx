@@ -133,18 +133,18 @@ export default function DevelopmentReleases() {
         title="Releases & Deployments"
         subtitle="Manage versions, track deployments across environments, and review bundled features"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={fetchReleases}
               disabled={loading}
-              className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs"
+              className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs min-h-[38px]"
             >
               <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
               Refresh
             </button>
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl text-xs shadow-md shadow-primary/25 hover:opacity-95 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl text-xs shadow-md shadow-primary/25 hover:opacity-95 transition-all min-h-[38px]"
             >
               <PlusCircle size={14} />
               New Release
@@ -264,8 +264,8 @@ export default function DevelopmentReleases() {
 
       {/* ── Create / Edit Release Modal ──────────────────────────────── */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl w-[calc(100vw-24px)] max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-5 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
                 <Rocket size={16} className="text-primary" />
@@ -274,14 +274,14 @@ export default function DevelopmentReleases() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground text-xs"
+                className="flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground text-xs"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSaveRelease} className="space-y-3.5 text-xs">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="font-semibold text-foreground block mb-1">Version *</label>
                   <input
@@ -341,18 +341,18 @@ export default function DevelopmentReleases() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="app-button-secondary text-xs"
+                  className="app-button-secondary text-xs min-h-[38px] px-3.5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="app-button-primary text-xs flex items-center gap-1"
+                  className="app-button-primary text-xs flex items-center gap-1 min-h-[38px] px-4"
                 >
                   <CheckCircle2 size={13} />
                   {saving ? 'Saving...' : editingId ? 'Update Release' : 'Create Release'}

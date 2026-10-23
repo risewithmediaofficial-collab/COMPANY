@@ -522,7 +522,7 @@ export default function DevelopmentBoard() {
       </div>
 
       {/* ── Kanban Columns Horizon ───────────────────────────────────── */}
-      <div className="overflow-x-auto pb-4 custom-scrollbar">
+      <div className="responsive-table-container overflow-x-auto pb-4 custom-scrollbar">
         <div className="flex items-start gap-3 min-w-[2800px] pt-1">
           {PIPELINE_COLUMNS.map((column) => {
             const colTasks = groupedTasks[column.id] || [];
@@ -742,8 +742,8 @@ export default function DevelopmentBoard() {
 
       {/* ── Block Reason Modal ───────────────────────────────────────── */}
       {blockingTask && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl w-[calc(100vw-24px)] max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-5 space-y-4 shadow-xl custom-scrollbar">
             <div className="flex items-center gap-2 text-rose-500 font-bold">
               <ShieldAlert size={18} />
               <h3>Mark Task as Blocked</h3>

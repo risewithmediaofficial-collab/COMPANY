@@ -243,7 +243,7 @@ const ClientDetails = () => {
           </>
         )}
       >
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -831,8 +831,8 @@ const ClientDetails = () => {
           <div className="p-5 border-b border-border bg-secondary/10">
             <h2 className="font-bold flex items-center gap-2"><FileText size={18} className="text-primary"/>Invoices</h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto responsive-table-container">
+            <table className="w-full min-w-[540px] text-sm">
               <thead>
                 <tr className="text-muted-foreground font-medium border-b border-border text-left">
                   <th className="px-6 py-4">Invoice #</th>
@@ -880,7 +880,7 @@ const ClientDetails = () => {
                   'bg-slate-500/10 text-slate-600'
                 }`}>{record.paymentStatus}</span>
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</p>
                   <p className="mt-1 font-semibold">₹{Number(record.totalProjectAmount || 0).toLocaleString()}</p>

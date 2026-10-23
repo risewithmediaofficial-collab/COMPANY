@@ -100,7 +100,7 @@ export default function DevelopmentQA() {
           <button
             onClick={fetchQATasks}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs"
+            className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs min-h-[38px]"
           >
             <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -169,7 +169,7 @@ export default function DevelopmentQA() {
                   <div className="flex justify-end pt-1">
                     <button
                       onClick={() => handleOpenTestModal(task)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700 text-xs font-bold transition-all shadow-sm shadow-cyan-600/20"
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-600 text-white hover:bg-cyan-700 text-xs font-bold transition-all shadow-sm shadow-cyan-600/20 min-h-[38px]"
                     >
                       <Bug size={13} /> Log Test Result
                     </button>
@@ -183,8 +183,8 @@ export default function DevelopmentQA() {
 
       {/* ── QA Test Modal ────────────────────────────────────────────── */}
       {selectedTask && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl w-[calc(100vw-24px)] max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-5 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
                 <Bug size={16} className="text-cyan-500" /> Record QA Test Result
@@ -192,7 +192,7 @@ export default function DevelopmentQA() {
               <button
                 type="button"
                 onClick={() => setSelectedTask(null)}
-                className="text-muted-foreground hover:text-foreground text-xs"
+                className="flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground text-xs"
               >
                 ✕
               </button>
@@ -205,11 +205,11 @@ export default function DevelopmentQA() {
 
               <div>
                 <label className="font-semibold text-foreground block mb-1">Test Result *</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => setQaStatus('passed')}
-                    className={`py-2 px-3 rounded-xl border font-bold flex items-center justify-center gap-1 transition-all ${
+                    className={`py-2 px-3 rounded-xl border font-bold flex items-center justify-center gap-1 min-h-[38px] transition-all ${
                       qaStatus === 'passed'
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : 'bg-secondary text-muted-foreground border-border'
@@ -220,7 +220,7 @@ export default function DevelopmentQA() {
                   <button
                     type="button"
                     onClick={() => setQaStatus('failed')}
-                    className={`py-2 px-3 rounded-xl border font-bold flex items-center justify-center gap-1 transition-all ${
+                    className={`py-2 px-3 rounded-xl border font-bold flex items-center justify-center gap-1 min-h-[38px] transition-all ${
                       qaStatus === 'failed'
                         ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
                         : 'bg-secondary text-muted-foreground border-border'
@@ -231,7 +231,7 @@ export default function DevelopmentQA() {
                   <button
                     type="button"
                     onClick={() => setQaStatus('blocked')}
-                    className={`py-2 px-3 rounded-xl border font-bold flex items-center justify-center gap-1 transition-all ${
+                    className={`py-2 px-3 rounded-xl border font-bold flex items-center justify-center gap-1 min-h-[38px] transition-all ${
                       qaStatus === 'blocked'
                         ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
                         : 'bg-secondary text-muted-foreground border-border'
@@ -260,18 +260,18 @@ export default function DevelopmentQA() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setSelectedTask(null)}
-                  className="app-button-secondary text-xs"
+                  className="app-button-secondary text-xs min-h-[38px] px-3.5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-cyan-600/20"
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-cyan-600/20 min-h-[38px]"
                 >
                   {submitting ? 'Submitting...' : 'Save Result'}
                 </button>

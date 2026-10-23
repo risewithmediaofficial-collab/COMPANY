@@ -348,7 +348,7 @@ export const TasksKanbanPipeline = React.memo(({
       {/* Single-Row Horizontal Kanban Track */}
       <div
         ref={boardContainerRef}
-        className="w-full overflow-x-auto pb-4 pt-1 custom-scrollbar scroll-smooth snap-x snap-mandatory sm:snap-none"
+        className="w-full overflow-x-auto pb-4 pt-1 custom-scrollbar scroll-smooth snap-x snap-mandatory sm:snap-none responsive-table-container"
       >
         <div className="flex gap-3 sm:gap-4 items-stretch min-w-max pb-2">
           {KANBAN_COLUMNS.map((column, colIdx) => {

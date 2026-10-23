@@ -224,7 +224,7 @@ export default function SMMProjects() {
 
             <div>
               <label className="text-xs font-semibold text-foreground mb-2 block">Target Platforms</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {ALL_PLATFORMS.map(p => (
                   <label key={p} className="flex items-center gap-2 text-xs p-2 rounded-xl border border-border cursor-pointer hover:bg-secondary">
                     <input type="checkbox" checked={formData.platforms?.includes(p)} onChange={() => togglePlatform(p)} className="rounded" />
@@ -234,7 +234,7 @@ export default function SMMProjects() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-foreground mb-1 block">
                   Budget (₹) <span className="text-muted-foreground font-normal">(Optional)</span>

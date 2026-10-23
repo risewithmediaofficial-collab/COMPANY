@@ -724,10 +724,10 @@ const Projects = () => {
           filters={
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Dropdown Filters Group */}
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <div className="flex items-center gap-2 flex-wrap min-w-0 w-full sm:w-auto">
                 {/* Category Dropdown Filter */}
                 <SelectDropdown
-                  className="w-48 text-xs"
+                  className="w-full sm:w-48 text-xs"
                   value={categoryFilter}
                   onChange={(val) => setCategoryFilter(val || 'all')}
                   options={[{ value: 'all', label: 'All Categories' }, ...CATEGORY_OPTIONS]}
@@ -736,7 +736,7 @@ const Projects = () => {
 
                 {/* Status Dropdown Filter */}
                 <SelectDropdown
-                  className="w-40 text-xs"
+                  className="w-full sm:w-40 text-xs"
                   value={statusFilter}
                   onChange={(val) => setStatusFilter(val)}
                   options={['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled']}
@@ -745,7 +745,7 @@ const Projects = () => {
 
                 {/* Priority Dropdown Filter */}
                 <SelectDropdown
-                  className="w-36 text-xs"
+                  className="w-full sm:w-36 text-xs"
                   value={priorityFilter}
                   onChange={(val) => setPriorityFilter(val)}
                   options={['Critical', 'High', 'Medium', 'Low']}
@@ -851,11 +851,11 @@ const Projects = () => {
                 description="Card left-border accent indicates project discipline (click any color pill to filter)"
               />
 
-              <div ref={projectsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
+              <div ref={projectsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar responsive-table-container">
                 <div
                   className={
                     boardGroupBy === 'status' && boardColumns.length <= 4
-                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full'
+                      ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 w-full'
                       : 'flex gap-4 w-max min-w-full'
                   }
                 >

@@ -126,7 +126,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
         <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
@@ -520,12 +520,12 @@ export default function DomainRenewals() {
       }
     >
       {/* Quick Filter Tabs */}
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 custom-scrollbar">
         {['all', 'active', 'pending', 'renewed', 'expired'].map((st) => (
           <button
             key={st}
             onClick={() => setStatusFilter(st)}
-            className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap shrink-0 min-h-[36px] ${
               statusFilter === st
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'

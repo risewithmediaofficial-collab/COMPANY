@@ -177,8 +177,8 @@ export default function SMMClients() {
         title={editingClient ? 'Edit SMM Client' : 'Add New SMM Client'}
       >
         <form onSubmit={handleSave} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="col-span-1 sm:col-span-2">
               <label className="text-xs font-semibold text-foreground mb-1 block">Company Name *</label>
               <input type="text" required value={formData.companyName} onChange={e => setFormData({...formData, companyName: e.target.value})} className="app-input" placeholder="e.g. Acme Corp" />
             </div>
@@ -219,11 +219,11 @@ export default function SMMClients() {
                 <option value="Paused">Paused</option>
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="col-span-1 sm:col-span-2">
               <label className="text-xs font-semibold text-foreground mb-1 block">Address</label>
               <input type="text" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="app-input" placeholder="Office address..." />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-1 sm:col-span-2">
               <label className="text-xs font-semibold text-foreground mb-1 block">Internal Notes</label>
               <textarea rows={3} value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="app-input" placeholder="Key goals, preferences, etc." />
             </div>

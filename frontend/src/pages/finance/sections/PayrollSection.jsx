@@ -388,15 +388,15 @@ export default function PayrollSection() {
           </div>
 
           {/* Search & Export Buttons */}
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
+            <div className="relative w-full sm:w-56">
               <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search employee or role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-48 sm:w-56"
+                className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 w-full sm:w-56"
               />
             </div>
 
@@ -456,8 +456,8 @@ export default function PayrollSection() {
           </div>
         </div>
 
-        <div className="overflow-x-auto overflow-y-auto max-h-[580px] text-xs">
-          <table className="w-full text-left">
+        <div className="responsive-table-container overflow-y-auto max-h-[580px] text-xs">
+          <table className="w-full min-w-[700px] text-left">
             <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3.5">Employee</th>

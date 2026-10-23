@@ -192,31 +192,31 @@ export const CreateDevTaskModal = ({
     >
       <div className="relative flex max-h-[92dvh] w-full max-w-3xl flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0 bg-secondary/30">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/30">
-              <Code2 size={20} />
+        <div className="flex items-center justify-between border-b border-border px-4 sm:px-5 py-3 sm:py-4 shrink-0 bg-secondary/30">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pr-2">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/30">
+              <Code2 size={18} className="sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-foreground">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base md:text-lg font-bold text-foreground truncate">
                 Create Development Task
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Creates a tech task directly in the Development module (isolated from general tasks database)
+              <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                Creates a tech task directly in the Development module
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             type="button"
-            className="rounded-xl p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+            className="flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer shrink-0"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 sm:space-y-5">
           {/* Title */}
           <div>
             <label className="block text-xs font-bold text-foreground mb-1.5">
@@ -578,11 +578,11 @@ export const CreateDevTaskModal = ({
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-3.5 bg-secondary/20 shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 sm:px-5 py-3 sm:py-3.5 bg-secondary/20 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground bg-secondary/80 hover:bg-secondary transition-all"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground bg-secondary/80 hover:bg-secondary transition-all min-h-[38px]"
           >
             Cancel
           </button>
@@ -590,7 +590,7 @@ export const CreateDevTaskModal = ({
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/25 transition-all disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/25 transition-all disabled:opacity-50 min-h-[38px]"
           >
             <CheckCircle2 size={15} />
             <span>{submitting ? 'Creating...' : 'Create Dev Task'}</span>

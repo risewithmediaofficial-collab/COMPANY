@@ -12,7 +12,7 @@ const uiSlice = createSlice({
   name: 'ui',
   initialState: {
     darkMode: savedTheme === 'dark',
-    sidebarOpen: true,
+    sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
     activeModule: 'dashboard',
   },
   reducers: {

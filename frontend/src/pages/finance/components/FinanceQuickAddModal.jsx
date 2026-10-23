@@ -381,13 +381,13 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         className="bg-card border-l border-border shadow-2xl overflow-hidden flex flex-col font-sans"
       >
         {/* ── DRAWER HEADER (PINNED) ───────────────────────────────────── */}
-        <div className="shrink-0 border-b border-border px-6 pt-5 pb-4 bg-muted/20 pr-24 sm:pr-28 select-none">
+        <div className="shrink-0 border-b border-border px-4 sm:px-6 pt-4 sm:pt-5 pb-3.5 sm:pb-4 bg-muted/20 pr-14 sm:pr-28 select-none">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 font-bold text-base shadow-2xs shrink-0">
               +
             </div>
             <div>
-              <DialogTitle className="text-base font-bold text-foreground tracking-tight">
+              <DialogTitle className="text-sm sm:text-base font-bold text-foreground tracking-tight">
                 Add New Financial Transaction
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
@@ -1292,18 +1292,18 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         </div>
 
         {/* ── MODAL FOOTER ─────────────────────────────────────────────── */}
-        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-4 select-none">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 select-none">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
             <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50 animate-pulse" />
             <span className="truncate">Double-Entry Verified · Asia/Kolkata</span>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 ml-auto">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
-              className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-sm transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+              className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs sm:text-sm transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
@@ -1311,7 +1311,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
               type="submit"
               form="finance-modal-form"
               disabled={isSubmitting}
-              className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all shadow-md shadow-primary/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm transition-all shadow-md shadow-primary/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

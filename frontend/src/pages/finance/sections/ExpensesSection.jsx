@@ -1156,8 +1156,8 @@ export default function ExpensesSection({ onQuickAdd }) {
 
           {/* Expenses Table */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
-            <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
-              <table className="w-full text-left">
+            <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
+              <table className="w-full min-w-[750px] text-left">
                 <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
                   <tr>
                     <th
@@ -1364,8 +1364,8 @@ export default function ExpensesSection({ onQuickAdd }) {
 
           {/* Payees Directory Table */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
-            <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
-              <table className="w-full text-left">
+            <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
+              <table className="w-full min-w-[650px] text-left">
                 <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
                   <tr>
                     <th className="p-3">Payee / Person / Vendor</th>
@@ -1497,8 +1497,8 @@ export default function ExpensesSection({ onQuickAdd }) {
             </button>
           </div>
 
-          <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
-            <table className="w-full text-left">
+          <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
+            <table className="w-full min-w-[700px] text-left">
               <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
                 <tr>
                   <th className="p-3">Tool / Service</th>
@@ -2360,8 +2360,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </button>
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-slate-200 overflow-hidden">
-                      <table className="w-full text-left text-xs">
+                    <div className="responsive-table-container rounded-xl border border-slate-200">
+                      <table className="w-full min-w-[450px] text-left text-xs">
                         <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase">
                           <tr>
                             <th className="p-2.5">Date</th>
@@ -2783,8 +2783,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </span>
                         <span className="text-[10px] text-slate-500">Oldest bills settled first</span>
                       </div>
-                      <div className="overflow-x-auto max-h-[300px] overflow-y-auto text-xs">
-                        <table className="w-full text-left">
+                      <div className="responsive-table-container max-h-[300px] overflow-y-auto text-xs">
+                        <table className="w-full min-w-[600px] text-left">
                           <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
                             <tr>
                               <th className="p-2.5">Priority</th>
@@ -3125,7 +3125,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </button>
                       )}
                     </div>
-                    <div className="overflow-x-auto max-h-[420px] overflow-y-auto text-xs">
+                    <div className="responsive-table-container max-h-[420px] overflow-y-auto text-xs">
                       {displayedPayeeItems.length === 0 ? (
                         <div className="py-12 text-center text-slate-500 space-y-2">
                           <p className="font-medium text-xs">No transaction records found for the selected date filter.</p>
@@ -3138,7 +3138,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           </button>
                         </div>
                       ) : (
-                        <table className="w-full text-left">
+                        <table className="w-full min-w-[650px] text-left">
                           <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
                             <tr>
                               <th className="p-2.5">Date</th>

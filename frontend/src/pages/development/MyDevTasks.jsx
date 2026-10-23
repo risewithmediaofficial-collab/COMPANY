@@ -78,7 +78,7 @@ export default function MyDevTasks() {
           <button
             onClick={fetchMyTasks}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs"
+            className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs min-h-[38px]"
           >
             <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -89,10 +89,10 @@ export default function MyDevTasks() {
       <DevelopmentSubNav />
 
       {/* ── Tabs Header ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 border-b border-border pb-3">
+      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto responsive-table-container">
         <button
           onClick={() => setActiveTab('assigned')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all ${
             activeTab === 'assigned'
               ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
               : 'text-muted-foreground hover:bg-secondary'
@@ -102,7 +102,7 @@ export default function MyDevTasks() {
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all ${
             activeTab === 'reviews'
               ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/20'
               : 'text-muted-foreground hover:bg-secondary'
@@ -112,7 +112,7 @@ export default function MyDevTasks() {
         </button>
         <button
           onClick={() => setActiveTab('qa')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all ${
             activeTab === 'qa'
               ? 'bg-cyan-600 text-white shadow-sm shadow-cyan-600/20'
               : 'text-muted-foreground hover:bg-secondary'

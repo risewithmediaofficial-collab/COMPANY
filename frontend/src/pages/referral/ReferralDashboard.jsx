@@ -251,7 +251,7 @@ const ReferralDashboard = () => {
 
       {/* Refer Lead Modal */}
       <Dialog open={showLeadForm} onOpenChange={setShowLeadForm}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-xl max-h-[90dvh]">
           <form onSubmit={handleLeadSubmit} className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
             <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">

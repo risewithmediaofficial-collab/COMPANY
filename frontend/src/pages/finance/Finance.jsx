@@ -152,20 +152,20 @@ export default function Finance() {
   return (
     <div className="space-y-5 pb-12 font-sans">
       {/* ── TOP DASHBOARD CONTROL CARD ──────────────────────────────────── */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-sm font-bold text-lg">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-sm font-bold text-lg shrink-0">
               ₹
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-slate-900 tracking-tight">RiseWithMedia Finance</h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">RiseWithMedia Finance</h1>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
                   Live Double-Entry
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Operating System · Multi-item billing, cashflow, payroll & partner ledgers
               </p>
             </div>
@@ -175,7 +175,7 @@ export default function Finance() {
             {/* Central Add New Button */}
             <button
               onClick={() => openQuickAdd('invoice')}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all hover:shadow hover:scale-[1.01] cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:shadow hover:scale-[1.01] cursor-pointer min-h-[36px]"
             >
               <Plus className="h-4 w-4" />
               <span>Add New</span>
@@ -184,8 +184,8 @@ export default function Finance() {
         </div>
 
         {/* ── 10 HORIZONTAL SECTION NAVIGATION TABS ───────────────────────── */}
-        <div className="mt-4 pt-3 border-t border-slate-100 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-1.5 min-w-max">
+        <div className="mt-4 pt-3 border-t border-border overflow-x-auto custom-scrollbar">
+          <div className="flex items-center gap-1.5 min-w-max pb-1">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -193,13 +193,13 @@ export default function Finance() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 min-h-[38px] ${
                     isActive
-                      ? 'bg-slate-900 text-white shadow-2xs scale-[1.01]'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      ? 'bg-primary text-primary-foreground shadow-2xs scale-[1.01]'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -212,10 +212,10 @@ export default function Finance() {
       <div className="space-y-5">
         {/* PERIOD & DATE FILTER BAR (Active on Overview) */}
         {activeTab === 'overview' && (
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs text-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-card p-3.5 rounded-xl border border-border shadow-2xs text-xs">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-slate-700">Period:</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-semibold text-foreground">Period:</span>
                 <div className="flex flex-wrap gap-1">
                   {[
                     { id: 'today', label: 'Today' },
@@ -234,8 +234,8 @@ export default function Finance() {
                       }}
                       className={`px-2.5 py-1 rounded-md font-medium transition-all ${
                         periodFilter === p.id
-                          ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-200'
-                          : 'text-slate-600 hover:bg-slate-100'
+                          ? 'bg-primary/10 text-primary font-bold border border-primary/20'
+                          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                       }`}
                     >
                       {p.label}
@@ -245,9 +245,9 @@ export default function Finance() {
               </div>
 
               {/* Date to Date Picker */}
-              <div className="flex items-center gap-1.5 pl-2 border-l border-slate-200">
-                <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                <span className="text-slate-500 font-medium text-[11px]">Date Range:</span>
+              <div className="flex items-center gap-1.5 flex-wrap pt-2 md:pt-0 md:pl-2 border-t md:border-t-0 md:border-l border-border">
+                <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-muted-foreground font-medium text-[11px]">Date Range:</span>
                 <input
                   type="date"
                   value={customStartDate}
@@ -256,9 +256,9 @@ export default function Finance() {
                     setPeriodFilter('custom');
                   }}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="px-2 py-1 rounded-lg border border-slate-200 text-xs bg-slate-50/50 text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  className="px-2 py-1 rounded-lg border border-border text-xs bg-background text-foreground cursor-pointer focus:ring-1 focus:ring-primary"
                 />
-                <span className="text-slate-400 font-bold text-[10px]">to</span>
+                <span className="text-muted-foreground font-bold text-[10px]">to</span>
                 <input
                   type="date"
                   value={customEndDate}
@@ -267,7 +267,7 @@ export default function Finance() {
                     setPeriodFilter('custom');
                   }}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="px-2 py-1 rounded-lg border border-slate-200 text-xs bg-slate-50/50 text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  className="px-2 py-1 rounded-lg border border-border text-xs bg-background text-foreground cursor-pointer focus:ring-1 focus:ring-primary"
                 />
                 {(customStartDate || customEndDate) && (
                   <button

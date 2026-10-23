@@ -459,7 +459,7 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-3xl max-h-[90vh]">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-3xl max-h-[90dvh]">
         <div className="flex flex-col min-h-0 h-full">
           {/* Pinned Header */}
           <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
@@ -880,7 +880,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   };
 
   const renderMonthView = () => (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-xs">
+    <div className="responsive-table-container rounded-2xl border border-border bg-card shadow-xs">
       <div className="min-w-[680px]">
         <div className="grid grid-cols-7 border-b border-border bg-secondary/40">
           {DAY_NAMES.map((day) => (
@@ -1011,101 +1011,103 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
     }
 
     return (
-      <div className="space-y-1 rounded-[20px] overflow-hidden border border-border">
-        {/* Header Row */}
-        <div className="grid items-center gap-2 bg-secondary/60 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground"
-          style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}>
-          <span>Task</span>
-          <span>Client</span>
-          <span>Assigned To</span>
-          <span>Status</span>
-          <span>Priority</span>
-          <span className="text-right">Due Date</span>
-        </div>
-
-        {groups.map(([dateKey, { label, tasks: dateTasks }]) => (
-          <div key={dateKey}>
-            {/* Date Group Header */}
-            <div className={cn(
-              'sticky top-0 z-10 flex items-center gap-3 border-y border-border bg-card/95 px-4 py-2 backdrop-blur-sm',
-              dateKey !== 'no-date' && isToday(new Date(dateKey)) && 'bg-primary/5 border-primary/20',
-            )}>
-              <div className={cn(
-                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black',
-                dateKey !== 'no-date' && isToday(new Date(dateKey))
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-foreground',
-              )}>
-                {dateKey !== 'no-date' ? format(new Date(dateKey), 'd') : '—'}
-              </div>
-              <p className="text-xs font-bold text-foreground">{label}</p>
-              <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
-                {dateTasks.length} {dateTasks.length === 1 ? 'task' : 'tasks'}
-              </span>
-            </div>
-
-            {/* Task Rows */}
-            {dateTasks.map((task, idx) => {
-              const normalizedStatus = normalizeTaskStatusLabel(task.status);
-              const assignees = task.assignedTo?.map((a) => a.name).join(', ') || task.assignedPersonName || 'Unassigned';
-              return (
-                <button
-                  key={task._id}
-                  type="button"
-                  onClick={() => handleOpenTask(task)}
-                  className={cn(
-                    'w-full grid items-center gap-2 border-b border-border/50 px-4 py-3 text-left transition-all hover:bg-secondary/30',
-                    idx % 2 === 0 ? 'bg-background' : 'bg-secondary/10',
-                    task.isOverdue && 'border-l-2 border-l-rose-500',
-                  )}
-                  style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}
-                >
-                  {/* Title + Category */}
-                  <div className="min-w-0 flex items-center gap-2">
-                    <span className={cn(
-                      'h-2 w-2 shrink-0 rounded-full',
-                      task.taskCategory === 'content' ? 'bg-blue-500' : 'bg-amber-500',
-                    )} />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">{task.taskTitle || task.title}</p>
-                      <p className="truncate text-[11px] text-muted-foreground">{formatTaskTypeLabel(task.taskType)}</p>
-                    </div>
-                    {task.isOverdue && (
-                      <span className="ml-1 shrink-0 rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-600 uppercase">Overdue</span>
-                    )}
-                  </div>
-
-                  {/* Client */}
-                  <p className="truncate text-xs text-muted-foreground">
-                    {task.client?.name || task.client?.company || task.clientName || '—'}
-                  </p>
-
-                  {/* Assignees */}
-                  <p className="truncate text-xs text-muted-foreground">{assignees}</p>
-
-                  {/* Status */}
-                  <div>
-                    <StatusBadge tone={statusTone[normalizedStatus] || 'neutral'}>
-                      {normalizedStatus}
-                    </StatusBadge>
-                  </div>
-
-                  {/* Priority */}
-                  <div>
-                    <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
-                      {task.priority || '—'}
-                    </StatusBadge>
-                  </div>
-
-                  {/* Due Date */}
-                  <p className="text-right text-xs font-semibold text-foreground">
-                    {task.dueDate ? format(new Date(task.dueDate), 'MMM d') : '—'}
-                  </p>
-                </button>
-              );
-            })}
+      <div className="responsive-table-container rounded-[20px] border border-border">
+        <div className="min-w-[720px] space-y-1">
+          {/* Header Row */}
+          <div className="grid items-center gap-2 bg-secondary/60 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground"
+            style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}>
+            <span>Task</span>
+            <span>Client</span>
+            <span>Assigned To</span>
+            <span>Status</span>
+            <span>Priority</span>
+            <span className="text-right">Due Date</span>
           </div>
-        ))}
+
+          {groups.map(([dateKey, { label, tasks: dateTasks }]) => (
+            <div key={dateKey}>
+              {/* Date Group Header */}
+              <div className={cn(
+                'sticky top-0 z-10 flex items-center gap-3 border-y border-border bg-card/95 px-4 py-2 backdrop-blur-sm',
+                dateKey !== 'no-date' && isToday(new Date(dateKey)) && 'bg-primary/5 border-primary/20',
+              )}>
+                <div className={cn(
+                  'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black',
+                  dateKey !== 'no-date' && isToday(new Date(dateKey))
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-foreground',
+                )}>
+                  {dateKey !== 'no-date' ? format(new Date(dateKey), 'd') : '—'}
+                </div>
+                <p className="text-xs font-bold text-foreground">{label}</p>
+                <span className="ml-auto rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                  {dateTasks.length} {dateTasks.length === 1 ? 'task' : 'tasks'}
+                </span>
+              </div>
+
+              {/* Task Rows */}
+              {dateTasks.map((task, idx) => {
+                const normalizedStatus = normalizeTaskStatusLabel(task.status);
+                const assignees = task.assignedTo?.map((a) => a.name).join(', ') || task.assignedPersonName || 'Unassigned';
+                return (
+                  <button
+                    key={task._id}
+                    type="button"
+                    onClick={() => handleOpenTask(task)}
+                    className={cn(
+                      'w-full grid items-center gap-2 border-b border-border/50 px-4 py-3 text-left transition-all hover:bg-secondary/30',
+                      idx % 2 === 0 ? 'bg-background' : 'bg-secondary/10',
+                      task.isOverdue && 'border-l-2 border-l-rose-500',
+                    )}
+                    style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}
+                  >
+                    {/* Title + Category */}
+                    <div className="min-w-0 flex items-center gap-2">
+                      <span className={cn(
+                        'h-2 w-2 shrink-0 rounded-full',
+                        task.taskCategory === 'content' ? 'bg-blue-500' : 'bg-amber-500',
+                      )} />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">{task.taskTitle || task.title}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">{formatTaskTypeLabel(task.taskType)}</p>
+                      </div>
+                      {task.isOverdue && (
+                        <span className="ml-1 shrink-0 rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-600 uppercase">Overdue</span>
+                      )}
+                    </div>
+
+                    {/* Client */}
+                    <p className="truncate text-xs text-muted-foreground">
+                      {task.client?.name || task.client?.company || task.clientName || '—'}
+                    </p>
+
+                    {/* Assignees */}
+                    <p className="truncate text-xs text-muted-foreground">{assignees}</p>
+
+                    {/* Status */}
+                    <div>
+                      <StatusBadge tone={statusTone[normalizedStatus] || 'neutral'}>
+                        {normalizedStatus}
+                      </StatusBadge>
+                    </div>
+
+                    {/* Priority */}
+                    <div>
+                      <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
+                        {task.priority || '—'}
+                      </StatusBadge>
+                    </div>
+
+                    {/* Due Date */}
+                    <p className="text-right text-xs font-semibold text-foreground">
+                      {task.dueDate ? format(new Date(task.dueDate), 'MMM d') : '—'}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -1196,14 +1198,14 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
         </div>
 
         {/* Right: View Options + Action Button */}
-        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
-          <div className="inline-flex rounded-xl border border-border bg-secondary/40 p-0.5 shadow-2xs">
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap w-full md:w-auto justify-between md:justify-end">
+          <div className="inline-flex rounded-xl border border-border bg-secondary/40 p-0.5 shadow-2xs overflow-x-auto max-w-full">
             {VIEW_OPTIONS.map(({ value, label, icon: Icon }) => (
               <button
                 key={value}
                 onClick={() => setView(value)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer',
+                  'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer shrink-0 min-h-[32px] sm:min-h-[36px]',
                   view === value
                     ? 'bg-primary text-primary-foreground shadow-xs font-black'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/60',
@@ -1219,7 +1221,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             <Button
               size="sm"
               onClick={() => navigate('/tasks/new')}
-              className="h-8 rounded-xl text-xs font-bold gap-1 px-3 shadow-xs"
+              className="h-8 rounded-xl text-xs font-bold gap-1 px-3 shadow-xs shrink-0"
             >
               <Plus size={14} className="stroke-[2.5]" />
               <span>Create Task</span>
@@ -1400,10 +1402,10 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
       />
 
       <Dialog open={showDayDialog} onOpenChange={setShowDayDialog}>
-        <DialogContent noPadding className="max-h-[88vh] overflow-hidden p-0 sm:max-w-4xl">
-          <div className="border-b border-border bg-gradient-to-br from-background via-background to-secondary/60 px-6 py-5">
+        <DialogContent noPadding className="w-[calc(100vw-24px)] max-h-[90dvh] overflow-hidden p-0 sm:max-w-4xl">
+          <div className="border-b border-border bg-gradient-to-br from-background via-background to-secondary/60 px-4 sm:px-6 py-4 sm:py-5">
             <DialogHeader className="border-b-0 mb-0 pb-0">
-              <DialogTitle className="text-2xl tracking-tight">
+              <DialogTitle className="text-xl sm:text-2xl tracking-tight">
                 {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Tasks'}
               </DialogTitle>
               <DialogDescription>

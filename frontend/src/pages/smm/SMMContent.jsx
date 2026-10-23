@@ -359,7 +359,7 @@ export const SMMContent = () => {
       <SMMFilterBar filters={filters} onFilterChange={handleFilterChange} onReset={() => setFilters({ client: '', project: '', platform: '', contentType: '', notPostedReason: '', campaignStatus: '', dateRange: 'all' })} />
 
       {/* Sub Tabs: All Videos, Posted, Not Posted, Scheduled, Pending Approval, Performance */}
-      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
+      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] custom-scrollbar">
         {[
           { id: 'all', label: 'All Videos', icon: Layers },
           { id: 'posted', label: 'Posted', icon: CheckCircle2 },
@@ -374,7 +374,7 @@ export const SMMContent = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[38px] ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-xs'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -397,7 +397,7 @@ export const SMMContent = () => {
             <p>No video records match the selected filter. Click "+ Add Video / Content" to create one.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
+          <div className="responsive-table-container overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
             <table className="min-w-[720px] w-full text-left text-xs">
               <thead className="bg-muted/40 text-muted-foreground border-b border-border font-bold">
                 <tr>
@@ -579,7 +579,7 @@ export const SMMContent = () => {
 
       {/* ── CREATE VIDEO MODAL ── */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
           <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
@@ -763,7 +763,7 @@ export const SMMContent = () => {
 
       {/* ── LOG PERFORMANCE MODAL ── */}
       <Dialog open={isPerfModalOpen} onOpenChange={setIsPerfModalOpen}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
           <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
@@ -910,7 +910,7 @@ export const SMMContent = () => {
       {/* ── VIDEO 360 DETAIL MODAL (ORGANIC + AD PERFORMANCE IN ONE PLACE) ── */}
       {selectedContent && (
         <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-          <DialogContent size="lg" className="max-h-[90vh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
+          <DialogContent size="lg" className="w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh] overflow-y-auto custom-scrollbar p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="flex flex-wrap items-center justify-between gap-2">
                 <span className="truncate max-w-[240px] sm:max-w-none">{selectedContent.name}</span>

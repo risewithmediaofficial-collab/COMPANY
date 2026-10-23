@@ -260,11 +260,11 @@ export default function CallHistoryDashboard() {
         {/* Call History Timeline List */}
         <div className="space-y-4">
           <PageToolbar className="flex-wrap gap-3">
-            <div className="flex gap-1.5 rounded-2xl bg-secondary/40 p-1">
+            <div className="flex gap-1.5 rounded-2xl bg-secondary/40 p-1 overflow-x-auto custom-scrollbar max-w-full">
               <button
                 type="button"
                 onClick={() => setFilterType('all')}
-                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all shrink-0 min-h-[36px] ${
                   filterType === 'all' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -273,7 +273,7 @@ export default function CallHistoryDashboard() {
               <button
                 type="button"
                 onClick={() => setFilterType('client')}
-                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all shrink-0 min-h-[36px] ${
                   filterType === 'client' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -282,7 +282,7 @@ export default function CallHistoryDashboard() {
               <button
                 type="button"
                 onClick={() => setFilterType('lead')}
-                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all shrink-0 min-h-[36px] ${
                   filterType === 'lead' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -291,7 +291,7 @@ export default function CallHistoryDashboard() {
               <button
                 type="button"
                 onClick={() => setFilterType('unregistered')}
-                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+                className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all shrink-0 min-h-[36px] ${
                   filterType === 'unregistered' ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >

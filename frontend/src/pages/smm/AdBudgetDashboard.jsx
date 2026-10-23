@@ -672,8 +672,8 @@ export default function AdBudgetDashboard() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs" id="budget-ledger-table">
+          <div className="responsive-table-container overflow-x-auto">
+            <table className="w-full text-xs min-w-[700px]" id="budget-ledger-table">
               <thead>
                 <tr className="border-b border-border bg-secondary/40">
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Client</th>

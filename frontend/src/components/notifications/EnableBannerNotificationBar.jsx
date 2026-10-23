@@ -162,13 +162,13 @@ export const EnableBannerNotificationBar = () => {
           </div>
 
           {/* Right Action Column */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
             <button
               id="enable-banner-notifications-bar-btn"
               type="button"
               onClick={handleEnable}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-xs font-bold shadow-md hover:shadow-indigo-500/25 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white text-xs font-bold shadow-md hover:shadow-indigo-500/25 transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex-1 sm:flex-initial"
             >
               {loading ? (
                 <>
@@ -177,8 +177,9 @@ export const EnableBannerNotificationBar = () => {
                 </>
               ) : (
                 <>
-                  <Sparkles size={13} className="text-amber-300" />
-                  <span>Enable Banner Notifications</span>
+                  <Sparkles size={13} className="text-amber-300 shrink-0" />
+                  <span className="sm:hidden">Enable Alerts</span>
+                  <span className="hidden sm:inline">Enable Banner Notifications</span>
                 </>
               )}
             </button>
@@ -186,10 +187,11 @@ export const EnableBannerNotificationBar = () => {
             <button
               type="button"
               onClick={handleDismiss}
-              className="p-1.5 rounded-lg text-indigo-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 rounded-lg text-indigo-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
               title="Dismiss for 2 days"
+              aria-label="Dismiss banner"
             >
-              <X size={15} />
+              <X size={16} />
             </button>
           </div>
         </div>

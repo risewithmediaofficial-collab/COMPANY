@@ -510,7 +510,7 @@ const ProjectDetails = () => {
         </DialogContent>
       </Dialog>
 
-      <div ref={projectDetailsBoardRef} className="flex h-[calc(100vh-300px)] space-x-6 overflow-x-auto pb-6 custom-scrollbar">
+      <div ref={projectDetailsBoardRef} className="flex h-[calc(100vh-300px)] gap-4 sm:gap-6 overflow-x-auto pb-6 custom-scrollbar responsive-table-container">
         {statuses.map((status) => {
           const isDragOver = dragOverStatus === status;
           const columnDotColor =
@@ -522,7 +522,7 @@ const ProjectDetails = () => {
                       : 'bg-muted-foreground';
 
           return (
-            <div key={status} className="flex w-80 flex-shrink-0 flex-col">
+            <div key={status} className="flex w-[280px] sm:w-80 flex-shrink-0 flex-col">
               {/* Column Header */}
               <div className="mb-4 flex items-center justify-between px-2">
                 <div className="flex items-center space-x-2">
@@ -701,8 +701,8 @@ const ProjectDetails = () => {
             </button>
           )}
         </div>
-        <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] custom-scrollbar">
-          <table className="w-full text-sm">
+        <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] custom-scrollbar responsive-table-container">
+          <table className="w-full min-w-[640px] text-sm">
             <thead className="sticky top-0 z-10 bg-card">
               <tr className="border-b border-border text-left text-muted-foreground bg-card">
                 <th className="px-6 py-4">Task</th>

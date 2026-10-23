@@ -77,7 +77,7 @@ export default function PortalAdBudget() {
       )}
 
       {/* ── 4 Essential KPI Cards ──────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* 1. Monthly Budget */}
         <div className="p-4 rounded-2xl bg-card border border-border space-y-2 hover:shadow-md transition-all">
           <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -144,8 +144,8 @@ export default function PortalAdBudget() {
             No campaigns active for your account currently.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+          <div className="responsive-table-container overflow-x-auto">
+            <table className="w-full min-w-[650px] text-xs">
               <thead className="bg-secondary/40 border-b border-border text-muted-foreground">
                 <tr>
                   <th className="py-3 px-4 text-left font-semibold">Campaign & Platform</th>
@@ -201,8 +201,8 @@ export default function PortalAdBudget() {
             <p className="text-xs text-muted-foreground">Historical records of amount added, spend, and balances</p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+          <div className="responsive-table-container overflow-x-auto">
+            <table className="w-full min-w-[550px] text-xs">
               <thead className="bg-secondary/40 border-b border-border text-muted-foreground">
                 <tr>
                   <th className="py-3 px-4 text-left font-semibold">Date</th>

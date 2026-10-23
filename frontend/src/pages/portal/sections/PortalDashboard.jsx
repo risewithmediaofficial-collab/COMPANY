@@ -15,31 +15,26 @@ import { exportProposalToPDF, exportInvoiceToPDF } from '../../../utils/pdfExpor
 import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
 import { useProposals } from '../../../hooks/useProposals';
 
-const KPICard = ({ label, value, icon: Icon, color, sub, dark }) => (
+const KPICard = ({ label, value, icon: Icon, color, sub }) => (
   <motion.div
     whileHover={{ y: -3 }}
-    className="rounded-2xl p-4 flex flex-col gap-3 transition-all"
-    style={{
-      background: dark ? 'rgba(255,255,255,0.04)' : '#fff',
-      border: dark ? `1px solid ${color}25` : '1px solid rgba(0,0,0,0.07)',
-      boxShadow: dark ? 'none' : '0 1px 8px rgba(0,0,0,0.04)',
-    }}
+    className="rounded-2xl p-4 flex flex-col gap-3 transition-all bg-card border border-border shadow-xs hover:border-primary/40"
   >
     <div className="flex items-center justify-between">
-      <span className="text-xs font-medium" style={{ color: dark ? '#94a3b8' : '#64748b' }}>{label}</span>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
       <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18` }}>
         <Icon size={16} style={{ color }} />
       </div>
     </div>
-    <p className="text-2xl font-black tracking-tight" style={{ color: dark ? '#fff' : '#0f172a' }}>{value}</p>
-    {sub && <p className="text-[11px] truncate" style={{ color: dark ? '#64748b' : '#94a3b8' }}>{sub}</p>}
+    <p className="text-2xl font-black tracking-tight text-foreground">{value}</p>
+    {sub && <p className="text-[11px] truncate text-muted-foreground">{sub}</p>}
   </motion.div>
 );
 
 const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
 const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export default function PortalDashboard({ dark, user, setPendingCount }) {
+export default function PortalDashboard({ user, setPendingCount }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -89,22 +84,17 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
     };
   }, [socket]);
 
-  const txt = dark ? 'text-white' : 'text-slate-800';
-  const sub = dark ? 'text-slate-400' : 'text-slate-500';
-  const card = dark ? 'rgba(255,255,255,0.04)' : '#fff';
-  const border = dark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.07)';
-
   if (loading) return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto animate-pulse">
       <div className="h-36 w-full rounded-2xl bg-muted/60 mb-6" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[...Array(4)].map((_, i) => (
-          <CardSkeleton key={i} dark={dark} />
+          <CardSkeleton key={i} />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-        <TableSkeleton columns={3} rows={4} dark={dark} />
-        <TableSkeleton columns={3} rows={4} dark={dark} />
+        <TableSkeleton columns={3} rows={4} />
+        <TableSkeleton columns={3} rows={4} />
       </div>
     </div>
   );
@@ -236,18 +226,18 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
       </motion.div>
 
       {/* ── SECTION 1: SMM DELIVERABLES THIS MONTH (Reels, Posts, Stories Planned vs Posted) ── */}
-      <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+      <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                 <Sparkles size={17} />
               </div>
-              <h2 className={`text-base font-bold ${txt}`}>
+              <h2 className="text-base font-bold text-foreground">
                 SMM Deliverables — {smmMetrics.month} {smmMetrics.year}
               </h2>
             </div>
-            <p className={`text-xs ${sub} mt-0.5`}>
+            <p className="text-xs text-muted-foreground mt-0.5">
               Monthly quota tracking for Reels, Posts, and Stories configured for your brand
             </p>
           </div>
@@ -382,15 +372,15 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
       {/* ── SECTION 2: PROJECTS & TASK METRICS (Side-by-side) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Project Metrics & Status Card */}
-        <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+        <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-border/50">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
                 <FolderKanban size={17} />
               </div>
               <div>
-                <h3 className={`text-sm font-bold ${txt}`}>My Projects</h3>
-                <p className={`text-[11px] ${sub}`}>Active pipelines and progress</p>
+                <h3 className="text-sm font-bold text-foreground">My Projects</h3>
+                <p className="text-[11px] text-muted-foreground">Active pipelines and progress</p>
               </div>
             </div>
             <Link
@@ -403,8 +393,8 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
           <div className="grid grid-cols-3 gap-2">
             <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 text-center">
-              <span className={`text-[10px] font-semibold uppercase tracking-wider ${sub}`}>Total</span>
-              <p className={`text-xl font-black ${txt}`}>{projectMetrics.total}</p>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
+              <p className="text-xl font-black text-foreground">{projectMetrics.total}</p>
             </div>
             <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-900/40 text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Active</span>
@@ -427,9 +417,9 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                 <div key={p._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border/50 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h4 className={`text-xs font-bold ${txt}`}>{p.name}</h4>
+                      <h4 className="text-xs font-bold text-foreground">{p.name}</h4>
                       {p.dueDate && (
-                        <p className={`text-[10px] ${sub}`}>
+                        <p className="text-[10px] text-muted-foreground">
                           Due: {new Date(p.dueDate).toLocaleDateString('en-IN')}
                         </p>
                       )}
@@ -442,7 +432,7 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                         <button
                           type="button"
                           onClick={() => handleProposalDownload(p)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 px-2 py-0.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
+                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-0.5 text-[10px] font-bold text-foreground hover:bg-secondary transition-colors"
                         >
                           <FileCheck size={11} /> PDF
                         </button>
@@ -462,15 +452,15 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
         </div>
 
         {/* Task Metrics & Status Card */}
-        <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+        <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex items-center justify-between pb-3 border-b border-border/50">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                 <CheckSquare size={17} />
               </div>
               <div>
-                <h3 className={`text-sm font-bold ${txt}`}>Tasks & Deliverables</h3>
-                <p className={`text-[11px] ${sub}`}>Task status, progress & approvals</p>
+                <h3 className="text-sm font-bold text-foreground">Tasks & Deliverables</h3>
+                <p className="text-[11px] text-muted-foreground">Task status, progress & approvals</p>
               </div>
             </div>
             <Link
@@ -483,8 +473,8 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
           <div className="grid grid-cols-4 gap-2">
             <div className="p-3 rounded-xl bg-secondary/40 border border-border/40 text-center">
-              <span className={`text-[10px] font-semibold uppercase tracking-wider ${sub}`}>Total</span>
-              <p className={`text-xl font-black ${txt}`}>{taskMetrics.total}</p>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total</span>
+              <p className="text-xl font-black text-foreground">{taskMetrics.total}</p>
             </div>
             <div className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/40 text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Done</span>
@@ -510,8 +500,8 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
               (taskMetrics.tasks || []).slice(0, 4).map((t) => (
                 <div key={t._id} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-secondary/30 border border-border/40">
                   <div className="min-w-0 flex-1">
-                    <p className={`text-xs font-semibold truncate ${txt}`}>{t.taskTitle || t.title}</p>
-                    <p className={`text-[10px] ${sub}`}>
+                    <p className="text-xs font-semibold truncate text-foreground">{t.taskTitle || t.title}</p>
+                    <p className="text-[10px] text-muted-foreground">
                       {t.taskCategory === 'non_content' ? 'Development / Operations' : 'Content Deliverable'}
                       {t.dueDate && ` • Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
                     </p>
@@ -527,15 +517,15 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
       </div>
 
       {/* ── SECTION 3: CLIENT INVOICES & FINANCE (Strictly Client Scoped) ── */}
-      <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+      <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <Receipt size={17} />
             </div>
             <div>
-              <h2 className={`text-base font-bold ${txt}`}>Invoices & Billing Summary</h2>
-              <p className={`text-xs ${sub}`}>Individual invoicing details, amounts quoted, payments received, and balance</p>
+              <h2 className="text-base font-bold text-foreground">Invoices & Billing Summary</h2>
+              <p className="text-xs text-muted-foreground">Individual invoicing details, amounts quoted, payments received, and balance</p>
             </div>
           </div>
           <Link
@@ -599,9 +589,9 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                       <td className="py-3 px-3 font-semibold text-amber-600 dark:text-amber-400">{fmt(inv.balanceAmount || ((inv.totalAmount || inv.total || 0) - (inv.paidAmount || 0)))}</td>
                       <td className="py-3 px-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          inv.status === 'paid' ? 'bg-emerald-500/15 text-emerald-600' :
-                          inv.status === 'overdue' ? 'bg-rose-500/15 text-rose-600' :
-                          'bg-amber-500/15 text-amber-600'
+                          inv.status === 'paid' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
+                          inv.status === 'overdue' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400' :
+                          'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                         }`}>
                           {inv.status ? inv.status.toUpperCase() : 'SENT'}
                         </span>
@@ -610,7 +600,7 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                         <button
                           type="button"
                           onClick={() => exportInvoiceToPDF(inv, { save: true })}
-                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold hover:bg-secondary transition-colors"
+                          className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary transition-colors"
                         >
                           <Download size={12} /> PDF
                         </button>
@@ -625,15 +615,15 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
       </div>
 
       {/* ── SECTION: PROPOSALS & CONTRACTS ── */}
-      <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+      <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <FileText size={17} />
             </div>
             <div>
-              <h2 className={`text-base font-bold ${txt}`}>Proposals & Scope Agreements</h2>
-              <p className={`text-xs ${sub}`}>Review project proposals, service scopes, deliverables, and confirm acceptance</p>
+              <h2 className="text-base font-bold text-foreground">Proposals & Scope Agreements</h2>
+              <p className="text-xs text-muted-foreground">Review project proposals, service scopes, deliverables, and confirm acceptance</p>
             </div>
           </div>
           <Link
@@ -702,9 +692,9 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                       <td className="py-3 px-3 font-semibold text-foreground">{fmt(prop.amount)}</td>
                       <td className="py-3 px-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          prop.status === 'accepted' ? 'bg-emerald-500/15 text-emerald-600' :
-                          prop.status === 'rejected' ? 'bg-rose-500/15 text-rose-600' :
-                          'bg-amber-500/15 text-amber-600'
+                          prop.status === 'accepted' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
+                          prop.status === 'rejected' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400' :
+                          'bg-amber-500/15 text-amber-600 dark:text-amber-400'
                         }`}>
                           {(prop.status || 'draft').toUpperCase()}
                         </span>
@@ -725,24 +715,24 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border py-8 text-center bg-background/50">
-            <FileText size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
-            <p className={`text-xs ${sub}`}>No proposals active right now. Official proposals sent by RiseWithMedia will be displayed here.</p>
+          <div className="rounded-2xl border border-dashed border-border py-8 text-center bg-card/40">
+            <FileText size={28} className="mx-auto text-muted-foreground mb-2 opacity-50" />
+            <p className="text-xs text-muted-foreground">No proposals active right now. Official proposals sent by RiseWithMedia will be displayed here.</p>
           </div>
         )}
       </div>
 
       {/* ── SECTION 4: CLIENT AD BUDGET & CAMPAIGNS ── */}
       {adBudget && (
-        <div className="rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+        <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                 <Megaphone size={17} />
               </div>
               <div>
-                <h2 className={`text-base font-bold ${txt}`}>Ad Budget & Live Campaigns</h2>
-                <p className={`text-xs ${sub}`}>Live campaign spend configured by your media team</p>
+                <h2 className="text-base font-bold text-foreground">Ad Budget & Live Campaigns</h2>
+                <p className="text-xs text-muted-foreground">Live campaign spend configured by your media team</p>
               </div>
             </div>
             {adBudget.notes && (
@@ -755,19 +745,19 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Monthly Budget</span>
-              <p className={`text-xl font-black ${txt}`}>{fmt(adBudget.monthlyBudget)}</p>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Monthly Budget</span>
+              <p className="text-xl font-black text-foreground">{fmt(adBudget.monthlyBudget)}</p>
             </div>
             <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Daily Budget</span>
-              <p className={`text-xl font-black ${txt}`}>{fmt(adBudget.dailyBudget)}</p>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Daily Budget</span>
+              <p className="text-xl font-black text-foreground">{fmt(adBudget.dailyBudget)}</p>
             </div>
             <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Amount Added</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Amount Added</span>
               <p className="text-xl font-black text-amber-500">{fmt(adBudget.amountAdded)}</p>
             </div>
             <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/40 space-y-1">
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${sub}`}>Available Balance</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Available Balance</span>
               <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{fmt(adBudget.balance)}</p>
             </div>
           </div>
@@ -775,7 +765,7 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
           {/* Active Campaigns List */}
           {(adBudget.campaigns || []).length > 0 && (
             <div className="pt-2">
-              <h3 className={`text-xs font-bold mb-2 ${txt}`}>Configured Campaigns</h3>
+              <h3 className="text-xs font-bold mb-2 text-foreground">Configured Campaigns</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {adBudget.campaigns.map((c) => (
                   <div key={c._id} className="p-3.5 rounded-2xl bg-secondary/30 border border-border/50 flex flex-col justify-between space-y-2">
@@ -784,11 +774,11 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-primary/10 text-primary">
                           {c.platform || 'Meta Ads'}
                         </span>
-                        <h4 className={`text-xs font-bold mt-1.5 ${txt}`}>{c.name}</h4>
-                        {c.objective && <p className={`text-[10px] ${sub}`}>{c.objective}</p>}
+                        <h4 className="text-xs font-bold mt-1.5 text-foreground">{c.name}</h4>
+                        {c.objective && <p className="text-[10px] text-muted-foreground">{c.objective}</p>}
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        c.status === 'Active' ? 'bg-emerald-500/15 text-emerald-600' : 'bg-secondary text-muted-foreground'
+                        c.status === 'Active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-secondary text-muted-foreground'
                       }`}>
                         {c.status || 'Active'}
                       </span>
@@ -796,16 +786,16 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
                     <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/30 text-[11px]">
                       <div>
-                        <span className={`text-[9px] font-semibold uppercase ${sub}`}>Added</span>
+                        <span className="text-[9px] font-semibold uppercase text-muted-foreground">Added</span>
                         <p className="font-bold text-foreground">{fmt(c.amountAdded)}</p>
                       </div>
                       <div>
-                        <span className={`text-[9px] font-semibold uppercase ${sub}`}>Spent</span>
+                        <span className="text-[9px] font-semibold uppercase text-muted-foreground">Spent</span>
                         <p className="font-bold text-rose-500">{fmt(c.amountSpent)}</p>
                       </div>
                       <div>
-                        <span className={`text-[9px] font-semibold uppercase ${sub}`}>Balance</span>
-                        <p className="font-bold text-emerald-600">{fmt(c.balance)}</p>
+                        <span className="text-[9px] font-semibold uppercase text-muted-foreground">Balance</span>
+                        <p className="font-bold text-emerald-600 dark:text-emerald-400">{fmt(c.balance)}</p>
                       </div>
                     </div>
                   </div>
@@ -818,17 +808,17 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
       {/* ── SECTION 5: SMM MONTHLY TRACKER SHEET (Day-by-Day Client Scope) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 rounded-3xl p-5 sm:p-6 space-y-4" style={{ background: card, border }}>
+        <div className="lg:col-span-2 rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                 <Calendar size={17} />
               </div>
               <div>
-                <h3 className={`text-sm font-bold ${txt}`}>
+                <h3 className="text-sm font-bold text-foreground">
                   {smmMetrics?.month || 'Monthly'} SMM Tracker Sheet
                 </h3>
-                <p className={`text-xs ${sub}`}>
+                <p className="text-xs text-muted-foreground">
                   Live day-by-day status of your posts, reels, and daily stories
                 </p>
               </div>
@@ -843,12 +833,12 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
 
           {!tracker || (tracker?.days || []).length === 0 ? (
             <div className="text-center py-8">
-              <Calendar size={28} className="mx-auto text-slate-500 mb-2 opacity-50" />
-              <p className={`text-xs ${sub}`}>SMM Monthly Tracker is being scheduled for your brand</p>
+              <Calendar size={28} className="mx-auto text-muted-foreground mb-2 opacity-50" />
+              <p className="text-xs text-muted-foreground">SMM Monthly Tracker is being scheduled for your brand</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="responsive-table-container custom-scrollbar">
+              <table className="w-full min-w-[500px] text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-border/50 text-[10px] font-semibold text-muted-foreground uppercase">
                     <th className="py-2.5 px-3 w-16">Day</th>
@@ -868,12 +858,12 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                       <tr
                         key={d.day}
                         className={`transition-colors ${
-                          isToday ? 'bg-blue-500/10 font-medium' : isSunday ? 'bg-amber-500/5' : 'hover:bg-secondary/30'
+                          isToday ? 'bg-primary/10 font-medium' : isSunday ? 'bg-amber-500/5' : 'hover:bg-secondary/30'
                         }`}
                       >
                         <td className="py-2.5 px-3 font-bold">
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] ${
-                            isToday ? 'bg-blue-600 text-white font-black' : isSunday ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' : 'text-muted-foreground'
+                            isToday ? 'bg-primary text-primary-foreground font-black' : isSunday ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold' : 'text-muted-foreground'
                           }`}>
                             {d.day}
                           </span>
@@ -889,8 +879,8 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                            d.postStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600' :
-                            d.postStatus === 'pending' ? 'bg-amber-500/15 text-amber-600' :
+                            d.postStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
+                            d.postStatus === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' :
                             'bg-secondary text-muted-foreground'
                           }`}>
                             {d.postStatus === 'done' ? 'DONE' : d.postStatus === 'pending' ? 'PENDING' : 'TODO'}
@@ -901,8 +891,8 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                            d.storyStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600' :
-                            d.storyStatus === 'pending' ? 'bg-amber-500/15 text-amber-600' :
+                            d.storyStatus === 'done' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
+                            d.storyStatus === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' :
                             'bg-secondary text-muted-foreground'
                           }`}>
                             {d.storyStatus === 'done' ? 'DONE' : d.storyStatus === 'pending' ? 'PENDING' : 'TODO'}
@@ -929,18 +919,19 @@ export default function PortalDashboard({ dark, user, setPendingCount }) {
         </div>
 
         {/* Onboarding Checklist Card */}
-        <div className="rounded-3xl p-5 sm:p-6 space-y-3" style={{ background: card, border }}>
-          <h3 className={`text-sm font-bold pb-2 border-b border-border/50 ${txt}`}>Onboarding Status</h3>
+        <div className="rounded-3xl p-5 sm:p-6 space-y-3 bg-card border border-border shadow-xs">
+          <h3 className="text-sm font-bold pb-2 border-b border-border/50 text-foreground">Onboarding Status</h3>
           <div className="space-y-2.5 pt-1">
             {onboardingSteps.map((s) => (
               <div key={s.label} className="flex items-center gap-2.5">
                 <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black shrink-0"
-                  style={{ background: s.done ? '#10b981' : dark ? '#1e293b' : '#e2e8f0' }}
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-black shrink-0 ${
+                    s.done ? 'bg-emerald-500' : 'bg-muted border border-border text-muted-foreground'
+                  }`}
                 >
                   {s.done ? '✓' : ''}
                 </div>
-                <span className={`text-xs font-medium ${s.done ? (dark ? 'text-white' : 'text-slate-700') : sub}`}>
+                <span className={`text-xs font-medium ${s.done ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
                   {s.label}
                 </span>
               </div>
@@ -961,23 +952,20 @@ function StatusDot({ status }) {
   return <div className="w-2 h-2 rounded-full shrink-0" style={{ background: colors[status] || '#64748b' }} />;
 }
 
-export function StatusBadge({ status, dark }) {
+export function StatusBadge({ status }) {
   const map = {
-    'Draft':              { bg: '#64748b20', color: '#94a3b8', label: 'Draft' },
-    'Editing':            { bg: '#3b82f620', color: '#60a5fa', label: 'Editing' },
-    'Send to Client':     { bg: '#f59e0b20', color: '#fbbf24', label: 'For Review' },
-    'Revision Requested': { bg: '#ef444420', color: '#f87171', label: 'Revision' },
-    'Approved':           { bg: '#10b98120', color: '#34d399', label: 'Approved' },
-    'Scheduled':          { bg: '#8b5cf620', color: '#a78bfa', label: 'Scheduled' },
-    'Posted':             { bg: '#14b8a620', color: '#2dd4bf', label: 'Posted' },
-    'Done':               { bg: '#6366f120', color: '#818cf8', label: 'Done' },
+    'Draft':              { bg: 'bg-slate-500/15', color: 'text-slate-600 dark:text-slate-400', label: 'Draft' },
+    'Editing':            { bg: 'bg-blue-500/15', color: 'text-blue-600 dark:text-blue-400', label: 'Editing' },
+    'Send to Client':     { bg: 'bg-amber-500/15', color: 'text-amber-600 dark:text-amber-400', label: 'For Review' },
+    'Revision Requested': { bg: 'bg-rose-500/15', color: 'text-rose-600 dark:text-rose-400', label: 'Revision' },
+    'Approved':           { bg: 'bg-emerald-500/15', color: 'text-emerald-600 dark:text-emerald-400', label: 'Approved' },
+    'Scheduled':          { bg: 'bg-purple-500/15', color: 'text-purple-600 dark:text-purple-400', label: 'Scheduled' },
+    'Posted':             { bg: 'bg-teal-500/15', color: 'text-teal-600 dark:text-teal-400', label: 'Posted' },
+    'Done':               { bg: 'bg-indigo-500/15', color: 'text-indigo-600 dark:text-indigo-400', label: 'Done' },
   };
-  const s = map[status] || { bg: '#64748b20', color: '#94a3b8', label: status };
+  const s = map[status] || { bg: 'bg-secondary', color: 'text-muted-foreground', label: status };
   return (
-    <span
-      className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-      style={{ background: s.bg, color: s.color }}
-    >
+    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.bg} ${s.color}`}>
       {s.label}
     </span>
   );

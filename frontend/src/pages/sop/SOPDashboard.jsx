@@ -231,7 +231,7 @@ const SOPDashboard = () => {
           <button
             type="button"
             onClick={() => setSelectedType('all')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all min-h-[36px] shrink-0 ${
               selectedType === 'all'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-card border border-border/80 text-muted-foreground hover:text-foreground'
@@ -247,7 +247,7 @@ const SOPDashboard = () => {
                 key={t.value}
                 type="button"
                 onClick={() => setSelectedType(t.value)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all min-h-[36px] shrink-0 ${
                   isSelected
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'bg-card border border-border/80 text-muted-foreground hover:text-foreground'
@@ -339,24 +339,24 @@ const SOPDashboard = () => {
 
       {/* Read-Only View SOP Modal */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
           <div className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 z-10">
+              <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
                   <BookOpen className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                  <DialogTitle className="text-base sm:text-xl font-bold tracking-tight text-foreground break-words line-clamp-2">
                     {viewingSOP?.title || 'SOP Details'}
                   </DialogTitle>
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <span className="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1">
+                    <span className="text-[11px] sm:text-xs font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
                       {SOP_TYPES.find((t) => t.value === viewingSOP?.sopType)?.label || viewingSOP?.sopType}
                     </span>
                     {viewingSOP?.role && (
-                      <span className="text-xs font-semibold bg-secondary text-foreground px-2.5 py-0.5 rounded-full border border-border capitalize">
+                      <span className="text-[11px] sm:text-xs font-semibold bg-secondary text-foreground px-2.5 py-0.5 rounded-full border border-border capitalize">
                         Role: {viewingSOP.role.replace(/_/g, ' ')}
                       </span>
                     )}
@@ -366,7 +366,7 @@ const SOPDashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
                   ESC
                 </span>
@@ -383,7 +383,7 @@ const SOPDashboard = () => {
 
             {/* Scrollable Body */}
             {viewingSOP && (
-              <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+              <div className="space-y-6 p-4 sm:p-6 md:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
                 <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-secondary/30 p-3.5 rounded-xl border border-border">
                   <span className="flex items-center gap-1.5 font-medium">
                     <User size={14} className="text-primary" />
@@ -429,20 +429,20 @@ const SOPDashboard = () => {
             )}
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
-              <div className="flex gap-2">
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 {canEditSop(viewingSOP) && (
-                  <Button variant="outline" size="sm" onClick={() => openEdit(viewingSOP)} className="h-10 px-4 rounded-xl">
+                  <Button variant="outline" size="sm" onClick={() => openEdit(viewingSOP)} className="h-10 px-3 sm:px-4 rounded-xl flex-1 sm:flex-initial">
                     <Edit2 size={14} className="mr-1.5" /> Edit SOP
                   </Button>
                 )}
                 {canDeleteSop(viewingSOP) && (
-                  <Button variant="destructive" size="sm" onClick={() => setDeleteId(viewingSOP._id)} className="h-10 px-4 rounded-xl">
+                  <Button variant="destructive" size="sm" onClick={() => setDeleteId(viewingSOP._id)} className="h-10 px-3 sm:px-4 rounded-xl flex-1 sm:flex-initial">
                     <Trash2 size={14} className="mr-1.5" /> Delete
                   </Button>
                 )}
               </div>
-              <Button variant="secondary" onClick={() => setShowViewModal(false)} className="h-10 px-5 rounded-xl font-medium">
+              <Button variant="secondary" onClick={() => setShowViewModal(false)} className="h-10 px-5 rounded-xl font-medium w-full sm:w-auto">
                 Close
               </Button>
             </div>
@@ -452,16 +452,16 @@ const SOPDashboard = () => {
 
       {/* Create / Edit Form Modal */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
           <div className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+            <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-3 sm:gap-4 z-10">
+              <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
                   <BookOpen className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
+                  <DialogTitle className="text-base sm:text-xl font-bold tracking-tight text-foreground truncate">
                     {editing ? 'Edit SOP' : 'Create New SOP'}
                   </DialogTitle>
                   <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
@@ -469,7 +469,7 @@ const SOPDashboard = () => {
                   </DialogDescription>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
                   ESC
                 </span>
@@ -485,7 +485,7 @@ const SOPDashboard = () => {
             </div>
 
             {/* Scrollable Linear Body */}
-            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div className="space-y-5 p-4 sm:p-6 md:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div>
                 <label className="text-sm font-semibold text-foreground mb-1.5 block">Title *</label>
                 <Input
@@ -556,21 +556,21 @@ const SOPDashboard = () => {
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowForm(false)}
-                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                  className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl border-border hover:bg-muted text-sm font-medium flex-1 sm:flex-initial"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
                   onClick={handleSave}
-                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all flex-1 sm:flex-initial"
                 >
                   {editing ? 'Save Changes' : 'Create SOP'}
                 </Button>

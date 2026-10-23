@@ -96,20 +96,21 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        variant="center"
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90dvh]"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+        <DialogHeader className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-border bg-card shrink-0 select-none">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
                 <Share2 size={20} />
               </div>
               <div>
-                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                <DialogTitle className="text-base sm:text-xl font-bold text-foreground">
                   Share Invoice
                 </DialogTitle>
                 <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -129,7 +130,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
         </DialogHeader>
 
         {/* Scrollable Body */}
-        <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+        <div className="space-y-4 sm:space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
           {/* Summary Box */}
           <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-1.5">
             <div className="flex justify-between items-center text-sm font-semibold text-foreground">
@@ -203,13 +204,13 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
         </div>
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleDownloadPDF} className="gap-2 h-11 px-4 rounded-xl text-sm font-semibold">
+        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs select-none">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={handleDownloadPDF} className="gap-2 h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl text-xs sm:text-sm font-semibold">
               <Download size={15} /> Download PDF
             </Button>
             {navigator.share && (
-              <Button variant="ghost" onClick={handleNativeShare} className="gap-2 h-11 px-4 rounded-xl text-sm text-muted-foreground font-semibold">
+              <Button variant="ghost" onClick={handleNativeShare} className="gap-2 h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl text-xs sm:text-sm text-muted-foreground font-semibold">
                 <Share2 size={15} /> Device Share
               </Button>
             )}
@@ -218,7 +219,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="h-11 px-6 rounded-xl font-semibold text-sm"
+            className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm ml-auto sm:ml-0"
           >
             Close
           </Button>

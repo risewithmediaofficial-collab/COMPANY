@@ -41,7 +41,7 @@ import {
   Megaphone,
   Rocket,
 } from 'lucide-react';
-import { toggleSidebar } from '../../store/slices/uiSlice';
+import { toggleSidebar, setSidebarOpen } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
 import { AppTooltip } from '../ui/tooltip';
@@ -306,8 +306,11 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
 
   const navSections = useMemo(() => getNavSections(), [userRole, userPermissions]);
 
-  // Auto-expand section containing the currently active route
+  // Auto-expand section containing the currently active route and close drawer on mobile navigation
   useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      dispatch(setSidebarOpen(false));
+    }
     const activeSection = navSections.find((s) =>
       s.items.some((item) => item.path === pathname)
     );
@@ -323,7 +326,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         return updated;
       });
     }
-  }, [pathname, navSections]);
+  }, [pathname, navSections, isMobile, dispatch]);
 
   // Extract all available items for pinned lookup with memoization
   const pinnedItems = useMemo(() => {
@@ -380,10 +383,11 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           {isMobile && (
             <button
               onClick={() => dispatch(toggleSidebar())}
-              className="p-1.5 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
               title="Close Navigation"
+              aria-label="Close Navigation"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           )}
         </div>

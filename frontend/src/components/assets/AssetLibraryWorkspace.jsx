@@ -88,7 +88,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]"
       >
         {/* Pinned Sticky Header */}
         <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
@@ -392,12 +392,12 @@ export const AssetLibraryWorkspace = ({
       <PageToolbar>
         <SearchField value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search assets, descriptions, or tags..." />
         {!portalMode ? (
-          <select value={clientFilter} onChange={(event) => setClientFilter(event.target.value)} className="app-input lg:w-56">
+          <select value={clientFilter} onChange={(event) => setClientFilter(event.target.value)} className="app-input w-full sm:w-auto lg:w-56">
             <option value="">All clients</option>
             {clients.map((client) => <option key={client._id} value={client._id}>{client.company || client.name}</option>)}
           </select>
         ) : null}
-        <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="app-input lg:w-52">
+        <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="app-input w-full sm:w-auto lg:w-52">
           <option value="">All categories</option>
           {assetCategories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
         </select>
@@ -423,7 +423,7 @@ export const AssetLibraryWorkspace = ({
 
       {selectedAsset ? (
         <Dialog open={Boolean(selectedAsset)} onOpenChange={(open) => !open && setSelectedAsset(null)}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="w-[calc(100vw-24px)] max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar">
             <DialogHeader>
               <DialogTitle>{selectedAsset.name}</DialogTitle>
               <DialogDescription>{selectedAsset.client?.company || selectedAsset.client?.name || 'Client asset'} • {categoryLabelMap[selectedAsset.category] || 'Other'}</DialogDescription>
@@ -459,7 +459,7 @@ export const AssetLibraryWorkspace = ({
                         href={fileUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-background px-4 py-3 transition-colors hover:bg-secondary/40"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border bg-background p-3 sm:px-4 sm:py-3 transition-colors hover:bg-secondary/40"
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           {isImage ? (

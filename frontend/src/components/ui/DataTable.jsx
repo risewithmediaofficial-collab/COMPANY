@@ -6,6 +6,7 @@ import { EmptyState } from './page';
 const scrollClass = [
   'overflow-x-auto',
   'overflow-y-auto',
+  'responsive-table-container',
   '[&::-webkit-scrollbar]:h-2',
   '[&::-webkit-scrollbar]:w-2',
   '[&::-webkit-scrollbar-thumb]:rounded-full',
@@ -137,7 +138,7 @@ export const DataTable = ({
                               event.stopPropagation();
                               onView(row);
                             }}
-                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                            className="rounded-lg p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                             title="View"
                             aria-label={`View ${row.name || row.title || 'record'}`}
                           >
@@ -150,7 +151,7 @@ export const DataTable = ({
                               event.stopPropagation();
                               onEdit(row);
                             }}
-                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                            className="rounded-lg p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                             title="Edit"
                             aria-label={`Edit ${row.name || row.title || 'record'}`}
                           >
@@ -163,7 +164,7 @@ export const DataTable = ({
                               event.stopPropagation();
                               onDelete(row._id);
                             }}
-                            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            className="rounded-lg p-2 min-h-[36px] min-w-[36px] flex items-center justify-center text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                             title="Delete"
                             aria-label={`Delete ${row.name || row.title || 'record'}`}
                           >

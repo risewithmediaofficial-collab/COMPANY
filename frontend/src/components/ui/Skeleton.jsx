@@ -9,11 +9,8 @@ export const Skeleton = ({ className = '', ...props }) => {
   );
 };
 
-export const CardSkeleton = ({ dark }) => (
-  <div 
-    className="rounded-2xl p-5 border border-border flex flex-col gap-4"
-    style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#fff' }}
-  >
+export const CardSkeleton = () => (
+  <div className="rounded-2xl p-5 border border-border bg-card flex flex-col gap-4 shadow-xs">
     <div className="flex justify-between items-center">
       <Skeleton className="h-4 w-24" />
       <Skeleton className="h-8 w-8 rounded-xl" />
@@ -23,11 +20,8 @@ export const CardSkeleton = ({ dark }) => (
   </div>
 );
 
-export const ChartSkeleton = ({ dark }) => (
-  <div 
-    className="rounded-2xl p-6 border border-border flex flex-col gap-4 h-[320px]"
-    style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#fff' }}
-  >
+export const ChartSkeleton = () => (
+  <div className="rounded-2xl p-6 border border-border bg-card flex flex-col gap-4 h-[320px] shadow-xs">
     <div className="flex justify-between items-center">
       <div>
         <Skeleton className="h-4 w-32 mb-2" />
@@ -49,11 +43,8 @@ export const ChartSkeleton = ({ dark }) => (
   </div>
 );
 
-export const TableSkeleton = ({ columns = 5, rows = 5, dark }) => (
-  <div 
-    className="rounded-2xl border border-border overflow-hidden"
-    style={{ background: dark ? 'rgba(255,255,255,0.04)' : '#fff' }}
-  >
+export const TableSkeleton = ({ columns = 5, rows = 5 }) => (
+  <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
     <div className="px-6 py-4 border-b border-border bg-muted/20">
       <Skeleton className="h-4 w-32" />
     </div>

@@ -241,8 +241,8 @@ export default function Reports() {
           <h3 className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
             <CheckCircle2 size={16} className="text-primary" /> 4. Top Performing Content Assets
           </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="responsive-table-container overflow-x-auto">
+            <table className="w-full text-left text-xs min-w-[550px]">
               <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
                 <tr>
                   <th className="px-4 py-3">Content / Reel Name</th>

@@ -276,7 +276,7 @@ const MyEODReports = () => {
       <div className="bg-card border border-border rounded-2xl p-4 shadow-xs space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Range type tabs */}
-          <div className="flex items-center gap-1 bg-secondary/40 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-secondary/40 rounded-xl p-1 overflow-x-auto custom-scrollbar max-w-full">
             {[
               { id: 'weekly', label: 'This Week' },
               { id: 'monthly', label: 'Monthly' },
@@ -285,7 +285,7 @@ const MyEODReports = () => {
               <button
                 key={tab.id}
                 onClick={() => setRangeType(tab.id)}
-                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 ${
+                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 shrink-0 min-h-[36px] ${
                   rangeType === tab.id
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
@@ -319,7 +319,7 @@ const MyEODReports = () => {
 
           {/* Custom date pickers */}
           {rangeType === 'custom' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">From</label>
                 <input
@@ -345,7 +345,7 @@ const MyEODReports = () => {
           )}
 
           {/* Search */}
-          <div className="relative flex-1 min-w-[180px] max-w-xs ml-auto">
+          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[180px] sm:max-w-xs sm:ml-auto">
             <Search
               size={14}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -362,7 +362,7 @@ const MyEODReports = () => {
       </div>
 
       {/* ── Stats Cards ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         {[
           {
             label: 'Reports Submitted',

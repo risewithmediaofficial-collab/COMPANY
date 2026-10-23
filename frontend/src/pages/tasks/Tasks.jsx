@@ -1033,7 +1033,7 @@ const Tasks = () => {
 
                 {/* Category Filter Dropdown (Adaptive to active department) */}
                 <SelectDropdown
-                  className="w-44 text-xs"
+                  className="w-full sm:w-44 text-xs"
                   value={categoryFilter}
                   onChange={(val) => setCategoryFilter(val || 'all')}
                   options={currentCategoryPills.map((p) => ({ value: p.key, label: p.label }))}
@@ -1048,7 +1048,7 @@ const Tasks = () => {
 
                 {/* Client Filter */}
                 <SelectDropdown
-                  className="w-48 text-xs"
+                  className="w-full sm:w-48 text-xs"
                   value={filters.client}
                   onChange={(val) => setFilters((prev) => ({ ...prev, client: val }))}
                   options={clientOptions}
@@ -1058,7 +1058,7 @@ const Tasks = () => {
 
                 {/* Status Filter */}
                 <SelectDropdown
-                  className="w-40 text-xs"
+                  className="w-full sm:w-40 text-xs"
                   value={filters.status}
                   onChange={(val) => setFilters((prev) => ({ ...prev, status: val }))}
                   options={isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS}
@@ -1067,7 +1067,7 @@ const Tasks = () => {
 
                 {/* Priority Filter */}
                 <SelectDropdown
-                  className="w-36 text-xs"
+                  className="w-full sm:w-36 text-xs"
                   value={filters.priority}
                   onChange={(val) => setFilters((prev) => ({ ...prev, priority: val }))}
                   options={['Critical', 'High', 'Medium', 'Low']}
@@ -1077,7 +1077,7 @@ const Tasks = () => {
                 {/* Assignee Filter */}
                 {!isEmployee && (
                   <SelectDropdown
-                    className="w-44 text-xs"
+                    className="w-full sm:w-44 text-xs"
                     value={filters.assignedTo}
                     onChange={(val) => setFilters((prev) => ({ ...prev, assignedTo: val }))}
                     options={userOptions}
@@ -1088,7 +1088,7 @@ const Tasks = () => {
 
                 {/* Sorting Filter Dropdown */}
                 <SelectDropdown
-                  className="w-52 text-xs font-semibold"
+                  className="w-full sm:w-52 text-xs font-semibold"
                   value={sortBy}
                   onChange={(val) => setSortBy(val || 'dueDate_asc')}
                   options={TASK_SORT_OPTIONS}
@@ -1175,10 +1175,10 @@ const Tasks = () => {
                               setSelectedTaskId(task._id);
                               setShowAddModal(true);
                             }}
-                            className="p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
                             title="Edit Task"
                           >
-                            <Edit2 size={13} />
+                            <Edit2 size={14} />
                           </button>
                         )}
                         {canDelete && (
@@ -1188,10 +1188,10 @@ const Tasks = () => {
                               e.stopPropagation();
                               setDeleteTaskId(task._id);
                             }}
-                            className="p-1 rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
+                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-rose-500/10 text-muted-foreground hover:text-rose-600 transition-colors"
                             title="Delete Task"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         )}
                       </div>

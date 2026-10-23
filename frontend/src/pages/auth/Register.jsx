@@ -134,7 +134,7 @@ const Register = () => {
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-secondary/30 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm appearance-none"
+              className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-secondary/30 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm appearance-none"
             >
               <option value="employee">Employee</option>
               <option value="manager">Manager</option>
@@ -148,7 +148,7 @@ const Register = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+          className="w-full flex items-center justify-center min-h-[44px] py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4"
         >
           {loading ? <Loader2 className="animate-spin" size={18} /> : 'Create New Account'}
         </button>

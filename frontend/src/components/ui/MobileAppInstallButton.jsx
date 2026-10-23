@@ -92,7 +92,7 @@ export function MobileAppInstallButton() {
   return (
     <>
       {/* Floating Bottom-Right Install Button (Mobile Only) */}
-      <div className="md:hidden fixed bottom-5 right-4 z-50 flex items-center animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="md:hidden fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-4 z-50 flex items-center animate-in fade-in slide-in-from-bottom-4 duration-300">
         <div className="relative group">
           {/* Glowing Aura Effect */}
           <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-emerald-500 rounded-full blur-xs opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse" />
@@ -100,7 +100,7 @@ export function MobileAppInstallButton() {
           <button
             type="button"
             onClick={handleInstallClick}
-            className="relative flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 bg-black text-white rounded-full border border-primary/40 shadow-2xl hover:scale-105 active:scale-95 transition-all text-xs font-bold select-none"
+            className="relative flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 bg-black text-white rounded-full border border-primary/40 shadow-2xl hover:scale-105 active:scale-95 transition-all text-xs font-bold select-none min-h-[44px]"
             aria-label="Download App"
           >
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -115,7 +115,7 @@ export function MobileAppInstallButton() {
             <span
               onClick={handleDismiss}
               title="Dismiss"
-              className="ml-1 p-1 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              className="ml-1 p-1 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors min-h-[28px] min-w-[28px] flex items-center justify-center"
             >
               <X size={12} />
             </span>
@@ -125,7 +125,7 @@ export function MobileAppInstallButton() {
 
       {/* iOS Installation Guide Modal */}
       <Dialog open={showIosGuide} onOpenChange={setShowIosGuide}>
-        <DialogContent className="max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-6">
+        <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-black text-white flex items-center gap-2">
               <Smartphone className="text-primary" size={20} />
@@ -172,7 +172,7 @@ export function MobileAppInstallButton() {
 
       {/* Android / Chrome Manual Guide Modal */}
       <Dialog open={showAndroidGuide} onOpenChange={setShowAndroidGuide}>
-        <DialogContent className="max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-6">
+        <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-black text-white flex items-center gap-2">
               <Smartphone className="text-primary" size={20} />

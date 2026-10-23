@@ -458,16 +458,16 @@ const Clients = () => {
           filters={
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Dropdown Filters Group */}
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <div className="flex items-center gap-2 flex-wrap min-w-0 w-full sm:w-auto">
                 <SelectDropdown
-                  className="w-40 text-xs"
+                  className="w-full sm:w-40 text-xs"
                   value={statusFilter}
                   onChange={(val) => setStatusFilter(val)}
                   options={['Active', 'Prospect', 'Renew', 'Inactive', 'Churned']}
                   allOptionLabel="All Statuses"
                 />
                 <SelectDropdown
-                  className="w-48 text-xs"
+                  className="w-full sm:w-48 text-xs"
                   value={serviceFilter}
                   onChange={(val) => setServiceFilter(val)}
                   options={SERVICE_FILTER_OPTIONS}
@@ -475,7 +475,7 @@ const Clients = () => {
                 />
                 {/* Sorting Filter Dropdown */}
                 <SelectDropdown
-                  className="w-52 text-xs font-semibold"
+                  className="w-full sm:w-52 text-xs font-semibold"
                   value={sortBy}
                   onChange={(val) => setSortBy(val || 'name_asc')}
                   options={CLIENT_SORT_OPTIONS}
@@ -517,8 +517,8 @@ const Clients = () => {
 
           {/* Board View (Clean, Modern Kanban by Client Status - matching Tasks board design) */}
           {(currentView === 'board' || currentView === 'kanban') && (
-            <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
-              <div className="grid w-max min-w-full auto-cols-[minmax(295px,85vw)] sm:auto-cols-[minmax(315px,360px)] grid-flow-col gap-4">
+            <div ref={clientsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory responsive-table-container">
+              <div className="grid w-max min-w-full auto-cols-[minmax(270px,85vw)] sm:auto-cols-[minmax(315px,360px)] grid-flow-col gap-4">
                 {STATUS_COLUMNS.map((status) => {
                   const statusClients = displayedClients.filter((c) => (c.status || 'Prospect') === status);
                   const isColActive = dragOverStatus === status;

@@ -372,20 +372,20 @@ const Settings = () => {
         <p className="text-muted-foreground text-sm">Manage your profile, security, and preferences.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1 space-y-2">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="lg:col-span-1 flex flex-row overflow-x-auto lg:flex-col gap-2 pb-2 lg:pb-0 custom-scrollbar">
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+              className={`flex items-center px-4 py-3 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0 lg:w-full ${
                 activeSection === section.id
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  ? 'bg-primary text-white shadow-md shadow-primary/20'
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/50 lg:border-transparent'
               }`}
             >
-              <section.icon size={18} className="mr-3" />
-              {section.label}
+              <section.icon size={18} className="mr-2 sm:mr-3 shrink-0" />
+              <span>{section.label}</span>
             </button>
           ))}
         </div>

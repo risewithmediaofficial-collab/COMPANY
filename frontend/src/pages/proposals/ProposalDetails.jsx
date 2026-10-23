@@ -333,13 +333,13 @@ const ProposalDetails = () => {
           </div>
         </div>
       ) : (
-        <div className="rounded-[2rem] border border-border bg-secondary/40 p-4 md:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-dashed border-border bg-background/80 px-4 py-3">
+        <div className="rounded-[2rem] border border-border bg-secondary/40 p-2.5 sm:p-4 md:p-6">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-dashed border-border bg-background/80 px-4 py-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">Print Layout Preview</p>
-              <p className="mt-1 text-sm text-muted-foreground">Proposal pages are shown in A4 order for both team and client viewing.</p>
+              <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Proposal pages are shown in A4 order for both team and client viewing.</p>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary self-start sm:self-auto">
               <FileText size={14} />
               {proposalPages.length} pages
             </div>
@@ -349,17 +349,17 @@ const ProposalDetails = () => {
             {proposalPages.map((page) => (
               <section
                 key={page.page}
-                className="mx-auto flex w-full max-w-[210mm] flex-col rounded-[28px] border border-slate-200 bg-white p-8 text-slate-900 shadow-[0_18px_60px_rgba(15,23,42,0.10)] md:min-h-[297mm] md:p-12"
+                className="mx-auto flex w-full max-w-[210mm] flex-col rounded-[24px] sm:rounded-[28px] border border-slate-200 bg-white p-4 sm:p-6 md:p-12 text-slate-900 shadow-[0_18px_60px_rgba(15,23,42,0.10)] md:min-h-[297mm]"
               >
-                <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-6">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Rise With Media Proposal</p>
-                    <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-900">{page.title}</h2>
-                    <p className="mt-2 text-sm text-slate-500">{page.subtitle}</p>
+                <div className="flex items-start justify-between gap-3 sm:gap-4 border-b border-slate-200 pb-5 sm:pb-6">
+                  <div className="min-w-0">
+                    <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Rise With Media Proposal</p>
+                    <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 break-words">{page.title}</h2>
+                    <p className="mt-1.5 text-xs sm:text-sm text-slate-500 break-words">{page.subtitle}</p>
                   </div>
-                  <div className="shrink-0 rounded-2xl border border-slate-200 px-4 py-3 text-right">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Page</p>
-                    <p className="mt-1 text-2xl font-black tracking-tight text-slate-900">{page.page}</p>
+                  <div className="shrink-0 rounded-2xl border border-slate-200 px-3 py-2 sm:px-4 sm:py-3 text-right">
+                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Page</p>
+                    <p className="mt-0.5 sm:mt-1 text-xl sm:text-2xl font-black tracking-tight text-slate-900">{page.page}</p>
                   </div>
                 </div>
 

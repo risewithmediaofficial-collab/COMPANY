@@ -1532,7 +1532,7 @@ const SMMOnePageTracker = () => {
           {/* Scrollable wrapper — overflow-x with touch scrolling */}
           <div
             ref={tableContainerRef}
-            className="custom-scrollbar"
+            className="custom-scrollbar responsive-table-container"
             style={{
               overflowX: 'auto',
               overflowY: 'auto',
@@ -1775,7 +1775,7 @@ const SMMOnePageTracker = () => {
       {/* ── Add Client Modal ── */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
+          <div className="bg-card border border-border rounded-2xl shadow-xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div>
                 <h3 className="font-bold text-base text-foreground">Add Client to Tracker</h3>
@@ -1929,7 +1929,7 @@ const SMMOnePageTracker = () => {
       {/* ── Delete Client Confirmation Modal ── */}
       {clientToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full max-h-[90dvh] overflow-y-auto p-4 sm:p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150 custom-scrollbar">
             {/* Header */}
             <div className="flex items-start justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2.5 sm:gap-3">

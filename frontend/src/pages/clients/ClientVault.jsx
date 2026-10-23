@@ -574,17 +574,17 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="max-w-2xl bg-card border border-border p-0 overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
-        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 pr-6 space-y-0">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+      <DialogContent size="lg" noPadding hideCloseButton className="w-[calc(100vw-24px)] max-w-2xl bg-card border border-border p-0 overflow-hidden flex flex-col max-h-[90dvh] shadow-2xl">
+        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 sm:gap-4 m-0 pr-4 sm:pr-6 space-y-0">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
               <LockKeyhole size={20} />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
+              <DialogTitle className="text-base sm:text-xl font-bold text-foreground leading-tight truncate">
                 {isEditing ? 'Edit Client Credential' : 'Add Secure Credential'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal line-clamp-1">
                 Credentials are encrypted with agency-grade AES security before storage.
               </DialogDescription>
             </div>
@@ -603,7 +603,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Scrollable Form Body */}
-          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+          <div className="space-y-5 p-4 sm:p-6 md:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
             {/* Linear One-by-One Field Flow (Google Form Style) */}
             <div className="space-y-6">
               <FormField label="Client *">
@@ -809,19 +809,19 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
           </div>
 
           {/* Modern Pinned Sticky Bottom Action Bar */}
-          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-end gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-end gap-2.5 z-10 shadow-xs select-none">
             <Button
               type="button"
               variant="secondary"
               onClick={() => onOpenChange(false)}
-              className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
+              className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm font-semibold cursor-pointer flex-1 sm:flex-initial"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={saving}
-              className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all"
+              className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/25 cursor-pointer transition-all flex-1 sm:flex-initial"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Store Securely'}
             </Button>
@@ -1253,12 +1253,12 @@ export default function ClientVault() {
     >
       {/* Category Filter Tabs & Searchable Client Filter Dropdown */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 flex-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar flex-1">
           {['all', 'social_media', 'meta_ads', 'google_ads', 'wordpress', 'hosting', 'domain'].map((type) => (
             <button
               key={type}
               onClick={() => setTypeFilter(type)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${typeFilter === type
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap shrink-0 min-h-[36px] ${typeFilter === type
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}

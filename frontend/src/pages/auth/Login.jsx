@@ -64,7 +64,7 @@ const Login = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-secondary/30 placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-secondary/30 placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm text-foreground"
               placeholder="name@company.com or phone number"
             />
           </div>
@@ -91,7 +91,7 @@ const Login = () => {
               required
               value={formData.password}
               onChange={handleChange}
-              className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-secondary/30 placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+              className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-secondary/30 placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm text-foreground"
               placeholder="••••••••"
             />
             <button

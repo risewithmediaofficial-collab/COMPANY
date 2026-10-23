@@ -241,24 +241,24 @@ export default function PortalSMMTracker() {
         </div>
 
         {/* Month Navigation */}
-        <div className="flex items-center gap-2 self-start md:self-auto bg-card border border-border/60 p-1 rounded-2xl shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto bg-card border border-border/60 p-1 rounded-2xl shadow-sm">
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground min-h-[36px] min-w-[36px] flex items-center justify-center"
             title="Previous Month"
           >
             <ChevronLeft size={16} />
           </button>
 
-          <span className="px-3 text-xs font-bold text-foreground min-w-[130px] text-center">
+          <span className="px-3 text-xs font-bold text-foreground min-w-[120px] text-center">
             {MONTHS[selectedMonth - 1]} {selectedYear}
           </span>
 
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+            className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground min-h-[36px] min-w-[36px] flex items-center justify-center"
             title="Next Month"
           >
             <ChevronRight size={16} />
@@ -267,7 +267,7 @@ export default function PortalSMMTracker() {
           <button
             type="button"
             onClick={handleCurrentMonth}
-            className="ml-1 px-2.5 py-1 text-[11px] font-bold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            className="ml-1 px-3 py-1.5 text-[11px] font-bold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition-opacity min-h-[36px]"
           >
             Current
           </button>
@@ -404,7 +404,7 @@ export default function PortalSMMTracker() {
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 self-start sm:self-auto bg-secondary/50 p-1 rounded-xl">
+          <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto bg-secondary/50 p-1 rounded-xl">
             {[
               { id: 'all', label: 'All Days' },
               { id: 'done', label: 'Done' },
@@ -415,7 +415,7 @@ export default function PortalSMMTracker() {
                 key={f.id}
                 type="button"
                 onClick={() => setFilterType(f.id)}
-                className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-[11px] font-bold rounded-lg min-h-[32px] transition-all ${
                   filterType === f.id
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
@@ -437,8 +437,8 @@ export default function PortalSMMTracker() {
             No deliverables found matching the selected filter.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="responsive-table-container overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-border/60 text-[11px] font-semibold text-muted-foreground uppercase">
                   <th className="py-3 px-4 w-28">Date</th>

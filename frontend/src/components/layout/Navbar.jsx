@@ -359,38 +359,43 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
     <>
       <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between border-b border-border bg-card/90 px-3.5 backdrop-blur-md sm:px-5 select-none">
         {/* Left: Mobile Toggle & Dynamic Interactive Breadcrumbs */}
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
           <button
             onClick={() => dispatch(toggleSidebar())}
-            className="p-1.5 -ml-1 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground md:hidden flex-shrink-0"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 -ml-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground md:hidden flex-shrink-0"
             title="Toggle Navigation"
+            aria-label="Toggle Navigation"
           >
-            <Menu size={18} />
+            <Menu size={20} />
           </button>
 
           {/* Breadcrumb Navigation with Clickable Links */}
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0 text-xs text-muted-foreground">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1 min-w-0 text-xs text-muted-foreground overflow-hidden">
             <Link
               to="/"
-              className="font-bold text-foreground/80 hover:text-foreground transition-colors hidden sm:inline truncate"
+              className="font-bold text-foreground/80 hover:text-foreground transition-colors hidden md:inline truncate shrink-0"
             >
               RiseWithMedia
             </Link>
             {breadcrumbs.map((crumb, idx) => {
               const isLast = idx === breadcrumbs.length - 1;
+              const isIntermediate = !isLast && idx < breadcrumbs.length - 1;
               return (
-                <span key={idx} className="flex items-center gap-1.5 min-w-0">
+                <span
+                  key={idx}
+                  className={`flex items-center gap-1 min-w-0 ${isIntermediate && idx === 0 && breadcrumbs.length > 2 ? 'hidden sm:flex' : ''}`}
+                >
                   <ChevronRight size={12} className="text-muted-foreground/60 shrink-0" />
                   {crumb.path && !isLast ? (
                     <Link
                       to={crumb.path}
-                      className="truncate text-muted-foreground hover:text-foreground transition-colors max-w-[120px] sm:max-w-[160px]"
+                      className="truncate text-muted-foreground hover:text-foreground transition-colors max-w-[80px] sm:max-w-[140px]"
                     >
                       {crumb.label}
                     </Link>
                   ) : (
                     <span
-                      className={`truncate max-w-[140px] sm:max-w-[200px] ${
+                      className={`truncate max-w-[120px] sm:max-w-[200px] ${
                         isLast ? 'font-semibold text-foreground' : 'text-muted-foreground hover:text-foreground transition-colors'
                       }`}
                     >
@@ -463,8 +468,9 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
           <AppTooltip content={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}>
             <button
               onClick={() => dispatch(toggleDarkMode())}
-              className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+              className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
               title="Toggle Dark Mode"
+              aria-label="Toggle Dark Mode"
             >
               {darkMode ? <Sun size={17} /> : <Moon size={17} />}
             </button>
@@ -473,16 +479,16 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
           {/* Notifications Dropdown */}
           <DropdownMenu>
             <AppTooltip content="Notifications & Activity Alerts">
-              <DropdownMenuTrigger className="p-1.5 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
+              <DropdownMenuTrigger className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
                 <Bell size={17} />
                 {(notificationData?.unreadCount > 0 || (notificationData?.notifications || []).filter((n) => !n.isRead).length > 0) && (
-                  <span className="absolute top-0.5 right-0.5 min-w-3.5 h-3.5 px-0.5 bg-primary text-white rounded-full border border-card text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-primary text-white rounded-full border border-card text-[9px] font-bold flex items-center justify-center">
                     {Math.min(notificationData?.unreadCount ?? (notificationData?.notifications || []).filter((n) => !n.isRead).length, 9)}
                   </span>
                 )}
               </DropdownMenuTrigger>
             </AppTooltip>
-            <DropdownMenuContent align="end" className="w-80 mt-2 p-0 overflow-hidden">
+            <DropdownMenuContent align="end" className="w-[calc(100vw-24px)] max-w-sm sm:w-80 mt-2 p-0 overflow-hidden">
               {(() => {
                 const unreadNotifications = (notificationData?.notifications || []).filter((n) => !n.isRead);
                 return (

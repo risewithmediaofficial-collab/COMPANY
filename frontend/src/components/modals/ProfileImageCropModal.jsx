@@ -268,29 +268,29 @@ export const ProfileImageCropModal = ({
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[92dvh] sm:max-h-[90vh] rounded-3xl"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
-                <Sparkles size={20} />
+        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none">
+          <div className="flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                <Sparkles size={18} />
               </div>
-              <div>
-                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
-                  Crop & Adjust Profile Picture
+              <div className="min-w-0">
+                <DialogTitle className="text-base sm:text-xl font-bold text-foreground truncate">
+                  Crop Profile Picture
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  Drag, zoom, and rotate the photo to position your profile image
+                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate sm:whitespace-normal">
+                  Drag, zoom, and rotate to position your profile image
                 </DialogDescription>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
                 ESC
               </span>
-              <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+              <DialogClose className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center">
                 <X className="h-4 w-4" />
               </DialogClose>
             </div>
@@ -298,13 +298,13 @@ export const ProfileImageCropModal = ({
         </DialogHeader>
 
         {/* Scrollable Body */}
-        <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-          <div className="flex flex-col lg:flex-row gap-6 items-center justify-center">
+        <div className="space-y-5 sm:space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+          <div className="flex flex-col lg:flex-row gap-5 sm:gap-6 items-center justify-center">
             {/* ── Left Column: Interactive Viewport & Controls ── */}
             <div className="flex flex-col items-center space-y-4 w-full sm:w-auto">
               {/* Crop Viewport Box */}
               <div
-                className="relative rounded-2xl overflow-hidden shadow-inner bg-slate-950 border border-border select-none touch-none cursor-grab active:cursor-grabbing"
+                className="relative rounded-2xl overflow-hidden shadow-inner bg-slate-950 border border-border select-none touch-none cursor-grab active:cursor-grabbing max-w-[min(320px,calc(100vw-64px))] max-h-[min(320px,calc(100vw-64px))]"
                 style={{
                   width: `${CROP_CONTAINER_SIZE}px`,
                   height: `${CROP_CONTAINER_SIZE}px`,

@@ -887,22 +887,22 @@ const Dashboard = () => {
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="relative">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:flex-initial min-w-[160px]">
                     <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                       type="text"
                       placeholder="Search member name..."
                       value={userMetricSearch}
                       onChange={(e) => setUserMetricSearch(e.target.value)}
-                      className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:border-primary outline-none"
+                      className="w-full sm:w-auto pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:border-primary outline-none"
                     />
                   </div>
 
                   <select
                     value={userMetricRoleFilter}
                     onChange={(e) => setUserMetricRoleFilter(e.target.value)}
-                    className="px-3 py-1.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground focus:border-primary outline-none cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground focus:border-primary outline-none cursor-pointer flex-1 sm:flex-initial"
                   >
                     <option value="all">All Roles</option>
                     <option value="employee">Employees</option>
@@ -913,8 +913,8 @@ const Dashboard = () => {
               </div>
 
               {/* User Metric Rows / Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="responsive-table-container custom-scrollbar">
+                <table className="w-full min-w-[640px] text-left text-xs border-collapse">
                   <thead>
                     <tr className="border-b border-border/70 text-muted-foreground font-bold uppercase text-[10px]">
                       <th className="py-2.5 px-3">Team Member</th>

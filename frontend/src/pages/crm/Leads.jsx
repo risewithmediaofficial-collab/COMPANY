@@ -598,8 +598,8 @@ const Leads = () => {
           </div>
         </div>
 
-        <div ref={leadsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
-          <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-5 pr-1">
+        <div ref={leadsBoardRef} className="w-full overflow-x-auto pb-4 custom-scrollbar responsive-table-container">
+          <div className="grid w-max min-w-full auto-cols-[minmax(260px,320px)] grid-flow-col gap-4 sm:gap-5 pr-1">
             {PIPELINE_STAGES.map((stage) => {
               const stageInfo = STAGE_META[stage];
               const stageLeads = filteredKanbanData[stage] || [];
@@ -908,7 +908,7 @@ const Leads = () => {
                 </h2>
               </div>
             ) : (
-              <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/60 [&::-webkit-scrollbar-track]:bg-transparent [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.35)_transparent]">
+              <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] responsive-table-container [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/60 [&::-webkit-scrollbar-track]:bg-transparent [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.35)_transparent]">
                 <table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="text-muted-foreground">
                     <tr>

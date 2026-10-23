@@ -244,8 +244,8 @@ export default function ClientsSection({ onQuickAdd }) {
           </div>
         </div>
 
-        <div className="overflow-x-auto overflow-y-auto max-h-[580px] text-xs">
-          <table className="w-full text-left">
+        <div className="responsive-table-container overflow-y-auto max-h-[580px] text-xs">
+          <table className="w-full min-w-[780px] text-left">
             <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3">Client / Business</th>
@@ -719,8 +719,8 @@ export default function ClientsSection({ onQuickAdd }) {
                   <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Invoices ({activeClientLedger.invoices.length})</span>
                   <span className="text-[10px] text-slate-500">Billed Services & Retainers</span>
                 </div>
-                <div className="overflow-x-auto max-h-[220px] overflow-y-auto text-xs">
-                  <table className="w-full text-left">
+                <div className="responsive-table-container max-h-[220px] overflow-y-auto text-xs">
+                  <table className="w-full min-w-[550px] text-left">
                     <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
                       <tr>
                         <th className="p-2.5">Date</th>
@@ -775,8 +775,8 @@ export default function ClientsSection({ onQuickAdd }) {
                   <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider">Payment Receipts Received ({activeClientLedger.receipts.length})</span>
                   <span className="text-[10px] text-slate-500">Collected in Bank / UPI / Cash</span>
                 </div>
-                <div className="overflow-x-auto max-h-[180px] overflow-y-auto text-xs">
-                  <table className="w-full text-left">
+                <div className="responsive-table-container max-h-[180px] overflow-y-auto text-xs">
+                  <table className="w-full min-w-[450px] text-left">
                     <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold text-[10px] uppercase sticky top-0">
                       <tr>
                         <th className="p-2.5">Date Received</th>

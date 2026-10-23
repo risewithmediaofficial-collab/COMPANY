@@ -98,12 +98,12 @@ const ImagePreviewModal = ({ file, onClose }) => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="relative max-h-[90vh] max-w-4xl w-full flex flex-col rounded-3xl border border-white/10 bg-card overflow-hidden shadow-2xl"
+          className="relative max-h-[90dvh] w-[calc(100vw-24px)] max-w-4xl flex flex-col rounded-3xl border border-white/10 bg-card overflow-hidden shadow-2xl"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card/90">
@@ -351,7 +351,7 @@ export default function PortalTasks() {
       </div>
 
       {/* Executive KPI Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         {/* Total Deliverables */}
         <motion.div
           whileHover={{ y: -2 }}
@@ -445,7 +445,7 @@ export default function PortalTasks() {
       {/* Filter and Search Bar */}
       <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:flex-row sm:items-center sm:justify-between shadow-xs">
         {/* Status Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto responsive-table-container pb-1 sm:pb-0">
           {[
             { id: 'all', label: 'All Tasks', count: metrics.total },
             { id: 'needs_review', label: 'Needs Review', count: metrics.needsReview, alert: metrics.needsReview > 0 },
@@ -455,7 +455,7 @@ export default function PortalTasks() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold shrink-0 min-h-[36px] transition-all ${
                 statusFilter === tab.id
                   ? 'bg-primary text-primary-foreground shadow-xs'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -478,12 +478,12 @@ export default function PortalTasks() {
         </div>
 
         {/* Search & Category Filter */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Category Toggle */}
           <div className="flex items-center rounded-xl border border-border bg-background p-0.5 text-xs">
             <button
               onClick={() => setCategoryFilter('all')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-lg font-medium min-h-[32px] transition-all ${
                 categoryFilter === 'all' ? 'bg-secondary text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -491,7 +491,7 @@ export default function PortalTasks() {
             </button>
             <button
               onClick={() => setCategoryFilter('website')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-lg font-medium min-h-[32px] transition-all ${
                 categoryFilter === 'website' ? 'bg-secondary text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -499,7 +499,7 @@ export default function PortalTasks() {
             </button>
             <button
               onClick={() => setCategoryFilter('content')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
+              className={`px-2.5 py-1 rounded-lg font-medium min-h-[32px] transition-all ${
                 categoryFilter === 'content' ? 'bg-secondary text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -508,14 +508,14 @@ export default function PortalTasks() {
           </div>
 
           {/* Search Box */}
-          <div className="relative flex-1 sm:w-56">
+          <div className="relative flex-1 sm:w-56 min-w-[160px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search deliverables..."
-              className="w-full rounded-xl border border-border bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              className="w-full rounded-xl border border-border bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 min-h-[34px]"
             />
             {searchQuery && (
               <button

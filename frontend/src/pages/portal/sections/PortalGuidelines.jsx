@@ -44,20 +44,15 @@ const SECTIONS = [
   },
 ];
 
-export default function PortalGuidelines({ dark }) {
+export default function PortalGuidelines() {
   const [openSection, setOpenSection] = useState(0);
   const [openItem, setOpenItem]       = useState(null);
 
-  const txt    = dark ? 'text-white' : 'text-slate-800';
-  const sub    = dark ? 'text-slate-400' : 'text-slate-500';
-  const card   = dark ? 'rgba(255,255,255,0.04)' : '#fff';
-  const border = dark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.07)';
-
   return (
-    <div className="p-6 space-y-5 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-5 max-w-4xl mx-auto">
       <div>
-        <h2 className={`text-xl font-black ${txt}`}>Guidelines & FAQ</h2>
-        <p className={`text-xs mt-0.5 ${sub}`}>Everything you need to know about using this portal.</p>
+        <h2 className="text-xl font-black text-foreground">Guidelines & FAQ</h2>
+        <p className="text-xs mt-0.5 text-muted-foreground">Everything you need to know about using this portal.</p>
       </div>
 
       {/* Quick tips */}
@@ -67,43 +62,57 @@ export default function PortalGuidelines({ dark }) {
           { emoji: '📊', label: 'Track monthly KPIs in Reports section' },
           { emoji: '💬', label: 'Submit requests via Support tickets' },
         ].map(tip => (
-          <div key={tip.label} className="flex items-center gap-3 p-4 rounded-2xl"
-            style={{ background: '#6366f112', border: '1px solid #6366f130' }}>
+          <div
+            key={tip.label}
+            className="flex items-center gap-3 p-4 rounded-2xl bg-primary/10 border border-primary/20 shadow-xs"
+          >
             <span className="text-xl">{tip.emoji}</span>
-            <p className={`text-xs font-medium ${txt}`}>{tip.label}</p>
+            <p className="text-xs font-semibold text-foreground">{tip.label}</p>
           </div>
         ))}
       </div>
 
       {/* FAQ Accordion */}
       {SECTIONS.map((section, si) => (
-        <div key={section.title} className="rounded-2xl overflow-hidden" style={{ border }}>
-          <button onClick={() => setOpenSection(openSection === si ? -1 : si)}
-            className="w-full flex items-center gap-3 px-5 py-4 text-left"
-            style={{ background: dark ? 'rgba(99,102,241,0.07)' : '#f8fafc' }}>
-            <BookOpen size={14} className="text-indigo-400" />
-            <span className={`text-sm font-bold flex-1 ${txt}`}>{section.title}</span>
-            <ChevronDown size={14} className="text-slate-400 transition-transform"
-              style={{ transform: openSection === si ? 'rotate(180deg)' : '' }} />
+        <div key={section.title} className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
+          <button
+            onClick={() => setOpenSection(openSection === si ? -1 : si)}
+            className="w-full flex items-center gap-3 px-5 py-4 text-left bg-card hover:bg-secondary/60 transition-colors border-b border-border/60"
+          >
+            <BookOpen size={16} className="text-primary shrink-0" />
+            <span className="text-sm font-bold flex-1 text-foreground">{section.title}</span>
+            <ChevronDown
+              size={15}
+              className="text-muted-foreground transition-transform duration-200"
+              style={{ transform: openSection === si ? 'rotate(180deg)' : '' }}
+            />
           </button>
 
           {openSection === si && (
-            <div className="divide-y" style={{ borderColor: dark ? 'rgba(255,255,255,0.04)' : '#f1f5f9' }}>
+            <div className="divide-y divide-border/60">
               {section.items.map((item, ii) => {
                 const key = `${si}-${ii}`;
                 const isOpen = openItem === key;
                 return (
-                  <div key={item.q}>
-                    <button onClick={() => setOpenItem(isOpen ? null : key)}
-                      className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-white/5 transition-all">
-                      <ChevronRight size={12} className="text-indigo-400 shrink-0 transition-transform"
-                        style={{ transform: isOpen ? 'rotate(90deg)' : '' }} />
-                      <span className={`text-xs font-semibold flex-1 ${txt}`}>{item.q}</span>
+                  <div key={item.q} className="transition-colors">
+                    <button
+                      onClick={() => setOpenItem(isOpen ? null : key)}
+                      className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-secondary/40 transition-all"
+                    >
+                      <ChevronRight
+                        size={13}
+                        className="text-primary shrink-0 transition-transform duration-200"
+                        style={{ transform: isOpen ? 'rotate(90deg)' : '' }}
+                      />
+                      <span className="text-xs font-semibold flex-1 text-foreground">{item.q}</span>
                     </button>
                     {isOpen && (
-                      <motion.div initial={{ opacity:0, height:0 }} animate={{ opacity:1, height:'auto' }}
-                        className="px-10 pb-4">
-                        <p className={`text-xs leading-relaxed ${sub}`}>{item.a}</p>
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="px-5 sm:px-10 pb-4 pt-1"
+                      >
+                        <p className="text-xs leading-relaxed text-muted-foreground">{item.a}</p>
                       </motion.div>
                     )}
                   </div>
@@ -115,12 +124,11 @@ export default function PortalGuidelines({ dark }) {
       ))}
 
       {/* Bottom callout */}
-      <div className="rounded-2xl p-5 flex items-center gap-4"
-        style={{ background: 'linear-gradient(135deg,#6366f115,#8b5cf615)', border: '1px solid #6366f130' }}>
-        <CheckCircle2 size={24} className="text-indigo-400 shrink-0" />
+      <div className="rounded-2xl p-5 flex items-center gap-4 bg-primary/10 border border-primary/20 shadow-xs">
+        <CheckCircle2 size={24} className="text-primary shrink-0" />
         <div>
-          <p className={`text-sm font-bold ${txt}`}>Still have questions?</p>
-          <p className={`text-xs ${sub} mt-0.5`}>
+          <p className="text-sm font-bold text-foreground">Still have questions?</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Don't hesitate to reach out via the Support section. Your dedicated account manager is here to help.
           </p>
         </div>

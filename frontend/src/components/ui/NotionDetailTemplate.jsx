@@ -31,15 +31,15 @@ export const NotionDetailPage = ({
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
 
-    <section className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-8">
+    <section className="rounded-3xl border border-border bg-card p-4 sm:p-6 md:p-8 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-secondary/70 text-primary shadow-xs">
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-secondary/70 text-primary shadow-xs">
             {Icon ? <Icon size={22} /> : <span className="text-lg font-black">{iconContent}</span>}
           </div>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="break-words text-2xl font-black tracking-tight text-foreground sm:text-3xl">{title}</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <h1 className="break-words text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-foreground">{title}</h1>
               {isValidElement(status) ? status : status ? (
                 <span
                   className={cn(
@@ -51,7 +51,7 @@ export const NotionDetailPage = ({
                 </span>
               ) : null}
             </div>
-            {subtitle ? <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p> : null}
+            {subtitle ? <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground break-words">{subtitle}</p> : null}
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ export const NotionProperty = ({ icon: Icon, label, value, children, accent, hid
   if (hideEmpty && (content === null || content === undefined || content === '')) return null;
 
   return (
-    <div className="grid gap-2 rounded-xl px-3 py-2.5 transition-colors hover:bg-secondary/45 sm:grid-cols-[180px_1fr]">
+    <div className="grid gap-1 sm:gap-2 rounded-xl px-3 py-2.5 transition-colors hover:bg-secondary/45 sm:grid-cols-[180px_1fr]">
       <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-muted-foreground">
         {Icon ? <Icon size={14} className={cn('shrink-0', accent || 'text-muted-foreground/70')} /> : null}
         <span className="truncate uppercase tracking-wider">{label}</span>
@@ -94,17 +94,18 @@ export const NotionPropertyGrid = ({ children, className }) => (
 );
 
 export const NotionTabs = ({ tabs, activeTab, onTabChange, className }) => (
-  <div className={cn('flex w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1.5', className)}>
+  <div className={cn('flex w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1.5 custom-scrollbar', className)}>
     {tabs.map((tab) => {
       const Icon = tab.icon;
       const isActive = activeTab === tab.id;
+
       return (
         <button
           key={tab.id}
           type="button"
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            'flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all',
+            'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-all min-h-[40px]',
             isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
           )}
         >

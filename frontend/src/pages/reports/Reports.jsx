@@ -455,10 +455,10 @@ const Reports = () => {
       </div>
 
       {/* Tab Switcher */}
-      <div className="border-b border-border flex items-center gap-6">
+      <div className="border-b border-border flex items-center gap-6 overflow-x-auto custom-scrollbar">
         <button
           onClick={() => setActiveTab('overall')}
-          className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+          className={`pb-3 text-sm font-bold border-b-2 transition-all shrink-0 min-h-[40px] ${
             activeTab === 'overall' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -466,7 +466,7 @@ const Reports = () => {
         </button>
         <button
           onClick={() => setActiveTab('employees')}
-          className={`pb-3 text-sm font-bold border-b-2 transition-all ${
+          className={`pb-3 text-sm font-bold border-b-2 transition-all shrink-0 min-h-[40px] ${
             activeTab === 'employees' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -648,8 +648,8 @@ const Reports = () => {
               Loading employee monthly statistics...
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className="responsive-table-container overflow-x-auto">
+              <table className="w-full text-left text-sm min-w-[700px]">
                 <thead>
                   <tr className="text-muted-foreground font-semibold border-b border-border bg-muted/20">
                     <th className="px-6 py-4">Employee</th>
@@ -717,7 +717,7 @@ const Reports = () => {
           size="lg"
           noPadding
           hideCloseButton
-          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-4xl max-h-[90vh]"
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-4xl max-h-[90dvh]"
         >
           {/* Pinned Sticky Header */}
           <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
@@ -770,8 +770,8 @@ const Reports = () => {
                 </div>
 
                 <div className="overflow-hidden rounded-2xl border border-border">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                  <div className="responsive-table-container overflow-x-auto">
+                    <table className="w-full text-left text-xs min-w-[500px]">
                       <thead className="bg-muted/40 font-semibold border-b border-border text-muted-foreground">
                         <tr>
                           <th className="px-4 py-3">Date</th>

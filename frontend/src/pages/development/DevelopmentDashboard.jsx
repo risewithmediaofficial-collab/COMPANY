@@ -83,18 +83,18 @@ export default function DevelopmentDashboard() {
         title="Development Management"
         subtitle="Agile pipeline, sprint progression, code reviews, QA tracking, and developer workload"
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={fetchDashboard}
               disabled={loading}
-              className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs"
+              className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs min-h-[38px]"
             >
               <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
               Refresh
             </button>
             <Link
               to="/development/board"
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl text-xs shadow-md shadow-primary/25 hover:opacity-95 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl text-xs shadow-md shadow-primary/25 hover:opacity-95 transition-all min-h-[38px]"
             >
               <Kanban size={14} />
               Open Dev Board
@@ -106,7 +106,7 @@ export default function DevelopmentDashboard() {
       <DevelopmentSubNav />
 
       {/* ── Top KPIs ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-card border border-border rounded-2xl p-4 space-y-2 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Tasks</span>
@@ -301,8 +301,8 @@ export default function DevelopmentDashboard() {
               No developer assignments recorded yet
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+            <div className="responsive-table-container overflow-x-auto">
+              <table className="w-full min-w-[420px] text-xs">
                 <thead>
                   <tr className="border-b border-border text-muted-foreground">
                     <th className="text-left py-2 font-semibold">Developer</th>

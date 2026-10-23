@@ -158,7 +158,7 @@ export function DatabaseView({
       {/* Database Controls Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-card rounded-2xl border border-border shadow-xs">
         {/* View Switchers */}
-        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar shrink-0">
+        <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar shrink-0 max-w-full pb-1 sm:pb-0">
           {normalizedViews.map((v) => {
             const Icon = v.icon;
             const isSelected = currentView === v.id || (['board', 'kanban'].includes(v.id) && ['board', 'kanban'].includes(currentView));
@@ -167,7 +167,7 @@ export function DatabaseView({
                 <button
                   type="button"
                   onClick={() => handleViewSelect(v.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer min-h-[38px] ${
                     isSelected
                       ? 'bg-primary text-primary-foreground shadow-xs'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -191,15 +191,15 @@ export function DatabaseView({
         </div>
 
         {/* Search & Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
-          <div className="relative min-w-[200px] w-full sm:w-64">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end w-full sm:w-auto">
+          <div className="relative w-full sm:w-64 min-w-[140px]">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={activeSearch}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder={searchPlaceholder}
-              className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full transition-all"
+              className="pl-8 pr-3 py-2 sm:py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full transition-all min-h-[38px] sm:min-h-0"
             />
           </div>
 
@@ -230,8 +230,8 @@ export function DatabaseView({
           {/* 1. TABLE VIEW */}
           {currentView === 'table' && (
             <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-              <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] custom-scrollbar">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] custom-scrollbar responsive-table-container">
+                <table className="w-full min-w-[640px] text-left text-xs border-collapse">
                   <thead className="sticky top-0 z-10 bg-card">
                     <tr className="border-b border-border bg-secondary/40 text-muted-foreground font-bold">
                       {columns.map((col, idx) => (
@@ -292,8 +292,8 @@ export function DatabaseView({
 
           {/* 3. KANBAN BOARD VIEW (With Smooth Click & Drag Between Columns & Up/Down Reordering) */}
           {(currentView === 'kanban' || currentView === 'board') && (
-            <div ref={kanbanScrollRef} className="w-full overflow-x-auto pb-4 custom-scrollbar">
-              <div className="grid w-max min-w-full auto-cols-[minmax(280px,320px)] grid-flow-col gap-4">
+            <div ref={kanbanScrollRef} className="w-full overflow-x-auto pb-4 custom-scrollbar responsive-table-container">
+              <div className="grid w-max min-w-full auto-cols-[minmax(260px,320px)] grid-flow-col gap-4">
                 {kanbanColumns.map((col) => {
                   const colItems = items.filter((item) => {
                     const val = item[groupBy];

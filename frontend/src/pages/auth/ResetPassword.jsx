@@ -62,7 +62,7 @@ const ResetPassword = () => {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="block w-full rounded-xl border border-border bg-secondary/30 py-2.5 pl-10 pr-10 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="block w-full rounded-xl border border-border bg-secondary/30 py-2.5 pl-10 pr-10 text-sm text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               placeholder="Enter a new password"
             />
             <button
@@ -90,7 +90,7 @@ const ResetPassword = () => {
               required
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="block w-full rounded-xl border border-border bg-secondary/30 py-2.5 pl-10 pr-10 text-sm transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="block w-full rounded-xl border border-border bg-secondary/30 py-2.5 pl-10 pr-10 text-sm text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               placeholder="Confirm your new password"
             />
             <button

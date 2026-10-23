@@ -321,7 +321,7 @@ export default function ManagerBoard() {
       ]}
     >
       {/* Quick Filter Tabs */}
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 custom-scrollbar">
         {[
           { id: 'pending', label: `Pending Review (${pendingNotes.length})` },
           { id: 'assigned', label: `Assigned Tasks (${assignedNotes.length})` },
@@ -330,7 +330,7 @@ export default function ManagerBoard() {
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`px-3.5 py-1 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap shrink-0 min-h-[36px] ${
               tab === t.id
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'

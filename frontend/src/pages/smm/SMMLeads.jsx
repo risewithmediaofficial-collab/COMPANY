@@ -264,8 +264,8 @@ export const SMMLeads = () => {
             No lead records found for selected Client/Project filters. Click "+ Add Lead" to record one.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="responsive-table-container overflow-x-auto">
+            <table className="w-full text-left text-xs min-w-[700px]">
               <thead className="bg-muted/40 text-muted-foreground border-b border-border font-medium">
                 <tr>
                   <th className="px-4 py-3">Date</th>
@@ -343,7 +343,7 @@ export const SMMLeads = () => {
 
       {/* ADD LEAD MODAL */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
           <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">

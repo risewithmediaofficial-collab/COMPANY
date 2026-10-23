@@ -130,8 +130,8 @@ export default function Performance() {
               </div>
 
               {/* Comparison table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="responsive-table-container overflow-x-auto">
+                <table className="w-full text-left text-xs min-w-[500px]">
                   <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
                     <tr>
                       <th className="px-4 py-3">Metric</th>

@@ -1930,7 +1930,7 @@ export const AddTaskModal = ({
         {/* ========================================================
             STICKY BOTTOM ACTION BAR (Ultra Clean & Mobile Accessible)
            ======================================================== */}
-        <div className="sticky bottom-0 z-20 -mx-5 -mb-5 px-5 py-3 sm:px-6 sm:py-3.5 bg-card/95 backdrop-blur-md border-t border-border flex items-center justify-between gap-3 shadow-lg select-none">
+        <div className="sticky bottom-0 z-20 -mx-4 -mb-4 sm:-mx-6 sm:-mb-5 px-4 py-3 sm:px-6 sm:py-3.5 bg-card/95 backdrop-blur-md border-t border-border flex flex-wrap items-center justify-between gap-2 sm:gap-3 shadow-lg select-none">
           <div className="flex items-center gap-2">
             <Button
               type="button"

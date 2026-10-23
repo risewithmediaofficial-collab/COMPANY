@@ -76,7 +76,7 @@ export default function ClientProposals() {
       </div>
 
       {/* KPI Stat Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         {/* Total Proposals */}
         <motion.div
           whileHover={{ y: -2 }}
@@ -165,7 +165,7 @@ export default function ClientProposals() {
       {/* Filter and Search Bar */}
       <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:flex-row sm:items-center sm:justify-between shadow-xs">
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
           {[
             { id: 'all', label: 'All Proposals', count: metrics.total },
             { id: 'pending', label: 'Awaiting Decision', count: metrics.pending, alert: metrics.pending > 0 },
@@ -174,7 +174,7 @@ export default function ClientProposals() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all shrink-0 min-h-[36px] whitespace-nowrap ${
                 statusFilter === tab.id
                   ? 'bg-amber-600 text-white shadow-xs'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
@@ -260,7 +260,7 @@ export default function ClientProposals() {
                 key={prop._id}
                 whileHover={{ y: -2 }}
                 onClick={() => navigate(`/proposals/${prop._id}`)}
-                className={`cursor-pointer relative overflow-hidden rounded-3xl border p-5 sm:p-6 transition-all shadow-xs hover:shadow-md bg-card flex flex-col justify-between gap-5 ${
+                className={`cursor-pointer relative overflow-hidden rounded-3xl border p-4 sm:p-6 transition-all shadow-xs hover:shadow-md bg-card flex flex-col justify-between gap-5 ${
                   isAccepted
                     ? 'border-emerald-500/30'
                     : 'border-border hover:border-amber-500/40'

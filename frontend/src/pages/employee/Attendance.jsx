@@ -709,10 +709,10 @@ const Attendance = () => {
       {isAdmin && (
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
-            <div className="flex flex-wrap items-center gap-2 bg-secondary/30 p-1.5 rounded-2xl border border-border">
+            <div className="flex items-center gap-2 bg-secondary/30 p-1.5 rounded-2xl border border-border overflow-x-auto custom-scrollbar max-w-full">
               <button
                 onClick={() => { setViewTab('team'); setSelectedUser('all'); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
                   viewTab === 'team'
                     ? 'bg-card text-foreground shadow-sm border border-border'
                     : 'text-muted-foreground hover:text-foreground'
@@ -724,7 +724,7 @@ const Attendance = () => {
 
               <button
                 onClick={() => { setViewTab('eod'); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
                   viewTab === 'eod'
                     ? 'bg-card text-foreground shadow-sm border border-border'
                     : 'text-muted-foreground hover:text-foreground'
@@ -741,7 +741,7 @@ const Attendance = () => {
 
               <button
                 onClick={() => { setViewTab('personal'); setSelectedUser(user?._id); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
                   viewTab === 'personal'
                     ? 'bg-card text-foreground shadow-sm border border-border'
                     : 'text-muted-foreground hover:text-foreground'
@@ -1394,8 +1394,8 @@ const Attendance = () => {
                 </div>
               </div>
 
-              <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/60 [&::-webkit-scrollbar-track]:bg-transparent [scrollbar-width:thin] [scrollbar-color:hsl(var(--muted-foreground)/0.35)_transparent]">
-                <table className="w-full text-left text-sm">
+              <div className="responsive-table-container overflow-y-auto max-h-[calc(100vh-350px)]">
+                <table className="w-full min-w-[700px] text-left text-sm">
                   <thead className="text-muted-foreground font-medium">
                     <tr>
                       {showEmployeeColumn && (

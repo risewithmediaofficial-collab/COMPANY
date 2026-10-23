@@ -133,8 +133,8 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
-        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+      <DialogContent variant="center" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90dvh]">
+        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
               <UserPlus size={20} />
@@ -163,7 +163,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 overflow-hidden">
             {/* Scrollable Form Body - Google Form Linear Stack */}
-            <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+            <div className="space-y-4 sm:space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
               <div className="space-y-6">
                 <FormField
                   control={form.control}
@@ -542,7 +542,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
                 <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">

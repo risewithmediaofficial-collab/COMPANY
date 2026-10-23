@@ -24,7 +24,7 @@ export const DevelopmentSubNav = () => {
   const location = useLocation();
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-2 shadow-xs mb-6 overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+    <div className="bg-card border border-border rounded-2xl p-2 shadow-xs mb-6 responsive-table-container overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
       <div className="flex items-center gap-1.5 min-w-max">
         {DEV_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -37,7 +37,7 @@ export const DevelopmentSubNav = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 min-h-[38px] transition-all duration-200 ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'

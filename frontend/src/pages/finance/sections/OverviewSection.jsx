@@ -84,7 +84,7 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
       )}
 
       {/* TOP KPI CARDS GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Recognized Service Revenue */}
         <div
           onClick={() => onNavigateSection('invoices')}
@@ -302,8 +302,8 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
           </button>
         </div>
 
-        <div className="overflow-x-auto overflow-y-auto max-h-[420px] text-xs">
-          <table className="w-full text-left">
+        <div className="responsive-table-container overflow-y-auto max-h-[420px] text-xs">
+          <table className="w-full min-w-[620px] text-left">
             <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-2xs text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3">Date</th>

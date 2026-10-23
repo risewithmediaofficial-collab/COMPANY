@@ -458,7 +458,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
-        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 pr-6 space-y-0">
+        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 pr-4 sm:pr-6 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
               <Briefcase size={20} />
@@ -956,7 +956,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
             </div>
 
             {/* Modern Pinned Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs select-none">
               <div className="flex items-center gap-2">
                 {isDevCategory && !project ? (
                   <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 inline-flex items-center gap-1.5 shadow-2xs">
@@ -974,7 +974,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 )}
               </div>
 
-              <div className="flex items-center gap-3 ml-auto">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 ml-auto">
                 <Button
                   type="button"
                   variant="secondary"

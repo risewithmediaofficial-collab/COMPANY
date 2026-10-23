@@ -102,7 +102,7 @@ export default function DevelopmentReviews() {
           <button
             onClick={fetchReviewTasks}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs"
+            className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs min-h-[38px]"
           >
             <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -193,16 +193,16 @@ export default function DevelopmentReviews() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center justify-end gap-2 pt-1">
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
                     <button
                       onClick={() => handleOpenAction(task, 'changes_requested')}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold transition-all"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-bold transition-all min-h-[38px]"
                     >
                       <XCircle size={13} /> Request Changes
                     </button>
                     <button
                       onClick={() => handleOpenAction(task, 'approved')}
-                      className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold transition-all shadow-sm"
+                      className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold transition-all shadow-sm min-h-[38px]"
                     >
                       <CheckCircle2 size={13} /> Approve Code
                     </button>
@@ -216,8 +216,8 @@ export default function DevelopmentReviews() {
 
       {/* ── Review Action Modal ──────────────────────────────────────── */}
       {selectedTask && actionType && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-card border border-border rounded-2xl w-[calc(100vw-24px)] max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-5 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
                 {actionType === 'approved' ? (
@@ -230,7 +230,7 @@ export default function DevelopmentReviews() {
               <button
                 type="button"
                 onClick={() => setSelectedTask(null)}
-                className="text-muted-foreground hover:text-foreground text-xs"
+                className="flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground text-xs"
               >
                 ✕
               </button>
@@ -259,18 +259,18 @@ export default function DevelopmentReviews() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setSelectedTask(null)}
-                  className="app-button-secondary text-xs"
+                  className="app-button-secondary text-xs min-h-[38px] px-3.5"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className={`px-4 py-2 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md ${
+                  className={`px-4 py-2 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md min-h-[38px] ${
                     actionType === 'approved'
                       ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
                       : 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'

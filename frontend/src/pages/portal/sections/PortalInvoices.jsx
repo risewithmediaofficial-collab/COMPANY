@@ -35,7 +35,7 @@ const normalizeStatus = (status) => {
   return map[status] || status || 'Draft';
 };
 
-export default function PortalInvoices({ dark }) {
+export default function PortalInvoices() {
   const [invoices, setInvoices] = useState([]);
   const [financeRecords, setFinanceRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,10 +58,6 @@ export default function PortalInvoices({ dark }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const txt = dark ? 'text-white' : 'text-slate-800';
-  const sub = dark ? 'text-slate-400' : 'text-slate-500';
-  const border = dark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.07)';
-
   const summary = useMemo(() => ({
     total: invoices.reduce((sum, item) => sum + Number(item.totalAmount || item.total || 0), 0),
     paid: invoices.reduce((sum, item) => sum + Number(item.paidAmount || 0), 0),
@@ -70,32 +66,32 @@ export default function PortalInvoices({ dark }) {
   }), [invoices]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5 p-6">
+    <div className="mx-auto max-w-6xl space-y-5 p-4 sm:p-6">
       <div>
-        <h2 className={`text-xl font-black ${txt}`}>Finance & Invoices</h2>
-        <p className={`mt-0.5 text-xs ${sub}`}>Review your quoted amounts, payments made, balance due, and download invoice PDFs.</p>
+        <h2 className="text-xl font-black text-foreground">Finance & Invoices</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">Review your quoted amounts, payments made, balance due, and download invoice PDFs.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Amount Quoted', val: currency.format(summary.total), color: '#6366f1' },
           { label: 'Amount Paid', val: currency.format(summary.paid), color: '#10b981' },
           { label: 'Balance Due', val: currency.format(summary.balance), color: '#f59e0b' },
           { label: 'Overdue Invoices', val: summary.overdue, color: '#ef4444' },
         ].map((item) => (
-          <motion.div key={item.label} whileHover={{ y: -2 }} className="rounded-2xl p-4" style={{ background: `${item.color}15`, border: `1px solid ${item.color}30` }}>
-            <p className="mb-1 text-xs font-medium" style={{ color: item.color }}>{item.label}</p>
-            <p className={`text-xl font-black ${txt}`}>{item.val}</p>
+          <motion.div key={item.label} whileHover={{ y: -2 }} className="rounded-2xl p-4 bg-card border border-border shadow-xs">
+            <p className="mb-1 text-xs font-semibold" style={{ color: item.color }}>{item.label}</p>
+            <p className="text-xl font-black text-foreground">{item.val}</p>
           </motion.div>
         ))}
       </div>
 
       {loading ? (
-        <TableSkeleton columns={6} rows={5} dark={dark} />
+        <TableSkeleton columns={6} rows={5} />
       ) : !invoices.length ? (
-        <div className="flex flex-col items-center rounded-2xl py-16" style={{ border }}>
-          <Receipt size={36} className="mb-3 text-slate-500" />
-          <p className={`text-sm font-medium ${sub}`}>No invoices yet</p>
+        <div className="flex flex-col items-center rounded-2xl py-16 border border-border bg-card">
+          <Receipt size={36} className="mb-3 text-muted-foreground opacity-50" />
+          <p className="text-sm font-medium text-muted-foreground">No invoices yet</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -105,7 +101,7 @@ export default function PortalInvoices({ dark }) {
             const Icon = meta.icon;
             const financeRecord = financeRecords.find((item) => (item.projectId?._id || item.projectId) === (invoice.project?._id || invoice.project));
             return (
-              <div key={invoice._id} className="rounded-3xl p-5" style={{ border, background: dark ? 'rgba(255,255,255,0.03)' : '#fff' }}>
+              <div key={invoice._id} className="rounded-3xl p-4 sm:p-5 bg-card border border-border shadow-xs">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -113,19 +109,19 @@ export default function PortalInvoices({ dark }) {
                         <Icon size={10} className="mr-1 inline" /> {normalizedStatus}
                       </span>
                     </div>
-                    <h3 className={`mt-3 text-lg font-bold ${txt}`}>{invoice.invoiceNumber}</h3>
-                    <p className={`mt-1 text-sm ${sub}`}>{invoice.projectName || invoice.project?.name || 'No linked project'}</p>
+                    <h3 className="mt-3 text-lg font-bold text-foreground">{invoice.invoiceNumber}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{invoice.projectName || invoice.project?.name || 'No linked project'}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
-                      className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-indigo-600 transition-all hover:bg-indigo-50"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-xs sm:text-sm font-semibold text-foreground transition-all hover:bg-secondary min-h-[38px]"
                       onClick={() => exportInvoiceToPDF(invoice, { save: true })}
                     >
                       <Download size={14} />
                       Download PDF
                     </button>
                     <button
-                      className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-600 transition-all hover:bg-indigo-50"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-xs sm:text-sm font-semibold text-foreground transition-all hover:bg-secondary min-h-[38px]"
                       onClick={() => {
                         setShareInvoice(invoice);
                         setShareModalOpen(true);
@@ -135,50 +131,50 @@ export default function PortalInvoices({ dark }) {
                       Share
                     </button>
                     {invoice.paymentLink ? (
-                      <a href={invoice.paymentLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
+                      <a href={invoice.paymentLink} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-indigo-700 transition-colors min-h-[38px]">
                         Pay Now
                       </a>
                     ) : null}
                   </div>
                 </div>
 
-                <div className="mt-4 grid gap-4 md:grid-cols-4">
-                  <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Amount Quoted</p>
-                    <p className={`mt-2 text-sm font-semibold ${txt}`}>{currency.format(Number(invoice.totalAmount || invoice.total || 0))}</p>
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Amount Quoted</p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">{currency.format(Number(invoice.totalAmount || invoice.total || 0))}</p>
                   </div>
-                  <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Amount Paid</p>
-                    <p className={`mt-2 text-sm font-semibold ${txt}`}>{currency.format(Number(invoice.paidAmount || 0))}</p>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Amount Paid</p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">{currency.format(Number(invoice.paidAmount || 0))}</p>
                   </div>
-                  <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Balance Due</p>
-                    <p className={`mt-2 text-sm font-semibold ${txt}`}>{currency.format(Number(invoice.balanceAmount !== undefined ? invoice.balanceAmount : Math.max(0, (invoice.totalAmount || invoice.total || 0) - (invoice.paidAmount || 0))))}</p>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Balance Due</p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">{currency.format(Number(invoice.balanceAmount !== undefined ? invoice.balanceAmount : Math.max(0, (invoice.totalAmount || invoice.total || 0) - (invoice.paidAmount || 0))))}</p>
                   </div>
-                  <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Due Date</p>
-                    <p className={`mt-2 text-sm font-semibold ${txt}`}>{invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'N/A'}</p>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/30 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Due Date</p>
+                    <p className="mt-2 text-sm font-semibold text-foreground">{invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'N/A'}</p>
                   </div>
                 </div>
 
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Payment Instructions</p>
-                    <p className={`mt-2 whitespace-pre-wrap text-sm ${txt}`}>{invoice.paymentTerms || 'No payment instructions shared yet.'}</p>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Payment Instructions</p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{invoice.paymentTerms || 'No payment instructions shared yet.'}</p>
                   </div>
-                  <div className="rounded-2xl border border-slate-200/60 p-4">
-                    <p className={`text-[11px] font-bold uppercase tracking-[0.18em] ${sub}`}>Payment History</p>
+                  <div className="rounded-2xl border border-border/70 bg-secondary/20 p-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Payment History</p>
                     {(financeRecord?.paymentHistory || invoice.paymentHistory || []).length ? (
                       <div className="mt-2 space-y-2">
                         {(financeRecord?.paymentHistory || invoice.paymentHistory || []).map((item, index) => (
-                          <div key={`${item._id || item.reference || index}`} className="rounded-xl bg-slate-50/70 p-3 text-sm text-slate-700">
+                          <div key={`${item._id || item.reference || index}`} className="rounded-xl bg-card border border-border/60 p-3 text-sm text-foreground shadow-xs">
                             <p className="font-semibold">{currency.format(Number(item.amountPaid || item.amount || 0))} via {item.paymentMode || item.method || 'Manual'}</p>
-                            <p className="mt-1 text-xs text-slate-500">{item.noteTitle || item.noteDescription || item.notes || 'Payment update'}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{item.noteTitle || item.noteDescription || item.notes || 'Payment update'}</p>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className={`mt-2 text-sm ${sub}`}>No payment history available.</p>
+                      <p className="mt-2 text-sm text-muted-foreground">No payment history available.</p>
                     )}
                   </div>
                 </div>

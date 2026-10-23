@@ -475,7 +475,7 @@ export const SMMDashboard = () => {
                 </button>
               </div>
 
-              <div className="overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
+              <div className="responsive-table-container overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
                 <table className="min-w-[480px] w-full text-left text-xs">
                   <thead className="bg-muted/40 text-muted-foreground font-bold border-b border-border">
                     <tr>

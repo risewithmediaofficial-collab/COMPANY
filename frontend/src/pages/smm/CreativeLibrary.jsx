@@ -88,10 +88,10 @@ export default function CreativeLibrary() {
 
       <SMMSubNav />
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-4 rounded-2xl border border-border">
-        <div className="flex items-center gap-3 w-full sm:w-auto flex-1">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-4 rounded-2xl border border-border">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto flex-1">
           <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tags, headlines, captions..." />
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="app-select w-40">
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="app-select w-full sm:w-40">
             <option value="">All Asset Types</option>
             <option value="Image">Image</option>
             <option value="Video">Video</option>

@@ -188,7 +188,7 @@ const App = () => {
           {/* Root */}
           <Route
             path="/"
-            element={user?.role === 'client' ? <PortalDashboard dark={false} user={user} /> : <Dashboard />}
+            element={user?.role === 'client' ? <PortalDashboard user={user} /> : <Dashboard />}
           />
 
           {/* CRM */}
@@ -540,7 +540,7 @@ const App = () => {
           {/* Client Portal Sections */}
           <Route path="/portal/invoices" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['client', 'superAdmin', 'manager']}>
-              <PortalInvoices dark={false} />
+              <PortalInvoices />
             </ProtectedRoute>
           } />
           <Route path="/portal/tasks" element={

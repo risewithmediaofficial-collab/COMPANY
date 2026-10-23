@@ -116,20 +116,21 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        variant="center"
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90dvh]"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+        <DialogHeader className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-border bg-card shrink-0 select-none">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
                 <BellRing size={20} />
               </div>
               <div>
-                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
+                <DialogTitle className="text-base sm:text-xl font-bold text-foreground">
                   Web Push Diagnostics
                 </DialogTitle>
                 <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
@@ -154,9 +155,9 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
             <span>Scanning device PushManager capabilities...</span>
           </div>
         ) : (
-          <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
+          <div className="space-y-4 sm:space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
             {/* Status Overview Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <div className="p-2.5 rounded-xl border border-border bg-card/60 flex flex-col gap-1">
                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Device & OS</span>
                 <span className="font-semibold text-foreground truncate flex items-center gap-1.5">
@@ -382,12 +383,12 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
         )}
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
           <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="h-11 px-6 rounded-xl border border-border font-semibold text-sm hover:bg-secondary cursor-pointer transition-colors ml-auto"
+            className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl border border-border font-semibold text-xs sm:text-sm hover:bg-secondary cursor-pointer transition-colors ml-auto"
           >
             Close
           </button>

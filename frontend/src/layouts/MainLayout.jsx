@@ -43,7 +43,7 @@ const MainLayout = () => {
         <EnableBannerNotificationBar />
         <main
           id="main-content-scroll"
-          className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-5 md:p-6 custom-scrollbar overscroll-contain"
+          className="min-w-0 min-h-0 flex-1 overflow-y-auto bg-secondary/20 p-3 sm:p-5 md:p-6 custom-scrollbar overscroll-contain pb-safe"
         >
           <div className="mx-auto min-w-0 max-w-7xl pb-16">
             <ErrorBoundary locationKey={location.pathname}>

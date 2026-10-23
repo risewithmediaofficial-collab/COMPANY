@@ -195,8 +195,8 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
 
       {/* Filter and Action Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="relative w-56">
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="relative w-full sm:w-56">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
@@ -210,7 +210,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium cursor-pointer"
+            className="w-full sm:w-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="draft">Drafts</option>
@@ -223,7 +223,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           <select
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium cursor-pointer"
+            className="w-full sm:w-auto rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-medium cursor-pointer"
           >
             <option value="all">All Clients</option>
             {clients.map((c) => (
@@ -234,7 +234,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           </select>
 
           {/* Date to Date Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
+          <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1 flex-wrap">
             <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
             <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
             <input
@@ -269,11 +269,11 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           </div>
 
           {/* Date Sorting Dropdown */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
             <select
               value={dateSort}
               onChange={(e) => setDateSort(e.target.value)}
-              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
+              className="w-full sm:w-auto rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
             >
               <option value="desc">Date: Newest First (Desc)</option>
               <option value="asc">Date: Oldest First (Asc)</option>
@@ -281,7 +281,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
           <button
             onClick={handleExport}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
@@ -301,8 +301,8 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
 
       {/* Invoices Master Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
-        <div className="overflow-x-auto overflow-y-auto max-h-[600px] text-xs">
-          <table className="w-full text-left">
+        <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
+          <table className="w-full min-w-[750px] text-left">
             <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
               <tr>
                 <th className="p-3">Invoice #</th>
@@ -423,7 +423,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       {/* DETAILED PRINTABLE / DOWNLOADABLE INVOICE VIEW MODAL */}
       <Dialog open={Boolean(selectedInvoice)} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
         {selectedInvoice && (
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
             <div className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
               <div className="shrink-0 border-b border-border bg-card/95 backdrop-blur-md px-6 py-5 flex items-center justify-between gap-4 z-10">
@@ -489,8 +489,8 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                 </div>
 
                 {/* Items */}
-                <div className="rounded-xl border border-border overflow-hidden">
-                  <table className="w-full text-left text-xs">
+                <div className="responsive-table-container rounded-xl border border-border">
+                  <table className="w-full min-w-[500px] text-left text-xs">
                     <thead className="bg-muted/40 text-muted-foreground uppercase text-[10px] font-semibold border-b border-border">
                       <tr>
                         <th className="p-3">Item & Description</th>

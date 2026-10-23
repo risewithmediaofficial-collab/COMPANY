@@ -442,7 +442,7 @@ const DMCalendar = () => {
       />
 
       {/* Top Nav Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
+      <div className="flex items-center gap-2 border-b border-border/60 pb-3 overflow-x-auto custom-scrollbar">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -450,7 +450,7 @@ const DMCalendar = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[40px] ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-md'
                   : 'bg-card text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40'
@@ -991,12 +991,12 @@ const DMCalendar = () => {
         <div className="space-y-6">
           <SectionCard title="Master Digital Marketing Calendar" description="Combined interactive calendar view for Video Shoots, RJ Promotions, and VJ Promotions.">
             {/* Calendar Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6 bg-card/60 p-4 rounded-2xl border border-border/40">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 bg-card/60 p-4 rounded-2xl border border-border/40">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={handlePrev}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <h3 className="text-sm font-bold text-foreground min-w-[160px] text-center">
+                <h3 className="text-sm font-bold text-foreground min-w-[140px] sm:min-w-[160px] text-center">
                   {format(currentDate, calendarView === 'month' ? 'MMMM yyyy' : 'MMM d, yyyy')}
                 </h3>
                 <Button variant="outline" size="sm" onClick={handleNext}>
@@ -1008,12 +1008,12 @@ const DMCalendar = () => {
               </div>
 
               {/* View Selector */}
-              <div className="flex items-center gap-1 bg-muted p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-muted p-1 rounded-xl overflow-x-auto max-w-full">
                 {CALENDAR_VIEWS.map((v) => (
                   <button
                     key={v.id}
                     onClick={() => setCalendarView(v.id)}
-                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all shrink-0 min-h-[36px] ${
                       calendarView === v.id ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -1034,45 +1034,47 @@ const DMCalendar = () => {
 
             {/* Calendar Grid View */}
             {calendarView === 'month' || calendarView === 'week' ? (
-              <div className="grid grid-cols-7 gap-px bg-border rounded-2xl overflow-hidden border border-border/60">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                  <div key={d} className="bg-muted/80 p-2.5 text-center text-xs font-bold text-foreground">
-                    {d}
-                  </div>
-                ))}
-
-                {calendarDays.map((day, idx) => {
-                  const dayEvents = masterEvents.filter((ev) => isSameDay(new Date(ev.date), day));
-                  const isCurrMonth = isSameMonth(day, currentDate);
-                  const isTodayDay = isSameDay(day, new Date());
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`min-h-[110px] p-1.5 transition-colors ${
-                        isCurrMonth ? 'bg-background' : 'bg-muted/20 text-muted-foreground'
-                      } ${isTodayDay ? 'ring-2 ring-primary ring-inset' : ''}`}
-                    >
-                      <div className="text-right text-[11px] font-bold p-1 text-muted-foreground">
-                        {format(day, 'd')}
-                      </div>
-
-                      <div className="space-y-1 overflow-y-auto max-h-[85px] pr-0.5">
-                        {dayEvents.map((ev) => (
-                          <div
-                            key={ev.id}
-                            onClick={() => { setSelectedEventItem(ev); setShowEventDetailModal(true); }}
-                            className={`p-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-transform hover:scale-[1.02] shadow-sm border ${
-                              STATUS_COLORS[ev.status] || 'bg-primary text-primary-foreground'
-                            }`}
-                          >
-                            <div className="truncate">{ev.title}</div>
-                          </div>
-                        ))}
-                      </div>
+              <div className="responsive-table-container rounded-2xl border border-border/60">
+                <div className="min-w-[650px] grid grid-cols-7 gap-px bg-border">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+                    <div key={d} className="bg-muted/80 p-2.5 text-center text-xs font-bold text-foreground">
+                      {d}
                     </div>
-                  );
-                })}
+                  ))}
+
+                  {calendarDays.map((day, idx) => {
+                    const dayEvents = masterEvents.filter((ev) => isSameDay(new Date(ev.date), day));
+                    const isCurrMonth = isSameMonth(day, currentDate);
+                    const isTodayDay = isSameDay(day, new Date());
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`min-h-[110px] p-1.5 transition-colors ${
+                          isCurrMonth ? 'bg-background' : 'bg-muted/20 text-muted-foreground'
+                        } ${isTodayDay ? 'ring-2 ring-primary ring-inset' : ''}`}
+                      >
+                        <div className="text-right text-[11px] font-bold p-1 text-muted-foreground">
+                          {format(day, 'd')}
+                        </div>
+
+                        <div className="space-y-1 overflow-y-auto max-h-[85px] pr-0.5">
+                          {dayEvents.map((ev) => (
+                            <div
+                              key={ev.id}
+                              onClick={() => { setSelectedEventItem(ev); setShowEventDetailModal(true); }}
+                              className={`p-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-transform hover:scale-[1.02] shadow-sm border ${
+                                STATUS_COLORS[ev.status] || 'bg-primary text-primary-foreground'
+                              }`}
+                            >
+                              <div className="truncate">{ev.title}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
               /* Agenda / Daily List View */

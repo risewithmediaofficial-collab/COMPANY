@@ -280,7 +280,7 @@ const ManagerTaskAssignments = () => {
         title="Manager Board"
         description="View project briefs from admin, manage and track tasks across clients and projects."
         actions={(
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => { refetchNotes(); queryClient.invalidateQueries(['tasks']); }}>
               <RefreshCw size={14} className="mr-1.5" />
               Refresh
@@ -373,7 +373,7 @@ const ManagerTaskAssignments = () => {
             onChange={(event) => updateFilter('search', event.target.value)}
             placeholder="Search tasks, clients..."
           />
-          <div className="grid w-full gap-2 md:grid-cols-3 xl:grid-cols-6">
+          <div className="grid w-full gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
             <select
               value={filters.client}
               onChange={(event) => updateFilter('client', event.target.value)}
