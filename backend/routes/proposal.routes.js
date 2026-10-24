@@ -234,8 +234,8 @@ router.post('/:id/reject', protect, async (req, res) => {
 
 router.delete('/:id', protect, async (req, res) => {
   try {
-    if (!isAdmin(req.user)) {
-      return res.status(403).json({ success: false, message: 'Only admins can delete proposals' });
+    if (!canManageProposals(req.user)) {
+      return res.status(403).json({ success: false, message: 'Only managers and administrators can delete proposals' });
     }
 
     const proposal = await Proposal.findByIdAndDelete(req.params.id);

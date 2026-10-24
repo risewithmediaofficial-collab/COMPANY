@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle, Building2, UserCheck } from 'lucide-react';
+import { CheckCircle2, CircleDollarSign, Clock3, FileText, Layers3, XCircle, Building2, UserCheck, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
@@ -13,10 +13,20 @@ import {
   useUpdateProposal,
   useAcceptProposal,
   useRejectProposal,
+  useDeleteProposal,
 } from '../../hooks/useProposals';
 import { formatINR } from '../../utils/currency';
 import LinksEditor, { LinksList } from '../../components/ui/LinksEditor';
 import { NotionDetailPage } from '../../components/ui/NotionDetailTemplate';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const SERVICE_CATEGORIES = [
   { value: 'social_media', label: 'Social Media' },
@@ -44,8 +54,10 @@ const ProposalDetails = () => {
   const updateProposal = useUpdateProposal();
   const acceptProposal = useAcceptProposal();
   const rejectProposal = useRejectProposal();
+  const deleteProposal = useDeleteProposal();
 
   const [editing, setEditing] = useState(isNew);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [form, setForm] = useState({
     title: '',
     recipientType: 'client', // 'client' | 'lead'
@@ -227,7 +239,19 @@ const ProposalDetails = () => {
                 </Button>
               </>
             ) : null}
-            {canManage && !editing && !isNew ? <Button onClick={() => setEditing(true)}>Edit</Button> : null}
+            {canManage && !editing && !isNew ? (
+              <>
+                <Button onClick={() => setEditing(true)}>Edit</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="border-rose-200 text-rose-600 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                >
+                  <Trash2 size={15} className="mr-1.5" />
+                  <span>Delete</span>
+                </Button>
+              </>
+            ) : null}
             {canManage && editing ? (
               <>
                 <Button
@@ -376,6 +400,48 @@ const ProposalDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+      >
+        <AlertDialogContent className="rounded-2xl border-border bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold text-foreground">
+              Delete Proposal
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground">
+              Are you sure you want to delete proposal{' '}
+              <strong className="text-foreground font-semibold">"{proposal?.title}"</strong>{' '}
+              ({proposal?.proposalNumber || 'Proposal'})? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <AlertDialogCancel
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deleteProposal.isPending}
+              className="rounded-xl text-xs font-semibold"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                try {
+                  await deleteProposal.mutateAsync(id);
+                  navigate('/proposals');
+                } catch {
+                  // handled by mutation
+                }
+              }}
+              disabled={deleteProposal.isPending}
+              className="rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500"
+            >
+              {deleteProposal.isPending ? 'Deleting...' : 'Delete Proposal'}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

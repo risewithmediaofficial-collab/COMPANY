@@ -14,13 +14,23 @@ import {
   Send,
   XCircle,
   FileCheck,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { AddProposalModal } from '../../components/modals/AddProposalModal';
-import { useProposals, useUpdateProposal } from '../../hooks/useProposals';
+import { useProposals, useUpdateProposal, useDeleteProposal } from '../../hooks/useProposals';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
 import { formatINR } from '../../utils/currency';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const statusTone = {
   draft: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
@@ -39,9 +49,21 @@ const Proposals = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState(null);
+  const [proposalToDelete, setProposalToDelete] = useState(null);
   const updateProposalMutation = useUpdateProposal();
+  const deleteProposalMutation = useDeleteProposal();
 
   const { data: proposals = [], isLoading } = useProposals(statusFilter !== 'all' ? { status: statusFilter } : {});
+
+  const handleDeleteProposal = async () => {
+    if (!proposalToDelete?._id) return;
+    try {
+      await deleteProposalMutation.mutateAsync(proposalToDelete._id);
+      setProposalToDelete(null);
+    } catch {
+      // toast is handled in useDeleteProposal mutation
+    }
+  };
 
   const filteredProposals = useMemo(() => {
     return proposals.filter((p) => {
@@ -157,6 +179,20 @@ const Proposals = () => {
             <span>View Pitch</span>
             <ExternalLink size={12} />
           </Button>
+          {canManage && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                setProposalToDelete(row);
+              }}
+              title="Delete Proposal"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
+            >
+              <Trash2 size={13} />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -166,15 +202,30 @@ const Proposals = () => {
   const renderKanbanCard = (row) => (
     <div
       onClick={() => navigate(`/proposals/${row._id}`)}
-      className="space-y-2.5 cursor-pointer"
+      className="group relative space-y-2.5 cursor-pointer"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary font-mono">
           {row.proposalNumber || 'PROP'}
         </span>
-        <span className="text-xs font-bold text-emerald-600">
-          {row.amount || row.totalAmount ? formatINR(row.amount || row.totalAmount) : '—'}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-bold text-emerald-600">
+            {row.amount || row.totalAmount ? formatINR(row.amount || row.totalAmount) : '—'}
+          </span>
+          {canManage && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setProposalToDelete(row);
+              }}
+              title="Delete Proposal"
+              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 transition-all cursor-pointer"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
       </div>
 
       <div>
@@ -268,6 +319,43 @@ const Proposals = () => {
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
       />
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog
+        open={Boolean(proposalToDelete)}
+        onOpenChange={(open) => {
+          if (!open) setProposalToDelete(null);
+        }}
+      >
+        <AlertDialogContent className="rounded-2xl border-border bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold text-foreground">
+              Delete Proposal
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-muted-foreground">
+              Are you sure you want to delete proposal{' '}
+              <strong className="text-foreground font-semibold">"{proposalToDelete?.title}"</strong>{' '}
+              ({proposalToDelete?.proposalNumber || 'Proposal'})? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <AlertDialogCancel
+              onClick={() => setProposalToDelete(null)}
+              disabled={deleteProposalMutation.isPending}
+              className="rounded-xl text-xs font-semibold"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProposal}
+              disabled={deleteProposalMutation.isPending}
+              className="rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500"
+            >
+              {deleteProposalMutation.isPending ? 'Deleting...' : 'Delete Proposal'}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </WorkspacePage>
   );
 };
