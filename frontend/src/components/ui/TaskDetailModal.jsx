@@ -215,20 +215,23 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                 <DialogTitle className="text-sm sm:text-lg font-black text-foreground truncate">
                   {isLoading ? 'Loading task...' : task?.taskTitle || task?.title || 'Task Details'}
                 </DialogTitle>
-                <DialogDescription className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 truncate flex items-center gap-1.5 flex-wrap">
+                <DialogDescription className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
                   {task?.client?.name && (
-                    <span className="font-semibold text-foreground">{task.client.name}</span>
+                    <span className="font-semibold text-foreground truncate max-w-[160px]">{task.client.name}</span>
                   )}
                   {task?.project?.name && (
                     <>
                       <span>•</span>
-                      <span className="truncate max-w-[120px] sm:max-w-none">{task.project.name}</span>
+                      <span className="truncate max-w-[140px] sm:max-w-none">{task.project.name}</span>
                     </>
                   )}
                   {task?.createdAt && (
                     <>
                       <span>•</span>
-                      <span>Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-foreground bg-secondary/60 px-2 py-0.5 rounded-md border border-border/60">
+                        <Calendar size={11} className="text-primary shrink-0" />
+                        <span>Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </span>
                     </>
                   )}
                 </DialogDescription>

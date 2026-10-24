@@ -14,6 +14,7 @@ import {
   Clock,
   Timer,
   AlertTriangle,
+  Calendar,
 } from 'lucide-react';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -621,6 +622,26 @@ export const TasksKanbanPipeline = React.memo(({
                               title={`Delay/Completion Reason: ${task.completionReason}`}
                             >
                               📝 Reason: {task.completionReason}
+                            </div>
+                          )}
+
+                          {/* Created Date in Open */}
+                          {task.createdAt && (
+                            <div
+                              title={`Created: ${new Date(task.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`}
+                              className="mt-1.5 flex items-center gap-1.5 flex-wrap text-[10px] text-slate-500 dark:text-slate-400 font-medium"
+                            >
+                              <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                                <Calendar className="h-3 w-3 text-indigo-500 shrink-0" />
+                                <span>Created {new Date(task.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              </span>
+                              {task.dueDate && (
+                                <span className="inline-flex items-center gap-1 text-slate-400 dark:text-slate-500">
+                                  <span className="text-slate-300 dark:text-slate-700">•</span>
+                                  <Clock className="h-2.5 w-2.5 shrink-0" />
+                                  <span>Due {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                                </span>
+                              )}
                             </div>
                           )}
 
