@@ -104,6 +104,9 @@ export const KanbanCreateTaskModal = ({
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
   });
+  const [allocatedHours, setAllocatedHours] = useState(2);
+  const [allocatedMinutes, setAllocatedMinutes] = useState(0);
+  const [dueTime, setDueTime] = useState('');
 
   // ==========================================
   // Notion Details (One by One) State:
@@ -209,6 +212,9 @@ export const KanbanCreateTaskModal = ({
         if (initialValues.priority) setPriority(initialValues.priority.toLowerCase());
         if (initialValues.title || initialValues.taskTitle) setTitle(initialValues.title || initialValues.taskTitle);
         if (initialValues.dueDate) setDueDate(new Date(initialValues.dueDate).toISOString().split('T')[0]);
+        if (initialValues.allocatedHours !== undefined) setAllocatedHours(Number(initialValues.allocatedHours) || 0);
+        if (initialValues.allocatedMinutes !== undefined) setAllocatedMinutes(Number(initialValues.allocatedMinutes) || 0);
+        if (initialValues.dueTime) setDueTime(initialValues.dueTime);
         if (initialValues.taskCategory) {
           setTaskCategory(initialValues.taskCategory);
           if (initialValues.subType) {
@@ -357,6 +363,9 @@ export const KanbanCreateTaskModal = ({
       priority,
       status: 'todo',
       dueDate: taskCategory === 'non_content' ? dueDate : (editDueDate || dueDate || postDate || new Date().toISOString().split('T')[0]),
+      allocatedHours: Math.max(0, Number(allocatedHours) || 0),
+      allocatedMinutes: Math.max(0, Math.min(59, Number(allocatedMinutes) || 0)),
+      dueTime: dueTime || undefined,
       client: singleClientId || undefined,
       clientName: clientObj?.name || (singleClientId ? 'Selected Client' : 'General / Internal'),
       project: singleProjectId || undefined,
@@ -719,6 +728,89 @@ export const KanbanCreateTaskModal = ({
                     </optgroup>
                   )}
                 </select>
+              </div>
+            </div>
+
+            {/* Task Completion Timer & Duration */}
+            <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/20 p-3.5 sm:p-4 dark:border-indigo-900/60 dark:bg-indigo-950/15 space-y-2.5 mt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock size={14} className="text-indigo-600 dark:text-indigo-400" /> Task Completion Timer & Duration
+                </span>
+                <span className="text-[10px] text-indigo-700 dark:text-indigo-400 font-semibold">
+                  Timer begins once employee accepts the task
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Timer Hours
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="99"
+                      value={allocatedHours}
+                      onChange={(e) => setAllocatedHours(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 pr-8 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                    <span className="absolute right-2.5 top-2 text-[10px] text-slate-400 font-bold pointer-events-none">hrs</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Timer Minutes
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={allocatedMinutes}
+                      onChange={(e) => setAllocatedMinutes(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 pr-9 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                    <span className="absolute right-2.5 top-2 text-[10px] text-slate-400 font-bold pointer-events-none">mins</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Exact Due Time (Optional)
+                  </label>
+                  <input
+                    type="time"
+                    value={dueTime}
+                    onChange={(e) => setDueTime(e.target.value)}
+                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  />
+                </div>
+              </div>
+
+              {/* Quick Duration Buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] font-bold text-slate-500 uppercase mr-1">Quick:</span>
+                {[
+                  { label: '30m', h: 0, m: 30 },
+                  { label: '1h', h: 1, m: 0 },
+                  { label: '2h', h: 2, m: 0 },
+                  { label: '3h', h: 3, m: 0 },
+                  { label: '4h', h: 4, m: 0 },
+                  { label: '8h', h: 8, m: 0 },
+                  { label: '24h', h: 24, m: 0 },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => { setAllocatedHours(preset.h); setAllocatedMinutes(preset.m); }}
+                    className="px-2 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-all active:scale-95 cursor-pointer"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

@@ -79,3 +79,62 @@ test('Tasks: Task status transitions follow allowed workflow stages', () => {
   assert.equal(VALID_STATUSES.includes('Completed'), true);
   assert.equal(VALID_STATUSES.includes('InvalidStatus'), false);
 });
+
+test('Tasks: Timer deadline calculates correctly from accepted time and allocated duration', () => {
+  const acceptedAt = new Date('2026-10-24T10:00:00.000Z');
+  const allocatedHours = 2;
+  const allocatedMinutes = 30;
+  const totalMs = (allocatedHours * 60 + allocatedMinutes) * 60 * 1000;
+  const timerExpiresAt = new Date(acceptedAt.getTime() + totalMs);
+
+  assert.equal(timerExpiresAt.toISOString(), '2026-10-24T12:30:00.000Z');
+  assert.equal(timerExpiresAt.getTime() - acceptedAt.getTime(), 150 * 60 * 1000);
+});
+
+test('Tasks: Overdue evaluator flags tasks exceeding allocated timer before completion', () => {
+  const isOverdueCheck = (task, now = new Date()) => {
+    if (['completed', 'done', 'approved'].includes(task.status)) return false;
+    if (task.isOverdue) return true;
+    if (task.timerExpiresAt && new Date(task.timerExpiresAt).getTime() < now.getTime()) return true;
+    if (task.dueDate && new Date(task.dueDate).getTime() < now.getTime()) return true;
+    return false;
+  };
+
+  const now = new Date('2026-10-24T14:00:00.000Z');
+
+  // Timer expired (13:00 vs 14:00) and in progress -> Overdue!
+  const overdueTask = {
+    status: 'in_progress',
+    timerExpiresAt: '2026-10-24T13:00:00.000Z',
+  };
+  assert.equal(isOverdueCheck(overdueTask, now), true);
+
+  // Completed task with expired timer -> NOT overdue (already done)
+  const completedTask = {
+    status: 'completed',
+    timerExpiresAt: '2026-10-24T13:00:00.000Z',
+  };
+  assert.equal(isOverdueCheck(completedTask, now), false);
+
+  // Active task with future timer -> NOT overdue
+  const activeTask = {
+    status: 'in_progress',
+    timerExpiresAt: '2026-10-24T15:30:00.000Z',
+  };
+  assert.equal(isOverdueCheck(activeTask, now), false);
+});
+
+test('Tasks: Submission categorizes on_time, completed_with_delay, and incomplete_with_reason', () => {
+  const getSubmissionCategory = (timerExpiresAt, submittedAt, isCompleted) => {
+    if (!isCompleted) return 'incomplete_with_reason';
+    if (timerExpiresAt && new Date(submittedAt) > new Date(timerExpiresAt)) {
+      return 'completed_with_delay';
+    }
+    return 'on_time';
+  };
+
+  const deadline = '2026-10-24T12:00:00.000Z';
+  assert.equal(getSubmissionCategory(deadline, '2026-10-24T11:45:00.000Z', true), 'on_time');
+  assert.equal(getSubmissionCategory(deadline, '2026-10-24T12:15:00.000Z', true), 'completed_with_delay');
+  assert.equal(getSubmissionCategory(deadline, '2026-10-24T11:30:00.000Z', false), 'incomplete_with_reason');
+});

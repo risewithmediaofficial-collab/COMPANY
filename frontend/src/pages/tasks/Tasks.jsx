@@ -355,11 +355,23 @@ const Tasks = () => {
   );
 
   const isTaskOverdue = (task) => {
+    if (!task) return false;
+    const isDone = ['Completed', 'Approved', 'done', 'completed'].includes(task.status);
+    if (isDone) return false;
+    if (task.isOverdue) return true;
+
+    // Check completion timer expiry
+    if (task.timerExpiresAt) {
+      const exp = new Date(task.timerExpiresAt);
+      if (!Number.isNaN(exp.getTime()) && exp.getTime() < Date.now()) {
+        return true;
+      }
+    }
+
     if (!task.dueDate) return false;
     const due = new Date(task.dueDate);
     if (Number.isNaN(due.getTime())) return false;
-    const isDone = ['Completed', 'Approved', 'done', 'completed'].includes(task.status);
-    return due < new Date() && !isDone;
+    return due < new Date();
   };
 
   const dateFilteredTasks = useMemo(() => {
@@ -727,6 +739,51 @@ const Tasks = () => {
               <span className="px-1.5 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-[9px] font-extrabold text-rose-600 dark:text-rose-400 shrink-0">
                 Overdue
               </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'timer',
+      label: 'Timer / Status',
+      render: (row) => {
+        const hasTimer = Boolean(
+          (row.allocatedHours && row.allocatedHours > 0) ||
+          (row.allocatedMinutes && row.allocatedMinutes > 0) ||
+          row.timerExpiresAt
+        );
+
+        if (!hasTimer && !row.completionReason) {
+          return <span className="text-[11px] text-muted-foreground">—</span>;
+        }
+
+        const overdue = isTaskOverdue(row);
+
+        return (
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {hasTimer && (
+                <span className="text-[11px] font-semibold text-foreground flex items-center gap-1">
+                  <Clock size={11} className="text-muted-foreground" />
+                  {row.allocatedHours || 0}h {row.allocatedMinutes || 0}m
+                </span>
+              )}
+              {row.isAccepted && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  Accepted
+                </span>
+              )}
+              {overdue && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse">
+                  🚨 Overdue
+                </span>
+              )}
+            </div>
+            {row.completionReason && (
+              <p className="text-[10px] text-amber-600 dark:text-amber-400 truncate max-w-[150px]" title={row.completionReason}>
+                📝 {row.completionReason}
+              </p>
             )}
           </div>
         );

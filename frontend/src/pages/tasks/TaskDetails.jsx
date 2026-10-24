@@ -43,6 +43,8 @@ import { Badge } from '../../components/ui/badge';
 import { AddTaskModal } from '../../components/modals/AddTaskModal';
 import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import { ProgressUpdateForm } from '../../components/ui/ProgressUpdateForm';
+import { TaskCountdownTimer } from '../../components/tasks/TaskCountdownTimer';
+import { TaskSubmitModal } from '../../components/tasks/TaskSubmitModal';
 import { useAddCompletedFiles, useTask, useUpdateTaskStatus, useDeleteTask } from '../../hooks/useTasks';
 import {
   formatTaskTypeLabel,
@@ -132,6 +134,7 @@ export const TaskDetails = () => {
   const [showAssignAnotherModal, setShowAssignAnotherModal] = useState(false);
   const [completedFiles, setCompletedFiles] = useState([]);
   const [showCredentials, setShowCredentials] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   const isEmployee = user?.role === 'employee';
   const isClient = user?.role === 'client';
@@ -400,6 +403,13 @@ export const TaskDetails = () => {
           </div>
         )}
 
+        {/* ── Active Task Completion Timer ── */}
+        <TaskCountdownTimer
+          task={task}
+          onOpenSubmitModal={() => setShowSubmitModal(true)}
+          onTimerUpdated={() => refetch()}
+        />
+
         {/* ── Notion Property Matrix ── */}
         <div className="border-t border-border/70 pt-4 grid gap-1 sm:grid-cols-2">
           {/* Status Changer */}
@@ -504,6 +514,60 @@ export const TaskDetails = () => {
               <span className="font-semibold text-primary">
                 {new Date(task.postingScheduleDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
               </span>
+            </NotionPropertyRow>
+          )}
+
+          {/* Completion Timer & Acceptance */}
+          {(task.allocatedHours > 0 || task.allocatedMinutes > 0 || task.timerExpiresAt) && (
+            <NotionPropertyRow icon={Clock} label="Timer Allocation">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-foreground">
+                  {task.allocatedHours || 0}h {task.allocatedMinutes || 0}m
+                </span>
+                {task.isAccepted ? (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    Accepted & Started
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    Awaiting Acceptance
+                  </span>
+                )}
+                {task.isOverdue && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 animate-pulse">
+                    🚨 Overdue
+                  </span>
+                )}
+              </div>
+            </NotionPropertyRow>
+          )}
+
+          {/* Submission Status & Delay Reason */}
+          {(task.completionReason || task.submissionStatus) && (
+            <NotionPropertyRow icon={AlertCircle} label="Submission / Delay Reason">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                    task.submissionStatus === 'on_time' ? 'bg-emerald-500/10 text-emerald-600' :
+                    task.submissionStatus === 'completed_with_delay' ? 'bg-amber-500/10 text-amber-600' :
+                    'bg-rose-500/10 text-rose-600'
+                  }`}>
+                    {task.submissionStatus === 'on_time' ? 'Submitted On Time' :
+                     task.submissionStatus === 'completed_with_delay' ? 'Submitted With Delay' :
+                     'Incomplete With Reason'}
+                  </span>
+                  {task.actualTimeSpentMinutes > 0 && (
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Spent: {Math.floor(task.actualTimeSpentMinutes / 60)}h {task.actualTimeSpentMinutes % 60}m
+                    </span>
+                  )}
+                </div>
+                {task.completionReason && (
+                  <p className="text-xs text-muted-foreground italic">
+                    "{task.completionReason}"
+                  </p>
+                )}
+              </div>
             </NotionPropertyRow>
           )}
         </div>
@@ -1151,6 +1215,14 @@ export const TaskDetails = () => {
           onTaskCreated={() => refetch()}
         />
       )}
+
+      {/* Task Submission Modal with Reason */}
+      <TaskSubmitModal
+        open={showSubmitModal}
+        onOpenChange={setShowSubmitModal}
+        task={task}
+        onSubmitted={() => refetch()}
+      />
     </div>
   );
 };

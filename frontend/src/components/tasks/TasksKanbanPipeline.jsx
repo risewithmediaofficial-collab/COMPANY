@@ -11,6 +11,9 @@ import {
   ChevronRight,
   ArrowDown,
   Trash2,
+  Clock,
+  Timer,
+  AlertTriangle,
 } from 'lucide-react';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -138,6 +141,65 @@ export const normalizeToKanbanColumn = (status) => {
 
   // To Do / Task Received / Backlog / Default
   return 'todo';
+};
+
+const renderTimerBadge = (task) => {
+  const hasTimer = Boolean(
+    (task.allocatedHours && task.allocatedHours > 0) ||
+    (task.allocatedMinutes && task.allocatedMinutes > 0) ||
+    task.timerExpiresAt
+  );
+  if (!hasTimer) return null;
+
+  if (task.status === 'completed' || task.submittedAt) {
+    return (
+      <span
+        title={task.submissionStatus === 'completed_with_delay' ? 'Submitted with delay' : 'Completed'}
+        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-900/40"
+      >
+        <span>✓</span>
+        <span>{task.actualTimeSpentMinutes ? `${Math.floor(task.actualTimeSpentMinutes / 60)}h ${task.actualTimeSpentMinutes % 60}m` : 'Done'}</span>
+      </span>
+    );
+  }
+
+  if (task.isOverdue) {
+    return (
+      <span
+        title="Timer expired! Task is overdue"
+        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-extrabold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300 dark:border-rose-800 animate-pulse"
+      >
+        <AlertTriangle className="h-2.5 w-2.5 shrink-0 text-rose-600" />
+        <span>Overdue</span>
+      </span>
+    );
+  }
+
+  if (task.isAccepted && task.timerExpiresAt) {
+    const remainingMs = new Date(task.timerExpiresAt).getTime() - Date.now();
+    const remainingMins = Math.max(0, Math.floor(remainingMs / 60000));
+    const h = Math.floor(remainingMins / 60);
+    const m = remainingMins % 60;
+    return (
+      <span
+        title={`Timer active: ${h}h ${m}m remaining`}
+        className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/40"
+      >
+        <Timer className="h-2.5 w-2.5 text-indigo-500 animate-spin" style={{ animationDuration: '4s' }} />
+        <span>{h > 0 ? `${h}h ${m}m` : `${m}m`} left</span>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      title={`Allocated: ${task.allocatedHours || 0}h ${task.allocatedMinutes || 0}m (Awaiting acceptance)`}
+      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40"
+    >
+      <Clock className="h-2.5 w-2.5 text-amber-600" />
+      <span>{task.allocatedHours || 0}h{task.allocatedMinutes ? ` ${task.allocatedMinutes}m` : ''}</span>
+    </span>
+  );
 };
 
 export const TasksKanbanPipeline = React.memo(({
@@ -530,6 +592,8 @@ export const TasksKanbanPipeline = React.memo(({
                                   ☁️ Drive
                                 </a>
                               )}
+
+                              {renderTimerBadge(task)}
                             </div>
 
                             {task.clientName && (
@@ -549,6 +613,16 @@ export const TasksKanbanPipeline = React.memo(({
                           >
                             {task.title || task.taskTitle}
                           </h4>
+
+                          {/* Submission Delay Reason Preview */}
+                          {task.completionReason && (
+                            <div
+                              className="mt-1 text-[10px] text-amber-700 dark:text-amber-300 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/40 rounded px-1.5 py-0.5 truncate"
+                              title={`Delay/Completion Reason: ${task.completionReason}`}
+                            >
+                              📝 Reason: {task.completionReason}
+                            </div>
+                          )}
 
                           {/* Checklist Progress Indicator */}
                           {hasChecklist && (

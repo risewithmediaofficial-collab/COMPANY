@@ -191,6 +191,9 @@ const taskFormSchema = z.object({
   publishingTime: z.string().optional(),
   priority: z.enum(PRIORITY_OPTIONS).default('Medium'),
   dueDate: z.string().optional(),
+  allocatedHours: z.coerce.number().optional().default(2),
+  allocatedMinutes: z.coerce.number().optional().default(0),
+  dueTime: z.string().optional(),
   status: z.enum(TASK_STATUS_OPTIONS).default('To Do'),
   description: z.string().optional(),
   scriptText: z.string().optional(),
@@ -249,6 +252,9 @@ const buildDefaultValues = (initialValues = {}) => ({
   publishingTime: '',
   priority: 'Medium',
   dueDate: '',
+  allocatedHours: 2,
+  allocatedMinutes: 0,
+  dueTime: '',
   status: 'To Do',
   description: '',
   scriptText: '',
@@ -399,6 +405,9 @@ export const AddTaskModal = ({
         publishingTime: task.publishingTime || '',
         priority: task.priority || 'Medium',
         dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+        allocatedHours: task.allocatedHours !== undefined ? Number(task.allocatedHours) : 2,
+        allocatedMinutes: task.allocatedMinutes !== undefined ? Number(task.allocatedMinutes) : 0,
+        dueTime: task.dueTime || '',
         status: normalizeTaskStatusLabel(task.status),
         description: task.description || '',
         scriptText: task.scriptText || '',
@@ -810,6 +819,120 @@ export const AddTaskModal = ({
                 </FormItem>
               )}
             />
+
+            {/* 2b. Task Completion Timer & Due Time */}
+            <div className="col-span-full rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                  <Clock size={13} className="text-indigo-500" /> Completion Timer & Duration
+                </span>
+                <span className="text-[10px] text-muted-foreground font-semibold">
+                  Timer begins when employee accepts the task
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* Allocated Hours */}
+                <FormField
+                  control={form.control}
+                  name="allocatedHours"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-[11px] font-semibold text-muted-foreground">
+                        Timer Hours
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={99}
+                            placeholder="0"
+                            className="h-8 rounded-xl text-xs bg-background border-border pr-8"
+                            {...field}
+                            onChange={(e) => field.onChange(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                          />
+                          <span className="absolute right-2.5 top-2 text-[10px] text-muted-foreground font-bold pointer-events-none">hrs</span>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Allocated Minutes */}
+                <FormField
+                  control={form.control}
+                  name="allocatedMinutes"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-[11px] font-semibold text-muted-foreground">
+                        Timer Minutes
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={59}
+                            placeholder="0"
+                            className="h-8 rounded-xl text-xs bg-background border-border pr-9"
+                            {...field}
+                            onChange={(e) => field.onChange(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
+                          />
+                          <span className="absolute right-2.5 top-2 text-[10px] text-muted-foreground font-bold pointer-events-none">mins</span>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Optional Due Time */}
+                <FormField
+                  control={form.control}
+                  name="dueTime"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1">
+                      <FormLabel className="text-[11px] font-semibold text-muted-foreground">
+                        Exact Due Time (Optional)
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="time"
+                          className="h-8 rounded-xl text-xs bg-background border-border"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Quick Duration Preset Chips */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase mr-1">Quick:</span>
+                {[
+                  { label: '30m', h: 0, m: 30 },
+                  { label: '1h', h: 1, m: 0 },
+                  { label: '2h', h: 2, m: 0 },
+                  { label: '3h', h: 3, m: 0 },
+                  { label: '4h', h: 4, m: 0 },
+                  { label: '8h', h: 8, m: 0 },
+                  { label: '24h', h: 24, m: 0 },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      form.setValue('allocatedHours', preset.h);
+                      form.setValue('allocatedMinutes', preset.m);
+                    }}
+                    className="px-2 py-0.5 rounded-lg border border-border/80 bg-background hover:bg-secondary text-[11px] font-semibold text-foreground transition-all active:scale-95 cursor-pointer"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* 3. Client (OPTIONAL) */}
             <FormField

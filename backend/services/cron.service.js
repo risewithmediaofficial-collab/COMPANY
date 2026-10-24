@@ -857,7 +857,91 @@ export const initCronJobs = (io) => {
     }
   }, { timezone: cronTz });
 
+  // 5. Active Task Completion Timers: Check every minute for overdue tasks
+  cron.schedule('* * * * *', async () => {
+    try {
+      await checkOverdueTaskTimers(io);
+    } catch (err) {
+      console.error('CRON Error (Overdue Tasks Timer):', err);
+    }
+  }, { timezone: cronTz });
+
   console.log('Cron jobs initialized.');
+};
+
+/**
+ * Check active task completion timers and flag overdue tasks.
+ * Sends notifications to employee and manager when timer expires.
+ */
+export const checkOverdueTaskTimers = async (io) => {
+  try {
+    const now = new Date();
+    const overdueTasks = await Task.find({
+      isAccepted: true,
+      isOverdue: false,
+      timerExpiresAt: { $ne: null, $lt: now },
+      status: { $nin: ['completed', 'done', 'approved', 'rejected'] },
+    }).populate('assignedTo', 'name email phone').populate('assignedManager', 'name email phone');
+
+    for (const task of overdueTasks) {
+      task.isOverdue = true;
+      task.overdueAt = now;
+      task.overdueNotified = true;
+
+      const allocatedStr = `${task.allocatedHours || 0}h ${task.allocatedMinutes || 0}m`;
+      const deadlineStr = task.timerExpiresAt
+        ? new Date(task.timerExpiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'target time';
+
+      task.taskNotes = task.taskNotes || [];
+      task.taskNotes.push({
+        content: `🚨 [OVERDUE ALERT] Completion timer expired at ${deadlineStr} (Allocated: ${allocatedStr}). Marked as OVERDUE. Submission with reason required.`,
+        authorName: 'System / Timer',
+        createdAt: now,
+      });
+
+      await task.save();
+
+      const recipients = [];
+      if (Array.isArray(task.assignedTo)) {
+        recipients.push(...task.assignedTo.map((u) => u._id));
+      }
+      if (task.assignedManager) {
+        recipients.push(task.assignedManager._id || task.assignedManager);
+      }
+      if (task.createdBy) {
+        recipients.push(task.createdBy);
+      }
+
+      const uniqueRecipients = [...new Set(recipients.map((id) => id.toString()))];
+
+      for (const recipientId of uniqueRecipients) {
+        await createNotification({
+          recipient: recipientId,
+          type: 'task_overdue',
+          title: `🚨 Task Overdue: "${task.title}"`,
+          message: `Timer expired for task "${task.title}". The allocated time of ${allocatedStr} has elapsed. Please submit with a reason.`,
+          link: `/tasks?open=${task._id}`,
+          metadata: {
+            taskId: task._id,
+            allocatedHours: task.allocatedHours,
+            allocatedMinutes: task.allocatedMinutes,
+            timerExpiresAt: task.timerExpiresAt,
+          },
+        }, io);
+      }
+
+      if (io) {
+        io.emit?.('taskUpdated', {
+          taskId: task._id,
+          isOverdue: true,
+          overdueAt: now,
+        });
+      }
+    }
+  } catch (error) {
+    console.error('CRON Error (checkOverdueTaskTimers):', error.message);
+  }
 };
 
 /**

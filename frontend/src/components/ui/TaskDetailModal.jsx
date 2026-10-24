@@ -8,6 +8,8 @@ import { ProgressUpdateForm } from './ProgressUpdateForm';
 import { useAddCompletedFiles, useTask, useUpdateTaskStatus, useDeleteTask } from '../../hooks/useTasks';
 import { AddTaskModal } from '../modals/AddTaskModal';
 import { KanbanCreateTaskModal } from '../tasks/KanbanCreateTaskModal';
+import { TaskCountdownTimer } from '../tasks/TaskCountdownTimer';
+import { TaskSubmitModal } from '../tasks/TaskSubmitModal';
 import {
   CheckSquare,
   Edit,
@@ -152,6 +154,7 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
   const [completedFiles, setCompletedFiles] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showAssignAnotherModal, setShowAssignAnotherModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
 
   const isEmployee = user?.role === 'employee';
@@ -326,6 +329,12 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                 </div>
               )}
 
+              {/* ── Task Countdown Timer & Acceptance Banner ── */}
+              <TaskCountdownTimer
+                task={task}
+                onOpenSubmitModal={() => setShowSubmitModal(true)}
+              />
+
               {/* ── Notion Property Matrix Card ── */}
               <div className="rounded-2xl border border-border bg-background/70 p-3 sm:p-4 shadow-2xs space-y-1">
                 {!isClient && (
@@ -404,10 +413,48 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                 </NotionPropertyRow>
 
                 <NotionPropertyRow icon={Clock} label="Due Date">
-                  <span className="text-foreground font-semibold text-xs">
-                    {task.dueDate ? new Date(task.dueDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'}
-                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-foreground font-semibold text-xs">
+                      {task.dueDate ? new Date(task.dueDate).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Not set'}
+                    </span>
+                    {task.dueTime && (
+                      <span className="px-2 py-0.5 rounded-md bg-secondary text-[11px] font-bold text-muted-foreground">
+                        Time: {task.dueTime}
+                      </span>
+                    )}
+                  </div>
                 </NotionPropertyRow>
+
+                {((Number(task.allocatedHours) || 0) > 0 || (Number(task.allocatedMinutes) || 0) > 0) && (
+                  <NotionPropertyRow icon={Clock} label="Timer Allocation">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-foreground font-bold text-xs">
+                        {task.allocatedHours || 0}h {task.allocatedMinutes || 0}m
+                      </span>
+                      {task.isAccepted ? (
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          task.isOverdue
+                            ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                            : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30'
+                        }`}>
+                          {task.isOverdue ? '⚠️ Overdue' : '⚡ Running'}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                          ⏳ Awaiting Acceptance
+                        </span>
+                      )}
+                    </div>
+                  </NotionPropertyRow>
+                )}
+
+                {task.completionReason && (
+                  <NotionPropertyRow icon={AlertCircle} label="Delay / Reason">
+                    <span className="text-amber-700 dark:text-amber-400 font-semibold text-xs italic">
+                      "{task.completionReason}"
+                    </span>
+                  </NotionPropertyRow>
+                )}
 
                 {task.editDueDate && (
                   <NotionPropertyRow icon={Scissors} label="Edit Due Date">
@@ -1143,6 +1190,16 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
               dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
             }}
             onTaskCreated={() => refetch()}
+          />
+        )}
+
+        {/* Submit Task Modal */}
+        {showSubmitModal && (
+          <TaskSubmitModal
+            open={showSubmitModal}
+            onOpenChange={setShowSubmitModal}
+            task={task}
+            onSubmitted={() => refetch()}
           />
         )}
       </DialogContent>

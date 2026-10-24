@@ -213,6 +213,28 @@ const taskSchema = new mongoose.Schema(
     deadline: { type: Date },
     estimatedHours: { type: Number, default: 0 },
     loggedHours: { type: Number, default: 0 },
+
+    // ── Task Completion Timer & Acceptance Tracking ──
+    allocatedHours: { type: Number, default: 0 },
+    allocatedMinutes: { type: Number, default: 0 },
+    dueTime: { type: String, default: '' },
+    isAccepted: { type: Boolean, default: false },
+    acceptedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    acceptedAt: { type: Date, default: null },
+    timerStartedAt: { type: Date, default: null },
+    timerExpiresAt: { type: Date, default: null },
+    isOverdue: { type: Boolean, default: false },
+    overdueNotified: { type: Boolean, default: false },
+    overdueAt: { type: Date, default: null },
+    submittedAt: { type: Date, default: null },
+    submissionStatus: {
+      type: String,
+      enum: ['pending', 'on_time', 'overdue', 'incomplete_with_reason', 'completed_with_delay', ''],
+      default: '',
+    },
+    completionReason: { type: String, default: '' },
+    submissionNotes: { type: String, default: '' },
+    actualTimeSpentMinutes: { type: Number, default: 0 },
     // Content-specific fields
     contentTitle: { type: String, default: '' }, // For reels/videos - different from task title
     scriptText: { type: String, default: '' },

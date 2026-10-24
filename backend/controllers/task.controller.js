@@ -179,9 +179,13 @@ const isTaskAssignedToUser = (task, userId) => {
 };
 
 const isTaskOverdue = (item) => {
-  if (!item?.dueDate) return false;
   const completedStatuses = ['approved', 'done', 'completed'];
-  if (completedStatuses.includes(item.status)) return false;
+  if (completedStatuses.includes(item?.status)) return false;
+  if (item?.isOverdue) return true;
+  if (item?.timerExpiresAt && new Date(item.timerExpiresAt).getTime() < Date.now()) {
+    return true;
+  }
+  if (!item?.dueDate) return false;
   return new Date(item.dueDate).getTime() < Date.now();
 };
 
@@ -204,6 +208,22 @@ const serializeTask = (task) => {
     isOverdue: isTaskOverdue(item),
     isOverTarget: Boolean(item.isOverTarget),
     targetExceededBy: Number(item.targetExceededBy) || 0,
+    // Completion Timer & Acceptance
+    allocatedHours: Number(item.allocatedHours) || 0,
+    allocatedMinutes: Number(item.allocatedMinutes) || 0,
+    dueTime: item.dueTime || '',
+    isAccepted: Boolean(item.isAccepted),
+    acceptedBy: item.acceptedBy || null,
+    acceptedAt: item.acceptedAt || null,
+    timerStartedAt: item.timerStartedAt || null,
+    timerExpiresAt: item.timerExpiresAt || null,
+    overdueNotified: Boolean(item.overdueNotified),
+    overdueAt: item.overdueAt || null,
+    submittedAt: item.submittedAt || null,
+    submissionStatus: item.submissionStatus || '',
+    completionReason: item.completionReason || '',
+    submissionNotes: item.submissionNotes || '',
+    actualTimeSpentMinutes: Number(item.actualTimeSpentMinutes) || 0,
   };
 };
 
@@ -268,6 +288,24 @@ const normalizeTaskPayload = (body = {}) => {
   if (payload.publishingDate && !payload.postingScheduleDate) payload.postingScheduleDate = payload.publishingDate;
   if (payload.postingPlatforms !== undefined) payload.postingPlatforms = normalizeStringArray(payload.postingPlatforms);
   if (payload.clientFeedback !== undefined) payload.clientFeedback = payload.clientFeedback?.toString?.().trim?.() || '';
+
+  // Task Completion Timer & Acceptance payload normalization
+  if (payload.allocatedHours !== undefined) payload.allocatedHours = Math.max(0, Number(payload.allocatedHours) || 0);
+  if (payload.allocatedMinutes !== undefined) payload.allocatedMinutes = Math.max(0, Math.min(59, Number(payload.allocatedMinutes) || 0));
+  if (payload.dueTime !== undefined) payload.dueTime = payload.dueTime ? payload.dueTime.toString().trim() : '';
+  if (payload.isAccepted !== undefined) payload.isAccepted = Boolean(payload.isAccepted);
+  if (payload.acceptedBy !== undefined) payload.acceptedBy = toObjectIdOrNull(payload.acceptedBy);
+  if (payload.acceptedAt !== undefined) payload.acceptedAt = payload.acceptedAt ? new Date(payload.acceptedAt) : undefined;
+  if (payload.timerStartedAt !== undefined) payload.timerStartedAt = payload.timerStartedAt ? new Date(payload.timerStartedAt) : undefined;
+  if (payload.timerExpiresAt !== undefined) payload.timerExpiresAt = payload.timerExpiresAt ? new Date(payload.timerExpiresAt) : undefined;
+  if (payload.isOverdue !== undefined) payload.isOverdue = Boolean(payload.isOverdue);
+  if (payload.overdueNotified !== undefined) payload.overdueNotified = Boolean(payload.overdueNotified);
+  if (payload.overdueAt !== undefined) payload.overdueAt = payload.overdueAt ? new Date(payload.overdueAt) : undefined;
+  if (payload.submittedAt !== undefined) payload.submittedAt = payload.submittedAt ? new Date(payload.submittedAt) : undefined;
+  if (payload.submissionStatus !== undefined) payload.submissionStatus = payload.submissionStatus ? payload.submissionStatus.toString().trim() : '';
+  if (payload.completionReason !== undefined) payload.completionReason = payload.completionReason ? payload.completionReason.toString().trim() : '';
+  if (payload.submissionNotes !== undefined) payload.submissionNotes = payload.submissionNotes ? payload.submissionNotes.toString().trim() : '';
+  if (payload.actualTimeSpentMinutes !== undefined) payload.actualTimeSpentMinutes = Number(payload.actualTimeSpentMinutes) || 0;
 
   return payload;
 };
@@ -2037,6 +2075,315 @@ export const addTaskNote = async (req, res) => {
 
     emitLiveEvent('taskUpdated', { task: serialized });
     res.json({ success: true, task: serialized, note });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const acceptTask = async (req, res) => {
+  try {
+    let task = await Task.findById(req.params.id);
+    if (!task) {
+      task = await DevTask.findById(req.params.id);
+    }
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    const access = await assertTaskAccess(req, task);
+    if (!access.allowed) {
+      return res.status(access.status).json({ success: false, message: access.message });
+    }
+
+    const now = new Date();
+    task.isAccepted = true;
+    task.acceptedBy = req.user._id;
+    task.acceptedAt = now;
+    task.timerStartedAt = now;
+
+    // Calculate timer target if allocated hours or minutes are set
+    const totalAllocatedMinutes = (Number(task.allocatedHours) || 0) * 60 + (Number(task.allocatedMinutes) || 0);
+    if (totalAllocatedMinutes > 0) {
+      task.timerExpiresAt = new Date(now.getTime() + totalAllocatedMinutes * 60 * 1000);
+      task.isOverdue = false;
+      task.overdueNotified = false;
+    } else {
+      task.timerExpiresAt = null;
+    }
+
+    // Set status to in_progress / on_process if currently todo
+    if (['todo', 'on_process'].includes(task.status) || !task.status) {
+      task.status = 'in_progress';
+      task.actualStartDate = task.actualStartDate || now;
+    }
+
+    const timerDesc = totalAllocatedMinutes > 0
+      ? `${task.allocatedHours || 0}h ${task.allocatedMinutes || 0}m (Deadline: ${task.timerExpiresAt ? new Date(task.timerExpiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'})`
+      : 'No timer duration configured';
+
+    task.taskNotes = task.taskNotes || [];
+    task.taskNotes.push({
+      content: `⏱️ Task Accepted & Timer Started by ${req.user.name}. Allocated time: ${timerDesc}.`,
+      author: req.user._id,
+      authorName: req.user.name || 'Team Member',
+      createdAt: now,
+    });
+
+    await task.save();
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'task.accepted',
+      entityType: 'task',
+      entityId: task._id,
+      title: 'Task Accepted & Timer Started',
+      description: `${req.user.name} accepted "${task.title}". Allocated timer: ${timerDesc}.`,
+      relatedClient: task.client,
+      relatedProject: task.project,
+      relatedTask: task._id,
+      metadata: {
+        allocatedHours: task.allocatedHours,
+        allocatedMinutes: task.allocatedMinutes,
+        timerExpiresAt: task.timerExpiresAt,
+      },
+    });
+
+    const updated = await hydrateTask(task._id);
+    const serialized = serializeTask(updated);
+
+    const io = req.app.get('io');
+    const recipients = uniqueIds([
+      task.assignedManager,
+      task.createdBy,
+    ]).filter((id) => id && id.toString() !== req.user._id.toString());
+
+    await Promise.all(recipients.map((recipient) => createNotification({
+      recipient,
+      sender: req.user._id,
+      type: 'task_accepted',
+      title: 'Task Accepted & Timer Started',
+      message: `${req.user.name} accepted "${task.title}". Timer running (${timerDesc}).`,
+      link: `/tasks?open=${task._id}`,
+      metadata: { taskId: task._id },
+    }, io)));
+
+    emitLiveEvent('taskUpdated', { task: serialized, taskId: task._id });
+    emitLiveEvent('taskStatusUpdated', { taskId: task._id, status: task.status });
+
+    res.json({ success: true, task: serialized, message: 'Task accepted and timer started' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const submitTaskWithReason = async (req, res) => {
+  try {
+    const {
+      reason,
+      notes,
+      submissionStatus, // 'completed' | 'incomplete_with_reason' | 'completed_with_delay'
+      status = 'review_required',
+      completedFiles = [],
+    } = req.body;
+
+    let task = await Task.findById(req.params.id);
+    if (!task) {
+      task = await DevTask.findById(req.params.id);
+    }
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    const access = await assertTaskAccess(req, task);
+    if (!access.allowed) {
+      return res.status(access.status).json({ success: false, message: access.message });
+    }
+
+    const now = new Date();
+    task.submittedAt = now;
+
+    // Calculate time spent
+    const startTime = task.timerStartedAt || task.acceptedAt || task.createdAt || now;
+    const spentMinutes = Math.max(1, Math.round((now.getTime() - new Date(startTime).getTime()) / 60000));
+    task.actualTimeSpentMinutes = spentMinutes;
+
+    // Check if overdue
+    const isLate = Boolean(task.timerExpiresAt && now.getTime() > new Date(task.timerExpiresAt).getTime());
+    if (isLate) {
+      task.isOverdue = true;
+      task.overdueAt = task.overdueAt || now;
+    }
+
+    // Determine final submission status
+    if (submissionStatus === 'incomplete_with_reason') {
+      task.submissionStatus = 'incomplete_with_reason';
+      task.status = status || 'review_required';
+    } else if (isLate) {
+      task.submissionStatus = 'completed_with_delay';
+      task.status = status || 'review_required';
+    } else {
+      task.submissionStatus = 'on_time';
+      task.status = status || 'completed';
+    }
+
+    task.completionReason = reason?.trim?.() || task.completionReason || '';
+    task.submissionNotes = notes?.trim?.() || task.submissionNotes || '';
+
+    // Add completed files if uploaded
+    if (completedFiles && completedFiles.length > 0) {
+      const normalized = normalizeFiles(completedFiles).map((file) => ({
+        ...file,
+        uploadedBy: req.user._id,
+        uploadedAt: now,
+      }));
+      task.completedFiles = task.completedFiles || [];
+      task.completedFiles.push(...normalized);
+    }
+
+    updateCompletionState(task);
+
+    const spentHrs = Math.floor(spentMinutes / 60);
+    const spentMins = spentMinutes % 60;
+    const spentStr = `${spentHrs > 0 ? `${spentHrs}h ` : ''}${spentMins}m`;
+    const allocatedStr = `${task.allocatedHours || 0}h ${task.allocatedMinutes || 0}m`;
+
+    // Note all details in taskNotes
+    task.taskNotes = task.taskNotes || [];
+    let noteContent = `📝 Task Submitted by ${req.user.name} (${task.submissionStatus === 'on_time' ? '✅ On Time' : isLate ? '⚠️ Overdue / Delayed' : '⚠️ Incomplete with Reason'}).`;
+    noteContent += `\n• Time Spent: ${spentStr} (Allocated: ${allocatedStr})`;
+    if (task.completionReason) {
+      noteContent += `\n• Reason: "${task.completionReason}"`;
+    }
+    if (task.submissionNotes) {
+      noteContent += `\n• Notes: "${task.submissionNotes}"`;
+    }
+
+    task.taskNotes.push({
+      content: noteContent,
+      author: req.user._id,
+      authorName: req.user.name || 'Team Member',
+      createdAt: now,
+    });
+
+    await task.save();
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'task.submitted',
+      entityType: 'task',
+      entityId: task._id,
+      title: `Task Submitted (${task.submissionStatus})`,
+      description: `${req.user.name} submitted "${task.title}". Spent: ${spentStr}.${task.completionReason ? ` Reason: ${task.completionReason}` : ''}`,
+      relatedClient: task.client,
+      relatedProject: task.project,
+      relatedTask: task._id,
+      metadata: {
+        submissionStatus: task.submissionStatus,
+        actualTimeSpentMinutes: spentMinutes,
+        reason: task.completionReason,
+        notes: task.submissionNotes,
+      },
+    });
+
+    const updated = await hydrateTask(task._id);
+    const serialized = serializeTask(updated);
+
+    const io = req.app.get('io');
+    const recipients = uniqueIds([
+      task.assignedManager,
+      task.createdBy,
+    ]).filter((id) => id && id.toString() !== req.user._id.toString());
+
+    const notifTitle = task.submissionStatus === 'incomplete_with_reason'
+      ? `Task Incomplete: "${task.title}"`
+      : isLate
+        ? `Task Submitted Overdue: "${task.title}"`
+        : `Task Submitted: "${task.title}"`;
+
+    const notifMsg = `${req.user.name} submitted task. Spent ${spentStr}.${task.completionReason ? ` Reason: ${task.completionReason}` : ''}`;
+
+    await Promise.all(recipients.map((recipient) => createNotification({
+      recipient,
+      sender: req.user._id,
+      type: 'task_submitted_with_reason',
+      title: notifTitle,
+      message: notifMsg,
+      link: `/tasks?open=${task._id}`,
+      metadata: { taskId: task._id },
+    }, io)));
+
+    emitLiveEvent('taskUpdated', { task: serialized, taskId: task._id });
+    emitLiveEvent('taskStatusUpdated', { taskId: task._id, status: task.status });
+
+    res.json({ success: true, task: serialized, message: 'Task submitted successfully' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const checkTaskOverdue = async (req, res) => {
+  try {
+    let task = await Task.findById(req.params.id);
+    if (!task) {
+      task = await DevTask.findById(req.params.id);
+    }
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    const access = await assertTaskAccess(req, task);
+    if (!access.allowed) {
+      return res.status(access.status).json({ success: false, message: access.message });
+    }
+
+    const now = new Date();
+    const completedStatuses = ['done', 'approved', 'completed'];
+
+    if (
+      task.timerExpiresAt &&
+      now.getTime() > new Date(task.timerExpiresAt).getTime() &&
+      !completedStatuses.includes(task.status) &&
+      !task.isOverdue
+    ) {
+      task.isOverdue = true;
+      task.overdueAt = now;
+      task.overdueNotified = true;
+
+      task.taskNotes = task.taskNotes || [];
+      task.taskNotes.push({
+        content: `🚨 [OVERDUE ALERT] Task timer expired at ${new Date(task.timerExpiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. Task marked as OVERDUE. Please submit with reason immediately.`,
+        author: req.user._id,
+        authorName: 'System / Timer',
+        createdAt: now,
+      });
+
+      await task.save();
+
+      const io = req.app.get('io');
+      const notifyUsers = uniqueIds([
+        ...(task.assignedTo || []),
+        task.assignedManager,
+        task.createdBy,
+      ]);
+
+      await Promise.all(notifyUsers.map((recipient) => createNotification({
+        recipient,
+        type: 'task_overdue',
+        title: '🚨 Task Overdue Alert!',
+        message: `Timer expired for task "${task.title}". Expected completion within ${task.allocatedHours || 0}h ${task.allocatedMinutes || 0}m.`,
+        link: `/tasks?open=${task._id}`,
+        metadata: { taskId: task._id },
+      }, io)));
+
+      const updated = await hydrateTask(task._id);
+      const serialized = serializeTask(updated);
+      emitLiveEvent('taskUpdated', { task: serialized, taskId: task._id });
+
+      return res.json({ success: true, isOverdue: true, task: serialized });
+    }
+
+    const updated = await hydrateTask(task._id);
+    res.json({ success: true, isOverdue: isTaskOverdue(task), task: serializeTask(updated) });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
