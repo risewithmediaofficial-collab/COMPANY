@@ -40,6 +40,7 @@ import {
   FolderKanban,
   Megaphone,
   Rocket,
+  Clapperboard,
 } from 'lucide-react';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';
@@ -158,6 +159,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
     if (isStaff) {
       const employeeDelivery = [
         { name: 'My Tasks', icon: CheckSquare, path: '/tasks' },
+        { name: 'Content Production', icon: Clapperboard, path: '/content-production' },
         { name: 'Daily Calendar', icon: Calendar, path: '/daily-tasks' },
         { name: 'Task Notes & Logs', icon: StickyNote, path: '/pending-notes' },
         { name: 'Client Vault', icon: KeyRound, path: '/client-vault' },
@@ -248,6 +250,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           ...(role === 'superAdmin' || role === 'admin' ? [
             { name: 'Manager Assignments', icon: CheckSquare, path: '/admin/manager-assignments' },
           ] : []),
+          { name: 'Content Production', icon: Clapperboard, path: '/content-production' },
           { name: 'Content Calendar', icon: Calendar, path: '/calendar' },
           { name: 'Shoots & DM Calendar', icon: Video, path: '/dm-calendar' },
           { name: 'Influencer Hub', icon: Sparkles, path: '/influencers' },

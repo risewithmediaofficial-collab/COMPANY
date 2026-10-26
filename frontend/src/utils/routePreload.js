@@ -25,6 +25,7 @@ const routeLoaders = {
   '/smm/tracker': () => import('../pages/smm/SMMOnePageTracker'),
   '/referral': () => import('../pages/referral/ReferralDashboard'),
   '/calendar': () => import('../pages/tasks/ContentCalendar'),
+  '/content-production': () => import('../pages/contentProduction/ContentProduction'),
   '/daily-tasks': () => import('../pages/tasks/ContentCalendar'),
   '/dm-calendar': () => import('../pages/dmCalendar/DMCalendar'),
   '/influencers': () => import('../pages/influencers/InfluencersDashboard'),

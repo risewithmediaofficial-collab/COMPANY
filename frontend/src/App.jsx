@@ -84,6 +84,10 @@ const DevelopmentReviews = lazy(() => import('./pages/development/DevelopmentRev
 const DevelopmentQA = lazy(() => import('./pages/development/DevelopmentQA'));
 const DevelopmentReleases = lazy(() => import('./pages/development/DevelopmentReleases'));
 
+// Content Production Module Pages
+const ContentProduction = lazy(() => import('./pages/contentProduction/ContentProduction'));
+const ContentProductionDetails = lazy(() => import('./pages/contentProduction/ContentProductionDetails'));
+
 // ─── Shared Loading Screen ────────────────────────────────────────────────────
 const LoadingScreen = () => (
   <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0a0a0a] text-white">
@@ -305,6 +309,16 @@ const App = () => {
           <Route path="/dm-calendar" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
               <DMCalendar />
+            </ProtectedRoute>
+          } />
+          <Route path="/content-production" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee', 'editor', 'designer', 'adsManager', 'intern']}>
+              <ContentProduction />
+            </ProtectedRoute>
+          } />
+          <Route path="/content-production/:id" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee', 'editor', 'designer', 'adsManager', 'intern']}>
+              <ContentProductionDetails />
             </ProtectedRoute>
           } />
           <Route path="/influencers" element={
