@@ -1379,6 +1379,10 @@ const Tasks = () => {
           setShowWorkflowDrawer(false);
           setWorkflowTaskId(null);
         }}
+        onOpenTaskDetail={(taskId) => {
+          setShowWorkflowDrawer(false);
+          openTaskDetail(taskId);
+        }}
       />
 
       <AlertDialog open={!!deleteTaskId} onOpenChange={(open) => !open && setDeleteTaskId(null)}>
