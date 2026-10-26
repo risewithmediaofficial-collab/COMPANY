@@ -53,6 +53,7 @@ import {
   Camera,
   Palette,
   Share2,
+  MapPin,
 } from 'lucide-react';
 import {
   formatTaskTypeLabel,
@@ -491,6 +492,46 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                   </NotionPropertyRow>
                 )}
 
+                {task.videoType && (
+                  <NotionPropertyRow icon={Film} label="Video Type">
+                    <span className="px-2 py-0.5 rounded-md bg-primary/10 text-primary font-bold text-xs border border-primary/20">
+                      {task.videoType}
+                    </span>
+                  </NotionPropertyRow>
+                )}
+
+                {task.videoFormat && (
+                  <NotionPropertyRow icon={Video} label="Video Format">
+                    <span className="font-semibold text-foreground text-xs">{task.videoFormat}</span>
+                  </NotionPropertyRow>
+                )}
+
+                {task.videoDuration && (
+                  <NotionPropertyRow icon={Clock} label="Duration">
+                    <span className="font-semibold text-foreground text-xs">{task.videoDuration}</span>
+                  </NotionPropertyRow>
+                )}
+
+                {(task.editingReferenceVideo || task.referenceVideoLink) && (
+                  <NotionPropertyRow icon={ExternalLink} label="Reference Video">
+                    <a
+                      href={task.editingReferenceVideo || task.referenceVideoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-primary hover:underline flex items-center gap-1 text-xs truncate max-w-[280px]"
+                    >
+                      <span>Open Reference Link</span>
+                      <ExternalLink size={11} className="shrink-0" />
+                    </a>
+                  </NotionPropertyRow>
+                )}
+
+                {task.cta && (
+                  <NotionPropertyRow icon={Sparkles} label="Call to Action">
+                    <span className="font-semibold text-foreground text-xs">{task.cta}</span>
+                  </NotionPropertyRow>
+                )}
+
                 <NotionPropertyRow icon={CheckCircle2} label="Client Approval">
                   <span className="capitalize font-semibold text-foreground text-xs">
                     {task.approvalStatus || task.clientResponse || 'Pending'}
@@ -692,6 +733,273 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                       <div className="rounded-xl border border-border bg-background p-3 text-xs text-foreground whitespace-pre-wrap leading-relaxed">
                         {task.videographerContentNeeded}
                       </div>
+                    </div>
+                  )}
+
+                  {/* 🎬 Video Production & Asset Details */}
+                  {(task.editingReferenceVideo ||
+                    task.referenceVideoLink ||
+                    task.finalVideoDriveLink ||
+                    task.voiceOverAudioLink ||
+                    task.musicReferenceLink ||
+                    task.brandAssetsDriveLink ||
+                    task.shootLocation ||
+                    task.shootLocationLink ||
+                    task.shootTime ||
+                    task.presenterPerson ||
+                    (Array.isArray(task.equipmentRequired) && task.equipmentRequired.length > 0) ||
+                    task.requiredShots ||
+                    task.specialInstructions ||
+                    task.hookOpeningLine ||
+                    task.fullScript ||
+                    task.sceneBySceneInstructions ||
+                    task.captionOnScreenText ||
+                    task.onScreenText ||
+                    task.coverImageDriveLink ||
+                    task.publishedPostUrl ||
+                    (Array.isArray(task.targetSocialPlatforms) && task.targetSocialPlatforms.length > 0)) && (
+                    <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-4 shadow-2xs space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Film size={14} className="text-primary" /> Video & Production Details
+                        </span>
+                        {task.videoType && (
+                          <Badge variant="outline" className="text-[10px] font-bold">
+                            {task.videoType}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Reference Links & Media Assets */}
+                      <div className="space-y-1.5 text-xs">
+                        {(task.editingReferenceVideo || task.referenceVideoLink) && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <Film size={13} className="text-primary shrink-0" />
+                              <span>Reference Video: {task.editingReferenceVideo || task.referenceVideoLink}</span>
+                            </span>
+                            <a
+                              href={task.editingReferenceVideo || task.referenceVideoLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>Watch</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.finalVideoDriveLink && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <Video size={13} className="text-emerald-500 shrink-0" />
+                              <span>Final Video Drive: {task.finalVideoDriveLink}</span>
+                            </span>
+                            <a
+                              href={task.finalVideoDriveLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>Open</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.voiceOverAudioLink && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <ExternalLink size={13} className="text-purple-500 shrink-0" />
+                              <span>Voice-Over Audio Link: {task.voiceOverAudioLink}</span>
+                            </span>
+                            <a
+                              href={task.voiceOverAudioLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>Listen</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.musicReferenceLink && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <Sparkles size={13} className="text-amber-500 shrink-0" />
+                              <span>Music Reference Link: {task.musicReferenceLink}</span>
+                            </span>
+                            <a
+                              href={task.musicReferenceLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>Open</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.brandAssetsDriveLink && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <FolderArchive size={13} className="text-sky-500 shrink-0" />
+                              <span>Brand Assets Drive: {task.brandAssetsDriveLink}</span>
+                            </span>
+                            <a
+                              href={task.brandAssetsDriveLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>Open</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.shootLocationLink && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <MapPin size={13} className="text-rose-500 shrink-0" />
+                              <span>Location Maps: {task.shootLocationLink}</span>
+                            </span>
+                            <a
+                              href={task.shootLocationLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>Open Map</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.coverImageDriveLink && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <Palette size={13} className="text-pink-500 shrink-0" />
+                              <span>Cover Image / Thumbnail: {task.coverImageDriveLink}</span>
+                            </span>
+                            <a
+                              href={task.coverImageDriveLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>Open</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.publishedPostUrl && (
+                          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-card border border-border">
+                            <span className="text-muted-foreground font-semibold truncate flex items-center gap-1.5">
+                              <Share2 size={13} className="text-emerald-500 shrink-0" />
+                              <span>Live Post URL: {task.publishedPostUrl}</span>
+                            </span>
+                            <a
+                              href={task.publishedPostUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
+                            >
+                              <span>View Post</span>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Shoot & Production Metadata Grid */}
+                      <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 text-xs pt-1">
+                        {task.shootTime && (
+                          <div className="p-2 rounded-xl bg-card border border-border">
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Shoot Time</span>
+                            <span className="font-semibold text-foreground truncate block">{task.shootTime}</span>
+                          </div>
+                        )}
+                        {task.shootLocation && (
+                          <div className="p-2 rounded-xl bg-card border border-border">
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Shoot Location</span>
+                            <span className="font-semibold text-foreground truncate block">{task.shootLocation}</span>
+                          </div>
+                        )}
+                        {task.presenterPerson && (
+                          <div className="p-2 rounded-xl bg-card border border-border">
+                            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Presenter</span>
+                            <span className="font-semibold text-foreground truncate block">{task.presenterPerson}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Equipment Required Pills */}
+                      {Array.isArray(task.equipmentRequired) && task.equipmentRequired.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-card border border-border space-y-1.5 text-xs">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground block">Equipment Required</span>
+                          <div className="flex flex-wrap gap-1">
+                            {task.equipmentRequired.map((eq, i) => (
+                              <Badge key={i} variant="secondary" className="text-[10px] font-semibold">
+                                {eq}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Target Platforms */}
+                      {Array.isArray(task.targetSocialPlatforms) && task.targetSocialPlatforms.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-card border border-border space-y-1.5 text-xs">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground block">Target Social Platforms</span>
+                          <div className="flex flex-wrap gap-1">
+                            {task.targetSocialPlatforms.map((plat, i) => (
+                              <Badge key={i} variant="outline" className="text-[10px] font-semibold border-pink-500/40 text-pink-600 dark:text-pink-400">
+                                {plat}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Hook */}
+                      {task.hookOpeningLine && (
+                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-1">
+                          <span className="text-[10px] font-bold uppercase text-amber-700 dark:text-amber-400 block">
+                            🎣 Hook / Opening Line
+                          </span>
+                          <p className="font-semibold text-foreground italic">"{task.hookOpeningLine}"</p>
+                        </div>
+                      )}
+
+                      {/* Required Shots */}
+                      {task.requiredShots && (
+                        <div className="p-2.5 rounded-xl bg-card border border-border text-xs space-y-1">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground block">🎥 Required Shots List</span>
+                          <p className="text-foreground whitespace-pre-wrap">{task.requiredShots}</p>
+                        </div>
+                      )}
+
+                      {/* Special Instructions */}
+                      {task.specialInstructions && (
+                        <div className="p-2.5 rounded-xl bg-card border border-border text-xs space-y-1">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground block">📝 Special Instructions</span>
+                          <p className="text-foreground whitespace-pre-wrap">{task.specialInstructions}</p>
+                        </div>
+                      )}
+
+                      {/* On-Screen Text / Captions */}
+                      {(task.captionOnScreenText || task.onScreenText) && (
+                        <div className="p-2.5 rounded-xl bg-card border border-border text-xs space-y-1">
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground block">💬 On-Screen Text & Captions</span>
+                          <p className="text-foreground whitespace-pre-wrap">{task.captionOnScreenText || task.onScreenText}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 

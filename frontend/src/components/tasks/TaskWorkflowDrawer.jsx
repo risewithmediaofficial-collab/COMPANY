@@ -44,6 +44,8 @@ import {
   Download,
   AlertCircle,
   Briefcase,
+  Video,
+  MapPin,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import {
@@ -1059,6 +1061,367 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose, onOpenTaskDetail }) 
               <div className="rounded-lg bg-white p-3 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 whitespace-pre-wrap leading-relaxed">
                 {task.description || task.requirementDetails || task.techScope}
               </div>
+            </div>
+          )}
+
+          {/* Content & Video Production Specifications Card (Video Type, Reference Link, Format, Shoot, Script, SMM) */}
+          {(task.videoType ||
+            task.videoFormat ||
+            task.videoDuration ||
+            task.editingReferenceVideo ||
+            task.referenceVideoLink ||
+            task.finalVideoDriveLink ||
+            task.voiceOverAudioLink ||
+            task.musicReferenceLink ||
+            task.brandAssetsDriveLink ||
+            task.captionOnScreenText ||
+            task.onScreenText ||
+            task.shootTime ||
+            task.shootLocation ||
+            task.shootLocationLink ||
+            task.requiredShots ||
+            task.presenterPerson ||
+            (Array.isArray(task.equipmentRequired) && task.equipmentRequired.length > 0) ||
+            task.specialInstructions ||
+            task.cta ||
+            task.coverImageDriveLink ||
+            task.publishedPostUrl ||
+            (Array.isArray(task.targetSocialPlatforms) && task.targetSocialPlatforms.length > 0) ||
+            task.language ||
+            task.hookOpeningLine ||
+            task.fullScript ||
+            task.sceneBySceneInstructions ||
+            task.googleDocsLink ||
+            task.scriptLink) && (
+            <div className="rounded-xl border border-indigo-200/90 bg-indigo-50/20 p-4 dark:border-indigo-900/50 dark:bg-indigo-950/15 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200 uppercase tracking-wider flex items-center gap-1.5">
+                  <Film className="h-3.5 w-3.5 text-indigo-500" /> Content & Video Production Specifications
+                </span>
+                {task.videoType && (
+                  <span className="px-2 py-0.5 rounded-md bg-indigo-600 text-[10px] font-bold text-white shadow-2xs">
+                    {task.videoType}
+                  </span>
+                )}
+              </div>
+
+              {/* Grid of Key Specs: Type, Format, Duration, CTA, Language */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                {task.videoType && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Video Type</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.videoType}</span>
+                  </div>
+                )}
+                {task.videoFormat && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Video Format</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.videoFormat}</span>
+                  </div>
+                )}
+                {task.videoDuration && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Duration</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.videoDuration}</span>
+                  </div>
+                )}
+                {task.cta && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Call to Action</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.cta}</span>
+                  </div>
+                )}
+                {task.language && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Language</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.language}</span>
+                  </div>
+                )}
+                {task.presenterPerson && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Presenter / Person</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.presenterPerson}</span>
+                  </div>
+                )}
+                {task.shootTime && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Shoot Time</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.shootTime}</span>
+                  </div>
+                )}
+                {task.shootLocation && (
+                  <div className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Shoot Location</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">{task.shootLocation}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Reference Videos & Asset Links */}
+              <div className="space-y-1.5 pt-1">
+                {(task.editingReferenceVideo || task.referenceVideoLink) && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <Film className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+                      <span>Reference Video: {task.editingReferenceVideo || task.referenceVideoLink}</span>
+                    </span>
+                    <a
+                      href={task.editingReferenceVideo || task.referenceVideoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400 font-bold hover:bg-indigo-100 shrink-0"
+                    >
+                      <span>Watch</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {task.finalVideoDriveLink && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <Video className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <span>Final Video Drive: {task.finalVideoDriveLink}</span>
+                    </span>
+                    <a
+                      href={task.finalVideoDriveLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 font-bold hover:bg-emerald-100 shrink-0"
+                    >
+                      <span>Open</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {task.voiceOverAudioLink && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <ExternalLink className="h-3.5 w-3.5 text-purple-500 shrink-0" />
+                      <span>Voice-Over Audio Link: {task.voiceOverAudioLink}</span>
+                    </span>
+                    <a
+                      href={task.voiceOverAudioLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400 font-bold hover:bg-purple-100 shrink-0"
+                    >
+                      <span>Listen</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {task.musicReferenceLink && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                      <span>Music Reference Link: {task.musicReferenceLink}</span>
+                    </span>
+                    <a
+                      href={task.musicReferenceLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 font-bold hover:bg-amber-100 shrink-0"
+                    >
+                      <span>Open</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {task.brandAssetsDriveLink && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <FolderKanban className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
+                      <span>Brand Assets Drive: {task.brandAssetsDriveLink}</span>
+                    </span>
+                    <a
+                      href={task.brandAssetsDriveLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-cyan-50 text-cyan-600 dark:bg-cyan-950/60 dark:text-cyan-400 font-bold hover:bg-cyan-100 shrink-0"
+                    >
+                      <span>Open Drive</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {task.shootLocationLink && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-rose-500 shrink-0" />
+                      <span>Google Maps Location: {task.shootLocationLink}</span>
+                    </span>
+                    <a
+                      href={task.shootLocationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 font-bold hover:bg-rose-100 shrink-0"
+                    >
+                      <span>Open Maps</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {(task.googleDocsLink || task.scriptLink) && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                      <span>Google Docs Script: {task.googleDocsLink || task.scriptLink}</span>
+                    </span>
+                    <a
+                      href={task.googleDocsLink || task.scriptLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 font-bold hover:bg-blue-100 shrink-0"
+                    >
+                      <span>Open Docs</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {task.coverImageDriveLink && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <Palette className="h-3.5 w-3.5 text-pink-500 shrink-0" />
+                      <span>Cover Image / Thumbnail: {task.coverImageDriveLink}</span>
+                    </span>
+                    <a
+                      href={task.coverImageDriveLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-pink-50 text-pink-600 dark:bg-pink-950/60 dark:text-pink-400 font-bold hover:bg-pink-100 shrink-0"
+                    >
+                      <span>Open</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+
+                {task.publishedPostUrl && (
+                  <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 truncate flex items-center gap-1.5">
+                      <Share2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                      <span>Published Post URL: {task.publishedPostUrl}</span>
+                    </span>
+                    <a
+                      href={task.publishedPostUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 font-bold hover:bg-emerald-100 shrink-0"
+                    >
+                      <span>View Live Post</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Equipment Required Pills */}
+              {Array.isArray(task.equipmentRequired) && task.equipmentRequired.length > 0 && (
+                <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 text-xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Equipment Required
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {task.equipmentRequired.map((item, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-bold text-[11px] border border-indigo-200/60 dark:border-indigo-800/40"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Target Platforms */}
+              {Array.isArray(task.targetSocialPlatforms) && task.targetSocialPlatforms.length > 0 && (
+                <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 space-y-1.5 text-xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Target Platforms
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {task.targetSocialPlatforms.map((plat, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 rounded-md bg-pink-50 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300 font-bold text-[11px] border border-pink-200/60 dark:border-pink-800/40"
+                      >
+                        {plat}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hook / Opening Line */}
+              {task.hookOpeningLine && (
+                <div className="p-2.5 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">
+                    🎣 Hook / Opening Line
+                  </span>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200 italic">
+                    "{task.hookOpeningLine}"
+                  </p>
+                </div>
+              )}
+
+              {/* Full Script */}
+              {(task.fullScript || task.scriptText) && (
+                <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      📜 Full Script
+                    </span>
+                    <CopyButton text={task.fullScript || task.scriptText} label="Copy Script" />
+                  </div>
+                  <div className="max-h-40 overflow-y-auto whitespace-pre-wrap font-mono text-[11px] text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-2 rounded border border-slate-200/60 dark:border-slate-700/60 custom-scrollbar">
+                    {task.fullScript || task.scriptText}
+                  </div>
+                </div>
+              )}
+
+              {/* On-Screen Text / Captions */}
+              {(task.captionOnScreenText || task.onScreenText) && (
+                <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    💬 On-Screen Text & Captions
+                  </span>
+                  <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-medium">
+                    {task.captionOnScreenText || task.onScreenText}
+                  </p>
+                </div>
+              )}
+
+              {/* Required Shots */}
+              {(task.requiredShots || task.videographerContentNeeded) && (
+                <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    🎥 Required Shots & Footage List
+                  </span>
+                  <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-medium">
+                    {task.requiredShots || task.videographerContentNeeded}
+                  </p>
+                </div>
+              )}
+
+              {/* Special Instructions */}
+              {task.specialInstructions && (
+                <div className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    📝 Special Shoot / Editing Instructions
+                  </span>
+                  <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-medium">
+                    {task.specialInstructions}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

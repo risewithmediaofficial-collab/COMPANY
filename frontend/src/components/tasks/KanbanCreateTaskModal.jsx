@@ -27,14 +27,20 @@ import {
   Send,
   HelpCircle,
   FileCode,
+  Link as LinkIcon,
+  Mic,
+  Music,
+  MapPin,
+  Check,
 } from 'lucide-react';
 import { useCreateTask } from '../../hooks/useTasks';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import { useUsers } from '../../hooks/useUsers';
+import { contentProductionApi } from '../../api/contentProduction';
 import { toast } from 'sonner';
 
-const PLATFORM_OPTIONS = [
+export const PLATFORM_OPTIONS = [
   { id: 'Instagram', label: 'Instagram', icon: '📸' },
   { id: 'YouTube', label: 'YouTube', icon: '▶️' },
   { id: 'LinkedIn', label: 'LinkedIn', icon: '💼' },
@@ -43,7 +49,7 @@ const PLATFORM_OPTIONS = [
   { id: 'TikTok', label: 'TikTok', icon: '🎵' },
 ];
 
-const CONTENT_TYPE_OPTIONS = [
+export const CONTENT_TYPE_OPTIONS = [
   { id: 'reel', label: '🎬 Reel / Short', defaultChecklist: ['Hook & Scripting', 'Raw Footage Sourced', 'Edit & Subtitles', 'Sound Design & Final Export'] },
   { id: 'video_content', label: '📹 Long Video', defaultChecklist: ['Outline & Script', 'A-Roll / B-Roll Sourced', 'Rough Cut', 'Color Grading & Final Polish'] },
   { id: 'poster', label: '🎨 Graphic / Poster', defaultChecklist: ['Design Brief / Copy', 'Creative Layout & Visuals', 'Export for Social Specs'] },
@@ -51,7 +57,7 @@ const CONTENT_TYPE_OPTIONS = [
   { id: 'content', label: '✍️ Script / Copy', defaultChecklist: ['Market Research', 'Hook & Angle Draft', 'Full Body Script', 'Proofread & Review'] },
 ];
 
-const TECH_TYPE_OPTIONS = [
+export const TECH_TYPE_OPTIONS = [
   { id: 'website_development', label: '💻 Web Feature / Dev', defaultChecklist: ['Spec Review', 'Component / API Implementation', 'Responsive Mobile Check', 'Deploy to Staging'] },
   { id: 'bug_fix', label: '🐞 Bug Fix / Patch', defaultChecklist: ['Reproduce Error', 'Isolate Root Cause', 'Write Code Fix', 'Unit / Integration Test'] },
   { id: 'website_update', label: '⚡ Website Update', defaultChecklist: ['Asset Gathering', 'Apply Updates', 'Cross-browser Verification'] },
@@ -59,6 +65,30 @@ const TECH_TYPE_OPTIONS = [
   { id: 'custom_task', label: '⚙️ Tech Infrastructure', defaultChecklist: ['Scope Definition', 'Implementation', 'Documentation'] },
   { id: 'client_support', label: '📋 Operations / Support', defaultChecklist: ['Review Request', 'Execute Task', 'Notify Client / Manager'] },
 ];
+
+export const VIDEO_TYPES_OPTIONS = [
+  'Montage',
+  'Voice-over',
+  'CTA',
+  'Services',
+  'Customer Review',
+  'Promotional',
+  'Educational',
+  'Talking Head',
+  'Before & After',
+  'Interview',
+  'Product Shoot',
+];
+
+export const VIDEO_FORMAT_OPTIONS = ['9:16', '16:9', '1:1', 'Vertical', 'Horizontal', 'Square'];
+export const VIDEO_DURATION_OPTIONS = ['15 sec', '30 sec', '60 sec', '90 sec', 'Custom'];
+export const CTA_OPTIONS = ['None', 'Call Now', 'WhatsApp', 'Visit Website', 'Send DM', 'Book Now', 'Learn More'];
+export const SCRIPT_LANGUAGES = ['English', 'Tamil', 'Kannada', 'Telugu', 'Hindi', 'Other'];
+export const EQUIPMENT_OPTIONS = ['Camera', 'Mobile', 'Gimbal', 'Tripod', 'Microphone', 'Lighting'];
+export const STATUS_EDITOR_OPTIONS = ['Pending', 'Editing', 'Review', 'Revision Required', 'Completed'];
+export const STATUS_VIDEOGRAPHER_OPTIONS = ['Scheduled', 'In Progress', 'Completed', 'Retake Required'];
+export const STATUS_SMM_OPTIONS = ['Content Pending', 'Approval Pending', 'Scheduled', 'Published'];
+export const STATUS_SCRIPT_OPTIONS = ['Draft', 'Internal Review', 'Client Approval', 'Approved', 'Revision Required'];
 
 export const KanbanCreateTaskModal = ({
   isOpen,
@@ -118,29 +148,73 @@ export const KanbanCreateTaskModal = ({
   const [editDueDate, setEditDueDate] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editReminder, setEditReminder] = useState('');
+  const [editorVideoType, setEditorVideoType] = useState('Promotional');
+  const [editorVideoFormat, setEditorVideoFormat] = useState('9:16');
+  const [editorVideoDuration, setEditorVideoDuration] = useState('30 sec');
+  const [editingReferenceVideo, setEditingReferenceVideo] = useState('');
+  const [voiceOverAudioLink, setVoiceOverAudioLink] = useState('');
+  const [musicReferenceLink, setMusicReferenceLink] = useState('');
+  const [brandAssetsDriveLink, setBrandAssetsDriveLink] = useState('');
+  const [finalVideoDriveLink, setFinalVideoDriveLink] = useState('');
+  const [captionOnScreenText, setCaptionOnScreenText] = useState('');
+  const [editingInstructions, setEditingInstructions] = useState('');
+  const [editorStatus, setEditorStatus] = useState('Pending');
 
   // 2. Videographer Details
   const [videographerUserId, setVideographerUserId] = useState('');
+  const [videographerVideoType, setVideographerVideoType] = useState('Promotional');
+  const [videographerVideoFormat, setVideographerVideoFormat] = useState('Vertical');
   const [shootDate, setShootDate] = useState('');
+  const [shootTime, setShootTime] = useState('');
   const [shootLocation, setShootLocation] = useState('');
+  const [shootLocationLink, setShootLocationLink] = useState('');
+  const [videographerReferenceLink, setVideographerReferenceLink] = useState('');
+  const [requiredShots, setRequiredShots] = useState('');
+  const [presenterPerson, setPresenterPerson] = useState('');
+  const [equipmentRequired, setEquipmentRequired] = useState(['Camera', 'Microphone', 'Lighting']);
+  const [specialInstructions, setSpecialInstructions] = useState('');
+  const [videographerRawFootageLink, setVideographerRawFootageLink] = useState('');
+  const [videographerStatus, setVideographerStatus] = useState('Scheduled');
 
   // 3. SMM Details
   const [smmUserId, setSmmUserId] = useState('');
   const [postDate, setPostDate] = useState('');
+  const [smmTime, setSmmTime] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState(['Instagram']);
+  const [smmContentType, setSmmContentType] = useState('Reel');
+  const [smmCaption, setSmmCaption] = useState('');
+  const [smmHashtags, setSmmHashtags] = useState('');
+  const [smmCta, setSmmCta] = useState('None');
+  const [smmFinalCreativeLink, setSmmFinalCreativeLink] = useState('');
+  const [smmCoverImageLink, setSmmCoverImageLink] = useState('');
+  const [publishedPostUrl, setPublishedPostUrl] = useState('');
+  const [smmStatus, setSmmStatus] = useState('Content Pending');
 
-  // 4. Designer Details
+  // 4. Scriptwriter Details
+  const [scriptWriterUserId, setScriptWriterUserId] = useState('');
+  const [scriptVideoType, setScriptVideoType] = useState('Promotional');
+  const [scriptLanguage, setScriptLanguage] = useState('English');
+  const [contentHook, setContentHook] = useState('');
+  const [scriptText, setScriptText] = useState('');
+  const [scriptSceneInstructions, setScriptSceneInstructions] = useState('');
+  const [scriptOnScreenText, setScriptOnScreenText] = useState('');
+  const [scriptCta, setScriptCta] = useState('None');
+  const [scriptReferenceVideoLink, setScriptReferenceVideoLink] = useState('');
+  const [scriptLink, setScriptLink] = useState('');
+  const [scriptStatus, setScriptStatus] = useState('Draft');
+
+  // 5. Designer Details
   const [designerUserId, setDesignerUserId] = useState('');
   const [designDueDate, setDesignDueDate] = useState('');
-
-  // 5. Brief & Concept / Script
-  const [contentHook, setContentHook] = useState('');
-  const [scriptLink, setScriptLink] = useState('');
 
   // 6. Non-Content / Tech Specific
   const [techScope, setTechScope] = useState('');
   const [repoLink, setRepoLink] = useState('');
   const [bugSeverity, setBugSeverity] = useState('medium');
+
+  // 7. Saved Client Assets (Scripts & Reference Videos)
+  const [clientSavedScripts, setClientSavedScripts] = useState([]);
+  const [clientSavedRefVideos, setClientSavedRefVideos] = useState([]);
 
   // Checklist
   const [checklist, setChecklist] = useState([]);
@@ -156,6 +230,7 @@ export const KanbanCreateTaskModal = ({
     const smmMembers = [];
     const designers = [];
     const developers = [];
+    const scriptwriters = [];
 
     users.forEach((u) => {
       const dept = (u.department || '').toLowerCase();
@@ -176,10 +251,34 @@ export const KanbanCreateTaskModal = ({
       if (dept.includes('dev') || dept.includes('tech') || dept.includes('engineer') || pos.includes('dev') || pos.includes('engineer') || pos.includes('frontend') || pos.includes('backend')) {
         developers.push(u);
       }
+      if (pos.includes('script') || dept.includes('script') || pos.includes('writer') || dept.includes('content') || pos.includes('copy')) {
+        scriptwriters.push(u);
+      }
     });
 
-    return { editors, videographers, smmMembers, designers, developers };
+    return { editors, videographers, smmMembers, designers, developers, scriptwriters };
   }, [users]);
+
+  // Load saved scripts and reference videos for selected client
+  useEffect(() => {
+    if (singleClientId) {
+      contentProductionApi
+        .getScriptsAndReferences({ clientId: singleClientId })
+        .then((res) => {
+          if (res.data?.success) {
+            setClientSavedScripts(res.data.scripts || []);
+            setClientSavedRefVideos(res.data.referenceVideos || []);
+          }
+        })
+        .catch(() => {
+          setClientSavedScripts([]);
+          setClientSavedRefVideos([]);
+        });
+    } else {
+      setClientSavedScripts([]);
+      setClientSavedRefVideos([]);
+    }
+  }, [singleClientId]);
 
   // Keyboard listener for Escape
   useEffect(() => {
@@ -257,6 +356,10 @@ export const KanbanCreateTaskModal = ({
           setTaskCategory('content');
           setSubType('video_content');
           setVideographerUserId(initialUser._id);
+        } else if (userPos.includes('script') || userPos.includes('writer') || userDept.includes('script')) {
+          setTaskCategory('content');
+          setSubType('content');
+          setScriptWriterUserId(initialUser._id);
         } else {
           setTaskCategory('content');
           setSubType('reel');
@@ -302,13 +405,13 @@ export const KanbanCreateTaskModal = ({
     return pCid === clientId.toString();
   };
 
-  // Projects strictly matching selected client in single mode
+  // Projects strictly matching selected client
   const clientSpecificProjects = useMemo(() => {
     if (!singleClientId) return [];
     return projects.filter((p) => isProjectMatchClient(p, singleClientId));
   }, [projects, singleClientId]);
 
-  // Other projects (or all projects if no client selected)
+  // Other projects
   const otherProjects = useMemo(() => {
     if (!singleClientId) return projects;
     return projects.filter((p) => !isProjectMatchClient(p, singleClientId));
@@ -349,6 +452,7 @@ export const KanbanCreateTaskModal = ({
     const assignedUserObj = users.find((u) => u._id === selectedUserId);
     const editorUserObj = users.find((u) => u._id === editorUserId);
     const videographerUserObj = users.find((u) => u._id === videographerUserId);
+    const scriptWriterUserObj = users.find((u) => u._id === scriptWriterUserId);
     const smmUserObj = users.find((u) => u._id === smmUserId);
     const designerUserObj = users.find((u) => u._id === designerUserId);
     const clientObj = clients.find((c) => c._id === singleClientId);
@@ -393,14 +497,20 @@ export const KanbanCreateTaskModal = ({
     } else {
       // Content deliverable
       taskItem.contentType = subType === 'poster' ? 'posts' : (subType === 'video_content' || subType === 'reel') ? 'videos' : 'custom';
-      taskItem.videoType = subType === 'reel' ? 'reels' : subType === 'video_content' ? 'long_video' : '';
-      taskItem.postingPlatforms = [...selectedPlatforms];
-      taskItem.contentIdea = contentHook;
-      taskItem.scriptText = contentHook;
-      taskItem.scriptLink = scriptLink || undefined;
-      taskItem.rawFootageLink = rawFootageLink || undefined;
-      taskItem.driveLink = rawFootageLink || undefined;
-      taskItem.referenceLink = rawFootageLink || undefined;
+      taskItem.videoType = editorVideoType || videographerVideoType || scriptVideoType || (subType === 'reel' ? 'reels' : subType === 'video_content' ? 'long_video' : '');
+      taskItem.videoFormat = editorVideoFormat || videographerVideoFormat || '9:16';
+      taskItem.videoDuration = editorVideoDuration || '30 sec';
+      taskItem.editingReferenceVideo = editingReferenceVideo || undefined;
+      taskItem.referenceLink = editingReferenceVideo || videographerReferenceLink || scriptReferenceVideoLink || rawFootageLink || undefined;
+      taskItem.rawFootageLink = rawFootageLink || videographerRawFootageLink || undefined;
+      taskItem.driveLink = rawFootageLink || videographerRawFootageLink || finalVideoDriveLink || undefined;
+      taskItem.voiceOverAudioLink = voiceOverAudioLink || undefined;
+      taskItem.musicReferenceLink = musicReferenceLink || undefined;
+      taskItem.brandAssetsDriveLink = brandAssetsDriveLink || undefined;
+      taskItem.finalVideoDriveLink = finalVideoDriveLink || undefined;
+      taskItem.captionOnScreenText = captionOnScreenText || scriptOnScreenText || undefined;
+      taskItem.editingInstructions = editingInstructions || undefined;
+      taskItem.editingStatus = editorStatus || 'pending';
 
       // Editor Details
       taskItem.editorAssigned = editorUserId || undefined;
@@ -413,14 +523,43 @@ export const KanbanCreateTaskModal = ({
       taskItem.videographerAssigned = videographerUserId || undefined;
       taskItem.videographerName = videographerUserObj?.name || '';
       taskItem.shootDate = shootDate || undefined;
+      taskItem.shootTime = shootTime || undefined;
       taskItem.shootLocation = shootLocation || undefined;
-      taskItem.videographerContentNeeded = shootLocation || undefined;
+      taskItem.shootLocationLink = shootLocationLink || undefined;
+      taskItem.referenceVideoLink = videographerReferenceLink || editingReferenceVideo || undefined;
+      taskItem.requiredShots = requiredShots || undefined;
+      taskItem.presenterPerson = presenterPerson || undefined;
+      taskItem.equipmentRequired = [...equipmentRequired];
+      taskItem.specialInstructions = specialInstructions || undefined;
+      taskItem.shootStatus = videographerStatus || 'pending';
+      taskItem.videographerContentNeeded = [requiredShots, shootLocation, presenterPerson].filter(Boolean).join(' • ') || undefined;
 
       // SMM Details
       taskItem.publisherAssigned = smmUserId || undefined;
       taskItem.publisherName = smmUserObj?.name || '';
       taskItem.postingScheduleDate = postDate || undefined;
       taskItem.publishingDate = postDate || undefined;
+      taskItem.publishingTime = smmTime || undefined;
+      taskItem.postingPlatforms = [...selectedPlatforms];
+      taskItem.caption = smmCaption || undefined;
+      taskItem.hashtags = smmHashtags || undefined;
+      taskItem.cta = smmCta || 'None';
+      taskItem.coverImageDriveLink = smmCoverImageLink || undefined;
+      taskItem.publishedPostUrl = publishedPostUrl || undefined;
+      taskItem.postingStatus = smmStatus || 'pending';
+
+      // Scriptwriter Details
+      taskItem.scriptWriterAssigned = scriptWriterUserId || undefined;
+      taskItem.scriptWriterName = scriptWriterUserObj?.name || '';
+      taskItem.language = scriptLanguage || 'English';
+      taskItem.hookOpeningLine = contentHook || undefined;
+      taskItem.contentIdea = contentHook || undefined;
+      taskItem.fullScript = scriptText || undefined;
+      taskItem.scriptText = scriptText || contentHook || undefined;
+      taskItem.sceneBySceneInstructions = scriptSceneInstructions || undefined;
+      taskItem.onScreenText = scriptOnScreenText || captionOnScreenText || undefined;
+      taskItem.scriptLink = scriptLink || undefined;
+      taskItem.voiceScriptText = scriptText || undefined;
 
       // Designer Details
       taskItem.designerAssigned = designerUserId || undefined;
@@ -430,9 +569,10 @@ export const KanbanCreateTaskModal = ({
       // Auto-collect all assigned roles for task.assignedTo
       const subIds = [
         editorUserId,
+        videographerUserId,
+        scriptWriterUserId,
         designerUserId,
         smmUserId,
-        videographerUserId,
         selectedUserId,
       ].filter(Boolean);
       const uniqueSubIds = [...new Set(subIds)];
@@ -457,7 +597,22 @@ export const KanbanCreateTaskModal = ({
     // Reset title, hook, and links for next task
     setTitle('');
     setContentHook('');
+    setScriptText('');
     setRawFootageLink('');
+    setEditingReferenceVideo('');
+    setVideographerReferenceLink('');
+    setScriptReferenceVideoLink('');
+    setFinalVideoDriveLink('');
+    setVoiceOverAudioLink('');
+    setMusicReferenceLink('');
+    setCaptionOnScreenText('');
+    setEditingInstructions('');
+    setShootLocation('');
+    setRequiredShots('');
+    setPresenterPerson('');
+    setSmmCaption('');
+    setSmmHashtags('');
+    setPublishedPostUrl('');
     setTechScope('');
     setRepoLink('');
   };
@@ -519,195 +674,147 @@ export const KanbanCreateTaskModal = ({
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/30">
               <Sparkles className="h-5 w-5" />
             </div>
-            <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
-                Create Task & Assign Deliverable
+            <div>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                Assign & Create Deliverables
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5">
-                <span>Configure details one-by-one</span>
-                <span>•</span>
-                <span className="font-semibold text-indigo-600 dark:text-indigo-400">Lands directly in To Do</span>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Configure team assignments with video types, reference links, and schedules
               </p>
             </div>
           </div>
+
           <button
-            type="button"
             onClick={handleClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 shrink-0 cursor-pointer transition-colors"
+            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Modal Scrollable Body */}
-        <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 space-y-4 sm:space-y-5 custom-scrollbar">
-          {/* 1. Deliverable Mode Selection */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-              Deliverable Mode
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setTaskCategory('content');
-                  setSubType('reel');
-                }}
-                className={`flex items-center gap-3.5 rounded-2xl border p-3.5 sm:p-4 text-left transition-all cursor-pointer ${
-                  taskCategory === 'content'
-                    ? 'border-fuchsia-500 bg-fuchsia-500/10 shadow-sm ring-2 ring-fuchsia-500/30 dark:border-fuchsia-400 dark:bg-fuchsia-950/30'
-                    : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100/70 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-800/50'
-                }`}
-              >
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs ${
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
+          {/* SECTION 1: CORE CLASSIFICATION */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Task Category Switcher */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 uppercase tracking-wider">
+                1. Select Task Stream
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTaskCategory('content');
+                    setSubType('reel');
+                  }}
+                  className={`flex items-center justify-center gap-2 rounded-xl border p-2.5 text-xs font-bold transition-all cursor-pointer ${
                     taskCategory === 'content'
-                      ? 'bg-fuchsia-600 text-white'
-                      : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                      ? 'border-indigo-600 bg-indigo-50/80 text-indigo-700 shadow-xs dark:border-indigo-500 dark:bg-indigo-950/50 dark:text-indigo-300'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
                   }`}
                 >
-                  <Video className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <span>🎨 Content Deliverable</span>
-                    {taskCategory === 'content' && (
-                      <span className="h-2 w-2 rounded-full bg-fuchsia-500 animate-pulse" />
-                    )}
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Reels, Videos, Posters, Carousels & Social Scripts
-                  </p>
-                </div>
-              </button>
+                  <Video className="h-4 w-4" />
+                  <span>🎬 Content & Media</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setTaskCategory('non_content');
-                  setSubType('website_development');
-                }}
-                className={`flex items-center gap-3.5 rounded-2xl border p-3.5 sm:p-4 text-left transition-all cursor-pointer ${
-                  taskCategory === 'non_content'
-                    ? 'border-sky-500 bg-sky-500/10 shadow-sm ring-2 ring-sky-500/30 dark:border-sky-400 dark:bg-sky-950/30'
-                    : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100/70 dark:border-slate-800 dark:bg-slate-900/50 dark:hover:bg-slate-800/50'
-                }`}
-              >
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs ${
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTaskCategory('non_content');
+                    setSubType('website_development');
+                  }}
+                  className={`flex items-center justify-center gap-2 rounded-xl border p-2.5 text-xs font-bold transition-all cursor-pointer ${
                     taskCategory === 'non_content'
-                      ? 'bg-sky-600 text-white'
-                      : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                      ? 'border-sky-600 bg-sky-50/80 text-sky-700 shadow-xs dark:border-sky-500 dark:bg-sky-950/50 dark:text-sky-300'
+                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
                   }`}
                 >
-                  <Code2 className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <span>💻 Non-Content Task</span>
-                    {taskCategory === 'non_content' && (
-                      <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
-                    )}
-                  </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Web Development, Bug Fixes, SEO & Infrastructure
-                  </p>
-                </div>
-              </button>
+                  <Code2 className="h-4 w-4" />
+                  <span>💻 Tech & Ops</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Sub-Type Selector */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 uppercase tracking-wider">
+                2. Deliverable Type
+              </label>
+              <select
+                value={subType}
+                onChange={(e) => setSubType(e.target.value)}
+                className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+              >
+                {(taskCategory === 'content' ? CONTENT_TYPE_OPTIONS : TECH_TYPE_OPTIONS).map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* 2. Core Task Info (Title, Client, Project, Priority, NF ID) */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40 space-y-3.5">
-            {/* Title & Priority & NF ID */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-              <div className="md:col-span-7">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
-                  Task Name / Title *
+          {/* SECTION 2: TITLE & TARGET CLIENT / PROJECT */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40 space-y-4">
+            {/* Task Name / Title */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                  Task Title / Video Title <span className="text-rose-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder={
-                    taskCategory === 'content'
-                      ? 'e.g. Product Launch Reel #1 - Hook & Showcase'
-                      : 'e.g. Implement Mobile Navbar Animation & Clean up Layout'
-                  }
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-medium text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
-                  autoFocus
-                />
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Descriptive title for Kanban & reports
+                </span>
               </div>
-
-              <div className="md:col-span-3">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5">
-                  Priority
-                </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                >
-                  <option value="low">🟢 Low</option>
-                  <option value="medium">🔵 Medium</option>
-                  <option value="high">🟠 High</option>
-                  <option value="urgent">🔴 Urgent</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center gap-1">
-                  <Hash size={12} className="text-slate-400" /> NF ID
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 81"
-                  value={nfId}
-                  onChange={(e) => setNfId(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono font-bold text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                />
-              </div>
+              <input
+                type="text"
+                placeholder={
+                  taskCategory === 'content'
+                    ? 'e.g. 5 Signs You Need CRM Automation (Reel #14)'
+                    : 'e.g. Implement Responsive Navbar & Footer Redesign'
+                }
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+              />
             </div>
 
-            {/* Client & Project Selection */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            {/* Client & Project Rows */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Client Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
-                  <Building2 size={13} className="text-indigo-500" /> Select Client
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Client Name
                 </label>
                 <select
                   value={singleClientId}
                   onChange={(e) => setSingleClientId(e.target.value)}
                   className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
                 >
-                  <option value="">General / Internal Task (No Client)</option>
+                  <option value="">General / Internal (No Client)</option>
                   {clients.map((c) => (
                     <option key={c._id} value={c._id}>
-                      {c.name} {c.company || c.companyName ? `(${c.company || c.companyName})` : ''}
+                      🏢 {c.name || c.company}
                     </option>
                   ))}
                 </select>
               </div>
 
+              {/* Project Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
-                    <Layers size={13} className="text-indigo-500" /> Select Project
-                  </span>
-                  {singleClientId && clientSpecificProjects.length > 0 && (
-                    <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
-                      {clientSpecificProjects.length} linked to client
-                    </span>
-                  )}
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Project
                 </label>
                 <select
                   value={singleProjectId}
                   onChange={(e) => setSingleProjectId(e.target.value)}
                   className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
                 >
-                  <option value="">— No Project Linked (General) —</option>
+                  <option value="">No Project Assigned</option>
                   {clientSpecificProjects.length > 0 && (
-                    <optgroup label="Client Linked Projects">
+                    <optgroup label="Client Projects">
                       {clientSpecificProjects.map((p) => (
                         <option key={p._id} value={p._id}>
                           📁 {p.name}
@@ -716,134 +823,129 @@ export const KanbanCreateTaskModal = ({
                     </optgroup>
                   )}
                   {otherProjects.length > 0 && (
-                    <optgroup label={clientSpecificProjects.length > 0 ? 'Other Workspace Projects' : 'All Workspace Projects'}>
-                      {otherProjects.map((p) => {
-                        const cName = typeof p.client === 'object' ? p.client?.name : '';
-                        return (
-                          <option key={p._id} value={p._id}>
-                            📁 {p.name} {cName ? `(${cName})` : ''}
-                          </option>
-                        );
-                      })}
+                    <optgroup label="Other Projects">
+                      {otherProjects.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          📁 {p.name}
+                        </option>
+                      ))}
                     </optgroup>
                   )}
                 </select>
               </div>
+
+              {/* Priority */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Priority
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer capitalize"
+                >
+                  <option value="low">🟢 Low</option>
+                  <option value="medium">🔵 Medium</option>
+                  <option value="high">🟠 High</option>
+                  <option value="urgent">🔴 Urgent</option>
+                </select>
+              </div>
+
+              {/* NF ID (Notion ID / Numbering) */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  NF ID / Code
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. NF-082"
+                  value={nfId}
+                  onChange={(e) => setNfId(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                />
+              </div>
             </div>
 
-            {/* Task Completion Timer & Duration */}
-            <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/20 p-3.5 sm:p-4 dark:border-indigo-900/60 dark:bg-indigo-950/15 space-y-2.5 mt-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Clock size={14} className="text-indigo-600 dark:text-indigo-400" /> Task Completion Timer & Duration
-                </span>
-                <span className="text-[10px] text-indigo-700 dark:text-indigo-400 font-semibold">
-                  Timer begins once employee accepts the task
-                </span>
+            {/* Timer Allocation & Due Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Deadline Date
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Timer Hours
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      max="99"
-                      value={allocatedHours}
-                      onChange={(e) => setAllocatedHours(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 pr-8 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                    <span className="absolute right-2.5 top-2 text-[10px] text-slate-400 font-bold pointer-events-none">hrs</span>
-                  </div>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Due Time
+                </label>
+                <input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Timer Minutes
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={allocatedMinutes}
-                      onChange={(e) => setAllocatedMinutes(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 pr-9 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                    <span className="absolute right-2.5 top-2 text-[10px] text-slate-400 font-bold pointer-events-none">mins</span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Exact Due Time (Optional)
-                  </label>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Allocated Timer
+                </label>
+                <div className="flex items-center gap-1.5">
                   <input
-                    type="time"
-                    value={dueTime}
-                    onChange={(e) => setDueTime(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={allocatedHours}
+                    onChange={(e) => setAllocatedHours(e.target.value)}
+                    className="h-9 w-16 rounded-xl border border-slate-300 bg-white px-2 py-1.5 text-xs text-center font-bold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                   />
+                  <span className="text-xs text-slate-500">hrs</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={allocatedMinutes}
+                    onChange={(e) => setAllocatedMinutes(e.target.value)}
+                    className="h-9 w-16 rounded-xl border border-slate-300 bg-white px-2 py-1.5 text-xs text-center font-bold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  />
+                  <span className="text-xs text-slate-500">mins</span>
                 </div>
-              </div>
-
-              {/* Quick Duration Buttons */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mr-1">Quick:</span>
-                {[
-                  { label: '30m', h: 0, m: 30 },
-                  { label: '1h', h: 1, m: 0 },
-                  { label: '2h', h: 2, m: 0 },
-                  { label: '3h', h: 3, m: 0 },
-                  { label: '4h', h: 4, m: 0 },
-                  { label: '8h', h: 8, m: 0 },
-                  { label: '24h', h: 24, m: 0 },
-                ].map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => { setAllocatedHours(preset.h); setAllocatedMinutes(preset.m); }}
-                    className="px-2 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-all active:scale-95 cursor-pointer"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
               </div>
             </div>
           </div>
 
-          {/* ========================================================
-              SECTION 3A: NON-CONTENT TASK DETAILS (Matches Notion Image 2)
-             ======================================================== */}
+          {/* SECTION 3: ROLE DETAILS & FORMS */}
           {taskCategory === 'non_content' ? (
-            <div className="rounded-2xl border border-sky-300/80 bg-sky-50/20 p-4 sm:p-5 dark:border-sky-900/60 dark:bg-sky-950/15 space-y-4">
-              <div className="flex items-center justify-between border-b border-sky-200/60 pb-2.5 dark:border-sky-900/40">
-                <span className="text-xs font-bold text-sky-900 dark:text-sky-300 uppercase tracking-wider flex items-center gap-2">
-                  <Code2 size={16} className="text-sky-600 dark:text-sky-400" /> Non-Content Task Details
+            /* NON-CONTENT / TECH FORM */
+            <div className="rounded-2xl border border-sky-200/80 bg-sky-50/20 p-4 sm:p-5 dark:border-sky-900/60 dark:bg-sky-950/15 space-y-4">
+              <div className="flex items-center justify-between border-b border-sky-200/60 pb-2 dark:border-sky-900/40">
+                <span className="text-xs font-bold text-sky-900 dark:text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Code2 size={15} className="text-sky-600 dark:text-sky-400" /> Developer & Scope Assignment
                 </span>
                 <span className="text-[11px] font-semibold text-sky-700 dark:text-sky-400">
-                  Assignee & Technical Specifications
+                  Engineering & Ops Workflow
                 </span>
               </div>
 
-              {/* Assignee & Due Date & Category Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* Assignee */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                    Assignee *
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Lead Developer / Assignee <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
                     className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
                   >
-                    <option value="">Select Assignee...</option>
+                    <option value="">Select Developer...</option>
                     {roleGroups.developers.length > 0 && (
-                      <optgroup label="💻 Developers & Engineers">
+                      <optgroup label="💻 Software & Web Engineers">
                         {roleGroups.developers.map((u) => (
                           <option key={u._id} value={u._id}>
                             💻 {u.name} ({u.position || u.role})
@@ -852,83 +954,47 @@ export const KanbanCreateTaskModal = ({
                       </optgroup>
                     )}
                     <optgroup label="All Team Members">
-                      {users
-                        .filter((u) => !roleGroups.developers.some((d) => d._id === u._id))
-                        .map((u) => (
-                          <option key={u._id} value={u._id}>
-                            {u.name} ({u.position || u.role})
-                          </option>
-                        ))}
+                      {users.map((u) => (
+                        <option key={u._id} value={u._id}>
+                          {u.name} ({u.position || u.role})
+                        </option>
+                      ))}
                     </optgroup>
                   </select>
                 </div>
 
-                {/* Due Date */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                    Due Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  />
-                </div>
-
-                {/* SubType */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                    Tech Category
-                  </label>
-                  <select
-                    value={subType}
-                    onChange={(e) => setSubType(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                  >
-                    {TECH_TYPE_OPTIONS.map((opt) => (
-                      <option key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {subType === 'bug_fix' && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Bug Severity
+                    </label>
+                    <select
+                      value={bugSeverity}
+                      onChange={(e) => setBugSeverity(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      <option value="low">Low Severity</option>
+                      <option value="medium">Medium Severity</option>
+                      <option value="high">High Severity</option>
+                      <option value="critical">Critical (P0 Blocker)</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
-              {/* Bug Severity (if bug) */}
-              {subType === 'bug_fix' && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                    Bug Severity Level
-                  </label>
-                  <select
-                    value={bugSeverity}
-                    onChange={(e) => setBugSeverity(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                  >
-                    <option value="low">Low Impact</option>
-                    <option value="medium">Medium Impact</option>
-                    <option value="high">High Severity</option>
-                    <option value="critical">Critical Blocker</option>
-                  </select>
-                </div>
-              )}
-
-              {/* Technical Scope & Implementation Requirements */}
               <div>
                 <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                  Technical Scope & Implementation Requirements
+                  Scope & Requirements
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Specify exact behavior, reproduction steps, technical notes, or page requirements..."
+                  placeholder="Describe technical implementation requirements, expected behaviors, acceptance criteria..."
                   value={techScope}
                   onChange={(e) => setTechScope(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </div>
 
-              {/* Repository / Figma / Spec Link */}
               <div>
                 <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
                   Repository / Figma / Spec Link
@@ -943,15 +1009,481 @@ export const KanbanCreateTaskModal = ({
               </div>
             </div>
           ) : (
-            /* ========================================================
-                SECTION 3B: CONTENT DELIVERABLE DETAILS (Matches Notion Image 2)
-               ======================================================== */
+            /* CONTENT DELIVERABLE FORMS (4 TEAM FORMS) */
             <div className="space-y-4">
-              {/* 1. EDITOR DETAILS CARD (Matches Image 2 "Editor Details") */}
+              {/* ────────────────────────────────────────────────────────── */}
+              {/* 1. SCRIPTWRITER DETAILS CARD */}
+              {/* ────────────────────────────────────────────────────────── */}
+              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/20 p-4 sm:p-5 dark:border-amber-900/60 dark:bg-amber-950/15 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 dark:border-amber-900/40">
+                  <span className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText size={15} className="text-amber-600 dark:text-amber-400" /> Scriptwriter Form
+                  </span>
+                  <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                    Hook, Language, Concept & Full Script
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {/* Scriptwriter Member */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Scriptwriter
+                    </label>
+                    <select
+                      value={scriptWriterUserId}
+                      onChange={(e) => setScriptWriterUserId(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      <option value="">Unassigned (Optional)</option>
+                      {roleGroups.scriptwriters.length > 0 && (
+                        <optgroup label="✍️ Scriptwriters / Copywriters">
+                          {roleGroups.scriptwriters.map((u) => (
+                            <option key={u._id} value={u._id}>
+                              ✍️ {u.name} ({u.position || u.role})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="All Team Members">
+                        {users.map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name} ({u.position || u.role})
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  {/* Video Type */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Video Type
+                    </label>
+                    <select
+                      value={scriptVideoType}
+                      onChange={(e) => setScriptVideoType(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {VIDEO_TYPES_OPTIONS.map((vt) => (
+                        <option key={vt} value={vt}>{vt}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Language */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Language
+                    </label>
+                    <select
+                      value={scriptLanguage}
+                      onChange={(e) => setScriptLanguage(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {SCRIPT_LANGUAGES.map((lang) => (
+                        <option key={lang} value={lang}>{lang}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* CTA */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Call To Action (CTA)
+                    </label>
+                    <select
+                      value={scriptCta}
+                      onChange={(e) => setScriptCta(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {CTA_OPTIONS.map((cta) => (
+                        <option key={cta} value={cta}>{cta}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Reference Video Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Reference Video Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://instagram.com/reel/... or YouTube"
+                      value={scriptReferenceVideoLink}
+                      onChange={(e) => setScriptReferenceVideoLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Google Docs Script Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Google Docs Script Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://docs.google.com/document/..."
+                      value={scriptLink}
+                      onChange={(e) => setScriptLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Script Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Script Status
+                    </label>
+                    <select
+                      value={scriptStatus}
+                      onChange={(e) => setScriptStatus(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {STATUS_SCRIPT_OPTIONS.map((st) => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Hook / Opening Line */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Hook / Opening Line
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="3-second hook or opening line to grab attention..."
+                    value={contentHook}
+                    onChange={(e) => setContentHook(e.target.value)}
+                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                {/* Full Script */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Full Script
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Enter complete video script or dialogue lines..."
+                    value={scriptText}
+                    onChange={(e) => setScriptText(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 font-mono"
+                  />
+                </div>
+
+                {/* Scene Instructions & On-screen text */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Scene-by-Scene Instructions
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Scene 1: Close-up of product... Scene 2: Transition..."
+                      value={scriptSceneInstructions}
+                      onChange={(e) => setScriptSceneInstructions(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      On-Screen Text / Captions
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Text popups, bullet points to display on screen..."
+                      value={scriptOnScreenText}
+                      onChange={(e) => setScriptOnScreenText(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ────────────────────────────────────────────────────────── */}
+              {/* 2. VIDEOGRAPHER DETAILS CARD */}
+              {/* ────────────────────────────────────────────────────────── */}
+              <div className="rounded-2xl border border-blue-200/80 bg-blue-50/20 p-4 sm:p-5 dark:border-blue-900/60 dark:bg-blue-950/15 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-blue-200/60 pb-2 dark:border-blue-900/40">
+                  <span className="text-xs font-bold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Camera size={15} className="text-blue-600 dark:text-blue-400" /> Videographer Form
+                  </span>
+                  <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">
+                    Shoot Schedule, Location & Equipment
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {/* Videographer */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Videographer
+                    </label>
+                    <select
+                      value={videographerUserId}
+                      onChange={(e) => setVideographerUserId(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      <option value="">Unassigned (Optional)</option>
+                      {roleGroups.videographers.length > 0 && (
+                        <optgroup label="🎥 Videographers & Creators">
+                          {roleGroups.videographers.map((u) => (
+                            <option key={u._id} value={u._id}>
+                              🎥 {u.name} ({u.position || u.role})
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="All Team Members">
+                        {users.map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name} ({u.position || u.role})
+                          </option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+
+                  {/* Video Type */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Video Type
+                    </label>
+                    <select
+                      value={videographerVideoType}
+                      onChange={(e) => setVideographerVideoType(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {VIDEO_TYPES_OPTIONS.map((vt) => (
+                        <option key={vt} value={vt}>{vt}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Video Format */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Video Format
+                    </label>
+                    <select
+                      value={videographerVideoFormat}
+                      onChange={(e) => setVideographerVideoFormat(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      <option value="Vertical">Vertical (9:16)</option>
+                      <option value="Horizontal">Horizontal (16:9)</option>
+                      <option value="Square">Square (1:1)</option>
+                    </select>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Shoot Status
+                    </label>
+                    <select
+                      value={videographerStatus}
+                      onChange={(e) => setVideographerStatus(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {STATUS_VIDEOGRAPHER_OPTIONS.map((st) => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {/* Shoot Date */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Shoot Date
+                    </label>
+                    <input
+                      type="date"
+                      value={shootDate}
+                      onChange={(e) => setShootDate(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Shoot Time */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Shoot Time
+                    </label>
+                    <input
+                      type="time"
+                      value={shootTime}
+                      onChange={(e) => setShootTime(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Shoot Location */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Shoot Location
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Studio / Client premises..."
+                      value={shootLocation}
+                      onChange={(e) => setShootLocation(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Google Maps Location Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Google Maps Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://maps.google.com/..."
+                      value={shootLocationLink}
+                      onChange={(e) => setShootLocationLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Reference Video Link with Saved Reference Dropdown */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Reference Video Link
+                    </label>
+                    {clientSavedRefVideos.length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) setVideographerReferenceLink(e.target.value);
+                        }}
+                        className="h-7 w-full mb-1.5 rounded-lg border border-blue-200 bg-white px-2 text-[11px] text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
+                      >
+                        <option value="">Choose saved reference...</option>
+                        {clientSavedRefVideos.map((r) => (
+                          <option key={r.id} value={r.url}>{r.title}</option>
+                        ))}
+                      </select>
+                    )}
+                    <input
+                      type="url"
+                      placeholder="https://instagram.com/reel/..."
+                      value={videographerReferenceLink}
+                      onChange={(e) => setVideographerReferenceLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  {/* Presenter / Person Required */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Presenter / Person Required
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. CEO John Doe / Model Anna"
+                      value={presenterPerson}
+                      onChange={(e) => setPresenterPerson(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  {/* Raw Footage Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Raw Footage Drive Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={videographerRawFootageLink}
+                      onChange={(e) => setVideographerRawFootageLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+
+                {/* Equipment Required (multi-select toggle pills) */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Equipment Required
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {EQUIPMENT_OPTIONS.map((item) => {
+                      const isSelected = equipmentRequired.includes(item);
+                      return (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setEquipmentRequired(equipmentRequired.filter((eq) => eq !== item));
+                            } else {
+                              setEquipmentRequired([...equipmentRequired, item]);
+                            }
+                          }}
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'bg-white border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                          <span>{item}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Required Shots & Special Instructions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Required Shots / Shot List
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Shot 1: Product unboxing... Shot 2: Slow motion spin..."
+                      value={requiredShots}
+                      onChange={(e) => setRequiredShots(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Special Instructions
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Lighting preferences, audio requirements, client instructions..."
+                      value={specialInstructions}
+                      onChange={(e) => setSpecialInstructions(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ────────────────────────────────────────────────────────── */}
+              {/* 3. VIDEO EDITOR DETAILS CARD */}
+              {/* ────────────────────────────────────────────────────────── */}
               <div className="rounded-2xl border border-purple-200/80 bg-purple-50/20 p-4 sm:p-5 dark:border-purple-900/60 dark:bg-purple-950/15 space-y-3.5">
                 <div className="flex items-center justify-between border-b border-purple-200/60 pb-2 dark:border-purple-900/40">
                   <span className="text-xs font-bold text-purple-900 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Scissors size={15} className="text-purple-600 dark:text-purple-400" /> Editor Details
+                    <Scissors size={15} className="text-purple-600 dark:text-purple-400" /> Video Editor Form
                   </span>
                   <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-400">
                     Video & Graphic Editing Schedule
@@ -980,18 +1512,16 @@ export const KanbanCreateTaskModal = ({
                         </optgroup>
                       )}
                       <optgroup label="All Team Members">
-                        {users
-                          .filter((u) => !roleGroups.editors.some((e) => e._id === u._id))
-                          .map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
+                        {users.map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name} ({u.position || u.role})
+                          </option>
+                        ))}
                       </optgroup>
                     </select>
                   </div>
 
-                  {/* Edit Due */}
+                  {/* Edit Due Date */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Edit Due Date
@@ -1004,7 +1534,7 @@ export const KanbanCreateTaskModal = ({
                     />
                   </div>
 
-                  {/* Edit Date */}
+                  {/* Edit Start Date */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Edit Start Date
@@ -1032,106 +1562,216 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                {/* Raw Footage Link */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Raw Footage / Assets Drive Link
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://drive.google.com/drive/folders/..."
-                    value={rawFootageLink}
-                    onChange={(e) => setRawFootageLink(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </div>
-              </div>
-
-              {/* 2. VIDEOGRAPHER DETAILS CARD (Matches Image 2 "Videographer Details") */}
-              <div className="rounded-2xl border border-blue-200/80 bg-blue-50/20 p-4 sm:p-5 dark:border-blue-900/60 dark:bg-blue-950/15 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-blue-200/60 pb-2 dark:border-blue-900/40">
-                  <span className="text-xs font-bold text-blue-900 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Camera size={15} className="text-blue-600 dark:text-blue-400" /> Videographer Details
-                  </span>
-                  <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">
-                    Shoot Schedule & Location
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {/* Videographer */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {/* Video Type */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Videographer
+                      Video Type
                     </label>
                     <select
-                      value={videographerUserId}
-                      onChange={(e) => setVideographerUserId(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      value={editorVideoType}
+                      onChange={(e) => setEditorVideoType(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
                     >
-                      <option value="">Unassigned (Optional)</option>
-                      {roleGroups.videographers.length > 0 && (
-                        <optgroup label="🎥 Videographers & Creators">
-                          {roleGroups.videographers.map((u) => (
-                            <option key={u._id} value={u._id}>
-                              🎥 {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )}
-                      <optgroup label="All Team Members">
-                        {users
-                          .filter((u) => !roleGroups.videographers.some((v) => v._id === u._id))
-                          .map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
-                      </optgroup>
+                      {VIDEO_TYPES_OPTIONS.map((vt) => (
+                        <option key={vt} value={vt}>{vt}</option>
+                      ))}
                     </select>
                   </div>
 
-                  {/* Shoot Date */}
+                  {/* Video Format */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Shoot Date
+                      Video Format
                     </label>
+                    <select
+                      value={editorVideoFormat}
+                      onChange={(e) => setEditorVideoFormat(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {VIDEO_FORMAT_OPTIONS.map((fmt) => (
+                        <option key={fmt} value={fmt}>{fmt}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Video Duration */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Video Duration
+                    </label>
+                    <select
+                      value={editorVideoDuration}
+                      onChange={(e) => setEditorVideoDuration(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {VIDEO_DURATION_OPTIONS.map((dur) => (
+                        <option key={dur} value={dur}>{dur}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Editor Status
+                    </label>
+                    <select
+                      value={editorStatus}
+                      onChange={(e) => setEditorStatus(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {STATUS_EDITOR_OPTIONS.map((st) => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {/* Editing Reference Video Link with Saved Reference Dropdown */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Editing Reference Video Link
+                    </label>
+                    {clientSavedRefVideos.length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) setEditingReferenceVideo(e.target.value);
+                        }}
+                        className="h-7 w-full mb-1.5 rounded-lg border border-purple-200 bg-white px-2 text-[11px] text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
+                      >
+                        <option value="">Select saved reference...</option>
+                        {clientSavedRefVideos.map((r) => (
+                          <option key={r.id} value={r.url}>{r.title}</option>
+                        ))}
+                      </select>
+                    )}
                     <input
-                      type="date"
-                      value={shootDate}
-                      onChange={(e) => setShootDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      type="url"
+                      placeholder="https://instagram.com/reel/..."
+                      value={editingReferenceVideo}
+                      onChange={(e) => setEditingReferenceVideo(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     />
                   </div>
 
-                  {/* Shoot Location */}
+                  {/* Raw Footage Link */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Shoot Location / Shot Notes
+                      Raw Footage Drive Link
                     </label>
                     <input
-                      type="text"
-                      placeholder="Studio / Client premises..."
-                      value={shootLocation}
-                      onChange={(e) => setShootLocation(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      type="url"
+                      placeholder="https://drive.google.com/drive/folders/..."
+                      value={rawFootageLink}
+                      onChange={(e) => setRawFootageLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  {/* Final Video Drive Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Final Video Drive Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/file/..."
+                      value={finalVideoDriveLink}
+                      onChange={(e) => setFinalVideoDriveLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Voice-over Audio Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Voice-over Audio Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/... or dropbox"
+                      value={voiceOverAudioLink}
+                      onChange={(e) => setVoiceOverAudioLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Music Reference Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Music Reference Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="Spotify, YouTube, or audio drive link"
+                      value={musicReferenceLink}
+                      onChange={(e) => setMusicReferenceLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Logo / Brand Assets Drive Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Logo / Brand Assets Drive Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/drive/folders/..."
+                      value={brandAssetsDriveLink}
+                      onChange={(e) => setBrandAssetsDriveLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Caption / On-screen Text
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Lower thirds, title cards, captions to embed..."
+                      value={captionOnScreenText}
+                      onChange={(e) => setCaptionOnScreenText(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Editing Instructions
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Cut speed, pacing, color grade LUTs, sound effects..."
+                      value={editingInstructions}
+                      onChange={(e) => setEditingInstructions(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 3. SMM DETAILS CARD (Matches Image 2 "SMM Details") */}
+              {/* ────────────────────────────────────────────────────────── */}
+              {/* 4. SMM DETAILS CARD */}
+              {/* ────────────────────────────────────────────────────────── */}
               <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/20 p-4 sm:p-5 dark:border-emerald-900/60 dark:bg-emerald-950/15 space-y-3.5">
                 <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2 dark:border-emerald-900/40">
                   <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Share2 size={15} className="text-emerald-600 dark:text-emerald-400" /> SMM Details
+                    <Share2 size={15} className="text-emerald-600 dark:text-emerald-400" /> SMM Team Form
                   </span>
                   <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
                     Publishing, Schedule & Format
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   {/* SMM Member */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -1153,47 +1793,132 @@ export const KanbanCreateTaskModal = ({
                         </optgroup>
                       )}
                       <optgroup label="All Team Members">
-                        {users
-                          .filter((u) => !roleGroups.smmMembers.some((s) => s._id === u._id))
-                          .map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
+                        {users.map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name} ({u.position || u.role})
+                          </option>
+                        ))}
                       </optgroup>
                     </select>
                   </div>
 
-                  {/* Post Date */}
+                  {/* Scheduled Date */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Post Date & Schedule
+                      Scheduled Date
                     </label>
                     <input
-                      type="datetime-local"
+                      type="date"
                       value={postDate}
                       onChange={(e) => setPostDate(e.target.value)}
                       className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                     />
                   </div>
 
+                  {/* Scheduled Time */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Scheduled Time
+                    </label>
+                    <input
+                      type="time"
+                      value={smmTime}
+                      onChange={(e) => setSmmTime(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* SMM Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      SMM Status
+                    </label>
+                    <select
+                      value={smmStatus}
+                      onChange={(e) => setSmmStatus(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {STATUS_SMM_OPTIONS.map((st) => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   {/* Content Type */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Content Type
                     </label>
                     <select
-                      value={subType}
-                      onChange={(e) => setSubType(e.target.value)}
+                      value={smmContentType}
+                      onChange={(e) => setSmmContentType(e.target.value)}
                       className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
                     >
-                      {CONTENT_TYPE_OPTIONS.map((opt) => (
-                        <option key={opt.id} value={opt.id}>
-                          {opt.label}
-                        </option>
+                      {['Reel', 'Post', 'Carousel', 'Story', 'YouTube Short'].map((ct) => (
+                        <option key={ct} value={ct}>{ct}</option>
                       ))}
                     </select>
                   </div>
+
+                  {/* CTA */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      CTA (Call To Action)
+                    </label>
+                    <select
+                      value={smmCta}
+                      onChange={(e) => setSmmCta(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    >
+                      {CTA_OPTIONS.map((cta) => (
+                        <option key={cta} value={cta}>{cta}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Final Creative / Video Drive Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Creative Drive Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={smmFinalCreativeLink}
+                      onChange={(e) => setSmmFinalCreativeLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+
+                  {/* Cover Image Drive Link */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Cover Image Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={smmCoverImageLink}
+                      onChange={(e) => setSmmCoverImageLink(e.target.value)}
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                {/* Published Post URL */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Published Post URL (Live Link)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://instagram.com/p/... or YouTube link once published"
+                    value={publishedPostUrl}
+                    onChange={(e) => setPublishedPostUrl(e.target.value)}
+                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  />
                 </div>
 
                 {/* Target Social Platforms */}
@@ -1228,21 +1953,51 @@ export const KanbanCreateTaskModal = ({
                     })}
                   </div>
                 </div>
+
+                {/* Caption & Hashtags */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Caption
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Write social post caption..."
+                      value={smmCaption}
+                      onChange={(e) => setSmmCaption(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Hashtags
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="#agency #marketing #business #growth..."
+                      value={smmHashtags}
+                      onChange={(e) => setSmmHashtags(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* 4. DESIGNER DETAILS CARD (Matches Image 2 "Designer Details") */}
-              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/20 p-4 sm:p-5 dark:border-amber-900/60 dark:bg-amber-950/15 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-amber-200/60 pb-2 dark:border-amber-900/40">
-                  <span className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Palette size={15} className="text-amber-600 dark:text-amber-400" /> Designer Details
+              {/* ────────────────────────────────────────────────────────── */}
+              {/* 5. DESIGNER DETAILS CARD */}
+              {/* ────────────────────────────────────────────────────────── */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40 space-y-3.5">
+                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-800/40">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                    <Palette size={15} className="text-pink-500" /> Graphic Designer Details
                   </span>
-                  <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     Graphic & Thumbnail Design
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Graphic Designer */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Graphic Designer
@@ -1250,7 +2005,7 @@ export const KanbanCreateTaskModal = ({
                     <select
                       value={designerUserId}
                       onChange={(e) => setDesignerUserId(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
                     >
                       <option value="">Unassigned (Optional)</option>
                       {roleGroups.designers.length > 0 && (
@@ -1263,18 +2018,15 @@ export const KanbanCreateTaskModal = ({
                         </optgroup>
                       )}
                       <optgroup label="All Team Members">
-                        {users
-                          .filter((u) => !roleGroups.designers.some((d) => d._id === u._id))
-                          .map((u) => (
-                            <option key={u._id} value={u._id}>
-                              {u.name} ({u.position || u.role})
-                            </option>
-                          ))}
+                        {users.map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name} ({u.position || u.role})
+                          </option>
+                        ))}
                       </optgroup>
                     </select>
                   </div>
 
-                  {/* Design Due Date */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Design Due Date
@@ -1283,42 +2035,15 @@ export const KanbanCreateTaskModal = ({
                       type="date"
                       value={designDueDate}
                       onChange={(e) => setDesignDueDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                     />
                   </div>
-                </div>
-              </div>
-
-              {/* 5. BRIEF & SCRIPT HOOK CARD */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40 space-y-3">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                  <FileText size={14} className="text-indigo-500" /> Hook / Core Concept & Script Link
-                </span>
-
-                <div>
-                  <textarea
-                    rows={2}
-                    placeholder="3-second hook or angle: 'Stop making this mistake with your agency ads...' followed by product showcase"
-                    value={contentHook}
-                    onChange={(e) => setContentHook(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </div>
-
-                <div>
-                  <input
-                    type="url"
-                    placeholder="Google Docs / Notion Script Link (e.g. https://docs.google.com/...)"
-                    value={scriptLink}
-                    onChange={(e) => setScriptLink(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
                 </div>
               </div>
             </div>
           )}
 
-          {/* 4. Deliverable Checklist Builder */}
+          {/* SECTION 4: DELIVERABLE CHECKLIST BUILDER */}
           <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40">
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
@@ -1376,7 +2101,7 @@ export const KanbanCreateTaskModal = ({
             </div>
           </div>
 
-          {/* 5. Queued Tasks List (Multi-Task Builder) */}
+          {/* SECTION 5: QUEUED TASKS LIST (Multi-Task Builder) */}
           {queuedTasks.length > 0 && (
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-4 dark:border-indigo-900/60 dark:bg-indigo-950/20 space-y-2.5">
               <div className="flex items-center justify-between">
