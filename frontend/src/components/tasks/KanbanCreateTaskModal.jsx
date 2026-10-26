@@ -781,17 +781,17 @@ export const KanbanCreateTaskModal = ({
               />
             </div>
 
-            {/* Client & Project Rows */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Client & Project Rows (Max 2 columns, Google Form style) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Client Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Client Name
                 </label>
                 <select
                   value={singleClientId}
                   onChange={(e) => setSingleClientId(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                 >
                   <option value="">General / Internal (No Client)</option>
                   {clients.map((c) => (
@@ -804,13 +804,13 @@ export const KanbanCreateTaskModal = ({
 
               {/* Project Selection */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Project
                 </label>
                 <select
                   value={singleProjectId}
                   onChange={(e) => setSingleProjectId(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                 >
                   <option value="">No Project Assigned</option>
                   {clientSpecificProjects.length > 0 && (
@@ -833,16 +833,19 @@ export const KanbanCreateTaskModal = ({
                   )}
                 </select>
               </div>
+            </div>
 
+            {/* Priority & NF ID (Max 2 columns) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Priority */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Priority
                 </label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer capitalize"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer capitalize shadow-2xs"
                 >
                   <option value="low">🟢 Low</option>
                   <option value="medium">🔵 Medium</option>
@@ -853,7 +856,7 @@ export const KanbanCreateTaskModal = ({
 
               {/* NF ID (Notion ID / Numbering) */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   NF ID / Code
                 </label>
                 <input
@@ -861,61 +864,74 @@ export const KanbanCreateTaskModal = ({
                   placeholder="e.g. NF-082"
                   value={nfId}
                   onChange={(e) => setNfId(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                 />
               </div>
             </div>
 
-            {/* Timer Allocation & Due Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+            {/* Deadline Date & Due Time (Max 2 columns) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Deadline Date
                 </label>
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Due Time
                 </label>
                 <input
                   type="time"
                   value={dueTime}
                   onChange={(e) => setDueTime(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                 />
               </div>
+            </div>
 
+            {/* Allocated Timer (Duration) (Max 2 columns) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Allocated Timer
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Allocated Timer (Duration)
                 </label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={allocatedHours}
-                    onChange={(e) => setAllocatedHours(e.target.value)}
-                    className="h-9 w-16 rounded-xl border border-slate-300 bg-white px-2 py-1.5 text-xs text-center font-bold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  />
-                  <span className="text-xs text-slate-500">hrs</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={allocatedMinutes}
-                    onChange={(e) => setAllocatedMinutes(e.target.value)}
-                    className="h-9 w-16 rounded-xl border border-slate-300 bg-white px-2 py-1.5 text-xs text-center font-bold text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  />
-                  <span className="text-xs text-slate-500">mins</span>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={allocatedHours}
+                      onChange={(e) => setAllocatedHours(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white pl-3.5 pr-10 py-2 text-xs font-bold text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400 pointer-events-none">hrs</span>
+                  </div>
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={allocatedMinutes}
+                      onChange={(e) => setAllocatedMinutes(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white pl-3.5 pr-12 py-2 text-xs font-bold text-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400 pointer-events-none">mins</span>
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex items-end pb-1">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                  Total active working time allowed for this task before countdown alert.
+                </span>
               </div>
             </div>
           </div>
@@ -923,25 +939,26 @@ export const KanbanCreateTaskModal = ({
           {/* SECTION 3: ROLE DETAILS & FORMS */}
           {taskCategory === 'non_content' ? (
             /* NON-CONTENT / TECH FORM */
-            <div className="rounded-2xl border border-sky-200/80 bg-sky-50/20 p-4 sm:p-5 dark:border-sky-900/60 dark:bg-sky-950/15 space-y-4">
-              <div className="flex items-center justify-between border-b border-sky-200/60 pb-2 dark:border-sky-900/40">
-                <span className="text-xs font-bold text-sky-900 dark:text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Code2 size={15} className="text-sky-600 dark:text-sky-400" /> Developer & Scope Assignment
+            <div className="rounded-2xl border border-sky-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-sky-900/50 dark:bg-slate-900 space-y-4">
+              <div className="flex items-center justify-between border-b border-sky-100 pb-3 dark:border-sky-950/60">
+                <span className="text-xs font-bold text-sky-800 dark:text-sky-300 uppercase tracking-wider flex items-center gap-2">
+                  <Code2 size={16} className="text-sky-500" /> Developer & Scope Assignment
                 </span>
-                <span className="text-[11px] font-semibold text-sky-700 dark:text-sky-400">
+                <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400">
                   Engineering & Ops Workflow
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Row 1: Assignee Developer & Bug Severity (Max 2 columns) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Lead Developer / Assignee <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                    className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                   >
                     <option value="">Select Developer...</option>
                     {roleGroups.developers.length > 0 && (
@@ -965,13 +982,13 @@ export const KanbanCreateTaskModal = ({
 
                 {subType === 'bug_fix' && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Bug Severity
                     </label>
                     <select
                       value={bugSeverity}
                       onChange={(e) => setBugSeverity(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       <option value="low">Low Severity</option>
                       <option value="medium">Medium Severity</option>
@@ -982,21 +999,9 @@ export const KanbanCreateTaskModal = ({
                 )}
               </div>
 
+              {/* Row 2: Repository / Spec Link (Full width) */}
               <div>
-                <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
-                  Scope & Requirements
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Describe technical implementation requirements, expected behaviors, acceptance criteria..."
-                  value={techScope}
-                  onChange={(e) => setTechScope(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Repository / Figma / Spec Link
                 </label>
                 <input
@@ -1004,7 +1009,21 @@ export const KanbanCreateTaskModal = ({
                   placeholder="https://github.com/... or https://figma.com/..."
                   value={repoLink}
                   onChange={(e) => setRepoLink(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
+                />
+              </div>
+
+              {/* Row 3: Scope & Requirements (Full width) */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  Scope & Requirements
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Describe technical implementation requirements, expected behaviors, acceptance criteria..."
+                  value={techScope}
+                  onChange={(e) => setTechScope(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs leading-relaxed"
                 />
               </div>
             </div>
@@ -1024,16 +1043,17 @@ export const KanbanCreateTaskModal = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {/* Row 1: Scriptwriter & Script Status (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Scriptwriter Member */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Scriptwriter
                     </label>
                     <select
                       value={scriptWriterUserId}
                       onChange={(e) => setScriptWriterUserId(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       <option value="">Unassigned (Optional)</option>
                       {roleGroups.scriptwriters.length > 0 && (
@@ -1055,15 +1075,34 @@ export const KanbanCreateTaskModal = ({
                     </select>
                   </div>
 
+                  {/* Script Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Script Status
+                    </label>
+                    <select
+                      value={scriptStatus}
+                      onChange={(e) => setScriptStatus(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
+                    >
+                      {STATUS_SCRIPT_OPTIONS.map((st) => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 2: Video Type & Language (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Video Type */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Video Type
                     </label>
                     <select
                       value={scriptVideoType}
                       onChange={(e) => setScriptVideoType(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {VIDEO_TYPES_OPTIONS.map((vt) => (
                         <option key={vt} value={vt}>{vt}</option>
@@ -1073,55 +1112,42 @@ export const KanbanCreateTaskModal = ({
 
                   {/* Language */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Language
                     </label>
                     <select
                       value={scriptLanguage}
                       onChange={(e) => setScriptLanguage(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {SCRIPT_LANGUAGES.map((lang) => (
                         <option key={lang} value={lang}>{lang}</option>
                       ))}
                     </select>
                   </div>
+                </div>
 
+                {/* Row 3: Call To Action (CTA) & Google Docs Script Link (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* CTA */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Call To Action (CTA)
                     </label>
                     <select
                       value={scriptCta}
                       onChange={(e) => setScriptCta(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {CTA_OPTIONS.map((cta) => (
                         <option key={cta} value={cta}>{cta}</option>
                       ))}
                     </select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Reference Video Link */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Reference Video Link
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://instagram.com/reel/... or YouTube"
-                      value={scriptReferenceVideoLink}
-                      onChange={(e) => setScriptReferenceVideoLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                  </div>
 
                   {/* Google Docs Script Link */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Google Docs Script Link
                     </label>
                     <input
@@ -1129,30 +1155,49 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://docs.google.com/document/..."
                       value={scriptLink}
                       onChange={(e) => setScriptLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
-                  </div>
-
-                  {/* Script Status */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Script Status
-                    </label>
-                    <select
-                      value={scriptStatus}
-                      onChange={(e) => setScriptStatus(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                    >
-                      {STATUS_SCRIPT_OPTIONS.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
                   </div>
                 </div>
 
-                {/* Hook / Opening Line */}
+                {/* Row 4: Reference Video Link (with saved reference dropdown if present) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Reference Video Link
+                    </label>
+                    {clientSavedRefVideos.length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) setScriptReferenceVideoLink(e.target.value);
+                        }}
+                        className="h-7 w-full mb-1.5 rounded-lg border border-amber-200 bg-white px-2 text-[11px] text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
+                      >
+                        <option value="">Select saved reference...</option>
+                        {clientSavedRefVideos.map((r) => (
+                          <option key={r.id} value={r.url}>{r.title}</option>
+                        ))}
+                      </select>
+                    )}
+                    <input
+                      type="url"
+                      placeholder="https://instagram.com/reel/... or YouTube"
+                      value={scriptReferenceVideoLink}
+                      onChange={(e) => setScriptReferenceVideoLink(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                  </div>
+
+                  <div className="flex items-end pb-1">
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                      Provide a reference reel or benchmark video for tone, pacing, and visual style.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Row 5: Hook / Opening Line (Full width) */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Hook / Opening Line
                   </label>
                   <input
@@ -1160,49 +1205,49 @@ export const KanbanCreateTaskModal = ({
                     placeholder="3-second hook or opening line to grab attention..."
                     value={contentHook}
                     onChange={(e) => setContentHook(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                   />
                 </div>
 
-                {/* Full Script */}
+                {/* Row 6: Full Script (Full width) */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Full Script
                   </label>
                   <textarea
-                    rows={3}
+                    rows={4}
                     placeholder="Enter complete video script or dialogue lines..."
                     value={scriptText}
                     onChange={(e) => setScriptText(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 font-mono"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 font-mono shadow-2xs leading-relaxed"
                   />
                 </div>
 
-                {/* Scene Instructions & On-screen text */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Row 7: Scene Instructions & On-screen text (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Scene-by-Scene Instructions
                     </label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       placeholder="Scene 1: Close-up of product... Scene 2: Transition..."
                       value={scriptSceneInstructions}
                       onChange={(e) => setScriptSceneInstructions(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       On-Screen Text / Captions
                     </label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       placeholder="Text popups, bullet points to display on screen..."
                       value={scriptOnScreenText}
                       onChange={(e) => setScriptOnScreenText(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
                 </div>
@@ -1221,16 +1266,17 @@ export const KanbanCreateTaskModal = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {/* Row 1: Videographer & Shoot Status (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Videographer */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Videographer
                     </label>
                     <select
                       value={videographerUserId}
                       onChange={(e) => setVideographerUserId(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       <option value="">Unassigned (Optional)</option>
                       {roleGroups.videographers.length > 0 && (
@@ -1252,15 +1298,34 @@ export const KanbanCreateTaskModal = ({
                     </select>
                   </div>
 
+                  {/* Shoot Status */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Shoot Status
+                    </label>
+                    <select
+                      value={videographerStatus}
+                      onChange={(e) => setVideographerStatus(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
+                    >
+                      {STATUS_VIDEOGRAPHER_OPTIONS.map((st) => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 2: Video Type & Video Format (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Video Type */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Video Type
                     </label>
                     <select
                       value={videographerVideoType}
                       onChange={(e) => setVideographerVideoType(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {VIDEO_TYPES_OPTIONS.map((vt) => (
                         <option key={vt} value={vt}>{vt}</option>
@@ -1270,67 +1335,52 @@ export const KanbanCreateTaskModal = ({
 
                   {/* Video Format */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Video Format
                     </label>
                     <select
                       value={videographerVideoFormat}
                       onChange={(e) => setVideographerVideoFormat(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       <option value="Vertical">Vertical (9:16)</option>
                       <option value="Horizontal">Horizontal (16:9)</option>
                       <option value="Square">Square (1:1)</option>
                     </select>
                   </div>
-
-                  {/* Status */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Shoot Status
-                    </label>
-                    <select
-                      value={videographerStatus}
-                      onChange={(e) => setVideographerStatus(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                    >
-                      {STATUS_VIDEOGRAPHER_OPTIONS.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  {/* Shoot Date */}
+                {/* Row 3: Shoot Date & Shoot Time (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Shoot Date
                     </label>
                     <input
                       type="date"
                       value={shootDate}
                       onChange={(e) => setShootDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
 
-                  {/* Shoot Time */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Shoot Time
                     </label>
                     <input
                       type="time"
                       value={shootTime}
                       onChange={(e) => setShootTime(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
+                </div>
 
-                  {/* Shoot Location */}
+                {/* Row 4: Shoot Location & Google Maps Link (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Shoot Location
                     </label>
                     <input
@@ -1338,13 +1388,12 @@ export const KanbanCreateTaskModal = ({
                       placeholder="Studio / Client premises..."
                       value={shootLocation}
                       onChange={(e) => setShootLocation(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
 
-                  {/* Google Maps Location Link */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Google Maps Link
                     </label>
                     <input
@@ -1352,15 +1401,15 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://maps.google.com/..."
                       value={shootLocationLink}
                       onChange={(e) => setShootLocationLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Reference Video Link with Saved Reference Dropdown */}
+                {/* Row 5: Reference Video Link & Presenter Required (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Reference Video Link
                     </label>
                     {clientSavedRefVideos.length > 0 && (
@@ -1381,13 +1430,12 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://instagram.com/reel/..."
                       value={videographerReferenceLink}
                       onChange={(e) => setVideographerReferenceLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
 
-                  {/* Presenter / Person Required */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Presenter / Person Required
                     </label>
                     <input
@@ -1395,26 +1443,26 @@ export const KanbanCreateTaskModal = ({
                       placeholder="e.g. CEO John Doe / Model Anna"
                       value={presenterPerson}
                       onChange={(e) => setPresenterPerson(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-
-                  {/* Raw Footage Link */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Raw Footage Drive Link
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://drive.google.com/..."
-                      value={videographerRawFootageLink}
-                      onChange={(e) => setVideographerRawFootageLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
                 </div>
 
-                {/* Equipment Required (multi-select toggle pills) */}
+                {/* Row 6: Raw Footage Drive Link (Full width) */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Raw Footage Drive Link
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://drive.google.com/..."
+                    value={videographerRawFootageLink}
+                    onChange={(e) => setVideographerRawFootageLink(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
+                  />
+                </div>
+
+                {/* Row 7: Equipment Required (Full width) */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Equipment Required
@@ -1433,10 +1481,10 @@ export const KanbanCreateTaskModal = ({
                               setEquipmentRequired([...equipmentRequired, item]);
                             }
                           }}
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
                             isSelected
                               ? 'bg-blue-600 text-white shadow-xs'
-                              : 'bg-white border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
+                              : 'bg-white border border-slate-300 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-50'
                           }`}
                         >
                           {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
@@ -1447,31 +1495,31 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                {/* Required Shots & Special Instructions */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Row 8: Required Shots & Special Instructions (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Required Shots / Shot List
                     </label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       placeholder="Shot 1: Product unboxing... Shot 2: Slow motion spin..."
                       value={requiredShots}
                       onChange={(e) => setRequiredShots(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Special Instructions
                     </label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       placeholder="Lighting preferences, audio requirements, client instructions..."
                       value={specialInstructions}
                       onChange={(e) => setSpecialInstructions(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
                 </div>
@@ -1490,16 +1538,17 @@ export const KanbanCreateTaskModal = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {/* Row 1: Editor & Editor Status (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Editor */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Editor
                     </label>
                     <select
                       value={editorUserId}
                       onChange={(e) => setEditorUserId(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       <option value="">Unassigned (Optional)</option>
                       {roleGroups.editors.length > 0 && (
@@ -1521,105 +1570,15 @@ export const KanbanCreateTaskModal = ({
                     </select>
                   </div>
 
-                  {/* Edit Due Date */}
+                  {/* Editor Status */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Edit Due Date
-                    </label>
-                    <input
-                      type="date"
-                      value={editDueDate}
-                      onChange={(e) => setEditDueDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                  </div>
-
-                  {/* Edit Start Date */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Edit Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={editDate}
-                      onChange={(e) => setEditDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                  </div>
-
-                  {/* Edit Reminder */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Edit Reminder
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 1st Draft 2 PM"
-                      value={editReminder}
-                      onChange={(e) => setEditReminder(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  {/* Video Type */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Video Type
-                    </label>
-                    <select
-                      value={editorVideoType}
-                      onChange={(e) => setEditorVideoType(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                    >
-                      {VIDEO_TYPES_OPTIONS.map((vt) => (
-                        <option key={vt} value={vt}>{vt}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Video Format */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Video Format
-                    </label>
-                    <select
-                      value={editorVideoFormat}
-                      onChange={(e) => setEditorVideoFormat(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                    >
-                      {VIDEO_FORMAT_OPTIONS.map((fmt) => (
-                        <option key={fmt} value={fmt}>{fmt}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Video Duration */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Video Duration
-                    </label>
-                    <select
-                      value={editorVideoDuration}
-                      onChange={(e) => setEditorVideoDuration(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
-                    >
-                      {VIDEO_DURATION_OPTIONS.map((dur) => (
-                        <option key={dur} value={dur}>{dur}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Status */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Editor Status
                     </label>
                     <select
                       value={editorStatus}
                       onChange={(e) => setEditorStatus(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {STATUS_EDITOR_OPTIONS.map((st) => (
                         <option key={st} value={st}>{st}</option>
@@ -1628,10 +1587,101 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {/* Editing Reference Video Link with Saved Reference Dropdown */}
+                {/* Row 2: Edit Start Date & Edit Due Date (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Edit Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Edit Due Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editDueDate}
+                      onChange={(e) => setEditDueDate(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 3: Edit Reminder & Video Duration (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Edit Reminder
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1st Draft 2 PM"
+                      value={editReminder}
+                      onChange={(e) => setEditReminder(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Video Duration
+                    </label>
+                    <select
+                      value={editorVideoDuration}
+                      onChange={(e) => setEditorVideoDuration(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
+                    >
+                      {VIDEO_DURATION_OPTIONS.map((dur) => (
+                        <option key={dur} value={dur}>{dur}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 4: Video Type & Video Format (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Video Type
+                    </label>
+                    <select
+                      value={editorVideoType}
+                      onChange={(e) => setEditorVideoType(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
+                    >
+                      {VIDEO_TYPES_OPTIONS.map((vt) => (
+                        <option key={vt} value={vt}>{vt}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Video Format
+                    </label>
+                    <select
+                      value={editorVideoFormat}
+                      onChange={(e) => setEditorVideoFormat(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
+                    >
+                      {VIDEO_FORMAT_OPTIONS.map((fmt) => (
+                        <option key={fmt} value={fmt}>{fmt}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Row 5: Editing Reference Video Link & Raw Footage Link (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Editing Reference Video Link
                     </label>
                     {clientSavedRefVideos.length > 0 && (
@@ -1652,13 +1702,12 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://instagram.com/reel/..."
                       value={editingReferenceVideo}
                       onChange={(e) => setEditingReferenceVideo(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
 
-                  {/* Raw Footage Link */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Raw Footage Drive Link
                     </label>
                     <input
@@ -1666,13 +1715,15 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://drive.google.com/drive/folders/..."
                       value={rawFootageLink}
                       onChange={(e) => setRawFootageLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
+                </div>
 
-                  {/* Final Video Drive Link */}
+                {/* Row 6: Final Video Drive Link & Voice-over Audio Link (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Final Video Drive Link
                     </label>
                     <input
@@ -1680,29 +1731,28 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://drive.google.com/file/..."
                       value={finalVideoDriveLink}
                       onChange={(e) => setFinalVideoDriveLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Voice-over Audio Link */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Voice-over Audio Link
                     </label>
                     <input
                       type="url"
-                      placeholder="https://drive.google.com/... or dropbox"
+                      placeholder="https://drive.google.com/... or Dropbox"
                       value={voiceOverAudioLink}
                       onChange={(e) => setVoiceOverAudioLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
+                </div>
 
-                  {/* Music Reference Link */}
+                {/* Row 7: Music Reference Link & Brand Assets Drive Link (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Music Reference Link
                     </label>
                     <input
@@ -1710,13 +1760,12 @@ export const KanbanCreateTaskModal = ({
                       placeholder="Spotify, YouTube, or audio drive link"
                       value={musicReferenceLink}
                       onChange={(e) => setMusicReferenceLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
 
-                  {/* Logo / Brand Assets Drive Link */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Logo / Brand Assets Drive Link
                     </label>
                     <input
@@ -1724,63 +1773,64 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://drive.google.com/drive/folders/..."
                       value={brandAssetsDriveLink}
                       onChange={(e) => setBrandAssetsDriveLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Caption / On-screen Text
-                    </label>
-                    <textarea
-                      rows={2}
-                      placeholder="Lower thirds, title cards, captions to embed..."
-                      value={captionOnScreenText}
-                      onChange={(e) => setCaptionOnScreenText(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
+                {/* Row 8: Caption / On-screen Text (Full width) */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Caption / On-screen Text
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Lower thirds, title cards, captions to embed..."
+                    value={captionOnScreenText}
+                    onChange={(e) => setCaptionOnScreenText(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
+                  />
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Editing Instructions
-                    </label>
-                    <textarea
-                      rows={2}
-                      placeholder="Cut speed, pacing, color grade LUTs, sound effects..."
-                      value={editingInstructions}
-                      onChange={(e) => setEditingInstructions(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
+                {/* Row 9: Editing Instructions (Full width) */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Editing Instructions
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Cut speed, pacing, color grade LUTs, sound effects..."
+                    value={editingInstructions}
+                    onChange={(e) => setEditingInstructions(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
+                  />
                 </div>
               </div>
 
               {/* ────────────────────────────────────────────────────────── */}
-              {/* 4. SMM DETAILS CARD */}
+              {/* 4. SMM TEAM FORM */}
               {/* ────────────────────────────────────────────────────────── */}
-              <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/20 p-4 sm:p-5 dark:border-emerald-900/60 dark:bg-emerald-950/15 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-emerald-200/60 pb-2 dark:border-emerald-900/40">
-                  <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Share2 size={15} className="text-emerald-600 dark:text-emerald-400" /> SMM Team Form
+              <div className="rounded-2xl border border-emerald-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-emerald-900/50 dark:bg-slate-900 space-y-4">
+                <div className="flex items-center justify-between border-b border-emerald-100 pb-3 dark:border-emerald-950/60">
+                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                    <Share2 size={16} className="text-emerald-500" /> SMM Team Form
                   </span>
-                  <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                    Publishing, Schedule & Format
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    Publishing, Platforms, Schedule & Captions
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {/* Row 1: SMM Member & SMM Status (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* SMM Member */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       SMM Member (Posting)
                     </label>
                     <select
                       value={smmUserId}
                       onChange={(e) => setSmmUserId(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       <option value="">Unassigned (Optional)</option>
                       {roleGroups.smmMembers.length > 0 && (
@@ -1802,41 +1852,15 @@ export const KanbanCreateTaskModal = ({
                     </select>
                   </div>
 
-                  {/* Scheduled Date */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Scheduled Date
-                    </label>
-                    <input
-                      type="date"
-                      value={postDate}
-                      onChange={(e) => setPostDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                  </div>
-
-                  {/* Scheduled Time */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Scheduled Time
-                    </label>
-                    <input
-                      type="time"
-                      value={smmTime}
-                      onChange={(e) => setSmmTime(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    />
-                  </div>
-
                   {/* SMM Status */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       SMM Status
                     </label>
                     <select
                       value={smmStatus}
                       onChange={(e) => setSmmStatus(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {STATUS_SMM_OPTIONS.map((st) => (
                         <option key={st} value={st}>{st}</option>
@@ -1845,16 +1869,43 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  {/* Content Type */}
+                {/* Row 2: Scheduled Date & Scheduled Time (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Scheduled Date
+                    </label>
+                    <input
+                      type="date"
+                      value={postDate}
+                      onChange={(e) => setPostDate(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Scheduled Time
+                    </label>
+                    <input
+                      type="time"
+                      value={smmTime}
+                      onChange={(e) => setSmmTime(e.target.value)}
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 3: Content Type & CTA (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Content Type
                     </label>
                     <select
                       value={smmContentType}
                       onChange={(e) => setSmmContentType(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {['Reel', 'Post', 'Carousel', 'Story', 'YouTube Short'].map((ct) => (
                         <option key={ct} value={ct}>{ct}</option>
@@ -1862,25 +1913,26 @@ export const KanbanCreateTaskModal = ({
                     </select>
                   </div>
 
-                  {/* CTA */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       CTA (Call To Action)
                     </label>
                     <select
                       value={smmCta}
                       onChange={(e) => setSmmCta(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       {CTA_OPTIONS.map((cta) => (
                         <option key={cta} value={cta}>{cta}</option>
                       ))}
                     </select>
                   </div>
+                </div>
 
-                  {/* Final Creative / Video Drive Link */}
+                {/* Row 4: Creative Drive Link & Cover Image Link (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Creative Drive Link
                     </label>
                     <input
@@ -1888,13 +1940,12 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://drive.google.com/..."
                       value={smmFinalCreativeLink}
                       onChange={(e) => setSmmFinalCreativeLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
 
-                  {/* Cover Image Drive Link */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Cover Image Link
                     </label>
                     <input
@@ -1902,14 +1953,14 @@ export const KanbanCreateTaskModal = ({
                       placeholder="https://drive.google.com/..."
                       value={smmCoverImageLink}
                       onChange={(e) => setSmmCoverImageLink(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
                 </div>
 
-                {/* Published Post URL */}
+                {/* Row 5: Published Post URL (Full width) */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Published Post URL (Live Link)
                   </label>
                   <input
@@ -1917,11 +1968,11 @@ export const KanbanCreateTaskModal = ({
                     placeholder="https://instagram.com/p/... or YouTube link once published"
                     value={publishedPostUrl}
                     onChange={(e) => setPublishedPostUrl(e.target.value)}
-                    className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
                   />
                 </div>
 
-                {/* Target Social Platforms */}
+                {/* Row 6: Target Social Platforms (Full width) */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
                     Target Social Platforms
@@ -1940,7 +1991,7 @@ export const KanbanCreateTaskModal = ({
                               setSelectedPlatforms([...selectedPlatforms, plat.id]);
                             }
                           }}
-                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer select-none ${
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer select-none shadow-2xs ${
                             isSelected
                               ? 'bg-emerald-600 text-white shadow-xs scale-[1.02]'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
@@ -1954,58 +2005,58 @@ export const KanbanCreateTaskModal = ({
                   </div>
                 </div>
 
-                {/* Caption & Hashtags */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Caption
-                    </label>
-                    <textarea
-                      rows={2}
-                      placeholder="Write social post caption..."
-                      value={smmCaption}
-                      onChange={(e) => setSmmCaption(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
+                {/* Row 7: Caption (Full width) */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Caption
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Write social post caption..."
+                    value={smmCaption}
+                    onChange={(e) => setSmmCaption(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs leading-relaxed"
+                  />
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Hashtags
-                    </label>
-                    <textarea
-                      rows={2}
-                      placeholder="#agency #marketing #business #growth..."
-                      value={smmHashtags}
-                      onChange={(e) => setSmmHashtags(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                  </div>
+                {/* Row 8: Hashtags (Full width) */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Hashtags
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="#agency #marketing #business #growth..."
+                    value={smmHashtags}
+                    onChange={(e) => setSmmHashtags(e.target.value)}
+                    className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 shadow-2xs"
+                  />
                 </div>
               </div>
 
               {/* ────────────────────────────────────────────────────────── */}
               {/* 5. DESIGNER DETAILS CARD */}
               {/* ────────────────────────────────────────────────────────── */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-950/40 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-slate-200/60 pb-2 dark:border-slate-800/40">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                    <Palette size={15} className="text-pink-500" /> Graphic Designer Details
+              <div className="rounded-2xl border border-pink-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-pink-900/50 dark:bg-slate-900 space-y-4">
+                <div className="flex items-center justify-between border-b border-pink-100 pb-3 dark:border-pink-950/60">
+                  <span className="text-xs font-bold text-pink-800 dark:text-pink-300 uppercase tracking-wider flex items-center gap-2">
+                    <Palette size={16} className="text-pink-500" /> Graphic Designer Form
                   </span>
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  <span className="text-[11px] font-semibold text-pink-600 dark:text-pink-400">
                     Graphic & Thumbnail Design
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Row 1: Graphic Designer & Design Due Date (Max 2 columns) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Graphic Designer
                     </label>
                     <select
                       value={designerUserId}
                       onChange={(e) => setDesignerUserId(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 cursor-pointer shadow-2xs"
                     >
                       <option value="">Unassigned (Optional)</option>
                       {roleGroups.designers.length > 0 && (
@@ -2028,14 +2079,14 @@ export const KanbanCreateTaskModal = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Design Due Date
                     </label>
                     <input
                       type="date"
                       value={designDueDate}
                       onChange={(e) => setDesignDueDate(e.target.value)}
-                      className="h-9 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs text-slate-800 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 shadow-2xs"
                     />
                   </div>
                 </div>
