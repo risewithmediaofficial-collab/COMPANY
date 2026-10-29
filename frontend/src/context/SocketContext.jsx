@@ -58,7 +58,7 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('newNotification', (data) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       if (data) {
-        const title = data.title || 'ðŸ”” RISE WITH MEDIA Notification';
+        const title = data.title || '\u{1F514} RISE WITH MEDIA Notification';
         const message = data.message || '';
         const link = data.link || '/';
 

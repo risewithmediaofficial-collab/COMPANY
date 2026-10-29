@@ -554,7 +554,7 @@ export const assignHoliday = async (req, res) => {
           recipient: userObj._id,
           sender: req.user._id,
           type: 'attendance',
-          title: 'Official Holiday Assigned ðŸ“…',
+          title: 'Official Holiday Assigned \u{1F4C5}',
           message: `${req.user.name} (${assignerRole}) assigned an official holiday on ${date}: "${reasonText}"`,
           link: '/attendance',
         },
@@ -723,7 +723,7 @@ export const submitLeave = async (req, res) => {
             recipient: mgr._id,
             sender: req.user._id,
             type: 'attendance',
-            title: 'Leave Request Pending Approval ðŸ–ï¸',
+            title: 'Leave Request Pending Approval \u{1F3D6}\uFE0F',
             message: `${req.user.name} applied for leave for ${dateStr}: "${reasonText.trim()}"`,
             link: '/attendance',
           });
@@ -793,7 +793,7 @@ export const submitWFH = async (req, res) => {
             recipient: mgr._id,
             sender: req.user._id,
             type: 'attendance',
-            title: 'Work From Home Request Pending ðŸ ',
+            title: 'Work From Home Request Pending \u{1F3E0}',
             message: `${req.user.name} requested WFH for ${formattedDate}: "${reasonText.trim()}"`,
             link: '/attendance',
           });

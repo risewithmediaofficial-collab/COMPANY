@@ -540,7 +540,7 @@ export const getMasterCalendarEvents = async (req, res) => {
         events.push({
           id: s._id,
           activityType: 'video_shoot',
-          title: `ðŸŽ¬ ${s.shootTitle} (${s.client?.company || s.client?.name || 'Client'})`,
+          title: `\u{1F3AC} ${s.shootTitle} (${s.client?.company || s.client?.name || 'Client'})`,
           rawTitle: s.shootTitle,
           clientName: s.client?.company || s.client?.name || 'Client',
           date: s.shootDate,
@@ -567,7 +567,7 @@ export const getMasterCalendarEvents = async (req, res) => {
         events.push({
           id: r._id,
           activityType: 'rj_promotion',
-          title: `ðŸŽ™ï¸ ${r.promotionTitle} (${r.client?.company || r.client?.name || 'Client'})`,
+          title: `\u{1F399}\uFE0F ${r.promotionTitle} (${r.client?.company || r.client?.name || 'Client'})`,
           rawTitle: r.promotionTitle,
           clientName: r.client?.company || r.client?.name || 'Client',
           date: r.promotionDate,
@@ -594,7 +594,7 @@ export const getMasterCalendarEvents = async (req, res) => {
         events.push({
           id: v._id,
           activityType: 'vj_promotion',
-          title: `ðŸ“º [${v.platform}] ${v.promotionTitle} (${v.client?.company || v.client?.name || 'Client'})`,
+          title: `\u{1F4FA} [${v.platform}] ${v.promotionTitle} (${v.client?.company || v.client?.name || 'Client'})`,
           rawTitle: v.promotionTitle,
           clientName: v.client?.company || v.client?.name || 'Client',
           date: v.promotionDate,
