@@ -1,18 +1,24 @@
 import Attendance from '../models/attendance.model.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 import { createNotification } from '../utils/notification.js';
 
 export const clockIn = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
 
-    let attendance = await Attendance.findOne({ user: req.user._id, date: today });
+    let attendance = await Attendance.findOne({
+      user: req.user._id,
+      date: { $gte: startOfToday, $lte: endOfToday },
+    });
     const now = new Date();
 
     if (!attendance) {
       attendance = new Attendance({
         user: req.user._id,
-        date: today,
+        date: startOfToday,
         clockIn: now,
         clockOut: null,
         sessions: [{ clockIn: now, clockOut: null, durationHours: 0 }],
@@ -50,6 +56,7 @@ export const clockIn = async (req, res) => {
     }
 
     await attendance.save();
+    emitLiveEvent('attendanceUpdated', { attendance: attendance.toObject(), userId: req.user._id });
     res.json({ success: true, message: 'Clocked in successfully', attendance });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -58,10 +65,15 @@ export const clockIn = async (req, res) => {
 
 export const clockOut = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
 
-    const attendance = await Attendance.findOne({ user: req.user._id, date: today });
+    const attendance = await Attendance.findOne({
+      user: req.user._id,
+      date: { $gte: startOfToday, $lte: endOfToday },
+    });
     if (!attendance) {
       return res.status(400).json({ success: false, message: 'No clock-in found for today' });
     }
@@ -97,6 +109,7 @@ export const clockOut = async (req, res) => {
     attendance.clockOut = now;
     attendance.totalHours = parseFloat((totalMs / 3600000).toFixed(2));
     await attendance.save();
+    emitLiveEvent('attendanceUpdated', { attendance: attendance.toObject(), userId: req.user._id });
 
     res.json({ success: true, message: 'Clocked out successfully', attendance });
   } catch (error) {
@@ -140,18 +153,16 @@ export const submitEOD = async (req, res) => {
       .populate('approvedBy', 'name role');
 
     // Realtime notification broadcast over WebSockets
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('eodSubmitted', {
-        attendance,
-        user: {
-          _id: req.user._id,
-          name: req.user.name,
-          avatar: req.user.avatar,
-          role: req.user.role,
-        },
-      });
-    }
+    emitLiveEvent('eodSubmitted', {
+      attendance,
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        avatar: req.user.avatar,
+        role: req.user.role,
+      },
+    });
+    emitLiveEvent('attendanceUpdated', { attendance: attendance.toObject(), userId: req.user._id });
 
     // In-app notifications for managers & admins
     try {
@@ -198,7 +209,7 @@ export const ensureSundayHolidaysForPeriod = async (startDate, endDate, specific
     if (specificUserId && specificUserId !== 'all') {
       userQuery._id = specificUserId;
     }
-    const eligibleUsers = await User.find(userQuery).select('_id');
+    const eligibleUsers = await User.find(userQuery).select('_id').lean();
     if (!eligibleUsers.length) return;
 
     // Collect all Sundays between startDate and endDate
@@ -217,21 +228,34 @@ export const ensureSundayHolidaysForPeriod = async (startDate, endDate, specific
 
     if (!sundays.length) return;
 
+    const sStartOverall = new Date(sundays[0]);
+    sStartOverall.setHours(0, 0, 0, 0);
+    const sEndOverall = new Date(sundays[sundays.length - 1]);
+    sEndOverall.setHours(23, 59, 59, 999);
+
+    const userIds = eligibleUsers.map((u) => u._id);
+    const existingRecords = await Attendance.find({
+      user: { $in: userIds },
+      date: { $gte: sStartOverall, $lte: sEndOverall },
+    }).select('user date status').lean();
+
+    const existingKeySet = new Set(
+      existingRecords.map((r) => {
+        const d = new Date(r.date);
+        return `${r.user.toString()}_${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+      })
+    );
+
+    const newHolidaysToInsert = [];
     for (const sundayDate of sundays) {
       const sStart = new Date(sundayDate);
       sStart.setHours(0, 0, 0, 0);
-      const sEnd = new Date(sundayDate);
-      sEnd.setHours(23, 59, 59, 999);
+      const sKey = `${sStart.getFullYear()}-${sStart.getMonth() + 1}-${sStart.getDate()}`;
 
       for (const u of eligibleUsers) {
-        const existing = await Attendance.findOne({
-          user: u._id,
-          date: { $gte: sStart, $lte: sEnd },
-        });
-
-        // If no record exists, make Sunday default holiday
-        if (!existing) {
-          await Attendance.create({
+        const key = `${u._id.toString()}_${sKey}`;
+        if (!existingKeySet.has(key)) {
+          newHolidaysToInsert.push({
             user: u._id,
             date: sStart,
             status: 'holiday',
@@ -242,21 +266,31 @@ export const ensureSundayHolidaysForPeriod = async (startDate, endDate, specific
             totalHours: 0,
             sessions: [],
           });
+          existingKeySet.add(key);
         }
       }
+    }
+
+    if (newHolidaysToInsert.length > 0) {
+      await Attendance.insertMany(newHolidaysToInsert, { ordered: false }).catch(() => {});
     }
   } catch (err) {
     console.error('Error ensuring Sunday holidays for period:', err);
   }
 };
 
+let lastAutoAbsentCheck = 0;
 /**
  * Automatically ensures employees who failed to clock in by 10:30 AM on Monday-Saturday
- * are marked as absent for today.
+ * are marked as absent for today. Throttled to run at most once per 10 minutes.
  */
 export const ensureAutoAbsentForToday = async (startOfToday, endOfToday) => {
   try {
     const now = new Date();
+    if (Date.now() - lastAutoAbsentCheck < 10 * 60 * 1000) {
+      return;
+    }
+
     // Calculate IST time (UTC+5:30)
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60 * 1000) + istOffset);
@@ -271,11 +305,13 @@ export const ensureAutoAbsentForToday = async (startOfToday, endOfToday) => {
     const isPast1030 = istHours > 10 || (istHours === 10 && istMinutes >= 30);
     if (!isPast1030) return;
 
+    lastAutoAbsentCheck = Date.now();
+
     const User = (await import('../models/user.model.js')).default;
     const eligibleUsers = await User.find({
       isActive: true,
       role: { $nin: ['client', 'clientAdmin', 'clientMember', 'referral'] },
-    }).select('_id name');
+    }).select('_id name').lean();
 
     if (!eligibleUsers.length) return;
 
@@ -284,47 +320,51 @@ export const ensureAutoAbsentForToday = async (startOfToday, endOfToday) => {
 
     const todayAttendances = await Attendance.find({
       date: { $gte: start, $lte: end },
-    });
+    }).lean();
 
     const attByUser = new Map();
     todayAttendances.forEach((a) => {
       attByUser.set(a.user.toString(), a);
     });
 
+    const bulkOps = [];
     for (const u of eligibleUsers) {
       const att = attByUser.get(u._id.toString());
       const hasClockIn = Boolean(att && (att.clockIn || (att.sessions && att.sessions.some((s) => s.clockIn))));
       const isApprovedExcusal = Boolean(att && att.approvalStatus === 'approved' && ['leave', 'holiday', 'work_from_home'].includes(att.status));
       const isPendingRequest = Boolean(att && att.approvalStatus === 'pending');
 
-      // If already clocked in, or has approved leave/holiday/WFH, or has a pending leave/WFH application under review: skip
       if (hasClockIn || isApprovedExcusal || isPendingRequest) {
         continue;
       }
 
-      // If already marked absent
       if (att && att.status === 'absent') {
         continue;
       }
 
-      // Automatically mark absent
-      await Attendance.findOneAndUpdate(
-        { user: u._id, date: start },
-        {
-          $set: {
-            status: 'absent',
-            requestedStatus: 'absent',
-            approvalStatus: 'approved',
-            isApproved: true,
-            notes: 'Automatically marked absent: Failed to clock in by 10:30 AM cutoff',
-            clockIn: null,
-            clockOut: null,
-            totalHours: 0,
-            sessions: [],
+      bulkOps.push({
+        updateOne: {
+          filter: { user: u._id, date: start },
+          update: {
+            $set: {
+              status: 'absent',
+              requestedStatus: 'absent',
+              approvalStatus: 'approved',
+              isApproved: true,
+              notes: 'Automatically marked absent: Failed to clock in by 10:30 AM cutoff',
+              clockIn: null,
+              clockOut: null,
+              totalHours: 0,
+              sessions: [],
+            },
           },
+          upsert: true,
         },
-        { upsert: true, new: true }
-      );
+      });
+    }
+
+    if (bulkOps.length > 0) {
+      await Attendance.bulkWrite(bulkOps, { ordered: false });
     }
   } catch (err) {
     console.error('Error ensuring auto absent for today:', err);
@@ -369,7 +409,8 @@ export const getAttendance = async (req, res) => {
       .populate('approvedBy', 'name role')
       .sort({ date: -1 })
       .skip((Number(page) - 1) * Number(limit))
-      .limit(Number(limit));
+      .limit(Number(limit))
+      .lean();
 
     // Compute summary
     const summary = {
@@ -513,7 +554,7 @@ export const assignHoliday = async (req, res) => {
           recipient: userObj._id,
           sender: req.user._id,
           type: 'attendance',
-          title: 'Official Holiday Assigned 📅',
+          title: 'Official Holiday Assigned ðŸ“…',
           message: `${req.user.name} (${assignerRole}) assigned an official holiday on ${date}: "${reasonText}"`,
           link: '/attendance',
         },
@@ -524,6 +565,7 @@ export const assignHoliday = async (req, res) => {
     });
 
     await Promise.all(promises);
+    emitLiveEvent('attendanceUpdated', { holidayDate });
 
     res.json({ success: true, message: `Holiday successfully assigned for ${users.length} team members.` });
   } catch (error) {
@@ -580,7 +622,7 @@ export const submitAbsent = async (req, res) => {
             recipient: mgr._id,
             sender: req.user._id,
             type: 'attendance',
-            title: 'Absence Request Pending Approval ⚠️',
+            title: 'Absence Request Pending Approval âš ï¸',
             message: `${req.user.name} requested Absent for ${formattedDate}: "${reasonText.trim()}"`,
             link: '/attendance',
           });
@@ -589,6 +631,8 @@ export const submitAbsent = async (req, res) => {
         console.error('Notification error:', err);
       }
     }
+
+    emitLiveEvent('attendanceUpdated', { attendance, userId: targetUserId });
 
     res.json({
       success: true,
@@ -679,7 +723,7 @@ export const submitLeave = async (req, res) => {
             recipient: mgr._id,
             sender: req.user._id,
             type: 'attendance',
-            title: 'Leave Request Pending Approval 🏖️',
+            title: 'Leave Request Pending Approval ðŸ–ï¸',
             message: `${req.user.name} applied for leave for ${dateStr}: "${reasonText.trim()}"`,
             link: '/attendance',
           });
@@ -688,6 +732,8 @@ export const submitLeave = async (req, res) => {
         console.error('Notification error:', err);
       }
     }
+
+    emitLiveEvent('attendanceUpdated', { attendance, userId: targetUserId });
 
     res.json({
       success: true,
@@ -747,7 +793,7 @@ export const submitWFH = async (req, res) => {
             recipient: mgr._id,
             sender: req.user._id,
             type: 'attendance',
-            title: 'Work From Home Request Pending 🏠',
+            title: 'Work From Home Request Pending ðŸ ',
             message: `${req.user.name} requested WFH for ${formattedDate}: "${reasonText.trim()}"`,
             link: '/attendance',
           });
@@ -756,6 +802,8 @@ export const submitWFH = async (req, res) => {
         console.error('Notification error:', err);
       }
     }
+
+    emitLiveEvent('attendanceUpdated', { attendance, userId: req.user._id });
 
     res.json({
       success: true,
@@ -816,7 +864,7 @@ export const approveOrRejectAttendanceRequest = async (req, res) => {
           recipient: attendance.user._id,
           sender: req.user._id,
           type: 'attendance',
-          title: action === 'approve' ? `Attendance Request Approved ✅` : `Attendance Request Rejected ❌`,
+          title: action === 'approve' ? `Attendance Request Approved âœ…` : `Attendance Request Rejected âŒ`,
           message: action === 'approve'
             ? `Your request for ${statusLabel} on ${formattedDate} was approved by ${req.user.name}.`
             : `Your request for ${statusLabel} on ${formattedDate} was rejected: "${rejectionReason || 'No reason provided'}"`,
@@ -827,6 +875,8 @@ export const approveOrRejectAttendanceRequest = async (req, res) => {
     } catch (notifErr) {
       console.error('Notification error:', notifErr);
     }
+
+    emitLiveEvent('attendanceUpdated', { attendance, userId: attendance.user?._id || attendance.user });
 
     res.json({
       success: true,

@@ -76,15 +76,50 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
     return () => clearInterval(timer);
   }, []);
 
-  // Determine active today record from props or fetched query
-  const todayRecord = useMemo(() => {
-    if (propTodayRecord) return propTodayRecord;
+  // Helper to accurately compare dates ignoring timezone offset differences
+  const isSameCalendarDay = (d1, d2) => {
+    if (!d1 || !d2) return false;
+    const a = new Date(d1);
+    const b = new Date(d2);
+    if (isNaN(a.getTime()) || isNaN(b.getTime())) return false;
+    return a.getFullYear() === b.getFullYear() &&
+           a.getMonth() === b.getMonth() &&
+           a.getDate() === b.getDate();
+  };
+
+  const isTodayRecord = (r) => {
+    if (!r) return false;
+    const now = new Date();
+    if (r.date && isSameCalendarDay(r.date, now)) return true;
+    if (r.clockIn && isSameCalendarDay(r.clockIn, now)) return true;
+    if (r.sessions && r.sessions.some((s) => s.clockIn && isSameCalendarDay(s.clockIn, now))) return true;
+    return false;
+  };
+
+  const currentUserId = (user?._id || user?.id)?.toString();
+
+  const foundTodayRecord = useMemo(() => {
     const records = attendanceData?.records || [];
     return records.find((r) => {
-      const rDate = r.date ? r.date.split('T')[0] : '';
-      return rDate === todayStr && ((r.user?._id || r.user) === user?._id);
+      const rUserId = (r.user?._id || r.user)?.toString();
+      const matchesUser = !currentUserId || !rUserId || rUserId === currentUserId;
+      return matchesUser && isTodayRecord(r);
     });
-  }, [propTodayRecord, attendanceData?.records, todayStr, user?._id]);
+  }, [attendanceData?.records, currentUserId]);
+
+  // Determine active today record: prefer active shift from live query or props
+  const todayRecord = useMemo(() => {
+    const isRecordActive = (rec) => Boolean(
+      rec && (
+        (rec.sessions && rec.sessions.length > 0 && rec.sessions.some((s) => !s.clockOut)) ||
+        (rec.clockIn && !rec.clockOut)
+      )
+    );
+
+    if (isRecordActive(foundTodayRecord)) return foundTodayRecord;
+    if (isRecordActive(propTodayRecord)) return propTodayRecord;
+    return foundTodayRecord || propTodayRecord || null;
+  }, [foundTodayRecord, propTodayRecord]);
 
   const isClockedIn = Boolean(
     todayRecord && (
@@ -273,10 +308,10 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
             <div>
               <span className="text-xs font-black uppercase tracking-wider block">
                 {approvalStatus === 'approved'
-                  ? 'Leave Approved ✅'
+                  ? 'Leave Approved âœ…'
                   : approvalStatus === 'rejected'
-                  ? 'Leave Rejected ❌'
-                  : 'Leave Pending Approval ⏳'}
+                  ? 'Leave Rejected âŒ'
+                  : 'Leave Pending Approval â³'}
               </span>
               <p className="text-[11px] opacity-90 font-medium">
                 {approvalStatus === 'approved'
@@ -424,7 +459,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 >
                   Mark Absent
                 </button>
-                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">â€¢</span>
                 <button
                   type="button"
                   onClick={() => setShowLeaveModal(true)}
@@ -500,7 +535,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                   <span className="font-bold text-foreground/80 text-[11px]">Session #{idx + 1}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-emerald-600 font-bold">{formatTime(s.clockIn)}</span>
-                    <span className="text-muted-foreground">→</span>
+                    <span className="text-muted-foreground">â†’</span>
                     <span className="text-amber-600 font-bold">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
                     <span className="text-primary font-bold text-[11px] bg-secondary px-1.5 py-0.5 rounded">
                       {s.durationHours ? `${s.durationHours.toFixed(2)}h` : s.clockOut ? '0.00h' : 'Active'}

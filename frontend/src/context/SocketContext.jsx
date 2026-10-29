@@ -48,6 +48,7 @@ export const SocketProvider = ({ children }) => {
 
     newSocket.on('reconnect', () => {
       reconcilePushSubscription().catch(() => {});
+      queryClient.invalidateQueries();
     });
 
     newSocket.on('connect_error', () => {
@@ -57,7 +58,7 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('newNotification', (data) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       if (data) {
-        const title = data.title || '🔔 RISE WITH MEDIA Notification';
+        const title = data.title || 'ðŸ”” RISE WITH MEDIA Notification';
         const message = data.message || '';
         const link = data.link || '/';
 
@@ -129,11 +130,15 @@ export const SocketProvider = ({ children }) => {
     // Specific registered named events
     const handledNamedEvents = new Set([
       'projectUpdated', 'projectCreated', 'projectDeleted',
-      'taskCreated', 'taskUpdated', 'taskDeleted', 'taskMoved',
+      'taskCreated', 'taskUpdated', 'taskDeleted', 'taskMoved', 'taskStatusUpdated',
       'leadCreated', 'leadUpdated', 'leadDeleted',
       'clientCreated', 'clientUpdated', 'clientDeleted',
-      'financeUpdated', 'attendanceUpdated', 'accessRequestCreated',
+      'financeUpdated', 'invoicePaid', 'expenseApproved',
+      'attendanceUpdated', 'eodSubmitted', 'accessRequestCreated', 'accessRequestUpdated',
       'smmTrackerUpdated', 'smmClientCreated', 'smmClientUpdated', 'smmClientDeleted',
+      'dmCalendarUpdated', 'contentProductionUpdated',
+      'content_production:created', 'content_production:updated', 'content_production:revision', 'content_production:deleted',
+      'userCreated', 'userUpdated',
     ]);
 
     newSocket.on('projectUpdated', () => handleInvalidate(['projects', 'project', 'tasks']));
@@ -144,23 +149,52 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('taskUpdated', () => handleInvalidate(['tasks', 'task', 'projects']));
     newSocket.on('taskDeleted', () => handleInvalidate(['tasks', 'task', 'projects']));
     newSocket.on('taskMoved', () => handleInvalidate(['tasks', 'projects']));
+    newSocket.on('taskStatusUpdated', () => handleInvalidate(['tasks', 'task', 'projects']));
 
     newSocket.on('leadCreated', () => handleInvalidate(['leads', 'lead', 'leads-kanban']));
     newSocket.on('leadUpdated', () => handleInvalidate(['leads', 'lead', 'leads-kanban']));
     newSocket.on('leadDeleted', () => handleInvalidate(['leads', 'leads-kanban']));
 
-    newSocket.on('clientCreated', () => handleInvalidate(['clients', 'client']));
-    newSocket.on('clientUpdated', () => handleInvalidate(['clients', 'client']));
-    newSocket.on('clientDeleted', () => handleInvalidate(['clients']));
+    newSocket.on('clientCreated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
+    newSocket.on('clientUpdated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
+    newSocket.on('clientDeleted', () => handleInvalidate(['clients', 'smm-clients']));
 
-    newSocket.on('financeUpdated', () => handleInvalidate(['finance', 'invoices', 'expenses', 'proposals']));
-    newSocket.on('attendanceUpdated', () => handleInvalidate(['attendance']));
-    newSocket.on('accessRequestCreated', () => handleInvalidate(['access-requests']));
+    newSocket.on('financeUpdated', () => handleInvalidate([
+      'finance', 'invoices', 'invoice', 'expenses', 'expense', 'proposals',
+      'payments', 'payment-reminders', 'loans',
+      'finance-records', 'finance-record', 'finance-entries',
+      'finance-summary', 'finance-dashboard-summary',
+      'finance-overview', 'finance-module-overview', 'finance-payroll',
+      'reports',
+    ]));
+    newSocket.on('invoicePaid', () => handleInvalidate(['finance', 'invoices', 'reports']));
+    newSocket.on('expenseApproved', () => handleInvalidate(['finance', 'expenses', 'reports']));
+
+    newSocket.on('attendanceUpdated', () => handleInvalidate(['attendance', 'team-attendance-today', 'hr-employees', 'reports', 'eod-reports']));
+    newSocket.on('eodSubmitted', () => handleInvalidate(['eod-reports', 'attendance', 'reports']));
+
+    newSocket.on('accessRequestCreated', () => handleInvalidate(['access-requests', 'projects', 'project']));
+    newSocket.on('accessRequestUpdated', () => handleInvalidate(['access-requests', 'projects', 'project']));
 
     newSocket.on('smmTrackerUpdated', () => handleInvalidate(['smm-tracker', 'smmTracker', 'smm-clients', 'clients']));
     newSocket.on('smmClientCreated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
     newSocket.on('smmClientUpdated', () => handleInvalidate(['clients', 'client', 'smm-clients']));
     newSocket.on('smmClientDeleted', () => handleInvalidate(['clients', 'client', 'smm-clients']));
+
+    newSocket.on('dmCalendarUpdated', () => handleInvalidate([
+      'dm-master-events', 'dm-dashboard-summary', 'dm-video-shoots',
+      'dm-client-performance', 'dm-team-performance', 'dm-audit-logs',
+      'dm-rj-promotions', 'dm-vj-promotions',
+    ]));
+
+    newSocket.on('contentProductionUpdated', () => handleInvalidate(['content-production', 'tasks', 'task']));
+    newSocket.on('content_production:created', () => handleInvalidate(['content-production', 'tasks', 'task']));
+    newSocket.on('content_production:updated', () => handleInvalidate(['content-production', 'tasks', 'task']));
+    newSocket.on('content_production:revision', () => handleInvalidate(['content-production', 'tasks', 'task']));
+    newSocket.on('content_production:deleted', () => handleInvalidate(['content-production', 'tasks', 'task']));
+
+    newSocket.on('userCreated', () => handleInvalidate(['users', 'hr-employees', 'reports']));
+    newSocket.on('userUpdated', () => handleInvalidate(['users', 'hr-employees', 'reports']));
 
     // Catch-all for other live CRM mutations that do not already have dedicated listeners
     newSocket.on('crmLiveUpdate', ({ event }) => {
@@ -170,6 +204,11 @@ export const SocketProvider = ({ children }) => {
       else if (event.startsWith('lead')) handleInvalidate(['leads', 'lead', 'leads-kanban']);
       else if (event.startsWith('project')) handleInvalidate(['projects', 'project', 'tasks']);
       else if (event.startsWith('smmTracker')) handleInvalidate(['smm-tracker', 'smmTracker']);
+      else if (event.startsWith('finance') || event.startsWith('invoice') || event.startsWith('expense')) {
+        handleInvalidate(['finance', 'invoices', 'expenses', 'finance-records', 'reports']);
+      } else if (event.startsWith('attendance') || event.startsWith('wfh')) {
+        handleInvalidate(['attendance', 'team-attendance-today', 'reports']);
+      }
     });
 
     socketRef.current = newSocket;

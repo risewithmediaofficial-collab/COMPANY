@@ -3,12 +3,12 @@
 // =============================================
 
 /**
- * Emits real-time live events to authorized rooms (project, brand/workspace, organization, user, or crm).
+ * Emits real-time live events to authorized rooms (project, brand/workspace, organization, user, and crm staff).
  * Minimizes broadcast payloads to prevent tenant/cross-client data leakage.
  *
  * @param {string} event - The specific event name (e.g., 'taskUpdated', 'clientCreated')
  * @param {object} payload - The data associated with the event
- * @param {object} options - Scope options: { projectId, brandId, workspaceId, organizationId, userId, isCRMOnly }
+ * @param {object} options - Scope options: { projectId, brandId, workspaceId, organizationId, userId, isPrivateUserOnly }
  */
 export const emitLiveEvent = (event, payload = {}, options = {}) => {
   try {
@@ -33,26 +33,39 @@ export const emitLiveEvent = (event, payload = {}, options = {}) => {
       timestamp: Date.now(),
     };
 
-    const targetProjectId = options.projectId || payload?.project || payload?.projectId;
+    const targetProjectId = options.projectId || payload?.project?._id || payload?.project || payload?.projectId;
     const targetBrandId = options.brandId || options.workspaceId || payload?.brandId;
     const targetUserId = options.userId;
     const targetOrgId = options.organizationId || payload?.organizationId;
 
-    const targetRooms = [];
+    const targetRooms = new Set();
 
-    if (targetUserId) {
-      targetRooms.push(`user:${targetUserId}`);
-    } else if (targetProjectId) {
-      targetRooms.push(`project:${targetProjectId}`);
-    } else if (targetBrandId) {
-      targetRooms.push(`brand:${targetBrandId}`);
-    } else if (targetOrgId) {
-      targetRooms.push(`org:${targetOrgId}`);
-    } else {
-      // Default to CRM staff room rather than global unauthenticated broadcast
-      targetRooms.push('crm');
+    // 1. Staff room: unless explicitly restricted to a private user, all CRM staff receive live updates
+    if (!options.isPrivateUserOnly) {
+      targetRooms.add('crm');
     }
 
+    // 2. Specific user room if targeted (e.g. employee, client, or manager)
+    if (targetUserId) {
+      targetRooms.add(`user:${targetUserId.toString()}`);
+    }
+
+    // 3. Project room (for project detail viewers & clients assigned to that project)
+    if (targetProjectId) {
+      targetRooms.add(`project:${targetProjectId.toString()}`);
+    }
+
+    // 4. Brand / Workspace room
+    if (targetBrandId) {
+      targetRooms.add(`brand:${targetBrandId.toString()}`);
+    }
+
+    // 5. Organization room
+    if (targetOrgId) {
+      targetRooms.add(`org:${targetOrgId.toString()}`);
+    }
+
+    // Deliver to all targeted rooms
     targetRooms.forEach((room) => {
       io.to(room).emit(event, payload);
       io.to(room).emit('crmLiveUpdate', minimalPayload);
@@ -63,4 +76,3 @@ export const emitLiveEvent = (event, payload = {}, options = {}) => {
 };
 
 export default emitLiveEvent;
-

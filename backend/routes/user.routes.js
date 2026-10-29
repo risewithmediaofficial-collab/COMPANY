@@ -2,6 +2,7 @@ import express from 'express';
 import User from '../models/user.model.js';
 import { authorize, protect } from '../middleware/auth.middleware.js';
 import { createActivityLog } from '../utils/activity.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const router = express.Router();
 router.use(protect);
@@ -41,6 +42,7 @@ router.get('/:id', authorize('superAdmin', 'manager'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(safeUserProjection);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    emitLiveEvent('userUpdated', user);
     res.json({ success: true, user });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -70,6 +72,7 @@ router.post('/', authorize('superAdmin'), async (req, res) => {
     });
 
     const sanitized = await User.findById(user._id).select(safeUserProjection);
+    emitLiveEvent('userCreated', sanitized);
     res.status(201).json({ success: true, user: sanitized });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -176,6 +179,7 @@ router.put('/:id', authorize('superAdmin'), async (req, res) => {
       metadata: { fields: Object.keys(updates) },
     });
 
+    emitLiveEvent('userUpdated', user);
     res.json({ success: true, user });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -289,6 +293,7 @@ router.patch('/:id/approval', authorize('superAdmin'), async (req, res) => {
       metadata: { approvalStatus },
     });
 
+    emitLiveEvent('userUpdated', user);
     res.json({ success: true, user });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -310,6 +315,7 @@ router.delete('/:id', authorize('superAdmin'), async (req, res) => {
       relatedUser: user._id,
     });
 
+    emitLiveEvent('userUpdated', { id: req.params.id, deleted: true });
     res.json({ success: true, message: 'User deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

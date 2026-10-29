@@ -154,7 +154,7 @@ const Dashboard = () => {
     fetchStats(true);
   }, [user?.role, period, startDate, endDate]);
 
-  // Controlled background fallback polling (3 minutes) — real-time updates are pushed instantaneously via WebSocket
+  // Controlled background fallback polling (3 minutes) â€” real-time updates are pushed instantaneously via WebSocket
   useEffect(() => {
     if (!user?.role) return;
     const interval = setInterval(() => {
@@ -167,8 +167,6 @@ const Dashboard = () => {
 
   // Live Real-Time Socket Event Listeners for All Users
   useEffect(() => {
-    if (!socket) return;
-
     const handleUpdate = () => {
       fetchStats(false);
       queryClient.invalidateQueries({ queryKey: ['eod-reports'] });
@@ -178,16 +176,27 @@ const Dashboard = () => {
       'userCreated', 'userUpdated',
       'clientCreated', 'clientUpdated',
       'projectCreated', 'projectUpdated', 'projectDeleted',
-      'taskCreated', 'taskUpdated', 'taskDeleted', 'taskStatusUpdated',
-      'invoicePaid', 'expenseApproved', 'leadUpdated',
+      'taskCreated', 'taskUpdated', 'taskDeleted', 'taskStatusUpdated', 'taskMoved',
+      'invoicePaid', 'expenseApproved', 'leadUpdated', 'financeUpdated',
       'eodSubmitted', 'attendanceUpdated', 'deliverableTargetUpdated',
-      'activityLogged', 'metricsUpdated',
+      'activityLogged', 'metricsUpdated', 'crmLiveUpdate',
+      'dmCalendarUpdated', 'contentProductionUpdated',
     ];
 
-    liveEvents.forEach((evt) => socket.on(evt, handleUpdate));
+    if (socket) {
+      liveEvents.forEach((evt) => socket.on(evt, handleUpdate));
+    }
+
+    const handleLocalAttendance = () => {
+      fetchStats(false);
+    };
+    window.addEventListener('attendanceStatusChanged', handleLocalAttendance);
 
     return () => {
-      liveEvents.forEach((evt) => socket.off(evt, handleUpdate));
+      if (socket) {
+        liveEvents.forEach((evt) => socket.off(evt, handleUpdate));
+      }
+      window.removeEventListener('attendanceStatusChanged', handleLocalAttendance);
     };
   }, [socket, queryClient, period, startDate, endDate]);
 
@@ -218,9 +227,9 @@ const Dashboard = () => {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // 1. DATA-DRIVEN NOTION-STYLE COMMAND CENTER
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const renderAdminCommandCenter = () => {
     const stats = data.stats || {};
     const viz = data.visualizations || {};
@@ -245,10 +254,10 @@ const Dashboard = () => {
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live Agency Command Center
                 </span>
-                <span className="text-xs text-muted-foreground">• {currentDateStr}</span>
+                <span className="text-xs text-muted-foreground">â€¢ {currentDateStr}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-                {getGreeting()}, {user.name} 👋
+                {getGreeting()}, {user.name} ðŸ‘‹
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Real-time operational health, active revenue flow, project progress, and content velocity across RiseWithMedia.
@@ -339,7 +348,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* ── TAB 1: FULL DATA-DRIVEN COMMAND CENTER ─────────────────────────── */}
+        {/* â”€â”€ TAB 1: FULL DATA-DRIVEN COMMAND CENTER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {activeTab === 'command' && (
           <div className="space-y-6">
             {/* 1. TOP 5 CORE METRIC CARDS (INTERACTIVE & CLICKABLE) */}
@@ -481,10 +490,10 @@ const Dashboard = () => {
                       <YAxis
                         tick={{ fontSize: 10, fill: 'currentColor' }}
                         stroke="rgba(150,150,150,0.3)"
-                        tickFormatter={(v) => `₹${v >= 100000 ? (v / 100000).toFixed(1) + 'L' : (v / 1000).toFixed(0) + 'k'}`}
+                        tickFormatter={(v) => `â‚¹${v >= 100000 ? (v / 100000).toFixed(1) + 'L' : (v / 1000).toFixed(0) + 'k'}`}
                       />
                       <RechartsTooltip
-                        formatter={(value) => [showFinance ? formatINR(value) : '•••••', 'Revenue']}
+                        formatter={(value) => [showFinance ? formatINR(value) : 'â€¢â€¢â€¢â€¢â€¢', 'Revenue']}
                         contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}
                       />
                       <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2.5} fillOpacity={1} fill="url(#revenueGrad)" />
@@ -518,7 +527,7 @@ const Dashboard = () => {
                             {client.name}
                           </span>
                           <span className="font-bold text-emerald-600">
-                            {!showFinance ? '•••••' : formatINR(client.revenue)}
+                            {!showFinance ? 'â€¢â€¢â€¢â€¢â€¢' : formatINR(client.revenue)}
                           </span>
                         </div>
                         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -550,7 +559,7 @@ const Dashboard = () => {
                     Project Health
                   </h3>
                   <Link to="/projects" className="text-xs font-semibold text-primary hover:underline">
-                    Projects →
+                    Projects â†’
                   </Link>
                 </div>
 
@@ -604,7 +613,7 @@ const Dashboard = () => {
                     Task Status
                   </h3>
                   <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">
-                    Tasks →
+                    Tasks â†’
                   </Link>
                 </div>
 
@@ -650,7 +659,7 @@ const Dashboard = () => {
                     Client Health
                   </h3>
                   <Link to="/clients" className="text-xs font-semibold text-primary hover:underline">
-                    Clients →
+                    Clients â†’
                   </Link>
                 </div>
 
@@ -807,7 +816,7 @@ const Dashboard = () => {
                     Sales Pipeline Funnel
                   </h3>
                   <Link to="/crm/leads" className="text-xs font-semibold text-primary hover:underline">
-                    CRM & Leads →
+                    CRM & Leads â†’
                   </Link>
                 </div>
 
@@ -832,7 +841,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* ── TAB: ALL METRICS & COMPANY ANALYTICS ──────────────────────────── */}
+        {/* â”€â”€ TAB: ALL METRICS & COMPANY ANALYTICS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {activeTab === 'metrics' && (
           <div className="space-y-6">
             {/* 1. All Metrics Summary KPIs Bar */}
@@ -852,7 +861,7 @@ const Dashboard = () => {
               <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5 shadow-xs space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600">Over-Target Tasks</span>
                 <div className="text-xl sm:text-2xl font-black text-rose-600">{stats.totalOverTargetTasks || 0}</div>
-                <div className="text-[10px] text-rose-600/80 font-bold">🔴 Monthly Quota Exceeded</div>
+                <div className="text-[10px] text-rose-600/80 font-bold">ðŸ”´ Monthly Quota Exceeded</div>
               </div>
 
               <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 shadow-xs space-y-1">
@@ -958,19 +967,19 @@ const Dashboard = () => {
                           <td className="py-3 px-3 text-center">
                             {member.overTargetTasks > 0 ? (
                               <span className="px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 font-extrabold text-[11px] border border-rose-500/30">
-                                🔴 {member.overTargetTasks} Over
+                                ðŸ”´ {member.overTargetTasks} Over
                               </span>
                             ) : (
-                              <span className="text-muted-foreground/60">—</span>
+                              <span className="text-muted-foreground/60">â€”</span>
                             )}
                           </td>
                           <td className="py-3 px-3 text-center">
                             {member.overdueTasks > 0 ? (
                               <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-600 font-bold text-[11px]">
-                                ⚠️ {member.overdueTasks}
+                                âš ï¸ {member.overdueTasks}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground/60">—</span>
+                              <span className="text-muted-foreground/60">â€”</span>
                             )}
                           </td>
                           <td className="py-3 px-3 min-w-[140px]">
@@ -1014,7 +1023,7 @@ const Dashboard = () => {
                     <p className="text-xs text-muted-foreground">Configured target deliverables vs actual fulfillment this month.</p>
                   </div>
                   <Link to="/projects" className="text-xs font-semibold text-primary hover:underline">
-                    Projects →
+                    Projects â†’
                   </Link>
                 </div>
 
@@ -1037,15 +1046,15 @@ const Dashboard = () => {
                           </div>
                           {target.isOver ? (
                             <span className="px-2 py-0.5 rounded-md bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 font-extrabold text-[10px]">
-                              🔴 +{target.exceededBy} Over Target
+                              ðŸ”´ +{target.exceededBy} Over Target
                             </span>
                           ) : target.currentCount >= target.targetQuantity ? (
                             <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
-                              ✅ Target Reached
+                              âœ… Target Reached
                             </span>
                           ) : (
                             <span className="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 font-bold text-[10px]">
-                              ⚡ {target.remaining} Remaining
+                              âš¡ {target.remaining} Remaining
                             </span>
                           )}
                         </div>
@@ -1126,7 +1135,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* ── TAB 3: TEAM WORKLOAD & EOD ──────────────────────────────────────── */}
+        {/* â”€â”€ TAB 3: TEAM WORKLOAD & EOD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {activeTab === 'team' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-border">
@@ -1201,7 +1210,7 @@ const Dashboard = () => {
                       <div className="flex flex-wrap gap-1 pt-1 border-t border-border/40">
                         {report.eodReport.tasksCompleted.slice(0, 2).map((t, idx) => (
                           <span key={idx} className="text-[10px] bg-secondary px-2 py-0.5 rounded-md text-foreground/80 font-medium">
-                            ✓ {t}
+                            âœ“ {t}
                           </span>
                         ))}
                       </div>
@@ -1217,7 +1226,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* ── TAB: WEEKLY TODOS & DELIVERABLES ──────────────────────────────── */}
+        {/* â”€â”€ TAB: WEEKLY TODOS & DELIVERABLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {activeTab === 'todos' && (
           <div className="space-y-6">
             <WeeklyTodosWidget isManagerOrAdmin={true} user={user} />
@@ -1232,9 +1241,9 @@ const Dashboard = () => {
     );
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // 2. EMPLOYEE DASHBOARD
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const renderEmployeeStats = () => {
     const assignedTasks = data?.assignedTasks || data?.myTasks || [];
     const pendingTasks = assignedTasks.filter(
@@ -1250,9 +1259,9 @@ const Dashboard = () => {
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Live Real-Time Workspace
               </span>
-              <span className="text-xs text-muted-foreground">• {currentDateStr}</span>
+              <span className="text-xs text-muted-foreground">â€¢ {currentDateStr}</span>
             </div>
-            <h1 className="text-2xl font-black text-foreground mt-0.5">{getGreeting()}, {user.name} 👋</h1>
+            <h1 className="text-2xl font-black text-foreground mt-0.5">{getGreeting()}, {user.name} ðŸ‘‹</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Here is your daily live agenda, assigned deliverables, and attendance metrics.</p>
           </div>
 
@@ -1295,13 +1304,13 @@ const Dashboard = () => {
           <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Completed (Week)</span>
             <div className="text-xl sm:text-2xl font-black text-emerald-600">{data?.completedThisWeek || 0}</div>
-            <div className="text-[10px] text-emerald-600 font-semibold">✓ Delivered</div>
+            <div className="text-[10px] text-emerald-600 font-semibold">âœ“ Delivered</div>
           </div>
 
           <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5 shadow-xs space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600">Over-Target Tasks</span>
             <div className="text-xl sm:text-2xl font-black text-rose-600">{data?.overTargetTasks || 0}</div>
-            <div className="text-[10px] text-rose-600/80 font-bold">🔴 Over Quota</div>
+            <div className="text-[10px] text-rose-600/80 font-bold">ðŸ”´ Over Quota</div>
           </div>
         </div>
 
@@ -1316,7 +1325,7 @@ const Dashboard = () => {
                 <CheckSquare size={16} className="text-primary" />
                 <h2 className="text-sm font-bold text-foreground">My Assigned Tasks ({pendingTasks.length})</h2>
               </div>
-              <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">View All Tasks →</Link>
+              <Link to="/tasks" className="text-xs font-semibold text-primary hover:underline">View All Tasks â†’</Link>
             </div>
 
             <div className="divide-y divide-border/60">
@@ -1333,21 +1342,21 @@ const Dashboard = () => {
                       <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground">
                         {task.client?.name || task.client?.company || task.clientName ? (
                           <span className="font-medium text-foreground/75">
-                            🏢 {task.client?.company || task.client?.name || task.clientName}
+                            ðŸ¢ {task.client?.company || task.client?.name || task.clientName}
                           </span>
                         ) : null}
                         {task.project?.name || task.projectName ? (
                           <span className="font-medium text-foreground/75">
-                            📁 {task.project?.name || task.projectName}
+                            ðŸ“ {task.project?.name || task.projectName}
                           </span>
                         ) : null}
                         {task.createdAt && (
                           <span className="inline-flex items-center gap-1 text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-md">
-                            📅 Created: {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            ðŸ“… Created: {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
-                          ⏰ Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing / TBD'}
+                          â° Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing / TBD'}
                         </span>
                       </div>
                     </div>
@@ -1380,14 +1389,14 @@ const Dashboard = () => {
     );
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // 3. CLIENT PORTAL
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const renderClientStats = () => {
     return (
       <div className="space-y-6">
         <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
-          <h1 className="text-2xl font-black text-foreground">{getGreeting()}, {user.name} 👋</h1>
+          <h1 className="text-2xl font-black text-foreground">{getGreeting()}, {user.name} ðŸ‘‹</h1>
           <p className="text-xs text-muted-foreground mt-1">Welcome to your RiseWithMedia Client Portal. Review projects, approve content, and view invoices.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1411,9 +1420,9 @@ const Dashboard = () => {
     );
   };
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // 4. REFERRAL PORTAL
-  // ─────────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const renderReferralStats = () => {
     const referrals = data.referrals || [];
     const stats = [

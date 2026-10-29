@@ -20,6 +20,7 @@ import SmmAdSpend from '../models/smm/smmAdSpend.model.js';
 import SmmMonthlyTracker from '../models/smm/smmMonthlyTracker.model.js';
 import SmmClient from '../models/smm/smmClient.model.js';
 import { parsePagination } from '../utils/pagination.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 // Helper: get client from logged-in user (supports both userId and clientId)
 const getClientFromUser = async (userOrId) => {
@@ -34,7 +35,7 @@ const getClientFromUser = async (userOrId) => {
   return client;
 };
 
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getPortalDashboard = async (req, res) => {
   try {
@@ -328,7 +329,7 @@ export const getPortalDashboard = async (req, res) => {
   }
 };
 
-// ─── CONTENT ITEMS ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ CONTENT ITEMS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getContentItems = async (req, res) => {
   try {
@@ -411,6 +412,9 @@ export const approveContentItem = async (req, res) => {
       });
     } catch (_) {}
 
+    emitLiveEvent('contentProductionUpdated', { item });
+    emitLiveEvent('taskUpdated', { id: item._id, status: item.status });
+
     res.json({ success: true, item, message: 'Content approved successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -439,6 +443,9 @@ export const requestRevision = async (req, res) => {
       });
     } catch (_) {}
 
+    emitLiveEvent('contentProductionUpdated', { item });
+    emitLiveEvent('taskUpdated', { id: item._id, status: item.status });
+
     res.json({ success: true, item, message: 'Revision requested successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -454,13 +461,15 @@ export const addContentFeedback = async (req, res) => {
     item.clientFeedback = req.body.feedback;
     await item.save();
 
+    emitLiveEvent('contentProductionUpdated', { item });
+
     res.json({ success: true, item, message: 'Feedback added successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ─── REPORTING ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ REPORTING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getReportingData = async (req, res) => {
   try {
@@ -519,7 +528,7 @@ export const getReportingData = async (req, res) => {
   }
 };
 
-// ─── ADMIN: Manage Content Items ─────────────────────────────────────────────
+// â”€â”€â”€ ADMIN: Manage Content Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const createContentItem = async (req, res) => {
   try {
@@ -558,7 +567,7 @@ export const deleteContentItem = async (req, res) => {
   }
 };
 
-// ─── ADMIN: Manage Reporting Entries ─────────────────────────────────────────
+// â”€â”€â”€ ADMIN: Manage Reporting Entries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const createReportingEntry = async (req, res) => {
   try {
@@ -602,7 +611,7 @@ export const deleteReportingEntry = async (req, res) => {
   }
 };
 
-// ─── CLIENT INVOICES ──────────────────────────────────────────────────────────
+// â”€â”€â”€ CLIENT INVOICES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getClientInvoices = async (req, res) => {
   try {
@@ -680,7 +689,7 @@ export const getClientFinanceOverview = async (req, res) => {
   }
 };
 
-// ─── CLIENT PROJECTS ──────────────────────────────────────────────────────────
+// â”€â”€â”€ CLIENT PROJECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getClientProjects = async (req, res) => {
   try {
@@ -731,7 +740,7 @@ export const getClientTasks = async (req, res) => {
   }
 };
 
-// ─── CLIENT AD BUDGET ─────────────────────────────────────────────────────────
+// â”€â”€â”€ CLIENT AD BUDGET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const getClientAdBudget = async (req, res) => {
   try {

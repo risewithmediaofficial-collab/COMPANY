@@ -5,6 +5,7 @@ import DMAuditLog from '../models/dmAuditLog.model.js';
 import Client from '../models/client.model.js';
 import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const logDMAudit = async ({ moduleType, entityId, action, title, details, actor }) => {
   try {
@@ -16,6 +17,7 @@ const logDMAudit = async ({ moduleType, entityId, action, title, details, actor 
       details: details || '',
       actor,
     });
+    emitLiveEvent('dmCalendarUpdated', { moduleType, entityId, action, title });
   } catch (err) {
     console.error('Failed to create DM Audit Log:', err);
   }
@@ -538,7 +540,7 @@ export const getMasterCalendarEvents = async (req, res) => {
         events.push({
           id: s._id,
           activityType: 'video_shoot',
-          title: `🎬 ${s.shootTitle} (${s.client?.company || s.client?.name || 'Client'})`,
+          title: `ðŸŽ¬ ${s.shootTitle} (${s.client?.company || s.client?.name || 'Client'})`,
           rawTitle: s.shootTitle,
           clientName: s.client?.company || s.client?.name || 'Client',
           date: s.shootDate,
@@ -565,7 +567,7 @@ export const getMasterCalendarEvents = async (req, res) => {
         events.push({
           id: r._id,
           activityType: 'rj_promotion',
-          title: `🎙️ ${r.promotionTitle} (${r.client?.company || r.client?.name || 'Client'})`,
+          title: `ðŸŽ™ï¸ ${r.promotionTitle} (${r.client?.company || r.client?.name || 'Client'})`,
           rawTitle: r.promotionTitle,
           clientName: r.client?.company || r.client?.name || 'Client',
           date: r.promotionDate,
@@ -592,7 +594,7 @@ export const getMasterCalendarEvents = async (req, res) => {
         events.push({
           id: v._id,
           activityType: 'vj_promotion',
-          title: `📺 [${v.platform}] ${v.promotionTitle} (${v.client?.company || v.client?.name || 'Client'})`,
+          title: `ðŸ“º [${v.platform}] ${v.promotionTitle} (${v.client?.company || v.client?.name || 'Client'})`,
           rawTitle: v.promotionTitle,
           clientName: v.client?.company || v.client?.name || 'Client',
           date: v.promotionDate,

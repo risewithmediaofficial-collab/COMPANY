@@ -12,6 +12,7 @@ import {
   triggerAttendanceReminders,
   triggerEveningReminders,
   triggerAutoAbsent,
+  triggerPendingWFHReminders,
 } from '../controllers/notification.controller.js';
 import { protect, authorize } from '../middleware/auth.middleware.js';
 
@@ -25,6 +26,7 @@ router.post('/test-push', sendTestPushNotification);
 router.post('/trigger-attendance-reminders', triggerAttendanceReminders);
 router.post('/trigger-evening-reminders', triggerEveningReminders);
 router.post('/trigger-auto-absent', authorize('superAdmin', 'admin', 'manager', 'organizationOwner'), triggerAutoAbsent);
+router.post('/trigger-wfh-reminders', authorize('superAdmin', 'admin', 'manager', 'organizationOwner'), triggerPendingWFHReminders);
 router.post('/subscribe', subscribePush);
 router.post('/unsubscribe', unsubscribePush);
 router.put('/mark-all-read', markAllRead);

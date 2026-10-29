@@ -244,12 +244,27 @@ const Attendance = () => {
   const summary = data?.summary || { present: 0, totalHours: '0.00', leave: 0, absent: 0, wfh: 0, holiday: 0 };
 
   const todayRecord = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    return rawRecords.find(
-      (record) =>
-        record.date?.split('T')[0] === todayStr &&
-        (record.user?._id === user?._id || record.user === user?._id)
-    );
+    const isSameCalendarDay = (d1, d2) => {
+      if (!d1 || !d2) return false;
+      const a = new Date(d1);
+      const b = new Date(d2);
+      if (isNaN(a.getTime()) || isNaN(b.getTime())) return false;
+      return a.getFullYear() === b.getFullYear() &&
+             a.getMonth() === b.getMonth() &&
+             a.getDate() === b.getDate();
+    };
+
+    const currentUserId = user?._id?.toString();
+    const now = new Date();
+
+    return rawRecords.find((record) => {
+      const recordUserId = (record.user?._id || record.user)?.toString();
+      const matchesUser = !currentUserId || !recordUserId || recordUserId === currentUserId;
+      const isToday = (record.date && isSameCalendarDay(record.date, now)) ||
+                      (record.clockIn && isSameCalendarDay(record.clockIn, now)) ||
+                      (record.sessions && record.sessions.some(s => s.clockIn && isSameCalendarDay(s.clockIn, now)));
+      return matchesUser && isToday;
+    });
   }, [rawRecords, user?._id]);
 
   const isClockedIn = Boolean(
@@ -825,7 +840,7 @@ const Attendance = () => {
                         </div>
                         <div className="text-[10px] font-semibold text-emerald-600 mt-0.5 flex items-center gap-1">
                           <span>In: {item.clockIn}</span>
-                          <span>•</span>
+                          <span>â€¢</span>
                           <span className="text-amber-600">Out: {item.clockOut}</span>
                         </div>
                       </div>
@@ -887,12 +902,12 @@ const Attendance = () => {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mr-1"><Filter size={12} /> Quick Filter:</span>
               {[
-                { value: 'all', label: '🔘 All', activeClass: 'bg-primary text-primary-foreground border-primary' },
-                { value: 'present', label: '✅ Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
-                { value: 'holiday', label: '📅 Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
-                { value: 'leave', label: '🏖️ Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
-                { value: 'work_from_home', label: '🏠 WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
-                { value: 'absent', label: '❌ Absent', activeClass: 'bg-red-600 text-white border-red-600' },
+                { value: 'all', label: 'ðŸ”˜ All', activeClass: 'bg-primary text-primary-foreground border-primary' },
+                { value: 'present', label: 'âœ… Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
+                { value: 'holiday', label: 'ðŸ“… Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
+                { value: 'leave', label: 'ðŸ–ï¸ Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
+                { value: 'work_from_home', label: 'ðŸ  WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
+                { value: 'absent', label: 'âŒ Absent', activeClass: 'bg-red-600 text-white border-red-600' },
               ].map(({ value, label, activeClass }) => (
                 <button
                   key={value}
@@ -992,14 +1007,14 @@ const Attendance = () => {
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-muted-foreground mt-0.5">
-                      {selectedEmployeeInfo.email} • Filtered Month: {monthName} {selectedYear}
+                      {selectedEmployeeInfo.email} â€¢ Filtered Month: {monthName} {selectedYear}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="px-4 py-2 rounded-2xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-black">
-                    🎯 {selectedUserStats.attendanceRate}% Attendance Rate
+                    ðŸŽ¯ {selectedUserStats.attendanceRate}% Attendance Rate
                   </div>
                   <button
                     onClick={() => setSelectedUser('all')}
@@ -1244,7 +1259,7 @@ const Attendance = () => {
                           <div className="flex flex-wrap gap-1.5">
                             {item.eodReport.tasksCompleted.slice(0, 3).map((t, idx) => (
                               <span key={idx} className="inline-flex items-center gap-1 text-[11px] bg-secondary/70 border border-border/60 text-foreground px-2 py-0.5 rounded-lg max-w-[200px] truncate font-medium">
-                                ✓ {typeof t === 'string' ? t : t.title || t.taskTitle || 'Task'}
+                                âœ“ {typeof t === 'string' ? t : t.title || t.taskTitle || 'Task'}
                               </span>
                             ))}
                             {item.eodReport.tasksCompleted.length > 3 && (
@@ -1372,12 +1387,12 @@ const Attendance = () => {
                 {/* Quick Status Filter Pills - also for personal view */}
                 <div className="flex flex-wrap items-center gap-1.5">
                   {[
-                    { value: 'all', label: '🔘 All', activeClass: 'bg-primary text-primary-foreground border-primary' },
-                    { value: 'present', label: '✅ Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
-                    { value: 'holiday', label: '📅 Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
-                    { value: 'leave', label: '🏖️ Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
-                    { value: 'work_from_home', label: '🏠 WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
-                    { value: 'absent', label: '❌ Absent', activeClass: 'bg-red-600 text-white border-red-600' },
+                    { value: 'all', label: 'ðŸ”˜ All', activeClass: 'bg-primary text-primary-foreground border-primary' },
+                    { value: 'present', label: 'âœ… Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
+                    { value: 'holiday', label: 'ðŸ“… Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
+                    { value: 'leave', label: 'ðŸ–ï¸ Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
+                    { value: 'work_from_home', label: 'ðŸ  WFH', activeClass: 'bg-purple-600 text-white border-purple-600' },
+                    { value: 'absent', label: 'âŒ Absent', activeClass: 'bg-red-600 text-white border-red-600' },
                   ].map(({ value, label, activeClass }) => (
                     <button
                       key={value}
@@ -1476,7 +1491,7 @@ const Attendance = () => {
                                   {record.sessions.map((s, idx) => (
                                     <div key={idx} className="flex items-center justify-between gap-1">
                                       <span className="font-semibold text-foreground/80">#{idx + 1}: {formatTime(s.clockIn)}</span>
-                                      <span className="text-muted-foreground">→</span>
+                                      <span className="text-muted-foreground">â†’</span>
                                       <span className="font-semibold text-foreground/80">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
                                       <span className="text-primary font-bold">({s.durationHours ? s.durationHours.toFixed(1) : 0}h)</span>
                                     </div>
@@ -1500,7 +1515,7 @@ const Attendance = () => {
 
                           <td className="px-6 py-4">
                             {record.status === 'holiday' ? (
-                              <span className="text-muted-foreground text-xs">—</span>
+                              <span className="text-muted-foreground text-xs">â€”</span>
                             ) : (
                               <span
                                 className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
@@ -1524,7 +1539,7 @@ const Attendance = () => {
                               ) : isApprovedLeave ? (
                                 <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                                   <CheckCircle2 size={11} />
-                                  Leave Approved ✅
+                                  Leave Approved âœ…
                                 </span>
                               ) : record.approvalStatus === 'rejected' ? (
                                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center gap-1">
@@ -1839,7 +1854,7 @@ const Attendance = () => {
               {!isAdmin && (
                 <div className="p-3.5 rounded-xl bg-secondary/40 border border-border text-xs text-muted-foreground flex items-center gap-2.5">
                   <Info size={16} className="text-primary shrink-0" />
-                  <span>Your application will be sent to Super Admin and Admin. Once approved, the status will show <strong>Leave Approved ✅</strong>.</span>
+                  <span>Your application will be sent to Super Admin and Admin. Once approved, the status will show <strong>Leave Approved âœ…</strong>.</span>
                 </div>
               )}
             </div>
@@ -1999,7 +2014,7 @@ const Attendance = () => {
                       {selectedRecord.user.name || selectedRecord.user.email || 'Employee'}
                     </div>
                     <div className="text-[11px] text-muted-foreground">
-                      {selectedRecord.user.email} • {selectedRecord.user.role}
+                      {selectedRecord.user.email} â€¢ {selectedRecord.user.role}
                     </div>
                   </div>
                 </div>
@@ -2079,7 +2094,7 @@ const Attendance = () => {
                             <span className="font-bold text-emerald-600">
                               In: {formatTime(session.clockIn)}
                             </span>
-                            <span className="mx-1.5 text-muted-foreground">•</span>
+                            <span className="mx-1.5 text-muted-foreground">â€¢</span>
                             <span className="font-bold text-amber-600">
                               Out: {session.clockOut ? formatTime(session.clockOut) : 'Currently Active'}
                             </span>

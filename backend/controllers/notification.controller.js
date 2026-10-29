@@ -300,4 +300,19 @@ export const triggerAutoAbsent = async (req, res) => {
   }
 };
 
+export const triggerPendingWFHReminders = async (req, res) => {
+  try {
+    const io = req.app?.get('io') || global.io;
+    const { checkAndNotifyPendingWFHRequests } = await import('../services/cron.service.js');
+    const result = await checkAndNotifyPendingWFHRequests(io, { force: true });
+    res.json({
+      success: true,
+      message: `Pending WFH reminders processed: ${result.sentCount || 0} notification(s) sent for ${result.pendingCount || 0} pending request(s) to ${result.managerCount || 0} manager(s)/super admin(s).`,
+      result,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 

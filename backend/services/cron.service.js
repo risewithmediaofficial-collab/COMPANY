@@ -9,6 +9,7 @@ import User from '../models/user.model.js';
 import Subscription from '../models/subscription.model.js';
 import FinanceBudget from '../models/financeBudget.model.js';
 import Loan from '../models/loan.model.js';
+import WFHRequest from '../models/wfhRequest.model.js';
 import { createNotification } from '../utils/notification.js';
 import { sendWhatsAppMessage } from './whatsapp.service.js';
 
@@ -866,6 +867,15 @@ export const initCronJobs = (io) => {
     }
   }, { timezone: cronTz });
 
+  // 6. Pending Work From Home (WFH) Hourly Reminders: Runs once every hour
+  cron.schedule('0 * * * *', async () => {
+    try {
+      await checkAndNotifyPendingWFHRequests(io);
+    } catch (err) {
+      console.error('CRON Error (Pending WFH Hourly Reminders):', err);
+    }
+  }, { timezone: cronTz });
+
   console.log('Cron jobs initialized.');
 };
 
@@ -1027,6 +1037,178 @@ export const checkAndSendLoanReminders = async (io) => {
     return { sentCount, totalActiveChecked: activeLoans.length };
   } catch (error) {
     console.error('CRON Error (Loan Reminders):', error);
+    return { error: error.message };
+  }
+};
+
+/**
+ * Check for pending Work From Home (WFH) requests and send hourly reminder notifications
+ * to managers and super admins with the employee's name.
+ * Runs once every hour (0 * * * *).
+ */
+export const checkAndNotifyPendingWFHRequests = async (io, options = {}) => {
+  try {
+    console.log('CRON: Checking for pending Work From Home (WFH) requests to notify managers & super admins...');
+
+    const yesterdayStart = new Date();
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+    yesterdayStart.setHours(0, 0, 0, 0);
+
+    // 1. Fetch pending requests from WFHRequest model
+    const pendingWFHDocs = await WFHRequest.find({
+      status: 'pending',
+      date: { $gte: yesterdayStart },
+    })
+      .populate('user', 'name email role department manager')
+      .lean();
+
+    // 2. Fetch pending requests from Attendance model (requestedStatus: 'work_from_home' or status: 'work_from_home')
+    const pendingAttendanceWFH = await Attendance.find({
+      $or: [
+        { requestedStatus: 'work_from_home' },
+        { status: 'work_from_home' },
+      ],
+      approvalStatus: 'pending',
+      isApproved: { $ne: true },
+      date: { $gte: yesterdayStart },
+    })
+      .populate('user', 'name email role department manager')
+      .lean();
+
+    // 3. Aggregate unique pending requests by employee + date
+    const pendingRequestsMap = new Map();
+
+    for (const reqDoc of pendingWFHDocs) {
+      if (!reqDoc.user || !reqDoc.user._id) continue;
+      const userId = reqDoc.user._id.toString();
+      const dateStr = reqDoc.date ? new Date(reqDoc.date).toISOString().slice(0, 10) : '';
+      const key = `${userId}_${dateStr}`;
+      pendingRequestsMap.set(key, {
+        userId,
+        userName: reqDoc.user.name || 'Employee',
+        userEmail: reqDoc.user.email,
+        assignedManagerId: reqDoc.user.manager ? reqDoc.user.manager.toString() : null,
+        date: reqDoc.date,
+        reason: reqDoc.reason || reqDoc.notes || '',
+        sourceId: reqDoc._id.toString(),
+        source: 'wfhRequest',
+      });
+    }
+
+    for (const attDoc of pendingAttendanceWFH) {
+      if (!attDoc.user || !attDoc.user._id) continue;
+      const userId = attDoc.user._id.toString();
+      const dateStr = attDoc.date ? new Date(attDoc.date).toISOString().slice(0, 10) : '';
+      const key = `${userId}_${dateStr}`;
+      if (!pendingRequestsMap.has(key)) {
+        pendingRequestsMap.set(key, {
+          userId,
+          userName: attDoc.user.name || 'Employee',
+          userEmail: attDoc.user.email,
+          assignedManagerId: attDoc.user.manager ? attDoc.user.manager.toString() : null,
+          date: attDoc.date,
+          reason: attDoc.notes || '',
+          sourceId: attDoc._id.toString(),
+          source: 'attendance',
+        });
+      }
+    }
+
+    const pendingRequests = Array.from(pendingRequestsMap.values());
+
+    if (pendingRequests.length === 0) {
+      console.log('CRON: No pending Work From Home requests found.');
+      return { sentCount: 0, pendingCount: 0 };
+    }
+
+    console.log(`CRON: Found ${pendingRequests.length} pending WFH request(s). Preparing notifications for managers and super admins...`);
+
+    // 4. Find all active managers and super admins
+    const defaultManagersAndAdmins = await User.find({
+      role: { $in: ['superAdmin', 'admin', 'manager', 'organizationOwner'] },
+      isActive: true,
+    }).select('_id name email role');
+
+    if (!defaultManagersAndAdmins.length) {
+      console.warn('CRON: No active managers or super admins found to receive WFH reminders.');
+      return { sentCount: 0, pendingCount: pendingRequests.length };
+    }
+
+    const now = new Date();
+    // Unique hourly stamp to avoid duplicate reminders within the same hour if manually re-triggered
+    const hourStamp = `${now.toISOString().slice(0, 13)}`;
+    let totalSent = 0;
+
+    // 5. For each pending WFH request, notify every manager and super admin
+    for (const request of pendingRequests) {
+      const formattedDate = request.date
+        ? new Date(request.date).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })
+        : 'the requested date';
+
+      const reasonSuffix = request.reason ? `: "${request.reason}"` : '';
+      const title = `⏳ Pending WFH Request: ${request.userName}`;
+      const message = `Pending Work From Home request from ${request.userName} for ${formattedDate} is waiting for approval${reasonSuffix}. Please review and approve or reject.`;
+
+      // Build recipient list including global managers/superAdmins + employee's direct assigned manager
+      const recipientMap = new Map();
+      defaultManagersAndAdmins.forEach((mgr) => {
+        recipientMap.set(mgr._id.toString(), mgr._id);
+      });
+
+      if (request.assignedManagerId && !recipientMap.has(request.assignedManagerId)) {
+        recipientMap.set(request.assignedManagerId, request.assignedManagerId);
+      }
+
+      for (const [recipientIdStr, recipientId] of recipientMap.entries()) {
+        // Prevent re-notifying the exact same manager within the same hour for the same request
+        if (!options.force) {
+          const alreadySentThisHour = await Notification.findOne({
+            recipient: recipientId,
+            type: 'wfh_reminder',
+            'metadata.sourceId': request.sourceId,
+            'metadata.hourStamp': hourStamp,
+          });
+          if (alreadySentThisHour) continue;
+        }
+
+        await createNotification(
+          {
+            recipient: recipientId,
+            sender: request.userId,
+            type: 'wfh_reminder',
+            title,
+            message,
+            link: '/attendance',
+            metadata: {
+              sourceId: request.sourceId,
+              source: request.source,
+              employeeId: request.userId,
+              employeeName: request.userName,
+              date: request.date,
+              reason: request.reason,
+              hourStamp,
+              reminderType: 'hourly_wfh_pending_reminder',
+            },
+          },
+          io
+        );
+        totalSent++;
+      }
+    }
+
+    console.log(`CRON: Dispatched ${totalSent} WFH pending reminder notification(s) to managers/super admins.`);
+    return {
+      sentCount: totalSent,
+      pendingCount: pendingRequests.length,
+      managerCount: defaultManagersAndAdmins.length,
+      pendingRequests: pendingRequests.map((r) => ({ employee: r.userName, date: r.date })),
+    };
+  } catch (error) {
+    console.error('CRON Error (checkAndNotifyPendingWFHRequests):', error);
     return { error: error.message };
   }
 };

@@ -18,6 +18,7 @@ import { sendEmail } from '../utils/email.js';
 import { createActivityLog } from '../utils/activity.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import { parsePagination } from '../utils/pagination.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const invoiceStatusMap = {
   Draft: 'draft',
@@ -489,6 +490,8 @@ export const createFinanceRecord = async (req, res) => {
       .populate('projectId', 'name')
       .populate('createdBy', 'name');
 
+    emitLiveEvent('financeUpdated', { id: record._id, type: 'finance_record' });
+
     res.status(201).json({ success: true, record: serializeFinanceRecord(populated) });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -525,6 +528,8 @@ export const updateFinanceRecord = async (req, res) => {
       metadata: { fields: Object.keys(req.body || {}) },
     });
 
+    emitLiveEvent('financeUpdated', { id: current._id, type: 'finance_record' });
+
     res.json({ success: true, record: serializeFinanceRecord(populated) });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -548,6 +553,8 @@ export const deleteFinanceRecord = async (req, res) => {
       relatedClient: record.clientId,
       relatedProject: record.projectId,
     });
+
+    emitLiveEvent('financeUpdated', { id: record._id, type: 'finance_record', deleted: true });
 
     res.json({ success: true, message: 'Finance record deleted' });
   } catch (error) {
@@ -763,6 +770,8 @@ export const createFinanceEntry = async (req, res) => {
       .populate('client', 'name company')
       .populate('project', 'name');
 
+    emitLiveEvent('financeUpdated', { id: entry._id, type: 'finance_entry' });
+
     res.status(201).json({ success: true, entry: populated });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -805,6 +814,8 @@ export const updateFinanceEntry = async (req, res) => {
       metadata: { fields: Object.keys(req.body || {}) },
     });
 
+    emitLiveEvent('financeUpdated', { id: entry._id, type: 'finance_entry' });
+
     res.json({ success: true, entry });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -827,6 +838,8 @@ export const deleteFinanceEntry = async (req, res) => {
       relatedProject: entry.project,
       metadata: { amount: entry.amount },
     });
+
+    emitLiveEvent('financeUpdated', { id: entry._id, type: 'finance_entry', deleted: true });
 
     res.json({ success: true, message: 'Finance entry deleted' });
   } catch (error) {
@@ -992,6 +1005,8 @@ export const createInvoice = async (req, res) => {
       .populate('project', 'name')
       .populate('issuedBy', 'name');
 
+    emitLiveEvent('financeUpdated', { id: invoice._id, type: 'invoice' });
+
     res.status(201).json({ success: true, invoice: serializeInvoice(populated) });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -1034,6 +1049,8 @@ export const updateInvoice = async (req, res) => {
       .populate('client', 'name email company')
       .populate('project', 'name')
       .populate('issuedBy', 'name');
+
+    emitLiveEvent('financeUpdated', { id: invoice._id, type: 'invoice' });
 
     res.json({ success: true, invoice: serializeInvoice(populated) });
   } catch (error) {
@@ -1165,6 +1182,9 @@ export const markInvoicePaid = async (req, res) => {
       },
     });
 
+    emitLiveEvent('financeUpdated', { id: invoice._id, type: 'invoice', status: 'paid' });
+    emitLiveEvent('invoicePaid', { id: invoice._id, paidAmount });
+
     res.json({ success: true, message: 'Invoice marked as paid', invoice: serializeInvoice(invoice) });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -1219,6 +1239,8 @@ export const addPartialPaymentToInvoice = async (req, res) => {
       }, req.app.get('io'));
     }
 
+    emitLiveEvent('financeUpdated', { id: invoice._id, type: 'invoice', status: invoice.status });
+
     res.json({ success: true, invoice: serializeInvoice(invoice) });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -1250,6 +1272,8 @@ export const markInvoiceViewed = async (req, res) => {
       link: '/finance',
       metadata: { invoiceId: invoice._id },
     }, req.app.get('io'))));
+
+    emitLiveEvent('financeUpdated', { id: invoice._id, type: 'invoice', status: invoice.status });
 
     res.json({ success: true, invoice: serializeInvoice(invoice) });
   } catch (error) {
@@ -1292,6 +1316,8 @@ export const deleteInvoice = async (req, res) => {
       relatedProject: invoice.project,
       metadata: { total: invoice.total },
     });
+
+    emitLiveEvent('financeUpdated', { id: invoice._id, type: 'invoice', deleted: true });
 
     res.json({ success: true, message: 'Invoice deleted' });
   } catch (error) {
@@ -1611,6 +1637,8 @@ export const createExpense = async (req, res) => {
       metadata: { amount: expense.amount, status: expense.status, transactionType: expense.transactionType },
     });
 
+    emitLiveEvent('financeUpdated', { id: expense._id, type: 'expense' });
+
     res.status(201).json({ success: true, expense });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -1663,6 +1691,8 @@ export const updateExpense = async (req, res) => {
       metadata: { amount: expense.amount, status: expense.status },
     });
 
+    emitLiveEvent('financeUpdated', { id: expense._id, type: 'expense' });
+
     res.json({ success: true, expense: updatedExpense });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -1690,6 +1720,8 @@ export const deleteExpense = async (req, res) => {
       description: `${expense.title} was deleted.`,
     });
 
+    emitLiveEvent('financeUpdated', { id: req.params.id, type: 'expense', deleted: true });
+
     res.json({ success: true, message: 'Expense deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -1709,6 +1741,11 @@ export const approveExpense = async (req, res) => {
     expense.status = action === 'approve' ? 'approved' : 'rejected';
     expense.approvedBy = req.user._id;
     await expense.save();
+
+    emitLiveEvent('financeUpdated', { id: expense._id, type: 'expense', status: expense.status });
+    if (action === 'approve') {
+      emitLiveEvent('expenseApproved', { id: expense._id, amount: expense.amount });
+    }
 
     if (expense.submittedBy?._id) {
       await createNotification({
@@ -1854,7 +1891,7 @@ export const getFinanceSummary = async (req, res) => {
 };
 
 // ---- FINANCE DASHBOARD SUMMARY (for sidebar widget & finance page header) ----
-// Available to superAdmin and manager — aggregates Finance records + expenses + invoices
+// Available to superAdmin and manager â€” aggregates Finance records + expenses + invoices
 
 export const getFinanceDashboardSummary = async (req, res) => {
   try {

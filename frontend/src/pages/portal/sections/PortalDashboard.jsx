@@ -31,7 +31,7 @@ const KPICard = ({ label, value, icon: Icon, color, sub }) => (
   </motion.div>
 );
 
-const fmt = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
+const fmt = (n) => 'â‚¹' + Number(n || 0).toLocaleString('en-IN');
 const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function PortalDashboard({ user, setPendingCount }) {
@@ -71,16 +71,22 @@ export default function PortalDashboard({ user, setPendingCount }) {
       fetchData();
     };
 
-    socket.on('clientUpdated', handleUpdate);
-    socket.on('portalUpdated', handleUpdate);
-    socket.on('trackerUpdated', handleUpdate);
-    socket.on('smmTrackerUpdated', handleUpdate);
+    const portalEvents = [
+      'clientUpdated',
+      'portalUpdated',
+      'trackerUpdated',
+      'smmTrackerUpdated',
+      'taskUpdated',
+      'projectUpdated',
+      'financeUpdated',
+      'invoicePaid',
+      'contentProductionUpdated',
+    ];
+
+    portalEvents.forEach((evt) => socket.on(evt, handleUpdate));
 
     return () => {
-      socket.off('clientUpdated', handleUpdate);
-      socket.off('portalUpdated', handleUpdate);
-      socket.off('trackerUpdated', handleUpdate);
-      socket.off('smmTrackerUpdated', handleUpdate);
+      portalEvents.forEach((evt) => socket.off(evt, handleUpdate));
     };
   }, [socket]);
 
@@ -142,7 +148,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* ── Welcome Banner ── */}
+      {/* â”€â”€ Welcome Banner â”€â”€ */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -161,7 +167,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
               </span>
               {client.company && (
                 <span className="text-white/80 text-xs font-semibold">
-                  • {client.company}
+                  â€¢ {client.company}
                 </span>
               )}
             </div>
@@ -225,7 +231,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         </div>
       </motion.div>
 
-      {/* ── SECTION 1: SMM DELIVERABLES THIS MONTH (Reels, Posts, Stories Planned vs Posted) ── */}
+      {/* â”€â”€ SECTION 1: SMM DELIVERABLES THIS MONTH (Reels, Posts, Stories Planned vs Posted) â”€â”€ */}
       <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div>
@@ -234,7 +240,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                 <Sparkles size={17} />
               </div>
               <h2 className="text-base font-bold text-foreground">
-                SMM Deliverables — {smmMetrics.month} {smmMetrics.year}
+                SMM Deliverables â€” {smmMetrics.month} {smmMetrics.year}
               </h2>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -369,7 +375,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         </div>
       </div>
 
-      {/* ── SECTION 2: PROJECTS & TASK METRICS (Side-by-side) ── */}
+      {/* â”€â”€ SECTION 2: PROJECTS & TASK METRICS (Side-by-side) â”€â”€ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Project Metrics & Status Card */}
         <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
@@ -503,7 +509,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                     <p className="text-xs font-semibold truncate text-foreground">{t.taskTitle || t.title}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {t.taskCategory === 'non_content' ? 'Development / Operations' : 'Content Deliverable'}
-                      {t.dueDate && ` • Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
+                      {t.dueDate && ` â€¢ Due ${new Date(t.dueDate).toLocaleDateString('en-IN')}`}
                     </p>
                   </div>
                   <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
@@ -516,7 +522,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         </div>
       </div>
 
-      {/* ── SECTION 3: CLIENT INVOICES & FINANCE (Strictly Client Scoped) ── */}
+      {/* â”€â”€ SECTION 3: CLIENT INVOICES & FINANCE (Strictly Client Scoped) â”€â”€ */}
       <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2.5">
@@ -614,7 +620,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         )}
       </div>
 
-      {/* ── SECTION: PROPOSALS & CONTRACTS ── */}
+      {/* â”€â”€ SECTION: PROPOSALS & CONTRACTS â”€â”€ */}
       <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
           <div className="flex items-center gap-2.5">
@@ -722,7 +728,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         )}
       </div>
 
-      {/* ── SECTION 4: CLIENT AD BUDGET & CAMPAIGNS ── */}
+      {/* â”€â”€ SECTION 4: CLIENT AD BUDGET & CAMPAIGNS â”€â”€ */}
       {adBudget && (
         <div className="rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
@@ -806,7 +812,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
         </div>
       )}
 
-      {/* ── SECTION 5: SMM MONTHLY TRACKER SHEET (Day-by-Day Client Scope) ── */}
+      {/* â”€â”€ SECTION 5: SMM MONTHLY TRACKER SHEET (Day-by-Day Client Scope) â”€â”€ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 rounded-3xl p-5 sm:p-6 space-y-4 bg-card border border-border shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border/50">
@@ -874,7 +880,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                               {d.postLabel}
                             </span>
                           ) : (
-                            <span className="text-muted-foreground/50 italic">—</span>
+                            <span className="text-muted-foreground/50 italic">â€”</span>
                           )}
                         </td>
                         <td className="py-2.5 px-3 text-center">
@@ -887,7 +893,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-muted-foreground truncate max-w-[140px]">
-                          {d.storyLabel || '—'}
+                          {d.storyLabel || 'â€”'}
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
@@ -929,7 +935,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
                     s.done ? 'bg-emerald-500' : 'bg-muted border border-border text-muted-foreground'
                   }`}
                 >
-                  {s.done ? '✓' : ''}
+                  {s.done ? 'âœ“' : ''}
                 </div>
                 <span className={`text-xs font-medium ${s.done ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
                   {s.label}

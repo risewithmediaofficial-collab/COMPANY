@@ -6,6 +6,7 @@ import WFHRequest from '../models/wfhRequest.model.js';
 import Attendance from '../models/attendance.model.js';
 import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 /**
  * Submit a WFH request
@@ -73,6 +74,8 @@ export const submitWFHRequest = async (req, res) => {
     } catch (notifErr) {
       console.error('WFH notification error:', notifErr);
     }
+
+    emitLiveEvent('attendanceUpdated', { wfhRequest, userId: req.user._id });
 
     res.status(201).json({ 
       success: true, 
@@ -255,6 +258,8 @@ export const approveWFHRequest = async (req, res) => {
       console.error('WFH approval notification error:', notifErr);
     }
 
+    emitLiveEvent('attendanceUpdated', { wfhRequest, userId: wfhRequest.user?._id || wfhRequest.user });
+
     res.json({ 
       success: true, 
       message: 'WFH request approved successfully', 
@@ -317,6 +322,8 @@ export const rejectWFHRequest = async (req, res) => {
     } catch (notifErr) {
       console.error('WFH rejection notification error:', notifErr);
     }
+
+    emitLiveEvent('attendanceUpdated', { wfhRequest, userId: wfhRequest.user?._id || wfhRequest.user });
 
     res.json({ 
       success: true, 

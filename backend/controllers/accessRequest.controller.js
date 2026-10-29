@@ -1,6 +1,7 @@
 import AccessRequest from '../models/accessRequest.model.js';
 import Project from '../models/project.model.js';
 import { createNotification } from '../utils/notification.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 export const createRequest = async (req, res) => {
   try {
@@ -40,10 +41,7 @@ export const createRequest = async (req, res) => {
       link: `/projects/${projectId}`
     });
 
-    const io = req.app.get('io');
-    if (io) {
-      io.emit('accessRequestCreated', request);
-    }
+    emitLiveEvent('accessRequestCreated', request);
 
     res.status(201).json({ success: true, request });
   } catch (error) {
@@ -92,6 +90,11 @@ export const handleRequest = async (req, res) => {
       message: `Your request for project access was ${status}.`,
       link: `/projects/${request.project}`
     });
+
+    emitLiveEvent('accessRequestUpdated', request);
+    if (status === 'approved') {
+      emitLiveEvent('projectUpdated', { projectId: request.project });
+    }
 
     res.status(200).json({ success: true, message: `Request ${status}` });
   } catch (error) {

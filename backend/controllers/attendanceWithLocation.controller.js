@@ -4,6 +4,7 @@
 
 import Attendance from '../models/attendance.model.js';
 import { processClockInWithLocation } from '../services/attendanceLocation.service.js';
+import { emitLiveEvent } from '../utils/socketEmitter.js';
 
 const formatApproxDistanceKm = (distanceKm) => {
   if (!Number.isFinite(distanceKm)) return null;
@@ -29,8 +30,10 @@ export const clockInWithLocation = async (req, res) => {
     const parsedLatitude = latitude === undefined || latitude === null || latitude === '' ? undefined : Number(latitude);
     const parsedLongitude = longitude === undefined || longitude === null || longitude === '' ? undefined : Number(longitude);
     const parsedAccuracy = accuracy === undefined || accuracy === null || accuracy === '' ? undefined : Number(accuracy);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
 
     // Process location verification
     const locationResult = await processClockInWithLocation(
@@ -61,13 +64,16 @@ export const clockInWithLocation = async (req, res) => {
       });
     }
 
-    let attendance = await Attendance.findOne({ user: req.user._id, date: today });
+    let attendance = await Attendance.findOne({
+      user: req.user._id,
+      date: { $gte: startOfToday, $lte: endOfToday },
+    });
     const now = new Date();
 
     if (!attendance) {
       attendance = new Attendance({
         user: req.user._id,
-        date: today,
+        date: startOfToday,
         clockIn: now,
         clockOut: null,
         sessions: [{
@@ -146,6 +152,11 @@ export const clockInWithLocation = async (req, res) => {
 
     await attendance.save();
 
+    emitLiveEvent('attendanceUpdated', {
+      attendance: attendance.toObject(),
+      userId: req.user._id,
+    });
+
     res.json({
       success: true,
       message: 'Clocked in successfully',
@@ -173,13 +184,16 @@ export const clockIn = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let attendance = await Attendance.findOne({ user: req.user._id, date: today });
+    let attendance = await Attendance.findOne({
+      user: req.user._id,
+      date: { $gte: startOfToday, $lte: endOfToday },
+    });
     const now = new Date();
 
     if (!attendance) {
       attendance = new Attendance({
         user: req.user._id,
-        date: today,
+        date: startOfToday,
         clockIn: now,
         clockOut: null,
         sessions: [{ clockIn: now, clockOut: null, durationHours: 0 }],
@@ -217,6 +231,11 @@ export const clockIn = async (req, res) => {
     }
 
     await attendance.save();
+
+    emitLiveEvent('attendanceUpdated', {
+      attendance: attendance.toObject(),
+      userId: req.user._id,
+    });
     res.json({ success: true, message: 'Clocked in successfully', attendance });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -267,6 +286,11 @@ export const clockOut = async (req, res) => {
     attendance.clockOut = now;
     attendance.totalHours = parseFloat((totalMs / 3600000).toFixed(2));
     await attendance.save();
+
+    emitLiveEvent('attendanceUpdated', {
+      attendance: attendance.toObject(),
+      userId: req.user._id,
+    });
 
     res.json({ success: true, message: 'Clocked out successfully', attendance });
   } catch (error) {
@@ -339,6 +363,11 @@ export const manualClockInOut = async (req, res) => {
     }
 
     await attendance.save();
+
+    emitLiveEvent('attendanceUpdated', {
+      attendance: attendance.toObject(),
+      userId: req.user._id,
+    });
 
     res.json({
       success: true,

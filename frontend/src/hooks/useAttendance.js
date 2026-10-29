@@ -31,10 +31,26 @@ export const useClockIn = () => {
       return response.data.attendance;
     },
     onSuccess: (attendance) => {
+      // Optimistically insert/update the attendance record in React Query cache
+      queryClient.setQueriesData({ queryKey: ['attendance'] }, (old) => {
+        if (!old) return old;
+        const records = old.records ? [...old.records] : [];
+        const idx = records.findIndex((r) => r._id === attendance._id);
+        if (idx >= 0) {
+          records[idx] = { ...records[idx], ...attendance };
+        } else {
+          records.unshift(attendance);
+        }
+        return { ...old, records };
+      });
+
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
       queryClient.invalidateQueries({ queryKey: ['hr-employees'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
+
+      window.dispatchEvent(new CustomEvent('attendanceStatusChanged', { detail: attendance }));
+
       const verified = attendance?.locationVerification?.locationVerified || attendance?.locationVerified;
       toast.success(verified ? 'Clocked in with location verified' : 'Clocked in successfully');
     },
@@ -49,11 +65,24 @@ export const useClockOut = () => {
       const response = await api.post('/attendance/clock-out');
       return response.data.attendance;
     },
-    onSuccess: () => {
+    onSuccess: (attendance) => {
+      queryClient.setQueriesData({ queryKey: ['attendance'] }, (old) => {
+        if (!old || !attendance) return old;
+        const records = old.records ? [...old.records] : [];
+        const idx = records.findIndex((r) => r._id === attendance._id);
+        if (idx >= 0) {
+          records[idx] = { ...records[idx], ...attendance };
+        }
+        return { ...old, records };
+      });
+
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       queryClient.invalidateQueries({ queryKey: ['team-attendance-today'] });
       queryClient.invalidateQueries({ queryKey: ['hr-employees'] });
       queryClient.invalidateQueries({ queryKey: ['reports'] });
+
+      window.dispatchEvent(new CustomEvent('attendanceStatusChanged', { detail: attendance || null }));
+
       toast.success('Clocked out successfully');
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Clock out failed'),

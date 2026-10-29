@@ -136,12 +136,12 @@ export const getAdminDashboard = async (req, res) => {
         },
       ]),
       TaskNote.countDocuments({ status: 'pending' }).catch(() => 0),
-      Project.find({}, 'name status priority startDate dueDate endDate progress budget client').populate('client', 'name company'),
-      Task.find({ parent: null }, 'title taskTitle status priority dueDate taskCategory postingPlatforms shootStatus editingStatus reviewStatus postingStatus assignedTo').populate('assignedTo', 'name email avatar role department'),
-      Client.find({}, 'name company status monthlyRetainer service createdAt'),
-      User.find({ isActive: true }, 'name email role department avatar position'),
-      DmVideoShoot.find({}, 'title date status client').catch(() => []),
-      Lead.find({}, 'name company stage value createdAt source'),
+      Project.find({}, 'name status priority startDate dueDate endDate progress budget client').populate('client', 'name company').lean(),
+      Task.find({ parent: null }, 'title taskTitle status priority dueDate taskCategory postingPlatforms shootStatus editingStatus reviewStatus postingStatus assignedTo').populate('assignedTo', 'name email avatar role department').lean(),
+      Client.find({}, 'name company status monthlyRetainer service createdAt').lean(),
+      User.find({ isActive: true }, 'name email role department avatar position').lean(),
+      DmVideoShoot.find({}, 'title date status client').lean().catch(() => []),
+      Lead.find({}, 'name company stage value createdAt source').lean(),
     ]);
 
     // 2. Revenue Month-by-Month Trend (Past 6 Months)
@@ -174,16 +174,17 @@ export const getAdminDashboard = async (req, res) => {
       { $sort: { totalRevenue: -1 } },
       { $limit: 5 },
     ]);
-    const revenueByClient = await Promise.all(
-      rawRevenueByClient.map(async (item) => {
-        const clientDoc = item._id ? await Client.findById(item._id, 'name company') : null;
-        return {
-          clientId: item._id,
-          name: clientDoc?.company || clientDoc?.name || 'Internal / Direct',
-          revenue: item.totalRevenue,
-        };
-      })
-    );
+    const clientMap = new Map();
+    allClients.forEach((c) => clientMap.set(c._id.toString(), c));
+
+    const revenueByClient = rawRevenueByClient.map((item) => {
+      const clientDoc = item._id ? clientMap.get(item._id.toString()) : null;
+      return {
+        clientId: item._id,
+        name: clientDoc?.company || clientDoc?.name || 'Internal / Direct',
+        revenue: item.totalRevenue,
+      };
+    });
 
     // 4. Project Health Analysis
     let onTrackProjects = 0;
@@ -376,9 +377,14 @@ export const getAdminDashboard = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(15);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayAttendance = await Attendance.findOne({ user: req.user._id, date: today });
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+    const todayAttendance = await Attendance.findOne({
+      user: req.user._id,
+      date: { $gte: startOfToday, $lte: endOfToday },
+    }).sort({ createdAt: -1 }).lean();
 
     res.json({
       success: true,
@@ -482,8 +488,10 @@ export const getAdminAuditLogs = async (req, res) => {
 
 export const getEmployeeDashboard = async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
 
     const weekStart = new Date(Date.now() - 7 * 24 * 3600000);
 
@@ -517,13 +525,17 @@ export const getEmployeeDashboard = async (req, res) => {
         .populate('project', 'name')
         .populate('client', 'name company logo')
         .sort({ createdAt: -1 })
-        .limit(20),
+        .limit(20)
+        .lean(),
       Task.countDocuments({
         $or: userTaskOr,
         dueDate: { $lt: new Date() },
         status: { $nin: ['done', 'completed', 'approved'] },
       }),
-      Attendance.findOne({ user: req.user._id, date: today }),
+      Attendance.findOne({
+        user: req.user._id,
+        date: { $gte: startOfToday, $lte: endOfToday },
+      }).sort({ createdAt: -1 }).lean(),
       Task.countDocuments({
         $or: userTaskOr,
         status: { $in: ['done', 'completed', 'approved'] },
