@@ -390,6 +390,18 @@ export const getAttendance = async (req, res) => {
     if (status && status !== 'all') {
       if (status === 'shifts') {
         filter.status = { $ne: 'holiday' };
+      } else if (status === 'work_from_home') {
+        filter.$or = [
+          { status: 'work_from_home' },
+          { requestedStatus: 'work_from_home' },
+        ];
+      } else if (status === 'leave') {
+        filter.$or = [
+          { status: 'leave' },
+          { requestedStatus: 'leave' },
+        ];
+      } else if (status === 'pending') {
+        filter.approvalStatus = 'pending';
       } else {
         filter.status = status;
       }
@@ -412,17 +424,30 @@ export const getAttendance = async (req, res) => {
       .limit(Number(limit))
       .lean();
 
+    // For managers & admins, also fetch all pending attendance & WFH requests
+    let pendingRequests = [];
+    if (isPrivileged) {
+      pendingRequests = await Attendance.find({
+        approvalStatus: 'pending',
+      })
+        .populate('user', 'name avatar department position role email')
+        .sort({ date: 1 })
+        .limit(50)
+        .lean();
+    }
+
     // Compute summary
     const summary = {
       present: records.filter(r => r.status === 'present').length,
       absent: records.filter(r => r.status === 'absent').length,
-      leave: records.filter(r => r.status === 'leave').length,
-      wfh: records.filter(r => r.status === 'work_from_home').length,
+      leave: records.filter(r => r.status === 'leave' || r.requestedStatus === 'leave').length,
+      wfh: records.filter(r => r.status === 'work_from_home' || r.requestedStatus === 'work_from_home').length,
+      pending: records.filter(r => r.approvalStatus === 'pending').length,
       holiday: records.filter(r => r.status === 'holiday').length,
       totalHours: records.reduce((sum, r) => sum + (r.totalHours || 0), 0).toFixed(2),
     };
 
-    res.json({ success: true, records, summary });
+    res.json({ success: true, records, summary, pendingRequests });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -527,13 +552,16 @@ export const assignHoliday = async (req, res) => {
     holidayDate.setHours(0, 0, 0, 0);
 
     const User = (await import('../models/user.model.js')).default;
-    const users = await User.find({
-      organizationId: req.user.organizationId,
+    const userQuery = {
       role: { $nin: ['client', 'referral'] },
       isActive: true,
-    });
+    };
+    if (req.user.organizationId && req.user.role !== 'superAdmin' && req.user.role !== 'admin') {
+      userQuery.organizationId = req.user.organizationId;
+    }
+    const users = await User.find(userQuery);
 
-    const assignerRole = req.user.role === 'superAdmin' ? 'Super Admin' : 'Manager';
+    const assignerRole = req.user.role === 'superAdmin' ? 'Super Admin' : (req.user.role === 'admin' ? 'Admin' : 'Manager');
     const reasonText = notes || 'Company Official Holiday';
 
     const promises = users.map(async (userObj) => {
@@ -770,7 +798,31 @@ export const submitWFH = async (req, res) => {
       isApproved: isAdminOrManager,
       approvedBy: isAdminOrManager ? req.user._id : undefined,
       appliedAt: new Date(),
+      wfhApprovedForDate: isAdminOrManager,
     };
+
+    // Keep WFHRequest model in sync if present
+    try {
+      const WFHRequest = (await import('../models/wfhRequest.model.js')).default;
+      const wfhReq = await WFHRequest.findOneAndUpdate(
+        { user: req.user._id, date: wfhDate },
+        {
+          user: req.user._id,
+          date: wfhDate,
+          reason: reasonText.trim(),
+          status: isAdminOrManager ? 'approved' : 'pending',
+          department: req.user.department,
+          reviewedBy: isAdminOrManager ? req.user._id : undefined,
+          reviewedAt: isAdminOrManager ? new Date() : undefined,
+        },
+        { upsert: true, new: true }
+      );
+      if (wfhReq) {
+        updateObj.wfhRequestId = wfhReq._id;
+      }
+    } catch (wfhErr) {
+      // Non-blocking sync
+    }
 
     if (isAdminOrManager) {
       updateObj.status = 'work_from_home';
@@ -837,6 +889,9 @@ export const approveOrRejectAttendanceRequest = async (req, res) => {
       if (attendance.requestedStatus && attendance.requestedStatus !== 'none') {
         attendance.status = attendance.requestedStatus;
       }
+      if (attendance.status === 'work_from_home' || attendance.requestedStatus === 'work_from_home') {
+        attendance.wfhApprovedForDate = true;
+      }
       if (attendance.status === 'absent') {
         attendance.clockIn = null;
         attendance.clockOut = null;
@@ -848,6 +903,23 @@ export const approveOrRejectAttendanceRequest = async (req, res) => {
       attendance.isApproved = false;
       attendance.approvedBy = req.user._id;
       attendance.rejectionReason = rejectionReason || 'Request rejected by manager.';
+      if (attendance.status === 'work_from_home' && !attendance.clockIn) {
+        attendance.status = 'absent';
+      }
+      attendance.wfhApprovedForDate = false;
+    }
+
+    if (attendance.wfhRequestId) {
+      try {
+        const WFHRequest = (await import('../models/wfhRequest.model.js')).default;
+        await WFHRequest.findByIdAndUpdate(attendance.wfhRequestId, {
+          status: action === 'approve' ? 'approved' : 'rejected',
+          reviewedBy: req.user._id,
+          reviewedAt: new Date(),
+        });
+      } catch (err) {
+        console.error('Error updating linked WFHRequest:', err);
+      }
     }
 
     await attendance.save();

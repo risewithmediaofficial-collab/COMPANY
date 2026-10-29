@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useState, useCallback } from 'react';
+import React, { Fragment, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Calendar,
@@ -78,6 +78,13 @@ const Attendance = () => {
 
   // Manager View Controls vs Personal View vs EOD Reports
   const [viewTab, setViewTab] = useState(isAdmin ? 'team' : 'personal'); // 'team' | 'eod' | 'personal'
+  const hasUserChangedTab = useRef(false);
+
+  useEffect(() => {
+    if (isAdmin && !hasUserChangedTab.current && viewTab === 'personal') {
+      setViewTab('team');
+    }
+  }, [isAdmin, viewTab]);
   const [selectedUser, setSelectedUser] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
@@ -229,6 +236,22 @@ const Attendance = () => {
   }, []);
 
   const rawRecords = data?.records || [];
+
+  const pendingApprovals = useMemo(() => {
+    const serverPending = data?.pendingRequests || [];
+    const localPending = rawRecords.filter((r) => r.approvalStatus === 'pending');
+    const map = new Map();
+    serverPending.forEach((r) => map.set(r._id?.toString(), r));
+    localPending.forEach((r) => map.set(r._id?.toString(), r));
+    if (Array.isArray(todayTeamActivity)) {
+      todayTeamActivity.forEach((item) => {
+        if (item.isPending && item.attendance?._id) {
+          map.set(item.attendance._id.toString(), item.attendance);
+        }
+      });
+    }
+    return Array.from(map.values());
+  }, [data?.pendingRequests, rawRecords, todayTeamActivity]);
   const records = useMemo(() => {
     if (!searchQuery.trim()) return rawRecords;
     const query = searchQuery.toLowerCase();
@@ -726,7 +749,7 @@ const Attendance = () => {
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
             <div className="flex items-center gap-2 bg-secondary/30 p-1.5 rounded-2xl border border-border overflow-x-auto custom-scrollbar max-w-full">
               <button
-                onClick={() => { setViewTab('team'); setSelectedUser('all'); }}
+                onClick={() => { hasUserChangedTab.current = true; setViewTab('team'); setSelectedUser('all'); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
                   viewTab === 'team'
                     ? 'bg-card text-foreground shadow-sm border border-border'
@@ -738,7 +761,7 @@ const Attendance = () => {
               </button>
 
               <button
-                onClick={() => { setViewTab('eod'); }}
+                onClick={() => { hasUserChangedTab.current = true; setViewTab('eod'); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
                   viewTab === 'eod'
                     ? 'bg-card text-foreground shadow-sm border border-border'
@@ -755,7 +778,7 @@ const Attendance = () => {
               </button>
 
               <button
-                onClick={() => { setViewTab('personal'); setSelectedUser(user?._id); }}
+                onClick={() => { hasUserChangedTab.current = true; setViewTab('personal'); setSelectedUser(user?._id); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shrink-0 min-h-[38px] ${
                   viewTab === 'personal'
                     ? 'bg-card text-foreground shadow-sm border border-border'
@@ -787,6 +810,97 @@ const Attendance = () => {
               </div>
             </div>
           </div>
+
+          {/* Dedicated Pending Approvals Action Banner for Admin & Super Admin */}
+          {isAdmin && pendingApprovals.length > 0 && (
+            <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/5 border-2 border-amber-500/40 rounded-3xl p-5 shadow-sm space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2.5 text-amber-800 dark:text-amber-300 font-extrabold text-sm sm:text-base">
+                  <span className="flex h-3 w-3 rounded-full bg-amber-500 animate-ping" />
+                  <AlertCircle size={20} className="text-amber-600 dark:text-amber-400" />
+                  <span>Action Required: {pendingApprovals.length} Pending WFH / Leave Request{pendingApprovals.length > 1 ? 's' : ''}</span>
+                </div>
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-200 border border-amber-500/30">
+                  Awaiting Review
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                {pendingApprovals.map((req) => {
+                  const reqDateStr = new Date(req.date).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                  const isWFH = req.requestedStatus === 'work_from_home' || req.status === 'work_from_home';
+                  return (
+                    <div key={req._id} className="bg-card p-4 rounded-2xl border border-amber-500/30 shadow-xs flex flex-col justify-between gap-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-bold text-primary text-xs uppercase overflow-hidden border border-primary/20">
+                            {req.user?.avatar ? (
+                              <img src={getAssetUrl(req.user.avatar)} alt={req.user.name} className="h-full w-full object-cover" />
+                            ) : (
+                              (req.user?.name || req.user?.email || 'E').charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-foreground text-xs truncate">
+                              {req.user?.name || req.user?.email || 'Employee'}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground truncate">
+                              {req.user?.department || req.user?.position || req.user?.role || ''}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase shrink-0 border ${
+                          isWFH
+                            ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30'
+                            : 'bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                        }`}>
+                          {isWFH ? '🏠 WFH Request' : '🏖️ Leave Request'}
+                        </span>
+                      </div>
+
+                      <div className="text-xs bg-secondary/30 p-2.5 rounded-xl text-foreground/90 space-y-1 border border-border/50">
+                        <div className="font-semibold text-primary flex items-center gap-1.5 text-[11px]">
+                          <Calendar size={13} /> Requested Date: {reqDateStr}
+                        </div>
+                        {req.notes && (
+                          <div className="text-[11px] text-muted-foreground italic line-clamp-2">
+                            "{req.notes}"
+                          </div>
+                        )}
+                        {req.appliedAt && (
+                          <div className="text-[10px] text-muted-foreground/80 flex items-center gap-1 pt-0.5">
+                            <Clock size={10} /> Applied: {new Date(req.appliedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {formatTime(req.appliedAt)}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => approveAttendanceMutation.mutate({ id: req._id, action: 'approve' })}
+                          disabled={approveAttendanceMutation.isPending}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                        >
+                          <CheckCircle2 size={14} /> Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const reason = window.prompt('Rejection reason (optional):');
+                            approveAttendanceMutation.mutate({ id: req._id, action: 'reject', rejectionReason: reason || '' });
+                          }}
+                          disabled={approveAttendanceMutation.isPending}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                        >
+                          <XCircle size={14} /> Reject
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Today's Live Clock-In List Panel for Manager/Admin */}
           {viewTab === 'team' && (
@@ -889,6 +1003,28 @@ const Attendance = () => {
                           Cutoff 10:30 AM
                         </span>
                       ) : null}
+
+                      {isAdmin && item.isPending && item.attendance?._id && (
+                        <div className="flex items-center gap-1 mt-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => approveAttendanceMutation.mutate({ id: item.attendance._id, action: 'approve' })}
+                            className="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold shadow-2xs cursor-pointer"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const reason = window.prompt('Rejection reason (optional):');
+                              approveAttendanceMutation.mutate({ id: item.attendance._id, action: 'reject', rejectionReason: reason || '' });
+                            }}
+                            className="px-2 py-0.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold shadow-2xs cursor-pointer"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -903,6 +1039,7 @@ const Attendance = () => {
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mr-1"><Filter size={12} /> Quick Filter:</span>
               {[
                 { value: 'all', label: '\u{1F518} All', activeClass: 'bg-primary text-primary-foreground border-primary' },
+                { value: 'pending', label: `\u23F3 Pending Approvals (${pendingApprovals.length})`, activeClass: 'bg-amber-600 text-white border-amber-600' },
                 { value: 'present', label: '\u2705 Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
                 { value: 'holiday', label: '\u{1F4C5} Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
                 { value: 'leave', label: '\u{1F3D6}\uFE0F Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
@@ -939,7 +1076,7 @@ const Attendance = () => {
                     >
                       <option value="all">All Employees ({users.length})</option>
                       {users
-                        .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
+                        .filter((u) => ['employee', 'manager', 'admin', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
                         .map((u) => (
                           <option key={u._id} value={u._id}>
                             {u.name || u.email} {u.department ? `(${u.department})` : `(${u.role})`}
@@ -1115,7 +1252,7 @@ const Attendance = () => {
                 >
                   <option value="all">All Team Members ({users.length})</option>
                   {users
-                    .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
+                    .filter((u) => ['employee', 'manager', 'admin', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
                     .map((u) => (
                       <option key={u._id} value={u._id}>
                         {u.name || u.email} {u.department ? `(${u.department})` : `(${u.role})`}
@@ -1388,6 +1525,7 @@ const Attendance = () => {
                 <div className="flex flex-wrap items-center gap-1.5">
                   {[
                     { value: 'all', label: '\u{1F518} All', activeClass: 'bg-primary text-primary-foreground border-primary' },
+                    { value: 'pending', label: `\u23F3 Pending (${pendingApprovals.length})`, activeClass: 'bg-amber-600 text-white border-amber-600' },
                     { value: 'present', label: '\u2705 Present', activeClass: 'bg-emerald-600 text-white border-emerald-600' },
                     { value: 'holiday', label: '\u{1F4C5} Holidays', activeClass: 'bg-blue-600 text-white border-blue-600' },
                     { value: 'leave', label: '\u{1F3D6}\uFE0F Leaves', activeClass: 'bg-rose-600 text-white border-rose-600' },
@@ -1427,6 +1565,8 @@ const Attendance = () => {
                     {records.map((record) => {
                       const isLeaveRecord = record.status === 'leave' || record.requestedStatus === 'leave';
                       const isApprovedLeave = isLeaveRecord && (record.approvalStatus === 'approved' || (record.status === 'leave' && !record.approvalStatus));
+                      const isWFHRecord = record.status === 'work_from_home' || record.requestedStatus === 'work_from_home';
+                      const isApprovedWFH = isWFHRecord && (record.approvalStatus === 'approved' || (record.status === 'work_from_home' && !record.approvalStatus));
 
                       return (
                         <tr
@@ -1540,6 +1680,11 @@ const Attendance = () => {
                                 <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                                   <CheckCircle2 size={11} />
                                   Leave Approved ✅
+                                </span>
+                              ) : isApprovedWFH ? (
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-purple-500/15 text-purple-700 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1">
+                                  <CheckCircle2 size={11} />
+                                  WFH Approved ✅
                                 </span>
                               ) : record.approvalStatus === 'rejected' ? (
                                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center gap-1">
@@ -1791,7 +1936,7 @@ const Attendance = () => {
                   >
                     <option value="">Myself ({user?.name || user?.email})</option>
                     {users
-                      .filter((u) => ['employee', 'manager', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
+                      .filter((u) => ['employee', 'manager', 'admin', 'superAdmin', 'organizationOwner', 'accountManager'].includes(u.role))
                       .map((u) => (
                         <option key={u._id} value={u._id}>
                           {u.name || u.email} ({u.role})

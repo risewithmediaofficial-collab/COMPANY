@@ -1340,16 +1340,16 @@ const Dashboard = () => {
                         {task.title || task.taskTitle}
                       </p>
                       <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground">
-                            🏢 {task.client?.company || task.client?.name || task.clientName}
+                        {(task.client?.company || task.client?.name || task.clientName) && (
                           <span className="font-medium text-foreground/75">
                             🏢 {task.client?.company || task.client?.name || task.clientName}
                           </span>
-                        ) : null}
-                            📁 {task.project?.name || task.projectName}
+                        )}
+                        {(task.project?.name || task.projectName) && (
                           <span className="font-medium text-foreground/75">
                             📁 {task.project?.name || task.projectName}
                           </span>
-                        ) : null}
+                        )}
                         {task.createdAt && (
                           <span className="inline-flex items-center gap-1 text-primary font-medium bg-primary/10 px-2 py-0.5 rounded-md">
                             📅 Created: {new Date(task.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
