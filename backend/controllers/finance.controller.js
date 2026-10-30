@@ -1891,7 +1891,7 @@ export const getFinanceSummary = async (req, res) => {
 };
 
 // ---- FINANCE DASHBOARD SUMMARY (for sidebar widget & finance page header) ----
-// Available to superAdmin and manager â€” aggregates Finance records + expenses + invoices
+// Available to superAdmin and manager — aggregates Finance records + expenses + invoices
 
 export const getFinanceDashboardSummary = async (req, res) => {
   try {

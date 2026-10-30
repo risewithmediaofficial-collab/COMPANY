@@ -308,10 +308,10 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
             <div>
               <span className="text-xs font-black uppercase tracking-wider block">
                 {approvalStatus === 'approved'
-                  ? 'Leave Approved âœ…'
+                  ? 'Leave Approved ✅'
                   : approvalStatus === 'rejected'
-                  ? 'Leave Rejected âŒ'
-                  : 'Leave Pending Approval â³'}
+                  ? 'Leave Rejected ❌'
+                  : 'Leave Pending Approval ⏳'}
               </span>
               <p className="text-[11px] opacity-90 font-medium">
                 {approvalStatus === 'approved'
@@ -459,7 +459,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                 >
                   Mark Absent
                 </button>
-                <span className="text-muted-foreground">â€¢</span>
+                <span className="text-muted-foreground">•</span>
                 <button
                   type="button"
                   onClick={() => setShowLeaveModal(true)}
@@ -535,7 +535,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
                   <span className="font-bold text-foreground/80 text-[11px]">Session #{idx + 1}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-emerald-600 font-bold">{formatTime(s.clockIn)}</span>
-                    <span className="text-muted-foreground">â†’</span>
+                    <span className="text-muted-foreground">→</span>
                     <span className="text-amber-600 font-bold">{s.clockOut ? formatTime(s.clockOut) : 'Active'}</span>
                     <span className="text-primary font-bold text-[11px] bg-secondary px-1.5 py-0.5 rounded">
                       {s.durationHours ? `${s.durationHours.toFixed(2)}h` : s.clockOut ? '0.00h' : 'Active'}

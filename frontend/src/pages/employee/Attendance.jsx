@@ -237,21 +237,6 @@ const Attendance = () => {
 
   const rawRecords = data?.records || [];
 
-  const pendingApprovals = useMemo(() => {
-    const serverPending = data?.pendingRequests || [];
-    const localPending = rawRecords.filter((r) => r.approvalStatus === 'pending');
-    const map = new Map();
-    serverPending.forEach((r) => map.set(r._id?.toString(), r));
-    localPending.forEach((r) => map.set(r._id?.toString(), r));
-    if (Array.isArray(todayTeamActivity)) {
-      todayTeamActivity.forEach((item) => {
-        if (item.isPending && item.attendance?._id) {
-          map.set(item.attendance._id.toString(), item.attendance);
-        }
-      });
-    }
-    return Array.from(map.values());
-  }, [data?.pendingRequests, rawRecords, todayTeamActivity]);
   const records = useMemo(() => {
     if (!searchQuery.trim()) return rawRecords;
     const query = searchQuery.toLowerCase();
@@ -367,6 +352,22 @@ const Attendance = () => {
       absent,
     };
   }, [users, todayTeamActivity]);
+
+  const pendingApprovals = useMemo(() => {
+    const serverPending = data?.pendingRequests || [];
+    const localPending = rawRecords.filter((r) => r.approvalStatus === 'pending');
+    const map = new Map();
+    serverPending.forEach((r) => map.set(r._id?.toString(), r));
+    localPending.forEach((r) => map.set(r._id?.toString(), r));
+    if (Array.isArray(todayTeamActivity)) {
+      todayTeamActivity.forEach((item) => {
+        if (item.isPending && item.attendance?._id) {
+          map.set(item.attendance._id.toString(), item.attendance);
+        }
+      });
+    }
+    return Array.from(map.values());
+  }, [data?.pendingRequests, rawRecords, todayTeamActivity]);
 
   // Filtered employee profile info & detailed performance metrics
   const selectedEmployeeInfo = useMemo(() => {

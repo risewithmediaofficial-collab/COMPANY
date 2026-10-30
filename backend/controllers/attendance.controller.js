@@ -650,7 +650,7 @@ export const submitAbsent = async (req, res) => {
             recipient: mgr._id,
             sender: req.user._id,
             type: 'attendance',
-            title: 'Absence Request Pending Approval âš ï¸',
+            title: 'Absence Request Pending Approval ⚠️',
             message: `${req.user.name} requested Absent for ${formattedDate}: "${reasonText.trim()}"`,
             link: '/attendance',
           });
@@ -936,7 +936,7 @@ export const approveOrRejectAttendanceRequest = async (req, res) => {
           recipient: attendance.user._id,
           sender: req.user._id,
           type: 'attendance',
-          title: action === 'approve' ? `Attendance Request Approved âœ…` : `Attendance Request Rejected âŒ`,
+          title: action === 'approve' ? 'Attendance Request Approved ✅' : 'Attendance Request Rejected ❌',
           message: action === 'approve'
             ? `Your request for ${statusLabel} on ${formattedDate} was approved by ${req.user.name}.`
             : `Your request for ${statusLabel} on ${formattedDate} was rejected: "${rejectionReason || 'No reason provided'}"`,
