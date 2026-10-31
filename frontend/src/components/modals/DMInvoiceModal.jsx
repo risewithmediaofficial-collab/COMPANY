@@ -108,6 +108,8 @@ export const DMInvoiceModal = ({
   const handleRemoveExpenseRow = (index) => {
     const updated = expensesList.filter((_, i) => i !== index);
     setExpensesList(updated);
+    const sum = updated.reduce((a, c) => a + Number(c.amount || 0), 0);
+    setTotalAmount(sum);
   };
 
   const handleExpenseChange = (index, field, value) => {

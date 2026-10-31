@@ -172,9 +172,10 @@ export const computeFinanceKPIs = async ({ startDate, endDate, clientId, project
   const payments = await Payment.find(paymentQuery).lean();
   const cashReceived = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
 
-  // 3. Recognized Expenses (posted/approved expenses in period)
+  // 3. Recognized Expenses (posted/approved expenses in period, excluding salary payouts to prevent double-counting with SalaryRecord)
   const expenseQuery = {
     approvalStatus: { $ne: 'rejected' },
+    category: { $ne: 'salary' },
   };
   if (matchRange.$gte || matchRange.$lte) {
     expenseQuery.date = matchRange;
@@ -485,9 +486,10 @@ export const computeSixMonthCashForecast = async ({ scenario = 'expected' } = {}
     }
   });
 
-  // Estimated overhead and vendor bills (past 30 days actual recorded expenses)
+  // Estimated overhead and vendor bills (past 30 days actual recorded expenses, excluding salary payouts)
   const pastExpenses = await Expense.find({
     paymentStatus: 'paid',
+    category: { $ne: 'salary' },
     date: { $gte: new Date(Date.now() - 30 * 86400000) },
   }).lean();
   const estimatedMonthlyOverhead = pastExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
@@ -597,13 +599,14 @@ export const reconcileAccountBalance = async (accountId, options = {}) => {
   const founderInflowTotal = founderInflows.reduce((sum, f) => sum + Number(f.amount || 0), 0);
 
   // Outflows:
-  // 1. Paid Expenses (accurately counting partial expense payments, per-payment funding accounts, and legacy records)
+  // 1. Paid Expenses (accurately counting partial expense payments, per-payment funding accounts, and legacy records, excluding salary to avoid double counting with SalaryRecord)
   const expenseMatch = {
     $or: [
       { 'payments.fundingAccount': accountId },
       { fundingAccount: accountId },
     ],
     approvalStatus: { $ne: 'rejected' },
+    category: { $ne: 'salary' },
   };
   const expenseQuery = Expense.find(expenseMatch);
   if (session) expenseQuery.session(session);

@@ -158,14 +158,25 @@ invoiceSchema.pre('save', async function (next) {
   if (this.taxType === 'exempt') {
     this.taxRate = 0;
     this.taxAmount = 0;
+    this.total = Math.max(0, this.subtotal - (this.discount || 0));
+  } else if (this.taxType === 'inclusive') {
+    const rate = Number(this.taxRate || 18);
+    this.taxRate = rate;
+    const baseSubtotal = this.subtotal / (1 + rate / 100);
+    this.taxAmount = Math.round((this.subtotal - baseSubtotal) * 100) / 100;
+    this.total = Math.max(0, this.subtotal - (this.discount || 0));
   } else if (this.taxType === 'gst_18' && !this.taxRate) {
     this.taxRate = 18;
-    this.taxAmount = (this.subtotal * 18) / 100;
+    const taxable = Math.max(0, this.subtotal - (this.discount || 0));
+    this.taxAmount = Math.round(((taxable * 18) / 100) * 100) / 100;
+    this.total = taxable + this.taxAmount;
   } else {
-    this.taxAmount = (this.subtotal * (this.taxRate || 0)) / 100;
+    const rate = Number(this.taxRate || 0);
+    const taxable = Math.max(0, this.subtotal - (this.discount || 0));
+    this.taxAmount = Math.round(((taxable * rate) / 100) * 100) / 100;
+    this.total = taxable + this.taxAmount;
   }
   this.tax = this.taxAmount;
-  this.total = this.subtotal + this.taxAmount - (this.discount || 0);
   this.totalAmount = this.total;
   this.balanceAmount = Math.max(this.total - Number(this.paidAmount || 0), 0);
   this.invoiceDate = this.invoiceDate || this.issueDate;

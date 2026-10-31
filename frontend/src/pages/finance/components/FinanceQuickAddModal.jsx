@@ -221,10 +221,15 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     if (invForm.taxType === 'exclusive' && invoiceSubtotal > 0) {
       return Math.round(invoiceSubtotal * (Number(invForm.taxRate || 18) / 100));
     }
+    if (invForm.taxType === 'inclusive' && invoiceSubtotal > 0) {
+      const rate = Number(invForm.taxRate || 18);
+      const baseSubtotal = invoiceSubtotal / (1 + rate / 100);
+      return Math.round(invoiceSubtotal - baseSubtotal);
+    }
     return 0;
   }, [invoiceSubtotal, invForm.taxType, invForm.taxRate]);
 
-  const invoiceTotal = invoiceSubtotal + invoiceTaxAmount;
+  const invoiceTotal = invForm.taxType === 'inclusive' ? invoiceSubtotal : invoiceSubtotal + invoiceTaxAmount;
 
   // Handlers
   const handleInvoiceSubmit = async (e) => {
@@ -482,6 +487,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
                 >
                   <option value="exclusive">GST 18% Exclusive</option>
+                  <option value="inclusive">GST 18% Inclusive</option>
                   <option value="exempt">Tax Exempt (0%)</option>
                 </select>
               </div>
@@ -624,7 +630,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 {/* Subtotal & Totals Strip */}
                 <div className="pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-muted-foreground font-medium">
                   <span>Subtotal: <strong className="text-foreground">{formatINR(invoiceSubtotal)}</strong></span>
-                  <span>Tax ({invForm.taxType === 'exclusive' ? `${invForm.taxRate}% GST` : 'Exempt'}): <strong className="text-foreground">{formatINR(invoiceTaxAmount)}</strong></span>
+                  <span>Tax ({invForm.taxType === 'exclusive' ? `${invForm.taxRate || 18}% GST Exclusive` : invForm.taxType === 'inclusive' ? `${invForm.taxRate || 18}% GST Inclusive` : 'Exempt'}): <strong className="text-foreground">{formatINR(invoiceTaxAmount)}</strong></span>
                   <span className="text-base font-extrabold text-primary">Total: {formatINR(invoiceTotal)}</span>
                 </div>
               </div>

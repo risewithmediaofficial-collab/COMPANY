@@ -78,6 +78,7 @@ export const getFinanceOverview = async (req, res) => {
         {
           $match: {
             approvalStatus: { $ne: 'rejected' },
+            category: { $ne: 'salary' },
             date: { $gte: sixMonthsAgo, $lte: endOfCurrentMonth },
           },
         },
@@ -822,8 +823,24 @@ export const deleteModuleInvoice = async (req, res) => {
     const invoice = await Invoice.findById(id);
     if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
 
+    const linkedPayments = await Payment.find({ invoice: invoice._id });
+    const affectedAccounts = new Set();
+    linkedPayments.forEach((p) => {
+      if (p.destinationAccount) affectedAccounts.add(p.destinationAccount.toString());
+    });
+
     await Payment.deleteMany({ invoice: invoice._id });
+    if (Number(invoice.paidAmount || 0) > 0 && invoice.client) {
+      await Client.findByIdAndUpdate(invoice.client, { $inc: { totalRevenue: -Number(invoice.paidAmount || 0) } });
+    }
+
     await invoice.deleteOne();
+
+    for (const accId of affectedAccounts) {
+      await reconcileAccountBalance(accId);
+    }
+
+    emitLiveEvent('financeUpdated', { id: invoice._id, type: 'invoice', deleted: true });
 
     res.json({ success: true, message: 'Invoice deleted successfully' });
   } catch (error) {
@@ -1004,6 +1021,14 @@ export const recordClientPaymentReceipt = async (req, res) => {
       // Reconcile account balance inside transaction
       if (destinationAccount) {
         await reconcileAccountBalance(destinationAccount, { session, persist: true });
+      }
+
+      // Sync Client total revenue for applied portion
+      const appliedToRevenue = receiptAmount - unappliedCredit;
+      if (appliedToRevenue > 0 && client) {
+        const clientUpdate = Client.findByIdAndUpdate(client, { $inc: { totalRevenue: appliedToRevenue } });
+        if (session) clientUpdate.session(session);
+        await clientUpdate;
       }
 
       // Record financial audit inside transaction
@@ -1194,6 +1219,10 @@ export const deletePaymentReceipt = async (req, res) => {
           );
         }
         await inv.save();
+
+        if (appliedAmt > 0 && payment.client) {
+          await Client.findByIdAndUpdate(payment.client, { $inc: { totalRevenue: -appliedAmt } });
+        }
       }
     }
 
@@ -1859,13 +1888,18 @@ export const deleteModuleExpense = async (req, res) => {
     const expense = await Expense.findById(id);
     if (!expense) return res.status(404).json({ success: false, message: 'Expense not found' });
 
-    const fundingAccount = expense.fundingAccount;
-    const wasPaid = expense.paymentStatus === 'paid';
+    const affectedAccounts = new Set();
+    if (expense.fundingAccount) affectedAccounts.add(expense.fundingAccount.toString());
+    if (Array.isArray(expense.payments)) {
+      expense.payments.forEach((p) => {
+        if (p.fundingAccount) affectedAccounts.add(p.fundingAccount.toString());
+      });
+    }
 
     await expense.deleteOne();
 
-    if (fundingAccount && wasPaid) {
-      await reconcileAccountBalance(fundingAccount);
+    for (const accId of affectedAccounts) {
+      await reconcileAccountBalance(accId);
     }
 
     res.json({ success: true, message: 'Expense deleted successfully' });

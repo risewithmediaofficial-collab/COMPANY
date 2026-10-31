@@ -207,7 +207,7 @@ export default function PayrollSection() {
         deductionReason: form.deductionReason,
         netSalary: Number(form.netSalary),
         status: form.status,
-        paymentAccount: undefined,
+        paymentAccount: form.paymentAccount || undefined,
         notes: form.notes,
       };
 
@@ -239,7 +239,7 @@ export default function PayrollSection() {
     try {
       await payPayroll.mutateAsync({
         id: payModalRecord._id,
-        paymentAccount: undefined,
+        paymentAccount: fundingAccount || undefined,
       });
       setPayModalRecord(null);
     } catch (err) {}
@@ -887,6 +887,25 @@ export default function PayrollSection() {
                 <div className="text-xs text-emerald-700/80 dark:text-emerald-400">
                   Status will update to <strong>Paid</strong> for {payModalRecord?.month} {payModalRecord?.year}.
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1.5">Disbursement Account</label>
+                <select
+                  value={fundingAccount}
+                  onChange={(e) => setFundingAccount(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs cursor-pointer"
+                >
+                  <option value="">Select Account (Optional)</option>
+                  {accounts.map((acc) => (
+                    <option key={acc._id} value={acc._id}>
+                      {acc.accountName} ({acc.accountType}) - Balance: {formatINR(acc.currentBalance || 0)}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Selecting an account will automatically reconcile and deduct the salary amount from the account balance.
+                </p>
               </div>
             </div>
 

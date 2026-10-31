@@ -349,7 +349,7 @@ const recordPayment = async ({
   notes: notes || '',
 });
 
-const maybeCreateReferralEarning = async ({ invoice, io }) => {
+const maybeCreateReferralEarning = async ({ invoice, amount, io }) => {
   const referral = await Referral.findOne({
     client: invoice.client,
     status: { $in: ['qualified', 'converted', 'approved'] },
@@ -358,16 +358,17 @@ const maybeCreateReferralEarning = async ({ invoice, io }) => {
   if (!referral) return null;
 
   let earnedAmount = 0;
+  const paymentChunk = amount !== undefined && Number(amount) > 0 ? Number(amount) : Number(invoice.paidAmount || invoice.total || 0);
 
   if (referral.commissionType === 'monthly') {
     earnedAmount = Number(referral.monthlyAmount || 0);
     referral.commissionAmount = Number(referral.commissionAmount || 0) + earnedAmount;
   } else {
-    earnedAmount = Number(invoice.paidAmount || invoice.total || 0) * (Number(referral.commissionRate || 0) / 100);
+    earnedAmount = paymentChunk * (Number(referral.commissionRate || 0) / 100);
     referral.commissionAmount = Number(referral.commissionAmount || 0) + earnedAmount;
   }
 
-  referral.dealValue = Number(referral.dealValue || 0) + Number(invoice.paidAmount || invoice.total || 0);
+  referral.dealValue = Number(referral.dealValue || 0) + paymentChunk;
   referral.status = 'approved';
   await referral.save();
 
@@ -1127,26 +1128,45 @@ export const markInvoicePaid = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invoice is already marked as paid' });
     }
 
-    const paidAmount = Number(req.body.paidAmount || invoice.total || 0);
-    invoice.status = 'paid';
-    invoice.paidDate = new Date();
-    invoice.paidAmount = paidAmount;
-    invoice.balanceAmount = Math.max(Number(invoice.totalAmount || invoice.total || 0) - paidAmount, 0);
+    const currentPaid = Number(invoice.paidAmount || 0);
+    const invoiceTotal = Number(invoice.totalAmount || invoice.total || 0);
+    const remainingBalance = Math.max(0, invoiceTotal - currentPaid);
+
+    // If caller specified an amount, use it (capped at remaining balance); otherwise settle remaining balance
+    const paymentAmount = req.body.paidAmount !== undefined && Number(req.body.paidAmount) > 0
+      ? Math.min(Number(req.body.paidAmount), remainingBalance)
+      : remainingBalance;
+
+    const newTotalPaid = currentPaid + paymentAmount;
+    invoice.paidAmount = newTotalPaid;
+    invoice.balanceAmount = Math.max(0, invoiceTotal - newTotalPaid);
+    invoice.status = invoice.balanceAmount === 0 ? 'paid' : 'partially_paid';
+    invoice.paidDate = req.body.paidDate ? new Date(req.body.paidDate) : new Date();
     invoice.paymentMethod = req.body.paymentMethod || invoice.paymentMethod || 'manual';
     invoice.paymentReference = req.body.paymentReference || invoice.paymentReference || '';
+
+    invoice.payments = invoice.payments || [];
+    invoice.payments.push({
+      amount: paymentAmount,
+      method: invoice.paymentMethod,
+      reference: invoice.paymentReference,
+      notes: req.body.notes || 'Full settlement',
+      paidAt: invoice.paidDate,
+    });
+
     await invoice.save();
 
     await Promise.all([
       recordPayment({
         invoice,
-        amount: paidAmount,
+        amount: paymentAmount,
         method: invoice.paymentMethod,
         reference: invoice.paymentReference,
         notes: req.body.notes,
         recordedBy: req.user._id,
       }),
-      Client.findByIdAndUpdate(invoice.client?._id || invoice.client, { $inc: { totalRevenue: paidAmount } }),
-      maybeCreateReferralEarning({ invoice, io: req.app.get('io') }),
+      Client.findByIdAndUpdate(invoice.client?._id || invoice.client, { $inc: { totalRevenue: paymentAmount } }),
+      maybeCreateReferralEarning({ invoice, amount: paymentAmount, io: req.app.get('io') }),
     ]);
 
     const finance = await Finance.findOne(withWorkspaceScope(req, { clientId: invoice.client?._id || invoice.client, projectId: invoice.project }));
@@ -1210,16 +1230,29 @@ export const addPartialPaymentToInvoice = async (req, res) => {
     invoice.paidDate = req.body.paymentDate || new Date();
     invoice.status = invoice.balanceAmount === 0 ? 'paid' : 'partially_paid';
     if (invoice.status === 'paid') invoice.viewedByClient = true;
-    await invoice.save();
-
-    await recordPayment({
-      invoice,
+    invoice.payments = invoice.payments || [];
+    invoice.payments.push({
       amount,
       method: invoice.paymentMethod,
       reference: invoice.paymentReference,
       notes: req.body.notes || 'Partial payment',
-      recordedBy: req.user._id,
+      paidAt: invoice.paidDate,
     });
+
+    await invoice.save();
+
+    await Promise.all([
+      recordPayment({
+        invoice,
+        amount,
+        method: invoice.paymentMethod,
+        reference: invoice.paymentReference,
+        notes: req.body.notes || 'Partial payment',
+        recordedBy: req.user._id,
+      }),
+      Client.findByIdAndUpdate(invoice.client?._id || invoice.client, { $inc: { totalRevenue: amount } }),
+      maybeCreateReferralEarning({ invoice, amount, io: req.app.get('io') }),
+    ]);
 
     const finance = await Finance.findOne(withWorkspaceScope(req, { clientId: invoice.client?._id || invoice.client, projectId: invoice.project }));
     if (finance) {
@@ -1301,7 +1334,7 @@ export const deleteInvoice = async (req, res) => {
     if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
 
     await Payment.deleteMany({ invoice: invoice._id });
-    if (invoice.status === 'paid' && Number(invoice.paidAmount || 0) > 0) {
+    if (Number(invoice.paidAmount || 0) > 0 && invoice.client) {
       await Client.findByIdAndUpdate(invoice.client, { $inc: { totalRevenue: -Number(invoice.paidAmount || 0) } });
     }
 
@@ -1787,7 +1820,13 @@ export const getMonthlyExpenseReport = async (req, res) => {
 
     const [monthlyInvoices, monthlyExpensesData] = await Promise.all([
       Invoice.aggregate([
-        { $match: { status: 'paid', paidDate: { $gte: startOfMonth, $lte: endOfMonth } } },
+        {
+          $match: {
+            status: { $nin: ['draft', 'void', 'cancelled'] },
+            paidAmount: { $gt: 0 },
+            paidDate: { $gte: startOfMonth, $lte: endOfMonth },
+          },
+        },
         { $group: { _id: null, totalRevenue: { $sum: '$paidAmount' } } },
       ]),
       Expense.find({
@@ -1864,11 +1903,27 @@ export const getFinanceSummary = async (req, res) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const [totalRevenue, monthRevenue, totalExpenses, overdueInvoices, pendingInvoices] = await Promise.all([
-      Invoice.aggregate([{ $match: { status: 'paid' } }, { $group: { _id: null, total: { $sum: '$paidAmount' } } }]),
-      Invoice.aggregate([{ $match: { status: 'paid', paidDate: { $gte: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$paidAmount' } } }]),
-      Expense.aggregate([{ $match: { status: 'approved', transactionType: { $ne: 'Profit' } } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
-      Invoice.countDocuments({ status: 'overdue' }),
-      Invoice.countDocuments({ status: { $in: ['draft', 'sent'] } }),
+      Invoice.aggregate([
+        { $match: { status: { $nin: ['draft', 'void', 'cancelled'] }, paidAmount: { $gt: 0 } } },
+        { $group: { _id: null, total: { $sum: '$paidAmount' } } },
+      ]),
+      Invoice.aggregate([
+        { $match: { status: { $nin: ['draft', 'void', 'cancelled'] }, paidAmount: { $gt: 0 }, paidDate: { $gte: startOfMonth } } },
+        { $group: { _id: null, total: { $sum: '$paidAmount' } } },
+      ]),
+      Expense.aggregate([
+        { $match: { status: 'approved', transactionType: { $ne: 'Profit' }, category: { $ne: 'salary' } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      Invoice.countDocuments({
+        status: { $nin: ['paid', 'draft', 'void', 'cancelled'] },
+        dueDate: { $lt: now },
+        balanceAmount: { $gt: 0 },
+      }),
+      Invoice.countDocuments({
+        status: { $in: ['unpaid', 'sent', 'viewed', 'partially_paid'] },
+        balanceAmount: { $gt: 0 },
+      }),
     ]);
 
     const revenueValue = totalRevenue[0]?.total || 0;
