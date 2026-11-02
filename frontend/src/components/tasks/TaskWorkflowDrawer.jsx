@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
   X,
@@ -428,6 +429,15 @@ export const TaskWorkflowDrawer = ({ task, isOpen, onClose, onOpenTaskDetail }) 
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to={`/tasks/${task._id}`}
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white dark:bg-indigo-950/80 dark:text-indigo-300 dark:hover:bg-indigo-600 dark:hover:text-white transition-all cursor-pointer shadow-2xs"
+              title="Open dedicated full page view"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Full Page</span>
+            </Link>
+
             {onOpenTaskDetail && (
               <button
                 type="button"

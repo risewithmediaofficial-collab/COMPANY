@@ -240,6 +240,16 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {task?._id && (
+                <Link
+                  to={`/tasks/${task._id}`}
+                  className="h-7 sm:h-8 px-2 sm:px-2.5 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                  title="Open dedicated full page view"
+                >
+                  <ExternalLink size={12} />
+                  <span>Full View</span>
+                </Link>
+              )}
               {task?.isOverTarget && (
                 <span className="rounded-lg bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold uppercase text-rose-600 dark:text-rose-400">
                   🔴 Over Task
@@ -634,6 +644,268 @@ export const TaskDetailModal = ({ taskId, open, onOpenChange }) => {
                       <span className="font-semibold text-foreground">{task.editReminder}</span>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* ── Interconnected Upstream Details & Editor Hand-off Hub ── */}
+              {(task.editorAssigned || task.videographerAssigned || task.scriptWriterAssigned || task.shootDate || task.taskCategory === 'content') && (
+                <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/5 via-background to-purple-500/5 p-4 sm:p-5 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-border/70 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">
+                        <Scissors size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-black text-foreground uppercase tracking-wider flex items-center gap-2">
+                          <span>🎬 Production Pipeline &amp; Editor Hub</span>
+                          <span className="text-[10px] normal-case font-bold px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
+                            Interconnected Workflow
+                          </span>
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          Upstream shoot details, videographer notes, and scripts automatically synced for the editor.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3-Column Pipeline Grid: 1. Script & Concept -> 2. Shoot & Videographer -> 3. Post-Production & Editor */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Stage 1: Pre-Production & Script */}
+                    <div className="p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black uppercase text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                          <span>✍️ 1. Script &amp; Pre-Production</span>
+                        </span>
+                        {task.scriptWriterAssigned?.name && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                            {task.scriptWriterAssigned.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        {task.hookOpeningLine && (
+                          <div className="p-2 rounded-lg bg-card border border-border space-y-0.5">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground block">🎣 Hook / Opening Line</span>
+                            <p className="text-foreground font-medium italic text-xs">&ldquo;{task.hookOpeningLine}&rdquo;</p>
+                          </div>
+                        )}
+
+                        {(task.fullScript || task.scriptText) && (
+                          <div className="p-2 rounded-lg bg-card border border-border space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold uppercase text-muted-foreground">📜 Script Content</span>
+                              <CopyButton text={task.fullScript || task.scriptText} label="Copy" />
+                            </div>
+                            <p className="text-foreground text-[11px] line-clamp-3 whitespace-pre-wrap font-mono">
+                              {task.fullScript || task.scriptText}
+                            </p>
+                          </div>
+                        )}
+
+                        {task.scriptLink && (
+                          <a
+                            href={task.scriptLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-primary hover:underline font-bold text-xs"
+                          >
+                            <span className="truncate">Google Docs Script</span>
+                            <ExternalLink size={12} className="shrink-0" />
+                          </a>
+                        )}
+
+                        {task.voiceOverAudioLink && (
+                          <a
+                            href={task.voiceOverAudioLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-primary hover:underline font-bold text-xs"
+                          >
+                            <span className="truncate">🎙️ Voice-Over Audio</span>
+                            <ExternalLink size={12} className="shrink-0" />
+                          </a>
+                        )}
+
+                        {!task.hookOpeningLine && !task.fullScript && !task.scriptText && !task.scriptLink && (
+                          <p className="text-[11px] text-muted-foreground italic py-1">No script details added yet.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stage 2: Production & Shoot Details */}
+                    <div className="p-3.5 rounded-xl border border-sky-500/20 bg-sky-500/5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black uppercase text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
+                          <span>🎥 2. Shoot &amp; Videographer</span>
+                        </span>
+                        {task.videographerAssigned?.name && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-700 dark:text-sky-300">
+                            {task.videographerAssigned.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        <div className="p-2 rounded-lg bg-card border border-border space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground">📅 Shoot Schedule</span>
+                            <span className="text-foreground font-bold text-xs">
+                              {task.shootDate ? new Date(task.shootDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBD'}
+                            </span>
+                          </div>
+                          {task.shootTime && (
+                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <span>Time:</span>
+                              <span className="font-semibold text-foreground">{task.shootTime}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {(task.shootLocation || task.shootLocationLink) && (
+                          <div className="p-2 rounded-lg bg-card border border-border space-y-0.5">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground block">📍 Shoot Location</span>
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-foreground font-medium text-xs truncate">
+                                {task.shootLocation || 'Location specified'}
+                              </span>
+                              {task.shootLocationLink && (
+                                <a
+                                  href={task.shootLocationLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-primary hover:underline font-bold text-[11px] shrink-0 flex items-center gap-0.5"
+                                >
+                                  <span>Map</span>
+                                  <ExternalLink size={10} />
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {task.rawFootageLink && (
+                          <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400">
+                                ☁️ Raw Footage Link
+                              </span>
+                              <CopyButton text={task.rawFootageLink} label="Copy" />
+                            </div>
+                            <a
+                              href={task.rawFootageLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-between text-xs"
+                            >
+                              <span className="truncate">Open Footage Drive</span>
+                              <ExternalLink size={11} className="shrink-0" />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.videographerContentNeeded && (
+                          <div className="p-2 rounded-lg bg-card border border-border space-y-0.5">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground block">🎬 Required Shots</span>
+                            <p className="text-[11px] text-foreground line-clamp-2">{task.videographerContentNeeded}</p>
+                          </div>
+                        )}
+
+                        {!task.shootDate && !task.shootLocation && !task.rawFootageLink && (
+                          <p className="text-[11px] text-muted-foreground italic py-1">Shoot schedule pending.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stage 3: Post-Production & Editing */}
+                    <div className="p-3.5 rounded-xl border border-purple-500/20 bg-purple-500/5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black uppercase text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
+                          <span>✂️ 3. Video Editing Specs</span>
+                        </span>
+                        {task.editorAssigned?.name && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-700 dark:text-purple-300">
+                            {task.editorAssigned.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        <div className="p-2 rounded-lg bg-card border border-border space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground">Format</span>
+                            <span className="font-bold text-foreground text-xs">{task.videoFormat || '9:16 (Reels/Shorts)'}</span>
+                          </div>
+                          {task.videoDuration && (
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-muted-foreground">Duration:</span>
+                              <span className="font-semibold text-foreground">{task.videoDuration}</span>
+                            </div>
+                          )}
+                          {task.editDueDate && (
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-muted-foreground">Edit Due:</span>
+                              <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                                {new Date(task.editDueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {(task.editingReferenceVideo || task.referenceVideoLink) && (
+                          <a
+                            href={task.editingReferenceVideo || task.referenceVideoLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-primary hover:underline font-bold text-xs"
+                          >
+                            <span className="truncate">Reference Video</span>
+                            <ExternalLink size={12} className="shrink-0" />
+                          </a>
+                        )}
+
+                        {task.brandAssetsDriveLink && (
+                          <a
+                            href={task.brandAssetsDriveLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-primary hover:underline font-bold text-xs"
+                          >
+                            <span className="truncate">Brand Assets / Fonts / Logos</span>
+                            <ExternalLink size={12} className="shrink-0" />
+                          </a>
+                        )}
+
+                        {task.finalVideoDriveLink && (
+                          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/30 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-extrabold uppercase text-purple-700 dark:text-purple-400">
+                                🎬 Final Output Drive
+                              </span>
+                              <CopyButton text={task.finalVideoDriveLink} label="Copy" />
+                            </div>
+                            <a
+                              href={task.finalVideoDriveLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center justify-between text-xs"
+                            >
+                              <span className="truncate">Open Final Video Link</span>
+                              <ExternalLink size={11} className="shrink-0" />
+                            </a>
+                          </div>
+                        )}
+
+                        {task.editingInstructions && (
+                          <div className="p-2 rounded-lg bg-card border border-border space-y-0.5">
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground block">Instructions</span>
+                            <p className="text-[11px] text-foreground line-clamp-2">{task.editingInstructions}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -90,6 +90,14 @@ const projectPriorityTone = {
 
 const STATUS_COLUMNS = ['Planning', 'In Progress', 'On Hold', 'Completed', 'Cancelled'];
 
+export const PROJECT_PERIOD_OPTIONS = [
+  { key: 'all', label: 'All Projects' },
+  { key: 'today', label: '⚡ Today' },
+  { key: 'weekly', label: '📅 This Week' },
+  { key: 'this_month', label: '🗓️ This Month' },
+  { key: 'overdue', label: '🚨 Overdue' },
+];
+
 export const PROJECT_SORT_OPTIONS = [
   { value: 'dueDate_asc', label: '📅 Due Date: Earliest First' },
   { value: 'dueDate_desc', label: '📅 Due Date: Latest First' },
@@ -121,6 +129,7 @@ const Projects = () => {
   const [priorityFilter, setPriorityFilter] = useState('');
   const [clientFilter, setClientFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
+  const [periodFilter, setPeriodFilter] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate_asc');
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [boardGroupBy, setBoardGroupBy] = useState('status'); // 'status' | 'category'
@@ -189,7 +198,43 @@ const Projects = () => {
 
   // 4. Fully filtered projects dataset
   const filteredProjects = useMemo(() => {
-    return baseDateFilteredProjects.filter((project) => {
+    let result = baseDateFilteredProjects.filter((project) => {
+      // Period filter ('today', 'this_week', 'this_month', 'overdue')
+      if (periodFilter && periodFilter !== 'all') {
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        const dueDate = project.endDate || project.dueDate ? new Date(project.endDate || project.dueDate) : null;
+        const startDate = project.startDate ? new Date(project.startDate) : null;
+        const createdAt = project.createdAt ? new Date(project.createdAt) : null;
+
+        if (periodFilter === 'today') {
+          const matchDue = dueDate && dueDate >= startOfToday && dueDate <= endOfToday;
+          const matchStart = startDate && startDate >= startOfToday && startDate <= endOfToday;
+          const matchCreated = createdAt && createdAt >= startOfToday && createdAt <= endOfToday;
+          if (!matchDue && !matchStart && !matchCreated) return false;
+        } else if (periodFilter === 'weekly' || periodFilter === 'this_week') {
+          const day = now.getDay();
+          const diffToMonday = day === 0 ? -6 : 1 - day;
+          const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
+          const endOfWeek = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 6, 23, 59, 59, 999);
+          const matchDue = dueDate && dueDate >= startOfWeek && dueDate <= endOfWeek;
+          const matchStart = startDate && startDate >= startOfWeek && startDate <= endOfWeek;
+          const matchCreated = createdAt && createdAt >= startOfWeek && createdAt <= endOfWeek;
+          if (!matchDue && !matchStart && !matchCreated) return false;
+        } else if (periodFilter === 'this_month') {
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+          const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+          const matchDue = dueDate && dueDate >= startOfMonth && dueDate <= endOfMonth;
+          const matchStart = startDate && startDate >= startOfMonth && startDate <= endOfMonth;
+          const matchCreated = createdAt && createdAt >= startOfMonth && createdAt <= endOfMonth;
+          if (!matchDue && !matchStart && !matchCreated) return false;
+        } else if (periodFilter === 'overdue') {
+          const isDone = project.status === 'Completed' || project.status === 'Cancelled';
+          if (isDone || !dueDate || dueDate >= now) return false;
+        }
+      }
+
       // Category filter
       if (categoryFilter && categoryFilter !== 'all') {
         if (!isCategoryMatch(project.category, categoryFilter, project.name)) {
@@ -297,6 +342,7 @@ const Projects = () => {
     statusFilter,
     priorityFilter,
     clientFilter,
+    periodFilter,
     searchTerm,
     sortBy,
   ]);
@@ -309,9 +355,10 @@ const Projects = () => {
     if (priorityFilter) count++;
     if (clientFilter) count++;
     if (monthFilter !== '') count++;
+    if (periodFilter !== 'all') count++;
     if (searchTerm.trim()) count++;
     return count;
-  }, [categoryFilter, statusFilter, priorityFilter, clientFilter, monthFilter, searchTerm]);
+  }, [categoryFilter, statusFilter, priorityFilter, clientFilter, monthFilter, periodFilter, searchTerm]);
 
   const clearAllFilters = () => {
     setSearchTerm('');
@@ -320,6 +367,7 @@ const Projects = () => {
     setPriorityFilter('');
     setClientFilter('');
     setMonthFilter('');
+    setPeriodFilter('all');
     setSortBy('dueDate_asc');
   };
 
@@ -725,6 +773,24 @@ const Projects = () => {
             <div className="flex items-center justify-between gap-3 w-full flex-wrap">
               {/* Dropdown Filters Group */}
               <div className="flex items-center gap-2 flex-wrap min-w-0 w-full sm:w-auto">
+                {/* Period Filter Segmented Switcher (All | Today | This Week | This Month | Overdue) */}
+                <div className="flex items-center p-0.5 rounded-xl border border-border bg-secondary/40 shrink-0 gap-0.5">
+                  {PROJECT_PERIOD_OPTIONS.map((period) => (
+                    <button
+                      key={period.key}
+                      type="button"
+                      onClick={() => setPeriodFilter(period.key)}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                        periodFilter === period.key
+                          ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <span>{period.label}</span>
+                    </button>
+                  ))}
+                </div>
+
                 {/* Category Dropdown Filter */}
                 <SelectDropdown
                   className="w-full sm:w-48 text-xs"

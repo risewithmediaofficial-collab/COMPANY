@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Video,
   Code2,
@@ -15,6 +16,7 @@ import {
   Timer,
   AlertTriangle,
   Calendar,
+  ExternalLink,
 } from 'lucide-react';
 import { useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
@@ -713,6 +715,15 @@ export const TasksKanbanPipeline = React.memo(({
                                   <Trash2 className="h-3 w-3" />
                                 </button>
                               )}
+
+                              <Link
+                                to={`/tasks/${task._id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                title="Open Full View"
+                                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 transition-all dark:hover:bg-slate-800 dark:hover:text-indigo-400 cursor-pointer"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </Link>
 
                               {nextCol && (
                                 <button

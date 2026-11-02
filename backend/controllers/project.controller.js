@@ -252,6 +252,9 @@ export const getProjects = async (req, res) => {
       manager,
       isInternal,
       search,
+      period,
+      sortBy,
+      sortOrder,
       startDateFrom,
       startDateTo,
       endDateFrom,
@@ -298,6 +301,51 @@ export const getProjects = async (req, res) => {
       if (createdFrom) filter.createdAt.$gte = new Date(createdFrom);
       if (createdTo) filter.createdAt.$lte = new Date(`${createdTo}T23:59:59.999Z`);
     }
+
+    const andConditions = [];
+
+    if (period) {
+      const now = new Date();
+      if (period === 'today') {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        andConditions.push({
+          $or: [
+            { dueDate: { $gte: start, $lte: end } },
+            { startDate: { $gte: start, $lte: end } },
+            { createdAt: { $gte: start, $lte: end } },
+          ],
+        });
+      } else if (period === 'weekly' || period === 'this_week') {
+        const day = now.getDay();
+        const diffToMonday = day === 0 ? -6 : 1 - day;
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
+        const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 999);
+        andConditions.push({
+          $or: [
+            { dueDate: { $gte: start, $lte: end } },
+            { startDate: { $gte: start, $lte: end } },
+            { createdAt: { $gte: start, $lte: end } },
+          ],
+        });
+      } else if (period === 'this_month') {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        andConditions.push({
+          $or: [
+            { dueDate: { $gte: start, $lte: end } },
+            { startDate: { $gte: start, $lte: end } },
+            { createdAt: { $gte: start, $lte: end } },
+          ],
+        });
+      } else if (period === 'overdue') {
+        andConditions.push({
+          dueDate: { $lt: now },
+          status: { $nin: ['completed', 'Completed', 'cancelled', 'Cancelled'] },
+        });
+      }
+    }
+
     if (search) {
       const matchingClients = await Client.find({
         $or: [
@@ -305,13 +353,23 @@ export const getProjects = async (req, res) => {
           { company: { $regex: search, $options: 'i' } },
         ],
       }).select('_id');
-      filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } },
-        { client: { $in: matchingClients.map((item) => item._id) } },
-      ];
+      andConditions.push({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { category: { $regex: search, $options: 'i' } },
+          { tags: { $regex: search, $options: 'i' } },
+          { client: { $in: matchingClients.map((item) => item._id) } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      if (filter.$and) {
+        filter.$and.push(...andConditions);
+      } else {
+        filter.$and = andConditions;
+      }
     }
     
     if (req.user.role === 'employee') filter.team = req.user._id;
@@ -325,6 +383,21 @@ export const getProjects = async (req, res) => {
       }
     }
 
+    let sortOptions = { createdAt: -1 };
+    if (sortBy) {
+      const dir = sortOrder === 'desc' || sortOrder === '-1' ? -1 : 1;
+      if (sortBy === 'dueDate_asc' || sortBy === 'dueDate' || sortBy === 'endDate_asc') sortOptions = { dueDate: 1 };
+      else if (sortBy === 'dueDate_desc' || sortBy === 'endDate_desc') sortOptions = { dueDate: -1 };
+      else if (sortBy === 'priority_desc' || sortBy === 'priority') sortOptions = { priority: -1, dueDate: 1 };
+      else if (sortBy === 'priority_asc') sortOptions = { priority: 1, dueDate: 1 };
+      else if (sortBy === 'newest' || sortBy === 'createdAt') sortOptions = { createdAt: -1 };
+      else if (sortBy === 'oldest') sortOptions = { createdAt: 1 };
+      else if (sortBy === 'name' || sortBy === 'name_asc') sortOptions = { name: 1 };
+      else if (sortBy === 'name_desc') sortOptions = { name: -1 };
+      else if (sortBy === 'budget_desc') sortOptions = { budget: -1 };
+      else if (sortBy === 'budget_asc') sortOptions = { budget: 1 };
+    }
+
     const scopedFilter = withWorkspaceScope(req, filter);
 
     const total = await Project.countDocuments(scopedFilter);
@@ -333,7 +406,7 @@ export const getProjects = async (req, res) => {
       .populate('acceptedProposalId', 'title amount acceptedAt proposalNumber status')
       .populate('manager', 'name avatar')
       .populate('team', 'name avatar')
-      .sort({ createdAt: -1 })
+      .sort(sortOptions)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 

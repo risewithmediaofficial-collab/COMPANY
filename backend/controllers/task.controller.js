@@ -687,6 +687,9 @@ export const getTasks = async (req, res) => {
       search,
       parent,
       scope,
+      period,
+      sortBy,
+      sortOrder,
     } = req.query;
 
     const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 100 });
@@ -725,17 +728,87 @@ export const getTasks = async (req, res) => {
         filter.dueDate = { $gte: start, $lte: end };
       }
     }
+    const andConditions = [];
+    if (period) {
+      const now = new Date();
+      if (period === 'today') {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        andConditions.push({
+          $or: [
+            { dueDate: { $gte: start, $lte: end } },
+            { shootDate: { $gte: start, $lte: end } },
+            { postingScheduleDate: { $gte: start, $lte: end } },
+            { createdAt: { $gte: start, $lte: end } },
+          ],
+        });
+      } else if (period === 'weekly' || period === 'this_week') {
+        const day = now.getDay();
+        const diffToMonday = day === 0 ? -6 : 1 - day;
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
+        const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 999);
+        andConditions.push({
+          $or: [
+            { dueDate: { $gte: start, $lte: end } },
+            { shootDate: { $gte: start, $lte: end } },
+            { postingScheduleDate: { $gte: start, $lte: end } },
+            { createdAt: { $gte: start, $lte: end } },
+          ],
+        });
+      } else if (period === 'this_month') {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        andConditions.push({
+          $or: [
+            { dueDate: { $gte: start, $lte: end } },
+            { shootDate: { $gte: start, $lte: end } },
+            { postingScheduleDate: { $gte: start, $lte: end } },
+            { createdAt: { $gte: start, $lte: end } },
+          ],
+        });
+      } else if (period === 'overdue') {
+        andConditions.push({
+          dueDate: { $lt: now },
+          status: { $nin: ['approved', 'done', 'completed', 'Completed', 'Done', 'Approved'] },
+        });
+      }
+    }
+
     if (search) {
-      filter.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $regex: search, $options: 'i' } },
-        { taskType: { $regex: search, $options: 'i' } },
-        { clientName: { $regex: search, $options: 'i' } },
-        { assignedPersonName: { $regex: search, $options: 'i' } },
-        { scriptText: { $regex: search, $options: 'i' } },
-        { websiteRequirements: { $regex: search, $options: 'i' } },
-      ];
+      andConditions.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { tags: { $regex: search, $options: 'i' } },
+          { taskType: { $regex: search, $options: 'i' } },
+          { clientName: { $regex: search, $options: 'i' } },
+          { assignedPersonName: { $regex: search, $options: 'i' } },
+          { scriptText: { $regex: search, $options: 'i' } },
+          { websiteRequirements: { $regex: search, $options: 'i' } },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      if (filter.$and) {
+        filter.$and.push(...andConditions);
+      } else {
+        filter.$and = andConditions;
+      }
+    }
+
+    let sortOptions = { dueDate: 1, orderIndex: 1, createdAt: -1 };
+    if (sortBy) {
+      const dir = sortOrder === 'desc' || sortOrder === '-1' ? -1 : 1;
+      if (sortBy === 'dueDate_asc' || sortBy === 'dueDate') sortOptions = { dueDate: 1, orderIndex: 1 };
+      else if (sortBy === 'dueDate_desc') sortOptions = { dueDate: -1, orderIndex: 1 };
+      else if (sortBy === 'priority_desc' || sortBy === 'priority') sortOptions = { priority: -1, dueDate: 1 };
+      else if (sortBy === 'priority_asc') sortOptions = { priority: 1, dueDate: 1 };
+      else if (sortBy === 'newest' || sortBy === 'createdAt') sortOptions = { createdAt: -1 };
+      else if (sortBy === 'oldest') sortOptions = { createdAt: 1 };
+      else if (sortBy === 'title') sortOptions = { title: dir };
+      else if (sortBy === 'client_asc' || sortBy === 'clientName') sortOptions = { clientName: 1 };
+      else if (sortBy === 'client_desc') sortOptions = { clientName: -1 };
     }
 
     const scopedFilter = withWorkspaceScope(req, await buildScopedTaskFilter(req, filter));
@@ -754,7 +827,7 @@ export const getTasks = async (req, res) => {
         .populate('designerAssigned', 'name avatar')
         .populate('project', 'name')
         .populate('client', 'name company')
-        .sort({ dueDate: 1, orderIndex: 1, createdAt: -1 })
+        .sort(sortOptions)
         .skip(skip)
         .limit(limit)
         .lean(),

@@ -144,12 +144,6 @@ export const TaskDetails = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const allowedStatusOptions = isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS;
 
-  useEffect(() => {
-    if (user?.role === 'employee' && id) {
-      navigate(`/tasks?open=${id}`, { replace: true });
-    }
-  }, [user?.role, id, navigate]);
-
   const handleUploadCompleted = async () => {
     if (!completedFiles.length) return;
     try {
@@ -678,26 +672,56 @@ export const TaskDetails = () => {
           )}
 
           {/* Shoot & Footage Details Row */}
-          {(task.shootDate || task.shootLocation || task.rawFootageLink) && (
-            <div className="grid gap-3 sm:grid-cols-3 pt-3 border-t border-border/50 text-xs">
+          {(task.shootDate || task.shootLocation || task.rawFootageLink || task.finalVideoDriveLink || task.editingReferenceVideo) && (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 pt-3 border-t border-border/50 text-xs">
               {task.shootDate && (
                 <div className="rounded-xl bg-background/80 p-3 border border-border/60">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">📅 Shoot Date</span>
-                  <span className="font-semibold text-foreground mt-0.5 block">{new Date(task.shootDate).toLocaleString()}</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">📅 Shoot Date &amp; Time</span>
+                  <span className="font-semibold text-foreground mt-0.5 block">
+                    {new Date(task.shootDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {task.shootTime ? ` at ${task.shootTime}` : ''}
+                  </span>
                 </div>
               )}
               {task.shootLocation && (
                 <div className="rounded-xl bg-background/80 p-3 border border-border/60">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">📍 Location</span>
-                  <span className="font-semibold text-foreground mt-0.5 block truncate">{task.shootLocation}</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">📍 Shoot Location</span>
+                  <div className="flex items-center justify-between gap-1 mt-0.5">
+                    <span className="font-semibold text-foreground truncate">{task.shootLocation}</span>
+                    {task.shootLocationLink && (
+                      <a href={task.shootLocationLink} target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold text-[11px] shrink-0 flex items-center gap-0.5">
+                        <span>Map</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
               {task.rawFootageLink && (
-                <div className="rounded-xl bg-background/80 p-3 border border-border/60">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground block">📁 Raw Footage Link</span>
-                  <a href={task.rawFootageLink} target="_blank" rel="noreferrer" className="font-bold text-primary hover:underline flex items-center gap-1 mt-0.5 truncate">
-                    <span>Open Drive Folder</span>
-                    <ExternalLink size={12} />
+                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase text-emerald-700 dark:text-emerald-400">
+                      ☁️ Raw Footage Link
+                    </span>
+                    <CopyButton text={task.rawFootageLink} label="Copy" />
+                  </div>
+                  <a href={task.rawFootageLink} target="_blank" rel="noreferrer" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-between text-xs">
+                    <span className="truncate">Open Drive Folder</span>
+                    <ExternalLink size={11} className="shrink-0" />
+                  </a>
+                </div>
+              )}
+              {task.finalVideoDriveLink && (
+                <div className="rounded-xl bg-purple-500/10 border border-purple-500/30 p-3 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase text-purple-700 dark:text-purple-400">
+                      🎬 Final Video Drive
+                    </span>
+                    <CopyButton text={task.finalVideoDriveLink} label="Copy" />
+                  </div>
+                  <a href={task.finalVideoDriveLink} target="_blank" rel="noreferrer" className="font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center justify-between text-xs">
+                    <span className="truncate">Open Video Link</span>
+                    <ExternalLink size={11} className="shrink-0" />
                   </a>
                 </div>
               )}
