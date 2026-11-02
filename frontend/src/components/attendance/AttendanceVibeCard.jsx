@@ -7,12 +7,16 @@ import {
   X,
   Lock,
   Check,
+  Mic,
+  Radio,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   isSfxEnabled,
   setSfxEnabled,
   playTierSfx,
+  speakMemeVoice,
+  playMemeSoundAndVoice,
 } from '../../utils/attendanceSfx';
 
 /* ── STICKER COMEDIAN SVG ILLUSTRATIONS ── */
@@ -240,29 +244,37 @@ export const AttendanceVibeCard = ({
     hour12: true,
   });
 
-  // Play sound automatically on popup open
+  // Play sound & spoken voice automatically on popup open
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
-        playTierSfx(tierKey);
-      }, 250);
+        playMemeSoundAndVoice(tierKey, sticker.tamilSpeech, sticker.tanglishPunch);
+      }, 300);
     }
-  }, [isOpen, tierKey]);
+  }, [isOpen, tierKey, sticker.tamilSpeech, sticker.tanglishPunch]);
 
   const handleToggleSfx = () => {
     const next = !sfxOn;
     setSfxOn(next);
     setSfxEnabled(next);
     if (next) {
-      toast.success('Sound Effects (SFX) ON! 🔊', { duration: 1500 });
-      playTierSfx(tierKey);
+      toast.success('Audio & Voice ON! 🔊', { duration: 1500 });
+      playMemeSoundAndVoice(tierKey, sticker.tamilSpeech, sticker.tanglishPunch);
     } else {
-      toast.info('Sound Effects (SFX) Muted 🔇', { duration: 1500 });
+      toast.info('Audio Muted 🔇', { duration: 1500 });
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     }
   };
 
   const handlePlaySound = () => {
     playTierSfx(tierKey);
+  };
+
+  const handleSpeakVoice = () => {
+    speakMemeVoice(sticker.tamilSpeech, sticker.tanglishPunch);
+    toast.success('குரல் கேட்கிறது... 🗣️', { duration: 1500 });
   };
 
   // DO NOT RENDER IN OVERVIEW AT ALL! Returns null when closed.
@@ -339,14 +351,25 @@ export const AttendanceVibeCard = ({
               {sticker.tanglishPunch}
             </p>
 
-            <button
-              type="button"
-              onClick={handlePlaySound}
-              className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black border border-primary/20 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-xs"
-            >
-              <Volume2 size={13} className="animate-pulse" />
-              <span>Replay Comedian Sound</span>
-            </button>
+            {/* Comedian SFX & Voice Actions */}
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={handlePlaySound}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-black border border-border cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-xs"
+              >
+                <Volume2 size={13} className="text-primary animate-pulse" />
+                <span>Replay SFX</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSpeakVoice}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-white text-xs font-black shadow-md shadow-primary/25 hover:bg-primary/90 cursor-pointer transition-all hover:scale-105 active:scale-95"
+              >
+                <Mic size={13} className="animate-bounce" />
+                <span>Speak Voice (குரல்)</span>
+              </button>
+            </div>
           </div>
 
           {/* Timestamp & User Badge */}
