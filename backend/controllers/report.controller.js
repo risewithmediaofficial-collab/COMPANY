@@ -450,27 +450,93 @@ export const getAdminDashboard = async (req, res) => {
 export const getAdminAuditLogs = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 30;
+    const limit = Math.min(parseInt(req.query.limit) || 30, 100);
     const skip = (page - 1) * limit;
-    const { entityType, search } = req.query;
+    const { entityType, search, actor, actionType, timeframe, startDate, endDate } = req.query;
 
     const query = {};
-    if (entityType) query.entityType = entityType;
-    if (search) {
+
+    // Filter by entity type / module
+    if (entityType && entityType !== 'all') {
+      query.entityType = entityType;
+    }
+
+    // Filter by actor / user (including "me" for own actions)
+    if (actor) {
+      if (actor === 'me') {
+        query.actor = req.user._id;
+      } else if (mongoose.Types.ObjectId.isValid(actor)) {
+        query.actor = actor;
+      }
+    }
+
+    // Filter by action group
+    if (actionType && actionType !== 'all') {
+      if (['create', 'created'].includes(actionType)) {
+        query.action = { $regex: 'created|added|registered', $options: 'i' };
+      } else if (['update', 'updated'].includes(actionType)) {
+        query.action = { $regex: 'updated|edited|status|assigned|approved|rejected|restored', $options: 'i' };
+      } else if (['delete', 'deleted'].includes(actionType)) {
+        query.action = { $regex: 'deleted|removed|purged', $options: 'i' };
+      } else if (['login', 'auth'].includes(actionType)) {
+        query.action = { $regex: 'login|auth', $options: 'i' };
+      } else {
+        query.action = { $regex: actionType, $options: 'i' };
+      }
+    }
+
+    // Filter by date range / timeframe
+    if (timeframe) {
+      const now = new Date();
+      if (timeframe === 'today') {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        query.createdAt = { $gte: start };
+      } else if (timeframe === 'week') {
+        const start = new Date(Date.now() - 7 * 24 * 3600000);
+        query.createdAt = { $gte: start };
+      } else if (timeframe === 'month') {
+        const start = new Date(Date.now() - 30 * 24 * 3600000);
+        query.createdAt = { $gte: start };
+      }
+    } else if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        query.createdAt.$lte = e;
+      }
+    }
+
+    // Search query
+    if (search && search.trim()) {
+      const s = search.trim();
       query.$or = [
-        { action: { $regex: search, $options: 'i' } },
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { action: { $regex: s, $options: 'i' } },
+        { title: { $regex: s, $options: 'i' } },
+        { description: { $regex: s, $options: 'i' } },
+        { actorRole: { $regex: s, $options: 'i' } },
       ];
     }
 
-    const [logs, total] = await Promise.all([
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [logs, total, todayCount, loginCount, createdCount, updatedCount, deletedCount] = await Promise.all([
       ActivityLog.find(query)
-        .populate('actor', 'name email avatar role')
+        .populate('actor', 'name email avatar role department')
+        .populate('relatedClient', 'name company')
+        .populate('relatedProject', 'name')
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       ActivityLog.countDocuments(query),
+      ActivityLog.countDocuments({ createdAt: { $gte: startOfToday } }),
+      ActivityLog.countDocuments({ action: { $regex: 'login|auth', $options: 'i' } }),
+      ActivityLog.countDocuments({ action: { $regex: 'created|added', $options: 'i' } }),
+      ActivityLog.countDocuments({ action: { $regex: 'updated|edited|status', $options: 'i' } }),
+      ActivityLog.countDocuments({ action: { $regex: 'deleted|removed', $options: 'i' } }),
     ]);
 
     res.json({
@@ -478,7 +544,15 @@ export const getAdminAuditLogs = async (req, res) => {
       logs,
       total,
       page,
-      pages: Math.ceil(total / limit),
+      pages: Math.ceil(total / limit) || 1,
+      stats: {
+        total,
+        todayCount,
+        loginCount,
+        createdCount,
+        updatedCount,
+        deletedCount,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

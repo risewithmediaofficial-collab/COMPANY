@@ -8,6 +8,7 @@ import User from '../models/user.model.js';
 import Client from '../models/client.model.js';
 import { sendEmail } from '../utils/email.js';
 import { createNotification } from '../utils/notification.js';
+import { createActivityLog } from '../utils/activity.js';
 
 // Generate access token with explicit tokenType
 const generateAccessToken = (id, role) => {
@@ -160,6 +161,22 @@ export const login = async (req, res) => {
     user.refreshToken = refreshToken;
     user.lastLogin = new Date();
     await user.save({ validateBeforeSave: false });
+
+    // Record login in Audit Logs
+    await createActivityLog({
+      actor: user,
+      action: 'auth.login',
+      entityType: 'auth',
+      entityId: user._id,
+      title: 'User logged in',
+      description: `${user.name} (${user.role}) signed in successfully.`,
+      metadata: {
+        ip: req.ip || req.headers['x-forwarded-for'],
+        userAgent: req.headers['user-agent'] || '',
+        email: user.email,
+        role: user.role,
+      },
+    });
 
     res.json({
       success: true,
