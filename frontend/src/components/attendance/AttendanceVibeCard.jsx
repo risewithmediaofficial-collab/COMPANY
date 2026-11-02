@@ -7,16 +7,14 @@ import {
   X,
   Lock,
   Check,
-  Mic,
-  Radio,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   isSfxEnabled,
   setSfxEnabled,
   playTierSfx,
-  speakMemeVoice,
-  playMemeSoundAndVoice,
+  playComedianAudio,
+  stopComedianAudio,
 } from '../../utils/attendanceSfx';
 
 /* ── STICKER COMEDIAN SVG ILLUSTRATIONS ── */
@@ -244,37 +242,38 @@ export const AttendanceVibeCard = ({
     hour12: true,
   });
 
-  // Play sound & spoken voice automatically on popup open
+  // Play authentic comedian movie audio automatically on popup open
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => {
-        playMemeSoundAndVoice(tierKey, sticker.tamilSpeech, sticker.tanglishPunch);
-      }, 300);
+      const timer = setTimeout(() => {
+        playComedianAudio(tierKey);
+      }, 350);
+      return () => clearTimeout(timer);
+    } else {
+      stopComedianAudio();
     }
-  }, [isOpen, tierKey, sticker.tamilSpeech, sticker.tanglishPunch]);
+  }, [isOpen, tierKey]);
 
   const handleToggleSfx = () => {
     const next = !sfxOn;
     setSfxOn(next);
     setSfxEnabled(next);
     if (next) {
-      toast.success('Audio & Voice ON! 🔊', { duration: 1500 });
-      playMemeSoundAndVoice(tierKey, sticker.tamilSpeech, sticker.tanglishPunch);
+      toast.success('Audio ON! 🔊', { duration: 1500 });
+      playComedianAudio(tierKey);
     } else {
       toast.info('Audio Muted 🔇', { duration: 1500 });
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
+      stopComedianAudio();
     }
   };
 
   const handlePlaySound = () => {
-    playTierSfx(tierKey);
+    playComedianAudio(tierKey);
   };
 
-  const handleSpeakVoice = () => {
-    speakMemeVoice(sticker.tamilSpeech, sticker.tanglishPunch);
-    toast.success('குரல் கேட்கிறது... 🗣️', { duration: 1500 });
+  const handleClose = () => {
+    stopComedianAudio();
+    if (onClose) onClose();
   };
 
   // DO NOT RENDER IN OVERVIEW AT ALL! Returns null when closed.
@@ -290,7 +289,7 @@ export const AttendanceVibeCard = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={handleClose}
           className="fixed inset-0 bg-black/65 backdrop-blur-sm"
         />
 
@@ -322,7 +321,7 @@ export const AttendanceVibeCard = ({
           {/* Close 'X' Button */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 p-2 rounded-xl bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer z-20"
           >
             <X size={16} />
@@ -336,7 +335,7 @@ export const AttendanceVibeCard = ({
               transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 2 }}
               className="p-3 rounded-3xl bg-white dark:bg-zinc-900 border-4 border-white shadow-2xl cursor-pointer hover:scale-105 active:scale-95 transition-all"
               onClick={handlePlaySound}
-              title="Click to replay comedian sound!"
+              title="Click to replay authentic comedian sound!"
             >
               {sticker.renderSticker()}
             </motion.div>
@@ -351,23 +350,15 @@ export const AttendanceVibeCard = ({
               {sticker.tanglishPunch}
             </p>
 
-            {/* Comedian SFX & Voice Actions */}
-            <div className="mt-3 flex items-center justify-center gap-2">
+            {/* Comedian Audio Action */}
+            <div className="mt-3 flex items-center justify-center">
               <button
                 type="button"
                 onClick={handlePlaySound}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-black border border-border cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-xs"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-black shadow-md shadow-primary/25 hover:bg-primary/90 cursor-pointer transition-all hover:scale-105 active:scale-95"
               >
-                <Volume2 size={13} className="text-primary animate-pulse" />
-                <span>Replay SFX</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleSpeakVoice}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-white text-xs font-black shadow-md shadow-primary/25 hover:bg-primary/90 cursor-pointer transition-all hover:scale-105 active:scale-95"
-              >
-                <Mic size={13} className="animate-bounce" />
-                <span>Speak Voice (குரல்)</span>
+                <Volume2 size={15} className="animate-pulse" />
+                <span>Replay Comedian Voice 🔊</span>
               </button>
             </div>
           </div>
@@ -385,7 +376,7 @@ export const AttendanceVibeCard = ({
           {/* Close Action Button */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="w-full py-3.5 rounded-2xl bg-primary text-white font-black text-sm shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
           >
             <Check size={16} />

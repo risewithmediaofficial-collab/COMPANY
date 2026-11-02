@@ -297,58 +297,58 @@ export const playTierSfx = (tier) => {
 };
 
 /**
- * Speaks Tamil meme dialogue aloud using Web Speech API (Voice Engine)
- * Automatically detects Tamil voice (ta-IN, ta-LK) or Indian English voice (en-IN)
+ * Authentic Tamil Comedian Audio Clips (MP3)
+ * Plays real comedian movie clips (Vadivelu "Ahaan", Kaipulla "Theriyaama Modhiten", Vadivelu "Vaanga Sir")
+ * 100% natural authentic cinema sound - never uses robotic machine text-to-speech.
+ * Falls back gracefully to synthesized cartoon SFX if blocked.
  */
-export const speakMemeVoice = (tamilText, tanglishText) => {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
-  if (!isSfxEnabled()) return;
-
-  try {
-    window.speechSynthesis.cancel();
-
-    const doSpeak = () => {
-      const voices = window.speechSynthesis.getVoices();
-      const tamilVoice = voices.find((v) => v.lang.startsWith('ta'));
-      const textToSpeak = tamilVoice ? tamilText : tanglishText;
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-
-      if (tamilVoice) {
-        utterance.voice = tamilVoice;
-        utterance.lang = tamilVoice.lang;
-        utterance.pitch = 1.2;
-        utterance.rate = 1.0;
-      } else {
-        const indianVoice = voices.find((v) => v.lang === 'en-IN') || voices.find((v) => v.lang.startsWith('en'));
-        if (indianVoice) utterance.voice = indianVoice;
-        utterance.lang = 'en-IN';
-        utterance.pitch = 1.25;
-        utterance.rate = 1.05;
-      }
-
-      window.speechSynthesis.speak(utterance);
-    };
-
-    const initialVoices = window.speechSynthesis.getVoices();
-    if (initialVoices.length === 0 && window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        doSpeak();
-      };
-    } else {
-      doSpeak();
-    }
-  } catch (err) {
-    console.warn('Speech synthesis error:', err);
-  }
+const TIER_AUDIO_MAP = {
+  early: '/audio/memes/vadivelu_early.mp3',
+  sharp: '/audio/memes/vadivelu_930.mp3',
+  late: '/audio/memes/kaipulla_late.mp3',
+  afternoon: '/audio/memes/chief_guest.mp3',
 };
 
-/**
- * Combined Sound Effect + Voice Dialogue Sequence
- */
-export const playMemeSoundAndVoice = (tier, tamilText, tanglishText) => {
+let currentAudio = null;
+
+export const playComedianAudio = (tier) => {
+  if (!isSfxEnabled()) return;
+
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch (_) {}
+    currentAudio = null;
+  }
+
+  const audioSrc = TIER_AUDIO_MAP[tier] || TIER_AUDIO_MAP.sharp;
+  if (audioSrc && typeof window !== 'undefined') {
+    try {
+      const audio = new Audio(audioSrc);
+      currentAudio = audio;
+      audio.volume = 0.9;
+      audio.play().catch(() => {
+        // Fallback to cartoon synthesized SFX if browser autoplay restriction applies
+        playTierSfx(tier);
+      });
+      return;
+    } catch (_) {
+      playTierSfx(tier);
+      return;
+    }
+  }
+
   playTierSfx(tier);
-  setTimeout(() => {
-    speakMemeVoice(tamilText, tanglishText);
-  }, 450);
+};
+
+export const stopComedianAudio = () => {
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch (_) {}
+    currentAudio = null;
+  }
 };
 
