@@ -29,6 +29,7 @@ import {
   DialogDescription,
   DialogClose,
 } from '../ui/dialog';
+import { AttendanceVibeCard } from './AttendanceVibeCard';
 
 const formatTime = (isoString) => {
   if (!isoString) return '--:--';
@@ -97,6 +98,8 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   };
 
   const currentUserId = (user?._id || user?.id)?.toString();
+  const authUserId = (authUser?._id || authUser?.id)?.toString();
+  const isSelf = !propUser || !authUserId || !currentUserId || (currentUserId === authUserId);
 
   const foundTodayRecord = useMemo(() => {
     const records = attendanceData?.records || [];
@@ -127,6 +130,10 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
       (todayRecord.clockIn && !todayRecord.clockOut)
     )
   );
+
+  const firstClockIn = useMemo(() => {
+    return todayRecord?.clockIn || (todayRecord?.sessions && todayRecord.sessions[0]?.clockIn) || null;
+  }, [todayRecord]);
 
   // Calculate live duration for active session
   const activeSessionStartTime = useMemo(() => {
@@ -496,6 +503,15 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
               </p>
             )}
           </div>
+        )}
+
+        {/* Attendance Vibe Sticker (Crazy Tanglish Cinema/Meme Punch, Strictly Personal to Logged-in User) */}
+        {isSelf && !isAbsent && !isLeave && !isHoliday && (
+          <AttendanceVibeCard
+            clockInTime={firstClockIn}
+            isSelf={isSelf}
+            userName={user?.name || authUser?.name}
+          />
         )}
 
         {/* Timings Summary Row */}
