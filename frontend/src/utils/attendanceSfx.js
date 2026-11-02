@@ -352,3 +352,38 @@ export const stopComedianAudio = () => {
   }
 };
 
+/**
+ * Vadivelu Clock-Out Movie Dialogue
+ * "Varataaa... mameee durrrrr!!!!" 🛵💨
+ */
+export const playClockOutAudio = () => {
+  if (!isSfxEnabled()) return;
+
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch (_) {}
+    currentAudio = null;
+  }
+
+  const audioSrc = '/audio/memes/vadivelu_clockout.mp3';
+  if (typeof window !== 'undefined') {
+    try {
+      const audio = new Audio(audioSrc);
+      currentAudio = audio;
+      audio.volume = 1.0;
+      audio.play().catch(() => {
+        // Fallback sound if browser blocks audio
+        playLateBoing();
+      });
+      return;
+    } catch (_) {
+      playLateBoing();
+      return;
+    }
+  }
+
+  playLateBoing();
+};
+

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '../api';
+import { playClockOutAudio } from '../utils/attendanceSfx';
 
 export const useAttendance = (filters = {}) => {
   return useQuery({
@@ -83,7 +84,15 @@ export const useClockOut = () => {
 
       window.dispatchEvent(new CustomEvent('attendanceStatusChanged', { detail: attendance || null }));
 
-      toast.success('Clocked out successfully');
+      // Authentic Vadivelu Clock-Out Dialogue: "Varataaa... mameee durrrrr!!!!"
+      playClockOutAudio();
+      toast.success('Varataaa... mameee durrrrr! 🛵💨 (Clocked Out)', {
+        duration: 4500,
+        action: {
+          label: '🔊 Replay',
+          onClick: () => playClockOutAudio(),
+        },
+      });
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Clock out failed'),
   });
