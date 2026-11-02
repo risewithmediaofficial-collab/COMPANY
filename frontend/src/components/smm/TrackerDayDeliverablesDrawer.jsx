@@ -19,6 +19,8 @@ import {
   Share2,
   Layers,
   Info,
+  Edit2,
+  Save,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -150,6 +152,18 @@ export const TrackerDayDeliverablesDrawer = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Editing deliverable state
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [editDraft, setEditDraft] = useState({
+    type: 'reel',
+    label: '',
+    time: '',
+    status: 'todo',
+    title: '',
+    note: '',
+    driveLink: '',
+  });
+
   // New item draft form state
   const [newType, setNewType] = useState('reel');
   const [newLabel, setNewLabel] = useState('');
@@ -167,6 +181,8 @@ export const TrackerDayDeliverablesDrawer = ({
       // Auto-expand add form if day has 0 items
       setShowAddForm(parsedItems.length === 0);
       setFilterType('all');
+      setEditingItemId(null);
+      setEditDraft({});
     }
   }, [isOpen, dayCell]);
 
@@ -232,10 +248,10 @@ export const TrackerDayDeliverablesDrawer = ({
 
       const payload = {
         items: updatedItems,
-        postLabel: firstContent ? firstContent.label : (updatedItems.length === 0 ? '' : undefined),
-        postStatus: firstContent ? resolvedContentStatus : (updatedItems.length === 0 ? 'todo' : undefined),
-        storyLabel: firstStory ? firstStory.label : (updatedItems.length === 0 ? '' : undefined),
-        storyStatus: firstStory ? firstStory.status : (updatedItems.length === 0 ? 'todo' : undefined),
+        postLabel: firstContent ? firstContent.label : '',
+        postStatus: firstContent ? resolvedContentStatus : 'todo',
+        storyLabel: firstStory ? firstStory.label : '',
+        storyStatus: firstStory ? firstStory.status : 'todo',
       };
 
       await onSaveCell(dayNumber, payload);
@@ -270,8 +286,62 @@ export const TrackerDayDeliverablesDrawer = ({
     handlePersistItems(updated);
   };
 
+  // Start inline editing of an item
+  const handleStartEdit = (item) => {
+    setEditingItemId(item.id);
+    setEditDraft({
+      type: item.type || 'reel',
+      label: item.label || '',
+      time: item.time || '',
+      status: item.status || 'todo',
+      title: item.title || '',
+      note: item.note || '',
+      driveLink: item.driveLink || '',
+    });
+  };
+
+  // Cancel inline editing
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditDraft({});
+  };
+
+  // Save inline edit changes
+  const handleSaveEdit = (e) => {
+    if (e) e.preventDefault();
+    if (!editDraft.label || !editDraft.label.trim()) {
+      toast.error('Please enter a label / code (e.g. R2 7:30P)');
+      return;
+    }
+
+    const updated = items.map((it) => {
+      if (it.id === editingItemId) {
+        return {
+          ...it,
+          type: editDraft.type || it.type,
+          label: editDraft.label.trim(),
+          time: editDraft.time ? editDraft.time.trim() : '',
+          status: editDraft.status || 'todo',
+          title: editDraft.title ? editDraft.title.trim() : '',
+          note: editDraft.note ? editDraft.note.trim() : '',
+          driveLink: editDraft.driveLink ? editDraft.driveLink.trim() : '',
+        };
+      }
+      return it;
+    });
+
+    handlePersistItems(updated);
+    setEditingItemId(null);
+    setEditDraft({});
+    toast.success('Deliverable updated successfully!');
+  };
+
   // Delete a deliverable from this date
   const handleDeleteItem = (itemId) => {
+    if (editingItemId === itemId) {
+      setEditingItemId(null);
+      setEditDraft({});
+    }
     const updated = items.filter((it) => it.id !== itemId);
     handlePersistItems(updated);
     toast.success('Deliverable removed from day');
@@ -676,10 +746,191 @@ export const TrackerDayDeliverablesDrawer = ({
               </div>
             ) : (
               filteredItems.map((item, index) => {
+                const isEditing = editingItemId === item.id;
                 const typeCfg = TYPE_CONFIG[item.type] || TYPE_CONFIG.reel;
                 const statusCfg = STATUS_CONFIG[item.status || 'todo'] || STATUS_CONFIG.todo;
                 const TypeIcon = typeCfg.icon;
                 const StatusIcon = statusCfg.icon;
+
+                if (isEditing) {
+                  return (
+                    <form
+                      key={item.id || index}
+                      onSubmit={handleSaveEdit}
+                      className="rounded-2xl border-2 border-indigo-500 bg-white p-4 shadow-lg space-y-3.5 dark:bg-slate-900 ring-2 ring-indigo-500/15 animate-in fade-in duration-200"
+                    >
+                      {/* Edit Header */}
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+                        <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                          <Edit2 size={13} className="stroke-[2.5]" /> Edit Deliverable
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleCancelEdit}
+                          className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-semibold cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      {/* Type Switcher */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: 'reel', label: '🎬 Reel', desc: 'Short Video' },
+                          { id: 'post', label: '🖼️ Post', desc: 'Feed / Graphic' },
+                          { id: 'story', label: '📱 Story', desc: '24hr Story' },
+                        ].map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => setEditDraft((prev) => ({ ...prev, type: t.id }))}
+                            className={`rounded-xl border p-2 text-center text-xs font-bold transition-all cursor-pointer ${
+                              editDraft.type === t.id
+                                ? 'border-indigo-600 bg-indigo-50/60 shadow-xs text-indigo-700 ring-2 ring-indigo-500/20 dark:bg-slate-800 dark:text-white dark:border-indigo-500'
+                                : 'border-slate-200 bg-white/60 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300'
+                            }`}
+                          >
+                            <div>{t.label}</div>
+                            <div className="text-[10px] font-normal opacity-70">{t.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Label Code & Posting Time */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Label Code (e.g. R2 7:30P)
+                          </label>
+                          <input
+                            type="text"
+                            value={editDraft.label || ''}
+                            onChange={(e) => setEditDraft((prev) => ({ ...prev, label: e.target.value }))}
+                            placeholder="e.g. R2 7:30P"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Scheduled Time
+                          </label>
+                          <input
+                            type="text"
+                            value={editDraft.time || ''}
+                            onChange={(e) => setEditDraft((prev) => ({ ...prev, time: e.target.value }))}
+                            placeholder="07:30 PM"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          />
+                          {/* Quick Time Pills */}
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {COMMON_TIMES.slice(0, 4).map((time) => (
+                              <button
+                                key={time}
+                                type="button"
+                                onClick={() => setEditDraft((prev) => ({ ...prev, time }))}
+                                className="rounded-md bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600 hover:border-indigo-400 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 cursor-pointer"
+                              >
+                                {time}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Status & Topic */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Status
+                          </label>
+                          <select
+                            value={editDraft.status || 'todo'}
+                            onChange={(e) => setEditDraft((prev) => ({ ...prev, status: e.target.value }))}
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white cursor-pointer"
+                          >
+                            <option value="todo">📋 TODO</option>
+                            <option value="pending">⏳ PENDING</option>
+                            <option value="done">✅ DONE</option>
+                            <option value="skip">⏭ SKIP</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Topic / Concept (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            value={editDraft.title || ''}
+                            onChange={(e) => setEditDraft((prev) => ({ ...prev, title: e.target.value }))}
+                            placeholder="e.g. Behind the scenes reel"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Drive Link & Notes */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Google Drive / Asset Link
+                          </label>
+                          <input
+                            type="url"
+                            value={editDraft.driveLink || ''}
+                            onChange={(e) => setEditDraft((prev) => ({ ...prev, driveLink: e.target.value }))}
+                            placeholder="https://drive.google.com/..."
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            Caption / Notes
+                          </label>
+                          <input
+                            type="text"
+                            value={editDraft.note || ''}
+                            onChange={(e) => setEditDraft((prev) => ({ ...prev, note: e.target.value }))}
+                            placeholder="Caption copy or instructions"
+                            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-400 transition-colors cursor-pointer"
+                          title="Delete this deliverable"
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete Deliverable</span>
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className="rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm shadow-indigo-600/30 hover:bg-indigo-500 transition-all cursor-pointer"
+                          >
+                            <Save size={13} />
+                            <span>Save Changes</span>
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  );
+                }
 
                 return (
                   <div
@@ -736,7 +987,7 @@ export const TrackerDayDeliverablesDrawer = ({
                         )}
                       </div>
 
-                      {/* Right: Status Pill & Delete Button */}
+                      {/* Right: Status Pill, Edit & Delete Buttons */}
                       <div className="flex items-center gap-2 shrink-0">
                         {/* Status Switcher Button */}
                         <button
@@ -747,6 +998,16 @@ export const TrackerDayDeliverablesDrawer = ({
                         >
                           <StatusIcon size={12} />
                           <span>{statusCfg.label}</span>
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(item)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                          title="Edit deliverable"
+                        >
+                          <Edit2 size={13} />
                         </button>
 
                         {/* Delete Button */}

@@ -475,6 +475,8 @@ export const updateDayCell = async (req, res) => {
         dayCell.postLabel = req.body.postLabel;
       } else if (contentItems.length > 0) {
         dayCell.postLabel = contentItems[0].label || '';
+      } else {
+        dayCell.postLabel = '';
       }
 
       if (req.body.postStatus !== undefined) {
@@ -484,12 +486,16 @@ export const updateDayCell = async (req, res) => {
         const allDone = contentItems.every((it) => it.status === 'done');
         const anyPending = contentItems.some((it) => it.status === 'pending');
         dayCell.postStatus = allDone ? 'done' : (anyPending ? 'pending' : (contentItems[0].status || 'todo'));
+      } else {
+        dayCell.postStatus = 'todo';
       }
 
       if (req.body.storyLabel !== undefined) {
         dayCell.storyLabel = req.body.storyLabel;
       } else if (storyItems.length > 0) {
         dayCell.storyLabel = storyItems[0].label || '';
+      } else {
+        dayCell.storyLabel = '';
       }
 
       if (req.body.storyStatus !== undefined) {
@@ -498,6 +504,8 @@ export const updateDayCell = async (req, res) => {
         const allDone = storyItems.every((it) => it.status === 'done');
         const anyPending = storyItems.some((it) => it.status === 'pending');
         dayCell.storyStatus = allDone ? 'done' : (anyPending ? 'pending' : (storyItems[0].status || 'todo'));
+      } else {
+        dayCell.storyStatus = 'todo';
       }
 
       if (req.body.note !== undefined) {
