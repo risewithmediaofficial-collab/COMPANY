@@ -47,6 +47,8 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   const [showAbsentModal, setShowAbsentModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [showCelebrationModal, setShowCelebrationModal] = useState(false);
+  const [celebrationClockInTime, setCelebrationClockInTime] = useState(null);
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
@@ -186,9 +188,25 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
     toast.info('Present selected! Click "Clock In" to start your shift.');
   };
 
+  const onClockInSuccess = (res) => {
+    const time = res?.clockIn || (res?.sessions && res.sessions[res.sessions.length - 1]?.clockIn) || new Date().toISOString();
+    setCelebrationClockInTime(time);
+    setShowCelebrationModal(true);
+  };
+
+  useEffect(() => {
+    if (clockIn.isSuccess && clockIn.data) {
+      const time = clockIn.data?.clockIn || new Date().toISOString();
+      setCelebrationClockInTime(time);
+      setShowCelebrationModal(true);
+    }
+  }, [clockIn.isSuccess, clockIn.data]);
+
   const handleClockInClick = () => {
     if (isApprovedWFH) {
-      clockIn.mutate();
+      clockIn.mutate(undefined, {
+        onSuccess: (res) => onClockInSuccess(res),
+      });
       return;
     }
 
@@ -206,6 +224,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
         clockIn.mutate(
           { latitude, longitude, accuracy, locationName: 'GPS Location' },
           {
+            onSuccess: (res) => onClockInSuccess(res),
             onSettled: () => setIsGettingLocation(false),
           }
         );
@@ -505,16 +524,6 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           </div>
         )}
 
-        {/* Attendance Vibe Sticker (Authentic Tamil Comedian Meme Sticker, Strictly Personal to Logged-in User) */}
-        {isSelf && !isAbsent && !isLeave && !isHoliday && (
-          <AttendanceVibeCard
-            clockInTime={firstClockIn}
-            isSelf={isSelf}
-            userName={user?.name || authUser?.name}
-            isMarkingAttendance={isGettingLocation || clockIn.isPending}
-          />
-        )}
-
         {/* Timings Summary Row */}
         <div className="grid grid-cols-3 gap-2 text-center border-t border-border pt-3">
           <div className="p-2.5 rounded-2xl bg-secondary/30 border border-border">
@@ -772,6 +781,13 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Celebratory Tamil Comedian Sticker Popup (Appears on clock in for all users incl admin, leaves 0 footprint in overview) */}
+      <AttendanceVibeCard
+        isOpen={showCelebrationModal}
+        onClose={() => setShowCelebrationModal(false)}
+        clockInTime={celebrationClockInTime || firstClockIn}
+      />
     </div>
   );
 };
