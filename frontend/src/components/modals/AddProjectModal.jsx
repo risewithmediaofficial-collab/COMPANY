@@ -58,6 +58,8 @@ import {
 } from '../../hooks/useMonthlyDeliverables';
 import MonthlyDeliverablesSection from '../projects/MonthlyDeliverablesSection';
 import { toast } from 'sonner';
+import api from '../../api';
+import DuplicateConfirmDialog from './DuplicateConfirmDialog';
 
 const DRAFT_KEY = 'draft:project-modal';
 
@@ -209,6 +211,13 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   const [includeMonthlyDeliverables, setIncludeMonthlyDeliverables] = useState(false);
   const [hasUserToggledDeliverables, setHasUserToggledDeliverables] = useState(false);
   const [moveToDevelopment, setMoveToDevelopment] = useState(false);
+  const [duplicateDialog, setDuplicateDialog] = useState({
+    open: false,
+    title: 'Duplicate Project Detected',
+    message: '',
+    existingRecord: null,
+    onConfirm: null,
+  });
 
   const { data: existingDeliverablesData } = useProjectMonthlyDeliverables(
     project?._id,
@@ -401,39 +410,62 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
       delete payload.paymentStatus;
       delete payload.budgetNotes;
 
-      let savedProject;
-      if (project) {
-        savedProject = await updateProject.mutateAsync({ id: project._id, data: payload });
-      } else {
-        if (moveToDevelopment && payload.status === 'planning') {
-          payload.status = 'active';
+      const executeSaveProject = async () => {
+        let savedProject;
+        if (project) {
+          savedProject = await updateProject.mutateAsync({ id: project._id, data: payload });
+        } else {
+          if (moveToDevelopment && payload.status === 'planning') {
+            payload.status = 'active';
+          }
+          savedProject = await createProject.mutateAsync(payload);
         }
-        savedProject = await createProject.mutateAsync(payload);
-      }
 
-      const targetProjectId = project?._id || savedProject?._id || savedProject?.project?._id || savedProject?.data?._id;
-      if (includeMonthlyDeliverables && targetProjectId && monthlyDeliverables && monthlyDeliverables.length > 0) {
+        const targetProjectId = project?._id || savedProject?._id || savedProject?.project?._id || savedProject?.data?._id;
+        if (includeMonthlyDeliverables && targetProjectId && monthlyDeliverables && monthlyDeliverables.length > 0) {
+          try {
+            await batchSaveDeliverables.mutateAsync({
+              projectId: targetProjectId,
+              month: deliverableMonth,
+              year: deliverableYear,
+              deliverables: monthlyDeliverables,
+            });
+          } catch (err) {
+            console.error('Failed to save monthly deliverables in project modal', err);
+          }
+        }
+
+        form.reset();
+        setMonthlyDeliverables([]);
+        localStorage.removeItem(DRAFT_KEY);
+        onOpenChange(false);
+
+        if (!project && moveToDevelopment && targetProjectId) {
+          toast.success('Project created & moved directly to Development Board! 🚀');
+          navigate(`/development/board?project=${targetProjectId}`);
+        }
+      };
+
+      if (!project) {
         try {
-          await batchSaveDeliverables.mutateAsync({
-            projectId: targetProjectId,
-            month: deliverableMonth,
-            year: deliverableYear,
-            deliverables: monthlyDeliverables,
+          const res = await api.post('/check-duplicate', {
+            type: 'project',
+            data: { name: payload.name, client: payload.client },
           });
-        } catch (err) {
-          console.error('Failed to save monthly deliverables in project modal', err);
-        }
+          if (res.data?.isDuplicate) {
+            setDuplicateDialog({
+              open: true,
+              title: 'Duplicate Project Detected',
+              message: res.data.message,
+              existingRecord: res.data.existingRecord,
+              onConfirm: executeSaveProject,
+            });
+            return;
+          }
+        } catch (e) {}
       }
 
-      form.reset();
-      setMonthlyDeliverables([]);
-      localStorage.removeItem(DRAFT_KEY);
-      onOpenChange(false);
-
-      if (!project && moveToDevelopment && targetProjectId) {
-        toast.success('Project created & moved directly to Development Board! 🚀');
-        navigate(`/development/board?project=${targetProjectId}`);
-      }
+      await executeSaveProject();
     } catch (err) {
       console.error('Failed to save project:', err);
       toast.error(err.response?.data?.message || err.message || 'Failed to save project');
@@ -456,7 +488,8 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
         <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 pr-4 sm:pr-6 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
@@ -1013,5 +1046,15 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
         </Form>
       </DialogContent>
     </Dialog>
+
+      <DuplicateConfirmDialog
+        open={duplicateDialog.open}
+        onOpenChange={(isOpen) => setDuplicateDialog((prev) => ({ ...prev, open: isOpen }))}
+        title={duplicateDialog.title}
+        message={duplicateDialog.message}
+        existingRecord={duplicateDialog.existingRecord}
+        onConfirm={duplicateDialog.onConfirm}
+      />
+    </>
   );
 };

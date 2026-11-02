@@ -47,6 +47,8 @@ const ReferralDashboard = lazy(() => import('./pages/referral/ReferralDashboard'
 const Users = lazy(() => import('./pages/admin/Users'));
 const DomainRenewals = lazy(() => import('./pages/admin/DomainRenewals'));
 const ManagerTaskAssignments = lazy(() => import('./pages/admin/ManagerTaskAssignments'));
+const AuditLogs = lazy(() => import('./pages/admin/AuditLogs'));
+const RecycleBin = lazy(() => import('./pages/admin/RecycleBin'));
 const AssetsLibrary = lazy(() => import('./pages/assets/AssetsLibrary'));
 const Settings = lazy(() => import('./pages/Settings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
@@ -428,6 +430,18 @@ const App = () => {
           <Route path="/admin/manager-assignments" element={
             <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin']}>
               <ManagerTaskAssignments />
+            </ProtectedRoute>
+          } />
+
+          {/* System Audit Logs & Recycle Bin — Super Admin, Admin, Manager */}
+          <Route path="/audit-logs" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager']}>
+              <AuditLogs />
+            </ProtectedRoute>
+          } />
+          <Route path="/recycle-bin" element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager']}>
+              <RecycleBin />
             </ProtectedRoute>
           } />
 

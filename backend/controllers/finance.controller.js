@@ -16,6 +16,7 @@ import Task from '../models/task.model.js';
 import { createNotification } from '../utils/notification.js';
 import { sendEmail } from '../utils/email.js';
 import { createActivityLog } from '../utils/activity.js';
+import { moveToRecycleBin } from '../utils/recycleBin.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import { parsePagination } from '../utils/pagination.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
@@ -1330,8 +1331,21 @@ export const getInvoiceByPublicLink = async (req, res) => {
 
 export const deleteInvoice = async (req, res) => {
   try {
-    const invoice = await Invoice.findByIdAndDelete(req.params.id);
+    const invoice = await Invoice.findById(req.params.id);
     if (!invoice) return res.status(404).json({ success: false, message: 'Invoice not found' });
+
+    await moveToRecycleBin({
+      entityType: 'invoice',
+      originalId: invoice._id,
+      title: `Invoice ${invoice.invoiceNumber || ''}`,
+      subtitle: `Total: ₹${(invoice.total || 0).toLocaleString('en-IN')}`,
+      originalLocation: 'Finance > Invoices',
+      modelName: 'Invoice',
+      documentData: invoice,
+      user: req.user,
+    });
+
+    await Invoice.findByIdAndDelete(req.params.id);
 
     await Payment.deleteMany({ invoice: invoice._id });
     if (Number(invoice.paidAmount || 0) > 0 && invoice.client) {
@@ -1741,6 +1755,17 @@ export const deleteExpense = async (req, res) => {
     if (!isManagerOrAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this expense' });
     }
+
+    await moveToRecycleBin({
+      entityType: 'expense',
+      originalId: expense._id,
+      title: expense.title,
+      subtitle: `₹${(expense.amount || 0).toLocaleString('en-IN')} • ${expense.category || ''}`,
+      originalLocation: 'Finance > Expenses',
+      modelName: 'Expense',
+      documentData: expense,
+      user: req.user,
+    });
 
     await expense.deleteOne();
 

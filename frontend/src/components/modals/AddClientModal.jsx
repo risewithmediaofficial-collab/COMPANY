@@ -5,7 +5,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,8 @@ import { useCreateClient, useUpdateClient } from '../../hooks/useClients';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
 import { FolderOpen, X } from 'lucide-react';
+import api from '../../api';
+import DuplicateConfirmDialog from './DuplicateConfirmDialog';
 
 const DRAFT_KEY = 'draft:client-modal';
 
@@ -163,6 +165,14 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
   const isLoading = createClient.isPending || updateClient.isPending;
   const referralOptions = users.filter((user) => user.role !== 'client');
 
+  const [duplicateDialog, setDuplicateDialog] = useState({
+    open: false,
+    title: 'Duplicate Client Detected',
+    message: '',
+    existingRecord: null,
+    onConfirm: null,
+  });
+
   useEffect(() => {
     if (client) {
       form.reset({
@@ -242,6 +252,20 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
     }
   }, [client, open, form, initialStatus]);
 
+  const executeClientSave = async (payload) => {
+    if (client) {
+      await updateClient.mutateAsync({ id: client._id, data: payload });
+    } else {
+      await createClient.mutateAsync(payload);
+    }
+
+    if (!createClient.isError && !updateClient.isError) {
+      form.reset();
+      localStorage.removeItem(DRAFT_KEY);
+      onOpenChange(false);
+    }
+  };
+
   const onSubmit = async (data) => {
     const payload = {
       ...data,
@@ -258,17 +282,32 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
       contractEndDate: data.contractEndDate || null,
     };
 
-    if (client) {
-      await updateClient.mutateAsync({ id: client._id, data: payload });
-    } else {
-      await createClient.mutateAsync(payload);
+    // If creating new client, check for duplicates
+    if (!client) {
+      try {
+        const res = await api.post('/check-duplicate', {
+          type: 'client',
+          data: {
+            name: payload.name,
+            company: payload.company,
+            email: payload.email,
+            phone: payload.phone,
+          },
+        });
+        if (res.data?.isDuplicate) {
+          setDuplicateDialog({
+            open: true,
+            title: 'Duplicate Client Detected',
+            message: res.data.message,
+            existingRecord: res.data.existingRecord,
+            onConfirm: () => executeClientSave(payload),
+          });
+          return;
+        }
+      } catch (e) {}
     }
 
-    if (!createClient.isError && !updateClient.isError) {
-      form.reset();
-      localStorage.removeItem(DRAFT_KEY);
-      onOpenChange(false);
-    }
+    await executeClientSave(payload);
   };
 
   const handleClose = (isOpen) => {
@@ -284,7 +323,8 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent variant="center" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90dvh]">
         <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
@@ -765,5 +805,15 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
         </Form>
       </DialogContent>
     </Dialog>
+
+      <DuplicateConfirmDialog
+        open={duplicateDialog.open}
+        onOpenChange={(isOpen) => setDuplicateDialog((prev) => ({ ...prev, open: isOpen }))}
+        title={duplicateDialog.title}
+        message={duplicateDialog.message}
+        existingRecord={duplicateDialog.existingRecord}
+        onConfirm={duplicateDialog.onConfirm}
+      />
+    </>
   );
 };

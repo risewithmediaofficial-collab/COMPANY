@@ -38,6 +38,8 @@ import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import { useUsers } from '../../hooks/useUsers';
 import { contentProductionApi } from '../../api/contentProduction';
+import api from '../../api';
+import DuplicateConfirmDialog from '../modals/DuplicateConfirmDialog';
 import { toast } from 'sonner';
 
 export const PLATFORM_OPTIONS = [
@@ -118,6 +120,13 @@ export const KanbanCreateTaskModal = ({
 
   // Mode: 'content' | 'non_content'
   const [taskCategory, setTaskCategory] = useState('content');
+  const [duplicateDialog, setDuplicateDialog] = useState({
+    open: false,
+    title: 'Duplicate Task Detected',
+    message: '',
+    existingRecord: null,
+    onConfirm: null,
+  });
   const [subType, setSubType] = useState('reel');
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('medium');
@@ -622,6 +631,25 @@ export const KanbanCreateTaskModal = ({
   };
 
   // Submit Handler
+  const executeTasksSubmit = async (tasksToSubmit) => {
+    try {
+      if (tasksToSubmit.length === 1) {
+        await createTaskMutation.mutateAsync(tasksToSubmit[0]);
+        toast.success(`Task created successfully!`);
+      } else {
+        await createTaskMutation.mutateAsync({ tasks: tasksToSubmit });
+        toast.success(`Successfully created & assigned ${tasksToSubmit.length} tasks!`);
+      }
+
+      setQueuedTasks([]);
+      setTitle('');
+      if (onTaskCreated) onTaskCreated();
+      handleClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create task(s)');
+    }
+  };
+
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
@@ -639,22 +667,26 @@ export const KanbanCreateTaskModal = ({
       return;
     }
 
-    try {
-      if (tasksToSubmit.length === 1) {
-        await createTaskMutation.mutateAsync(tasksToSubmit[0]);
-        toast.success(`Task created successfully!`);
-      } else {
-        await createTaskMutation.mutateAsync({ tasks: tasksToSubmit });
-        toast.success(`Successfully created & assigned ${tasksToSubmit.length} tasks!`);
-      }
-
-      setQueuedTasks([]);
-      setTitle('');
-      if (onTaskCreated) onTaskCreated();
-      handleClose();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create task(s)');
+    if (tasksToSubmit.length === 1 && tasksToSubmit[0].project) {
+      try {
+        const res = await api.post('/check-duplicate', {
+          type: 'task',
+          data: { title: tasksToSubmit[0].title, project: tasksToSubmit[0].project },
+        });
+        if (res.data?.isDuplicate) {
+          setDuplicateDialog({
+            open: true,
+            title: 'Duplicate Task Detected',
+            message: res.data.message,
+            existingRecord: res.data.existingRecord,
+            onConfirm: () => executeTasksSubmit(tasksToSubmit),
+          });
+          return;
+        }
+      } catch (err) {}
     }
+
+    await executeTasksSubmit(tasksToSubmit);
   };
 
   return createPortal(
@@ -2262,6 +2294,15 @@ export const KanbanCreateTaskModal = ({
           </div>
         </div>
       </div>
+
+      <DuplicateConfirmDialog
+        open={duplicateDialog.open}
+        onOpenChange={(isOpen) => setDuplicateDialog((prev) => ({ ...prev, open: isOpen }))}
+        title={duplicateDialog.title}
+        message={duplicateDialog.message}
+        existingRecord={duplicateDialog.existingRecord}
+        onConfirm={duplicateDialog.onConfirm}
+      />
     </div>,
     document.body
   );

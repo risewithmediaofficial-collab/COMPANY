@@ -8,6 +8,7 @@ import Project from '../models/project.model.js';
 import ActivityLog from '../models/activityLog.model.js';
 import { sendEmail } from '../utils/email.js';
 import { createActivityLog } from '../utils/activity.js';
+import { moveToRecycleBin } from '../utils/recycleBin.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 import { parsePagination } from '../utils/pagination.js';
 
@@ -344,8 +345,21 @@ export const updateClient = async (req, res) => {
 
 export const deleteClient = async (req, res) => {
   try {
-    const client = await Client.findByIdAndDelete(req.params.id);
+    const client = await Client.findById(req.params.id);
     if (!client) return res.status(404).json({ success: false, message: 'Client not found' });
+
+    await moveToRecycleBin({
+      entityType: 'client',
+      originalId: client._id,
+      title: client.company || client.name,
+      subtitle: client.email || client.phone || '',
+      originalLocation: 'Clients 360',
+      modelName: 'Client',
+      documentData: client,
+      user: req.user,
+    });
+
+    await Client.findByIdAndDelete(req.params.id);
 
     // Also remove client portal user if linked
     if (client.userId) {

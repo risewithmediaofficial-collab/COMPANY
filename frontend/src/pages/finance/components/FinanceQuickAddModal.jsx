@@ -38,9 +38,18 @@ import {
 import { useClients, useCreateClient } from '../../../hooks/useClients';
 import { formatINR } from '../../../utils/financeFormatters';
 import { toast } from 'sonner';
+import api from '../../../api';
+import DuplicateConfirmDialog from '../../../components/modals/DuplicateConfirmDialog';
 
 export default function FinanceQuickAddModal({ open, onOpenChange, initialAction = 'invoice' }) {
   const [activeAction, setActiveAction] = useState(initialAction);
+  const [duplicateDialog, setDuplicateDialog] = useState({
+    open: false,
+    title: 'Duplicate Record Detected',
+    message: '',
+    existingRecord: null,
+    onConfirm: null,
+  });
 
   useEffect(() => {
     if (open) {
@@ -232,6 +241,17 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
   const invoiceTotal = invForm.taxType === 'inclusive' ? invoiceSubtotal : invoiceSubtotal + invoiceTaxAmount;
 
   // Handlers
+  const executeInvoiceSubmit = async (validItems) => {
+    try {
+      await createInvoice.mutateAsync({
+        ...invForm,
+        lineItems: validItems,
+        taxRate: invForm.taxType === 'exempt' ? 0 : Number(invForm.taxRate || 18),
+      });
+      onOpenChange(false);
+    } catch (err) {}
+  };
+
   const handleInvoiceSubmit = async (e) => {
     e.preventDefault();
     if (!invForm.client) return toast.error('Select a client');
@@ -250,13 +270,23 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     }
 
     try {
-      await createInvoice.mutateAsync({
-        ...invForm,
-        lineItems: validItems,
-        taxRate: invForm.taxType === 'exempt' ? 0 : Number(invForm.taxRate || 18),
+      const res = await api.post('/check-duplicate', {
+        type: 'invoice',
+        data: { client: invForm.client, servicePeriod: invForm.servicePeriod },
       });
-      onOpenChange(false);
+      if (res.data?.isDuplicate) {
+        setDuplicateDialog({
+          open: true,
+          title: 'Duplicate Invoice Detected',
+          message: res.data.message,
+          existingRecord: res.data.existingRecord,
+          onConfirm: () => executeInvoiceSubmit(validItems),
+        });
+        return;
+      }
     } catch (err) {}
+
+    await executeInvoiceSubmit(validItems);
   };
 
   const handleReceiptSubmit = async (e) => {
@@ -274,15 +304,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     } catch (err) {}
   };
 
-  const handleExpenseSubmit = async (e) => {
-    e.preventDefault();
-    if (!expForm.title || !expForm.amount) return toast.error('Fill required expense details');
-    if (expForm.paymentStatus === 'partially_paid') {
-      const adv = Number(expForm.advanceAmount || 0);
-      const total = Number(expForm.amount || 0);
-      if (adv <= 0) return toast.error('Please enter a valid partial/advance amount greater than 0');
-      if (adv > total) return toast.error('Partial advance amount cannot exceed total bill amount');
-    }
+  const executeExpenseSubmit = async () => {
     try {
       await createExpense.mutateAsync({
         ...expForm,
@@ -295,9 +317,37 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
     } catch (err) {}
   };
 
-  const handleClientSubmit = async (e) => {
+  const handleExpenseSubmit = async (e) => {
     e.preventDefault();
-    if (!clientForm.name) return toast.error('Enter client / business name');
+    if (!expForm.title || !expForm.amount) return toast.error('Fill required expense details');
+    if (expForm.paymentStatus === 'partially_paid') {
+      const adv = Number(expForm.advanceAmount || 0);
+      const total = Number(expForm.amount || 0);
+      if (adv <= 0) return toast.error('Please enter a valid partial/advance amount greater than 0');
+      if (adv > total) return toast.error('Partial advance amount cannot exceed total bill amount');
+    }
+
+    try {
+      const res = await api.post('/check-duplicate', {
+        type: 'expense',
+        data: { title: expForm.title, amount: expForm.amount },
+      });
+      if (res.data?.isDuplicate) {
+        setDuplicateDialog({
+          open: true,
+          title: 'Duplicate Expense Detected',
+          message: res.data.message,
+          existingRecord: res.data.existingRecord,
+          onConfirm: executeExpenseSubmit,
+        });
+        return;
+      }
+    } catch (err) {}
+
+    await executeExpenseSubmit();
+  };
+
+  const executeClientSubmit = async () => {
     try {
       await createClient.mutateAsync({
         ...clientForm,
@@ -306,6 +356,35 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
       });
       onOpenChange(false);
     } catch (err) {}
+  };
+
+  const handleClientSubmit = async (e) => {
+    e.preventDefault();
+    if (!clientForm.name) return toast.error('Enter client / business name');
+
+    try {
+      const res = await api.post('/check-duplicate', {
+        type: 'client',
+        data: {
+          name: clientForm.name,
+          company: clientForm.company,
+          email: clientForm.email,
+          phone: clientForm.phone,
+        },
+      });
+      if (res.data?.isDuplicate) {
+        setDuplicateDialog({
+          open: true,
+          title: 'Duplicate Client Detected',
+          message: res.data.message,
+          existingRecord: res.data.existingRecord,
+          onConfirm: executeClientSubmit,
+        });
+        return;
+      }
+    } catch (err) {}
+
+    await executeClientSubmit();
   };
 
   const handlePayrollSubmit = async (e) => {
@@ -378,7 +457,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         variant="side"
         size="xl"
@@ -1344,5 +1424,15 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         </div>
       </DialogContent>
     </Dialog>
+
+      <DuplicateConfirmDialog
+        open={duplicateDialog.open}
+        onOpenChange={(isOpen) => setDuplicateDialog((prev) => ({ ...prev, open: isOpen }))}
+        title={duplicateDialog.title}
+        message={duplicateDialog.message}
+        existingRecord={duplicateDialog.existingRecord}
+        onConfirm={duplicateDialog.onConfirm}
+      />
+    </>
   );
 }

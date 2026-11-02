@@ -8,6 +8,8 @@ import Proposal from '../models/proposal.model.js';
 import Client from '../models/client.model.js';
 import Lead from '../models/lead.model.js';
 import Notification from '../models/notification.model.js';
+import { createActivityLog } from '../utils/activity.js';
+import { moveToRecycleBin } from '../utils/recycleBin.js';
 
 const router = express.Router();
 
@@ -238,11 +240,32 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Only managers and administrators can delete proposals' });
     }
 
-    const proposal = await Proposal.findByIdAndDelete(req.params.id);
-
+    const proposal = await Proposal.findById(req.params.id);
     if (!proposal) {
       return res.status(404).json({ success: false, message: 'Proposal not found' });
     }
+
+    await moveToRecycleBin({
+      entityType: 'proposal',
+      originalId: proposal._id,
+      title: proposal.title || 'Proposal',
+      subtitle: `Total: ₹${(proposal.totalPrice || 0).toLocaleString('en-IN')}`,
+      originalLocation: 'Proposals',
+      modelName: 'Proposal',
+      documentData: proposal,
+      user: req.user,
+    });
+
+    await Proposal.findByIdAndDelete(req.params.id);
+
+    await createActivityLog({
+      actor: req.user,
+      action: 'proposal.deleted',
+      entityType: 'proposal',
+      entityId: proposal._id,
+      title: 'Proposal deleted',
+      description: `Proposal "${proposal.title}" was moved to Recycle Bin.`,
+    });
 
     res.json({ success: true, message: 'Proposal deleted successfully' });
   } catch (error) {

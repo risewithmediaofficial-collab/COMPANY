@@ -9,6 +9,7 @@ import Client from '../models/client.model.js';
 import ActivityLog from '../models/activityLog.model.js';
 import { createNotification } from '../utils/notification.js';
 import { createActivityLog } from '../utils/activity.js';
+import { moveToRecycleBin } from '../utils/recycleBin.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 
@@ -633,6 +634,21 @@ export const deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
+
+    // Find and archive all associated tasks into metadata so they can be restored together
+    const associatedTasks = await Task.find({ project: project._id }).lean();
+
+    await moveToRecycleBin({
+      entityType: 'project',
+      originalId: project._id,
+      title: project.name,
+      subtitle: project.category ? `Category: ${project.category}` : '',
+      originalLocation: 'Projects',
+      modelName: 'Project',
+      documentData: project,
+      user: req.user,
+      metadata: { associatedTasks },
+    });
 
     await Task.deleteMany({ project: project._id });
     await project.deleteOne();

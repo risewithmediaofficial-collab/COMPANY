@@ -41,6 +41,8 @@ import {
   Megaphone,
   Rocket,
   Clapperboard,
+  ShieldCheck,
+  Trash2,
 } from 'lucide-react';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/uiSlice';
 import { motion } from 'framer-motion';
@@ -299,6 +301,10 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         title: 'SYSTEM & SETTINGS',
         items: [
           { name: 'Reports & Analytics', icon: BarChart3, path: '/reports' },
+          ...(role === 'superAdmin' || role === 'admin' || role === 'manager' ? [
+            { name: 'Audit Logs', icon: ShieldCheck, path: '/audit-logs' },
+            { name: 'Recycle Bin', icon: Trash2, path: '/recycle-bin' },
+          ] : []),
           { name: 'Settings', icon: Settings, path: '/settings' },
         ],
       },

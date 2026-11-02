@@ -13,6 +13,7 @@ import User from '../models/user.model.js';
 import { createNotification } from '../utils/notification.js';
 import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
+import { moveToRecycleBin } from '../utils/recycleBin.js';
 import { matchesContentType, getMonthDateRange } from './projectMonthlyDeliverable.controller.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 import { withWorkspaceScope } from '../middleware/auth.middleware.js';
@@ -2036,6 +2037,18 @@ export const deleteTask = async (req, res) => {
     if (!access.allowed) {
       return res.status(access.status).json({ success: false, message: access.message });
     }
+
+    // Move to Recycle Bin before removing
+    await moveToRecycleBin({
+      entityType: 'task',
+      originalId: task._id,
+      title: task.title,
+      subtitle: task.priority ? `Priority: ${task.priority}` : '',
+      originalLocation: task.project ? 'Project Task' : 'Tasks Database',
+      modelName: 'Task',
+      documentData: task,
+      user: req.user,
+    });
 
     await Task.deleteMany({ $or: [{ parent: task._id }, { _id: task._id }] });
 

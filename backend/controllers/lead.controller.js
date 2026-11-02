@@ -7,6 +7,7 @@ import Referral from '../models/referral.model.js';
 import { createNotification } from '../utils/notification.js';
 import { runAutomation } from '../services/automation.service.js';
 import { createActivityLog } from '../utils/activity.js';
+import { moveToRecycleBin } from '../utils/recycleBin.js';
 import { emitLiveEvent } from '../utils/socketEmitter.js';
 import { parsePagination } from '../utils/pagination.js';
 
@@ -499,8 +500,21 @@ export const addLeadActivity = async (req, res) => {
 // @route  DELETE /api/leads/:id
 export const deleteLead = async (req, res) => {
   try {
-    const lead = await Lead.findByIdAndDelete(req.params.id);
+    const lead = await Lead.findById(req.params.id);
     if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
+
+    await moveToRecycleBin({
+      entityType: 'lead',
+      originalId: lead._id,
+      title: lead.name,
+      subtitle: lead.company || lead.phone || lead.email || '',
+      originalLocation: 'CRM Leads',
+      modelName: 'Lead',
+      documentData: lead,
+      user: req.user,
+    });
+
+    await Lead.findByIdAndDelete(req.params.id);
 
     await Referral.deleteMany({ lead: lead._id });
 
