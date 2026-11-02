@@ -2,366 +2,255 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
-  Flame,
-  Target,
-  Trophy,
-  Clock,
-  Shuffle,
-  Copy,
-  Check,
-  Lock,
-  Smile,
-  ChevronDown,
-  ChevronUp,
+  Volume2,
+  VolumeX,
   X,
-  Film,
-  CalendarDays,
-  PartyPopper,
-  Zap,
+  Lock,
+  Check,
+  Clock,
+  Radio,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  isSfxEnabled,
+  setSfxEnabled,
+  playTierSfx,
+  playScanningSound,
+} from '../../utils/attendanceSfx';
 
-/**
- * 6 Stock Memes Per Week (Monday to Saturday) for each Timing Tier:
- * 1. early: Clock in < 09:25 AM
- * 2. sharp: Clock in 09:25 AM - 09:33 AM (Dot 9:30 AM)
- * 3. late:  Clock in 09:34 AM - 11:30 AM
- * 4. afternoon: Clock in > 11:30 AM
- */
-const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+/* ── STICKER COMEDIAN SVG ILLUSTRATIONS ── */
 
-const VIBE_TIERS = {
+const VadiveluSniperSVG = () => (
+  <svg viewBox="0 0 120 120" className="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-md select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Outer Sticker White Die-cut Glow */}
+    <circle cx="60" cy="60" r="54" fill="#06B6D4" fillOpacity="0.18" />
+    <circle cx="60" cy="60" r="50" fill="#FEF08A" stroke="#FFFFFF" strokeWidth="6" />
+
+    {/* Green Laser Crosshair Background */}
+    <circle cx="60" cy="60" r="38" stroke="#10B981" strokeWidth="2" strokeDasharray="3 3" opacity="0.6" />
+    <line x1="60" y1="16" x2="60" y2="104" stroke="#10B981" strokeWidth="1.5" opacity="0.4" />
+    <line x1="16" y1="60" x2="104" y2="60" stroke="#10B981" strokeWidth="1.5" opacity="0.4" />
+
+    {/* Head & Hair */}
+    <path d="M38 42C38 28 82 28 82 42V56C82 72 72 84 60 84C48 84 38 72 38 56V42Z" fill="#FBBF24" stroke="#78350F" strokeWidth="3" />
+    <path d="M35 38C38 24 55 20 60 20C65 20 82 24 85 38C80 32 72 30 60 30C48 30 40 32 35 38Z" fill="#1F2937" />
+
+    {/* Big Cool Aviator Sunglasses (Rolex Style) */}
+    <path d="M42 46H57V58C57 62 52 64 47 64C42 64 42 58 42 58V46Z" fill="#111827" stroke="#374151" strokeWidth="2" />
+    <path d="M63 46H78V58C78 58 78 64 73 64C68 64 63 62 63 58V46Z" fill="#111827" stroke="#374151" strokeWidth="2" />
+    <line x1="57" y1="49" x2="63" y2="49" stroke="#E5E7EB" strokeWidth="2" />
+    {/* Sun reflection highlight */}
+    <line x1="44" y1="48" x2="49" y2="58" stroke="#67E8F9" strokeWidth="2" strokeLinecap="round" />
+    <line x1="65" y1="48" x2="70" y2="58" stroke="#67E8F9" strokeWidth="2" strokeLinecap="round" />
+
+    {/* Vadivelu Signature Thin Mustache */}
+    <path d="M48 68C52 66 58 67 60 69C62 67 68 66 72 68C68 71 62 70 60 70C58 70 52 71 48 68Z" fill="#1F2937" />
+
+    {/* Wide Grin / Laughing Mouth */}
+    <path d="M50 72C50 78 70 78 70 72" fill="#BE123C" stroke="#78350F" strokeWidth="2" />
+    <path d="M52 73H68C68 75 52 75 52 73Z" fill="#FFFFFF" />
+
+    {/* Pointing Finger / Target Badge */}
+    <g transform="translate(74, 62)">
+      <circle cx="16" cy="16" r="14" fill="#0284C7" stroke="#FFFFFF" strokeWidth="3" />
+      <text x="16" y="21" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="900" fontFamily="sans-serif">🎯</text>
+    </g>
+  </svg>
+);
+
+const VadiveluKaipullaSVG = () => (
+  <svg viewBox="0 0 120 120" className="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-md select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Outer Sticker White Die-cut Glow */}
+    <circle cx="60" cy="60" r="54" fill="#F97316" fillOpacity="0.18" />
+    <circle cx="60" cy="60" r="50" fill="#FED7AA" stroke="#FFFFFF" strokeWidth="6" />
+
+    {/* Flying Red Towel / Thundu behind */}
+    <path d="M22 35C26 25 40 30 48 38C40 45 30 46 22 35Z" fill="#DC2626" stroke="#991B1B" strokeWidth="2" />
+    <path d="M18 42C24 38 32 45 35 52C28 54 20 50 18 42Z" fill="#DC2626" opacity="0.8" />
+
+    {/* Head & Expression */}
+    <path d="M40 42C40 28 80 28 80 42V58C80 74 70 86 60 86C50 86 40 74 40 58V42Z" fill="#FDBA74" stroke="#7C2D12" strokeWidth="3" />
+    <path d="M37 38C40 24 55 20 60 20C65 20 80 24 83 38C78 30 68 30 60 30C52 30 42 30 37 38Z" fill="#1F2937" />
+
+    {/* Shocked/Crying Wide Eyes */}
+    <circle cx="49" cy="48" r="7" fill="#FFFFFF" stroke="#7C2D12" strokeWidth="2" />
+    <circle cx="71" cy="48" r="7" fill="#FFFFFF" stroke="#7C2D12" strokeWidth="2" />
+    <circle cx="51" cy="48" r="3" fill="#1F2937" />
+    <circle cx="69" cy="48" r="3" fill="#1F2937" />
+
+    {/* Curved Sad Eyebrows */}
+    <path d="M44 40C48 37 54 40 54 42" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M66 42C66 40 72 37 76 40" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" />
+
+    {/* Sweat Drop flying */}
+    <path d="M85 45C85 45 89 50 89 53C89 55 87 57 85 57C83 57 81 55 81 53C81 50 85 45 85 45Z" fill="#38BDF8" />
+
+    {/* Vadivelu Mustachio */}
+    <path d="M48 64C52 62 58 63 60 65C62 63 68 62 72 64C68 67 62 66 60 66C58 66 52 67 48 64Z" fill="#1F2937" />
+
+    {/* Shocked Crying Open Mouth */}
+    <ellipse cx="60" cy="74" rx="9" ry="7" fill="#991B1B" stroke="#7C2D12" strokeWidth="2" />
+    <path d="M54 71H66" stroke="#FFFFFF" strokeWidth="2" />
+
+    {/* Running Turtle Badge */}
+    <g transform="translate(74, 62)">
+      <circle cx="16" cy="16" r="14" fill="#EA580C" stroke="#FFFFFF" strokeWidth="3" />
+      <text x="16" y="21" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="900" fontFamily="sans-serif">🐢</text>
+    </g>
+  </svg>
+);
+
+const GoundamaniRoyalSVG = () => (
+  <svg viewBox="0 0 120 120" className="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-md select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Outer Sticker White Die-cut Glow */}
+    <circle cx="60" cy="60" r="54" fill="#10B981" fillOpacity="0.18" />
+    <circle cx="60" cy="60" r="50" fill="#D1FAE5" stroke="#FFFFFF" strokeWidth="6" />
+
+    {/* Golden Crown for Early Bird King */}
+    <path d="M44 26L50 34L60 22L70 34L76 26V38H44V26Z" fill="#F59E0B" stroke="#B45309" strokeWidth="2" />
+    <circle cx="60" cy="22" r="2.5" fill="#EF4444" />
+    <circle cx="44" cy="26" r="2" fill="#3B82F6" />
+    <circle cx="76" cy="26" r="2" fill="#3B82F6" />
+
+    {/* Head & Hair */}
+    <path d="M40 44C40 32 80 32 80 44V60C80 74 70 86 60 86C50 86 40 74 40 60V44Z" fill="#FCD34D" stroke="#78350F" strokeWidth="3" />
+    <path d="M38 42C40 30 55 26 60 26C65 26 80 30 82 42C77 36 68 34 60 34C52 34 43 36 38 42Z" fill="#1F2937" />
+
+    {/* Classic Goundamani Dark Glasses */}
+    <rect x="42" y="47" width="16" height="13" rx="3" fill="#111827" stroke="#374151" strokeWidth="2" />
+    <rect x="62" y="47" width="16" height="13" rx="3" fill="#111827" stroke="#374151" strokeWidth="2" />
+    <line x1="58" y1="52" x2="62" y2="52" stroke="#E5E7EB" strokeWidth="2" />
+    <line x1="45" y1="49" x2="52" y2="57" stroke="#34D399" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="65" y1="49" x2="72" y2="57" stroke="#34D399" strokeWidth="1.5" strokeLinecap="round" />
+
+    {/* Thick Smug Mustache */}
+    <path d="M46 66C50 63 58 64 60 67C62 64 70 63 74 66C70 71 63 69 60 69C57 69 50 71 46 66Z" fill="#1F2937" />
+
+    {/* Smirking VIP Smile */}
+    <path d="M52 73C56 77 66 76 69 72" stroke="#78350F" strokeWidth="2.5" strokeLinecap="round" />
+
+    {/* Cigar with smoke puff */}
+    <rect x="66" y="68" width="14" height="4" rx="1.5" fill="#78350F" stroke="#451A03" strokeWidth="1" transform="rotate(15 66 68)" />
+    <circle cx="80" cy="73" r="1.5" fill="#EF4444" />
+    <path d="M82 72C84 70 85 68 87 69C89 70 89 68 91 67" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="1 1" />
+
+    {/* Royal Key Badge */}
+    <g transform="translate(74, 62)">
+      <circle cx="16" cy="16" r="14" fill="#059669" stroke="#FFFFFF" strokeWidth="3" />
+      <text x="16" y="21" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="900" fontFamily="sans-serif">👑</text>
+    </g>
+  </svg>
+);
+
+const ChiefGuestAfternoonSVG = () => (
+  <svg viewBox="0 0 120 120" className="w-24 h-24 sm:w-28 sm:h-28 drop-shadow-md select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Outer Sticker White Die-cut Glow */}
+    <circle cx="60" cy="60" r="54" fill="#A855F7" fillOpacity="0.18" />
+    <circle cx="60" cy="60" r="50" fill="#F3E8FF" stroke="#FFFFFF" strokeWidth="6" />
+
+    {/* Golden VIP Garland / Mala */}
+    <path d="M36 50C40 76 80 76 84 50" stroke="#F59E0B" strokeWidth="6" strokeLinecap="round" />
+    <path d="M38 52C42 74 78 74 82 52" stroke="#EF4444" strokeWidth="3" strokeDasharray="4 4" />
+
+    {/* Head */}
+    <path d="M42 40C42 28 78 28 78 40V56C78 70 70 82 60 82C50 82 42 70 42 56V40Z" fill="#FDE68A" stroke="#78350F" strokeWidth="3" />
+    <path d="M39 36C42 22 56 18 60 18C64 18 78 22 81 36C76 28 67 28 60 28C53 28 44 28 39 36Z" fill="#1F2937" />
+
+    {/* Laughing Eyes */}
+    <path d="M47 46C50 43 54 44 55 47" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M65 47C66 44 70 43 73 46" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" />
+
+    {/* Mustache */}
+    <path d="M48 60C52 58 58 59 60 61C62 59 68 58 72 60C68 63 62 62 60 62C58 62 52 63 48 60Z" fill="#1F2937" />
+
+    {/* Laughing Big Mouth */}
+    <path d="M50 64C50 72 70 72 70 64" fill="#BE123C" stroke="#78350F" strokeWidth="2" />
+    <path d="M52 65H68" stroke="#FFFFFF" strokeWidth="2" />
+
+    {/* VIP Star Badge */}
+    <g transform="translate(74, 62)">
+      <circle cx="16" cy="16" r="14" fill="#9333EA" stroke="#FFFFFF" strokeWidth="3" />
+      <text x="16" y="21" textAnchor="middle" fill="#FFFFFF" fontSize="13" fontWeight="900" fontFamily="sans-serif">🎬</text>
+    </g>
+  </svg>
+);
+
+const ScanningVadiveluSVG = () => (
+  <svg viewBox="0 0 120 120" className="w-20 h-20 sm:w-24 sm:h-24 select-none animate-pulse" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="60" r="50" fill="#ECFDF5" stroke="#10B981" strokeWidth="4" strokeDasharray="6 4" />
+    {/* Biometric fingerprint lines */}
+    <path d="M48 55C48 45 72 45 72 55V68C72 75 66 80 60 80C54 80 48 75 48 68V60" stroke="#059669" strokeWidth="3" strokeLinecap="round" />
+    <path d="M54 58C54 52 66 52 66 58V66C66 70 63 73 60 73C57 73 54 70 54 66" stroke="#10B981" strokeWidth="3" strokeLinecap="round" />
+    {/* Radar sweep beam */}
+    <line x1="20" y1="60" x2="100" y2="60" stroke="#10B981" strokeWidth="2" strokeDasharray="2 2" />
+  </svg>
+);
+
+/* ── COMEDIAN MEME STICKER DATA (ONE DEDICATED STICKER PER TIMING TIER) ── */
+
+const STICKER_DATA = {
   early: {
-    categoryLabel: '👑 Early Bird / Shutter Thirappavargal',
-    badgeTheme: 'from-emerald-500/20 via-teal-500/15 to-amber-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400',
-    headerBadge: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-    avatarEmoji: '👑',
-    glowColor: 'bg-emerald-500/10',
-    meter: '⚡ Over-Dedication Level: 9999% • Salary-la Extra ₹10 Sethu Podunga Sir!',
-    stock: [
-      {
-        dayNum: 1,
-        dayLabel: 'Monday',
-        character: '🏆 VIP Raghuvaran (Dhanush)',
-        movie: 'Velaiyilla Pattathari',
-        stamp: '🔑 MASTER KEY HOLDER',
-        title: 'OFFICE KEY UN KITA THAANA IRUKKU?!',
-        punch: 'Tea kadai anna kooda innum aduppu patha vekkala bro... Shutter open panna night-ey ingaye tent potu paduthutiya?! 🔥',
-        subtext: 'Monday morning ivlo speed-a vandha HR shock aagidum! Innum fan switch kooda podala, nee work start pannita!',
-      },
-      {
-        dayNum: 2,
-        dayLabel: 'Tuesday',
-        character: '⚡ Thala Ajith (Billa) Style',
-        movie: 'Billa',
-        stamp: '👑 ROYAL VIP BIRD',
-        title: 'VELAIKARAN ILLA... VIYARVAI THALAIVAN!',
-        punch: 'Innum office bulb kooda muzhikkala... Un speed paathu server-ey shock aagi load aagudhu! Appraisal-la 100% hike confirm!',
-        subtext: 'RiseWithMedia-vin muthal kural! Tuesday super speed VIP entry! 🚀',
-      },
-      {
-        dayNum: 3,
-        dayLabel: 'Wednesday',
-        character: '🏢 Captain Vijayakanth Radar',
-        movie: 'Captain Prabhakaran',
-        stamp: '🏢 OWNER VIBE',
-        title: 'COMPANY OWNER-A NEE?!',
-        punch: 'Manager veetla innum brush pannitu irukkaru, nee inga report ready panriya?! Over-enthusiastic VIP bird sir neenga!',
-        subtext: 'Security anna kitta irundhu saaviya vaangura mudhal aal! Dedicated level unbeatable!',
-      },
-      {
-        dayNum: 4,
-        dayLabel: 'Thursday',
-        character: '🔥 Thalapathy Vijay (Ghilli)',
-        movie: 'Ghilli',
-        stamp: '⚡ KABADDI SPEED',
-        title: 'KADAVULE AJITHEYY... EVLO SEEKIRAM?!',
-        punch: 'Alarm adikkardhukku munnaadiye alarm-aye elupi vittutu vandhutaan polaye! Early login-la record break!',
-        subtext: 'No traffic, no tension, pure royal mass entry! Thursday rockstar! 😎',
-      },
-      {
-        dayNum: 5,
-        dayLabel: 'Friday',
-        character: '🕶️ Superstar Rajini (Sivaji Boss)',
-        movie: 'Sivaji The Boss',
-        stamp: '🦁 SINGAM SINGLE',
-        title: 'FRIDAY MASS... FIRST IN THE BUILDING!',
-        punch: 'Friday vandhuttale ellarum thunguvanga... Nee 9 manikkey vanthu laptop fan-ah suthavekkura! Verithanam bro!',
-        subtext: 'Weekend mood-la kooda First In! Company owner certificate ungalukku thaan!',
-      },
-      {
-        dayNum: 6,
-        dayLabel: 'Saturday',
-        character: '🎖️ Kamal Haasan (Vikram)',
-        movie: 'Vikram',
-        stamp: '🎖️ SATURDAY SOLDIER',
-        title: 'AARAMBICHITANGALA... SATURDAY SOLDIER!',
-        punch: 'Saturday-la ivlo seekiram vandhadhukku RiseWithMedia unakku oru gold medal tharanum bro! Dedication peak!',
-        subtext: 'Aarambikkalaangala! Half day mudichu biryani sapda ready aagidu! 🍛',
-      },
-    ],
+    comedianName: 'கவுண்டமணி (Goundamani VIP)',
+    stamp: '👑 ROYAL EARLY BIRD',
+    bgTheme: 'from-emerald-500/15 via-teal-500/10 to-amber-500/10 border-emerald-500/40',
+    tamilSpeech: 'அரசியல்ல இதெல்லாம் சாதாரணமப்பா! இவ்வளவு சீக்கிரம் வந்து ஆபீஸ் சாவியையா வாங்க போற?! 👑',
+    tanglishPunch: 'Office key un kitta thaana irukku?! Shutter open panna night-ey ingaye tent potu thungitiya?!',
+    subtext: 'Tea kadai anna kooda innum aduppu patha vekkala! Over-enthusiastic VIP bird of RiseWithMedia! 🚀',
+    renderSticker: () => <GoundamaniRoyalSVG />,
   },
   sharp: {
-    categoryLabel: '🎯 Sharp 9:30 AM / Dot-La Master',
-    badgeTheme: 'from-cyan-500/20 via-blue-500/15 to-indigo-500/10 border-cyan-500/40 text-cyan-600 dark:text-cyan-400',
-    headerBadge: 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/30',
-    avatarEmoji: '🎯',
-    glowColor: 'bg-cyan-500/10',
-    meter: '🎯 Sniper Accuracy: 99.9% • HR-ke Thannaale Salute Varum Moment!',
-    stock: [
-      {
-        dayNum: 1,
-        dayLabel: 'Monday',
-        character: '🎯 Rolex Sir (Vikram) Timing',
-        movie: 'Vikram',
-        stamp: '🎯 9:29:59 SNIPER',
-        title: 'DOT-LA MASTER (9:29:59 SNIPER)',
-        punch: 'Naan eppo varuven, epdi varuven-nu theriyadhu... Aana 9:30-ku dot-a biometric-la kai veppen!',
-        subtext: 'Padikadhavan Dhanush speed-la millisecond timing punch! Mass kaatita thalaiva!',
-      },
-      {
-        dayNum: 2,
-        dayLabel: 'Tuesday',
-        character: '⚡ Superstar Rajini (Annamalai)',
-        movie: 'Annamalai',
-        stamp: '⏱️ ATOMIC ACCURACY',
-        title: 'ROLEX SIR TIMING... SHARP ENTRY!',
-        punch: '1 Second miss aana HR half-day potruvaangannu therinju pota master stroke! Atomic clock-eh un kitta thaan time kekkum போல!',
-        subtext: 'Thala pola varuma! Oru nodi munnum illa, pinnum illa... Absolute accuracy!',
-      },
-      {
-        dayNum: 3,
-        dayLabel: 'Wednesday',
-        character: '🏎️ Bullet Pandi (Mankatha Speed)',
-        movie: 'Mankatha',
-        stamp: '⚡ FORMULA 1 SPEED',
-        title: 'BIOMETRIC BULLET PANDI',
-        punch: '9:29:58-ku lift vittu erangi, 9:29:59-ku finger vechu, 9:30:00-ku seat-la water bottle vecha legend!',
-        subtext: 'Formula 1 pit stop timing! Speed-um mass-um un kitta thaan padikkanum! ⚡',
-      },
-      {
-        dayNum: 4,
-        dayLabel: 'Thursday',
-        character: '🤖 Chitti (Enthiran) Robot Calibrated',
-        movie: 'Enthiran',
-        stamp: '🤖 SPEED 1 TERABYTE',
-        title: 'SYSTEM-EY CONFUSE AANA ENTRY',
-        punch: '9:30 dot timing paathu attendance machine-ey "Dei ivan manushan thaana illa robot-aa" nu yosikkudhu!',
-        subtext: 'Idhudhaan da perfect balance! System crash aagura sharp timing!',
-      },
-      {
-        dayNum: 5,
-        dayLabel: 'Friday',
-        character: '🎯 Thalapathy Vijay (Master JD)',
-        movie: 'Master',
-        stamp: '🎯 MASTER CLASS',
-        title: 'MASTER STROKE... 9:30 SHARP!',
-        punch: 'Vaathi kabbadi aadi kooda 9:30-ku attendance register-la signature potruvaaru! Sharpness overloaded!',
-        subtext: 'Friday master class timing! HR-ke thannaale salute varum moment! 🎯',
-      },
-      {
-        dayNum: 6,
-        dayLabel: 'Saturday',
-        character: '🕶️ Santhanam (SMS) Sharp Counter',
-        movie: 'Siva Manasula Sakthi',
-        stamp: '🏆 6/6 STREAK MASTER',
-        title: 'DOT-LA KALAKKURA SIVAJI GANESAN!',
-        punch: 'Saturday kooda 9:30 dot-la punch pannadha paathu HR kannula aanandha kanneer varudhu bro!',
-        subtext: 'Sharp dot streak 6 out of 6! Unakku oru parotta parcel confirm!',
-      },
-    ],
+    comedianName: 'வடிவேலு (Rolex Vadivelu)',
+    stamp: '🎯 9:30 SHARP VADIVELU',
+    bgTheme: 'from-cyan-500/15 via-blue-500/10 to-indigo-500/10 border-cyan-500/40',
+    tamilSpeech: 'ஆஹா... கரெக்ட்டா 9:30 டா! ஒரு செகண்ட் முன்னாடியும் இல்ல, பின்னாடியும் இல்ல... கச்சிதமான ஆளு! 🎯',
+    tanglishPunch: 'Naan eppo varuven, epdi varuven-nu theriyadhu... Aana 9:30-ku dot-a biometric-la kai veppen!',
+    subtext: '9:29:59 Sniper timing! 1 second miss aana half-day aayidumnu therinju pota master stroke! ⚡',
+    renderSticker: () => <VadiveluSniperSVG />,
   },
   late: {
-    categoryLabel: '🐢 Traffic Thalapathy / Vadivelu Mode',
-    badgeTheme: 'from-amber-500/20 via-orange-500/15 to-rose-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400',
-    headerBadge: 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30',
-    avatarEmoji: '🐢',
-    glowColor: 'bg-amber-500/10',
-    meter: '🚨 Risk Factor: 95% • Boss Paakaradhukulla Monitor-la Excel Open Pannu!',
-    stock: [
-      {
-        dayNum: 1,
-        dayLabel: 'Monday',
-        character: '🐢 Vadivelu (Winner Kaipulla)',
-        movie: 'Winner',
-        stamp: '🐢 KAIPULLA PASS',
-        title: 'TRAFFIC THALAPATHY (SIGNAL-LA AADU)',
-        punch: 'Alarm adichuchu... naan adha thirumba adichen! Boss, adhu traffic illa, signal-la aadu maatikituchu!',
-        subtext: 'Ready-made excuses loaded: Train late, tyre puncture! Monitor-a paathu serious-a thalaya aatidu!',
-      },
-      {
-        dayNum: 2,
-        dayLabel: 'Tuesday',
-        character: '🏃‍♂️ Vadivelu (Friends Nesamani)',
-        movie: 'Friends',
-        stamp: '🤫 NINJA ESCAPE',
-        title: 'VADIVELU ESCAPE: IPPO THAAN VANDHEN!',
-        punch: 'Ippo thaan vandhen boss, amaidhiya stealth ninja-va seat-la ukkandha yaarum kandupikka maattanga... Ninja technique!',
-        subtext: 'Manager pakkathula varra varaikkum code editor screen-a full zoom panni veyyi! 🤫',
-      },
-      {
-        dayNum: 3,
-        dayLabel: 'Wednesday',
-        character: '🛌 Vadivelu (Giri Bakery Veerabaghu)',
-        movie: 'Giri',
-        stamp: '🛌 SNOOZE KING',
-        title: 'ALARM-EH EMATHTHIYA VEERAN',
-        punch: '5 Minutes snooze pannen bro, kan muzhichu paatha 1 hour aayiduchu! Time machine kandupudichadhey namma thaan!',
-        subtext: 'Late-a vandhalum latest-a vandhom! Tea break appo compensation panniruvom! ☕',
-      },
-      {
-        dayNum: 4,
-        dayLabel: 'Thursday',
-        character: '🎭 Vadivelu (Encounter Ekambaram)',
-        movie: 'Marudhamalai',
-        stamp: '🚨 EKAMBARAM SIREN',
-        title: 'MASS SLOW MOTION ENTRY',
-        punch: 'Singam eppovume kootama varadhu, late-a thaan varum... Aana vandha vettai aaduradha yaarum thadukka mudiyadhu!',
-        subtext: 'HR room pakkam thala vachu paduthuradha! Straight-a desk-ku escape aagu!',
-      },
-      {
-        dayNum: 5,
-        dayLabel: 'Friday',
-        character: '🏃‍♂️ Santhanam (TVSK Love Guru)',
-        movie: 'Theeya Velai Seiyyanum Kumaru',
-        stamp: '🗺️ GPS CONFUSED',
-        title: 'FRIDAY TRAFFIC JAM WARRIOR',
-        punch: 'GPS route paathu vandhen bro... GPS-ey confuse aagi enakku leave poda sollichu! Epdiyo vandhuten la?!',
-        subtext: 'Risk factor 95% • Boss tea sapda poradhukulla seat-la kerchief pottu ukkaru!',
-      },
-      {
-        dayNum: 6,
-        dayLabel: 'Saturday',
-        character: '☕ Vadivelu (23am Pulikesi)',
-        movie: 'Imsai Arasan 23am Pulikesi',
-        stamp: '👑 PULIKESI TIME',
-        title: 'AAGATTUM ARASARE... LATE ENTRY!',
-        punch: 'Saturday-la 9:30-ku vandha enna, 10:30-ku vandha enna... Namma presence thaan mukkiyam arasare!',
-        subtext: 'Thappu thaan aana mass! Fast forward mode-la velaya mudichu கிளம்புவோம்!',
-      },
-    ],
+    comedianName: 'வடிவேலு (Kaipulla Vadivelu)',
+    stamp: '🐢 KAIPULLA ESCAPE PASS',
+    bgTheme: 'from-amber-500/15 via-orange-500/10 to-rose-500/10 border-amber-500/40',
+    tamilSpeech: 'வழில ஆடு குறுக்க வந்துருச்சு பாஸ்! என்ன பாத்து இப்படி கேட்டுட்டீங்களே?! 🐢',
+    tanglishPunch: 'Alarm adichuchu... naan adha thirumba adichen! Boss, adhu traffic illa, signal-la aadu maatikituchu!',
+    subtext: 'Ippo thaan vandhen boss, amaidhiya stealth mode-la seat-ku poyitta yaarum kandupikka maattanga! 🤫',
+    renderSticker: () => <VadiveluKaipullaSVG />,
   },
   afternoon: {
-    categoryLabel: '🎬 Second Half Hero / Guest Appearance',
-    badgeTheme: 'from-purple-500/20 via-fuchsia-500/15 to-pink-500/10 border-purple-500/40 text-purple-600 dark:text-purple-400',
-    headerBadge: 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
-    avatarEmoji: '🎬',
-    glowColor: 'bg-purple-500/10',
-    meter: '🌟 Interval Block Scene • Half Day Aana Enna, Full Mass Energy!',
-    stock: [
-      {
-        dayNum: 1,
-        dayLabel: 'Monday',
-        character: '🎬 Climax Hero (Mankatha Vinayak)',
-        movie: 'Mankatha',
-        stamp: '🎬 INTERVAL HERO',
-        title: 'SECOND HALF HERO / GUEST ENTRY',
-        punch: 'Padathula interval-ku aprom thaan main character entry aagum! Lunch sapda vandhiya illa vela paaka vandhiya bro?!',
-        subtext: 'Climax scene namma thaan carry panna porom! Post-lunch energy booster!',
-      },
-      {
-        dayNum: 2,
-        dayLabel: 'Tuesday',
-        character: '🥪 Santhanam VIP Feast Chief',
-        movie: 'Kalakalappu',
-        stamp: '🥪 CHIEF GUEST',
-        title: 'LUNCH SPECIAL CHIEF GUEST',
-        punch: 'Morning show miss aachu, matinee show hit pannuvom! Straight-a cafeteria poyittu laptop open pannu!',
-        subtext: 'Guest of honour for today\'s shift! Biryani manam mookai thulaikkiradhu! 🥪',
-      },
-      {
-        dayNum: 3,
-        dayLabel: 'Wednesday',
-        character: '🕶️ Vikram (Anniyan Remo)',
-        movie: 'Anniyan',
-        stamp: '🕶️ REMO ENTRY',
-        title: 'PAN-INDIAN VIP ENTRY',
-        punch: 'Appadithaan varuven... Late-a vandhalum climax scene namma thaan dominate panrom! Mass VIP entry!',
-        subtext: 'HR room pakkam pogaama stealth radar-la bypass panni vandha spy agent! 🕶️',
-      },
-      {
-        dayNum: 4,
-        dayLabel: 'Thursday',
-        character: '⚡ Thalapathy Vijay (Leo Das)',
-        movie: 'Leo',
-        stamp: '🍫 BLOODY SWEET',
-        title: 'BLOODY SWEET AFTERNOON ENTRY',
-        punch: 'Enna late-nu kekkuriya?! Leo Das entry eppovume second half-la thaan bloody sweet-a irukkum!',
-        subtext: 'Evening 7 manikku mela irundhu extra speed-la vela paathu compensate panniduvom!',
-      },
-      {
-        dayNum: 5,
-        dayLabel: 'Friday',
-        character: '🎉 Vadivelu (Chandramukhi Murugesan)',
-        movie: 'Chandramukhi',
-        stamp: '👻 MAAPU ESCAPE',
-        title: 'MAAPU... VACHITANGA DA AAPU!',
-        punch: 'Maapu... Friday lunch time-la entry pottu thirumbi paatha manager kodi ethura maadhiri nikkiraaru!',
-        subtext: 'Full confidence-la smile pannu, "Sir client call-la irundhen" nu ore podu!',
-      },
-      {
-        dayNum: 6,
-        dayLabel: 'Saturday',
-        character: '🏖️ Dass & Team (Soodhu Kavvum)',
-        movie: 'Soodhu Kavvum',
-        stamp: '🏖️ WEEKEND CALL',
-        title: 'SATURDAY MATINEE SHOW HERO',
-        punch: 'Innum 2 maninerathula office close panna poranga, ippo thaan entry podriya?! Kadavule Ajithey!',
-        subtext: 'Record breaker entry! Quick sync mudichu weekend celebrate pannu!',
-      },
-    ],
+    comedianName: 'கவுண்டமணி & செந்தில் (Chief Guest)',
+    stamp: '🥪 CHIEF GUEST ARRIVAL',
+    bgTheme: 'from-purple-500/15 via-fuchsia-500/10 to-pink-500/10 border-purple-500/40',
+    tamilSpeech: 'அடடடா... சீஃப் கெஸ்ட் இப்பதான் வர்றாரா?! இடைவேளைக்கு அப்புறம் தான் ஹீரோ என்ட்ரியா?! 🎬',
+    tanglishPunch: 'Padathula interval-ku aprom thaan main character entry aagum! Climax scene namma thaan carry panrom!',
+    subtext: 'Morning show miss aachu, matinee show hit pannuvom! Straight-a cafeteria poyittu laptop open pannu! 🍛',
+    renderSticker: () => <ChiefGuestAfternoonSVG />,
   },
 };
 
-/**
- * Determines timing tier from clock-in timestamp:
- * < 09:25: early
- * 09:25 - 09:33: sharp (Dot 9:30)
- * 09:34 - 11:30: late
- * > 11:30: afternoon
- */
 const getTimingTier = (clockInDate) => {
   if (!clockInDate || isNaN(clockInDate.getTime())) return 'sharp';
   const hours = clockInDate.getHours();
   const minutes = clockInDate.getMinutes();
   const totalMinutes = hours * 60 + minutes;
 
-  if (totalMinutes < 9 * 60 + 25) {
-    return 'early';
-  }
-  if (totalMinutes <= 9 * 60 + 33) {
-    return 'sharp';
-  }
-  if (totalMinutes <= 11 * 60 + 30) {
-    return 'late';
-  }
+  if (totalMinutes < 9 * 60 + 25) return 'early';
+  if (totalMinutes <= 9 * 60 + 33) return 'sharp';
+  if (totalMinutes <= 11 * 60 + 30) return 'late';
   return 'afternoon';
-};
-
-/**
- * Maps day of week to 0..5 (Monday: 0, Tuesday: 1, ..., Saturday: 5, Sunday: 0)
- */
-const getDayStockIndex = () => {
-  const day = new Date().getDay();
-  if (day === 0) return 0; // Sunday -> Monday stock
-  return Math.min(day - 1, 5);
 };
 
 export const AttendanceVibeCard = ({
   clockInTime,
   isSelf = true,
-  userName = '',
-  autoPopup = true,
+  isMarkingAttendance = false,
 }) => {
   // STRICT PRIVACY CHECK: Only show to the logged-in user themselves
   if (!isSelf) {
     return null;
   }
 
-  const [copied, setCopied] = useState(false);
-  const [selectedStockIndex, setSelectedStockIndex] = useState(getDayStockIndex);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [sfxOn, setSfxOn] = useState(isSfxEnabled);
 
   // Parse clock-in date
   const clockInDate = useMemo(() => {
@@ -372,221 +261,161 @@ export const AttendanceVibeCard = ({
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
-  // Automatic celebration popup on first clock-in of the day
+  // Determine timing tier & sticker
+  const tierKey = getTimingTier(clockInDate);
+  const sticker = STICKER_DATA[tierKey] || STICKER_DATA.sharp;
+
+  const formattedClockIn = clockInDate
+    ? clockInDate.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      })
+    : '--:--';
+
+  // 1. Play scanning sound while marking attendance is in progress
   useEffect(() => {
-    if (clockInDate && autoPopup) {
+    if (isMarkingAttendance) {
+      playScanningSound();
+    }
+  }, [isMarkingAttendance]);
+
+  // 2. Automatically popup with sound when attendance is marked!
+  useEffect(() => {
+    if (clockInDate) {
       const storageKey = `vibe_popup_seen_${todayStr}`;
       const hasSeen = sessionStorage.getItem(storageKey);
       if (!hasSeen) {
         setShowPopup(true);
         sessionStorage.setItem(storageKey, 'true');
+        setTimeout(() => {
+          playTierSfx(tierKey);
+        }, 300);
       }
     }
-  }, [clockInDate, autoPopup, todayStr]);
+  }, [clockInDate, todayStr, tierKey]);
 
-  // If the user has not clocked in yet today, show motivating teaser
-  if (!clockInDate) {
+  const handleToggleSfx = () => {
+    const next = !sfxOn;
+    setSfxOn(next);
+    setSfxEnabled(next);
+    if (next) {
+      toast.success('Sound Effects (SFX) ON! 🔊', { duration: 1500 });
+      playTierSfx(tierKey);
+    } else {
+      toast.info('Sound Effects (SFX) Muted 🔇', { duration: 1500 });
+    }
+  };
+
+  const handlePlaySound = () => {
+    playTierSfx(tierKey);
+  };
+
+  // RULE 1: WHILE MARKING ATTENDANCE -> SHOW ANIMATED SCANNER STICKER
+  if (isMarkingAttendance) {
     return (
-      <div className="rounded-2xl p-4 bg-gradient-to-r from-primary/10 via-amber-500/10 to-primary/5 border border-primary/25 relative overflow-hidden text-xs space-y-2 shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="font-extrabold flex items-center gap-1.5 text-foreground uppercase tracking-wider text-[11px]">
-            <Sparkles size={14} className="text-amber-500 animate-spin" />
-            Today&apos;s Attendance Vibe • 6-Day Stock Ready 🎭
+      <div className="rounded-3xl p-4 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-primary/10 border-2 border-emerald-500/40 shadow-lg relative overflow-hidden flex items-center gap-3 animate-pulse">
+        <ScanningVadiveluSVG />
+        <div className="space-y-1">
+          <span className="text-xs font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider block flex items-center gap-1.5">
+            <Radio size={14} className="animate-spin text-emerald-600" />
+            பயோமெட்ரிக் கை வைக்கிறியா?! இரு இரு...
           </span>
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-muted-foreground bg-background/80 px-2 py-0.5 rounded-full border border-border">
-            <Lock size={10} className="text-muted-foreground" /> Only you see this
-          </span>
+          <p className="text-[11px] text-muted-foreground font-semibold">
+            Connecting GPS &amp; marking your attendance... Hold tight thalaiva! ⏳
+          </p>
         </div>
-        <p className="text-muted-foreground leading-relaxed">
-          <strong className="text-foreground">Innum punch pannala bro!</strong> 9:30 dot-la clock in panni <span className="text-primary font-bold">&quot;Rolex Sir Timing (9:29:59 Sniper)&quot;</span> badge unlock pannu! Seekiram vandha <span className="text-emerald-600 font-bold">&quot;Office Owner&quot;</span> title ungaladhaakkikol! 🎯
-        </p>
       </div>
     );
   }
 
-  // Determine tier & items
-  const tierKey = getTimingTier(clockInDate);
-  const tierData = VIBE_TIERS[tierKey] || VIBE_TIERS.sharp;
+  // RULE 2: WITHOUT MARKING DONT SHOW ANYTHING AT ALL!
+  if (!clockInDate) {
+    return null;
+  }
 
-  // Active meme based on selected stock index (1 to 6)
-  const currentPunch = tierData.stock[selectedStockIndex] || tierData.stock[0];
-
-  const formattedClockIn = clockInDate.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
-
-  const handleShufflePunch = () => {
-    setSelectedStockIndex((prev) => (prev + 1) % tierData.stock.length);
-    toast.success('Pudhu Meme Loaded! 😂', { duration: 1500 });
-  };
-
-  const handleCopyPunch = () => {
-    const textToCopy = `"${currentPunch.punch}" - ${currentPunch.title} (${currentPunch.character} | RiseWithMedia Vibe at ${formattedClockIn}) 🎭`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(textToCopy);
-      setCopied(true);
-      toast.success('Punch copied! WhatsApp / Slack-la share panni sirikkalam! 😂');
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
+  // RULE 3: ONCE MARKED -> SHOW AUTHENTIC TAMIL COMEDIAN MEME STICKER CARD
   return (
     <>
-      {/* ── PERSISTENT CARD IN ATTENDANCE WIDGET (Simultaneous Meme & Sticker) ── */}
-      <div className={`rounded-3xl p-4.5 bg-gradient-to-br ${tierData.badgeTheme} border relative overflow-hidden transition-all duration-300 shadow-md`}>
-        {/* Glow */}
-        <div className={`absolute -right-8 -bottom-8 w-36 h-36 ${tierData.glowColor} rounded-full blur-2xl pointer-events-none`} />
-
-        {/* Top Header */}
-        <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-3 mb-3">
+      {/* ── AUTHENTIC COMEDIAN MEME STICKER CARD (Strictly 1 Relevant Meme, No Clutter) ── */}
+      <div className={`rounded-3xl p-4 bg-gradient-to-br ${sticker.bgTheme} border-2 relative overflow-hidden shadow-lg transition-all`}>
+        {/* Die-cut Sticker Header */}
+        <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-2.5 mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl select-none" role="img" aria-label="avatar">
-              {tierData.avatarEmoji}
+            <span className="px-2.5 py-0.5 rounded-full bg-foreground text-background text-[10px] font-black uppercase tracking-wider shadow-xs">
+              {sticker.stamp}
             </span>
-            <div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${tierData.headerBadge}`}>
-                  {tierData.categoryLabel}
-                </span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground/80 bg-background/60 px-1.5 py-0.5 rounded-md border border-border/40">
-                  <Lock size={9} /> Private to you
-                </span>
-              </div>
-            </div>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground/80 bg-background/60 px-1.5 py-0.5 rounded-md border border-border/40">
+              <Lock size={9} /> Only you see this
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Pop Sticker Button */}
+            {/* Audio Toggle */}
             <button
               type="button"
-              onClick={() => setShowPopup(true)}
-              title="Pop Sticker with Animation"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-primary text-white text-[11px] font-bold shadow-sm hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              onClick={handleToggleSfx}
+              title={sfxOn ? 'Mute Sound Effects' : 'Unmute Sound Effects'}
+              className={`p-1.5 rounded-xl border transition-all cursor-pointer shadow-xs ${
+                sfxOn
+                  ? 'bg-amber-500/15 border-amber-500/35 text-amber-600 dark:text-amber-400'
+                  : 'bg-background/80 hover:bg-background border-border/50 text-muted-foreground'
+              }`}
             >
-              <Sparkles size={12} className="animate-spin" />
-              <span>Pop Sticker</span>
+              {sfxOn ? <Volume2 size={13} className="animate-pulse" /> : <VolumeX size={13} />}
             </button>
 
+            {/* Replay Sound Button */}
             <button
               type="button"
-              onClick={handleShufflePunch}
-              title="Shuffle Dialogue / வேற காமெடி மாத்து"
-              className="p-1.5 rounded-xl bg-background/80 hover:bg-background border border-border/50 text-foreground transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+              onClick={handlePlaySound}
+              title="Replay Comedian Sound Effect"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[11px] font-black transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
-              <Shuffle size={13} className="text-primary" />
-            </button>
-            <button
-              type="button"
-              onClick={handleCopyPunch}
-              title="Copy Punchline to share"
-              className="p-1.5 rounded-xl bg-background/80 hover:bg-background border border-border/50 text-foreground transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
-            >
-              {copied ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} className="text-muted-foreground" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              title={isCollapsed ? 'Expand Vibe' : 'Collapse Vibe'}
-              className="p-1.5 rounded-xl bg-background/80 hover:bg-background border border-border/50 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-xs"
-            >
-              {isCollapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
+              <Volume2 size={12} className="animate-bounce" />
+              <span>Play SFX</span>
             </button>
           </div>
         </div>
 
-        {/* 6-Day Stock Selector Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-2 custom-scrollbar">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0 mr-1 flex items-center gap-1">
-            <CalendarDays size={11} className="text-primary" /> 6-Day Stock:
-          </span>
-          {tierData.stock.map((item, idx) => {
-            const isToday = getDayStockIndex() === idx;
-            const isSelected = selectedStockIndex === idx;
-            return (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setSelectedStockIndex(idx)}
-                className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all shrink-0 cursor-pointer ${
-                  isSelected
-                    ? 'bg-foreground text-background shadow-xs scale-105'
-                    : 'bg-background/60 hover:bg-background/90 text-muted-foreground border border-border/40'
-                }`}
-              >
-                {DAY_NAMES[idx].slice(0, 3)} {isToday ? '• Today' : `#${idx + 1}`}
-              </button>
-            );
-          })}
+        {/* Sticker Visual & Comic Speech Bubble Layout */}
+        <div className="flex items-center gap-3">
+          {/* Animated Comedian Graphic with Sticker Border */}
+          <motion.div
+            whileHover={{ scale: 1.08, rotate: [0, -4, 4, 0] }}
+            transition={{ duration: 0.4 }}
+            className="shrink-0 cursor-pointer p-1 rounded-2xl bg-white/70 dark:bg-zinc-900/70 border-2 border-white shadow-md"
+            onClick={handlePlaySound}
+            title="Click to hear comedian punch!"
+          >
+            {sticker.renderSticker()}
+          </motion.div>
+
+          {/* Comic Speech Bubble with Tamil Dialogue & Tanglish Punch */}
+          <div className="flex-1 min-w-0 space-y-1.5 relative p-3 rounded-2xl bg-background/90 border border-border/70 shadow-xs">
+            {/* Speech bubble pointer arrow pointing left toward comedian */}
+            <div className="absolute -left-2 top-6 w-3 h-3 bg-background/90 border-l border-b border-border/70 rotate-45" />
+
+            {/* Tamil Comedian Punchline */}
+            <p className="text-xs sm:text-[13px] font-black text-foreground leading-snug">
+              &ldquo;{sticker.tamilSpeech}&rdquo;
+            </p>
+
+            {/* Tanglish Sub-Punch */}
+            <p className="text-[11px] text-muted-foreground font-semibold leading-relaxed">
+              {sticker.tanglishPunch}
+            </p>
+
+            {/* Time Stamp */}
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border/40 font-mono">
+              <span className="font-sans font-bold text-primary">{sticker.comedianName}</span>
+              <span>⏱️ Clocked at {formattedClockIn}</span>
+            </div>
+          </div>
         </div>
-
-        {/* Main Content Body: Meme & Sticker Displayed Simultaneously */}
-        {!isCollapsed && (
-          <div className="space-y-3 mt-1">
-            {/* Title & Character Tag Bar */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 font-extrabold text-[10px] border border-amber-500/30">
-                  {currentPunch.stamp}
-                </span>
-                <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                  <Film size={11} className="text-primary" /> {currentPunch.character}
-                </span>
-              </div>
-              <span className="text-[10px] font-mono font-bold text-muted-foreground bg-background/60 px-2 py-0.5 rounded-lg border border-border/40 whitespace-nowrap">
-                ⏱️ Clocked at {formattedClockIn}
-              </span>
-            </div>
-
-            {/* Simultaneous Meme Card */}
-            <div className="p-3.5 rounded-2xl bg-background/80 border border-border/70 shadow-sm relative space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <h4 className="text-xs sm:text-sm font-black text-foreground tracking-tight">
-                  {currentPunch.title}
-                </h4>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary/80 px-1.5 py-0.5 rounded shrink-0">
-                  🎬 {currentPunch.movie}
-                </span>
-              </div>
-
-              <p className="text-xs sm:text-[13px] font-bold text-foreground leading-relaxed italic border-l-2 border-primary/60 pl-2.5">
-                &ldquo;{currentPunch.punch}&rdquo;
-              </p>
-
-              <p className="text-[11px] text-muted-foreground font-medium leading-normal pl-2.5">
-                {currentPunch.subtext}
-              </p>
-            </div>
-
-            {/* Vibe Meter Footer */}
-            <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground pt-0.5">
-              <span className="truncate pr-2">{tierData.meter}</span>
-              <button
-                type="button"
-                onClick={handleShufflePunch}
-                className="text-primary hover:underline shrink-0 font-extrabold cursor-pointer flex items-center gap-1"
-              >
-                <span>🎲 அடுத்த காமெடி (#{((selectedStockIndex + 1) % 6) + 1}/6)</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Collapsed view summary */}
-        {isCollapsed && (
-          <div className="flex items-center justify-between text-xs pt-1">
-            <span className="font-bold text-foreground truncate">
-              {currentPunch.stamp} • {currentPunch.title}
-            </span>
-            <span className="text-[10px] font-mono text-muted-foreground font-semibold shrink-0 ml-2">
-              {formattedClockIn}
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* ── CELEBRATORY ANIMATED STICKER POPUP MODAL ── */}
+      {/* ── CELEBRATORY ANIMATED STICKER POPUP MODAL (ON ATTENDANCE MARKED) ── */}
       <AnimatePresence>
         {showPopup && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -599,13 +428,13 @@ export const AttendanceVibeCard = ({
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             />
 
-            {/* Animated Popup Container */}
+            {/* Spring Bouncing Sticker Modal */}
             <motion.div
-              initial={{ scale: 0.6, opacity: 0, y: 30, rotate: -4 }}
+              initial={{ scale: 0.5, opacity: 0, y: 30, rotate: -6 }}
               animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
               exit={{ scale: 0.8, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 24 }}
-              className="relative w-full max-w-lg bg-card border-2 border-primary/40 rounded-3xl shadow-2xl overflow-hidden p-6 z-10 space-y-4"
+              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+              className="relative w-full max-w-md bg-card border-2 border-primary/40 rounded-3xl shadow-2xl overflow-hidden p-6 z-10 space-y-4"
             >
               {/* Close Button */}
               <button
@@ -616,88 +445,52 @@ export const AttendanceVibeCard = ({
                 <X size={16} />
               </button>
 
-              {/* Sparkle Header */}
+              {/* Title Tag */}
               <div className="flex items-center gap-2 text-primary font-black uppercase text-xs tracking-wider">
-                <PartyPopper size={16} className="text-amber-500 animate-bounce" />
-                <span>Today&apos;s Attendance Badge Unlocked!</span>
+                <Sparkles size={16} className="text-amber-500 animate-spin" />
+                <span>Attendance Marked! • {sticker.stamp}</span>
               </div>
 
-              {/* 3D Animated Sticker Badge */}
-              <div className="flex flex-col items-center justify-center text-center py-2 relative">
+              {/* Large Centered Animated Sticker */}
+              <div className="flex flex-col items-center justify-center text-center py-2">
                 <motion.div
-                  initial={{ scale: 0.5, rotate: -15 }}
+                  initial={{ scale: 0.7, rotate: -12 }}
                   animate={{ scale: 1, rotate: [0, -3, 3, 0] }}
-                  transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2 }}
-                  className={`w-24 h-24 rounded-3xl bg-gradient-to-tr ${tierData.badgeTheme} border-2 shadow-xl flex items-center justify-center text-5xl relative`}
+                  transition={{ duration: 1.4, repeat: Infinity, repeatDelay: 2 }}
+                  className="p-3 rounded-3xl bg-white dark:bg-zinc-900 border-4 border-white shadow-2xl cursor-pointer"
+                  onClick={handlePlaySound}
+                  title="Click to replay sound!"
                 >
-                  {tierData.avatarEmoji}
-                  <span className="absolute -bottom-2 px-2.5 py-0.5 rounded-full bg-foreground text-background text-[10px] font-black tracking-wider uppercase shadow-md">
-                    {currentPunch.stamp}
-                  </span>
+                  {sticker.renderSticker()}
                 </motion.div>
 
-                <h3 className="text-lg font-black text-foreground mt-4 tracking-tight">
-                  {currentPunch.title}
+                <h3 className="text-base sm:text-lg font-black text-foreground mt-4 px-2 leading-snug">
+                  &ldquo;{sticker.tamilSpeech}&rdquo;
                 </h3>
-                <p className="text-xs font-bold text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                  <Film size={12} className="text-primary" /> {currentPunch.character} • {currentPunch.movie}
+                <p className="text-xs font-bold text-muted-foreground mt-1">
+                  {sticker.tanglishPunch}
                 </p>
               </div>
 
-              {/* Simultaneous Meme Card in Popup */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="p-4 rounded-2xl bg-secondary/40 border border-border/80 space-y-2 shadow-inner"
+              {/* Reassurance & Timestamp */}
+              <div className="p-3 rounded-2xl bg-secondary/50 border border-border/70 flex items-center justify-between text-xs">
+                <span className="font-semibold text-muted-foreground flex items-center gap-1">
+                  <Lock size={12} className="text-emerald-500" /> Private to you
+                </span>
+                <span className="font-mono font-bold text-foreground">
+                  ⏱️ Clocked In at {formattedClockIn}
+                </span>
+              </div>
+
+              {/* Close / Celebrate Action */}
+              <button
+                type="button"
+                onClick={() => setShowPopup(false)}
+                className="w-full py-3.5 rounded-2xl bg-primary text-white font-black text-sm shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
-                  <span className="flex items-center gap-1 text-primary">
-                    <Zap size={13} /> Day {currentPunch.dayNum} of 6 • {currentPunch.dayLabel} Edition
-                  </span>
-                  <span className="font-mono bg-background/80 px-2 py-0.5 rounded-md border border-border/50">
-                    ⏱️ {formattedClockIn}
-                  </span>
-                </div>
-
-                <p className="text-sm font-extrabold text-foreground leading-relaxed italic border-l-3 border-primary pl-3">
-                  &ldquo;{currentPunch.punch}&rdquo;
-                </p>
-
-                <p className="text-xs text-muted-foreground font-medium pl-3">
-                  {currentPunch.subtext}
-                </p>
-              </motion.div>
-
-              {/* Privacy Reassurance Note */}
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
-                <span className="flex items-center gap-1 font-semibold">
-                  <Lock size={11} className="text-emerald-500" /> Private: Only you can see this meme badge
-                </span>
-                <span className="text-[10px] font-bold opacity-80">
-                  Stock 6/6 Active
-                </span>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleShufflePunch}
-                  className="py-3 px-4 rounded-2xl bg-secondary hover:bg-secondary/80 text-foreground font-black text-xs flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer border border-border"
-                >
-                  <Shuffle size={14} className="text-primary" />
-                  <span>Next Meme ({((selectedStockIndex + 1) % 6) + 1}/6)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowPopup(false)}
-                  className="py-3 px-4 rounded-2xl bg-primary text-white font-black text-xs shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Check size={14} />
-                  <span>Mass Thalaiva!</span>
-                </button>
-              </div>
+                <Check size={16} />
+                <span>Mass Thalaiva! (Super)</span>
+              </button>
             </motion.div>
           </div>
         )}

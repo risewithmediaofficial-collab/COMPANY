@@ -505,12 +505,13 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
           </div>
         )}
 
-        {/* Attendance Vibe Sticker (Crazy Tanglish Cinema/Meme Punch, Strictly Personal to Logged-in User) */}
+        {/* Attendance Vibe Sticker (Authentic Tamil Comedian Meme Sticker, Strictly Personal to Logged-in User) */}
         {isSelf && !isAbsent && !isLeave && !isHoliday && (
           <AttendanceVibeCard
             clockInTime={firstClockIn}
             isSelf={isSelf}
             userName={user?.name || authUser?.name}
+            isMarkingAttendance={isGettingLocation || clockIn.isPending}
           />
         )}
 
