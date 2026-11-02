@@ -728,73 +728,54 @@ export const getTasks = async (req, res) => {
         filter.dueDate = { $gte: start, $lte: end };
       }
     }
-    const andConditions = [];
     if (period) {
       const now = new Date();
       if (period === 'today') {
         const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
         const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-        andConditions.push({
-          $or: [
-            { dueDate: { $gte: start, $lte: end } },
-            { shootDate: { $gte: start, $lte: end } },
-            { postingScheduleDate: { $gte: start, $lte: end } },
-            { createdAt: { $gte: start, $lte: end } },
-          ],
-        });
+        filter.$or = [
+          { dueDate: { $gte: start, $lte: end } },
+          { shootDate: { $gte: start, $lte: end } },
+          { postingScheduleDate: { $gte: start, $lte: end } },
+          { createdAt: { $gte: start, $lte: end } },
+        ];
       } else if (period === 'weekly' || period === 'this_week') {
         const day = now.getDay();
         const diffToMonday = day === 0 ? -6 : 1 - day;
         const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
         const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 999);
-        andConditions.push({
-          $or: [
-            { dueDate: { $gte: start, $lte: end } },
-            { shootDate: { $gte: start, $lte: end } },
-            { postingScheduleDate: { $gte: start, $lte: end } },
-            { createdAt: { $gte: start, $lte: end } },
-          ],
-        });
+        filter.$or = [
+          { dueDate: { $gte: start, $lte: end } },
+          { shootDate: { $gte: start, $lte: end } },
+          { postingScheduleDate: { $gte: start, $lte: end } },
+          { createdAt: { $gte: start, $lte: end } },
+        ];
       } else if (period === 'this_month') {
         const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
         const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        andConditions.push({
-          $or: [
-            { dueDate: { $gte: start, $lte: end } },
-            { shootDate: { $gte: start, $lte: end } },
-            { postingScheduleDate: { $gte: start, $lte: end } },
-            { createdAt: { $gte: start, $lte: end } },
-          ],
-        });
+        filter.$or = [
+          { dueDate: { $gte: start, $lte: end } },
+          { shootDate: { $gte: start, $lte: end } },
+          { postingScheduleDate: { $gte: start, $lte: end } },
+          { createdAt: { $gte: start, $lte: end } },
+        ];
       } else if (period === 'overdue') {
-        andConditions.push({
-          dueDate: { $lt: now },
-          status: { $nin: ['approved', 'done', 'completed', 'Completed', 'Done', 'Approved'] },
-        });
+        filter.dueDate = { $lt: now };
+        filter.status = { $nin: ['approved', 'done', 'completed', 'Completed', 'Done', 'Approved'] };
       }
     }
 
     if (search) {
-      andConditions.push({
-        $or: [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { tags: { $regex: search, $options: 'i' } },
-          { taskType: { $regex: search, $options: 'i' } },
-          { clientName: { $regex: search, $options: 'i' } },
-          { assignedPersonName: { $regex: search, $options: 'i' } },
-          { scriptText: { $regex: search, $options: 'i' } },
-          { websiteRequirements: { $regex: search, $options: 'i' } },
-        ],
-      });
-    }
-
-    if (andConditions.length > 0) {
-      if (filter.$and) {
-        filter.$and.push(...andConditions);
-      } else {
-        filter.$and = andConditions;
-      }
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { tags: { $regex: search, $options: 'i' } },
+        { taskType: { $regex: search, $options: 'i' } },
+        { clientName: { $regex: search, $options: 'i' } },
+        { assignedPersonName: { $regex: search, $options: 'i' } },
+        { scriptText: { $regex: search, $options: 'i' } },
+        { websiteRequirements: { $regex: search, $options: 'i' } },
+      ];
     }
 
     let sortOptions = { dueDate: 1, orderIndex: 1, createdAt: -1 };
