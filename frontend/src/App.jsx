@@ -309,7 +309,7 @@ const App = () => {
             </ProtectedRoute>
           } />
           <Route path="/dm-calendar" element={
-            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'manager']}>
+            <ProtectedRoute isAuthenticated={isAuthenticated} user={user} loading={loading} allowedRoles={['superAdmin', 'admin', 'manager', 'employee', 'editor', 'designer', 'adsManager', 'intern']}>
               <DMCalendar />
             </ProtectedRoute>
           } />

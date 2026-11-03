@@ -22,6 +22,16 @@ const dmVideoShootSchema = new mongoose.Schema(
     completedReels: { type: Number, default: 0, min: 0 },
     reelsCompletionPct: { type: Number, default: 0 },
 
+    // Content & Reels Checklist
+    checklist: [
+      {
+        title: { type: String, trim: true, default: '' },
+        completed: { type: Boolean, default: false },
+        completedAt: { type: Date },
+        completedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      },
+    ],
+
     // Team Assignment
     assignedTeam: [
       {
@@ -72,6 +82,15 @@ const dmVideoShootSchema = new mongoose.Schema(
 
 // Pre-save calculations for percentages and balance amount
 dmVideoShootSchema.pre('save', function (next) {
+  if (this.checklist && this.checklist.length > 0) {
+    const completedCount = this.checklist.filter((item) => item.completed).length;
+    this.completedContents = completedCount;
+    // If plannedReels equals plannedContents or is defined, align completedReels with checklist completion
+    if (this.plannedReels > 0 && (!this.completedReels || this.completedReels <= this.completedContents)) {
+      this.completedReels = Math.min(completedCount, this.plannedReels);
+    }
+  }
+
   if (this.plannedContents > 0) {
     this.contentsCompletionPct = Number(((this.completedContents / this.plannedContents) * 100).toFixed(1));
   } else {

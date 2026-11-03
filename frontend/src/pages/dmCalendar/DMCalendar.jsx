@@ -47,6 +47,10 @@ import {
   Building2,
   Activity,
   Monitor,
+  Film,
+  Clapperboard,
+  ListTodo,
+  Check,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -86,6 +90,8 @@ import {
   useDMDashboardSummary,
   useDMMasterCalendar,
   useVideoShoots,
+  useCreateVideoShoot,
+  useUpdateVideoShoot,
   useDeleteVideoShoot,
   useRjPromotions,
   useDeleteRjPromotion,
@@ -210,6 +216,7 @@ const DMCalendar = () => {
   const { data: auditLogs = [] } = useDMAuditLogs();
 
   const deleteShoot = useDeleteVideoShoot();
+  const updateShoot = useUpdateVideoShoot();
   const deleteRj = useDeleteRjPromotion();
   const deleteVj = useDeleteVjPromotion();
 
@@ -471,7 +478,7 @@ const DMCalendar = () => {
             <MetricCard label="Today's Shoots" value={summary.videoShoots?.todayShoots || 0} helper="Shoots scheduled today" icon={Camera} tone="info" />
             <MetricCard label="Upcoming Shoots" value={summary.videoShoots?.upcomingShoots || 0} helper="Future scheduled shoots" icon={CalendarIcon} tone="primary" />
             <MetricCard label="Contents Completion" value={`${summary.videoShoots?.contentCompletionPct || 0}%`} helper={`${summary.videoShoots?.totalContentsCompleted || 0} / ${summary.videoShoots?.totalContentsPlanned || 0} Planned`} icon={CheckCircle2} tone="success" />
-            <MetricCard label="Outstanding Expenses" value={currency.format(summary.videoShoots?.outstandingAmount || 0)} helper={`Total Exp: ${currency.format(summary.videoShoots?.totalExpenses || 0)}`} icon={IndianRupee} tone="danger" />
+            <MetricCard label="Finished Production Items" value={summary.videoShoots?.totalContentsCompleted || 0} helper={`${summary.videoShoots?.totalContentsPlanned || 0} Total Target`} icon={Clapperboard} tone="info" />
           </MetricGrid>
 
           {/* Filters & Actions */}
@@ -549,7 +556,7 @@ const DMCalendar = () => {
               )}
             </div>
 
-            {/* Video Shoots Table - RED colors if contents or reels are below scheduled */}
+            {/* Video Shoots Table - Content & Reels Checklist Overview */}
             <DataTable
               data={videoShoots}
               columns={[
@@ -558,8 +565,11 @@ const DMCalendar = () => {
                   label: 'Client / Shoot Title',
                   render: (row) => (
                     <div className="min-w-0">
-                      <div className="font-bold text-foreground">{row.shootTitle}</div>
-                      <div className="text-xs text-muted-foreground">{row.client?.company || row.client?.name || 'No Client'}</div>
+                      <div className="font-bold text-foreground text-sm">{row.shootTitle}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Building2 size={12} className="text-primary shrink-0" />
+                        <span>{row.client?.company || row.client?.name || 'No Client'}</span>
+                      </div>
                     </div>
                   ),
                 },
@@ -567,59 +577,126 @@ const DMCalendar = () => {
                   key: 'date',
                   label: 'Date & Time',
                   render: (row) => (
-                    <div className="text-xs">
-                      <div className="font-semibold text-foreground">{row.shootDate ? new Date(row.shootDate).toLocaleDateString('en-IN') : 'N/A'}</div>
-                      <div className="text-muted-foreground">
-                        {row.startTime ? new Date(row.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} ({row.duration || 0}h)
+                    <div className="text-xs space-y-0.5">
+                      <div className="font-semibold text-foreground flex items-center gap-1">
+                        <CalendarIcon size={12} className="text-muted-foreground shrink-0" />
+                        <span>{row.shootDate ? new Date(row.shootDate).toLocaleDateString('en-IN') : 'N/A'}</span>
+                      </div>
+                      <div className="text-muted-foreground flex items-center gap-1">
+                        <Clock size={12} className="text-muted-foreground shrink-0" />
+                        <span>{row.startTime ? new Date(row.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} ({row.duration || 0}h)</span>
                       </div>
                     </div>
                   ),
                 },
                 {
-                  key: 'progress',
-                  label: 'Contents / Reels Progress',
+                  key: 'checklistOverview',
+                  label: 'Reels / Content Checklist Overview',
                   render: (row) => {
-                    const isContLow = (row.completedContents || 0) < (row.plannedContents || 0);
-                    const isReelLow = (row.completedReels || 0) < (row.plannedReels || 0);
+                    const checklist = row.checklist || [];
+                    const totalCount = row.plannedContents || checklist.length || 0;
+                    const completedCount = checklist.length > 0
+                      ? checklist.filter((c) => c.completed).length
+                      : row.completedContents || 0;
+                    const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                    const isTargetMet = totalCount > 0 && completedCount >= totalCount;
 
                     return (
-                      <div className="text-xs space-y-1 w-40">
-                        <div className="flex justify-between text-[11px]">
-                          <span>Contents:</span>
-                          <span className={`font-bold ${isContLow ? 'text-rose-500' : 'text-emerald-500'}`}>
-                            {row.completedContents || 0}/{row.plannedContents || 0} ({row.contentsCompletionPct || 0}%)
+                      <div className="space-y-1.5 min-w-[260px] max-w-sm" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span className="flex items-center gap-1.5 text-foreground">
+                            <Film size={13} className="text-primary shrink-0" />
+                            <span>{completedCount} / {totalCount} Finished</span>
+                            <span className="text-[10px] text-muted-foreground font-normal">
+                              ({row.plannedReels || 0} Reels Target)
+                            </span>
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                              isTargetMet
+                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                : completedCount > 0
+                                ? 'bg-primary/10 text-primary border-primary/20'
+                                : 'bg-muted text-muted-foreground border-border'
+                            }`}
+                          >
+                            {pct}%
                           </span>
                         </div>
-                        <div className="flex justify-between text-[11px]">
-                          <span>Reels:</span>
-                          <span className={`font-bold ${isReelLow ? 'text-rose-500' : 'text-emerald-500'}`}>
-                            {row.completedReels || 0}/{row.plannedReels || 0} ({row.reelsCompletionPct || 0}%)
-                          </span>
+
+                        {/* Progress Bar */}
+                        <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-300 rounded-full ${isTargetMet ? 'bg-emerald-500' : 'bg-primary'}`}
+                            style={{ width: `${Math.min(pct, 100)}%` }}
+                          />
+                        </div>
+
+                        {/* Interactive Checklist Pills with Quick Checkbox */}
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {checklist.slice(0, 4).map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const nextList = checklist.map((c, i) => (i === idx ? { ...c, completed: !c.completed } : c));
+                                const nextCompletedCount = nextList.filter((c) => c.completed).length;
+                                await updateShoot.mutateAsync({
+                                  id: row._id,
+                                  data: {
+                                    checklist: nextList,
+                                    completedContents: nextCompletedCount,
+                                    completedReels: Math.min(nextCompletedCount, row.plannedReels || 0),
+                                  },
+                                });
+                              }}
+                              className={`text-[10px] px-2 py-0.5 rounded-lg border font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                                item.completed
+                                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                                  : 'bg-background hover:bg-muted text-foreground border-border/80'
+                              }`}
+                              title={item.completed ? 'Click to mark pending' : 'Click to mark finished'}
+                            >
+                              <span
+                                className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] border font-bold ${
+                                  item.completed ? 'bg-emerald-500 text-white border-emerald-500' : 'border-muted-foreground/40'
+                                }`}
+                              >
+                                {item.completed ? '✓' : ''}
+                              </span>
+                              <span className={`truncate max-w-[105px] ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                {item.title}
+                              </span>
+                            </button>
+                          ))}
+                          {checklist.length > 4 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedEventItem({ activityType: 'video_shoot', item: row });
+                                setShowEventDetailModal(true);
+                              }}
+                              className="text-[10px] px-1.5 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-muted-foreground font-semibold cursor-pointer"
+                            >
+                              +{checklist.length - 4} more
+                            </button>
+                          )}
+                          {checklist.length === 0 && (
+                            <span className="text-[11px] text-muted-foreground italic">No checklist items set</span>
+                          )}
                         </div>
                       </div>
                     );
                   },
                 },
                 {
-                  key: 'team',
-                  label: 'Assigned Crew',
+                  key: 'locationNotes',
+                  label: 'Location & Notes',
                   render: (row) => (
-                    <div className="flex flex-wrap gap-1 max-w-xs">
-                      {(row.assignedTeam || []).map((t, i) => (
-                        <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-foreground">
-                          {t.name || t.user?.name || 'Member'} ({t.role})
-                        </span>
-                      ))}
-                    </div>
-                  ),
-                },
-                {
-                  key: 'finance',
-                  label: 'Financials',
-                  render: (row) => (
-                    <div className="text-xs">
-                      <div className="font-semibold text-foreground">Total: {currency.format(row.totalAmount || 0)}</div>
-                      <div className="text-rose-500 font-bold">Balance: {currency.format(row.balanceAmount || 0)}</div>
+                    <div className="text-xs space-y-0.5 max-w-[180px]">
+                      <div className="font-medium text-foreground truncate">{row.shootLocation || 'Location TBD'}</div>
+                      {row.notes && <div className="text-[11px] text-muted-foreground truncate">{row.notes}</div>}
                     </div>
                   ),
                 },
@@ -637,13 +714,13 @@ const DMCalendar = () => {
                   label: 'Actions',
                   render: (row) => (
                     <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setSelectedEventItem({ activityType: 'video_shoot', item: row }); setShowEventDetailModal(true); }}>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setSelectedEventItem({ activityType: 'video_shoot', item: row }); setShowEventDetailModal(true); }} title="View Shoot & Checklist">
                         <Eye size={14} className="text-muted-foreground" />
                       </Button>
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setSelectedShoot(row); setShowVideoModal(true); }}>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => { setSelectedShoot(row); setShowVideoModal(true); }} title="Edit Shoot & Checklist">
                         <Pencil size={14} className="text-muted-foreground" />
                       </Button>
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:text-destructive" onClick={() => setDeleteShootId(row._id)}>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 hover:text-destructive" onClick={() => setDeleteShootId(row._id)} title="Delete Shoot">
                         <Trash2 size={14} className="text-destructive" />
                       </Button>
                     </div>

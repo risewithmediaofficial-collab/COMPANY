@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -27,8 +27,13 @@ import {
   Receipt,
   FileText,
   X,
+  ListTodo,
+  CheckCircle2,
+  Check,
+  Film,
+  Sparkles,
 } from 'lucide-react';
-import { useTrackVideoShootTime } from '../../hooks/useDMCalendar';
+import { useTrackVideoShootTime, useUpdateVideoShoot } from '../../hooks/useDMCalendar';
 import { DMInvoiceModal } from './DMInvoiceModal';
 
 export const DMEventDetailModal = ({
@@ -40,15 +45,36 @@ export const DMEventDetailModal = ({
 }) => {
   const [showInvoiceCustomizer, setShowInvoiceCustomizer] = useState(false);
   const trackTime = useTrackVideoShootTime();
+  const updateShoot = useUpdateVideoShoot();
 
-  if (!eventItem) return null;
-
-  const item = eventItem.item || eventItem;
-  const activityType = eventItem.activityType || (item.plannedContents !== undefined ? 'video_shoot' : item.platform ? 'vj_promotion' : 'rj_promotion');
+  const item = eventItem?.item || eventItem;
+  const activityType = eventItem?.activityType || (item?.plannedContents !== undefined ? 'video_shoot' : item?.platform ? 'vj_promotion' : 'rj_promotion');
 
   const isVideoShoot = activityType === 'video_shoot';
   const isRj = activityType === 'rj_promotion';
   const isVj = activityType === 'vj_promotion';
+
+  // Local checklist state for immediate interactive feedback
+  const [checklist, setChecklist] = useState([]);
+
+  useEffect(() => {
+    if (!item) return;
+    if (item.checklist && Array.isArray(item.checklist) && item.checklist.length > 0) {
+      setChecklist(item.checklist);
+    } else if (isVideoShoot) {
+      const target = item.plannedContents || 10;
+      const initial = [];
+      for (let i = 1; i <= target; i++) {
+        initial.push({
+          title: `Reel / Content #${i}`,
+          completed: i <= (item.completedContents || 0),
+        });
+      }
+      setChecklist(initial);
+    }
+  }, [item, isVideoShoot]);
+
+  if (!eventItem || !item) return null;
 
   const clientName = item.client?.company || item.client?.name || 'Linked Client';
 
@@ -60,8 +86,26 @@ export const DMEventDetailModal = ({
     Postponed: 'neutral',
   };
 
-  const isContentBelowScheduled = item.completedContents < item.plannedContents;
-  const isReelsBelowScheduled = item.completedReels < item.plannedReels;
+  const completedChecklistCount = checklist.filter((c) => c.completed).length;
+  const totalChecklistTarget = item.plannedContents || checklist.length || 0;
+  const checklistPct = totalChecklistTarget > 0 ? Math.round((completedChecklistCount / totalChecklistTarget) * 100) : 0;
+  const isTargetMet = totalChecklistTarget > 0 && completedChecklistCount >= totalChecklistTarget;
+
+  const handleToggleChecklistItem = async (index) => {
+    if (!isVideoShoot || !item._id) return;
+    const updated = checklist.map((c, i) => (i === index ? { ...c, completed: !c.completed } : c));
+    setChecklist(updated);
+
+    const newCompletedCount = updated.filter((c) => c.completed).length;
+    await updateShoot.mutateAsync({
+      id: item._id,
+      data: {
+        checklist: updated,
+        completedContents: newCompletedCount,
+        completedReels: Math.min(newCompletedCount, item.plannedReels || 0),
+      },
+    });
+  };
 
   const handleTimeTrack = async (action) => {
     if (isVideoShoot) {
@@ -138,7 +182,7 @@ export const DMEventDetailModal = ({
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
                 <div>
-                  <span className="text-muted-foreground block text-[10px]">Timing & Spoken Duration</span>
+                  <span className="text-muted-foreground block text-[10px]">Timing & Duration</span>
                   <span className="font-semibold text-foreground">
                     {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} -{' '}
                     {item.endTime ? new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}{' '}
@@ -158,112 +202,135 @@ export const DMEventDetailModal = ({
               ) : null}
             </div>
 
-            {/* Content & Reels Progress (RED if below scheduled) */}
+            {/* Content & Reels Production Checklist (For Video Shoots) */}
             {isVideoShoot ? (
-              <div className="grid gap-3 sm:grid-cols-2 p-4 rounded-2xl border border-border/60 bg-card">
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span>Contents Progress</span>
-                    <span className={`font-bold ${isContentBelowScheduled ? 'text-rose-500' : 'text-emerald-500'}`}>
-                      {item.completedContents || 0} / {item.plannedContents || 0} ({item.contentsCompletionPct || 0}%)
-                    </span>
+              <div className="rounded-2xl border border-border/80 bg-card p-5 space-y-4 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-border/60">
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <ListTodo className="h-4 w-4 text-primary" /> Content & Reels Checklist Overview
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Click any reel to mark it completed or pending during production
+                    </p>
                   </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 border self-start sm:self-auto ${
+                      isTargetMet
+                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                        : completedChecklistCount > 0
+                        ? 'bg-primary/10 text-primary border-primary/20'
+                        : 'bg-muted text-muted-foreground border-border'
+                    }`}
+                  >
+                    {isTargetMet ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Sparkles size={13} />}
+                    {completedChecklistCount} / {totalChecklistTarget} Finished ({checklistPct}%)
+                  </span>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-1.5">
+                  <div className="h-2.5 w-full bg-secondary/80 rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${isContentBelowScheduled ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                      style={{ width: `${Math.min(item.contentsCompletionPct || 0, 100)}%` }}
+                      className={`h-full transition-all duration-300 rounded-full ${isTargetMet ? 'bg-emerald-500' : 'bg-primary'}`}
+                      style={{ width: `${Math.min(checklistPct, 100)}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-semibold">
-                    <span>Reels Progress</span>
-                    <span className={`font-bold ${isReelsBelowScheduled ? 'text-rose-500' : 'text-emerald-500'}`}>
-                      {item.completedReels || 0} / {item.plannedReels || 0} ({item.reelsCompletionPct || 0}%)
-                    </span>
-                  </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                {/* Checklist Items Grid / List */}
+                <div className="space-y-2 pt-1 max-h-[340px] overflow-y-auto custom-scrollbar pr-1">
+                  {checklist.map((cItem, idx) => (
                     <div
-                      className={`h-full ${isReelsBelowScheduled ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                      style={{ width: `${Math.min(item.reelsCompletionPct || 0, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ) : null}
+                      key={idx}
+                      onClick={() => handleToggleChecklistItem(idx)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                        cItem.completed
+                          ? 'bg-emerald-500/5 border-emerald-500/30'
+                          : 'bg-background border-border hover:border-border/80'
+                      }`}
+                    >
+                      <div
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
+                          cItem.completed
+                            ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}
+                      >
+                        {cItem.completed ? <Check size={13} className="stroke-[3]" /> : null}
+                      </div>
 
-            {/* Assigned Team Members */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-              <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5 text-primary" /> Assigned Crew / Team
-              </h4>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {(item.assignedTeam || item.rjMembers || item.vjMembers || []).map((m, i) => (
-                  <div key={i} className="px-3 py-1.5 rounded-xl border border-border/40 bg-background text-xs flex items-center gap-2">
-                    <span className="font-semibold text-foreground">{m.name || m.user?.name || 'Member'}</span>
-                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md">{m.role}</span>
-                  </div>
-                ))}
-                {(!item.assignedTeam && !item.rjMembers && !item.vjMembers) || (item.assignedTeam?.length === 0 && item.rjMembers?.length === 0 && item.vjMembers?.length === 0) ? (
-                  <p className="text-xs text-muted-foreground italic">No team members explicitly listed.</p>
-                ) : null}
-              </div>
-            </div>
+                      <span className="text-[11px] font-bold text-muted-foreground min-w-[24px]">
+                        #{idx + 1}
+                      </span>
 
-            {/* Equipment List */}
-            {isVideoShoot && item.equipment && item.equipment.length > 0 ? (
-              <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-                <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <Wrench className="h-3.5 w-3.5 text-primary" /> Equipment Assigned
-                </h4>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {item.equipment.map((eq, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-lg bg-secondary/60 border border-border/40 text-xs font-medium text-foreground">
-                      {eq}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+                      <span
+                        className={`text-xs font-semibold flex-1 ${
+                          cItem.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                        }`}
+                      >
+                        {cItem.title || `Reel / Content #${idx + 1}`}
+                      </span>
 
-            {/* Itemized Expenses Breakdown */}
-            {item.expensesList && item.expensesList.length > 0 ? (
-              <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
-                <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                  <Receipt className="h-3.5 w-3.5 text-emerald-500" /> Shoot Expenses Breakdown List
-                </h4>
-                <div className="space-y-1.5 pt-1">
-                  {item.expensesList.map((exp, i) => (
-                    <div key={i} className="flex justify-between items-center text-xs p-2 rounded-lg bg-background border border-border/40">
-                      <span className="font-semibold text-foreground">{exp.title}</span>
-                      <span className="font-bold text-emerald-600">₹{Number(exp.amount || 0).toLocaleString('en-IN')}</span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                          cItem.completed
+                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-secondary text-muted-foreground'
+                        }`}
+                      >
+                        {cItem.completed ? 'Finished' : 'Pending'}
+                      </span>
                     </div>
                   ))}
-                </div>
-              </div>
-            ) : null}
 
-            {/* Expenses & Financial Balance */}
-            <div className="rounded-2xl border border-border/60 bg-card p-4">
-              <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-3">
-                <IndianRupee className="h-3.5 w-3.5 text-emerald-500" /> Financial Summary
-              </h4>
-              <div className="grid grid-cols-3 gap-3 text-center text-xs">
-                <div className="p-2.5 rounded-xl bg-background border border-border/40">
-                  <span className="text-[10px] text-muted-foreground block">Total Amount</span>
-                  <span className="font-bold text-foreground text-sm">₹{(item.totalAmount || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-background border border-border/40">
-                  <span className="text-[10px] text-muted-foreground block">Amount Paid</span>
-                  <span className="font-bold text-emerald-500 text-sm">₹{(item.amountPaid || 0).toLocaleString('en-IN')}</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-background border border-border/40">
-                  <span className="text-[10px] text-muted-foreground block">Balance</span>
-                  <span className="font-bold text-rose-500 text-sm">₹{(item.balanceAmount || 0).toLocaleString('en-IN')}</span>
+                  {checklist.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic py-3 text-center">
+                      No checklist items recorded yet. Click Edit to add production items.
+                    </p>
+                  )}
                 </div>
               </div>
-            </div>
+            ) : (
+              /* For RJ & VJ Promotions: keep their member assignment and financial summary */
+              <>
+                {(item.rjMembers || item.vjMembers || []).length > 0 && (
+                  <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-primary" /> Assigned Broadcasters / Team
+                    </h4>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {(item.rjMembers || item.vjMembers).map((m, i) => (
+                        <div key={i} className="px-3 py-1.5 rounded-xl border border-border/40 bg-background text-xs flex items-center gap-2">
+                          <span className="font-semibold text-foreground">{m.name || m.user?.name || 'Member'}</span>
+                          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md">{m.role}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-2xl border border-border/60 bg-card p-4">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 mb-3">
+                    <IndianRupee className="h-3.5 w-3.5 text-emerald-500" /> Financial Summary
+                  </h4>
+                  <div className="grid grid-cols-3 gap-3 text-center text-xs">
+                    <div className="p-2.5 rounded-xl bg-background border border-border/40">
+                      <span className="text-[10px] text-muted-foreground block">Total Amount</span>
+                      <span className="font-bold text-foreground text-sm">₹{(item.totalAmount || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-background border border-border/40">
+                      <span className="text-[10px] text-muted-foreground block">Amount Paid</span>
+                      <span className="font-bold text-emerald-500 text-sm">₹{(item.amountPaid || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-background border border-border/40">
+                      <span className="text-[10px] text-muted-foreground block">Balance</span>
+                      <span className="font-bold text-rose-500 text-sm">₹{(item.balanceAmount || 0).toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Details & Script Points */}
             {item.promotionDetails && item.promotionDetails !== 'null' ? (
@@ -310,7 +377,6 @@ export const DMEventDetailModal = ({
                 </div>
               </div>
             ) : null}
-
           </div>
 
           {/* Pinned Sticky Footer */}

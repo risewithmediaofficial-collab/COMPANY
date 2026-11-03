@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,10 +28,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Camera, UserPlus, Wrench, IndianRupee, Receipt, X } from 'lucide-react';
+import {
+  Camera,
+  Film,
+  Clapperboard,
+  CheckCircle2,
+  Circle,
+  Plus,
+  Trash2,
+  X,
+  ListTodo,
+  Calendar,
+  Clock,
+  MapPin,
+  Building2,
+  Sparkles,
+  Check,
+} from 'lucide-react';
 import { useClients } from '../../hooks/useClients';
-import { useUsers } from '../../hooks/useUsers';
 import { useCreateVideoShoot, useUpdateVideoShoot } from '../../hooks/useDMCalendar';
+
+const checklistItemSchema = z.object({
+  title: z.string().min(1, 'Item title is required'),
+  completed: z.boolean().default(false),
+});
 
 const videoShootSchema = z.object({
   client: z.string().min(1, 'Client is required'),
@@ -44,64 +64,13 @@ const videoShootSchema = z.object({
   completedContents: z.coerce.number().min(0, 'Completed contents must be >= 0'),
   plannedReels: z.coerce.number().min(0, 'Planned reels must be >= 0'),
   completedReels: z.coerce.number().min(0, 'Completed reels must be >= 0'),
-  assignedTeam: z.array(
-    z.object({
-      user: z.string().optional().or(z.literal('')),
-      name: z.string().optional().or(z.literal('')),
-      role: z.string().min(1, 'Role is required'),
-    })
-  ),
-  equipment: z.array(z.string()),
-  expensesList: z.array(
-    z.object({
-      title: z.string().min(1, 'Expense title is required'),
-      amount: z.coerce.number().min(0, 'Amount must be >= 0'),
-    })
-  ),
-  totalAmount: z.coerce.number().min(0, 'Total amount must be >= 0'),
-  amountPaid: z.coerce.number().min(0, 'Amount paid must be >= 0'),
+  checklist: z.array(checklistItemSchema).default([]),
   notes: z.string().optional().or(z.literal('')),
   status: z.enum(['Scheduled', 'In Progress', 'Completed', 'Cancelled', 'Postponed']),
 });
 
-const TEAM_ROLES = [
-  'Photographer',
-  'Videographer',
-  'Editor',
-  'Drone Operator',
-  'Content Creator',
-  'Manager',
-  'Assistant',
-  'Director',
-  'Lighting Specialist',
-  'Sound Engineer',
-];
-
-const COMMON_EQUIPMENT = [
-  'Sony Camera',
-  'DJI Drone',
-  'Tripod',
-  'Wireless Mic',
-  'LED Light',
-  'Laptop',
-  'Battery Pack',
-  'Lens 50mm',
-  'Gimbal',
-  'Reflector',
-];
-
-const COMMON_EXPENSES = [
-  'Camera Rental',
-  'Travel Allowance',
-  'Food & Refreshments',
-  'Location Fee',
-  'Assistant Fee',
-  'Transport',
-];
-
 export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => {
   const isEditing = Boolean(shoot?._id);
-  const [equipmentInput, setEquipmentInput] = useState('');
 
   const form = useForm({
     resolver: zodResolver(videoShootSchema),
@@ -116,66 +85,65 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
       completedContents: 0,
       plannedReels: 5,
       completedReels: 0,
-      assignedTeam: [],
-      equipment: [],
-      expensesList: [],
-      totalAmount: 0,
-      amountPaid: 0,
+      checklist: [],
       notes: '',
       status: 'Scheduled',
     },
   });
 
-  const { fields: teamFields, append: appendTeam, remove: removeTeam } = useFieldArray({
+  const { fields: checklistFields, append: appendChecklist, remove: removeChecklist, replace: replaceChecklist } = useFieldArray({
     control: form.control,
-    name: 'assignedTeam',
-  });
-
-  const { fields: expenseFields, append: appendExpense, remove: removeExpense } = useFieldArray({
-    control: form.control,
-    name: 'expensesList',
+    name: 'checklist',
   });
 
   const { data: clients = [] } = useClients({}, { enabled: open });
-  const { data: users = [] } = useUsers({ enabled: open });
-
   const createShoot = useCreateVideoShoot();
   const updateShoot = useUpdateVideoShoot();
 
-  const watchedExpenses = form.watch('expensesList') || [];
-  const watchedTotalAmount = form.watch('totalAmount') || 0;
-  const amountPaid = form.watch('amountPaid') || 0;
+  const watchedPlannedContents = form.watch('plannedContents') || 0;
+  const watchedPlannedReels = form.watch('plannedReels') || 0;
+  const watchedChecklist = form.watch('checklist') || [];
 
-  // Calculate sum of itemized expenses
-  const sumExpenses = watchedExpenses.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
-  const effectiveTotalAmount = watchedExpenses.length > 0 ? sumExpenses : Number(watchedTotalAmount || 0);
-  const balanceAmount = Math.max(effectiveTotalAmount - Number(amountPaid), 0);
+  // Count how many checklist items are marked completed
+  const completedCount = useMemo(() => {
+    return watchedChecklist.filter((item) => item.completed).length;
+  }, [watchedChecklist]);
 
-  const plannedContents = form.watch('plannedContents') || 0;
-  const completedContents = form.watch('completedContents') || 0;
-  const contentPct = plannedContents > 0 ? Math.round((completedContents / plannedContents) * 100) : 0;
-  const isContentBelowScheduled = completedContents < plannedContents;
+  const totalChecklistItems = watchedChecklist.length;
+  const targetContents = Number(watchedPlannedContents) || totalChecklistItems;
+  const completionPct = targetContents > 0 ? Math.round((completedCount / targetContents) * 100) : 0;
+  const isTargetMet = targetContents > 0 && completedCount >= targetContents;
 
-  const plannedReels = form.watch('plannedReels') || 0;
-  const completedReels = form.watch('completedReels') || 0;
-  const reelsPct = plannedReels > 0 ? Math.round((completedReels / plannedReels) * 100) : 0;
-  const isReelsBelowScheduled = completedReels < plannedReels;
-
-  const currentEquipment = form.watch('equipment') || [];
-
-  // Synchronize totalAmount when expenses change
-  useEffect(() => {
-    if (watchedExpenses.length > 0) {
-      form.setValue('totalAmount', sumExpenses);
-    }
-  }, [sumExpenses, watchedExpenses.length, form]);
-
+  // Initialize or reset form values
   useEffect(() => {
     if (open) {
       if (shoot) {
-        const sDate = shoot.shootDate ? new Date(shoot.shootDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-        const sTime = shoot.startTime ? new Date(shoot.startTime).toTimeString().slice(0, 5) : '09:00';
-        const eTime = shoot.endTime ? new Date(shoot.endTime).toTimeString().slice(0, 5) : '17:00';
+        const sDate = shoot.shootDate
+          ? new Date(shoot.shootDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0];
+        const sTime = shoot.startTime
+          ? new Date(shoot.startTime).toTimeString().slice(0, 5)
+          : '09:00';
+        const eTime = shoot.endTime
+          ? new Date(shoot.endTime).toTimeString().slice(0, 5)
+          : '17:00';
+
+        // Load existing checklist or auto-generate if shoot didn't have one
+        let initialChecklist = [];
+        if (shoot.checklist && Array.isArray(shoot.checklist) && shoot.checklist.length > 0) {
+          initialChecklist = shoot.checklist.map((item) => ({
+            title: item.title || 'Reel / Content',
+            completed: Boolean(item.completed),
+          }));
+        } else {
+          const plannedNum = shoot.plannedContents || 10;
+          for (let i = 1; i <= plannedNum; i++) {
+            initialChecklist.push({
+              title: `Reel / Content #${i}`,
+              completed: i <= (shoot.completedContents || 0),
+            });
+          }
+        }
 
         form.reset({
           client: shoot.client?._id || shoot.client || '',
@@ -184,25 +152,24 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
           startTime: sTime,
           endTime: eTime,
           shootLocation: shoot.shootLocation || '',
-          plannedContents: shoot.plannedContents || 0,
-          completedContents: shoot.completedContents || 0,
-          plannedReels: shoot.plannedReels || 0,
+          plannedContents: shoot.plannedContents ?? 10,
+          completedContents: shoot.completedContents || initialChecklist.filter((c) => c.completed).length,
+          plannedReels: shoot.plannedReels ?? 5,
           completedReels: shoot.completedReels || 0,
-          assignedTeam: shoot.assignedTeam
-            ? shoot.assignedTeam.map((t) => ({
-                user: t.user?._id || t.user || '',
-                name: t.name || t.user?.name || '',
-                role: t.role || 'Videographer',
-              }))
-            : [],
-          equipment: shoot.equipment || [],
-          expensesList: shoot.expensesList || [],
-          totalAmount: shoot.totalAmount || 0,
-          amountPaid: shoot.amountPaid || 0,
+          checklist: initialChecklist,
           notes: shoot.notes === 'null' || !shoot.notes ? '' : shoot.notes,
           status: shoot.status || 'Scheduled',
         });
       } else {
+        // Default new shoot with 10 planned contents
+        const defaultChecklist = [];
+        for (let i = 1; i <= 10; i++) {
+          defaultChecklist.push({
+            title: `Reel / Content #${i}`,
+            completed: false,
+          });
+        }
+
         form.reset({
           client: clients[0]?._id || '',
           shootTitle: '',
@@ -214,11 +181,7 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
           completedContents: 0,
           plannedReels: 5,
           completedReels: 0,
-          assignedTeam: [{ user: '', name: '', role: 'Videographer' }],
-          equipment: ['Sony Camera', 'Tripod', 'Wireless Mic'],
-          expensesList: [{ title: 'Camera Rental', amount: 2000 }],
-          totalAmount: 2000,
-          amountPaid: 0,
+          checklist: defaultChecklist,
           notes: '',
           status: 'Scheduled',
         });
@@ -226,40 +189,65 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
     }
   }, [open, shoot, clients, form]);
 
-  const handleAddEquipment = (item) => {
-    const trimmed = item.trim();
-    if (trimmed && !currentEquipment.includes(trimmed)) {
-      form.setValue('equipment', [...currentEquipment, trimmed]);
-      setEquipmentInput('');
+  // Adjust checklist when plannedContents count is updated by user
+  const handlePlannedContentsChange = (newCount) => {
+    const target = Math.max(0, parseInt(newCount, 10) || 0);
+    form.setValue('plannedContents', target);
+
+    const currentList = form.getValues('checklist') || [];
+    if (target > currentList.length) {
+      // Add missing default items without modifying existing ones
+      const needed = target - currentList.length;
+      const updated = [...currentList];
+      for (let i = 1; i <= needed; i++) {
+        const itemNumber = currentList.length + i;
+        updated.push({
+          title: `Reel / Content #${itemNumber}`,
+          completed: false,
+        });
+      }
+      replaceChecklist(updated);
     }
   };
 
-  const handleRemoveEquipment = (index) => {
-    const updated = currentEquipment.filter((_, i) => i !== index);
-    form.setValue('equipment', updated);
+  // Toggle completion of a checklist item
+  const handleToggleChecklist = (index) => {
+    const currentList = form.getValues('checklist') || [];
+    const item = currentList[index];
+    if (!item) return;
+
+    const newCompleted = !item.completed;
+    form.setValue(`checklist.${index}.completed`, newCompleted);
+
+    // Update completed contents
+    const nextList = form.getValues('checklist');
+    const newCompletedCount = nextList.filter((it) => it.completed).length;
+    form.setValue('completedContents', newCompletedCount);
+
+    // Also align completedReels with completed checklist items
+    const plannedR = form.getValues('plannedReels') || 0;
+    form.setValue('completedReels', Math.min(newCompletedCount, plannedR));
   };
 
   const onSubmit = async (values) => {
     const startDateTime = new Date(`${values.shootDate}T${values.startTime}:00`);
     const endDateTime = new Date(`${values.shootDate}T${values.endTime}:00`);
 
-    const formattedTeam = values.assignedTeam.map((t) => {
-      const foundUser = users.find((u) => u._id === t.user);
-      return {
-        user: t.user && t.user !== '_none' ? t.user : undefined,
-        name: t.name || (foundUser ? foundUser.name : 'Team Member'),
-        role: t.role,
-      };
-    });
-
-    const finalTotalAmount = values.expensesList && values.expensesList.length > 0 ? sumExpenses : Number(values.totalAmount || 0);
+    const finalCompletedContents = values.checklist.filter((item) => item.completed).length;
+    const finalCompletedReels = Math.min(finalCompletedContents, values.plannedReels || 0);
 
     const payload = {
       ...values,
       startTime: startDateTime,
       endTime: endDateTime,
-      assignedTeam: formattedTeam,
-      totalAmount: finalTotalAmount,
+      completedContents: finalCompletedContents,
+      completedReels: finalCompletedReels,
+      // Retain backward-compatible empty arrays for legacy models
+      assignedTeam: shoot?.assignedTeam || [],
+      equipment: shoot?.equipment || [],
+      expensesList: shoot?.expensesList || [],
+      totalAmount: shoot?.totalAmount || 0,
+      amountPaid: shoot?.amountPaid || 0,
     };
 
     if (isEditing) {
@@ -275,7 +263,8 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[92vh]">
+        {/* Modal Header */}
         <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
@@ -283,10 +272,10 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
             </div>
             <div className="min-w-0">
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                {isEditing ? 'Edit Video Shoot Schedule' : 'Create Video Shoot Schedule'}
+                {isEditing ? 'Edit Video Shoot & Content Checklist' : 'Schedule Video Shoot & Content Checklist'}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                Crew members, equipment, expenses, and content targets
+                Select client, plan reel targets, and track production checklist
               </DialogDescription>
             </div>
           </div>
@@ -304,44 +293,81 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-            {/* Scrollable Form Body - Google Form Linear Stack */}
+            {/* Scrollable Form Body */}
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-              <div className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="client"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">Client Name *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
-                            <SelectValue placeholder="Select client" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {clients.map((c) => (
-                            <SelectItem key={c._id} value={c._id}>
-                              {c.company || c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Client & Shoot Title Card */}
+              <div className="p-5 rounded-2xl border border-border bg-card/60 space-y-4 shadow-2xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Client Select */}
+                  <FormField
+                    control={form.control}
+                    name="client"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                          <Building2 size={13} className="text-primary" /> Client Name *
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                              <SelectValue placeholder="Select client" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {clients.map((c) => (
+                              <SelectItem key={c._id} value={c._id} className="font-medium">
+                                {c.company || c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  {/* Status Select */}
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          Shoot Status *
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Scheduled">Scheduled</SelectItem>
+                            <SelectItem value="In Progress">In Progress</SelectItem>
+                            <SelectItem value="Completed">Completed</SelectItem>
+                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            <SelectItem value="Postponed">Postponed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Shoot Title */}
                 <FormField
                   control={form.control}
                   name="shootTitle"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">Shoot Title *</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                        <Clapperboard size={13} className="text-primary" /> Shoot Title / Campaign *
+                      </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g. Brand Promotional Reel & Campaign Shoot"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          placeholder="e.g. Festive Campaign Shoot & High-Impact Reels"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs"
                           {...field}
                         />
                       </FormControl>
@@ -349,516 +375,365 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
                     </FormItem>
                   )}
                 />
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="shootDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">Shoot Date *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Timing & Location Alignment */}
+              <div className="p-5 rounded-2xl border border-border bg-card/60 space-y-4 shadow-2xs">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Calendar size={13} className="text-primary" /> Schedule & Shoot Timing
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">Start Time *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="time"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <FormField
+                    control={form.control}
+                    name="shootDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold text-foreground">Date *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            className="h-11 rounded-xl border-border bg-background px-3.5 text-xs font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">End Time *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="time"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold text-foreground">Start Time *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="time"
+                            className="h-11 rounded-xl border-border bg-background px-3.5 text-xs font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs font-semibold text-foreground">End Time *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="time"
+                            className="h-11 rounded-xl border-border bg-background px-3.5 text-xs font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}
                   name="shootLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">Shoot Location Address</FormLabel>
+                      <FormLabel className="text-xs font-semibold text-foreground flex items-center gap-1">
+                        <MapPin size={12} className="text-rose-500" /> Shoot Location Address
+                      </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g. Studio 4 / Client Site, Chennai"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          placeholder="e.g. Client Showroom / Studio 4, Chennai"
+                          className="h-11 rounded-xl border-border bg-background px-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs"
                           {...field}
                         />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">Shoot Status *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Scheduled">Scheduled</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
-                          <SelectItem value="Postponed">Postponed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Content & Reels Planning Section */}
-                <div className="rounded-2xl border border-border bg-card p-5 space-y-5">
-                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Content & Reels Planning Progress</h3>
-
-                  {/* Contents Progress */}
-                  <div className={`p-4 rounded-xl border space-y-3 ${isContentBelowScheduled ? 'border-rose-500/40 bg-rose-500/5' : 'border-emerald-500/40 bg-emerald-500/5'}`}>
-                    <div className="flex justify-between items-center text-xs font-semibold">
-                      <span className="text-foreground">Contents Progress</span>
-                      <span className={`font-bold ${isContentBelowScheduled ? 'text-rose-500' : 'text-emerald-500'}`}>
-                        {completedContents} / {plannedContents} ({contentPct}%) {isContentBelowScheduled ? '• Below Scheduled' : '• Target Met'}
-                      </span>
-                    </div>
-                    <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-300 ${isContentBelowScheduled ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                        style={{ width: `${Math.min(contentPct, 100)}%` }}
-                      />
-                    </div>
-                    <div className="space-y-3 pt-1">
-                      <FormField
-                        control={form.control}
-                        name="plannedContents"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Planned Contents</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="completedContents"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Completed Contents</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Reels Progress */}
-                  <div className={`p-4 rounded-xl border space-y-3 ${isReelsBelowScheduled ? 'border-rose-500/40 bg-rose-500/5' : 'border-emerald-500/40 bg-emerald-500/5'}`}>
-                    <div className="flex justify-between items-center text-xs font-semibold">
-                      <span className="text-foreground">Reels Progress</span>
-                      <span className={`font-bold ${isReelsBelowScheduled ? 'text-rose-500' : 'text-emerald-500'}`}>
-                        {completedReels} / {plannedReels} ({reelsPct}%) {isReelsBelowScheduled ? '• Below Scheduled' : '• Target Met'}
-                      </span>
-                    </div>
-                    <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-300 ${isReelsBelowScheduled ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                        style={{ width: `${Math.min(reelsPct, 100)}%` }}
-                      />
-                    </div>
-                    <div className="space-y-3 pt-1">
-                      <FormField
-                        control={form.control}
-                        name="plannedReels"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Planned Reels</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="completedReels"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">Completed Reels</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                                {...field}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Team Assignment */}
-                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                      <UserPlus className="h-4 w-4 text-primary" /> Crew / Team Assignment
-                    </h3>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => appendTeam({ user: '', name: '', role: 'Videographer' })}
-                      className="h-9 px-3 rounded-xl gap-1.5 text-xs font-semibold"
-                    >
-                      <Plus className="h-4 w-4 mr-1" /> Add Team Member
-                    </Button>
-                  </div>
-
-                  <div className="space-y-3">
-                    {teamFields.map((field, index) => {
-                      const currentUserId = form.watch(`assignedTeam.${index}.user`);
-
-                      return (
-                        <div key={field.id} className="p-3.5 rounded-xl border border-border bg-background space-y-3">
-                          <div>
-                            <label className="text-xs font-semibold text-muted-foreground block mb-1">Select User / Manual Name</label>
-                            <Select
-                              value={currentUserId || '_none'}
-                              onValueChange={(val) => {
-                                form.setValue(`assignedTeam.${index}.user`, val === '_none' ? '' : val);
-                                const selectedU = users.find((u) => u._id === val);
-                                if (selectedU) {
-                                  form.setValue(`assignedTeam.${index}.name`, selectedU.name);
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="h-11 rounded-xl">
-                                <SelectValue placeholder="Select Employee" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="_none">Manual Name Entry</SelectItem>
-                                {users.map((u) => (
-                                  <SelectItem key={u._id} value={u._id}>
-                                    {u.name} ({u.role})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div>
-                            <label className="text-xs font-semibold text-muted-foreground block mb-1">Member Name</label>
-                            <Input
-                              placeholder="Type Employee / Crew Name..."
-                              className="h-11 rounded-xl"
-                              {...form.register(`assignedTeam.${index}.name`)}
-                            />
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <label className="text-xs font-semibold text-muted-foreground block mb-1">Production Role</label>
-                              <Select
-                                value={form.watch(`assignedTeam.${index}.role`)}
-                                onValueChange={(val) => form.setValue(`assignedTeam.${index}.role`, val)}
-                              >
-                                <SelectTrigger className="h-11 rounded-xl">
-                                  <SelectValue placeholder="Select Role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {TEAM_ROLES.map((r) => (
-                                    <SelectItem key={r} value={r}>
-                                      {r}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-11 w-11 mt-5 p-0 text-destructive hover:bg-destructive/10 rounded-xl"
-                              onClick={() => removeTeam(index)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {teamFields.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic py-1">No team members assigned yet. Click Add Team Member.</p>
-                    ) : null}
-                  </div>
-                </div>
-
-                {/* Equipment Section */}
-                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                    <Wrench className="h-4 w-4 text-primary" /> Equipment Section
-                  </h3>
-
-                  <div className="flex items-center gap-2">
-                    <Input
-                      placeholder="Type equipment (e.g., Sony A7IV, Wireless Lapel Mic)..."
-                      value={equipmentInput}
-                      onChange={(e) => setEquipmentInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddEquipment(equipmentInput);
-                        }
-                      }}
-                      className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => handleAddEquipment(equipmentInput)}
-                      className="h-11 px-5 rounded-xl font-semibold"
-                    >
-                      Add
-                    </Button>
-                  </div>
-
-                  {/* Suggestions */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <span className="text-[11px] text-muted-foreground font-semibold mr-1">Suggestions:</span>
-                    {COMMON_EQUIPMENT.map((eq) => (
-                      <button
-                        key={eq}
-                        type="button"
-                        onClick={() => handleAddEquipment(eq)}
-                        className="text-[11px] px-2.5 py-1 rounded-lg border border-border/60 bg-background hover:bg-muted text-foreground transition-colors cursor-pointer"
-                      >
-                        + {eq}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Tag Badges */}
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {currentEquipment.map((item, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs font-medium"
-                      >
-                        {item}
-                        <button
-                          type="button"
-                          className="hover:text-destructive text-primary/70 ml-1 cursor-pointer font-bold"
-                          onClick={() => handleRemoveEquipment(i)}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Itemized Shoot Expenses List */}
-                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                        <Receipt className="h-4 w-4 text-emerald-500" /> Shoot Expenses Breakdown List
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">Camera Rental, Travel Allowance, Food & Catering, etc.</p>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => appendExpense({ title: '', amount: 1000 })}
-                      className="h-9 px-3 rounded-xl gap-1.5 text-xs font-semibold"
-                    >
-                      <Plus className="h-4 w-4 mr-1" /> Add Expense Item
-                    </Button>
-                  </div>
-
-                  {/* Quick Expense Suggestions */}
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="text-[11px] text-muted-foreground font-semibold mr-1">Quick Add:</span>
-                    {COMMON_EXPENSES.map((exp) => (
-                      <button
-                        key={exp}
-                        type="button"
-                        onClick={() => appendExpense({ title: exp, amount: 1500 })}
-                        className="text-[11px] px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 font-medium hover:bg-emerald-500/20 transition-colors cursor-pointer"
-                      >
-                        + {exp}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="space-y-3">
-                    {expenseFields.map((field, index) => (
-                      <div key={field.id} className="p-3.5 rounded-xl border border-border bg-background space-y-3">
-                        <div>
-                          <label className="text-xs font-semibold text-muted-foreground block mb-1">Expense Title</label>
-                          <Input
-                            placeholder="Expense Title (e.g., Camera Rental, Travel, Food)"
-                            className="h-11 rounded-xl"
-                            {...form.register(`expensesList.${index}.title`)}
-                          />
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 relative">
-                            <label className="text-xs font-semibold text-muted-foreground block mb-1">Amount (₹)</label>
-                            <span className="absolute left-3 top-8.5 text-xs font-semibold text-muted-foreground">₹</span>
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="Amount"
-                              className="h-11 rounded-xl pl-7"
-                              {...form.register(`expensesList.${index}.amount`)}
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-11 w-11 mt-5 p-0 text-destructive hover:bg-destructive/10 rounded-xl"
-                            onClick={() => removeExpense(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {expenseFields.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic py-1">No itemized expenses added. You can type total amount manually below.</p>
-                  ) : null}
-
-                  {/* Financial Summary */}
-                  <div className="pt-3 border-t border-border space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="totalAmount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-semibold text-foreground">Total Amount (₹)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              {...field}
-                              value={expenseFields.length > 0 ? sumExpenses : field.value}
-                              readOnly={expenseFields.length > 0}
-                              className={`h-11 rounded-xl border-border bg-background px-4 text-sm font-bold ${expenseFields.length > 0 ? 'bg-muted/50' : ''}`}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="amountPaid"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-semibold text-foreground">Amount Paid (₹)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              className="h-11 rounded-xl border-border bg-background px-4 text-sm font-bold text-emerald-600 focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <div>
-                      <FormLabel className="text-sm font-semibold text-foreground">Balance Amount (₹)</FormLabel>
-                      <div className="h-11 px-4 flex items-center font-bold text-lg text-rose-500 bg-background rounded-xl border border-border/80 shadow-2xs mt-1.5">
-                        ₹{balanceAmount.toLocaleString('en-IN')}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notes */}
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-semibold text-foreground">Production Notes / Instructions</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          className="min-h-[100px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
-                          placeholder="Specific guidelines, client requirements, theme details..."
-                          {...field}
-                        />
-                      </FormControl>
                     </FormItem>
                   )}
                 />
               </div>
+
+              {/* Targets: Reels & Content Planned (Clean Modern Grid Alignment) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Planned Contents */}
+                <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 space-y-3 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                      <Film size={14} /> Planned Content
+                    </span>
+                    <span className="text-[11px] font-semibold text-primary/80">
+                      Creates Checklist
+                    </span>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="plannedContents"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="10"
+                            value={field.value}
+                            onChange={(e) => handlePlannedContentsChange(e.target.value)}
+                            className="h-12 rounded-xl border-primary/30 bg-background px-4 text-base font-bold text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Quick Select Buttons */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground mr-1">Quick:</span>
+                    {[5, 8, 10, 12, 15, 20].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => handlePlannedContentsChange(num)}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all cursor-pointer ${
+                          Number(watchedPlannedContents) === num
+                            ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                            : 'bg-background hover:bg-muted text-foreground border-border/70'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Planned Reels */}
+                <div className="p-5 rounded-2xl border border-purple-500/20 bg-purple-500/5 space-y-3 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                      <Clapperboard size={14} /> Planned Reels
+                    </span>
+                    <span className="text-[11px] font-semibold text-purple-600/80 dark:text-purple-400/80">
+                      Target Count
+                    </span>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="plannedReels"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="5"
+                            className="h-12 rounded-xl border-purple-500/30 bg-background px-4 text-base font-bold text-foreground focus:ring-2 focus:ring-purple-500/20 shadow-2xs"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Quick Select Buttons */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground mr-1">Quick:</span>
+                    {[3, 5, 8, 10, 12].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => form.setValue('plannedReels', num)}
+                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-semibold transition-all cursor-pointer ${
+                          Number(watchedPlannedReels) === num
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                            : 'bg-background hover:bg-muted text-foreground border-border/70'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* CHECKLIST SECTION: Dynamic Reel & Content Checklist */}
+              <div className="p-5 rounded-2xl border border-border bg-card space-y-4 shadow-sm">
+                {/* Header with Live Progress */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/80">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <ListTodo size={17} className="text-primary" /> Content & Reels Production Checklist
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Edit names and check off finished reels during production
+                    </p>
+                  </div>
+
+                  {/* Completion Badge */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={`text-xs font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 border ${
+                        isTargetMet
+                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                          : completedCount > 0
+                          ? 'bg-primary/10 text-primary border-primary/20'
+                          : 'bg-muted text-muted-foreground border-border'
+                      }`}
+                    >
+                      {isTargetMet ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Sparkles size={13} />}
+                      {completedCount} / {targetContents} Finished ({completionPct}%)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="space-y-1.5">
+                  <div className="h-2.5 w-full bg-secondary/80 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 rounded-full ${
+                        isTargetMet ? 'bg-emerald-500' : 'bg-primary'
+                      }`}
+                      style={{ width: `${Math.min(completionPct, 100)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Checklist Items List */}
+                <div className="space-y-2.5 pt-1">
+                  {checklistFields.map((field, index) => {
+                    const isChecked = form.watch(`checklist.${index}.completed`);
+
+                    return (
+                      <div
+                        key={field.id}
+                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                          isChecked
+                            ? 'bg-emerald-500/5 border-emerald-500/30'
+                            : 'bg-background border-border hover:border-border/80'
+                        }`}
+                      >
+                        {/* Checkbox Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleChecklist(index)}
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all cursor-pointer ${
+                            isChecked
+                              ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
+                              : 'border-muted-foreground/40 hover:border-primary bg-background'
+                          }`}
+                          title={isChecked ? 'Mark pending' : 'Mark completed'}
+                        >
+                          {isChecked ? <Check size={14} className="stroke-[3]" /> : null}
+                        </button>
+
+                        {/* Number Indicator */}
+                        <span className="text-[11px] font-bold text-muted-foreground min-w-[24px]">
+                          #{index + 1}
+                        </span>
+
+                        {/* Editable Name Input */}
+                        <Input
+                          placeholder={`Reel / Content #${index + 1} Name`}
+                          className={`h-9 flex-1 rounded-lg border-border bg-transparent px-3 text-xs font-medium transition-colors ${
+                            isChecked ? 'line-through text-muted-foreground' : 'text-foreground'
+                          }`}
+                          {...form.register(`checklist.${index}.title`)}
+                        />
+
+                        {/* Completed Status Pill */}
+                        <span
+                          className={`hidden sm:inline-flex text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                            isChecked
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-secondary text-muted-foreground'
+                          }`}
+                        >
+                          {isChecked ? 'Finished' : 'Pending'}
+                        </span>
+
+                        {/* Delete Item Button */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive rounded-lg"
+                          onClick={() => removeChecklist(index)}
+                          title="Remove checklist item"
+                        >
+                          <Trash2 size={13} />
+                        </Button>
+                      </div>
+                    );
+                  })}
+
+                  {checklistFields.length === 0 && (
+                    <div className="text-center py-6 border border-dashed border-border rounded-xl">
+                      <ListTodo size={24} className="mx-auto text-muted-foreground/60 mb-1.5" />
+                      <p className="text-xs text-muted-foreground font-medium">No checklist items created yet.</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2.5 h-8 text-xs font-semibold rounded-lg"
+                        onClick={() => appendChecklist({ title: 'Reel / Content #1', completed: false })}
+                      >
+                        <Plus size={13} className="mr-1" /> Add First Item
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add Custom Item Button */}
+                <div className="pt-2 flex items-center justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      appendChecklist({
+                        title: `Reel / Content #${checklistFields.length + 1}`,
+                        completed: false,
+                      })
+                    }
+                    className="h-9 px-3.5 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer"
+                  >
+                    <Plus size={14} /> Add Another Content / Reel
+                  </Button>
+
+                  <span className="text-[11px] text-muted-foreground">
+                    Total: <strong className="text-foreground">{checklistFields.length}</strong> items
+                  </span>
+                </div>
+              </div>
+
+              {/* Production Notes / Instructions */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Production Notes / Instructions
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        className="min-h-[85px] rounded-xl border-border bg-background p-3.5 text-xs font-medium focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                        placeholder="Theme details, guidelines, reference reels, shot list..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
