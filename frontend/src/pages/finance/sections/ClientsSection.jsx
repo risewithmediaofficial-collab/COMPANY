@@ -204,7 +204,7 @@ export default function ClientsSection({ onQuickAdd }) {
     <div className="space-y-6">
       {/* Search and Action Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="relative w-72">
+        <div className="relative w-full sm:w-72">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
           <input
             type="text"
@@ -215,20 +215,20 @@ export default function ClientsSection({ onQuickAdd }) {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 flex-1 sm:flex-initial min-h-[36px]"
           >
             <Download className="h-3.5 w-3.5" />
-            Export Profitability CSV
+            <span>Export CSV</span>
           </button>
           <button
             onClick={() => onQuickAdd('client')}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-2xs"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-2xs flex-1 sm:flex-initial min-h-[36px]"
           >
             <Plus className="h-3.5 w-3.5" />
-            New Client Master
+            <span>New Client Master</span>
           </button>
         </div>
       </div>

@@ -224,7 +224,7 @@ export const AttendanceVibeCard = ({
               <img
                 src={sticker.imageSrc}
                 alt={sticker.title}
-                className={`w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-2xl drop-shadow-2xl transition-all duration-300 filter group-hover:brightness-105 ${sticker.glowColor}`}
+                className={`w-52 h-52 sm:w-64 sm:h-64 object-contain rounded-2xl drop-shadow-2xl transition-all duration-300 filter group-hover:brightness-105 ${sticker.glowColor}`}
                 draggable={false}
               />
 

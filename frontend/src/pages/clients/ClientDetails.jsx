@@ -111,40 +111,106 @@ const ClientDetails = () => {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['client', id],
     queryFn: async () => {
-      const [clientRes, projectsRes, invoicesRes, financeRes, callRes, referralRes] = await Promise.allSettled([
-        api.get(`/clients/${id}`),
-        api.get(`/projects?client=${id}`),
-        api.get(`/finance/invoices?client=${id}`),
-        api.get(`/finance?client=${id}`),
-        api.get(`/finance/call-history?clientId=${id}`),
-        api.get(`/referrals?client=${id}`),
-      ]);
+      let clientRes = null;
+      let projectsRes = null;
+      let invoicesRes = null;
+      let financeRes = null;
+      let callRes = null;
+      let referralRes = null;
+
+      try {
+        const results = await Promise.allSettled([
+          api.get(`/clients/${id}`),
+          api.get(`/projects?client=${id}`),
+          api.get(`/finance/invoices?client=${id}`),
+          api.get(`/finance?client=${id}`),
+          api.get(`/finance/call-history?clientId=${id}`),
+          api.get(`/referrals?client=${id}`),
+        ]);
+        [clientRes, projectsRes, invoicesRes, financeRes, callRes, referralRes] = results;
+      } catch (err) {
+        console.error('Failed to load client 360 bundle', err);
+      }
+
+      let client = clientRes?.status === 'fulfilled' ? clientRes.value?.data?.client : null;
+
+      // Fallback: If not found in primary client table, attempt lookup via SMM clients endpoint
+      if (!client) {
+        try {
+          const smmRes = await api.get(`/smm/clients/${id}`);
+          if (smmRes.data?.data) {
+            const smm = smmRes.data.data;
+            client = {
+              _id: smm._id,
+              name: smm.primaryContact || smm.companyName,
+              company: smm.companyName,
+              email: smm.email || '',
+              phone: smm.phone || '',
+              status: smm.status === 'active' ? 'Active' : (smm.status || 'Active'),
+              website: smm.website || '',
+              services: ['Social Media Marketing'],
+              onboardingSteps: smm.onboardingSteps || {},
+              createdAt: smm.createdAt || new Date().toISOString(),
+              ...smm,
+            };
+          }
+        } catch (_) {}
+      }
 
       return {
-        client: clientRes.status === 'fulfilled' ? clientRes.value.data.client : null,
-        projects: projectsRes.status === 'fulfilled' ? (projectsRes.value.data.projects || projectsRes.value.data || []) : [],
-        invoices: invoicesRes.status === 'fulfilled' ? invoicesRes.value.data.invoices || [] : [],
-        financeRecords: financeRes.status === 'fulfilled' ? financeRes.value.data.records || [] : [],
-        callHistory: callRes.status === 'fulfilled' ? callRes.value.data.calls || [] : [],
-        referrals: referralRes.status === 'fulfilled' ? referralRes.value.data.referrals || [] : [],
+        client,
+        projects: projectsRes?.status === 'fulfilled' ? (projectsRes.value.data.projects || projectsRes.value.data || []) : [],
+        invoices: invoicesRes?.status === 'fulfilled' ? invoicesRes.value.data.invoices || [] : [],
+        financeRecords: financeRes?.status === 'fulfilled' ? financeRes.value.data.records || [] : [],
+        callHistory: callRes?.status === 'fulfilled' ? callRes.value.data.calls || [] : [],
+        referrals: referralRes?.status === 'fulfilled' ? referralRes.value.data.referrals || [] : [],
       };
     },
+    enabled: Boolean(id) && id !== 'undefined',
   });
 
   if (isLoading) {
     return (
       <div className="space-y-6 animate-pulse">
         <div className="h-40 bg-card rounded-3xl border border-border" />
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1,2,3,4].map(i => <div key={i} className="h-24 bg-card rounded-2xl border border-border" />)}
         </div>
       </div>
     );
   }
 
-  if (!data?.client) return (
-    <div className="p-12 text-center text-muted-foreground">Client not found.</div>
-  );
+  if (!data?.client) {
+    return (
+      <div className="p-6 sm:p-10 text-center bg-card rounded-3xl border border-border/80 shadow-xs max-w-md mx-auto my-12 space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
+          <Building2 size={24} />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-base font-bold text-foreground">Client Profile Not Found</h3>
+          <p className="text-xs text-muted-foreground">
+            We couldn't locate client details for ID <code className="px-1.5 py-0.5 rounded bg-secondary font-mono text-[11px]">{id}</code>.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+          <Link
+            to="/clients"
+            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-all inline-flex items-center gap-1.5"
+          >
+            <Users size={14} />
+            <span>Return to Clients 360</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground font-semibold text-xs hover:bg-secondary/80 transition-all cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const { client, projects, invoices, financeRecords = [], callHistory = [], referrals = [] } = data;
 

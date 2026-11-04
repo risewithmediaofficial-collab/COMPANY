@@ -345,8 +345,8 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
 
   const sidebarVariants = {
     mobile: {
-      width: 270,
-      x: sidebarOpen ? 0 : -270,
+      width: Math.min(270, typeof window !== 'undefined' ? Math.max(260, window.innerWidth - 32) : 270),
+      x: sidebarOpen ? 0 : -300,
     },
     desktop: {
       width: 260,
@@ -368,7 +368,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         initial={false}
         animate={isMobile ? sidebarVariants.mobile : sidebarVariants.desktop}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="fixed left-0 top-0 h-screen w-[260px] bg-card border-r border-border z-50 flex flex-col shadow-lg select-none"
+        className="fixed left-0 top-0 h-screen w-[min(270px,calc(100vw-32px))] md:w-[260px] bg-card border-r border-border z-50 flex flex-col shadow-lg select-none"
       >
         {/* Workspace Brand / Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border bg-card shrink-0">
@@ -504,7 +504,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                           onFocus={() => preloadRoute(item.path)}
                           onTouchStart={() => preloadRoute(item.path)}
                           onClick={() => isMobile && dispatch(toggleSidebar())}
-                          className="flex-1 min-w-0 flex items-center px-3 py-2"
+                          className="flex-1 min-w-0 flex items-center px-3 py-2 min-h-[44px]"
                         >
                           <div className="relative shrink-0 flex items-center justify-center">
                             <item.icon
@@ -556,7 +556,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
             onFocus={() => preloadRoute('/settings')}
             onTouchStart={() => preloadRoute('/settings')}
             onClick={() => isMobile && dispatch(toggleSidebar())}
-            className={`flex items-center px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center px-3 py-2 min-h-[44px] rounded-xl text-xs font-semibold transition-all ${
               pathname === '/settings'
                 ? 'bg-primary/10 text-primary font-bold'
                 : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'

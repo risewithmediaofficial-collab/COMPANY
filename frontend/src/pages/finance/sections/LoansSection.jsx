@@ -443,7 +443,7 @@ export default function LoansSection({ onQuickAdd }) {
 
       {/* ── CONTROLS & FILTER BAR ────────────────────────────────────────── */}
       <div className="bg-white border border-slate-200/90 rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0 w-full sm:w-auto">
           {/* Search */}
           <div className="relative flex-1 max-w-sm">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />

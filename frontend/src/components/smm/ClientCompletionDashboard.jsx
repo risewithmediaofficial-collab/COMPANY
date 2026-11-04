@@ -279,7 +279,7 @@ export const ClientCompletionDashboard = ({
           <div className="w-full overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] custom-scrollbar">
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full min-w-[340px] h-auto select-none"
+              className="w-full min-w-[280px] h-auto select-none"
               style={{ overflow: 'visible' }}
             >
               {/* Chart Title */}

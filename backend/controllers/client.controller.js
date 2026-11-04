@@ -2,10 +2,12 @@
 // CLIENT CONTROLLER
 // =============================================
 
+import mongoose from 'mongoose';
 import Client from '../models/client.model.js';
 import User from '../models/user.model.js';
 import Project from '../models/project.model.js';
 import ActivityLog from '../models/activityLog.model.js';
+import SmmClient from '../models/smm/smmClient.model.js';
 import { sendEmail } from '../utils/email.js';
 import { createActivityLog } from '../utils/activity.js';
 import { moveToRecycleBin } from '../utils/recycleBin.js';
@@ -70,7 +72,7 @@ const clientPopulate = [
 
 const assertClientAccess = (req, client) => {
   if (!client) return { allowed: false, status: 404, message: 'Client not found' };
-  if (['superAdmin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'employee'].includes(req.user.role)) return { allowed: true };
+  if (['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'employee'].includes(req.user.role)) return { allowed: true };
   if (req.user.role === 'client') {
     const userClientId = req.user.clientId?._id || req.user.clientId;
     const isOwner =
@@ -151,9 +153,60 @@ export const getClients = async (req, res) => {
 
 export const getClient = async (req, res) => {
   try {
-    const client = await Client.findById(req.params.id)
-      .populate(clientPopulate)
-      .populate('convertedFromLead', 'name source value');
+    const rawId = req.params.id;
+    if (!rawId || rawId === 'undefined' || rawId === 'null') {
+      return res.status(400).json({ success: false, message: 'Invalid client ID' });
+    }
+
+    let client = null;
+    const isValidId = mongoose.Types.ObjectId.isValid(rawId);
+
+    if (isValidId) {
+      client = await Client.findById(rawId)
+        .populate(clientPopulate)
+        .populate('convertedFromLead', 'name source value');
+    }
+
+    // Fallback 1: Check SmmClient if not found in Client collection
+    if (!client && isValidId) {
+      const smmClient = await SmmClient.findById(rawId).lean();
+      if (smmClient) {
+        const matchingClient = smmClient.email
+          ? await Client.findOne({ email: smmClient.email.toLowerCase().trim() }).populate(clientPopulate)
+          : (smmClient.companyName ? await Client.findOne({ company: { $regex: new RegExp(`^${smmClient.companyName.trim()}$`, 'i') } }).populate(clientPopulate) : null);
+
+        if (matchingClient) {
+          client = matchingClient;
+        } else {
+          try {
+            client = await Client.create({
+              _id: smmClient._id,
+              name: smmClient.primaryContact || smmClient.companyName,
+              company: smmClient.companyName,
+              email: smmClient.email || `${smmClient._id}@client.internal`,
+              phone: smmClient.phone || '',
+              status: smmClient.status === 'active' ? 'Active' : 'Inactive',
+              services: ['Social Media Marketing'],
+              website: smmClient.website || '',
+            });
+            client = await Client.findById(client._id).populate(clientPopulate);
+          } catch (_) {
+            client = await Client.findById(smmClient._id).populate(clientPopulate);
+          }
+        }
+      }
+    }
+
+    // Fallback 2: Check by exact company name or email if identifier is not an ObjectId
+    if (!client) {
+      client = await Client.findOne({
+        $or: [
+          { company: { $regex: new RegExp(`^${rawId.trim()}$`, 'i') } },
+          { email: rawId.toLowerCase().trim() },
+          { name: { $regex: new RegExp(`^${rawId.trim()}$`, 'i') } },
+        ],
+      }).populate(clientPopulate);
+    }
 
     const access = assertClientAccess(req, client);
     if (!access.allowed) {

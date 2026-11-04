@@ -55,7 +55,7 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
           {alerts.map((alert, idx) => (
             <div
               key={idx}
-              className={`flex items-center justify-between p-3.5 rounded-xl border text-xs font-medium shadow-sm transition-all ${
+              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 rounded-xl border text-xs font-medium shadow-sm transition-all ${
                 alert.type === 'danger'
                   ? 'bg-rose-50 border-rose-200 text-rose-800'
                   : alert.type === 'warning'

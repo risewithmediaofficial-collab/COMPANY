@@ -468,7 +468,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
           <AppTooltip content={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}>
             <button
               onClick={() => dispatch(toggleDarkMode())}
-              className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
               title="Toggle Dark Mode"
               aria-label="Toggle Dark Mode"
             >
@@ -479,7 +479,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
           {/* Notifications Dropdown */}
           <DropdownMenu>
             <AppTooltip content="Notifications & Activity Alerts">
-              <DropdownMenuTrigger className="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
+              <DropdownMenuTrigger className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
                 <Bell size={17} />
                 {(notificationData?.unreadCount > 0 || (notificationData?.notifications || []).filter((n) => !n.isRead).length > 0) && (
                   <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-primary text-white rounded-full border border-card text-[9px] font-bold flex items-center justify-center">
@@ -581,7 +581,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
 
           {/* User Profile */}
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-0.5 hover:bg-secondary transition-colors focus:outline-none">
+            <DropdownMenuTrigger className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full p-1 hover:bg-secondary transition-colors focus:outline-none">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground shadow-sm">
                 {user?.avatar ? (
                   <img src={getAssetUrl(user.avatar)} alt={user.name} className="w-full h-full rounded-full object-cover" />

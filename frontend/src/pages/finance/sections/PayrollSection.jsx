@@ -421,7 +421,7 @@ export default function PayrollSection() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-3 py-1 rounded-md font-medium text-xs transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-md font-medium text-xs transition-colors flex items-center gap-1.5 shrink-0 min-h-[36px] ${
                 statusFilter === tab.id
                   ? 'bg-slate-900 text-white font-semibold shadow-2xs'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'

@@ -253,20 +253,20 @@ export default function IncomeSection({ onQuickAdd }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
           <button
             onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 flex-1 sm:flex-initial min-h-[36px]"
           >
             <Download className="h-3.5 w-3.5" />
-            Export CSV
+            <span>Export CSV</span>
           </button>
           <button
             onClick={() => onQuickAdd('receipt')}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-2xs"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 shadow-2xs flex-1 sm:flex-initial min-h-[36px]"
           >
             <Plus className="h-3.5 w-3.5" />
-            Record Payment Receipt
+            <span>Record Payment</span>
           </button>
         </div>
       </div>
