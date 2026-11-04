@@ -911,12 +911,12 @@ export default function ExpensesSection({ onQuickAdd }) {
       </div>
 
       {/* Sub Tabs: Expenses / Payees / Subscriptions / Payment Reminders */}
-      <div className="flex border-b border-slate-200 gap-4 text-xs font-semibold overflow-x-auto">
+      <div className="flex border-b border-slate-200 gap-2 sm:gap-4 text-xs font-semibold overflow-x-auto pb-px no-scrollbar">
         <button
           onClick={() => setActiveTab('expenses')}
-          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center ${
             activeTab === 'expenses'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-indigo-600 text-indigo-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -924,9 +924,9 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('payees')}
-          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center ${
             activeTab === 'payees'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-indigo-600 text-indigo-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -934,9 +934,9 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('subscriptions')}
-          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center ${
             activeTab === 'subscriptions'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-indigo-600 text-indigo-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -944,9 +944,9 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('payment_reminders')}
-          className={`pb-2.5 transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center ${
             activeTab === 'payment_reminders'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-indigo-600 text-indigo-600 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -957,23 +957,23 @@ export default function ExpensesSection({ onQuickAdd }) {
       {activeTab === 'expenses' && (
         <>
           {/* Filters & Action Bar */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="relative w-64">
+          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto flex-1">
+              <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search title, vendor, category..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+                  className="w-full pl-8 pr-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50 min-h-[36px]"
                 />
               </div>
 
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700"
+                className="w-full sm:w-auto rounded-lg border border-slate-200 px-3 py-2 sm:py-1.5 text-xs bg-slate-50/50 text-slate-700 min-h-[36px]"
               >
                 <option value="all">All Categories</option>
                 <option value="production_shoot">Production / Shoot</option>
@@ -991,7 +991,7 @@ export default function ExpensesSection({ onQuickAdd }) {
               <select
                 value={paymentStatusFilter}
                 onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs bg-slate-50/50 text-slate-700"
+                className="w-full sm:w-auto rounded-lg border border-slate-200 px-3 py-2 sm:py-1.5 text-xs bg-slate-50/50 text-slate-700 min-h-[36px]"
               >
                 <option value="all">All Payment Statuses</option>
                 <option value="paid">Fully Paid Expenses</option>
@@ -1000,11 +1000,11 @@ export default function ExpensesSection({ onQuickAdd }) {
               </select>
 
               {/* Quick Date Presets */}
-              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 overflow-x-auto max-w-full no-scrollbar">
                 <button
                   type="button"
                   onClick={() => setQuickDatePreset('all')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
                     datePreset === 'all'
                       ? 'bg-white text-indigo-700 shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -1015,7 +1015,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <button
                   type="button"
                   onClick={() => setQuickDatePreset('this_week')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
                     datePreset === 'this_week'
                       ? 'bg-white text-indigo-700 shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -1026,7 +1026,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <button
                   type="button"
                   onClick={() => setQuickDatePreset('this_month')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
                     datePreset === 'this_month'
                       ? 'bg-white text-indigo-700 shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -1037,7 +1037,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <button
                   type="button"
                   onClick={() => setQuickDatePreset('this_year')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
                     datePreset === 'this_year'
                       ? 'bg-white text-indigo-700 shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -1048,7 +1048,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <button
                   type="button"
                   onClick={() => setQuickDatePreset('custom')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
                     datePreset === 'custom'
                       ? 'bg-white text-indigo-700 shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -1059,7 +1059,7 @@ export default function ExpensesSection({ onQuickAdd }) {
               </div>
 
               {/* Date to Date Filter Inputs */}
-              <div className="flex items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 bg-slate-50/70 border border-slate-200 rounded-lg px-2 py-1 w-full sm:w-auto">
                 <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
                 <span className="text-[11px] font-semibold text-slate-500">Dates:</span>
                 <input
@@ -1071,7 +1071,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   }}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
                   title="From Date"
-                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  className="px-1.5 py-1 sm:py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500 flex-1 sm:flex-initial min-w-[110px]"
                 />
                 <span className="text-[10px] text-slate-400 font-bold">to</span>
                 <input
@@ -1083,26 +1083,26 @@ export default function ExpensesSection({ onQuickAdd }) {
                   }}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
                   title="To Date"
-                  className="px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                  className="px-1.5 py-1 sm:py-0.5 rounded border border-slate-200 bg-white text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500 flex-1 sm:flex-initial min-w-[110px]"
                 />
                 {(fromDate || toDate) && (
                   <button
                     type="button"
                     onClick={() => setQuickDatePreset('all')}
-                    className="p-0.5 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                    className="p-1 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                     title="Reset Date Range"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
 
               {/* Date Sorting Dropdown */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
                 <select
                   value={dateSort}
                   onChange={(e) => setDateSort(e.target.value)}
-                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer"
+                  className="w-full sm:w-auto rounded-lg border border-slate-200 px-2.5 py-2 sm:py-1.5 text-xs bg-slate-50/50 text-slate-700 font-semibold cursor-pointer min-h-[36px]"
                 >
                   <option value="desc">Date: Newest First (Desc)</option>
                   <option value="asc">Date: Oldest First (Asc)</option>
@@ -1110,13 +1110,13 @@ export default function ExpensesSection({ onQuickAdd }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
               {/* Export as Report Dropdown */}
-              <div className="relative">
+              <div className="relative flex-1 sm:flex-initial">
                 <button
                   type="button"
                   onClick={() => setShowExportMenu((prev) => !prev)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer min-h-[36px]"
                 >
                   <FileText className="h-3.5 w-3.5 text-indigo-600" />
                   <span>Export Report</span>
@@ -1146,16 +1146,145 @@ export default function ExpensesSection({ onQuickAdd }) {
 
               <button
                 onClick={() => onQuickAdd('expense')}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700 shadow-2xs cursor-pointer"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-600 text-white font-semibold hover:bg-rose-700 shadow-2xs cursor-pointer min-h-[36px]"
               >
                 <Plus className="h-3.5 w-3.5" />
-                Record Expense / Bill
+                <span>Record Expense / Bill</span>
               </button>
             </div>
           </div>
 
-          {/* Expenses Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+          {/* Mobile Cards List (block md:hidden) */}
+          <div className="block md:hidden space-y-3">
+            {sortedExpenses.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+                No expenses or vendor bills found matching your criteria.
+              </div>
+            ) : (
+              sortedExpenses.map((exp) => {
+                const fin = calculateExpenseFinancials(exp);
+                return (
+                  <div
+                    key={exp._id}
+                    onClick={() => setSelectedExpenseForSidebar(exp)}
+                    className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3 active:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap text-[10px] mb-1">
+                          <span className="text-slate-500 font-medium">{formatDateIST(exp.date)}</span>
+                          <span className="text-slate-300">•</span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                              ['rj', 'vj'].includes(exp.category?.toLowerCase())
+                                ? 'bg-indigo-50 text-indigo-700 font-bold uppercase'
+                                : 'bg-slate-100 text-slate-700 capitalize'
+                            }`}
+                          >
+                            {formatExpenseCategory(exp.category)}
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                              exp.costType === 'client_project' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {exp.costType === 'client_project' ? 'Client Direct' : 'Overhead'}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-sm text-slate-900 leading-snug">{exp.title}</h4>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-base font-extrabold text-slate-900">{formatINR(fin.total)}</div>
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase mt-0.5 ${
+                            fin.status === 'paid'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : fin.status === 'partially_paid'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-rose-100 text-rose-700'
+                          }`}
+                        >
+                          {fin.status === 'paid' ? 'Paid' : fin.status === 'partially_paid' ? 'Partial' : 'Unpaid'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                      <div>
+                        {exp.vendor ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPayeeForLedger(exp.vendor);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs"
+                          >
+                            <User className="h-3 w-3 text-indigo-500" />
+                            <span>{exp.vendor}</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartEditExpense(exp);
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/60 px-1.5 py-0.5 rounded border border-dashed border-slate-200"
+                          >
+                            <Plus className="h-2.5 w-2.5" /> Assign Payee
+                          </button>
+                        )}
+                      </div>
+
+                      {fin.balance > 0 && fin.paid > 0 && (
+                        <div className="text-[11px] text-amber-600 font-bold">
+                          Due: {formatINR(fin.balance)}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+                      {fin.balance > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedExpenseForSidebar(exp);
+                            handleOpenAddPayment(exp);
+                          }}
+                          className="flex-1 min-h-[36px] flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold text-xs shadow-2xs"
+                        >
+                          <Plus className="h-3 w-3" />
+                          <span>Pay / Add</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditExpense(exp)}
+                        className="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs flex items-center gap-1"
+                        title="Edit Expense"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteExpense(exp)}
+                        disabled={deleteExpense.isPending}
+                        className="min-h-[36px] px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold text-xs flex items-center gap-1"
+                        title="Delete Expense"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Expenses Table (Desktop hidden md:flex) */}
+          <div className="hidden md:flex bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex-col">
             <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
               <table className="w-full min-w-[750px] text-left">
                 <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
@@ -1336,34 +1465,119 @@ export default function ExpensesSection({ onQuickAdd }) {
       {/* 2. PAYEES & VENDOR LEDGERS TAB */}
       {activeTab === 'payees' && (
         <div className="space-y-4">
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="relative w-72">
+          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="relative w-full sm:w-72">
               <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search payee name, videographer, editor..."
                 value={payeeSearch}
                 onChange={(e) => setPayeeSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50"
+                className="w-full pl-8 pr-3 py-2 sm:py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 bg-slate-50/50 min-h-[36px]"
               />
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
               <span className="text-slate-500 font-medium">
                 {filteredPayees.length} {filteredPayees.length === 1 ? 'payee' : 'payees'} found
               </span>
               <button
                 onClick={() => onQuickAdd('expense')}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 text-white font-semibold text-xs hover:bg-rose-700 shadow-2xs"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-600 text-white font-semibold text-xs hover:bg-rose-700 shadow-2xs min-h-[36px]"
               >
                 <Plus className="h-3.5 w-3.5" />
-                Record Expense / Bill
+                <span>Record Expense / Bill</span>
               </button>
             </div>
           </div>
 
-          {/* Payees Directory Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+          {/* Payees Mobile Cards (block md:hidden) */}
+          <div className="block md:hidden space-y-3">
+            {filteredPayees.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+                No payees or vendor records found matching your search.
+              </div>
+            ) : (
+              filteredPayees.map((p) => (
+                <div
+                  key={p.name}
+                  onClick={() => setSelectedPayeeForLedger(p.name)}
+                  className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3 active:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="h-9 w-9 rounded-full bg-indigo-50 text-indigo-700 font-bold flex items-center justify-center text-sm shrink-0 border border-indigo-100">
+                        {p.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-sm text-slate-900 truncate">{p.name}</h4>
+                        <div className="text-[11px] text-slate-400">
+                          {p.items[0]?.category ? p.items[0].category.replace(/_/g, ' ') : 'Payee Account'}
+                        </div>
+                      </div>
+                    </div>
+                    {p.pendingAmount > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-800 shrink-0">
+                        Payment Due
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 shrink-0">
+                        Cleared
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-slate-50 text-center text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-medium block">Total</span>
+                      <span className="font-bold text-slate-900 mt-0.5 block">{formatINR(p.totalAmount)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-emerald-700 font-medium block">Cleared</span>
+                      <span className="font-bold text-emerald-700 mt-0.5 block">{formatINR(p.paidAmount)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-amber-800 font-medium block">Pending</span>
+                      <span className={`font-bold mt-0.5 block ${p.pendingAmount > 0 ? 'text-amber-600 font-extrabold' : 'text-slate-400'}`}>
+                        {formatINR(p.pendingAmount)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                    <span>{p.totalCount} bills ({p.paidCount} paid, {p.pendingCount} unpaid)</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100" onClick={(e) => e.stopPropagation()}>
+                    {p.pendingAmount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPayeeForLedger(p.name);
+                          handleOpenOverallPay(p);
+                        }}
+                        className="flex-1 min-h-[36px] inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs"
+                      >
+                        <Wallet className="h-3.5 w-3.5" />
+                        <span>Overall Pay</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPayeeForLedger(p.name)}
+                      className="flex-1 min-h-[36px] inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs"
+                    >
+                      <span>Open Ledger</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Payees Directory Table (Desktop hidden md:flex) */}
+          <div className="hidden md:flex bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex-col">
             <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
               <table className="w-full min-w-[650px] text-left">
                 <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
@@ -1480,8 +1694,8 @@ export default function ExpensesSection({ onQuickAdd }) {
 
       {/* 3. RECURRING SUBSCRIPTIONS TAB */}
       {activeTab === 'subscriptions' && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="space-y-4">
+          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Software & Agency Subscriptions</h3>
               <p className="text-xs text-slate-500">
@@ -1490,73 +1704,136 @@ export default function ExpensesSection({ onQuickAdd }) {
             </div>
             <button
               onClick={() => onQuickAdd('subscription')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700 min-h-[36px] w-full sm:w-auto"
             >
               <Plus className="h-3.5 w-3.5" />
-              Schedule Subscription
+              <span>Schedule Subscription</span>
             </button>
           </div>
 
-          <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
-            <table className="w-full min-w-[700px] text-left">
-              <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
-                <tr>
-                  <th className="p-3">Tool / Service</th>
-                  <th className="p-3">Vendor</th>
-                  <th className="p-3">Frequency</th>
-                  <th className="p-3">Expected Amount</th>
-                  <th className="p-3">Next Renewal Date</th>
-                  <th className="p-3">Classification</th>
-                  <th className="p-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {subscriptions.length === 0 ? (
+          {/* Subscriptions Mobile Cards (block md:hidden) */}
+          <div className="block md:hidden space-y-3">
+            {subscriptions.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+                No recurring subscriptions scheduled.
+              </div>
+            ) : (
+              subscriptions.map((sub) => (
+                <div key={sub._id} className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap text-[10px] mb-1">
+                        <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold capitalize">
+                          {sub.costClassification}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold capitalize">
+                          {sub.frequency}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-sm text-slate-900 truncate">{sub.serviceName}</h4>
+                      <p className="text-xs text-slate-500 truncate">{sub.vendor || sub.serviceName}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-base font-extrabold text-slate-900">{formatINR(sub.expectedAmount)}</div>
+                      <span className="text-[10px] font-medium text-amber-700 block mt-0.5">
+                        Due {formatDateIST(sub.nextRenewalDate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => postRenewal.mutate({ id: sub._id, actualAmount: sub.expectedAmount })}
+                      disabled={postRenewal.isPending}
+                      className="flex-1 min-h-[36px] flex items-center justify-center px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      Post Renewal
+                    </button>
+                    <button
+                      onClick={() => handleStartEditSubscription(sub)}
+                      className="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs flex items-center gap-1"
+                      title="Edit Subscription"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSubscription(sub)}
+                      disabled={deleteSubscription.isPending}
+                      className="min-h-[36px] px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold text-xs flex items-center gap-1"
+                      title="Delete Subscription"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Subscriptions Desktop Table (hidden md:flex) */}
+          <div className="hidden md:flex bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex-col">
+            <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
+              <table className="w-full min-w-[700px] text-left">
+                <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
                   <tr>
-                    <td colSpan="7" className="p-8 text-center text-slate-400">
-                      No recurring subscriptions scheduled.
-                    </td>
+                    <th className="p-3">Tool / Service</th>
+                    <th className="p-3">Vendor</th>
+                    <th className="p-3">Frequency</th>
+                    <th className="p-3">Expected Amount</th>
+                    <th className="p-3">Next Renewal Date</th>
+                    <th className="p-3">Classification</th>
+                    <th className="p-3 text-right">Action</th>
                   </tr>
-                ) : (
-                  subscriptions.map((sub) => (
-                    <tr key={sub._id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-3 font-semibold text-slate-900">{sub.serviceName}</td>
-                      <td className="p-3 text-slate-600">{sub.vendor || sub.serviceName}</td>
-                      <td className="p-3 capitalize">{sub.frequency}</td>
-                      <td className="p-3 font-bold text-slate-900">{formatINR(sub.expectedAmount)}</td>
-                      <td className="p-3 font-medium text-amber-700">{formatDateIST(sub.nextRenewalDate)}</td>
-                      <td className="p-3 capitalize">{sub.costClassification}</td>
-                      <td className="p-3 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => postRenewal.mutate({ id: sub._id, actualAmount: sub.expectedAmount })}
-                            disabled={postRenewal.isPending}
-                            className="px-2.5 py-1 rounded bg-emerald-600 text-white font-semibold text-[11px] hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                          >
-                            Post Renewal
-                          </button>
-                          <button
-                            onClick={() => handleStartEditSubscription(sub)}
-                            className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                            title="Edit Subscription"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSubscription(sub)}
-                            disabled={deleteSubscription.isPending}
-                            className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                            title="Delete Subscription"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {subscriptions.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="p-8 text-center text-slate-400">
+                        No recurring subscriptions scheduled.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    subscriptions.map((sub) => (
+                      <tr key={sub._id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-3 font-semibold text-slate-900">{sub.serviceName}</td>
+                        <td className="p-3 text-slate-600">{sub.vendor || sub.serviceName}</td>
+                        <td className="p-3 capitalize">{sub.frequency}</td>
+                        <td className="p-3 font-bold text-slate-900">{formatINR(sub.expectedAmount)}</td>
+                        <td className="p-3 font-medium text-amber-700">{formatDateIST(sub.nextRenewalDate)}</td>
+                        <td className="p-3 capitalize">{sub.costClassification}</td>
+                        <td className="p-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => postRenewal.mutate({ id: sub._id, actualAmount: sub.expectedAmount })}
+                              disabled={postRenewal.isPending}
+                              className="px-2.5 py-1 rounded bg-emerald-600 text-white font-semibold text-[11px] hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                            >
+                              Post Renewal
+                            </button>
+                            <button
+                              onClick={() => handleStartEditSubscription(sub)}
+                              className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                              title="Edit Subscription"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSubscription(sub)}
+                              disabled={deleteSubscription.isPending}
+                              className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              title="Delete Subscription"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -1675,13 +1952,13 @@ export default function ExpensesSection({ onQuickAdd }) {
               </div>
             </form>
 
-            <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex items-center justify-between gap-3 select-none">
-              <span className="text-xs text-muted-foreground font-medium">Auto-renewing ledger commitment</span>
-              <div className="flex items-center gap-2.5">
+            <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+              <span className="text-xs text-muted-foreground font-medium text-center sm:text-left">Auto-renewing ledger commitment</span>
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setEditingSubscription(null)}
-                  className="h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
+                  className="flex-1 sm:flex-initial h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1689,7 +1966,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   type="submit"
                   form="edit-subscription-form"
                   disabled={updateSubscription.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer"
+                  className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer"
                 >
                   {updateSubscription.isPending ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -2005,23 +2282,25 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </form>
 
                 {/* Sticky Action Footer */}
-                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex items-center justify-between gap-3 select-none">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingExpenseInSidebar(false)}
-                    className="h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    form="edit-expense-sidebar-form"
-                    disabled={updateExpense.isPending}
-                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer flex items-center gap-2"
-                  >
-                    <Check className="h-4 w-4" />
-                    {updateExpense.isPending ? 'Saving Changes...' : 'Save Changes'}
-                  </button>
+                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingExpenseInSidebar(false)}
+                      className="flex-1 sm:flex-initial h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer text-center"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      form="edit-expense-sidebar-form"
+                      disabled={updateExpense.isPending}
+                      className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <Check className="h-4 w-4" />
+                      <span>{updateExpense.isPending ? 'Saving Changes...' : 'Save Changes'}</span>
+                    </button>
+                  </div>
                 </div>
               </>
             ) : (
@@ -2065,20 +2344,20 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => handleOpenAddPayment(currentSelectedExpense)}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                        className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                       >
                         <Plus className="h-3.5 w-3.5" />
-                        Add Payment
+                        <span>Add Payment</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => payVendorBill.mutate({ id: currentSelectedExpense._id })}
                         disabled={payVendorBill.isPending}
-                        className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                        className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
                         title={`Pay remaining balance of ${formatINR(currentExpBalance)}`}
                       >
                         <Check className="h-3.5 w-3.5" />
-                        {payVendorBill.isPending ? 'Processing...' : `Pay Full Balance (${formatINR(currentExpBalance)})`}
+                        <span>{payVendorBill.isPending ? 'Processing...' : `Pay Full (${formatINR(currentExpBalance)})`}</span>
                       </button>
                     </>
                   )}
@@ -2086,20 +2365,20 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <button
                       type="button"
                       onClick={() => handleOpenAddPayment(currentSelectedExpense)}
-                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                      className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                       title="Add an additional payment adjustment"
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      Add Payment
+                      <span>Add Payment</span>
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={() => handleStartEditExpense(currentSelectedExpense)}
-                    className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                    className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                   >
                     <Edit2 className="h-3.5 w-3.5" />
-                    Edit Details
+                    <span>Edit Details</span>
                   </button>
                   <button
                     type="button"
@@ -2109,10 +2388,10 @@ export default function ExpensesSection({ onQuickAdd }) {
                       await handleDeleteExpense(exp);
                     }}
                     disabled={deleteExpense.isPending}
-                    className="px-3 py-1.5 rounded-lg bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-semibold text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer ml-auto"
+                    className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer sm:ml-auto"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    Delete
+                    <span>Delete</span>
                   </button>
                 </div>
 
@@ -2558,16 +2837,16 @@ export default function ExpensesSection({ onQuickAdd }) {
               </div>
 
               {/* Sticky Footer */}
-              <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex justify-between items-center">
-                <div className="flex items-center gap-2">
+              <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                   {currentExpBalance > 0 && (
                     <button
                       type="button"
                       onClick={() => handleOpenAddPayment(currentSelectedExpense)}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs cursor-pointer"
+                      className="flex-1 sm:flex-initial min-h-[36px] px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      Add Payment
+                      <span>Add Payment</span>
                     </button>
                   )}
                   {currentSelectedExpense.vendor && (
@@ -2577,7 +2856,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         setSelectedExpenseForSidebar(null);
                         onQuickAdd('expense');
                       }}
-                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center justify-center sm:justify-start gap-1 cursor-pointer py-1"
                     >
                       Record Another Expense for {currentSelectedExpense.vendor}
                     </button>
@@ -2586,7 +2865,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <button
                   type="button"
                   onClick={() => setSelectedExpenseForSidebar(null)}
-                  className="px-4 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 cursor-pointer"
+                  className="w-full sm:w-auto min-h-[36px] px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 cursor-pointer text-center"
                 >
                   Close
                 </button>
@@ -2832,11 +3111,11 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* OVERALL PAY FOOTER */}
-                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex justify-between items-center select-none">
+                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card/95 backdrop-blur-md flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 select-none">
                   <button
                     type="button"
                     onClick={() => setIsOverallPaying(false)}
-                    className="h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
+                    className="w-full sm:w-auto h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer text-center"
                   >
                     Back to Statement
                   </button>
@@ -2844,12 +3123,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                     type="submit"
                     form="overall-pay-form"
                     disabled={payeeOverallPay.isPending || !Number(overallPayFormData.amount)}
-                    className="h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    className="w-full sm:w-auto h-11 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Wallet className="h-4 w-4" />
-                    {payeeOverallPay.isPending
-                      ? 'Recording Overall Pay...'
-                      : `Confirm Overall Pay (${formatINR(Number(overallPayFormData.amount) || 0)})`}
+                    <span>
+                      {payeeOverallPay.isPending
+                        ? 'Recording Overall Pay...'
+                        : `Confirm Overall Pay (${formatINR(Number(overallPayFormData.amount) || 0)})`}
+                    </span>
                   </button>
                 </div>
               </>
@@ -2872,13 +3153,13 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <div className="flex-1 overflow-y-auto p-5 space-y-4">
                   {/* Date Filters & Export Statement Bar */}
                   <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 bg-slate-100/70 rounded-xl border border-slate-200">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto flex-1">
                       {/* Preset Pills */}
-                      <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                      <div className="flex items-center gap-0.5 bg-white p-0.5 rounded-lg border border-slate-200 shadow-2xs overflow-x-auto max-w-full no-scrollbar">
                         <button
                           type="button"
                           onClick={() => setQuickPayeeDatePreset('all')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
                             payeeDatePreset === 'all'
                               ? 'bg-indigo-600 text-white shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -2889,7 +3170,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => setQuickPayeeDatePreset('this_week')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
                             payeeDatePreset === 'this_week'
                               ? 'bg-indigo-600 text-white shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -2900,7 +3181,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => setQuickPayeeDatePreset('this_month')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
                             payeeDatePreset === 'this_month'
                               ? 'bg-indigo-600 text-white shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -2911,7 +3192,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => setQuickPayeeDatePreset('this_year')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
                             payeeDatePreset === 'this_year'
                               ? 'bg-indigo-600 text-white shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -2922,7 +3203,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => setQuickPayeeDatePreset('custom')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all ${
+                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
                             payeeDatePreset === 'custom'
                               ? 'bg-indigo-600 text-white shadow-2xs'
                               : 'text-slate-600 hover:text-slate-900'
@@ -2933,7 +3214,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </div>
 
                       {/* Date Range Inputs */}
-                      <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-2xs">
+                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2 py-1 shadow-2xs w-full sm:w-auto">
                         <Calendar className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
                         <input
                           type="date"
@@ -2944,7 +3225,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           }}
                           onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
                           title="From Date"
-                          className="px-1 py-0.5 rounded border border-slate-200 text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                          className="px-1 py-0.5 rounded border border-slate-200 text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500 flex-1 sm:flex-initial min-w-[105px]"
                         />
                         <span className="text-[10px] text-slate-400 font-bold">to</span>
                         <input
@@ -2956,27 +3237,27 @@ export default function ExpensesSection({ onQuickAdd }) {
                           }}
                           onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
                           title="To Date"
-                          className="px-1 py-0.5 rounded border border-slate-200 text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500"
+                          className="px-1 py-0.5 rounded border border-slate-200 text-[11px] text-slate-800 cursor-pointer focus:ring-1 focus:ring-indigo-500 flex-1 sm:flex-initial min-w-[105px]"
                         />
                         {(payeeFromDate || payeeToDate) && (
                           <button
                             type="button"
                             onClick={() => setQuickPayeeDatePreset('all')}
-                            className="p-0.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                            className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                             title="Reset Dates"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-3.5 w-3.5" />
                           </button>
                         )}
                       </div>
                     </div>
 
                     {/* Export Statement Dropdown */}
-                    <div className="relative">
+                    <div className="relative w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => setShowPayeeExportMenu((prev) => !prev)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer min-h-[36px]"
                       >
                         <FileText className="h-3.5 w-3.5 text-indigo-600" />
                         <span>Export Statement</span>
@@ -3241,23 +3522,23 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* Sticky Footer */}
-                <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex justify-between items-center">
+                <div className="p-4 border-t border-slate-200 bg-slate-50/80 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5">
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedPayeeForLedger(null);
                       onQuickAdd('expense');
                     }}
-                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline flex items-center justify-center sm:justify-start gap-1 cursor-pointer py-1"
                   >
                     Record New Expense for {activePayeeDetails.name}
                   </button>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     {payeeFilteredPending > 0 && (
                       <button
                         type="button"
                         onClick={() => handleOpenOverallPay(activePayeeDetails, payeeFilteredPending)}
-                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        className="flex-1 sm:flex-initial px-3.5 py-2 sm:py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 min-h-[36px]"
                       >
                         <Wallet className="h-3.5 w-3.5" />
                         <span>Overall Pay ({formatINR(payeeFilteredPending)})</span>
@@ -3266,7 +3547,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <button
                       type="button"
                       onClick={() => setSelectedPayeeForLedger(null)}
-                      className="px-4 py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 cursor-pointer"
+                      className="flex-1 sm:flex-initial px-4 py-2 sm:py-1.5 rounded-lg border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 cursor-pointer min-h-[36px]"
                     >
                       Close
                     </button>

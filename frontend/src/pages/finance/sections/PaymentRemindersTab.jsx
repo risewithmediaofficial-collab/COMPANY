@@ -350,8 +350,123 @@ export default function PaymentRemindersTab() {
         </button>
       </div>
 
-      {/* ── REMINDERS TABLE ── */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      {/* ── MOBILE REMINDERS CARDS (block md:hidden) ── */}
+      <div className="block md:hidden space-y-3">
+        {isLoading ? (
+          <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+            Loading payment reminders...
+          </div>
+        ) : reminders.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+            No payment reminders recorded.
+          </div>
+        ) : (
+          reminders.map((reminder) => {
+            const total = Number(reminder.totalAmount || 0);
+            const paid = Number(reminder.paidAmount || 0);
+            const balance = Math.max(0, total - paid);
+            const isOverdue = reminder.dueDate && new Date(reminder.dueDate) < new Date() && reminder.status !== 'paid';
+
+            return (
+              <div key={reminder._id} className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap text-[10px] mb-1">
+                      {reminder.category && (
+                        <span className="font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                          {reminder.category.replace('_', ' ')}
+                        </span>
+                      )}
+                      {reminder.dueDate && (
+                        <span className={`font-semibold ${isOverdue ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
+                          Due: {formatDateIST(reminder.dueDate)} {isOverdue && '(Overdue)'}
+                        </span>
+                      )}
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-900 leading-snug">{reminder.title}</h4>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                      <User className="h-3 w-3 text-slate-400 shrink-0" />
+                      <span>{reminder.partyName}</span>
+                      {reminder.contactInfo && <span className="text-slate-400">({reminder.contactInfo})</span>}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-base font-extrabold text-slate-900">{formatINR(total)}</div>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase mt-0.5 ${
+                        reminder.status === 'paid'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : reminder.status === 'partially_paid'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
+                    >
+                      {reminder.status === 'paid' ? 'Paid' : reminder.status === 'partially_paid' ? 'Partial' : 'Unpaid'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                  <span className="text-slate-500">Paid: <strong className="text-emerald-600">{formatINR(paid)}</strong></span>
+                  {balance > 0 && (
+                    <span className="text-amber-600 font-bold">Balance: {formatINR(balance)}</span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                  {reminder.status !== 'paid' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenRecordPayment(reminder)}
+                        className="flex-1 min-h-[36px] flex items-center justify-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold text-xs"
+                      >
+                        Record Pay
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickMarkPaid(reminder)}
+                        className="min-h-[36px] px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold text-xs flex items-center gap-1"
+                        title="Mark fully paid"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        <span>Paid</span>
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenHistory(reminder)}
+                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1"
+                    title="History"
+                  >
+                    <History className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(reminder)}
+                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1"
+                    title="Edit"
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(reminder)}
+                    className="min-h-[36px] px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold flex items-center gap-1"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* ── REMINDERS TABLE (hidden md:block) ── */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="responsive-table-container text-xs">
           <table className="w-full min-w-[780px] text-left">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
