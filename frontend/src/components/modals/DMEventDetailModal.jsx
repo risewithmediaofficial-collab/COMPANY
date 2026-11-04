@@ -143,7 +143,7 @@ export const DMEventDetailModal = ({
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
                     {item.shootTitle || item.promotionTitle}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  <DialogDescription className="sr-only">
                     {clientName} • {isVideoShoot ? 'Video Shoot' : isRj ? 'RJ Promotion' : `VJ Promotion (${item.platform || 'TV'})`}
                   </DialogDescription>
                 </div>

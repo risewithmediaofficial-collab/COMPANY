@@ -122,7 +122,7 @@ export const AddAutomationModal = ({ open, onOpenChange, automation = null }) =>
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {automation ? 'Edit Automation' : 'Create New Automation'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 {automation ? 'Update the automation workflow triggers and actions' : 'Create an automated trigger-and-action workflow'}
               </DialogDescription>
             </div>

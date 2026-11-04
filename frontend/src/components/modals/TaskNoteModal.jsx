@@ -260,7 +260,7 @@ export function TaskNoteModal({ open, onClose, onSubmit, initial = null, loading
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {initial ? 'Edit Task Note / Change Log' : 'Create Task Note & Change Log'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Record task revisions, client feedback, action checklists, or quick scratchpads
               </DialogDescription>
             </div>

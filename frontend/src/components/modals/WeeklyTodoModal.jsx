@@ -140,7 +140,7 @@ export function WeeklyTodoModal({
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {todo ? 'Edit Weekly Todo' : isManagerOrAdmin ? 'Assign Weekly Todo' : 'Add Weekly Todo'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 {isManagerOrAdmin
                   ? 'Assign actionable weekly deliverables to team members, interns, or yourself.'
                   : 'Track your personal priorities and deliverables for the week.'}

@@ -171,7 +171,6 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
           <div>
             <div className="text-[11px] font-bold uppercase tracking-wider text-amber-700">Outstanding Receivables</div>
             <div className="text-lg font-bold text-amber-900 mt-0.5">{formatINR(kpis.outstandingReceivables)}</div>
-            <div className="text-[11px] text-amber-700/80">Issued invoices pending collection</div>
           </div>
           <Clock className="h-7 w-7 text-amber-500/40" />
         </div>
@@ -183,7 +182,6 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
           <div>
             <div className="text-[11px] font-bold uppercase tracking-wider text-rose-700">Overdue Invoices</div>
             <div className="text-lg font-bold text-rose-900 mt-0.5">{formatINR(kpis.overdueReceivables)}</div>
-            <div className="text-[11px] text-rose-700/80">Passed due date without full payment</div>
           </div>
           <AlertTriangle className="h-7 w-7 text-rose-500/40" />
         </div>
@@ -195,7 +193,6 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
           <div>
             <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Pass-Through Ad Spend</div>
             <div className="text-lg font-bold text-indigo-900 mt-0.5">{formatINR(kpis.passThroughAdBudgetTotal)}</div>
-            <div className="text-[11px] text-indigo-700/80">Client ad budget (excluded from service revenue)</div>
           </div>
           <Receipt className="h-7 w-7 text-indigo-500/40" />
         </div>
@@ -208,7 +205,6 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Monthly Revenue vs. Expenses</h3>
-              <p className="text-xs text-slate-500">6-month trend comparing earned service revenue to operating costs</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
               <span className="flex items-center gap-1.5 text-blue-600">
@@ -292,11 +288,10 @@ export default function OverviewSection({ overviewData, onQuickAdd, onNavigateSe
         <div className="p-4 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Recent Financial Transactions</h3>
-            <p className="text-xs text-slate-500">Live feed of issued invoices, confirmed payments, and posted expenses</p>
           </div>
           <button
             onClick={() => onQuickAdd('invoice')}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-xs font-semibold text-indigo-700 transition-colors cursor-pointer min-h-[36px]"
           >
             Quick Entry
           </button>

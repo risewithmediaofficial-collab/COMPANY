@@ -228,17 +228,10 @@ export default function AuditLogs() {
               <ShieldCheck size={13} className="stroke-[2.5]" />
               System Audit Logs
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              LIVE FEED
-            </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Platform Activity & Change History
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Real-time audit log of all operations across the platform — user logins, creates, updates, and deletions, including your own actions.
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">

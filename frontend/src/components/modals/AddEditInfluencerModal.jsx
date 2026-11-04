@@ -194,7 +194,7 @@ export const AddEditInfluencerModal = ({ open, onOpenChange, influencer = null, 
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {isEditing ? 'Edit Influencer Profile' : 'Add New Influencer'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Creator profile details, social reach, location, and commercial rates
               </DialogDescription>
             </div>

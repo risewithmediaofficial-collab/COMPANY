@@ -637,7 +637,6 @@ const Projects = () => {
   return (
     <WorkspacePage
       title={user?.role === 'client' ? 'My Projects' : 'Projects Workspace'}
-      subtitle={user?.role === 'client' ? 'Your active projects, progress, deliverables, and timelines.' : 'Connected project delivery pipeline, milestone tracking, service categories, and client accounts.'}
       icon={FolderKanban}
       breadcrumbs={user?.role === 'client' ? [{ name: 'Portal', path: '/' }, { name: 'My Projects' }] : [{ name: 'Delivery', path: '/tasks' }, { name: 'Projects' }]}
       actions={
@@ -648,9 +647,9 @@ const Projects = () => {
               setSelectedProject(null);
               setShowAddModal(true);
             }}
-            className="bg-primary text-primary-foreground font-bold shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
           >
-            <Plus size={15} className="mr-1.5 stroke-[2.5]" />
+            <Plus size={15} className="mr-1 stroke-[2.5]" />
             New Project
           </Button>
         )

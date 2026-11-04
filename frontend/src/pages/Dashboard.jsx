@@ -249,19 +249,9 @@ const Dashboard = () => {
         <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Agency Command Center
-                </span>
-                <span className="text-xs text-muted-foreground">• {currentDateStr}</span>
-              </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                 {getGreeting()}, {user.name} 👋
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Real-time operational health, active revenue flow, project progress, and content velocity across RiseWithMedia.
-              </p>
             </div>
 
             {/* Top Quick Actions */}
@@ -270,7 +260,7 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setShowFinance((v) => !v)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                  className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold min-h-[38px] transition-all cursor-pointer ${
                     showFinance
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600'
                       : 'border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
@@ -284,7 +274,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => setCreateTaskOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm transition-all"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 shadow-sm transition-all min-h-[38px] cursor-pointer"
               >
                 <Plus size={14} className="stroke-[2.5]" />
                 <span>Create Task</span>
@@ -292,7 +282,7 @@ const Dashboard = () => {
 
               <Link
                 to="/calendar"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold transition-all"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-background hover:bg-secondary text-foreground text-xs font-semibold transition-all min-h-[38px]"
               >
                 <Calendar size={14} />
                 <span>Content Calendar</span>
@@ -468,7 +458,6 @@ const Dashboard = () => {
                       <TrendingUp size={16} className="text-primary" />
                       Revenue Trend
                     </h3>
-                    <p className="text-xs text-muted-foreground">Monthly collected revenue trajectory across past periods.</p>
                   </div>
                   <Link to="/finance" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
                     <span>Full Ledger</span>
@@ -714,7 +703,6 @@ const Dashboard = () => {
                     <Layers size={16} className="text-primary" />
                     Content Production Pipeline
                   </h3>
-                  <p className="text-xs text-muted-foreground">Live lifecycle velocity from creative brief to final published post.</p>
                 </div>
                 <Link to="/calendar" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
                   <span>Open Calendar</span>
@@ -891,9 +879,6 @@ const Dashboard = () => {
                     <Users size={18} className="text-primary" />
                     Cross-User Performance & Workload Matrix
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Live real-time workload, task completion rates, in-process tasks, and over-target deliverables for every team member.
-                  </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -1020,7 +1005,6 @@ const Dashboard = () => {
                       <Target size={16} className="text-primary" />
                       Project Monthly Deliverable Quotas
                     </h3>
-                    <p className="text-xs text-muted-foreground">Configured target deliverables vs actual fulfillment this month.</p>
                   </div>
                   <Link to="/projects" className="text-xs font-semibold text-primary hover:underline">
                     Projects →
@@ -1093,7 +1077,6 @@ const Dashboard = () => {
                       <Activity size={16} className="text-emerald-600" />
                       Live Agency Activity Stream
                     </h3>
-                    <p className="text-xs text-muted-foreground">Real-time log of updates made across all logins and workflows.</p>
                   </div>
                   <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-md">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Stream
@@ -1144,7 +1127,6 @@ const Dashboard = () => {
                   <Users size={16} className="text-primary" />
                   Team EOD Submissions & Reports
                 </h2>
-                <p className="text-xs text-muted-foreground">Review daily summaries and logs submitted across departments.</p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1254,15 +1236,7 @@ const Dashboard = () => {
       <div className="space-y-6">
         <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live Real-Time Workspace
-              </span>
-                <span className="text-xs text-muted-foreground">• {currentDateStr}</span>
-            </div>
-            <h1 className="text-2xl font-black text-foreground mt-0.5">{getGreeting()}, {user.name} 👋</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Here is your daily live agenda, assigned deliverables, and attendance metrics.</p>
+            <h1 className="text-2xl font-black text-foreground">{getGreeting()}, {user.name} 👋</h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -1270,7 +1244,7 @@ const Dashboard = () => {
               type="button"
               onClick={() => fetchStats(false)}
               title={`Last synced: ${lastSynced.toLocaleTimeString()}`}
-              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-border bg-background hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-semibold shadow-2xs transition-all"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-background hover:bg-secondary text-muted-foreground hover:text-foreground text-xs font-semibold shadow-2xs transition-all min-h-[38px] cursor-pointer"
             >
               <RefreshCw size={13} className={isRefreshing ? 'animate-spin text-primary' : ''} />
               <span>Sync</span>
@@ -1279,7 +1253,7 @@ const Dashboard = () => {
             <button
               type="button"
               onClick={() => setShowEodModal(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm transition-all"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 shadow-sm transition-all min-h-[38px] cursor-pointer"
             >
               <CheckCircle2 size={15} />
               <span>Submit Daily EOD</span>
@@ -1395,25 +1369,21 @@ const Dashboard = () => {
   const renderClientStats = () => {
     return (
       <div className="space-y-6">
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+        <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
           <h1 className="text-2xl font-black text-foreground">{getGreeting()}, {user.name} 👋</h1>
-          <p className="text-xs text-muted-foreground mt-1">Welcome to your RiseWithMedia Client Portal. Review projects, approve content, and view invoices.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link to="/tasks" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all">
+          <Link to="/tasks" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all flex flex-col justify-center">
             <CheckSquare className="text-primary mb-2" size={24} />
             <h3 className="font-bold text-sm">Tasks & Deliverables</h3>
-            <p className="text-xs text-muted-foreground mt-1">Check active content and progress</p>
           </Link>
-          <Link to="/calendar" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all">
+          <Link to="/calendar" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all flex flex-col justify-center">
             <Calendar className="text-blue-500 mb-2" size={24} />
             <h3 className="font-bold text-sm">Content Calendar</h3>
-            <p className="text-xs text-muted-foreground mt-1">View scheduled posts and shoots</p>
           </Link>
-          <Link to="/finance" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all">
+          <Link to="/finance" className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/40 transition-all flex flex-col justify-center">
             <Receipt className="text-emerald-500 mb-2" size={24} />
             <h3 className="font-bold text-sm">Invoices & Receipts</h3>
-            <p className="text-xs text-muted-foreground mt-1">View billing status and receipts</p>
           </Link>
         </div>
       </div>
@@ -1433,9 +1403,8 @@ const Dashboard = () => {
 
     return (
       <div className="space-y-6">
-        <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
+        <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
           <h1 className="text-2xl font-black text-foreground">Partner Dashboard</h1>
-          <p className="text-xs text-muted-foreground mt-1">Track your referred leads, client wins, and commission payouts.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {stats.map((s) => (

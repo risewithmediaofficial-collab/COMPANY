@@ -129,7 +129,7 @@ export const AddEmployeeModal = ({ open, onOpenChange, employee = null }) => {
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {employee ? 'Edit Employee' : 'Add New Employee'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 {employee ? 'Update employee profile and departmental details' : 'Onboard a new team member to your agency'}
               </DialogDescription>
             </div>

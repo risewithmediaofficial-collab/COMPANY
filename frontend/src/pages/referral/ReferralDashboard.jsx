@@ -206,7 +206,6 @@ const ReferralDashboard = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Growth & Sales', 'Referral Hub']}
       title="Partner Referrals & Commission Hub"
-      subtitle="Track your referred agency leads, conversion progress, and earned commission payouts."
       icon="🤝"
       properties={[
         { label: 'Total Earnings', value: formatINR(totalEarnings), tone: 'success', icon: Award },
@@ -215,13 +214,13 @@ const ReferralDashboard = () => {
         { label: 'Won Deals', value: wonCount, tone: 'info', icon: CheckCircle2 },
       ]}
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {data?.referralCode && (
             <Button
               size="sm"
               variant="outline"
               onClick={handleCopyLink}
-              className="rounded-xl text-xs font-semibold gap-1.5 shadow-sm"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs min-h-[38px] cursor-pointer"
             >
               {copiedLink ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
               <span>{copiedLink ? 'Copied Link' : 'Copy Partner Link'}</span>
@@ -230,7 +229,7 @@ const ReferralDashboard = () => {
           <Button
             size="sm"
             onClick={() => setShowLeadForm(true)}
-            className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
           >
             <Plus size={14} className="stroke-[2.5]" />
             <span>Refer New Client</span>

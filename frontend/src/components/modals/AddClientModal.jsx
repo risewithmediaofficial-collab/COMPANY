@@ -335,7 +335,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {client ? 'Edit Client' : 'Add New Client'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 {client ? 'Update client profile, budget, contract and requirements' : 'Fill in client profile details, contract terms, and deliverables'}
               </DialogDescription>
             </div>

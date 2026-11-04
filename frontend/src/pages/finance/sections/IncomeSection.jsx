@@ -156,7 +156,6 @@ export default function IncomeSection({ onQuickAdd }) {
             <ArrowDownRight className="h-4 w-4 text-emerald-600" />
           </div>
           <div className="text-2xl font-bold text-emerald-600">{formatINR(totalCollected)}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Confirmed client payment receipts</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
@@ -165,7 +164,6 @@ export default function IncomeSection({ onQuickAdd }) {
             <Clock className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-2xl font-bold text-amber-600">{formatINR(totalUnappliedCredit)}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Advances preserved without negative invoice outstanding</div>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
@@ -174,7 +172,6 @@ export default function IncomeSection({ onQuickAdd }) {
             <Receipt className="h-4 w-4 text-blue-600" />
           </div>
           <div className="text-2xl font-bold text-slate-800">{filteredReceipts.length} Transactions</div>
-          <div className="text-[11px] text-slate-500 mt-1">Total confirmed receipt vouchers</div>
         </div>
       </div>
 

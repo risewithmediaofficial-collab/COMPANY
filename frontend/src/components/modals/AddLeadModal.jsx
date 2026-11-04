@@ -143,7 +143,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {lead ? 'Edit Lead' : 'Add New Lead'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 {lead ? 'Update lead profile, pipeline status, and next follow-up' : 'Create a new prospective lead in your CRM pipeline'}
               </DialogDescription>
             </div>

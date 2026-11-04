@@ -72,7 +72,7 @@ export const EODReportModal = ({ open, onOpenChange, report }) => {
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 End of Day Report
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Share progress, completed work, and blockers for today or a previous date
               </DialogDescription>
             </div>

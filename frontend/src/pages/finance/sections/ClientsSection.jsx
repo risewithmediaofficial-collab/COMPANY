@@ -241,7 +241,7 @@ export default function ClientsSection({ onQuickAdd }) {
           <div>
             <h3 className="text-sm font-bold text-slate-900">Active Retainer Clients & Contribution Margins</h3>
             <p className="text-xs text-slate-500">
-              Period: <strong className="text-slate-800">{retainerPeriod}</strong> (Reconciled Revenue − Direct Costs − Overhead = Net Margin)
+              Period: <strong className="text-slate-800">{retainerPeriod}</strong>
             </p>
           </div>
         </div>

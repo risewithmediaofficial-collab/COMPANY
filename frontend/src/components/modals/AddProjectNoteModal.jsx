@@ -69,7 +69,7 @@ export const AddProjectNoteModal = ({ open, onOpenChange, onSuccess }) => {
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 Add Project Brief
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Brief managers on project deliverables, instructions, and deadlines
               </DialogDescription>
             </div>

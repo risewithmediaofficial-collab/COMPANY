@@ -281,7 +281,7 @@ export const ProfileImageCropModal = ({
                 <DialogTitle className="text-base sm:text-xl font-bold text-foreground truncate">
                   Crop Profile Picture
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate sm:whitespace-normal">
+                <DialogDescription className="sr-only">
                   Drag, zoom, and rotate to position your profile image
                 </DialogDescription>
               </div>

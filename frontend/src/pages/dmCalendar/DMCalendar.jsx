@@ -426,7 +426,6 @@ const DMCalendar = () => {
       {/* Page Header */}
       <PageHeader
         title="📅 Digital Marketing Calendar"
-        description="Complete management system for Video Shoots, RJ Promotions, VJ Promotions, Equipment & Team Allocations."
         actions={
           <div className="flex items-center gap-2">
             {activeTab === 'video_shoot' && (

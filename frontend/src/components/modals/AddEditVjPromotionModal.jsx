@@ -215,7 +215,7 @@ export const AddEditVjPromotionModal = ({ open, onOpenChange, promotion = null }
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {isEditing ? 'Edit VJ Promotion' : 'Create VJ Promotion'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Video Jockey appearances, live broadcasts, anchors, and itemized expenses
               </DialogDescription>
             </div>

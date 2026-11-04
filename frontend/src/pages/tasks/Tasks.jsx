@@ -959,7 +959,6 @@ const Tasks = () => {
   return (
     <WorkspacePage
       title={isEmployee ? 'My Assigned Deliverables' : 'Tasks Database'}
-      subtitle="Universal multi-person production pipeline, multi-role assignees, and stages."
       icon={CheckSquare}
       breadcrumbs={[{ name: 'Delivery', path: '/tasks' }, { name: 'Tasks Database' }]}
       actions={
@@ -967,9 +966,9 @@ const Tasks = () => {
           <Button
             size="sm"
             onClick={handleOpenCreateGeneral}
-            className="bg-primary text-primary-foreground font-bold shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
           >
-            <Plus size={15} className="mr-1.5 stroke-[2.5]" />
+            <Plus size={15} className="mr-1 stroke-[2.5]" />
             New Task
           </Button>
         )

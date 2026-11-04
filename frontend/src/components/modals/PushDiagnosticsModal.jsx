@@ -133,7 +133,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                 <DialogTitle className="text-base sm:text-xl font-bold text-foreground">
                   Web Push Diagnostics
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                <DialogDescription className="sr-only">
                   Verify background notification delivery across devices
                 </DialogDescription>
               </div>

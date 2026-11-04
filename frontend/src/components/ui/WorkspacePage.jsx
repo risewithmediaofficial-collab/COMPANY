@@ -72,11 +72,6 @@ export function WorkspacePage({
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground break-words">
               {title}
             </h1>
-            {subtitle && (
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 break-words">
-                {subtitle}
-              </p>
-            )}
           </div>
         </div>
 

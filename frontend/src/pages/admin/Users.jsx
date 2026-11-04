@@ -333,7 +333,6 @@ const Users = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Team & Workload', 'User Directory']}
       title="Team Directory & User Access"
-      subtitle="Manage team accounts, permission policies, system role assignments, and registration approval workflows."
       icon="👥"
       properties={[
         { label: 'Total Users', value: total, icon: UsersIcon },
@@ -346,7 +345,7 @@ const Users = () => {
           size="sm"
           onClick={() => refetch()}
           variant="outline"
-          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs min-h-[38px] cursor-pointer"
         >
           <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
           <span>Refresh</span>

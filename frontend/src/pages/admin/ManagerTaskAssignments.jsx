@@ -278,7 +278,6 @@ const ManagerTaskAssignments = () => {
     <div className="space-y-6">
       <PageHeader
         title="Manager Board"
-        description="View project briefs from admin, manage and track tasks across clients and projects."
         actions={(
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => { refetchNotes(); queryClient.invalidateQueries(['tasks']); }}>
@@ -364,7 +363,6 @@ const ManagerTaskAssignments = () => {
       <div className="space-y-4">
         <div>
           <h2 className="text-lg font-bold tracking-tight">All Tasks</h2>
-          <p className="text-sm text-muted-foreground">Filter and manage tasks across all clients and projects.</p>
         </div>
 
         <PageToolbar>

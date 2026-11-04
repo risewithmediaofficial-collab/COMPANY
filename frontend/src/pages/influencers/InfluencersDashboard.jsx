@@ -276,7 +276,6 @@ const InfluencersDashboard = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Delivery', 'Influencer Hub']}
       title="Influencer Hub & Creator Roster"
-      subtitle="Directory of regional and national content creators, rate cards, follower reach, and commercial collaboration history."
       icon="🌟"
       properties={[
         { label: 'Local Creators', value: summary.localInfluencersCount || 0, icon: MapPin },
@@ -291,7 +290,7 @@ const InfluencersDashboard = () => {
             setSelectedInfluencer(null);
             setShowAddModal(true);
           }}
-          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
         >
           <Plus size={14} className="stroke-[2.5]" />
           <span>Add Influencer Profile</span>

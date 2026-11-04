@@ -265,9 +265,6 @@ export default function RecycleBin() {
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Recycle Bin
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Safely recover deleted records back to their original project, client, or financial module with a single click, or permanently purge them.
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">

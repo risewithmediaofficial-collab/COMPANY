@@ -589,9 +589,6 @@ const Leads = () => {
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground">Leads Board</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Drag leads between stages to keep the funnel current.
-            </p>
           </div>
           <div className="rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm">
             {activeLeads} active leads across {PIPELINE_STAGES.length} stages
@@ -816,7 +813,6 @@ const Leads = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Growth & Sales', 'CRM & Leads']}
       title="Sales Pipeline & Lead Management"
-      subtitle="Track lead conversions, assign team owners, schedule follow-ups, and manage deal stages."
       icon={Target}
       properties={[
         { label: 'Active Leads', value: activeLeads, tone: 'info', icon: Target },
@@ -831,7 +827,7 @@ const Leads = () => {
             setSelectedLead(null);
             setShowAddModal(true);
           }}
-          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
         >
           <Plus size={14} className="stroke-[2.5]" />
           <span>Add Lead</span>

@@ -113,7 +113,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
                 <DialogTitle className="text-base sm:text-xl font-bold text-foreground">
                   Share Invoice
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                <DialogDescription className="sr-only">
                   Send {invoice.invoiceNumber} to {clientName}
                 </DialogDescription>
               </div>

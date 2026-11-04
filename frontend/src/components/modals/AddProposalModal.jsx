@@ -150,7 +150,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {isEditing ? 'Edit Proposal' : 'Create Proposal'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Deliver proposals directly to active clients or pitching leads
               </DialogDescription>
             </div>

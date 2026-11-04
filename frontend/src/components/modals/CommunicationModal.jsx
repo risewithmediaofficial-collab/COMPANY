@@ -116,7 +116,7 @@ export const CommunicationModal = ({ open, onOpenChange, communication, isClient
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {communication ? 'Edit Conversation Details' : 'New Conversation'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 {isClient ? 'Open a new support ticket or ask a question to our team.' : 'Start a new client conversation or internal team thread.'}
               </DialogDescription>
             </div>

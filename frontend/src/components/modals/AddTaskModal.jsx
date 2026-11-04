@@ -2139,7 +2139,7 @@ export const AddTaskModal = ({
               </span>
             )}
           </div>
-          <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+          <DialogDescription className="sr-only">
             {task
               ? 'Update task details, deliverable parameters, and assignees.'
               : 'Simple, minimalist task card. Client & project are optional.'}

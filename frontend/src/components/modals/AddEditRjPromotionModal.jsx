@@ -218,7 +218,7 @@ export const AddEditRjPromotionModal = ({ open, onOpenChange, promotion = null }
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {isEditing ? 'Edit RJ Promotion' : 'Create RJ Promotion'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Radio Jockey talk shows, audio ads, broadcasts, and itemized expenses
               </DialogDescription>
             </div>

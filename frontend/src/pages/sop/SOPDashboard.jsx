@@ -211,7 +211,6 @@ const SOPDashboard = () => {
   return (
     <WorkspacePage
       title="Knowledge OS & SOPs"
-      subtitle="Standard operating procedures, quality guidelines, and team training blueprints."
       icon={BookOpen}
       breadcrumbs={[{ name: 'Knowledge', path: '/sop' }, { name: 'SOP Library' }]}
       actions={
@@ -219,9 +218,9 @@ const SOPDashboard = () => {
           <Button
             size="sm"
             onClick={openCreate}
-            className="bg-primary text-primary-foreground font-bold shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
           >
-            <Plus size={15} className="mr-1.5 stroke-[2.5]" />
+            <Plus size={15} className="mr-1 stroke-[2.5]" />
             New SOP
           </Button>
         ) : null

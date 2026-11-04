@@ -1698,9 +1698,6 @@ export default function ExpensesSection({ onQuickAdd }) {
           <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Software & Agency Subscriptions</h3>
-              <p className="text-xs text-slate-500">
-                Scheduled commitments automatically forecasted without unauthorized auto-debits
-              </p>
             </div>
             <button
               onClick={() => onQuickAdd('subscription')}

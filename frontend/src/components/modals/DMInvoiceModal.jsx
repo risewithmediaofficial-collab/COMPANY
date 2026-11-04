@@ -315,7 +315,7 @@ export const DMInvoiceModal = ({
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 Generate Invoice / Work Order
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Customize shoot amounts, expenses, client details, and print voucher
               </DialogDescription>
             </div>

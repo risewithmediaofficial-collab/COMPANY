@@ -60,7 +60,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
               <FileText className="text-primary" size={22} />
               End of Day Report
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground mt-1">
+            <DialogDescription className="sr-only">
               Submitted for <span className="font-semibold text-foreground">{submittedDate}</span>
             </DialogDescription>
           </DialogHeader>

@@ -20,7 +20,6 @@ export const PageHeader = ({
   children,
   className,
 }) => {
-  const sub = subtitle || description;
   return (
     <div className={cn('space-y-4', className)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -29,12 +28,9 @@ export const PageHeader = ({
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/80">{eyebrow}</p>
           ) : null}
           <h1 className={cn('text-xl font-bold tracking-tight text-foreground sm:text-2xl', eyebrow && 'mt-1')}>{title}</h1>
-          {sub ? (
-            <p className="mt-1 text-xs text-muted-foreground max-w-3xl">{sub}</p>
-          ) : null}
         </div>
 
-        {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div> : null}
       </div>
 
       {children ? <div>{children}</div> : null}

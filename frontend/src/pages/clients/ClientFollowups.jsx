@@ -752,7 +752,6 @@ export default function ClientFollowups() {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Client Lifecycle', 'Client Follow-ups']}
       title="Client Follow-ups & Touchpoints"
-      subtitle="Comprehensive CRM logs of all client calls, meetings, feedback notes, and scheduled upcoming touchpoints."
       icon="📞"
       properties={[
         { label: 'Total Logs', value: total, icon: MessageSquareText },
@@ -761,14 +760,14 @@ export default function ClientFollowups() {
         { label: 'Completed', value: completedCount, tone: 'success' },
       ]}
       actions={
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
             onClick={() => {
               setSelectedFollowup(null);
               setOpenDialog(true);
             }}
-            className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
           >
             <Plus size={14} className="stroke-[2.5]" />
             <span>Log Touchpoint</span>

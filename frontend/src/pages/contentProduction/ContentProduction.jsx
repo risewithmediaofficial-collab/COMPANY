@@ -165,7 +165,6 @@ export const ContentProduction = () => {
       {/* Header */}
       <PageHeader
         title="Content Production"
-        subtitle="End-to-end studio pipeline connecting Scriptwriters, Videographers, Video Editors, and SMM"
         actions={
           <div className="flex flex-wrap items-center gap-2.5">
             <button

@@ -159,15 +159,7 @@ export default function Finance() {
               ₹
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">RiseWithMedia Finance</h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                  Live Double-Entry
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Operating System · Multi-item billing, cashflow, payroll & partner ledgers
-              </p>
+              <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Finance</h1>
             </div>
           </div>
 
@@ -175,7 +167,7 @@ export default function Finance() {
             {/* Central Add New Button */}
             <button
               onClick={() => openQuickAdd('invoice')}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:shadow hover:scale-[1.01] cursor-pointer min-h-[36px]"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:shadow hover:scale-[1.01] cursor-pointer min-h-[38px]"
             >
               <Plus className="h-4 w-4" />
               <span>Add New</span>

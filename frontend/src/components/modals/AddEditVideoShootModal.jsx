@@ -274,7 +274,7 @@ export const AddEditVideoShootModal = ({ open, onOpenChange, shoot = null }) => 
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {isEditing ? 'Edit Video Shoot & Content Checklist' : 'Schedule Video Shoot & Content Checklist'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Select client, plan reel targets, and track production checklist
               </DialogDescription>
             </div>

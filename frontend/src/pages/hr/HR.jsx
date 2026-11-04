@@ -219,7 +219,6 @@ const HR = () => {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Team & Workload', 'HR & Hiring']}
       title="HR & Team Directory"
-      subtitle="Employee records, daily clock-in activity, department assignments, and logged operational hours."
       icon="👥"
       properties={[
         { label: 'Active Team', value: activeEmployees, tone: 'success', icon: Users },
@@ -234,7 +233,7 @@ const HR = () => {
             setSelectedEmployee(null);
             setShowAddEmployeeModal(true);
           }}
-          className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
         >
           <Plus size={14} className="stroke-[2.5]" />
           <span>Add Employee</span>

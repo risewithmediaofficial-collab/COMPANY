@@ -312,7 +312,6 @@ export default function ManagerBoard() {
     <WorkspacePage
       breadcrumbs={['RiseWithMedia', 'Delivery', 'Manager Review Board']}
       title="Manager Review Board & Notes"
-      subtitle="Review pending task notes submitted by team members, distribute assignments, and streamline production workflows."
       icon="📋"
       properties={[
         { label: 'Pending Review', value: pendingNotes.length, tone: pendingNotes.length > 0 ? 'warning' : 'neutral', icon: Clock },

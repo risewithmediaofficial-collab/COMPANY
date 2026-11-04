@@ -409,7 +409,6 @@ const Clients = () => {
   return (
     <WorkspacePage
       title="Clients 360"
-      subtitle="Universal client database, retainer values, projects, and relationship health."
       icon={Users}
       breadcrumbs={[{ name: 'Clients', path: '/clients' }, { name: 'Directory' }]}
       actions={
@@ -420,9 +419,9 @@ const Clients = () => {
             setInitialStatus('Active');
             setShowAddModal(true);
           }}
-          className="bg-primary text-primary-foreground font-bold shadow-sm cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
         >
-          <Plus size={15} className="mr-1.5 stroke-[2.5]" />
+          <Plus size={15} className="mr-1 stroke-[2.5]" />
           Add Client
         </Button>
       }

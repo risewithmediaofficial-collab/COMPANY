@@ -500,7 +500,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {project ? 'Edit Project' : 'Create New Project'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 {project ? 'Update project scope, deliverables, budget, and timeline' : 'Create a new project pipeline for client deliverables and milestones'}
               </DialogDescription>
             </div>
