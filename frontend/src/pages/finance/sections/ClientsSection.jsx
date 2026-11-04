@@ -17,6 +17,8 @@ import {
   Receipt,
   FileText,
   Clock,
+  Building,
+  X,
 } from 'lucide-react';
 import { useClients, useUpdateClient } from '../../../hooks/useClients';
 import { useQueryClient } from '@tanstack/react-query';

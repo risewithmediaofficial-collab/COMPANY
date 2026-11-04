@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Building2,
   Clock,
+  X,
 } from 'lucide-react';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';

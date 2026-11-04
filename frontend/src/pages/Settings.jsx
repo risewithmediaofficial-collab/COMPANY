@@ -22,6 +22,9 @@ import {
   Send,
   Laptop,
   Crop,
+  Clock,
+  VolumeX,
+  Volume2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
