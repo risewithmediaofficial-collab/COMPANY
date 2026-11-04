@@ -49,6 +49,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
   const [celebrationClockInTime, setCelebrationClockInTime] = useState(null);
+  const [celebrationType, setCelebrationType] = useState('clockin');
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
@@ -191,6 +192,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   const onClockInSuccess = (res) => {
     const time = res?.clockIn || (res?.sessions && res.sessions[res.sessions.length - 1]?.clockIn) || new Date().toISOString();
     setCelebrationClockInTime(time);
+    setCelebrationType('clockin');
     setShowCelebrationModal(true);
   };
 
@@ -198,6 +200,7 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
     if (clockIn.isSuccess && clockIn.data) {
       const time = clockIn.data?.clockIn || new Date().toISOString();
       setCelebrationClockInTime(time);
+      setCelebrationType('clockin');
       setShowCelebrationModal(true);
     }
   }, [clockIn.isSuccess, clockIn.data]);
@@ -248,7 +251,13 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
   };
 
   const handleClockOutClick = () => {
-    clockOut.mutate();
+    clockOut.mutate(undefined, {
+      onSuccess: () => {
+        setCelebrationClockInTime(new Date().toISOString());
+        setCelebrationType('clockout');
+        setShowCelebrationModal(true);
+      },
+    });
   };
 
   const handleMarkAbsentSubmit = (e) => {
@@ -782,11 +791,12 @@ export const AttendanceWidget = ({ todayRecord: propTodayRecord, user: propUser 
         </DialogContent>
       </Dialog>
 
-      {/* Celebratory Tamil Comedian Sticker Popup (Appears on clock in for all users incl admin, leaves 0 footprint in overview) */}
+      {/* Celebratory Tamil Comedian Sticker Popup (Appears on clock in/out for all users, leaves 0 footprint in overview) */}
       <AttendanceVibeCard
         isOpen={showCelebrationModal}
         onClose={() => setShowCelebrationModal(false)}
         clockInTime={celebrationClockInTime || firstClockIn}
+        type={celebrationType}
       />
     </div>
   );
