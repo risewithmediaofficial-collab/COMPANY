@@ -134,10 +134,10 @@ const ClientDetails = () => {
 
       let client = clientRes?.status === 'fulfilled' ? clientRes.value?.data?.client : null;
 
-      // Fallback: If not found in primary client table, attempt lookup via SMM clients endpoint
+      // Fallback 1: If not found in primary client table, attempt lookup via SMM clients endpoint
       if (!client) {
         try {
-          const smmRes = await api.get(`/smm/clients/${id}`);
+          const smmRes = await api.get(`/smm/clients/${encodeURIComponent(id)}`);
           if (smmRes.data?.data) {
             const smm = smmRes.data.data;
             client = {
@@ -157,13 +157,50 @@ const ClientDetails = () => {
         } catch (_) {}
       }
 
+      // Fallback 2: Search all clients if id was a name/slug or partial match
+      if (!client) {
+        try {
+          const allRes = await api.get('/clients?limit=500');
+          const allList = allRes.data?.clients || allRes.data?.data || [];
+          const decodedId = decodeURIComponent(id).toLowerCase().trim();
+          const found = allList.find(c => 
+            String(c._id) === id || 
+            (c.company && c.company.toLowerCase().trim() === decodedId) ||
+            (c.name && c.name.toLowerCase().trim() === decodedId)
+          );
+          if (found) {
+            client = found;
+          }
+        } catch (_) {}
+      }
+
+      // If client was resolved and has a different _id than raw id param, ensure sub-resources load
+      let projects = projectsRes?.status === 'fulfilled' ? (projectsRes.value.data.projects || projectsRes.value.data || []) : [];
+      let invoices = invoicesRes?.status === 'fulfilled' ? invoicesRes.value.data.invoices || [] : [];
+      let financeRecords = financeRes?.status === 'fulfilled' ? financeRes.value.data.records || [] : [];
+      let callHistory = callRes?.status === 'fulfilled' ? callRes.value.data.calls || [] : [];
+      let referrals = referralRes?.status === 'fulfilled' ? referralRes.value.data.referrals || [] : [];
+
+      if (client?._id && String(client._id) !== String(id) && projects.length === 0) {
+        try {
+          const [subP, subI, subF] = await Promise.allSettled([
+            api.get(`/projects?client=${client._id}`),
+            api.get(`/finance/invoices?client=${client._id}`),
+            api.get(`/finance?client=${client._id}`),
+          ]);
+          if (subP.status === 'fulfilled') projects = subP.value.data?.projects || subP.value.data || [];
+          if (subI.status === 'fulfilled') invoices = subI.value.data?.invoices || [];
+          if (subF.status === 'fulfilled') financeRecords = subF.value.data?.records || [];
+        } catch (_) {}
+      }
+
       return {
         client,
-        projects: projectsRes?.status === 'fulfilled' ? (projectsRes.value.data.projects || projectsRes.value.data || []) : [],
-        invoices: invoicesRes?.status === 'fulfilled' ? invoicesRes.value.data.invoices || [] : [],
-        financeRecords: financeRes?.status === 'fulfilled' ? financeRes.value.data.records || [] : [],
-        callHistory: callRes?.status === 'fulfilled' ? callRes.value.data.calls || [] : [],
-        referrals: referralRes?.status === 'fulfilled' ? referralRes.value.data.referrals || [] : [],
+        projects,
+        invoices,
+        financeRecords,
+        callHistory,
+        referrals,
       };
     },
     enabled: Boolean(id) && id !== 'undefined',

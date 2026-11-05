@@ -77,6 +77,8 @@ import developmentRoutes from './routes/development.routes.js';
 import contentProductionRoutes from './routes/contentProduction.routes.js';
 import recycleBinRoutes from './routes/recycleBin.routes.js';
 import duplicateCheckRoutes from './routes/duplicateCheck.routes.js';
+import officeLocationRoutes from './routes/officeLocation.routes.js';
+import wfhRequestRoutes from './routes/wfhRequest.routes.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 
 loadEnv();
@@ -275,6 +277,8 @@ app.use('/api/content-production', contentProductionRoutes);
 // Recycle Bin & Duplicate Check Routes
 app.use('/api/recycle-bin', recycleBinRoutes);
 app.use('/api/check-duplicate', duplicateCheckRoutes);
+app.use('/api/office-locations', officeLocationRoutes);
+app.use('/api/wfh-requests', wfhRequestRoutes);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

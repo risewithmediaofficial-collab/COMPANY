@@ -14,13 +14,30 @@ import { authorize, protect } from '../middleware/auth.middleware.js';
 const router = express.Router();
 router.use(protect);
 
-router.get('/', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), getClients);
-router.post('/sync-portal-users', authorize('superAdmin', 'admin', 'manager'), syncPortalUsersHandler);
-router.get('/:id', authorize('superAdmin', 'admin', 'manager', 'employee', 'client'), getClient);
-router.post('/', authorize('superAdmin', 'admin', 'manager'), createClient);
-router.put('/:id', authorize('superAdmin', 'admin', 'manager'), updateClient);
-router.post('/:id/activate-portal', authorize('superAdmin', 'admin', 'manager'), activatePortal);
-router.patch('/:id/onboarding', authorize('superAdmin', 'admin', 'manager'), updateOnboardingStep);
-router.delete('/:id', authorize('superAdmin', 'admin'), deleteClient);
+const clientViewRoles = [
+  'superAdmin',
+  'admin',
+  'organizationOwner',
+  'manager',
+  'accountManager',
+  'editor',
+  'designer',
+  'adsManager',
+  'financeManager',
+  'clientAdmin',
+  'clientMember',
+  'intern',
+  'employee',
+  'client',
+];
+
+router.get('/', authorize(...clientViewRoles), getClients);
+router.post('/sync-portal-users', authorize('superAdmin', 'admin', 'organizationOwner', 'manager'), syncPortalUsersHandler);
+router.get('/:id', authorize(...clientViewRoles), getClient);
+router.post('/', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), createClient);
+router.put('/:id', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), updateClient);
+router.post('/:id/activate-portal', authorize('superAdmin', 'admin', 'organizationOwner', 'manager'), activatePortal);
+router.patch('/:id/onboarding', authorize('superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'), updateOnboardingStep);
+router.delete('/:id', authorize('superAdmin', 'admin', 'organizationOwner'), deleteClient);
 
 export default router;

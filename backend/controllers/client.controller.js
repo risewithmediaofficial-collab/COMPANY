@@ -72,8 +72,8 @@ const clientPopulate = [
 
 const assertClientAccess = (req, client) => {
   if (!client) return { allowed: false, status: 404, message: 'Client not found' };
-  if (['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'employee'].includes(req.user.role)) return { allowed: true };
-  if (req.user.role === 'client') {
+  if (['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager', 'editor', 'designer', 'adsManager', 'financeManager', 'employee', 'intern'].includes(req.user.role)) return { allowed: true };
+  if (['client', 'clientAdmin', 'clientMember'].includes(req.user.role)) {
     const userClientId = req.user.clientId?._id || req.user.clientId;
     const isOwner =
       (client.userId && client.userId.toString() === req.user._id.toString()) ||
@@ -112,14 +112,14 @@ export const getClients = async (req, res) => {
       ];
     }
 
-    if (req.user.role === 'client') {
+    if (['client', 'clientAdmin', 'clientMember'].includes(req.user.role)) {
       const userClientId = req.user.clientId?._id || req.user.clientId;
       const clientConditions = [{ userId: req.user._id }];
       if (userClientId) clientConditions.push({ _id: userClientId });
       if (req.user.email) clientConditions.push({ email: req.user.email.toLowerCase().trim() });
       filter.$and = [{ $or: clientConditions }];
-    } else if (req.user.role === 'employee') {
-      // Employees see assigned clients or unassigned organization clients
+    } else if (['employee', 'intern'].includes(req.user.role)) {
+      // Employees/interns see assigned clients or unassigned organization clients
       filter.$or = [
         ...(filter.$or || []),
         { assignedTeam: req.user._id },
@@ -173,7 +173,7 @@ export const getClient = async (req, res) => {
       if (smmClient) {
         const matchingClient = smmClient.email
           ? await Client.findOne({ email: smmClient.email.toLowerCase().trim() }).populate(clientPopulate)
-          : (smmClient.companyName ? await Client.findOne({ company: { $regex: new RegExp(`^${smmClient.companyName.trim()}$`, 'i') } }).populate(clientPopulate) : null);
+          : (smmClient.companyName ? await Client.findOne({ company: { $regex: new RegExp(`^${smmClient.companyName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }).populate(clientPopulate) : null);
 
         if (matchingClient) {
           client = matchingClient;
@@ -197,15 +197,45 @@ export const getClient = async (req, res) => {
       }
     }
 
-    // Fallback 2: Check by exact company name or email if identifier is not an ObjectId
+    // Fallback 2: Check by exact company name, email, or contact name if identifier is not an ObjectId (or wasn't found by ID)
     if (!client) {
+      const decodedId = decodeURIComponent(rawId).trim();
+      const escaped = decodedId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       client = await Client.findOne({
         $or: [
-          { company: { $regex: new RegExp(`^${rawId.trim()}$`, 'i') } },
-          { email: rawId.toLowerCase().trim() },
-          { name: { $regex: new RegExp(`^${rawId.trim()}$`, 'i') } },
+          { company: { $regex: new RegExp(`^${escaped}$`, 'i') } },
+          { email: decodedId.toLowerCase() },
+          { name: { $regex: new RegExp(`^${escaped}$`, 'i') } },
         ],
       }).populate(clientPopulate);
+
+      // Fallback 2b: Also check SmmClient by name
+      if (!client) {
+        const smmClient = await SmmClient.findOne({
+          $or: [
+            { companyName: { $regex: new RegExp(`^${escaped}$`, 'i') } },
+            { email: decodedId.toLowerCase() },
+            { primaryContact: { $regex: new RegExp(`^${escaped}$`, 'i') } },
+          ],
+        }).lean();
+        if (smmClient) {
+          try {
+            client = await Client.create({
+              _id: smmClient._id,
+              name: smmClient.primaryContact || smmClient.companyName,
+              company: smmClient.companyName,
+              email: smmClient.email || `${smmClient._id}@client.internal`,
+              phone: smmClient.phone || '',
+              status: smmClient.status === 'active' ? 'Active' : 'Inactive',
+              services: ['Social Media Marketing'],
+              website: smmClient.website || '',
+            });
+            client = await Client.findById(client._id).populate(clientPopulate);
+          } catch (_) {
+            client = await Client.findById(smmClient._id).populate(clientPopulate);
+          }
+        }
+      }
     }
 
     const access = assertClientAccess(req, client);
