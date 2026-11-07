@@ -128,9 +128,9 @@ export default function PortalDashboard({ user, setPendingCount }) {
   const adBudget = data?.adBudget;
   const tracker = data?.tracker || null;
 
-  const handleProposalDownload = (project) => {
+  const handleProposalDownload = async (project) => {
     try {
-      exportProposalToPDF({ project, client });
+      await exportProposalToPDF({ project, client });
       toast.success('Proposal PDF downloaded');
     } catch (error) {
       toast.error(error.message || 'Failed to download proposal PDF');

@@ -23,31 +23,31 @@ const STICKER_DATA = {
   early: {
     title: '👑 Royal Early Bird',
     badge: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-    imageSrc: '/images/stickers/sticker_1_early_bird_1793767351724.jpg',
+    imageSrc: '/images/stickers/sticker_1_early_bird_1793767351724.webp',
     glowColor: 'shadow-emerald-500/25',
   },
   sharp: {
     title: '🎯 9:30 Sharp Dot',
     badge: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30',
-    imageSrc: '/images/stickers/sticker_2_sharp_930_dot_1793767391963.jpg',
+    imageSrc: '/images/stickers/sticker_2_sharp_930_dot_1793767391963.webp',
     glowColor: 'shadow-cyan-500/25',
   },
   late: {
     title: '🐢 Kaipulla Escape Pass',
     badge: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
-    imageSrc: '/images/stickers/sticker_3_kaipulla_late_arrival_1793767415224.jpg',
+    imageSrc: '/images/stickers/sticker_3_kaipulla_late_arrival_1793767415224.webp',
     glowColor: 'shadow-amber-500/25',
   },
   afternoon: {
     title: '🎬 Chief Guest Arrival',
     badge: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30',
-    imageSrc: '/images/stickers/sticker_4_chief_guest_arrival_1793767436185.jpg',
+    imageSrc: '/images/stickers/sticker_4_chief_guest_arrival_1793767436185.webp',
     glowColor: 'shadow-purple-500/25',
   },
   clockout: {
     title: '🛵 Varata Mame! Punch Out',
     badge: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30',
-    imageSrc: '/images/stickers/sticker_5_punch_out_scooter_1793767458852.jpg',
+    imageSrc: '/images/stickers/sticker_5_punch_out_scooter_1793767458852.webp',
     glowColor: 'shadow-rose-500/25',
   },
 };

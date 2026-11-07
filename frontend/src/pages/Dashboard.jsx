@@ -165,11 +165,15 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [user?.role, period, startDate, endDate]);
 
-  // Live Real-Time Socket Event Listeners for All Users
+  // Live Real-Time Socket Event Listeners for All Users (with 800ms debounce to prevent burst-flooding)
   useEffect(() => {
+    let debounceTimer = null;
     const handleUpdate = () => {
-      fetchStats(false);
-      queryClient.invalidateQueries({ queryKey: ['eod-reports'] });
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchStats(false);
+        queryClient.invalidateQueries({ queryKey: ['eod-reports'] });
+      }, 800);
     };
 
     const liveEvents = [
@@ -193,6 +197,7 @@ const Dashboard = () => {
     window.addEventListener('attendanceStatusChanged', handleLocalAttendance);
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       if (socket) {
         liveEvents.forEach((evt) => socket.off(evt, handleUpdate));
       }

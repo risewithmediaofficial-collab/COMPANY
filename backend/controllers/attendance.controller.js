@@ -559,40 +559,47 @@ export const assignHoliday = async (req, res) => {
     if (req.user.organizationId && req.user.role !== 'superAdmin' && req.user.role !== 'admin') {
       userQuery.organizationId = req.user.organizationId;
     }
-    const users = await User.find(userQuery);
+    const users = await User.find(userQuery).select('_id').lean();
 
     const assignerRole = req.user.role === 'superAdmin' ? 'Super Admin' : (req.user.role === 'admin' ? 'Admin' : 'Manager');
     const reasonText = notes || 'Company Official Holiday';
 
-    const promises = users.map(async (userObj) => {
-      const att = await Attendance.findOneAndUpdate(
-        { user: userObj._id, date: holidayDate },
-        {
-          status: 'holiday',
-          notes: reasonText,
-          isApproved: true,
-          approvedBy: req.user._id,
+    // Bulk upsert all attendance holiday records in a single database roundtrip
+    if (users.length > 0) {
+      const bulkOps = users.map((userObj) => ({
+        updateOne: {
+          filter: { user: userObj._id, date: holidayDate },
+          update: {
+            $set: {
+              status: 'holiday',
+              notes: reasonText,
+              isApproved: true,
+              approvedBy: req.user._id,
+            },
+          },
+          upsert: true,
         },
-        { upsert: true, new: true }
+      }));
+      await Attendance.bulkWrite(bulkOps, { ordered: false });
+
+      // Dispatch notifications in parallel
+      const io = req.app.get('io');
+      await Promise.all(
+        users.map((userObj) =>
+          createNotification(
+            {
+              recipient: userObj._id,
+              sender: req.user._id,
+              type: 'attendance',
+              title: 'Official Holiday Assigned \u{1F4C5}',
+              message: `${req.user.name} (${assignerRole}) assigned an official holiday on ${date}: "${reasonText}"`,
+              link: '/attendance',
+            },
+            io
+          ).catch(() => null)
+        )
       );
-
-      // Send notification to employee
-      await createNotification(
-        {
-          recipient: userObj._id,
-          sender: req.user._id,
-          type: 'attendance',
-          title: 'Official Holiday Assigned \u{1F4C5}',
-          message: `${req.user.name} (${assignerRole}) assigned an official holiday on ${date}: "${reasonText}"`,
-          link: '/attendance',
-        },
-        req.app.get('io')
-      );
-
-      return att;
-    });
-
-    await Promise.all(promises);
+    }
     emitLiveEvent('attendanceUpdated', { holidayDate });
 
     res.json({ success: true, message: `Holiday successfully assigned for ${users.length} team members.` });

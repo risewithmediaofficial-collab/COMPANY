@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { smmApi } from '../../api/smm';
 import { useSocket } from '../../context/SocketContext';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
@@ -411,7 +411,7 @@ const DayCellDeliverableSlot = ({
   );
 };
 
-const EditableLabel = ({ value, onSave }) => {
+const EditableLabel = memo(({ value, onSave }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value || '');
   const ref = useRef(null);
@@ -446,9 +446,9 @@ const EditableLabel = ({ value, onSave }) => {
       {value || '—'}
     </button>
   );
-};
+});
 
-const EditablePlan = ({ value, onSave, placeholder }) => {
+const EditablePlan = memo(({ value, onSave, placeholder }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value || '');
   const ref = useRef(null);
@@ -479,7 +479,7 @@ const EditablePlan = ({ value, onSave, placeholder }) => {
       {value || <span style={{ fontStyle:'italic', fontWeight:400, fontSize:9 }}>{placeholder}</span>}
     </button>
   );
-};
+});
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const SMMOnePageTracker = () => {

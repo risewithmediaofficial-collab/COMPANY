@@ -118,11 +118,14 @@ const projectSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+projectSchema.index({ client: 1 });
 projectSchema.index({ clientId: 1 });
 projectSchema.index({ organizationId: 1 });
 projectSchema.index({ brandId: 1 });
 projectSchema.index({ manager: 1 });
 projectSchema.index({ status: 1 });
+projectSchema.index({ client: 1, status: 1 });
+projectSchema.index({ organizationId: 1, status: 1, createdAt: -1 });
 
 const Project = mongoose.model('Project', projectSchema);
 export default Project;

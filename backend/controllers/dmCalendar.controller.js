@@ -632,13 +632,13 @@ export const getDMDashboardSummary = async (req, res) => {
       allRj,
       allVj,
     ] = await Promise.all([
-      DMVideoShoot.find({ isDeleted: false }),
+      DMVideoShoot.find({ isDeleted: false }).lean(),
       DMVideoShoot.countDocuments({ isDeleted: false, shootDate: { $gte: todayStart, $lte: todayEnd } }),
       DMVideoShoot.countDocuments({ isDeleted: false, shootDate: { $gt: todayEnd }, status: { $in: ['Scheduled', 'In Progress'] } }),
       DMVideoShoot.countDocuments({ isDeleted: false, status: 'Completed' }),
       DMVideoShoot.countDocuments({ isDeleted: false, status: { $in: ['Scheduled', 'In Progress', 'Postponed'] } }),
-      DMRjPromotion.find({ isDeleted: false }),
-      DMVjPromotion.find({ isDeleted: false }),
+      DMRjPromotion.find({ isDeleted: false }).lean(),
+      DMVjPromotion.find({ isDeleted: false }).lean(),
     ]);
 
     // Aggregate Video Shoot Metrics
@@ -742,11 +742,11 @@ export const getDMDashboardSummary = async (req, res) => {
 
 export const getDMClientPerformance = async (req, res) => {
   try {
-    const clients = await Client.find({}).select('_id name company email phone');
+    const clients = await Client.find({}).select('_id name company email phone').lean();
     const [shoots, rjList, vjList] = await Promise.all([
-      DMVideoShoot.find({ isDeleted: false }),
-      DMRjPromotion.find({ isDeleted: false }),
-      DMVjPromotion.find({ isDeleted: false }),
+      DMVideoShoot.find({ isDeleted: false }).lean(),
+      DMRjPromotion.find({ isDeleted: false }).lean(),
+      DMVjPromotion.find({ isDeleted: false }).lean(),
     ]);
 
     const performance = clients.map((c) => {
@@ -808,11 +808,11 @@ export const getDMClientPerformance = async (req, res) => {
 
 export const getDMTeamPerformance = async (req, res) => {
   try {
-    const users = await User.find({ isActive: true }).select('_id name email role avatar');
+    const users = await User.find({ isActive: true }).select('_id name email role avatar').lean();
     const [shoots, rjList, vjList] = await Promise.all([
-      DMVideoShoot.find({ isDeleted: false }),
-      DMRjPromotion.find({ isDeleted: false }),
-      DMVjPromotion.find({ isDeleted: false }),
+      DMVideoShoot.find({ isDeleted: false }).lean(),
+      DMRjPromotion.find({ isDeleted: false }).lean(),
+      DMVjPromotion.find({ isDeleted: false }).lean(),
     ]);
 
     const performance = users.map((u) => {

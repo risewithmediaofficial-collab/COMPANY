@@ -1,6 +1,19 @@
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import api from '../api';
+
+// Dynamic lazy-loading for heavy PDF dependencies (saves ~580KB from initial bundle)
+let pdfModulesPromise = null;
+const loadPdfModules = async () => {
+  if (!pdfModulesPromise) {
+    pdfModulesPromise = Promise.all([
+      import('jspdf'),
+      import('html2canvas'),
+    ]).then(([jspdfMod, html2canvasMod]) => ({
+      jsPDF: jspdfMod.default || jspdfMod.jsPDF || jspdfMod,
+      html2canvas: html2canvasMod.default || html2canvasMod,
+    }));
+  }
+  return pdfModulesPromise;
+};
 
 /**
  * Export element to PDF
@@ -15,6 +28,8 @@ export const exportElementToPDF = async (element, filename = 'document.pdf', opt
       format = 'a4',
       quality = 0.95,
     } = options;
+
+    const { jsPDF, html2canvas } = await loadPdfModules();
 
     const canvas = await html2canvas(element, {
       scale: 2,
@@ -69,8 +84,9 @@ export const exportElementToPDF = async (element, filename = 'document.pdf', opt
  * @param {array} columns - Column definitions
  * @param {string} filename - Name of the PDF file
  */
-export const exportDataToPDF = (data, columns, filename = 'report.pdf') => {
+export const exportDataToPDF = async (data, columns, filename = 'report.pdf') => {
   try {
+    const { jsPDF } = await loadPdfModules();
     const pdf = new jsPDF();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -130,12 +146,13 @@ const safeFilePart = (value) => String(value || 'proposal')
   .replace(/\s+/g, '-')
   .toLowerCase();
 
-export const exportProposalToPDF = ({ project = {}, client = {} }) => {
+export const exportProposalToPDF = async ({ project = {}, client = {} }) => {
   const proposalText = String(project.proposalText || '').trim();
   if (!proposalText) {
     throw new Error('No proposal text found');
   }
 
+  const { jsPDF } = await loadPdfModules();
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
@@ -326,6 +343,7 @@ export const exportInvoiceToPDF = async (invoice, options = {}) => {
   const { save = true } = options;
   const companyProfile = await getCompanyProfileForInvoice();
   const logoDataUrl = await loadLogoImage(companyProfile.logoUrl);
+  const { jsPDF } = await loadPdfModules();
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();

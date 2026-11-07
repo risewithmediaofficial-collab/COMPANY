@@ -16,12 +16,40 @@ import ProjectMonthlyDeliverable from '../models/projectMonthlyDeliverable.model
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+// In-memory cache for admin dashboard aggregation (45s TTL to balance real-time sync and DB load)
+const dashboardCache = new Map();
+const DASHBOARD_CACHE_TTL = 45 * 1000;
+const MAX_DASHBOARD_CACHE_ENTRIES = 100;
+
+export const clearAdminDashboardCache = () => {
+  dashboardCache.clear();
+};
+
 export const getAdminDashboard = async (req, res) => {
   try {
     const isManager = req.user?.role === 'manager';
     const now = new Date();
     const period = req.query.period || 'monthly';
     const { startDate: qStartDate, endDate: qEndDate } = req.query;
+
+    const cacheKey = `${req.user?.organizationId || 'default'}:${req.user?.role || 'user'}:${period}:${qStartDate || ''}:${qEndDate || ''}`;
+    const cached = dashboardCache.get(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < DASHBOARD_CACHE_TTL) {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
+      const todayAttendance = await Attendance.findOne({
+        user: req.user._id,
+        date: { $gte: startOfToday, $lte: endOfToday },
+      }).sort({ createdAt: -1 }).lean();
+
+      return res.json({
+        ...cached.data,
+        todayAttendance,
+      });
+    }
 
     let periodStart, periodEnd, priorPeriodStart, priorPeriodEnd;
 
@@ -121,7 +149,8 @@ export const getAdminDashboard = async (req, res) => {
       })
         .populate('clientId', 'name company')
         .sort({ expiryDate: 1 })
-        .limit(5),
+        .limit(5)
+        .lean(),
       Invoice.aggregate([
         {
           $match: {
@@ -375,7 +404,8 @@ export const getAdminDashboard = async (req, res) => {
     const recentActivityLogs = await ActivityLog.find()
       .populate('actor', 'name email avatar role')
       .sort({ createdAt: -1 })
-      .limit(15);
+      .limit(15)
+      .lean();
 
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
@@ -386,11 +416,10 @@ export const getAdminDashboard = async (req, res) => {
       date: { $gte: startOfToday, $lte: endOfToday },
     }).sort({ createdAt: -1 }).lean();
 
-    res.json({
+    const responsePayload = {
       success: true,
       periodStart,
       periodEnd,
-      todayAttendance,
       stats: {
         totalLeads,
         newLeadsThisMonth,
@@ -441,6 +470,17 @@ export const getAdminDashboard = async (req, res) => {
       },
       renewals: expiringRenewals,
       activityLogs: recentActivityLogs,
+    };
+
+    if (dashboardCache.size >= MAX_DASHBOARD_CACHE_ENTRIES) {
+      const oldestKey = dashboardCache.keys().next().value;
+      dashboardCache.delete(oldestKey);
+    }
+    dashboardCache.set(cacheKey, { timestamp: Date.now(), data: responsePayload });
+
+    res.json({
+      ...responsePayload,
+      todayAttendance,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

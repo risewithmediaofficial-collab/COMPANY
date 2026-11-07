@@ -5,6 +5,19 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 
+// Short-lived in-memory cache for authenticated user lookups (TTL: 20s, max 500 entries)
+// Eliminates repetitive User.findById queries across parallel API calls on the same view
+const userAuthCache = new Map();
+const AUTH_CACHE_TTL_MS = 20 * 1000;
+
+export const clearAuthUserCache = (userId) => {
+  if (userId) {
+    userAuthCache.delete(String(userId));
+  } else {
+    userAuthCache.clear();
+  }
+};
+
 /**
  * Protect routes - verifies JWT access token
  */
@@ -24,7 +37,25 @@ export const protect = async (req, res, next) => {
     if (decoded.tokenType && decoded.tokenType !== 'access') {
       return res.status(401).json({ success: false, message: 'Not authorized, invalid token type' });
     }
-    const user = await User.findById(decoded.id).select('+passwordChangedAt -password -refreshToken');
+
+    const cacheKey = String(decoded.id);
+    const cached = userAuthCache.get(cacheKey);
+    let user = null;
+
+    if (cached && (Date.now() - cached.timestamp < AUTH_CACHE_TTL_MS)) {
+      user = cached.user;
+    } else {
+      user = await User.findById(decoded.id)
+        .select('+passwordChangedAt -password -refreshToken')
+        .lean();
+      if (user) {
+        userAuthCache.set(cacheKey, { user, timestamp: Date.now() });
+        if (userAuthCache.size > 500) {
+          const oldestKey = userAuthCache.keys().next().value;
+          userAuthCache.delete(oldestKey);
+        }
+      }
+    }
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'User not found' });

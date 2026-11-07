@@ -14,6 +14,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
+import compression from 'compression';
 import { connectDB } from './config/db.js';
 import { getEnv, loadEnv } from './config/env.js';
 import { corsOptions, corsOptionsDelegate } from './config/cors.js';
@@ -147,6 +148,17 @@ global.io = io;
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors(corsOptionsDelegate));
 
+// High-performance gzip/deflate response compression for all API payloads and assets above 1KB
+app.use(
+  compression({
+    threshold: 1024,
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) return false;
+      return compression.filter(req, res);
+    },
+  })
+);
+
 // Standard API rate limiter - NO Authorization header bypass
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -188,14 +200,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(mongoSanitize());
 
-// Secure static uploads serving - prevent script execution on app origin
+// Secure static uploads serving with browser & CDN caching policies
 const safeUploadStatic = express.static(env.uploadDir, {
+  maxAge: env.isProduction ? '30d' : '1h',
   setHeaders: (res, filePath) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     const ext = path.extname(filePath).toLowerCase();
     if (['.html', '.htm', '.svg', '.xml'].includes(ext)) {
       res.setHeader('Content-Disposition', 'attachment');
       res.setHeader('Content-Type', 'text/plain');
+    }
+    if (['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.pdf', '.docx', '.mp4'].includes(ext)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000, stale-while-revalidate=86400');
     }
   },
 });
@@ -288,10 +304,30 @@ if (process.env.NODE_ENV === 'production') {
     ? path.resolve(__dirname, '../frontend/dist')
     : path.resolve(__dirname, '../client/dist');
 
-  app.use(express.static(frontendDistPath));
-  
-  // Any route that doesn't start with /api or /uploads gets sent to the React app
+  // Serve hashed assets (/assets/*) with 1-year immutable caching
+  app.use(
+    '/assets',
+    express.static(path.join(frontendDistPath, 'assets'), {
+      maxAge: '1y',
+      immutable: true,
+    })
+  );
+
+  // Serve other root static files with standard 1-day cache (excluding HTML)
+  app.use(
+    express.static(frontendDistPath, {
+      maxAge: '1d',
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('index.html')) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        }
+      },
+    })
+  );
+
+  // Any route that doesn't start with /api or /uploads gets sent to the React app without caching index.html
   app.get(/^(?!\/(api|uploads)).*/, (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.sendFile(path.join(frontendDistPath, 'index.html'));
   });
 }

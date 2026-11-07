@@ -2,10 +2,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import './WebsiteLaunchLoader.css';
 
 const FRAME_COUNT = 24;
-const FPS = 18;
-const FRAME_DURATION = 1000 / FPS; // ~55.56ms per frame
-const MIN_VISIBLE_TIME = 1400; // Minimum visibility in ms
-const FADE_OUT_DURATION = 500; // Smooth exit transition duration in ms
+const FPS = 24; // Smooth 24fps playback
+const FRAME_DURATION = 1000 / FPS; // ~41.67ms per frame
+const MIN_VISIBLE_TIME = 250; // Snappy exit hold without artificial dead delay
+const FADE_OUT_DURATION = 350; // Swift smooth exit transition duration in ms
 
 // Programmatically generate 24 frame asset URLs served from public folder
 const FRAME_PATHS = Array.from(
@@ -32,7 +32,7 @@ const checkIsStandalone = () => {
  * Preload and decode all 24 PNG frames into GPU memory before playback.
  * onFirstFrameLoaded callback allows immediate rendering of frame 1 without delay.
  */
-const preloadAndDecodeFrames = (urls, onFirstFrameLoaded, timeoutMs = 3000) => {
+const preloadAndDecodeFrames = (urls, onFirstFrameLoaded, timeoutMs = 1200) => {
   return new Promise((resolve) => {
     let resolved = false;
     let loadedCount = 0;
@@ -99,7 +99,8 @@ const preloadAndDecodeFrames = (urls, onFirstFrameLoaded, timeoutMs = 3000) => {
 };
 
 const WebsiteLaunchLoader = () => {
-  const [isMounted, setIsMounted] = useState(true);
+  const alreadySeen = typeof window !== 'undefined' && sessionStorage.getItem('launch_played');
+  const [isMounted, setIsMounted] = useState(!alreadySeen);
   const [isFading, setIsFading] = useState(false);
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -155,6 +156,9 @@ const WebsiteLaunchLoader = () => {
     const triggerExit = () => {
       if (isCancelled) return;
       setIsFading(true);
+      try {
+        sessionStorage.setItem('launch_played', 'true');
+      } catch (_) {}
 
       document.body.style.overflow = originalOverflow;
       document.body.style.paddingRight = originalPaddingRight;
