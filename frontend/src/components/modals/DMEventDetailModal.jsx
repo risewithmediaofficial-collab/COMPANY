@@ -96,6 +96,9 @@ export const DMEventDetailModal = ({
     showPosts: showPostsSection,
   } = normalizedSummary;
 
+  const isPostsOnly =
+    isVideoShoot && (item.contentType === 'posts' || (!showReelsSection && showPostsSection));
+
   const handleToggleChecklistItem = async (origIndex) => {
     if (!isVideoShoot || !item._id) return;
     const updated = checklist.map((c, i) => (i === origIndex ? { ...c, completed: !c.completed } : c));
@@ -136,7 +139,11 @@ export const DMEventDetailModal = ({
           <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                {isVideoShoot ? (
+                {isPostsOnly ? (
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                    <LayoutGrid className="h-5 w-5" />
+                  </div>
+                ) : isVideoShoot ? (
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 shrink-0">
                     <Camera className="h-5 w-5" />
                   </div>
@@ -154,7 +161,7 @@ export const DMEventDetailModal = ({
                     {item.shootTitle || item.promotionTitle}
                   </DialogTitle>
                   <DialogDescription className="sr-only">
-                    {clientName} • {isVideoShoot ? 'Video Shoot' : isRj ? 'RJ Promotion' : `VJ Promotion (${item.platform || 'TV'})`}
+                    {clientName} • {isPostsOnly ? 'Post Schedule' : isVideoShoot ? 'Video Shoot' : isRj ? 'RJ Promotion' : `VJ Promotion (${item.platform || 'TV'})`}
                   </DialogDescription>
                 </div>
               </div>
@@ -172,45 +179,72 @@ export const DMEventDetailModal = ({
 
           {/* Scrollable Body */}
           <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-            {/* Timing & Location */}
-            <div className="grid gap-3 sm:grid-cols-2 p-4 rounded-2xl bg-muted/40 border border-border/40 text-xs">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-primary" />
-                <div>
-                  <span className="text-muted-foreground block text-[10px]">Date</span>
-                  <span className="font-semibold text-foreground">
-                    {new Date(item.shootDate || item.promotionDate).toLocaleDateString('en-IN', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                <div>
-                  <span className="text-muted-foreground block text-[10px]">Timing & Duration</span>
-                  <span className="font-semibold text-foreground">
-                    {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} -{' '}
-                    {item.endTime ? new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}{' '}
-                    ({item.minutesSpoken ? `${item.minutesSpoken} mins` : `${item.duration || item.durationSpoken || 0} hrs`})
-                  </span>
-                </div>
-              </div>
-
-              {item.shootLocation ? (
-                <div className="flex items-center gap-2 sm:col-span-2">
-                  <MapPin className="h-4 w-4 text-rose-500" />
+            {/* Timing & Location (or clean Post Date + Client for Post Schedules) */}
+            {isPostsOnly ? (
+              <div className="grid gap-3 sm:grid-cols-2 p-4 rounded-2xl bg-muted/40 border border-border/40 text-xs">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
                   <div>
-                    <span className="text-muted-foreground block text-[10px]">Shoot Location</span>
-                    <span className="font-semibold text-foreground">{item.shootLocation}</span>
+                    <span className="text-muted-foreground block text-[10px]">Post Date</span>
+                    <span className="font-semibold text-foreground">
+                      {new Date(item.shootDate || item.promotionDate).toLocaleDateString('en-IN', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
                   </div>
                 </div>
-              ) : null}
-            </div>
+
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="h-4 w-4 text-primary" />
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Client</span>
+                    <span className="font-semibold text-foreground">{clientName}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 p-4 rounded-2xl bg-muted/40 border border-border/40 text-xs">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Date</span>
+                    <span className="font-semibold text-foreground">
+                      {new Date(item.shootDate || item.promotionDate).toLocaleDateString('en-IN', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">Timing & Duration</span>
+                    <span className="font-semibold text-foreground">
+                      {item.startTime ? new Date(item.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} -{' '}
+                      {item.endTime ? new Date(item.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}{' '}
+                      ({item.minutesSpoken ? `${item.minutesSpoken} mins` : `${item.duration || item.durationSpoken || 0} hrs`})
+                    </span>
+                  </div>
+                </div>
+
+                {item.shootLocation ? (
+                  <div className="flex items-center gap-2 sm:col-span-2">
+                    <MapPin className="h-4 w-4 text-rose-500" />
+                    <div>
+                      <span className="text-muted-foreground block text-[10px]">Shoot Location</span>
+                      <span className="font-semibold text-foreground">{item.shootLocation}</span>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
 
             {/* Separate Reels & Posts Production Checklists (For Video Shoots) */}
             {isVideoShoot ? (
@@ -451,15 +485,17 @@ export const DMEventDetailModal = ({
             {/* Notes */}
             {item.notes && item.notes !== 'null' ? (
               <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-1">
-                <h4 className="text-xs font-bold text-foreground">Internal Notes & Remarks</h4>
+                <h4 className="text-xs font-bold text-foreground">
+                  {isPostsOnly ? 'Note' : 'Internal Notes & Remarks'}
+                </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
                   {item.notes}
                 </p>
               </div>
             ) : null}
 
-            {/* Time Tracking Control (For Video Shoots) */}
-            {isVideoShoot ? (
+            {/* Time Tracking Control (For Reel / Video Shoots only) */}
+            {isVideoShoot && !isPostsOnly ? (
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/30 border border-border/40">
                 <div className="text-xs">
                   <span className="font-semibold block text-foreground">Time Tracking</span>

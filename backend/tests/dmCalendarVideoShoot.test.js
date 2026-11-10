@@ -163,6 +163,43 @@ test('DMChecklist Util: cleanly separates typed Reels and Posts and partitions l
   assert.equal(legacy.isPostsMet, false);
 });
 
+test('DMVideoShoot & DMChecklist: handles streamlined Post schedule with equal timestamps and multiple editable titles', async () => {
+  const postDateMarker = new Date('2026-11-18T09:00:00Z');
+  const postSchedule = new DMVideoShoot({
+    client: new mongoose.Types.ObjectId(),
+    contentType: 'posts',
+    shootTitle: 'Diwali Offer Poster (+2 more)',
+    shootDate: new Date('2026-11-18T00:00:00Z'),
+    startTime: postDateMarker,
+    endTime: postDateMarker,
+    shootLocation: '',
+    plannedReels: 0,
+    plannedPosts: 3,
+    checklist: [
+      { title: 'Diwali Offer Poster', type: 'post', completed: false },
+      { title: 'Carousel Feature Tips', type: 'post', completed: true },
+      { title: 'Weekend Story Graphic', type: 'post', completed: false },
+    ],
+    notes: 'Use gold brand palette and client logo in top right.',
+    createdBy: new mongoose.Types.ObjectId(),
+  });
+
+  await postSchedule.validate();
+  applyVideoShootCalculations(postSchedule);
+
+  assert.equal(postSchedule.duration, 0);
+  assert.equal(postSchedule.plannedReels, 0);
+  assert.equal(postSchedule.plannedPosts, 3);
+  assert.equal(postSchedule.plannedContents, 3);
+  assert.equal(postSchedule.completedPosts, 1);
+
+  const normalized = normalizeShootChecklist(postSchedule.toObject());
+  assert.equal(normalized.showReels, false);
+  assert.equal(normalized.showPosts, true);
+  assert.equal(normalized.postItems.length, 3);
+  assert.equal(normalized.postItems[1].title, 'Carousel Feature Tips');
+});
+
 test('Module Integrity: DM Calendar controller exports expected handlers', async () => {
   const ctrl = await import('../controllers/dmCalendar.controller.js');
   assert.equal(typeof ctrl.getVideoShoots, 'function');

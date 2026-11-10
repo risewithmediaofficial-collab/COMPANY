@@ -73,6 +73,7 @@ export const getVideoShoots = async (req, res) => {
         { shootLocation: { $regex: search, $options: 'i' } },
         { invoiceNumber: { $regex: search, $options: 'i' } },
         { notes: { $regex: search, $options: 'i' } },
+        { 'checklist.title': { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -124,11 +125,13 @@ export const createVideoShoot = async (req, res) => {
       .populate('client', 'name company')
       .populate('assignedTeam.user', 'name');
 
+    const isPostsOnly = shoot.contentType === 'posts';
+
     await logDMAudit({
       moduleType: 'VideoShoot',
       entityId: shoot._id,
       action: 'created',
-      title: 'Video Shoot Created',
+      title: isPostsOnly ? 'Posts Scheduled' : 'Video Shoot Created',
       details: `${shoot.shootTitle} scheduled for ${new Date(shoot.shootDate).toLocaleDateString('en-IN')}`,
       actor: req.user._id,
     });
@@ -139,8 +142,8 @@ export const createVideoShoot = async (req, res) => {
     const recipientIds = [...teamUserIds, ...admins.map((a) => a._id)];
 
     await notifyDMTeam({
-      title: 'New Video Shoot Scheduled',
-      message: `Shoot "${shoot.shootTitle}" for ${populatedShoot.client?.company || populatedShoot.client?.name || 'Client'} scheduled on ${new Date(shoot.shootDate).toLocaleDateString('en-IN')}.`,
+      title: isPostsOnly ? 'New Posts Scheduled' : 'New Video Shoot Scheduled',
+      message: `${isPostsOnly ? 'Posts' : 'Shoot'} "${shoot.shootTitle}" for ${populatedShoot.client?.company || populatedShoot.client?.name || 'Client'} scheduled on ${new Date(shoot.shootDate).toLocaleDateString('en-IN')}.`,
       recipientIds,
       io: req.app.get('io'),
     });
@@ -537,12 +540,19 @@ export const getMasterCalendarEvents = async (req, res) => {
         .populate('assignedTeam.user', 'name');
 
       shoots.forEach((s) => {
+        const clientLabel = s.client?.company || s.client?.name || 'Client';
+        const isPostEntry =
+          s.contentType === 'posts' ||
+          (Number(s.plannedPosts || 0) > 0 && Number(s.plannedReels || 0) === 0);
+
         events.push({
           id: s._id,
           activityType: 'video_shoot',
-          title: `\u{1F3AC} ${s.shootTitle} (${s.client?.company || s.client?.name || 'Client'})`,
+          title: isPostEntry
+            ? `\u{1F4CC} [Post] ${s.shootTitle} (${clientLabel})`
+            : `\u{1F3AC} ${s.shootTitle} (${clientLabel})`,
           rawTitle: s.shootTitle,
-          clientName: s.client?.company || s.client?.name || 'Client',
+          clientName: clientLabel,
           date: s.shootDate,
           startTime: s.startTime,
           endTime: s.endTime,

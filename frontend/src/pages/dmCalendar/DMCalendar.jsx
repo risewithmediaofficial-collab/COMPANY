@@ -116,7 +116,7 @@ const currency = new Intl.NumberFormat('en-IN', {
 });
 
 const TABS = [
-  { id: 'video_shoot', label: 'Video Shoot', icon: Camera },
+  { id: 'video_shoot', label: 'Shoots & Posts', icon: Camera },
   { id: 'rj_promotion', label: 'RJ Promotion', icon: Radio },
   { id: 'vj_promotion', label: 'VJ Promotion', icon: Tv },
   { id: 'master_calendar', label: 'Master Calendar', icon: CalendarIcon },
@@ -279,7 +279,16 @@ const DMCalendar = () => {
     const dateStr = format(currentDate, 'MMMM yyyy');
 
     let allItems = [];
-    videoShoots.forEach((s) => allItems.push({ title: `🎬 Video Shoot: ${s.shootTitle}`, date: s.shootDate, amount: s.totalAmount || 0, paid: s.amountPaid || 0, balance: s.balanceAmount || 0, expensesList: s.expensesList || [] }));
+    videoShoots.forEach((s) =>
+      allItems.push({
+        title: `${s.contentType === 'posts' ? '📌 Posts' : '🎬 Video Shoot'}: ${s.shootTitle}`,
+        date: s.shootDate,
+        amount: s.totalAmount || 0,
+        paid: s.amountPaid || 0,
+        balance: s.balanceAmount || 0,
+        expensesList: s.expensesList || [],
+      })
+    );
     rjPromotions.forEach((r) => allItems.push({ title: `🎙️ RJ Promotion: ${r.promotionTitle}`, date: r.promotionDate, amount: r.totalAmount || 0, paid: r.amountPaid || 0, balance: r.balanceAmount || 0, expensesList: r.expensesList || [] }));
     vjPromotions.forEach((v) => allItems.push({ title: `📺 VJ Promotion: ${v.promotionTitle} (${v.platform})`, date: v.promotionDate, amount: v.totalAmount || 0, paid: v.amountPaid || 0, balance: v.balanceAmount || 0, expensesList: v.expensesList || [] }));
 
@@ -451,7 +460,7 @@ const DMCalendar = () => {
           <div className="flex items-center gap-2">
             {activeTab === 'video_shoot' && (
               <Button size="sm" onClick={() => { setSelectedShoot(null); setShowVideoModal(true); }}>
-                <Plus size={16} className="mr-1" /> Schedule Video Shoot
+                <Plus size={16} className="mr-1" /> Schedule Shoot / Post
               </Button>
             )}
             {activeTab === 'rj_promotion' && (
@@ -502,7 +511,7 @@ const DMCalendar = () => {
           </MetricGrid>
 
           {/* Filters & Actions */}
-          <SectionCard title="Video Shoot Schedule" description="List of all recorded video production activities.">
+          <SectionCard title="Shoots & Posts Schedule" description="Schedule and manage Reel / Video shoots and Posts per client.">
             {/* Compact Filter Bar */}
             <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-2xl bg-secondary/40 border border-border/50">
               {/* Search */}
@@ -512,7 +521,7 @@ const DMCalendar = () => {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search shoots..."
+                  placeholder="Search shoots or posts..."
                   className="bg-transparent border-none outline-none text-xs text-foreground placeholder:text-muted-foreground w-full"
                 />
                 {search && <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground"><X size={12} /></button>}
@@ -582,32 +591,74 @@ const DMCalendar = () => {
               columns={[
                 {
                   key: 'client',
-                  label: 'Client / Shoot Title',
-                  render: (row) => (
-                    <div className="min-w-0">
-                      <div className="font-bold text-foreground text-sm">{row.shootTitle}</div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Building2 size={12} className="text-primary shrink-0" />
-                        <span>{row.client?.company || row.client?.name || 'No Client'}</span>
+                  label: 'Client / Schedule',
+                  render: (row) => {
+                    const isPostRow =
+                      row.contentType === 'posts' ||
+                      (Number(row.plannedPosts || 0) > 0 && Number(row.plannedReels || 0) === 0);
+                    const isLegacyCombinedRow =
+                      !isPostRow &&
+                      row.contentType === 'reels_and_posts' &&
+                      Number(row.plannedPosts || 0) > 0 &&
+                      Number(row.plannedReels || 0) > 0;
+
+                    return (
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-foreground text-sm">{row.shootTitle}</span>
+                          {isPostRow ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+                              <LayoutGrid size={10} /> Post
+                            </span>
+                          ) : isLegacyCombinedRow ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              Reels &amp; Posts
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              <Clapperboard size={10} /> Reel / Video
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Building2 size={12} className="text-primary shrink-0" />
+                          <span>{row.client?.company || row.client?.name || 'No Client'}</span>
+                        </div>
                       </div>
-                    </div>
-                  ),
+                    );
+                  },
                 },
                 {
                   key: 'date',
-                  label: 'Date & Time',
-                  render: (row) => (
-                    <div className="text-xs space-y-0.5">
-                      <div className="font-semibold text-foreground flex items-center gap-1">
-                        <CalendarIcon size={12} className="text-muted-foreground shrink-0" />
-                        <span>{row.shootDate ? new Date(row.shootDate).toLocaleDateString('en-IN') : 'N/A'}</span>
+                  label: 'Date / Schedule',
+                  render: (row) => {
+                    const isPostRow =
+                      row.contentType === 'posts' ||
+                      (Number(row.plannedPosts || 0) > 0 && Number(row.plannedReels || 0) === 0);
+
+                    return (
+                      <div className="text-xs space-y-0.5">
+                        <div className="font-semibold text-foreground flex items-center gap-1">
+                          <CalendarIcon size={12} className="text-muted-foreground shrink-0" />
+                          <span>{row.shootDate ? new Date(row.shootDate).toLocaleDateString('en-IN') : 'N/A'}</span>
+                        </div>
+                        {isPostRow ? (
+                          <div className="text-[11px] text-primary font-medium flex items-center gap-1">
+                            <LayoutGrid size={11} className="shrink-0" />
+                            <span>Post Date</span>
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground flex items-center gap-1">
+                            <Clock size={12} className="text-muted-foreground shrink-0" />
+                            <span>
+                              {row.startTime ? new Date(row.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}{' '}
+                              ({row.duration || 0}h)
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-muted-foreground flex items-center gap-1">
-                        <Clock size={12} className="text-muted-foreground shrink-0" />
-                        <span>{row.startTime ? new Date(row.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''} ({row.duration || 0}h)</span>
-                      </div>
-                    </div>
-                  ),
+                    );
+                  },
                 },
                 {
                   key: 'checklistOverview',
@@ -814,12 +865,28 @@ const DMCalendar = () => {
                 {
                   key: 'locationNotes',
                   label: 'Location & Notes',
-                  render: (row) => (
-                    <div className="text-xs space-y-0.5 max-w-[180px]">
-                      <div className="font-medium text-foreground truncate">{row.shootLocation || 'Location TBD'}</div>
-                      {row.notes && <div className="text-[11px] text-muted-foreground truncate">{row.notes}</div>}
-                    </div>
-                  ),
+                  render: (row) => {
+                    const isPostRow =
+                      row.contentType === 'posts' ||
+                      (Number(row.plannedPosts || 0) > 0 && Number(row.plannedReels || 0) === 0);
+
+                    if (isPostRow) {
+                      return (
+                        <div className="text-xs space-y-0.5 max-w-[180px]">
+                          <div className="text-[11px] text-muted-foreground line-clamp-2">
+                            {row.notes || '—'}
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="text-xs space-y-0.5 max-w-[180px]">
+                        <div className="font-medium text-foreground truncate">{row.shootLocation || 'Location TBD'}</div>
+                        {row.notes && <div className="text-[11px] text-muted-foreground truncate">{row.notes}</div>}
+                      </div>
+                    );
+                  },
                 },
                 {
                   key: 'status',
@@ -848,8 +915,8 @@ const DMCalendar = () => {
                   ),
                 },
               ]}
-              emptyTitle="No Video Shoots Scheduled"
-              emptyDescription="Click Schedule Video Shoot to record your first production schedule."
+              emptyTitle="No Shoots or Posts Scheduled"
+              emptyDescription="Click Schedule Shoot / Post to add a Reel / Video shoot or Post schedule."
             />
           </SectionCard>
         </div>
@@ -1187,7 +1254,7 @@ const DMCalendar = () => {
       {/* TAB 4: MASTER CALENDAR */}
       {activeTab === 'master_calendar' && (
         <div className="space-y-6">
-          <SectionCard title="Master Digital Marketing Calendar" description="Combined interactive calendar view for Video Shoots, RJ Promotions, and VJ Promotions.">
+          <SectionCard title="Master Digital Marketing Calendar" description="Combined interactive calendar view for Video Shoots, Posts, RJ Promotions, and VJ Promotions.">
             {/* Calendar Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 bg-card/60 p-4 rounded-2xl border border-border/40">
               <div className="flex items-center gap-2 flex-wrap">

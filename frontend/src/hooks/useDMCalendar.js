@@ -86,13 +86,13 @@ export const useCreateVideoShoot = () => {
       const response = await api.post('/dm-calendar/video-shoots', data);
       return response.data.shoot;
     },
-    onSuccess: () => {
+    onSuccess: (shoot) => {
       queryClient.invalidateQueries({ queryKey: ['dm-video-shoots'] });
       queryClient.invalidateQueries({ queryKey: ['dm-master-events'] });
       queryClient.invalidateQueries({ queryKey: ['dm-dashboard-summary'] });
       queryClient.invalidateQueries({ queryKey: ['dm-client-performance'] });
       queryClient.invalidateQueries({ queryKey: ['dm-team-performance'] });
-      toast.success('Video shoot scheduled successfully!');
+      toast.success(shoot?.contentType === 'posts' ? 'Posts scheduled successfully!' : 'Video shoot scheduled successfully!');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to create video shoot');
@@ -107,13 +107,13 @@ export const useUpdateVideoShoot = () => {
       const response = await api.put(`/dm-calendar/video-shoots/${id}`, data);
       return response.data.shoot;
     },
-    onSuccess: () => {
+    onSuccess: (shoot) => {
       queryClient.invalidateQueries({ queryKey: ['dm-video-shoots'] });
       queryClient.invalidateQueries({ queryKey: ['dm-master-events'] });
       queryClient.invalidateQueries({ queryKey: ['dm-dashboard-summary'] });
       queryClient.invalidateQueries({ queryKey: ['dm-client-performance'] });
       queryClient.invalidateQueries({ queryKey: ['dm-team-performance'] });
-      toast.success('Video shoot updated successfully!');
+      toast.success(shoot?.contentType === 'posts' ? 'Posts updated successfully!' : 'Video shoot updated successfully!');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to update video shoot');
