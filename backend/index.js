@@ -75,7 +75,6 @@ import smmBudgetRoutes from './routes/smm/smmBudget.routes.js';
 import smmCallLogRoutes from './routes/smm/smmCallLog.routes.js';
 import smmMonthlyTrackerRoutes from './routes/smm/smmMonthlyTracker.routes.js';
 import developmentRoutes from './routes/development.routes.js';
-import contentProductionRoutes from './routes/contentProduction.routes.js';
 import recycleBinRoutes from './routes/recycleBin.routes.js';
 import duplicateCheckRoutes from './routes/duplicateCheck.routes.js';
 import officeLocationRoutes from './routes/officeLocation.routes.js';
@@ -286,9 +285,6 @@ app.use('/api/smm/tracker', smmMonthlyTrackerRoutes);
 
 // Development Module Routes
 app.use('/api/development', developmentRoutes);
-
-// Content Production Module Routes
-app.use('/api/content-production', contentProductionRoutes);
 
 // Recycle Bin & Duplicate Check Routes
 app.use('/api/recycle-bin', recycleBinRoutes);

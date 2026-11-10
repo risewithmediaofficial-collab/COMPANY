@@ -37,7 +37,6 @@ import { useCreateTask } from '../../hooks/useTasks';
 import { useClients } from '../../hooks/useClients';
 import { useProjects } from '../../hooks/useProjects';
 import { useUsers } from '../../hooks/useUsers';
-import { contentProductionApi } from '../../api/contentProduction';
 import api from '../../api';
 import DuplicateConfirmDialog from '../modals/DuplicateConfirmDialog';
 import { toast } from 'sonner';
@@ -221,10 +220,6 @@ export const KanbanCreateTaskModal = ({
   const [repoLink, setRepoLink] = useState('');
   const [bugSeverity, setBugSeverity] = useState('medium');
 
-  // 7. Saved Client Assets (Scripts & Reference Videos)
-  const [clientSavedScripts, setClientSavedScripts] = useState([]);
-  const [clientSavedRefVideos, setClientSavedRefVideos] = useState([]);
-
   // Checklist
   const [checklist, setChecklist] = useState([]);
   const [newChecklistText, setNewChecklistText] = useState('');
@@ -267,27 +262,6 @@ export const KanbanCreateTaskModal = ({
 
     return { editors, videographers, smmMembers, designers, developers, scriptwriters };
   }, [users]);
-
-  // Load saved scripts and reference videos for selected client
-  useEffect(() => {
-    if (singleClientId) {
-      contentProductionApi
-        .getScriptsAndReferences({ clientId: singleClientId })
-        .then((res) => {
-          if (res.data?.success) {
-            setClientSavedScripts(res.data.scripts || []);
-            setClientSavedRefVideos(res.data.referenceVideos || []);
-          }
-        })
-        .catch(() => {
-          setClientSavedScripts([]);
-          setClientSavedRefVideos([]);
-        });
-    } else {
-      setClientSavedScripts([]);
-      setClientSavedRefVideos([]);
-    }
-  }, [singleClientId]);
 
   // Keyboard listener for Escape
   useEffect(() => {
@@ -1198,19 +1172,6 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Reference Video Link
                     </label>
-                    {clientSavedRefVideos.length > 0 && (
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) setScriptReferenceVideoLink(e.target.value);
-                        }}
-                        className="h-7 w-full mb-1.5 rounded-lg border border-amber-200 bg-white px-2 text-[11px] text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
-                      >
-                        <option value="">Select saved reference...</option>
-                        {clientSavedRefVideos.map((r) => (
-                          <option key={r.id} value={r.url}>{r.title}</option>
-                        ))}
-                      </select>
-                    )}
                     <input
                       type="url"
                       placeholder="https://instagram.com/reel/... or YouTube"
@@ -1444,19 +1405,6 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Reference Video Link
                     </label>
-                    {clientSavedRefVideos.length > 0 && (
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) setVideographerReferenceLink(e.target.value);
-                        }}
-                        className="h-7 w-full mb-1.5 rounded-lg border border-blue-200 bg-white px-2 text-[11px] text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
-                      >
-                        <option value="">Choose saved reference...</option>
-                        {clientSavedRefVideos.map((r) => (
-                          <option key={r.id} value={r.url}>{r.title}</option>
-                        ))}
-                      </select>
-                    )}
                     <input
                       type="url"
                       placeholder="https://instagram.com/reel/..."
@@ -1716,19 +1664,6 @@ export const KanbanCreateTaskModal = ({
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       Editing Reference Video Link
                     </label>
-                    {clientSavedRefVideos.length > 0 && (
-                      <select
-                        onChange={(e) => {
-                          if (e.target.value) setEditingReferenceVideo(e.target.value);
-                        }}
-                        className="h-7 w-full mb-1.5 rounded-lg border border-purple-200 bg-white px-2 text-[11px] text-slate-700 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
-                      >
-                        <option value="">Select saved reference...</option>
-                        {clientSavedRefVideos.map((r) => (
-                          <option key={r.id} value={r.url}>{r.title}</option>
-                        ))}
-                      </select>
-                    )}
                     <input
                       type="url"
                       placeholder="https://instagram.com/reel/..."

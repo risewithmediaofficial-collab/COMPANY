@@ -137,7 +137,6 @@ export const SocketProvider = ({ children }) => {
       'attendanceUpdated', 'eodSubmitted', 'accessRequestCreated', 'accessRequestUpdated',
       'smmTrackerUpdated', 'smmClientCreated', 'smmClientUpdated', 'smmClientDeleted',
       'dmCalendarUpdated', 'contentProductionUpdated',
-      'content_production:created', 'content_production:updated', 'content_production:revision', 'content_production:deleted',
       'userCreated', 'userUpdated',
     ]);
 
@@ -187,11 +186,7 @@ export const SocketProvider = ({ children }) => {
       'dm-rj-promotions', 'dm-vj-promotions',
     ]));
 
-    newSocket.on('contentProductionUpdated', () => handleInvalidate(['content-production', 'tasks', 'task']));
-    newSocket.on('content_production:created', () => handleInvalidate(['content-production', 'tasks', 'task']));
-    newSocket.on('content_production:updated', () => handleInvalidate(['content-production', 'tasks', 'task']));
-    newSocket.on('content_production:revision', () => handleInvalidate(['content-production', 'tasks', 'task']));
-    newSocket.on('content_production:deleted', () => handleInvalidate(['content-production', 'tasks', 'task']));
+    newSocket.on('contentProductionUpdated', () => handleInvalidate(['tasks', 'task']));
 
     newSocket.on('userCreated', () => handleInvalidate(['users', 'hr-employees', 'reports']));
     newSocket.on('userUpdated', () => handleInvalidate(['users', 'hr-employees', 'reports']));
