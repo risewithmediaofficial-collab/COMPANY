@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,23 +17,22 @@ import {
   Clock,
   MapPin,
   Users,
-  Wrench,
   IndianRupee,
   Play,
   Square,
   Pencil,
   Trash2,
   Printer,
-  Receipt,
-  FileText,
   X,
   ListTodo,
   CheckCircle2,
   Check,
-  Film,
   Sparkles,
+  Clapperboard,
+  LayoutGrid,
 } from 'lucide-react';
 import { useTrackVideoShootTime, useUpdateVideoShoot } from '../../hooks/useDMCalendar';
+import { normalizeShootChecklist, stripChecklistMeta } from '../../utils/dmChecklist';
 import { DMInvoiceModal } from './DMInvoiceModal';
 
 export const DMEventDetailModal = ({
@@ -58,20 +57,12 @@ export const DMEventDetailModal = ({
   const [checklist, setChecklist] = useState([]);
 
   useEffect(() => {
-    if (!item) return;
-    if (item.checklist && Array.isArray(item.checklist) && item.checklist.length > 0) {
-      setChecklist(item.checklist);
-    } else if (isVideoShoot) {
-      const target = item.plannedContents || 10;
-      const initial = [];
-      for (let i = 1; i <= target; i++) {
-        initial.push({
-          title: `Reel / Content #${i}`,
-          completed: i <= (item.completedContents || 0),
-        });
-      }
-      setChecklist(initial);
+    if (!item || !isVideoShoot) {
+      setChecklist([]);
+      return;
     }
+    const normalized = normalizeShootChecklist(item, { synthesizeDefaults: true });
+    setChecklist(stripChecklistMeta(normalized.items));
   }, [item, isVideoShoot]);
 
   if (!eventItem || !item) return null;
@@ -86,23 +77,42 @@ export const DMEventDetailModal = ({
     Postponed: 'neutral',
   };
 
-  const completedChecklistCount = checklist.filter((c) => c.completed).length;
-  const totalChecklistTarget = item.plannedContents || checklist.length || 0;
-  const checklistPct = totalChecklistTarget > 0 ? Math.round((completedChecklistCount / totalChecklistTarget) * 100) : 0;
-  const isTargetMet = totalChecklistTarget > 0 && completedChecklistCount >= totalChecklistTarget;
+  const normalizedSummary = normalizeShootChecklist(
+    { ...item, checklist },
+    { synthesizeDefaults: false }
+  );
+  const {
+    reelItems,
+    postItems,
+    completedReels: completedReelsCount,
+    completedPosts: completedPostsCount,
+    targetReels,
+    targetPosts,
+    reelsPct,
+    postsPct,
+    isReelsMet,
+    isPostsMet,
+    showReels: showReelsSection,
+    showPosts: showPostsSection,
+  } = normalizedSummary;
 
-  const handleToggleChecklistItem = async (index) => {
+  const handleToggleChecklistItem = async (origIndex) => {
     if (!isVideoShoot || !item._id) return;
-    const updated = checklist.map((c, i) => (i === index ? { ...c, completed: !c.completed } : c));
+    const updated = checklist.map((c, i) => (i === origIndex ? { ...c, completed: !c.completed } : c));
     setChecklist(updated);
 
     const newCompletedCount = updated.filter((c) => c.completed).length;
+    const newCompletedReels = updated.filter((c) => c.type !== 'post' && c.completed).length;
+    const newCompletedPosts = updated.filter((c) => c.type === 'post' && c.completed).length;
+
     await updateShoot.mutateAsync({
       id: item._id,
       data: {
-        checklist: updated,
+        checklist: stripChecklistMeta(updated),
         completedContents: newCompletedCount,
-        completedReels: Math.min(newCompletedCount, item.plannedReels || 0),
+        completedReels: newCompletedReels,
+        completedPosts: newCompletedPosts,
+        ...(item.plannedPosts === 0 && targetPosts > 0 ? { plannedPosts: targetPosts } : {}),
       },
     });
   };
@@ -202,94 +212,190 @@ export const DMEventDetailModal = ({
               ) : null}
             </div>
 
-            {/* Content & Reels Production Checklist (For Video Shoots) */}
+            {/* Separate Reels & Posts Production Checklists (For Video Shoots) */}
             {isVideoShoot ? (
-              <div className="rounded-2xl border border-border/80 bg-card p-5 space-y-4 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-border/60">
-                  <div>
-                    <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <ListTodo className="h-4 w-4 text-primary" /> Content & Reels Checklist Overview
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Click any reel to mark it completed or pending during production
-                    </p>
-                  </div>
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 border self-start sm:self-auto ${
-                      isTargetMet
-                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                        : completedChecklistCount > 0
-                        ? 'bg-primary/10 text-primary border-primary/20'
-                        : 'bg-muted text-muted-foreground border-border'
-                    }`}
-                  >
-                    {isTargetMet ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Sparkles size={13} />}
-                    {completedChecklistCount} / {totalChecklistTarget} Finished ({checklistPct}%)
-                  </span>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-1.5">
-                  <div className="h-2.5 w-full bg-secondary/80 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 rounded-full ${isTargetMet ? 'bg-emerald-500' : 'bg-primary'}`}
-                      style={{ width: `${Math.min(checklistPct, 100)}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Checklist Items Grid / List */}
-                <div className="space-y-2 pt-1 max-h-[340px] overflow-y-auto custom-scrollbar pr-1">
-                  {checklist.map((cItem, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => handleToggleChecklistItem(idx)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                        cItem.completed
-                          ? 'bg-emerald-500/5 border-emerald-500/30'
-                          : 'bg-background border-border hover:border-border/80'
-                      }`}
-                    >
-                      <div
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
-                          cItem.completed
-                            ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
-                            : 'border-muted-foreground/40 bg-background'
-                        }`}
-                      >
-                        {cItem.completed ? <Check size={13} className="stroke-[3]" /> : null}
+              <div className="space-y-4">
+                {showReelsSection && (
+                  <div className="rounded-2xl border border-purple-500/20 bg-card p-5 space-y-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-border/60">
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                          <Clapperboard className="h-4 w-4 text-purple-600 dark:text-purple-400" /> Reels Content Checklist
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Click any reel item to mark it finished or pending
+                        </p>
                       </div>
-
-                      <span className="text-[11px] font-bold text-muted-foreground min-w-[24px]">
-                        #{idx + 1}
-                      </span>
-
                       <span
-                        className={`text-xs font-semibold flex-1 ${
-                          cItem.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                        className={`text-xs font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 border self-start sm:self-auto ${
+                          isReelsMet
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                            : completedReelsCount > 0
+                            ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                            : 'bg-muted text-muted-foreground border-border'
                         }`}
                       >
-                        {cItem.title || `Reel / Content #${idx + 1}`}
-                      </span>
-
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                          cItem.completed
-                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-secondary text-muted-foreground'
-                        }`}
-                      >
-                        {cItem.completed ? 'Finished' : 'Pending'}
+                        {isReelsMet ? <CheckCircle2 size={13} className="text-emerald-500" /> : <Sparkles size={13} />}
+                        {completedReelsCount} / {targetReels} Reels ({reelsPct}%)
                       </span>
                     </div>
-                  ))}
 
-                  {checklist.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic py-3 text-center">
-                      No checklist items recorded yet. Click Edit to add production items.
-                    </p>
-                  )}
-                </div>
+                    {/* Reels Progress Bar */}
+                    <div className="h-2.5 w-full bg-secondary/80 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 rounded-full ${isReelsMet ? 'bg-emerald-500' : 'bg-purple-600'}`}
+                        style={{ width: `${Math.min(reelsPct, 100)}%` }}
+                      />
+                    </div>
+
+                    {/* Reels Items */}
+                    <div className="space-y-2 pt-1 max-h-[240px] overflow-y-auto custom-scrollbar pr-1">
+                      {reelItems.map((cItem, idx) => (
+                        <div
+                          key={cItem._origIndex}
+                          onClick={() => handleToggleChecklistItem(cItem._origIndex)}
+                          className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                            cItem.completed
+                              ? 'bg-emerald-500/5 border-emerald-500/30'
+                              : 'bg-background border-border hover:border-purple-500/40'
+                          }`}
+                        >
+                          <div
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
+                              cItem.completed
+                                ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
+                                : 'border-muted-foreground/40 bg-background'
+                            }`}
+                          >
+                            {cItem.completed ? <Check size={13} className="stroke-[3]" /> : null}
+                          </div>
+
+                          <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 min-w-[28px]">
+                            R#{idx + 1}
+                          </span>
+
+                          <span
+                            className={`text-xs font-semibold flex-1 ${
+                              cItem.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                            }`}
+                          >
+                            {cItem.title || `Reel Content #${idx + 1}`}
+                          </span>
+
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                              cItem.completed
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                            }`}
+                          >
+                            {cItem.completed ? 'Finished' : 'Pending'}
+                          </span>
+                        </div>
+                      ))}
+
+                      {reelItems.length === 0 && (
+                        <p className="text-xs text-muted-foreground italic py-3 text-center">
+                          No reel items recorded yet. Click Edit to add reels.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {showPostsSection && (
+                  <div className="rounded-2xl border border-primary/20 bg-card p-5 space-y-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-border/60">
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                          <LayoutGrid className="h-4 w-4 text-primary" /> Posts Checklist
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Click any post item to mark it finished or pending
+                        </p>
+                      </div>
+                      <span
+                        className={`text-xs font-bold px-3 py-1 rounded-xl flex items-center gap-1.5 border self-start sm:self-auto ${
+                          isPostsMet
+                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                            : completedPostsCount > 0
+                            ? 'bg-primary/10 text-primary border-primary/20'
+                            : 'bg-muted text-muted-foreground border-border'
+                        }`}
+                      >
+                        {isPostsMet ? <CheckCircle2 size={13} className="text-emerald-500" /> : <ListTodo size={13} />}
+                        {completedPostsCount} / {targetPosts} Posts ({postsPct}%)
+                      </span>
+                    </div>
+
+                    {/* Posts Progress Bar */}
+                    <div className="h-2.5 w-full bg-secondary/80 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 rounded-full ${isPostsMet ? 'bg-emerald-500' : 'bg-primary'}`}
+                        style={{ width: `${Math.min(postsPct, 100)}%` }}
+                      />
+                    </div>
+
+                    {/* Posts Items */}
+                    <div className="space-y-2 pt-1 max-h-[240px] overflow-y-auto custom-scrollbar pr-1">
+                      {postItems.map((cItem, idx) => (
+                        <div
+                          key={cItem._origIndex}
+                          onClick={() => handleToggleChecklistItem(cItem._origIndex)}
+                          className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                            cItem.completed
+                              ? 'bg-emerald-500/5 border-emerald-500/30'
+                              : 'bg-background border-border hover:border-primary/40'
+                          }`}
+                        >
+                          <div
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
+                              cItem.completed
+                                ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
+                                : 'border-muted-foreground/40 bg-background'
+                            }`}
+                          >
+                            {cItem.completed ? <Check size={13} className="stroke-[3]" /> : null}
+                          </div>
+
+                          <span className="text-[11px] font-bold text-primary min-w-[28px]">
+                            P#{idx + 1}
+                          </span>
+
+                          <span
+                            className={`text-xs font-semibold flex-1 ${
+                              cItem.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                            }`}
+                          >
+                            {cItem.title || `Post #${idx + 1}`}
+                          </span>
+
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                              cItem.completed
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                : 'bg-primary/10 text-primary'
+                            }`}
+                          >
+                            {cItem.completed ? 'Finished' : 'Pending'}
+                          </span>
+                        </div>
+                      ))}
+
+                      {postItems.length === 0 && (
+                        <p className="text-xs text-muted-foreground italic py-3 text-center">
+                          No post items recorded yet. Click Edit to add posts.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {!showReelsSection && !showPostsSection && (
+                  <div className="rounded-2xl border border-border/80 bg-card p-5 text-center text-xs text-muted-foreground italic">
+                    No Reels or Posts checklist items recorded yet. Click Edit to add deliverables.
+                  </div>
+                )}
               </div>
             ) : (
               /* For RJ & VJ Promotions: keep their member assignment and financial summary */
@@ -382,7 +488,25 @@ export const DMEventDetailModal = ({
           {/* Pinned Sticky Footer */}
           <div className="shrink-0 border-t border-border bg-card/95 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
             <div className="flex items-center gap-2.5">
-              <Button size="sm" variant="outline" className="h-11 px-4 rounded-xl font-semibold text-sm" onClick={() => { onOpenChange(false); onEdit(item); }}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-11 px-4 rounded-xl font-semibold text-sm"
+                onClick={() => {
+                  onOpenChange(false);
+                  onEdit(
+                    isVideoShoot
+                      ? {
+                          ...item,
+                          checklist: stripChecklistMeta(checklist),
+                          completedReels: completedReelsCount,
+                          completedPosts: completedPostsCount,
+                          completedContents: completedReelsCount + completedPostsCount,
+                        }
+                      : item
+                  );
+                }}
+              >
                 <Pencil className="h-4 w-4 mr-1.5" /> Edit
               </Button>
               <Button size="sm" variant="outline" className="h-11 px-4 rounded-xl font-semibold text-sm text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => { onOpenChange(false); onDelete(item); }}>

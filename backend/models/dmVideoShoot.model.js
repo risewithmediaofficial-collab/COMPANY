@@ -12,7 +12,14 @@ const dmVideoShootSchema = new mongoose.Schema(
     shootLocation: { type: String, trim: true, default: '' },
     invoiceNumber: { type: String, trim: true, default: '' },
 
-    // Content tracking
+    // Content deliverable scope
+    contentType: {
+      type: String,
+      enum: ['reels_and_posts', 'reels', 'posts'],
+      default: 'reels_and_posts',
+    },
+
+    // Total content tracking (combined Reels + Posts)
     plannedContents: { type: Number, default: 0, min: 0 },
     completedContents: { type: Number, default: 0, min: 0 },
     contentsCompletionPct: { type: Number, default: 0 },
@@ -22,10 +29,16 @@ const dmVideoShootSchema = new mongoose.Schema(
     completedReels: { type: Number, default: 0, min: 0 },
     reelsCompletionPct: { type: Number, default: 0 },
 
-    // Content & Reels Checklist
+    // Posts tracking
+    plannedPosts: { type: Number, default: 0, min: 0 },
+    completedPosts: { type: Number, default: 0, min: 0 },
+    postsCompletionPct: { type: Number, default: 0 },
+
+    // Content Checklist (Reels & Posts)
     checklist: [
       {
         title: { type: String, trim: true, default: '' },
+        type: { type: String, enum: ['reel', 'post'] },
         completed: { type: Boolean, default: false },
         completedAt: { type: Date },
         completedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -80,43 +93,98 @@ const dmVideoShootSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+export const applyVideoShootCalculations = (doc) => {
+  const isMod = (field) => (typeof doc.isModified === 'function' ? doc.isModified(field) : false);
+
+  if (doc.contentType === 'reels') {
+    doc.plannedPosts = 0;
+  } else if (doc.contentType === 'posts') {
+    doc.plannedReels = 0;
+  }
+
+  const combinedPlanned = Number(doc.plannedReels || 0) + Number(doc.plannedPosts || 0);
+  if (combinedPlanned > 0) {
+    if (
+      doc.isNew ||
+      isMod('plannedReels') ||
+      isMod('plannedPosts') ||
+      isMod('contentType') ||
+      doc.plannedPosts > 0 ||
+      doc.contentType !== 'reels_and_posts' ||
+      !doc.plannedContents
+    ) {
+      doc.plannedContents = combinedPlanned;
+    }
+  } else if (
+    (isMod('plannedReels') || isMod('plannedPosts') || isMod('contentType')) &&
+    (!isMod('plannedContents') || doc.plannedContents === 0)
+  ) {
+    doc.plannedContents = 0;
+  }
+
+  if (doc.checklist && doc.checklist.length > 0) {
+    const completedCount = doc.checklist.filter((item) => item.completed).length;
+    doc.completedContents = completedCount;
+
+    const reelItems = doc.checklist.filter((item) => item.type === 'reel');
+    const postItems = doc.checklist.filter((item) => item.type === 'post');
+    const hasTypedItems = reelItems.length > 0 || postItems.length > 0;
+
+    if (hasTypedItems) {
+      doc.completedReels = reelItems.filter((item) => item.completed).length;
+      doc.completedPosts = postItems.filter((item) => item.completed).length;
+    } else if (doc.contentType === 'posts') {
+      doc.completedReels = 0;
+      doc.completedPosts = completedCount;
+    } else if (doc.plannedReels > 0 && (!doc.completedReels || doc.completedReels <= doc.completedContents)) {
+      doc.completedReels = Math.min(completedCount, doc.plannedReels);
+      if (doc.plannedPosts > 0) {
+        doc.completedPosts = Math.min(Math.max(completedCount - doc.completedReels, 0), doc.plannedPosts);
+      }
+    }
+  } else if (isMod('checklist')) {
+    // Checklist cleared explicitly
+    doc.completedContents = 0;
+    doc.completedReels = 0;
+    doc.completedPosts = 0;
+  }
+
+  if (doc.plannedContents > 0) {
+    doc.contentsCompletionPct = Number(((doc.completedContents / doc.plannedContents) * 100).toFixed(1));
+  } else {
+    doc.contentsCompletionPct = 0;
+  }
+
+  if (doc.plannedReels > 0) {
+    doc.reelsCompletionPct = Number(((doc.completedReels / doc.plannedReels) * 100).toFixed(1));
+  } else {
+    doc.reelsCompletionPct = 0;
+  }
+
+  if (doc.plannedPosts > 0) {
+    doc.postsCompletionPct = Number(((doc.completedPosts / doc.plannedPosts) * 100).toFixed(1));
+  } else {
+    doc.postsCompletionPct = 0;
+  }
+
+  if (doc.expensesList && doc.expensesList.length > 0) {
+    const sumExpenses = doc.expensesList.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+    if (sumExpenses > 0) {
+      doc.totalAmount = sumExpenses;
+    }
+  }
+
+  doc.balanceAmount = Math.max(Number(doc.totalAmount || 0) - Number(doc.amountPaid || 0), 0);
+
+  if (doc.startTime && doc.endTime) {
+    const diffMs = new Date(doc.endTime) - new Date(doc.startTime);
+    doc.duration = diffMs > 0 ? Number((diffMs / (1000 * 60 * 60)).toFixed(2)) : 0;
+  }
+};
+
 // Pre-save calculations for percentages and balance amount
 dmVideoShootSchema.pre('save', function (next) {
-  if (this.checklist && this.checklist.length > 0) {
-    const completedCount = this.checklist.filter((item) => item.completed).length;
-    this.completedContents = completedCount;
-    // If plannedReels equals plannedContents or is defined, align completedReels with checklist completion
-    if (this.plannedReels > 0 && (!this.completedReels || this.completedReels <= this.completedContents)) {
-      this.completedReels = Math.min(completedCount, this.plannedReels);
-    }
-  }
-
-  if (this.plannedContents > 0) {
-    this.contentsCompletionPct = Number(((this.completedContents / this.plannedContents) * 100).toFixed(1));
-  } else {
-    this.contentsCompletionPct = 0;
-  }
-
-  if (this.plannedReels > 0) {
-    this.reelsCompletionPct = Number(((this.completedReels / this.plannedReels) * 100).toFixed(1));
-  } else {
-    this.reelsCompletionPct = 0;
-  }
-
-  if (this.expensesList && this.expensesList.length > 0) {
-    const sumExpenses = this.expensesList.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
-    if (sumExpenses > 0) {
-      this.totalAmount = sumExpenses;
-    }
-  }
-
-  this.balanceAmount = Math.max(Number(this.totalAmount || 0) - Number(this.amountPaid || 0), 0);
-
-  if (this.startTime && this.endTime) {
-    const diffMs = new Date(this.endTime) - new Date(this.startTime);
-    this.duration = diffMs > 0 ? Number((diffMs / (1000 * 60 * 60)).toFixed(2)) : 0;
-  }
-
+  applyVideoShootCalculations(this);
   next();
 });
 

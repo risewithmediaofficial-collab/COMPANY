@@ -47,8 +47,8 @@ import {
   Building2,
   Activity,
   Monitor,
-  Film,
   Clapperboard,
+  LayoutGrid,
   ListTodo,
   Check,
 } from 'lucide-react';
@@ -107,6 +107,7 @@ import { AddEditVideoShootModal } from '../../components/modals/AddEditVideoShoo
 import { AddEditRjPromotionModal } from '../../components/modals/AddEditRjPromotionModal';
 import { AddEditVjPromotionModal } from '../../components/modals/AddEditVjPromotionModal';
 import { DMEventDetailModal } from '../../components/modals/DMEventDetailModal';
+import { normalizeShootChecklist, stripChecklistMeta } from '../../utils/dmChecklist';
 
 const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -219,6 +220,26 @@ const DMCalendar = () => {
   const updateShoot = useUpdateVideoShoot();
   const deleteRj = useDeleteRjPromotion();
   const deleteVj = useDeleteVjPromotion();
+
+  const liveSelectedEventItem = useMemo(() => {
+    if (!selectedEventItem) return null;
+    const rawItem = selectedEventItem.item || selectedEventItem;
+    if (!rawItem?._id) return selectedEventItem;
+    const type =
+      selectedEventItem.activityType ||
+      (rawItem.plannedContents !== undefined ? 'video_shoot' : rawItem.platform ? 'vj_promotion' : 'rj_promotion');
+    if (type === 'video_shoot') {
+      const fresh = videoShoots.find((s) => s._id === rawItem._id);
+      if (fresh) return { ...selectedEventItem, activityType: 'video_shoot', item: fresh };
+    } else if (type === 'rj_promotion') {
+      const fresh = rjPromotions.find((r) => r._id === rawItem._id);
+      if (fresh) return { ...selectedEventItem, activityType: 'rj_promotion', item: fresh };
+    } else if (type === 'vj_promotion') {
+      const fresh = vjPromotions.find((v) => v._id === rawItem._id);
+      if (fresh) return { ...selectedEventItem, activityType: 'vj_promotion', item: fresh };
+    }
+    return selectedEventItem;
+  }, [selectedEventItem, videoShoots, rjPromotions, vjPromotions]);
 
   // Navigation handlers for Calendar
   const handlePrev = () => {
@@ -476,8 +497,8 @@ const DMCalendar = () => {
           <MetricGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <MetricCard label="Today's Shoots" value={summary.videoShoots?.todayShoots || 0} helper="Shoots scheduled today" icon={Camera} tone="info" />
             <MetricCard label="Upcoming Shoots" value={summary.videoShoots?.upcomingShoots || 0} helper="Future scheduled shoots" icon={CalendarIcon} tone="primary" />
-            <MetricCard label="Contents Completion" value={`${summary.videoShoots?.contentCompletionPct || 0}%`} helper={`${summary.videoShoots?.totalContentsCompleted || 0} / ${summary.videoShoots?.totalContentsPlanned || 0} Planned`} icon={CheckCircle2} tone="success" />
-            <MetricCard label="Finished Production Items" value={summary.videoShoots?.totalContentsCompleted || 0} helper={`${summary.videoShoots?.totalContentsPlanned || 0} Total Target`} icon={Clapperboard} tone="info" />
+            <MetricCard label="Reels Progress" value={`${summary.videoShoots?.reelsCompletionPct || 0}%`} helper={`${summary.videoShoots?.totalReelsCompleted || 0} / ${summary.videoShoots?.totalReelsPlanned || 0} Reels Done`} icon={Clapperboard} tone="success" />
+            <MetricCard label="Posts Progress" value={`${summary.videoShoots?.postsCompletionPct || 0}%`} helper={`${summary.videoShoots?.totalPostsCompleted || 0} / ${summary.videoShoots?.totalPostsPlanned || 0} Posts Done`} icon={LayoutGrid} tone="info" />
           </MetricGrid>
 
           {/* Filters & Actions */}
@@ -590,101 +611,202 @@ const DMCalendar = () => {
                 },
                 {
                   key: 'checklistOverview',
-                  label: 'Reels / Content Checklist Overview',
+                  label: 'Reels & Posts Checklist',
                   render: (row) => {
-                    const checklist = row.checklist || [];
-                    const totalCount = row.plannedContents || checklist.length || 0;
-                    const completedCount = checklist.length > 0
-                      ? checklist.filter((c) => c.completed).length
-                      : row.completedContents || 0;
-                    const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-                    const isTargetMet = totalCount > 0 && completedCount >= totalCount;
+                    const {
+                      items,
+                      reelItems,
+                      postItems,
+                      targetReels,
+                      targetPosts,
+                      completedReels,
+                      completedPosts,
+                      reelsPct,
+                      postsPct,
+                      isReelsMet,
+                      isPostsMet,
+                      showReels,
+                      showPosts,
+                      hasTypedItems,
+                    } = normalizeShootChecklist(row);
+
+                    const handleQuickToggle = async (origIndex) => {
+                      const nextList = stripChecklistMeta(
+                        items.map((c, idx) => (idx === origIndex ? { ...c, completed: !c.completed } : c))
+                      );
+                      const nextCompletedCount = nextList.filter((c) => c.completed).length;
+                      const nextCompletedReels = nextList.filter((c) => c.type !== 'post' && c.completed).length;
+                      const nextCompletedPosts = nextList.filter((c) => c.type === 'post' && c.completed).length;
+
+                      await updateShoot.mutateAsync({
+                        id: row._id,
+                        data: {
+                          checklist: nextList,
+                          completedContents: nextCompletedCount,
+                          completedReels: nextCompletedReels,
+                          completedPosts: nextCompletedPosts,
+                          ...(!hasTypedItems && row.plannedPosts === 0 && targetPosts > 0
+                            ? { plannedPosts: targetPosts }
+                            : {}),
+                        },
+                      });
+                    };
+
+                    const pillLimit = showReels && showPosts ? 3 : 4;
 
                     return (
-                      <div className="space-y-1.5 min-w-[260px] max-w-sm" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between text-xs font-semibold">
-                          <span className="flex items-center gap-1.5 text-foreground">
-                            <Film size={13} className="text-primary shrink-0" />
-                            <span>{completedCount} / {totalCount} Finished</span>
-                            <span className="text-[10px] text-muted-foreground font-normal">
-                              ({row.plannedReels || 0} Reels Target)
-                            </span>
-                          </span>
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
-                              isTargetMet
-                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                                : completedCount > 0
-                                ? 'bg-primary/10 text-primary border-primary/20'
-                                : 'bg-muted text-muted-foreground border-border'
-                            }`}
-                          >
-                            {pct}%
-                          </span>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                          <div
-                            className={`h-full transition-all duration-300 rounded-full ${isTargetMet ? 'bg-emerald-500' : 'bg-primary'}`}
-                            style={{ width: `${Math.min(pct, 100)}%` }}
-                          />
-                        </div>
-
-                        {/* Interactive Checklist Pills with Quick Checkbox */}
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {checklist.slice(0, 4).map((item, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                const nextList = checklist.map((c, i) => (i === idx ? { ...c, completed: !c.completed } : c));
-                                const nextCompletedCount = nextList.filter((c) => c.completed).length;
-                                await updateShoot.mutateAsync({
-                                  id: row._id,
-                                  data: {
-                                    checklist: nextList,
-                                    completedContents: nextCompletedCount,
-                                    completedReels: Math.min(nextCompletedCount, row.plannedReels || 0),
-                                  },
-                                });
-                              }}
-                              className={`text-[10px] px-2 py-0.5 rounded-lg border font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
-                                item.completed
-                                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
-                                  : 'bg-background hover:bg-muted text-foreground border-border/80'
-                              }`}
-                              title={item.completed ? 'Click to mark pending' : 'Click to mark finished'}
-                            >
+                      <div className="space-y-2.5 min-w-[280px] max-w-md" onClick={(e) => e.stopPropagation()}>
+                        {/* Reels Section */}
+                        {showReels && (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-xs font-semibold">
+                              <span className="flex items-center gap-1.5 text-foreground">
+                                <Clapperboard size={12} className="text-purple-600 dark:text-purple-400 shrink-0" />
+                                <span>Reels: {completedReels} / {targetReels}</span>
+                              </span>
                               <span
-                                className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] border font-bold ${
-                                  item.completed ? 'bg-emerald-500 text-white border-emerald-500' : 'border-muted-foreground/40'
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                                  isReelsMet
+                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                    : completedReels > 0
+                                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                                    : 'bg-muted text-muted-foreground border-border'
                                 }`}
                               >
-                                {item.completed ? '✓' : ''}
+                                {reelsPct}%
                               </span>
-                              <span className={`truncate max-w-[105px] ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                                {item.title}
+                            </div>
+
+                            <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-300 rounded-full ${isReelsMet ? 'bg-emerald-500' : 'bg-purple-600'}`}
+                                style={{ width: `${Math.min(reelsPct, 100)}%` }}
+                              />
+                            </div>
+
+                            {reelItems.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-0.5">
+                                {reelItems.slice(0, pillLimit).map((item) => (
+                                  <button
+                                    key={item._origIndex}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickToggle(item._origIndex);
+                                    }}
+                                    className={`text-[10px] px-2 py-0.5 rounded-lg border font-medium flex items-center gap-1 transition-all cursor-pointer ${
+                                      item.completed
+                                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                                        : 'bg-background hover:bg-purple-500/5 text-foreground border-border/80'
+                                    }`}
+                                    title={item.completed ? 'Click to mark pending' : 'Click to mark finished'}
+                                  >
+                                    <span
+                                      className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] border font-bold ${
+                                        item.completed ? 'bg-emerald-500 text-white border-emerald-500' : 'border-purple-500/40 text-purple-600 dark:text-purple-400'
+                                      }`}
+                                    >
+                                      {item.completed ? '✓' : 'R'}
+                                    </span>
+                                    <span className={`truncate max-w-[95px] ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                      {item.title}
+                                    </span>
+                                  </button>
+                                ))}
+                                {reelItems.length > pillLimit && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedEventItem({ activityType: 'video_shoot', item: row });
+                                      setShowEventDetailModal(true);
+                                    }}
+                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 font-semibold cursor-pointer"
+                                  >
+                                    +{reelItems.length - pillLimit} more
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Posts Section */}
+                        {showPosts && (
+                          <div className={`space-y-1.5 ${showReels ? 'pt-2 border-t border-border/50' : ''}`}>
+                            <div className="flex items-center justify-between text-xs font-semibold">
+                              <span className="flex items-center gap-1.5 text-foreground">
+                                <LayoutGrid size={12} className="text-primary shrink-0" />
+                                <span>Posts: {completedPosts} / {targetPosts}</span>
                               </span>
-                            </button>
-                          ))}
-                          {checklist.length > 4 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedEventItem({ activityType: 'video_shoot', item: row });
-                                setShowEventDetailModal(true);
-                              }}
-                              className="text-[10px] px-1.5 py-0.5 rounded-md bg-secondary hover:bg-secondary/80 text-muted-foreground font-semibold cursor-pointer"
-                            >
-                              +{checklist.length - 4} more
-                            </button>
-                          )}
-                          {checklist.length === 0 && (
-                            <span className="text-[11px] text-muted-foreground italic">No checklist items set</span>
-                          )}
-                        </div>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                                  isPostsMet
+                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                    : completedPosts > 0
+                                    ? 'bg-primary/10 text-primary border-primary/20'
+                                    : 'bg-muted text-muted-foreground border-border'
+                                }`}
+                              >
+                                {postsPct}%
+                              </span>
+                            </div>
+
+                            <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                              <div
+                                className={`h-full transition-all duration-300 rounded-full ${isPostsMet ? 'bg-emerald-500' : 'bg-primary'}`}
+                                style={{ width: `${Math.min(postsPct, 100)}%` }}
+                              />
+                            </div>
+
+                            {postItems.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-0.5">
+                                {postItems.slice(0, pillLimit).map((item) => (
+                                  <button
+                                    key={item._origIndex}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickToggle(item._origIndex);
+                                    }}
+                                    className={`text-[10px] px-2 py-0.5 rounded-lg border font-medium flex items-center gap-1 transition-all cursor-pointer ${
+                                      item.completed
+                                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                                        : 'bg-background hover:bg-primary/5 text-foreground border-border/80'
+                                    }`}
+                                    title={item.completed ? 'Click to mark pending' : 'Click to mark finished'}
+                                  >
+                                    <span
+                                      className={`w-3.5 h-3.5 rounded flex items-center justify-center text-[9px] border font-bold ${
+                                        item.completed ? 'bg-emerald-500 text-white border-emerald-500' : 'border-primary/40 text-primary'
+                                      }`}
+                                    >
+                                      {item.completed ? '✓' : 'P'}
+                                    </span>
+                                    <span className={`truncate max-w-[95px] ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                      {item.title}
+                                    </span>
+                                  </button>
+                                ))}
+                                {postItems.length > pillLimit && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedEventItem({ activityType: 'video_shoot', item: row });
+                                      setShowEventDetailModal(true);
+                                    }}
+                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary font-semibold cursor-pointer"
+                                  >
+                                    +{postItems.length - pillLimit} more
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {!showReels && !showPosts && (
+                          <span className="text-[11px] text-muted-foreground italic">No Reels or Posts checklist set</span>
+                        )}
                       </div>
                     );
                   },
@@ -1226,6 +1348,7 @@ const DMCalendar = () => {
                 { key: 'shoots', label: 'Video Shoots', render: (row) => row.totalShoots },
                 { key: 'contents', label: 'Contents (Done/Planned)', render: (row) => `${row.contentsCompleted} / ${row.contentsPlanned}` },
                 { key: 'reels', label: 'Reels (Done/Planned)', render: (row) => `${row.reelsCompleted} / ${row.reelsPlanned}` },
+                { key: 'posts', label: 'Posts (Done/Planned)', render: (row) => `${row.postsCompleted || 0} / ${row.postsPlanned || 0}` },
                 { key: 'rj', label: 'RJ Spots', render: (row) => row.rjPromotionsCount },
                 { key: 'vj', label: 'VJ Spots', render: (row) => row.vjPromotionsCount },
                 { key: 'expenses', label: 'Total Expenses', render: (row) => currency.format(row.totalExpenses) },
@@ -1344,7 +1467,7 @@ const DMCalendar = () => {
       <DMEventDetailModal
         open={showEventDetailModal}
         onOpenChange={setShowEventDetailModal}
-        eventItem={selectedEventItem}
+        eventItem={liveSelectedEventItem}
         onEdit={(item) => {
           if (item.plannedContents !== undefined) { setSelectedShoot(item); setShowVideoModal(true); }
           else if (item.platform) { setSelectedVj(item); setShowVjModal(true); }

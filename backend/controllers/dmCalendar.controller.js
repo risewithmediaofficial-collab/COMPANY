@@ -646,6 +646,8 @@ export const getDMDashboardSummary = async (req, res) => {
     let totalContentsCompleted = 0;
     let totalReelsPlanned = 0;
     let totalReelsCompleted = 0;
+    let totalPostsPlanned = 0;
+    let totalPostsCompleted = 0;
     let totalShootExpenses = 0;
     let totalShootPaid = 0;
 
@@ -654,6 +656,8 @@ export const getDMDashboardSummary = async (req, res) => {
       totalContentsCompleted += s.completedContents || 0;
       totalReelsPlanned += s.plannedReels || 0;
       totalReelsCompleted += s.completedReels || 0;
+      totalPostsPlanned += s.plannedPosts || 0;
+      totalPostsCompleted += s.completedPosts || 0;
       totalShootExpenses += s.totalAmount || 0;
       totalShootPaid += s.amountPaid || 0;
     });
@@ -664,6 +668,10 @@ export const getDMDashboardSummary = async (req, res) => {
 
     const reelsCompletionPct = totalReelsPlanned > 0
       ? Number(((totalReelsCompleted / totalReelsPlanned) * 100).toFixed(1))
+      : 0;
+
+    const postsCompletionPct = totalPostsPlanned > 0
+      ? Number(((totalPostsCompleted / totalPostsPlanned) * 100).toFixed(1))
       : 0;
 
     // RJ Metrics
@@ -704,6 +712,9 @@ export const getDMDashboardSummary = async (req, res) => {
           totalReelsPlanned,
           totalReelsCompleted,
           reelsCompletionPct,
+          totalPostsPlanned,
+          totalPostsCompleted,
+          postsCompletionPct,
           totalExpenses: totalShootExpenses,
           totalPaid: totalShootPaid,
           outstandingAmount: totalShootExpenses - totalShootPaid,
@@ -758,6 +769,8 @@ export const getDMClientPerformance = async (req, res) => {
       let contentsCompleted = 0;
       let reelsPlanned = 0;
       let reelsCompleted = 0;
+      let postsPlanned = 0;
+      let postsCompleted = 0;
       let totalExp = 0;
       let totalPaid = 0;
 
@@ -766,6 +779,8 @@ export const getDMClientPerformance = async (req, res) => {
         contentsCompleted += s.completedContents || 0;
         reelsPlanned += s.plannedReels || 0;
         reelsCompleted += s.completedReels || 0;
+        postsPlanned += s.plannedPosts || 0;
+        postsCompleted += s.completedPosts || 0;
         totalExp += s.totalAmount || 0;
         totalPaid += s.amountPaid || 0;
       });
@@ -792,6 +807,8 @@ export const getDMClientPerformance = async (req, res) => {
         contentsCompleted,
         reelsPlanned,
         reelsCompleted,
+        postsPlanned,
+        postsCompleted,
         rjPromotionsCount: cRj.length,
         vjPromotionsCount: cVj.length,
         totalExpenses: totalExp,
