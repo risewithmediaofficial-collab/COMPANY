@@ -52,6 +52,7 @@ import {
   useFinanceAccounts,
 } from '../../../hooks/useFinance';
 import { formatINR, formatDateIST, exportToCSV } from '../../../utils/financeFormatters';
+import { useDateFilter } from '../../../context/DateFilterContext';
 
 const PaymentRemindersTab = lazy(() => import('./PaymentRemindersTab'));
 
@@ -90,6 +91,7 @@ export const formatExpenseCategory = (cat) => {
 };
 
 export default function ExpensesSection({ onQuickAdd }) {
+  const { startDate: fromDate, endDate: toDate, period: globalPeriod, isDateInRange, resetDateFilter } = useDateFilter();
   const [activeTab, setActiveTab] = useState('expenses'); // 'expenses' | 'payees' | 'subscriptions' | 'payment_reminders'
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
@@ -97,99 +99,9 @@ export default function ExpensesSection({ onQuickAdd }) {
   const deferredSearch = useDeferredValue(search);
   const [payeeSearch, setPayeeSearch] = useState('');
   const deferredPayeeSearch = useDeferredValue(payeeSearch);
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [datePreset, setDatePreset] = useState('all'); // 'all' | 'this_week' | 'this_month' | 'this_year' | 'custom'
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [dateSort, setDateSort] = useState('desc'); // 'desc' (newest first) | 'asc' (oldest first)
-
-  // Payee ledger date filter state
-  const [payeeDatePreset, setPayeeDatePreset] = useState('all');
-  const [payeeFromDate, setPayeeFromDate] = useState('');
-  const [payeeToDate, setPayeeToDate] = useState('');
   const [showPayeeExportMenu, setShowPayeeExportMenu] = useState(false);
-
-  const setQuickDatePreset = (preset) => {
-    setDatePreset(preset);
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-
-    if (preset === 'all') {
-      setFromDate('');
-      setToDate('');
-      return;
-    }
-
-    if (preset === 'this_week') {
-      const day = now.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day;
-      const monday = new Date(now);
-      monday.setDate(now.getDate() + diffToMonday);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-
-      setFromDate(`${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`);
-      setToDate(`${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`);
-      return;
-    }
-
-    if (preset === 'this_month') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-      setFromDate(`${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`);
-      setToDate(`${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`);
-      return;
-    }
-
-    if (preset === 'this_year') {
-      const year = now.getFullYear();
-      setFromDate(`${year}-01-01`);
-      setToDate(`${year}-12-31`);
-      return;
-    }
-  };
-
-  const setQuickPayeeDatePreset = (preset) => {
-    setPayeeDatePreset(preset);
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-
-    if (preset === 'all') {
-      setPayeeFromDate('');
-      setPayeeToDate('');
-      return;
-    }
-
-    if (preset === 'this_week') {
-      const day = now.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day;
-      const monday = new Date(now);
-      monday.setDate(now.getDate() + diffToMonday);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-
-      setPayeeFromDate(`${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`);
-      setPayeeToDate(`${sunday.getFullYear()}-${pad(sunday.getMonth() + 1)}-${pad(sunday.getDate())}`);
-      return;
-    }
-
-    if (preset === 'this_month') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-      setPayeeFromDate(`${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`);
-      setPayeeToDate(`${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`);
-      return;
-    }
-
-    if (preset === 'this_year') {
-      const year = now.getFullYear();
-      setPayeeFromDate(`${year}-01-01`);
-      setPayeeToDate(`${year}-12-31`);
-      return;
-    }
-  };
 
   // Payee / Vendor Ledger & Expense Details Sidebar State
   const [selectedPayeeForLedger, setSelectedPayeeForLedger] = useState(null);
@@ -430,14 +342,7 @@ export default function ExpensesSection({ onQuickAdd }) {
   const filteredExpenses = useMemo(() => {
     return expenses.filter((e) => {
       const expDate = e.date || e.createdAt;
-      if (fromDate && expDate) {
-        const d = new Date(expDate).toISOString().slice(0, 10);
-        if (d < fromDate) return false;
-      }
-      if (toDate && expDate) {
-        const d = new Date(expDate).toISOString().slice(0, 10);
-        if (d > toDate) return false;
-      }
+      if (!isDateInRange(expDate)) return false;
       if (!deferredSearch.trim()) return true;
       const q = deferredSearch.toLowerCase();
       const title = (e.title || '').toLowerCase();
@@ -445,7 +350,7 @@ export default function ExpensesSection({ onQuickAdd }) {
       const cat = (e.category || '').toLowerCase();
       return title.includes(q) || vendor.includes(q) || cat.includes(q);
     });
-  }, [expenses, fromDate, toDate, deferredSearch]);
+  }, [expenses, isDateInRange, deferredSearch]);
 
   const sortedExpenses = useMemo(() => {
     return [...filteredExpenses].sort((a, b) => {
@@ -538,17 +443,9 @@ export default function ExpensesSection({ onQuickAdd }) {
     if (!activePayeeDetails?.items) return [];
     return activePayeeDetails.items.filter((item) => {
       const expDate = item.date || item.createdAt;
-      if (payeeFromDate && expDate) {
-        const d = new Date(expDate).toISOString().slice(0, 10);
-        if (d < payeeFromDate) return false;
-      }
-      if (payeeToDate && expDate) {
-        const d = new Date(expDate).toISOString().slice(0, 10);
-        if (d > payeeToDate) return false;
-      }
-      return true;
+      return isDateInRange(expDate);
     });
-  }, [activePayeeDetails, payeeFromDate, payeeToDate]);
+  }, [activePayeeDetails, isDateInRange]);
 
   const payeeFilteredTotal = useMemo(
     () => displayedPayeeItems.reduce((s, e) => s + e.total, 0),
@@ -677,12 +574,12 @@ export default function ExpensesSection({ onQuickAdd }) {
 
     let periodLabel = customPeriodLabel;
     if (!periodLabel) {
-      periodLabel = datePreset === 'this_week'
-        ? 'this_week'
-        : datePreset === 'this_month'
+      periodLabel = globalPeriod === 'this_month'
         ? 'this_month'
-        : datePreset === 'this_year'
-        ? 'this_year'
+        : globalPeriod === 'previous_month'
+        ? 'previous_month'
+        : globalPeriod === 'yearly'
+        ? 'yearly'
         : (fromDate && toDate ? `${fromDate}_to_${toDate}` : 'all_time');
     }
 
@@ -745,12 +642,12 @@ export default function ExpensesSection({ onQuickAdd }) {
     }
 
     const dateScope = periodDescription || (
-      datePreset === 'this_week'
-        ? `This Week (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
-        : datePreset === 'this_month'
+      globalPeriod === 'this_month'
         ? `This Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
-        : datePreset === 'this_year'
-        ? `This Year (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+        : globalPeriod === 'previous_month'
+        ? `Previous Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+        : globalPeriod === 'yearly'
+        ? `Yearly (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
         : fromDate && toDate
         ? `${formatDateIST(fromDate)} – ${formatDateIST(toDate)}`
         : 'All Time Records'
@@ -1002,116 +899,6 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <option value="partially_paid">Partially Paid Bills</option>
                 <option value="unpaid">Unpaid Vendor Bills</option>
               </select>
-
-              {/* Quick Date Presets */}
-              <div className="flex items-center gap-1 bg-muted p-0.5 rounded-lg border border-border overflow-x-auto max-w-full no-scrollbar">
-                <button
-                  type="button"
-                  onClick={() => setQuickDatePreset('all')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
-                    datePreset === 'all'
-                      ? 'bg-primary text-primary-foreground shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  All
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickDatePreset('this_week')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
-                    datePreset === 'this_week'
-                      ? 'bg-primary text-primary-foreground shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  This Week
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickDatePreset('this_month')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
-                    datePreset === 'this_month'
-                      ? 'bg-primary text-primary-foreground shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  This Month
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickDatePreset('this_year')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
-                    datePreset === 'this_year'
-                      ? 'bg-primary text-primary-foreground shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  This Year
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setQuickDatePreset('custom')}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer shrink-0 ${
-                    datePreset === 'custom'
-                      ? 'bg-primary text-primary-foreground shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  Date to Date
-                </button>
-              </div>
-
-              {/* Date to Date Filter Inputs */}
-              <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 bg-muted/40 border border-border rounded-lg px-2 py-1 w-full sm:w-auto">
-                <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="text-[11px] font-semibold text-muted-foreground">Dates:</span>
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => {
-                    setFromDate(e.target.value);
-                    setDatePreset('custom');
-                  }}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  title="From Date"
-                  className="px-1.5 py-1 sm:py-0.5 rounded border border-border bg-background text-[11px] text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary flex-1 sm:flex-initial min-w-[110px]"
-                />
-                <span className="text-[10px] text-muted-foreground font-bold">to</span>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => {
-                    setToDate(e.target.value);
-                    setDatePreset('custom');
-                  }}
-                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  title="To Date"
-                  className="px-1.5 py-1 sm:py-0.5 rounded border border-border bg-background text-[11px] text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary flex-1 sm:flex-initial min-w-[110px]"
-                />
-                {(fromDate || toDate) && (
-                  <button
-                    type="button"
-                    onClick={() => setQuickDatePreset('all')}
-                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                    title="Reset Date Range"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-
-              {/* Date Sorting Dropdown */}
-              <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                <select
-                  value={dateSort}
-                  onChange={(e) => setDateSort(e.target.value)}
-                  className="w-full sm:w-auto rounded-lg border border-border px-2.5 py-2 sm:py-1.5 text-xs bg-background text-foreground font-semibold cursor-pointer min-h-[36px]"
-                >
-                  <option value="desc">Date: Newest First (Desc)</option>
-                  <option value="asc">Date: Oldest First (Asc)</option>
-                </select>
-              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
@@ -3150,105 +2937,21 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </DialogHeader>
 
                 <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                  {/* Date Filters & Export Statement Bar */}
+                  {/* Active Date Scope & Export Statement Bar */}
                   <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 bg-muted/40 rounded-xl border border-border">
-                    <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto flex-1">
-                      {/* Preset Pills */}
-                      <div className="flex items-center gap-0.5 bg-background p-0.5 rounded-lg border border-border shadow-2xs overflow-x-auto max-w-full no-scrollbar">
-                        <button
-                          type="button"
-                          onClick={() => setQuickPayeeDatePreset('all')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
-                            payeeDatePreset === 'all'
-                              ? 'bg-primary text-primary-foreground shadow-2xs'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          All
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setQuickPayeeDatePreset('this_week')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
-                            payeeDatePreset === 'this_week'
-                              ? 'bg-primary text-primary-foreground shadow-2xs'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          This Week
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setQuickPayeeDatePreset('this_month')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
-                            payeeDatePreset === 'this_month'
-                              ? 'bg-primary text-primary-foreground shadow-2xs'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          This Month
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setQuickPayeeDatePreset('this_year')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
-                            payeeDatePreset === 'this_year'
-                              ? 'bg-primary text-primary-foreground shadow-2xs'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          This Year
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setQuickPayeeDatePreset('custom')}
-                          className={`px-2 py-1 rounded-md text-[11px] font-bold cursor-pointer transition-all shrink-0 ${
-                            payeeDatePreset === 'custom'
-                              ? 'bg-primary text-primary-foreground shadow-2xs'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          Date to Date
-                        </button>
-                      </div>
-
-                      {/* Date Range Inputs */}
-                      <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 bg-background border border-border rounded-lg px-2 py-1 shadow-2xs w-full sm:w-auto">
-                        <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <input
-                          type="date"
-                          value={payeeFromDate}
-                          onChange={(e) => {
-                            setPayeeFromDate(e.target.value);
-                            setPayeeDatePreset('custom');
-                          }}
-                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                          title="From Date"
-                          className="px-1 py-0.5 rounded border border-border bg-background text-[11px] text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary flex-1 sm:flex-initial min-w-[105px]"
-                        />
-                        <span className="text-[10px] text-muted-foreground font-bold">to</span>
-                        <input
-                          type="date"
-                          value={payeeToDate}
-                          onChange={(e) => {
-                            setPayeeToDate(e.target.value);
-                            setPayeeDatePreset('custom');
-                          }}
-                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                          title="To Date"
-                          className="px-1 py-0.5 rounded border border-border bg-background text-[11px] text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary flex-1 sm:flex-initial min-w-[105px]"
-                        />
-                        {(payeeFromDate || payeeToDate) && (
-                          <button
-                            type="button"
-                            onClick={() => setQuickPayeeDatePreset('all')}
-                            className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                            title="Reset Dates"
-                          >
-                            <X className="h-3.5 w-3.5 shrink-0" />
-                          </button>
-                        )}
-                      </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="font-semibold text-muted-foreground">Period:</span>
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border tabular-nums">
+                        {globalPeriod === 'this_month'
+                          ? `This Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+                          : globalPeriod === 'previous_month'
+                          ? `Previous Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+                          : globalPeriod === 'yearly'
+                          ? `Yearly (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+                          : fromDate && toDate
+                          ? `${formatDateIST(fromDate)} – ${formatDateIST(toDate)}`
+                          : 'All Time Records'}
+                      </span>
                     </div>
 
                     {/* Export Statement Dropdown */}
@@ -3271,14 +2974,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                               handleExportCSV(
                                 displayedPayeeItems,
                                 `statement_${(activePayeeDetails.name || 'payee').replace(/[^a-z0-9]/gi, '_')}`,
-                                payeeDatePreset === 'this_week'
-                                  ? 'this_week'
-                                  : payeeDatePreset === 'this_month'
+                                globalPeriod === 'this_month'
                                   ? 'this_month'
-                                  : payeeDatePreset === 'this_year'
-                                  ? 'this_year'
-                                  : payeeFromDate && payeeToDate
-                                  ? `${payeeFromDate}_to_${payeeToDate}`
+                                  : globalPeriod === 'previous_month'
+                                  ? 'previous_month'
+                                  : globalPeriod === 'yearly'
+                                  ? 'yearly'
+                                  : fromDate && toDate
+                                  ? `${fromDate}_to_${toDate}`
                                   : 'all_time'
                               );
                             }}
@@ -3294,14 +2997,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                               handlePrintReport(
                                 displayedPayeeItems,
                                 `Payee Statement & Ledger: ${activePayeeDetails.name}`,
-                                payeeDatePreset === 'this_week'
-                                  ? `This Week (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
-                                  : payeeDatePreset === 'this_month'
-                                  ? `This Month (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
-                                  : payeeDatePreset === 'this_year'
-                                  ? `This Year (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
-                                  : payeeFromDate && payeeToDate
-                                  ? `${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)}`
+                                globalPeriod === 'this_month'
+                                  ? `This Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+                                  : globalPeriod === 'previous_month'
+                                  ? `Previous Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+                                  : globalPeriod === 'yearly'
+                                  ? `Yearly (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
+                                  : fromDate && toDate
+                                  ? `${formatDateIST(fromDate)} – ${formatDateIST(toDate)}`
                                   : 'All Time Statement',
                                 `Individual vendor statement & payment clearance ledger for ${activePayeeDetails.name}`
                               );
@@ -3314,33 +3017,6 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* Active Period Indicator Badge */}
-                  <div className="flex items-center justify-between text-xs px-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-muted-foreground">Period:</span>
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border tabular-nums">
-                        {payeeDatePreset === 'this_week'
-                          ? `This Week (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
-                          : payeeDatePreset === 'this_month'
-                          ? `This Month (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
-                          : payeeDatePreset === 'this_year'
-                          ? `This Year (${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)})`
-                          : payeeFromDate && payeeToDate
-                          ? `${formatDateIST(payeeFromDate)} – ${formatDateIST(payeeToDate)}`
-                          : 'All Time Records'}
-                      </span>
-                    </div>
-                    {(payeeFromDate || payeeToDate || payeeDatePreset !== 'all') && (
-                      <button
-                        type="button"
-                        onClick={() => setQuickPayeeDatePreset('all')}
-                        className="text-[11px] text-foreground font-semibold hover:underline cursor-pointer"
-                      >
-                        Reset to All Records
-                      </button>
-                    )}
                   </div>
 
                   {/* KPI Cards Strip */}
@@ -3411,7 +3087,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           <p className="font-medium text-xs">No transaction records found for the selected date filter.</p>
                           <button
                             type="button"
-                            onClick={() => setQuickPayeeDatePreset('all')}
+                            onClick={resetDateFilter}
                             className="px-3 py-1 text-xs font-semibold rounded-lg bg-secondary text-foreground hover:bg-muted border border-border cursor-pointer"
                           >
                             Reset Date Filter
