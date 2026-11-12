@@ -2,17 +2,15 @@ import { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useEodReports } from '../../hooks/useEodReports';
 import { EODDetailModal } from '../../components/modals/EODDetailModal';
+import { useDateFilter } from '../../context/DateFilterContext';
 import api from '../../api';
 import { toast } from 'sonner';
 import {
   FileText,
-  Calendar,
   Download,
   CheckCircle2,
   Clock,
   AlertCircle,
-  ChevronLeft,
-  ChevronRight,
   FileDown,
   Filter,
   BarChart3,
@@ -20,12 +18,6 @@ import {
   Search,
   Eye,
 } from '@/components/ui/muiIcons';
-
-// ── Constants ────────────────────────────────────────────────────────────────
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 const formatDate = (d) =>
   new Date(d).toLocaleDateString('en-IN', {
@@ -47,70 +39,25 @@ const formatTime = (d) =>
 // ── Main Page Component ──────────────────────────────────────────────────────
 const MyEODReports = () => {
   const { user } = useSelector((state) => state.auth);
-  const now = new Date();
+  const { startDate: globalStartDate, endDate: globalEndDate, period: globalPeriod, isDateInRange } = useDateFilter();
 
   // Filters
-  const [rangeType, setRangeType] = useState('monthly'); // weekly | monthly | custom
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
-  const [customFrom, setCustomFrom] = useState('');
-  const [customTo, setCustomTo] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [exporting, setExporting] = useState(false);
 
-  // Compute days for fetching
-  const days = useMemo(() => {
-    if (rangeType === 'monthly') return 31;
-    if (rangeType === 'weekly') return 7;
-    if (rangeType === 'custom' && customFrom && customTo) {
-      const diff = Math.ceil(
-        (new Date(customTo) - new Date(customFrom)) / (1000 * 60 * 60 * 24)
-      );
-      return Math.max(diff + 1, 1);
-    }
-    return 30;
-  }, [rangeType, customFrom, customTo]);
-
   const queryParams = useMemo(() => {
-    return { mine: 'true' };
-  }, []);
+    const p = { mine: 'true' };
+    if (globalStartDate) p.startDate = globalStartDate;
+    if (globalEndDate) p.endDate = globalEndDate;
+    return p;
+  }, [globalStartDate, globalEndDate]);
 
-  const { data, isLoading, refetch } = useEodReports(days <= 365 ? days : 365, queryParams);
+  const { data, isLoading, refetch } = useEodReports((globalStartDate || globalEndDate) ? 'all' : 365, queryParams);
 
-  // Filter records based on current range selection
+  // Filter records based on global date filter + search
   const records = useMemo(() => {
-    let all = data?.records || [];
-
-    if (rangeType === 'monthly') {
-      all = all.filter((r) => {
-        const d = new Date(r.date);
-        return d.getMonth() + 1 === month && d.getFullYear() === year;
-      });
-    } else if (rangeType === 'weekly') {
-      const today = new Date();
-      const day = today.getDay();
-      const diffToMon = day === 0 ? -6 : 1 - day;
-      const weekStart = new Date(today);
-      weekStart.setDate(weekStart.getDate() + diffToMon);
-      weekStart.setHours(0, 0, 0, 0);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 6);
-      weekEnd.setHours(23, 59, 59, 999);
-      all = all.filter((r) => {
-        const d = new Date(r.date);
-        return d >= weekStart && d <= weekEnd;
-      });
-    } else if (rangeType === 'custom' && customFrom && customTo) {
-      const from = new Date(customFrom);
-      from.setHours(0, 0, 0, 0);
-      const to = new Date(customTo);
-      to.setHours(23, 59, 59, 999);
-      all = all.filter((r) => {
-        const d = new Date(r.date);
-        return d >= from && d <= to;
-      });
-    }
+    let all = (data?.records || []).filter((r) => isDateInRange(r.date));
 
     // Search filter
     if (searchQuery.trim()) {
@@ -126,7 +73,7 @@ const MyEODReports = () => {
     }
 
     return all.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [data, rangeType, month, year, customFrom, customTo, searchQuery]);
+  }, [data, isDateInRange, searchQuery]);
 
   // Stats
   const stats = useMemo(() => {
@@ -147,19 +94,17 @@ const MyEODReports = () => {
     setExporting(true);
     try {
       const params = {};
-      if (rangeType === 'weekly') {
-        params.range = 'weekly';
-      } else if (rangeType === 'monthly') {
-        // Calculate from/to for the selected month
-        const from = new Date(year, month - 1, 1);
-        const to = new Date(year, month, 0);
-        params.from = from.toISOString().split('T')[0];
-        params.to = to.toISOString().split('T')[0];
-      } else if (rangeType === 'custom' && customFrom && customTo) {
-        params.from = customFrom;
-        params.to = customTo;
+      if (globalStartDate && globalEndDate) {
+        params.from = globalStartDate;
+        params.to = globalEndDate;
+      } else if (globalStartDate) {
+        params.from = globalStartDate;
+        params.to = new Date().toISOString().split('T')[0];
+      } else if (globalEndDate) {
+        params.from = '2020-01-01';
+        params.to = globalEndDate;
       } else {
-        params.range = 'weekly';
+        params.range = 'monthly';
       }
 
       const response = await api.get('/attendance/eod-reports/export', {
@@ -176,7 +121,7 @@ const MyEODReports = () => {
 
       // Extract filename from content-disposition or build one
       const contentDisposition = response.headers['content-disposition'];
-      let filename = `EOD_Report_${rangeType}.docx`;
+      let filename = `EOD_Report_${globalPeriod || 'all'}.docx`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?(.+?)"?$/);
         if (match) filename = match[1];
@@ -199,24 +144,6 @@ const MyEODReports = () => {
       }
     } finally {
       setExporting(false);
-    }
-  };
-
-  const prevMonth = () => {
-    if (month === 1) {
-      setMonth(12);
-      setYear((y) => y - 1);
-    } else {
-      setMonth((m) => m - 1);
-    }
-  };
-
-  const nextMonth = () => {
-    if (month === 12) {
-      setMonth(1);
-      setYear((y) => y + 1);
-    } else {
-      setMonth((m) => m + 1);
     }
   };
 
@@ -273,79 +200,10 @@ const MyEODReports = () => {
       </div>
 
       {/* ── Filter Bar ── */}
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-xs space-y-3">
+      <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Range type tabs */}
-          <div className="flex items-center gap-1 bg-secondary/40 rounded-xl p-1 overflow-x-auto custom-scrollbar max-w-full">
-            {[
-              { id: 'weekly', label: 'This Week' },
-              { id: 'monthly', label: 'Monthly' },
-              { id: 'custom', label: 'Custom Range' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setRangeType(tab.id)}
-                className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 shrink-0 min-h-[36px] ${
-                  rangeType === tab.id
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Monthly selector */}
-          {rangeType === 'monthly' && (
-            <div className="flex items-center gap-1 bg-secondary/30 border border-border rounded-xl px-2 py-1">
-              <button
-                onClick={prevMonth}
-                className="p-1 rounded-lg hover:bg-secondary transition-colors"
-              >
-                <ChevronLeft size={14} />
-              </button>
-              <span className="text-xs font-bold text-foreground w-28 text-center">
-                {MONTHS[month - 1]} {year}
-              </span>
-              <button
-                onClick={nextMonth}
-                className="p-1 rounded-lg hover:bg-secondary transition-colors"
-              >
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          )}
-
-          {/* Custom date pickers */}
-          {rangeType === 'custom' && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">From</label>
-                <input
-                  type="date"
-                  value={customFrom}
-                  onChange={(e) => setCustomFrom(e.target.value)}
-                  max={customTo || undefined}
-                  className="px-2.5 py-1.5 text-xs rounded-lg border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
-                />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">To</label>
-                <input
-                  type="date"
-                  value={customTo}
-                  onChange={(e) => setCustomTo(e.target.value)}
-                  min={customFrom || undefined}
-                  max={new Date().toISOString().split('T')[0]}
-                  className="px-2.5 py-1.5 text-xs rounded-lg border border-border bg-background focus:border-primary outline-none text-foreground font-semibold"
-                />
-              </div>
-            </div>
-          )}
-
           {/* Search */}
-          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[180px] sm:max-w-xs sm:ml-auto">
+          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[220px] sm:max-w-sm">
             <Search
               size={14}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -531,8 +389,7 @@ const MyEODReports = () => {
         <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between shadow-xs">
           <span className="text-xs text-muted-foreground tabular-nums">
             Showing <strong className="text-foreground">{records.length}</strong> reports
-            {rangeType === 'monthly' && ` for ${MONTHS[month - 1]} ${year}`}
-            {rangeType === 'weekly' && ' for this week'}
+            {(globalStartDate || globalEndDate) && ` (${globalStartDate || '...'} to ${globalEndDate || '...'})`}
           </span>
           <button
             onClick={handleExport}

@@ -22,7 +22,6 @@ import { StatusBadge } from '../../components/ui/page';
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import { useSOPs, useCreateSOP, useUpdateSOP, useDeleteSOP } from '../../hooks/useSOP';
 import { toast } from 'sonner';
 import {

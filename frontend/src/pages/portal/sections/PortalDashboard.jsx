@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/muiIcons';
 import { toast } from 'sonner';
 import { useSocket } from '../../../context/SocketContext';
+import { useDateFilter } from '../../../context/DateFilterContext';
 import { exportProposalToPDF, exportInvoiceToPDF } from '../../../utils/pdfExport';
 import { CardSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
 import { useProposals } from '../../../hooks/useProposals';
@@ -39,16 +40,19 @@ export default function PortalDashboard({ user, setPendingCount }) {
   const [loading, setLoading] = useState(true);
 
   const socket = useSocket();
+  const { isDateInRange, isFiltered: isDateFiltered } = useDateFilter();
   const { data: clientProposals = [] } = useProposals();
 
   const proposalMetrics = useMemo(() => {
-    const list = Array.isArray(clientProposals) ? clientProposals : [];
+    const list = (Array.isArray(clientProposals) ? clientProposals : []).filter((p) =>
+      isDateInRange([p.sentDate, p.createdAt, p.validUntil])
+    );
     const total = list.length;
     const accepted = list.filter((p) => p.status === 'accepted').length;
     const pending = list.filter((p) => ['sent', 'viewed', 'draft', 'pending'].includes(p.status)).length;
     const totalValue = list.reduce((sum, p) => sum + Number(p.amount || 0), 0);
     return { total, accepted, pending, totalValue, list: list.slice(0, 5) };
-  }, [clientProposals]);
+  }, [clientProposals, isDateInRange]);
 
   const fetchData = () => {
     api.get('/portal/dashboard')
@@ -107,8 +111,34 @@ export default function PortalDashboard({ user, setPendingCount }) {
 
   const stats = data?.stats || {};
   const client = data?.client || {};
-  const projectMetrics = data?.projectMetrics || { total: 0, active: 0, completed: 0, projects: [] };
-  const taskMetrics = data?.taskMetrics || { total: 0, completed: 0, inProgress: 0, review: 0, pending: 0, completionRate: 0, tasks: [] };
+  const rawProjectMetrics = data?.projectMetrics || { total: 0, active: 0, completed: 0, projects: [] };
+  const filteredProjects = (rawProjectMetrics.projects || []).filter((p) =>
+    isDateInRange([p.startDate, p.dueDate, p.createdAt])
+  );
+  const projectMetrics = isDateFiltered
+    ? {
+        total: filteredProjects.length,
+        active: filteredProjects.filter((p) => ['active', 'in_progress', 'planning'].includes(p.status)).length,
+        completed: filteredProjects.filter((p) => ['completed', 'done'].includes(p.status)).length,
+        projects: filteredProjects,
+      }
+    : rawProjectMetrics;
+
+  const rawTaskMetrics = data?.taskMetrics || { total: 0, completed: 0, inProgress: 0, review: 0, pending: 0, completionRate: 0, tasks: [] };
+  const filteredTasks = (rawTaskMetrics.tasks || []).filter((t) =>
+    isDateInRange([t.dueDate, t.createdAt])
+  );
+  const taskMetrics = isDateFiltered
+    ? {
+        ...rawTaskMetrics,
+        total: filteredTasks.length,
+        completed: filteredTasks.filter((t) => ['done', 'approved', 'completed', 'Completed', 'Done', 'Approved'].includes(t.status)).length,
+        inProgress: filteredTasks.filter((t) => ['in_progress', 'on_process', 'review', 'In Progress', 'Internal Approval', 'review_required', 'rework'].includes(t.status)).length,
+        review: filteredTasks.filter((t) => ['client_approval', 'waiting_for_client', 'Client Approval'].includes(t.status)).length,
+        tasks: filteredTasks,
+      }
+    : rawTaskMetrics;
+
   const smmMetrics = data?.smmMetrics || {
     month: 'This Month',
     year: new Date().getFullYear(),
@@ -117,7 +147,7 @@ export default function PortalDashboard({ user, setPendingCount }) {
     stories: { planned: 0, posted: 0, pending: 0 },
     total: { planned: 0, posted: 0, pending: 0, completionRate: 0 },
   };
-  const invoiceMetrics = data?.invoiceMetrics || {
+  const rawInvoiceMetrics = data?.invoiceMetrics || {
     totalQuoted: 0,
     totalPaid: 0,
     balanceDue: 0,
@@ -125,7 +155,30 @@ export default function PortalDashboard({ user, setPendingCount }) {
     overdueCount: 0,
     recentInvoices: [],
   };
-  const adBudget = data?.adBudget;
+  const filteredInvoices = (rawInvoiceMetrics.recentInvoices || []).filter((inv) =>
+    isDateInRange([inv.invoiceDate, inv.dueDate, inv.createdAt])
+  );
+  const invoiceMetrics = isDateFiltered
+    ? {
+        ...rawInvoiceMetrics,
+        totalQuoted: filteredInvoices.reduce((sum, item) => sum + Number(item.totalAmount || item.total || 0), 0),
+        totalPaid: filteredInvoices.reduce((sum, item) => sum + Number(item.paidAmount || 0), 0),
+        balanceDue: filteredInvoices.reduce(
+          (sum, item) => sum + Number(item.balanceAmount !== undefined ? item.balanceAmount : Math.max(0, (item.totalAmount || item.total || 0) - (item.paidAmount || 0))),
+          0
+        ),
+        openCount: filteredInvoices.filter((item) => ['sent', 'overdue', 'partially_paid', 'draft'].includes(String(item.status).toLowerCase())).length,
+        recentInvoices: filteredInvoices,
+      }
+    : rawInvoiceMetrics;
+
+  const rawAdBudget = data?.adBudget;
+  const adBudget = rawAdBudget && isDateFiltered
+    ? {
+        ...rawAdBudget,
+        campaigns: (rawAdBudget.campaigns || []).filter((c) => isDateInRange([c.updatedAt, c.createdAt])),
+      }
+    : rawAdBudget;
   const tracker = data?.tracker || null;
 
   const handleProposalDownload = async (project) => {

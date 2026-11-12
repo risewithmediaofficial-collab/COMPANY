@@ -4,6 +4,7 @@ import api from '../../api/index';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { PageHeader } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import {
@@ -102,13 +103,13 @@ const KPICard = ({ icon: Icon, label, value, sub, testId }) => (
 
 // ─── Main AdBudgetDashboard Component ─────────────────────────────────────────
 export default function AdBudgetDashboard() {
+  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange } = useDateFilter();
+
   // ── Client List State ─────────────────────────────────────────────
   const [clientsList, setClientsList] = useState([]);
 
   // ── Filters State ─────────────────────────────────────────────────
   const [filterClient, setFilterClient] = useState('');
-  const [filterStartDate, setFilterStartDate] = useState('');
-  const [filterEndDate, setFilterEndDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   // ── Data State ────────────────────────────────────────────────────
@@ -178,8 +179,8 @@ export default function AdBudgetDashboard() {
     try {
       const params = {};
       if (filterClient) params.client = filterClient;
-      if (filterStartDate) params.startDate = filterStartDate;
-      if (filterEndDate) params.endDate = filterEndDate;
+      if (globalStartDate) params.startDate = globalStartDate;
+      if (globalEndDate) params.endDate = globalEndDate;
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const [listRes, sumRes] = await Promise.all([
@@ -188,7 +189,8 @@ export default function AdBudgetDashboard() {
       ]);
 
       if (listRes.data?.success) {
-        setBudgets(listRes.data.data || []);
+        const list = listRes.data.data || [];
+        setBudgets(list.filter((b) => isDateInRange([b.fromDate, b.toDate, b.createdAt])));
       } else {
         setBudgets([]);
       }
@@ -202,7 +204,7 @@ export default function AdBudgetDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [filterClient, filterStartDate, filterEndDate, searchQuery]);
+  }, [filterClient, globalStartDate, globalEndDate, isDateInRange, searchQuery]);
 
   useEffect(() => {
     fetchBudgetData();
@@ -438,8 +440,8 @@ export default function AdBudgetDashboard() {
     try {
       const params = {};
       if (filterClient) params.client = filterClient;
-      if (filterStartDate) params.startDate = filterStartDate;
-      if (filterEndDate) params.endDate = filterEndDate;
+      if (globalStartDate) params.startDate = globalStartDate;
+      if (globalEndDate) params.endDate = globalEndDate;
 
       const res = await smmApi.exportBudgetReport(params);
       const blob = new Blob([res.data], { type: 'text/csv' });
@@ -463,8 +465,6 @@ export default function AdBudgetDashboard() {
   // ── Reset Filters ─────────────────────────────────────────────────
   const handleResetFilters = () => {
     setFilterClient('');
-    setFilterStartDate('');
-    setFilterEndDate('');
     setSearchQuery('');
   };
 
@@ -548,7 +548,7 @@ export default function AdBudgetDashboard() {
               Filter Client Budgets
             </span>
           </div>
-          {(filterClient || filterStartDate || filterEndDate || searchQuery) && (
+          {(filterClient || searchQuery) && (
             <button
               id="reset-filters-btn"
               onClick={handleResetFilters}
@@ -560,7 +560,7 @@ export default function AdBudgetDashboard() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Client Filter */}
           <div>
             <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
@@ -579,34 +579,6 @@ export default function AdBudgetDashboard() {
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* From Date */}
-          <div>
-            <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-              From Date
-            </label>
-            <input
-              id="filter-start-date"
-              type="date"
-              value={filterStartDate}
-              onChange={e => setFilterStartDate(e.target.value)}
-              className="app-input w-full"
-            />
-          </div>
-
-          {/* To Date */}
-          <div>
-            <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-              To Date
-            </label>
-            <input
-              id="filter-end-date"
-              type="date"
-              value={filterEndDate}
-              onChange={e => setFilterEndDate(e.target.value)}
-              className="app-input w-full"
-            />
           </div>
 
           {/* Search */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Briefcase, Calendar, DollarSign, User, CheckSquare } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
@@ -7,13 +7,15 @@ import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { PlatformBadge } from '../../components/smm/PlatformBadge';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'react-hot-toast';
 import { useDebounce } from '../../hooks/useDebounce';
 
 const ALL_PLATFORMS = ['Meta Ads', 'Google Ads', 'LinkedIn', 'YouTube', 'TikTok', 'Instagram'];
 
 export default function SMMProjects() {
-  const [projects, setProjects] = useState([]);
+  const { startDate, endDate, isDateInRange } = useDateFilter();
+  const [rawProjects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -30,7 +32,7 @@ export default function SMMProjects() {
     try {
       if (showLoading) setLoading(true);
       const [projRes, clientRes] = await Promise.all([
-        smmApi.getProjects({ search: debouncedSearch, status: statusFilter }),
+        smmApi.getProjects({ search: debouncedSearch, status: statusFilter, startDate: startDate || undefined, endDate: endDate || undefined }),
         smmApi.getClients({ limit: 100 }),
       ]);
       if (projRes.data?.success) setProjects(projRes.data.data);
@@ -50,7 +52,12 @@ export default function SMMProjects() {
       }
     }, 90000);
     return () => clearInterval(interval);
-  }, [debouncedSearch, statusFilter]);
+  }, [debouncedSearch, statusFilter, startDate, endDate]);
+
+  const projects = useMemo(
+    () => (rawProjects || []).filter((p) => isDateInRange([p.startDate, p.endDate, p.createdAt])),
+    [rawProjects, isDateInRange]
+  );
 
   const handleSave = async (e) => {
     e.preventDefault();

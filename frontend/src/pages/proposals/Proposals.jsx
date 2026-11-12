@@ -21,6 +21,7 @@ import { AddProposalModal } from '../../components/modals/AddProposalModal';
 import { useProposals, useUpdateProposal, useDeleteProposal } from '../../hooks/useProposals';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { formatINR } from '../../utils/currency';
 import {
   AlertDialog,
@@ -44,6 +45,7 @@ const statusTone = {
 const Proposals = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const { isDateInRange } = useDateFilter();
   const canManage = ['superAdmin', 'admin', 'manager'].includes(user?.role);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -67,6 +69,7 @@ const Proposals = () => {
 
   const filteredProposals = useMemo(() => {
     return proposals.filter((p) => {
+      if (!isDateInRange([p.validUntil, p.issueDate, p.createdAt])) return false;
       const q = search.toLowerCase();
       const title = (p.title || '').toLowerCase();
       const client = (p.client?.name || p.client?.company || '').toLowerCase();
@@ -75,13 +78,17 @@ const Proposals = () => {
       const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [proposals, search, statusFilter]);
+  }, [proposals, isDateInRange, search, statusFilter]);
 
   // Statistics
-  const total = proposals.length;
-  const acceptedCount = proposals.filter((p) => p.status === 'accepted').length;
-  const sentCount = proposals.filter((p) => p.status === 'sent' || p.status === 'viewed').length;
-  const totalValue = proposals.reduce((sum, p) => sum + (Number(p.totalAmount) || 0), 0);
+  const dateFilteredProposals = useMemo(
+    () => proposals.filter((p) => isDateInRange([p.validUntil, p.issueDate, p.createdAt])),
+    [proposals, isDateInRange]
+  );
+  const total = dateFilteredProposals.length;
+  const acceptedCount = dateFilteredProposals.filter((p) => p.status === 'accepted').length;
+  const sentCount = dateFilteredProposals.filter((p) => p.status === 'sent' || p.status === 'viewed').length;
+  const totalValue = dateFilteredProposals.reduce((sum, p) => sum + (Number(p.totalAmount) || 0), 0);
 
   // Table Columns
   const tableColumns = [

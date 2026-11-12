@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { smmApi } from '../../api/smm';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { SMMFilterBar } from '../../components/smm/SMMFilterBar';
+import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Users, UserCheck, Award, TrendingUp, Plus, Trash2, Edit3, X,
   Phone, Mail, Target, DollarSign
@@ -18,6 +19,7 @@ import {
 import { Button } from '../../components/ui/button';
 
 export const SMMLeads = () => {
+  const { startDate, endDate, isDateInRange } = useDateFilter();
   const [leads, setLeads] = useState([]);
   const [stats, setStats] = useState({
     totalLeads: 0,
@@ -36,7 +38,6 @@ export const SMMLeads = () => {
     platform: '',
     contentType: '',
     campaignStatus: '',
-    dateRange: 'all',
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,15 +97,18 @@ export const SMMLeads = () => {
       const params = {
         client: filters.client || undefined,
         project: filters.project || undefined,
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       };
       const [leadsRes, statsRes] = await Promise.all([
         smmApi.getLeads(params),
         smmApi.getLeadStats(params),
       ]);
 
-      if (leadsRes.data?.success) setLeads(leadsRes.data.data || []);
+      if (leadsRes.data?.success) {
+        const rawLeads = leadsRes.data.data || [];
+        setLeads(rawLeads.filter((l) => isDateInRange([l.createdAt, l.date])));
+      }
       if (statsRes.data?.success) setStats(statsRes.data.data || {});
     } catch (err) {
       toast.error('Failed to load leads data');
@@ -115,7 +119,7 @@ export const SMMLeads = () => {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, [filters, startDate, endDate, isDateInRange]);
 
   const handleFilterChange = (keyOrObj, val) => {
     if (typeof keyOrObj === 'object' && keyOrObj !== null) {
@@ -200,7 +204,7 @@ export const SMMLeads = () => {
       <SMMFilterBar
         filters={filters}
         onFilterChange={handleFilterChange}
-        onReset={() => setFilters({ client: '', project: '', platform: '', contentType: '', campaignStatus: '', dateRange: 'all' })}
+        onReset={() => setFilters({ client: '', project: '', platform: '', contentType: '', campaignStatus: '' })}
       />
 
       {/* KPI Cards */}

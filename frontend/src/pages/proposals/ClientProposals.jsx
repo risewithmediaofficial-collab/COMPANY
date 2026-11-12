@@ -16,12 +16,18 @@ import {
   XCircle,
 } from '@/components/ui/muiIcons';
 import { useProposals } from '../../hooks/useProposals';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { formatINR } from '../../utils/currency';
 import { Button } from '../../components/ui/button';
 
 export default function ClientProposals() {
   const navigate = useNavigate();
-  const { data: proposals = [], isLoading } = useProposals();
+  const { isDateInRange } = useDateFilter();
+  const { data: rawProposals = [], isLoading } = useProposals();
+  const proposals = useMemo(
+    () => rawProposals.filter((p) => isDateInRange([p.validUntil, p.issueDate, p.createdAt])),
+    [rawProposals, isDateInRange]
+  );
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'accepted'
   const [searchQuery, setSearchQuery] = useState('');
 

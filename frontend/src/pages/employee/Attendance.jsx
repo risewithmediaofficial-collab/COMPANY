@@ -46,7 +46,6 @@ import { useEodReports } from '../../hooks/useEodReports';
 import { useUsers } from '../../hooks/useUsers';
 import { toast } from 'sonner';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   Dialog,
   DialogContent,
@@ -66,7 +65,7 @@ const formatTime = (isoString) => {
 
 const Attendance = () => {
   const { user } = useSelector((state) => state.auth);
-  const { isDateInRange } = useDateFilter();
+  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange } = useDateFilter();
   const isAdmin = ['superAdmin', 'admin', 'organizationOwner', 'manager', 'accountManager'].includes(user?.role) || Boolean(user?.permissions?.canManageHR || user?.permissions?.canManageEmployees);
   const isSuperAdmin = user?.role === 'superAdmin' || user?.role === 'admin';
 
@@ -91,7 +90,6 @@ const Attendance = () => {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [eodDays, setEodDays] = useState(30);
   const [selectedEodDetail, setSelectedEodDetail] = useState(null);
   const [showEOD, setShowEOD] = useState(false);
   const [showHolidayModal, setShowHolidayModal] = useState(false);
@@ -167,7 +165,11 @@ const Attendance = () => {
   const { data, isLoading } = useAttendance(attendanceFilters);
   const { data: teamTodayRecords = [] } = useTeamTodayAttendance({ enabled: isAdmin });
   const { data: users = [] } = useUsers({ enabled: isAdmin });
-  const { data: eodData, isLoading: isEodLoading } = useEodReports(eodDays, {}, { enabled: isAdmin });
+  const { data: eodData, isLoading: isEodLoading } = useEodReports(
+    (globalStartDate || globalEndDate) ? 'all' : 30,
+    { startDate: globalStartDate || undefined, endDate: globalEndDate || undefined },
+    { enabled: isAdmin }
+  );
 
   const clockIn = useClockIn();
   const clockOut = useClockOut();
@@ -1233,21 +1235,6 @@ const Attendance = () => {
                 </select>
               </div>
 
-              {/* Days range selector */}
-              <div className="flex items-center gap-2">
-                <Calendar size={16} className="text-muted-foreground" />
-                <select
-                  value={eodDays}
-                  onChange={(e) => setEodDays(Number(e.target.value))}
-                  className="app-select text-xs font-semibold py-2 px-3 rounded-xl border border-border bg-secondary/20"
-                >
-                  <option value={7}>Last 7 Days</option>
-                  <option value={14}>Last 14 Days</option>
-                  <option value={30}>Last 30 Days</option>
-                  <option value={90}>Last 90 Days</option>
-                </select>
-              </div>
-
               {/* Search */}
               <div className="relative flex-1 min-w-[180px] max-w-xs">
                 <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -1263,6 +1250,7 @@ const Attendance = () => {
 
             <div className="text-xs font-bold text-muted-foreground bg-secondary/30 px-3 py-1.5 rounded-xl border border-border">
               Showing {eodData?.records?.filter((r) => {
+                if (!isDateInRange(r.date)) return false;
                 if (selectedUser !== 'all' && (r.user?._id || r.user) !== selectedUser) return false;
                 if (!searchQuery.trim()) return true;
                 const q = searchQuery.toLowerCase();
@@ -1289,6 +1277,7 @@ const Attendance = () => {
           ) : (
             (() => {
               const filteredReports = (eodData?.records || []).filter((r) => {
+                if (!isDateInRange(r.date)) return false;
                 if (selectedUser !== 'all' && (r.user?._id || r.user) !== selectedUser) return false;
                 if (!searchQuery.trim()) return true;
                 const q = searchQuery.toLowerCase();

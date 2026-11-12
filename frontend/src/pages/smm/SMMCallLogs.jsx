@@ -32,6 +32,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { smmApi } from '../../api/smm';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Dialog,
   DialogContent,
@@ -92,6 +93,7 @@ const initialForm = {
 
 export default function SMMCallLogs() {
   const { user } = useSelector((state) => state.auth);
+  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange } = useDateFilter();
   const isAdmin = ['superAdmin', 'admin'].includes(user?.role);
 
   // Data states
@@ -115,7 +117,6 @@ export default function SMMCallLogs() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedCallType, setSelectedCallType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -154,20 +155,21 @@ export default function SMMCallLogs() {
       if (selectedStatus !== 'all') params.status = selectedStatus;
       if (selectedCallType !== 'all') params.callType = selectedCallType;
       if (searchQuery.trim()) params.search = searchQuery.trim();
-      if (dateFilter) {
-        params.startDate = dateFilter;
-        params.endDate = dateFilter;
-      }
+      if (globalStartDate) params.startDate = globalStartDate;
+      if (globalEndDate) params.endDate = globalEndDate;
 
       const [logsRes, statsRes] = await Promise.all([
         smmApi.getCallLogs(params),
         smmApi.getCallLogStats({
           clientId: selectedClient || undefined,
           projectId: selectedProject || undefined,
+          startDate: globalStartDate || undefined,
+          endDate: globalEndDate || undefined,
         }),
       ]);
 
-      setCallLogs(logsRes.data?.data || []);
+      const rawLogs = logsRes.data?.data || [];
+      setCallLogs(rawLogs.filter((l) => isDateInRange([l.callDate, l.createdAt])));
       if (statsRes.data?.data) {
         setStats(statsRes.data.data);
       }
@@ -182,7 +184,7 @@ export default function SMMCallLogs() {
 
   useEffect(() => {
     fetchCallLogs();
-  }, [selectedClient, selectedProject, selectedStatus, selectedCallType, dateFilter]);
+  }, [selectedClient, selectedProject, selectedStatus, selectedCallType, globalStartDate, globalEndDate, isDateInRange]);
 
   // Handle client selection in filter (resets project filter if incompatible)
   const handleClientFilterChange = (clientId) => {
@@ -215,7 +217,6 @@ export default function SMMCallLogs() {
     setSelectedStatus('all');
     setSelectedCallType('all');
     setSearchQuery('');
-    setDateFilter('');
   };
 
   // Open modal for Create
@@ -480,7 +481,7 @@ export default function SMMCallLogs() {
 
       {/* Filter & Search Bar */}
       <div className="bg-card border border-border rounded-2xl p-4 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* Client Filter */}
           <div>
             <label className="block text-[11px] font-bold text-muted-foreground mb-1">
@@ -546,19 +547,6 @@ export default function SMMCallLogs() {
               />
             </div>
           </div>
-
-          {/* Date Filter */}
-          <div>
-            <label className="block text-[11px] font-bold text-muted-foreground mb-1">
-              Filter by Call Date
-            </label>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full h-9 px-3 rounded-xl border border-border bg-background text-xs"
-            />
-          </div>
         </div>
 
         {/* Status Pills & Call Type row */}
@@ -594,8 +582,7 @@ export default function SMMCallLogs() {
             selectedProject ||
             selectedStatus !== 'all' ||
             selectedCallType !== 'all' ||
-            searchQuery ||
-            dateFilter) && (
+            searchQuery) && (
             <button
               onClick={handleResetFilters}
               className="text-xs text-primary font-semibold hover:underline"

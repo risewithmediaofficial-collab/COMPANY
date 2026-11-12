@@ -9,7 +9,6 @@ import { SelectDropdown } from '../../components/ui/SelectDropdown';
 import { Button } from '../../components/ui/button';
 import { PageHeader, PageToolbar, SectionCard, StatusBadge } from '../../components/ui/page';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const CALL_TYPES = ['Incoming', 'Outgoing', 'Missed', 'WhatsApp Call', 'Google Meet', 'Zoom', 'Direct Meeting'];
 const CALL_PURPOSES = ['Payment Follow-up', 'Task Discussion', 'Requirement Collection', 'Approval Follow-up', 'Rework Discussion', 'General Update', 'Complaint', 'Other'];

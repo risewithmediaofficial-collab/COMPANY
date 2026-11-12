@@ -255,6 +255,8 @@ export const getPortalDashboard = async (req, res) => {
         platform: c.platform,
         objective: c.objective,
         status: c.status,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
         monthlyBudget: c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0,
         dailyBudget: c.dailyBudget || 0,
         amountAdded: c.amountAdded || 0,
@@ -473,8 +475,8 @@ export const addContentFeedback = async (req, res) => {
 
 export const getReportingData = async (req, res) => {
   try {
-    const { year, clientId } = req.query;
-    const targetYear = year || new Date().getFullYear().toString();
+    const { year, clientId, startDate, endDate } = req.query;
+    const targetYear = year || (startDate ? startDate.slice(0, 4) : new Date().getFullYear().toString());
     
     const extraScope = {};
     if (req.user.role === 'client') {
@@ -488,8 +490,14 @@ export const getReportingData = async (req, res) => {
       extraScope.client = clientId;
     }
 
+    const monthFilter = {};
+    if (startDate || endDate) {
+      if (startDate) monthFilter.$gte = startDate.slice(0, 7);
+      if (endDate) monthFilter.$lte = endDate.slice(0, 7);
+    }
+
     const scope = withWorkspaceScope(req, {
-      month: { $regex: `^${targetYear}` },
+      ...(startDate || endDate ? { month: monthFilter } : { month: { $regex: `^${targetYear}` } }),
       ...extraScope,
     });
 
@@ -750,7 +758,7 @@ export const getClientAdBudget = async (req, res) => {
     }
 
     const campaigns = await Campaign.find({ client: client._id })
-      .select('name platform objective status dailyBudget lifetimeBudget amountAdded amountSpent remainingBalance internalNotes')
+      .select('name platform objective status dailyBudget lifetimeBudget amountAdded amountSpent remainingBalance internalNotes createdAt updatedAt')
       .sort({ updatedAt: -1 });
 
     const spendLogs = await SmmAdSpend.find({ client: client._id })
@@ -785,6 +793,8 @@ export const getClientAdBudget = async (req, res) => {
           platform: c.platform,
           objective: c.objective,
           status: c.status,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
           monthlyBudget: c.lifetimeBudget || (c.dailyBudget ? c.dailyBudget * 30 : 0) || c.amountAdded || 0,
           dailyBudget: c.dailyBudget || 0,
           amountAdded: c.amountAdded || 0,

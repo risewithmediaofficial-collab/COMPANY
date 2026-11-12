@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { PageHeader } from '../../components/ui/page';
 import {
   Code,
@@ -55,11 +56,15 @@ const STAGE_COLORS = {
 export default function DevelopmentDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { startDate, endDate } = useDateFilter();
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await devApi.getDashboard();
+      const res = await devApi.getDashboard({
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      });
       if (res.data?.success) {
         setData(res.data.data);
       }
@@ -69,7 +74,7 @@ export default function DevelopmentDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     fetchDashboard();

@@ -7,12 +7,14 @@ import { smmApi } from '../../api/smm';
 import api from '../../api/index';
 import { PageHeader } from '../../components/ui/page';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'react-hot-toast';
 
 export default function Reports() {
+  const { startDate, endDate, period: globalPeriod, isDateInRange } = useDateFilter();
   const [crmClients, setCrmClients] = useState([]);
   const [crmProjects, setCrmProjects] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
+  const [rawCampaigns, setRawCampaigns] = useState([]);
   const [videos, setVideos] = useState([]);
   const [dashboardData, setDashboardData] = useState(null);
   const [reportType, setReportType] = useState('monthly'); // 'monthly', 'weekly', 'daily'
@@ -22,8 +24,6 @@ export default function Reports() {
     project: '',
     campaign: '',
     platform: '',
-    startDate: '',
-    endDate: '',
   });
 
   const [strategyNotes, setStrategyNotes] = useState({
@@ -36,8 +36,12 @@ export default function Reports() {
       api.get('/clients'),
       api.get('/projects'),
       smmApi.getCampaigns({ limit: 100 }),
-      smmApi.getContents({ limit: 100 }),
-      smmApi.getDashboardStats({ client: filters.client || undefined }),
+      smmApi.getContents({ limit: 100, startDate: startDate || undefined, endDate: endDate || undefined }),
+      smmApi.getDashboardStats({
+        client: filters.client || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      }),
     ]).then(([cRes, pRes, campRes, vRes, dashRes]) => {
       if (cRes.data) {
         const list = cRes.data.clients || cRes.data.data || (Array.isArray(cRes.data) ? cRes.data : []);
@@ -50,13 +54,27 @@ export default function Reports() {
         const list = pRes.data.projects || pRes.data.data || (Array.isArray(pRes.data) ? pRes.data : []);
         setCrmProjects(list);
       }
-      if (campRes.data?.success) setCampaigns(campRes.data.data || []);
+      if (campRes.data?.success) setRawCampaigns(campRes.data.data || []);
       if (vRes.data?.success) setVideos(vRes.data.data || []);
       if (dashRes.data?.success) setDashboardData(dashRes.data.data);
     }).catch(err => {
       toast.error('Failed to load report parameters');
     });
-  }, [filters.client]);
+  }, [filters.client, startDate, endDate]);
+
+  const campaigns = React.useMemo(
+    () => rawCampaigns.filter((c) => isDateInRange([c.startDate, c.endDate, c.createdAt])),
+    [rawCampaigns, isDateInRange]
+  );
+
+  const periodDisplayLabel = React.useMemo(() => {
+    if (startDate && endDate) return `${startDate} to ${endDate}`;
+    if (startDate) return `From ${startDate}`;
+    if (endDate) return `Up to ${endDate}`;
+    return globalPeriod === 'yearly'
+      ? `${new Date().getFullYear()}`
+      : 'All Dates';
+  }, [startDate, endDate, globalPeriod]);
 
   const kpi = dashboardData?.kpi || {};
   const content = kpi.content || {};
@@ -155,7 +173,7 @@ export default function Reports() {
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1.5 font-medium">
               <span>Client: <strong className="text-foreground">{selectedClientObj?.company || selectedClientObj?.name}</strong></span>
               <span>·</span>
-              <span>Period: <strong className="text-foreground">August 2026</strong></span>
+              <span>Period: <strong className="text-foreground">{periodDisplayLabel}</strong></span>
               <span>·</span>
               <span className="tabular-nums">Generated: <strong className="text-foreground">{new Date().toLocaleDateString()}</strong></span>
             </div>

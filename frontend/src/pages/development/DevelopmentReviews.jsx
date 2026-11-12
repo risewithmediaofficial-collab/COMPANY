@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
+import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,8 @@ import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 
 export default function DevelopmentReviews() {
-  const [tasks, setTasks] = useState([]);
+  const { isDateInRange } = useDateFilter();
+  const [rawTasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState(null);
   const [actionType, setActionType] = useState(null); // 'approved' | 'changes_requested'
@@ -62,6 +64,11 @@ export default function DevelopmentReviews() {
   useEffect(() => {
     fetchReviewTasks();
   }, [fetchReviewTasks]);
+
+  const tasks = useMemo(
+    () => rawTasks.filter((t) => isDateInRange([t.dueDate, t.updatedAt, t.createdAt])),
+    [rawTasks, isDateInRange]
+  );
 
   const handleOpenAction = (task, type) => {
     setSelectedTask(task);

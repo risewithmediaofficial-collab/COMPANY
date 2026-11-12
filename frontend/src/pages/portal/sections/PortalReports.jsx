@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { formatINR } from '../../../utils/currency';
 import { CardSkeleton, ChartSkeleton, TableSkeleton } from '../../../components/ui/Skeleton';
+import { useDateFilter } from '../../../context/DateFilterContext';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -32,21 +33,26 @@ function fmt(n, currency = false) {
 
 export default function PortalReports() {
   const darkMode = useSelector((state) => state.ui?.darkMode);
+  const { startDate, endDate } = useDateFilter();
+  const year = startDate ? startDate.slice(0, 4) : new Date().getFullYear().toString();
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
-  const [year, setYear]       = useState(new Date().getFullYear().toString());
   const [activeChart, setActiveChart] = useState('totalRevenue');
 
   const load = () => {
     setLoading(true);
-    api.get(`/portal/reporting?year=${year}`)
+    const params = new URLSearchParams();
+    params.set('year', year);
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    api.get(`/portal/reporting?${params.toString()}`)
       .then(r => r.data)
       .then(d => setData(d))
       .catch(() => setData(null))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, [year]);
+  useEffect(() => { load(); }, [year, startDate, endDate]);
 
   // Format entries for charts
   const chartEntries = (data?.entries || []).map(e => ({
@@ -79,13 +85,6 @@ export default function PortalReports() {
           <p className="text-xs mt-0.5 text-muted-foreground">Monthly KPI tracking — AF Reporting Board</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={year}
-            onChange={e => setYear(e.target.value)}
-            className="px-3 py-2 rounded-xl text-xs border border-border bg-card text-foreground outline-none shadow-xs min-h-[38px]"
-          >
-            {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
           <button
             onClick={load}
             className="p-2 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shadow-xs min-h-[38px] min-w-[38px] flex items-center justify-center"

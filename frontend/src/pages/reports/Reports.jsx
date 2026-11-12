@@ -14,7 +14,6 @@ import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { formatINR } from '../../utils/currency';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   Dialog,
   DialogContent,
@@ -74,7 +73,6 @@ const titleCase = (value) => String(value || '')
 const Reports = () => {
   const { startDate, endDate } = useDateFilter();
   const { data, isLoading } = useAdminReport({ startDate, endDate });
-  const [period, setPeriod] = useState('6m');
   const [activeTab, setActiveTab] = useState('overall'); // 'overall' | 'employees'
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
@@ -387,7 +385,7 @@ const Reports = () => {
           <p className="text-muted-foreground text-sm mt-1">Company-wide revenue, pipeline health, and delivery metrics.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {activeTab === 'employees' ? (
+          {activeTab === 'employees' && (
             <div className="flex items-center gap-2 bg-card border border-border rounded-xl p-1 shadow-xs">
               <select
                 value={reportMonth}
@@ -407,18 +405,6 @@ const Reports = () => {
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1">
-              {['3m', '6m', '12m'].map(p => (
-                <button
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${period === p ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'}`}
-                >
-                  {p === '3m' ? '3 Months' : p === '6m' ? '6 Months' : '12 Months'}
-                </button>
-              ))}
             </div>
           )}
           <button

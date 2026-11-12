@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { smmApi } from '../../api/smm';
-import { Building2, FolderKanban, Calendar as CalendarIcon, Share2, Filter, RefreshCw, ChevronDown, ChevronUp } from '@/components/ui/muiIcons';
+import { Building2, FolderKanban, Share2, Filter, RefreshCw, ChevronDown, ChevronUp } from '@/components/ui/muiIcons';
 
 export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
   const [clients, setClients] = useState([]);
@@ -14,7 +14,6 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
     filters.platform,
     filters.contentType,
     filters.campaignStatus,
-    filters.dateRange && filters.dateRange !== 'all',
   ].filter(Boolean).length;
 
   useEffect(() => {
@@ -49,42 +48,6 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
     fetchProjects();
   }, [filters.client]);
 
-  const handleDateRangeSelect = (val) => {
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-
-    let start = '';
-    let end = '';
-
-    if (val === 'today') {
-      start = todayStr;
-      end = todayStr;
-    } else if (val === 'this_month') {
-      start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      end = todayStr;
-    } else if (val === 'last_30') {
-      start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      end = todayStr;
-    } else if (val === 'all') {
-      start = '';
-      end = '';
-    } else if (val === 'specific_date') {
-      start = filters.startDate || todayStr;
-      end = filters.startDate || todayStr;
-    } else if (val === 'custom') {
-      start = filters.startDate || todayStr;
-      end = filters.endDate || todayStr;
-    }
-
-    if (typeof onFilterChange === 'function') {
-      onFilterChange({
-        dateRange: val,
-        startDate: start,
-        endDate: end,
-      });
-    }
-  };
-
   return (
     <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-xs mb-4 sm:mb-6">
       <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/50 pb-2.5 sm:pb-3 mb-2.5 sm:mb-3">
@@ -115,7 +78,7 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
         </div>
       </div>
 
-      <div className={`${mobileOpen ? 'grid' : 'hidden sm:grid'} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3`}>
+      <div className={`${mobileOpen ? 'grid' : 'hidden sm:grid'} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3`}>
         {/* 1. Client Select */}
         <div>
           <label className="text-[11px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
@@ -214,72 +177,7 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
             <option value="Completed">Completed</option>
           </select>
         </div>
-
-        {/* 6. Date Range Select */}
-        <div>
-          <label className="text-[11px] font-medium text-muted-foreground mb-1 block flex items-center gap-1">
-            <CalendarIcon size={12} /> Date Range
-          </label>
-          <select
-            value={filters.dateRange || 'all'}
-            onChange={(e) => handleDateRangeSelect(e.target.value)}
-            className="w-full h-9 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all font-medium"
-          >
-            <option value="all">All Time</option>
-            <option value="today">Today</option>
-            <option value="specific_date">Specific Date...</option>
-            <option value="this_month">This Month</option>
-            <option value="last_30">Last 30 Days</option>
-            <option value="custom">Custom Date Range...</option>
-          </select>
-        </div>
       </div>
-
-      {/* Conditionally rendered Specific Date / Custom Date pickers */}
-      {filters.dateRange === 'specific_date' && (
-        <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-3">
-          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <CalendarIcon size={14} className="text-primary" /> Select Specific Date:
-          </span>
-          <input
-            type="date"
-            value={filters.startDate || ''}
-            onChange={(e) => {
-              onFilterChange({
-                startDate: e.target.value,
-                endDate: e.target.value,
-              });
-            }}
-            className="h-8 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden font-medium"
-          />
-        </div>
-      )}
-
-      {filters.dateRange === 'custom' && (
-        <div className="mt-3 pt-3 border-t border-border/40 flex flex-wrap items-center gap-4">
-          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-            <CalendarIcon size={14} className="text-primary" /> Custom Date Range:
-          </span>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground font-medium">From:</label>
-            <input
-              type="date"
-              value={filters.startDate || ''}
-              onChange={(e) => onFilterChange('startDate', e.target.value)}
-              className="h-8 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden font-medium"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground font-medium">To:</label>
-            <input
-              type="date"
-              value={filters.endDate || ''}
-              onChange={(e) => onFilterChange('endDate', e.target.value)}
-              className="h-8 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 outline-hidden font-medium"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

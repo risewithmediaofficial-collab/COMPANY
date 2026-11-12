@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { smmApi } from '../../api/smm';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { SMMFilterBar } from '../../components/smm/SMMFilterBar';
+import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Plus, Calendar as CalendarIcon, FileText, Image as ImageIcon,
   Share2, Eye, Edit3, Trash2, Megaphone, TrendingUp, X, CheckCircle2,
@@ -32,7 +33,8 @@ const NOT_POSTED_REASONS = [
 
 export const SMMContent = () => {
   const navigate = useNavigate();
-  const [contents, setContents] = useState([]);
+  const { startDate, endDate, isDateInRange } = useDateFilter();
+  const [rawContents, setRawContents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all'); // all, posted, not_posted, scheduled, pending_approval, performance
 
@@ -44,7 +46,6 @@ export const SMMContent = () => {
     contentType: '',
     notPostedReason: '',
     campaignStatus: '',
-    dateRange: 'all',
   });
 
   // Modal states
@@ -136,12 +137,12 @@ export const SMMContent = () => {
         contentType: filters.contentType || undefined,
         notPostedReason: filters.notPostedReason || undefined,
         tab: activeTab !== 'all' && activeTab !== 'performance' ? activeTab : undefined,
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       };
       const res = await smmApi.getContents(params);
       if (res.data?.success) {
-        setContents(res.data.data || []);
+        setRawContents(res.data.data || []);
       }
     } catch (err) {
       toast.error('Failed to load social media videos & content');
@@ -152,7 +153,15 @@ export const SMMContent = () => {
 
   useEffect(() => {
     fetchContents();
-  }, [filters, activeTab]);
+  }, [filters, activeTab, startDate, endDate]);
+
+  const contents = React.useMemo(
+    () =>
+      rawContents.filter((item) =>
+        isDateInRange([item.actualPostedDate, item.publishedDate, item.scheduledDate, item.createdAt])
+      ),
+    [rawContents, isDateInRange]
+  );
 
   const handleFilterChange = (keyOrObj, val) => {
     if (typeof keyOrObj === 'object' && keyOrObj !== null) {
@@ -357,7 +366,7 @@ export const SMMContent = () => {
         </div>
       </div>
 
-      <SMMFilterBar filters={filters} onFilterChange={handleFilterChange} onReset={() => setFilters({ client: '', project: '', platform: '', contentType: '', notPostedReason: '', campaignStatus: '', dateRange: 'all' })} />
+      <SMMFilterBar filters={filters} onFilterChange={handleFilterChange} onReset={() => setFilters({ client: '', project: '', platform: '', contentType: '', notPostedReason: '', campaignStatus: '' })} />
 
       {/* Sub Tabs: All Videos, Posted, Not Posted, Scheduled, Pending Approval, Performance */}
       <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] custom-scrollbar">

@@ -9,6 +9,7 @@ import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { PlatformBadge } from '../../components/smm/PlatformBadge';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
@@ -35,7 +36,8 @@ const createInitialDeposit = () => ({
 
 export default function Campaigns() {
   const navigate = useNavigate();
-  const [campaigns, setCampaigns] = useState([]);
+  const { startDate: globalStartDate, endDate: globalEndDate, isDateInRange } = useDateFilter();
+  const [rawCampaigns, setCampaigns] = useState([]);
   const [crmClients, setCrmClients] = useState([]);
   const [crmProjects, setCrmProjects] = useState([]);
   const [projectsList, setProjectsList] = useState([]);
@@ -78,7 +80,13 @@ export default function Campaigns() {
     try {
       setLoading(true);
       const [campRes, clientRes, projRes, videosRes] = await Promise.all([
-        smmApi.getCampaigns({ search, status: statusFilter, platform: platformFilter }),
+        smmApi.getCampaigns({
+          search,
+          status: statusFilter,
+          platform: platformFilter,
+          startDate: globalStartDate || undefined,
+          endDate: globalEndDate || undefined,
+        }),
         api.get('/clients'),
         api.get('/projects'),
         smmApi.getContents({ limit: 100 }),
@@ -97,7 +105,12 @@ export default function Campaigns() {
 
   useEffect(() => {
     fetchData();
-  }, [search, statusFilter, platformFilter]);
+  }, [search, statusFilter, platformFilter, globalStartDate, globalEndDate]);
+
+  const campaigns = useMemo(
+    () => rawCampaigns.filter((c) => isDateInRange([c.startDate, c.endDate, c.depositDate, c.createdAt])),
+    [rawCampaigns, isDateInRange]
+  );
 
   const handleBulkStatus = async (status) => {
     if (!selectedIds.length) return;

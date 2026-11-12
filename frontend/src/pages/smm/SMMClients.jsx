@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plus, Globe, Mail, Phone, MapPin, Building2, Clock, Trash2, Edit2, Search } from '@/components/ui/muiIcons';
 import { smmApi } from '../../api/smm';
 import { DataTable } from '../../components/ui/DataTable';
@@ -6,10 +6,12 @@ import { PageHeader, SearchField } from '../../components/ui/page';
 import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'react-hot-toast';
 
 export default function SMMClients() {
-  const [clients, setClients] = useState([]);
+  const { startDate, endDate, isDateInRange } = useDateFilter();
+  const [rawClients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -23,7 +25,7 @@ export default function SMMClients() {
   const fetchClients = async () => {
     try {
       setLoading(true);
-      const res = await smmApi.getClients({ search, status: statusFilter });
+      const res = await smmApi.getClients({ search, status: statusFilter, startDate: startDate || undefined, endDate: endDate || undefined });
       if (res.data?.success) setClients(res.data.data);
     } catch (err) {
       toast.error('Failed to load SMM Clients');
@@ -34,7 +36,12 @@ export default function SMMClients() {
 
   useEffect(() => {
     fetchClients();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, startDate, endDate]);
+
+  const clients = useMemo(
+    () => (rawClients || []).filter((c) => isDateInRange([c.createdAt, c.updatedAt])),
+    [rawClients, isDateInRange]
+  );
 
   const handleSave = async (e) => {
     e.preventDefault();

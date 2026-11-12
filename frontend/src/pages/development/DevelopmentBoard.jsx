@@ -4,6 +4,7 @@ import api from '../../api';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
 import { CreateDevTaskModal } from '../../components/development/CreateDevTaskModal';
 import {
@@ -78,6 +79,7 @@ export default function DevelopmentBoard() {
   const [filterBlockedOnly, setFilterBlockedOnly] = useState(false);
   const [filterBugOnly, setFilterBugOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { isDateInRange, isFiltered: isGlobalDateFiltered, resetDateFilter } = useDateFilter();
 
   useEffect(() => {
     if (urlProjectId && urlProjectId !== filterProject) {
@@ -244,14 +246,18 @@ export default function DevelopmentBoard() {
     return Array.from(map.values());
   }, [sprints, discoveredSprints]);
 
-  // Filter tasks by priority locally if selected
+  // Filter tasks by priority and global date filter locally
   const displayedTasks = useMemo(() => {
-    if (!filterPriority) return tasks;
-    return tasks.filter((t) => t.priority?.toLowerCase() === filterPriority.toLowerCase());
-  }, [tasks, filterPriority]);
+    return tasks.filter((t) => {
+      if (filterPriority && t.priority?.toLowerCase() !== filterPriority.toLowerCase()) {
+        return false;
+      }
+      return isDateInRange([t.dueDate, t.createdAt, t.updatedAt]);
+    });
+  }, [tasks, filterPriority, isDateInRange]);
 
   const hasActiveFilters = Boolean(
-    filterSprint || filterProject || filterDeveloper || filterPriority || filterBlockedOnly || filterBugOnly || searchQuery.trim()
+    filterSprint || filterProject || filterDeveloper || filterPriority || filterBlockedOnly || filterBugOnly || searchQuery.trim() || isGlobalDateFiltered
   );
 
   const clearAllFilters = () => {
@@ -262,6 +268,7 @@ export default function DevelopmentBoard() {
     setFilterBlockedOnly(false);
     setFilterBugOnly(false);
     setSearchQuery('');
+    if (isGlobalDateFiltered) resetDateFilter();
     if (urlProjectId) {
       const next = new URLSearchParams(searchParams);
       next.delete('project');

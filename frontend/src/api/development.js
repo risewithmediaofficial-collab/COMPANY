@@ -2,7 +2,7 @@ import api from './index';
 
 export const devApi = {
   // Dashboard & Tasks
-  getDashboard: () => api.get('/development/dashboard'),
+  getDashboard: (params) => api.get('/development/dashboard', { params }),
   getTasks: (params) => api.get('/development/tasks', { params }),
   getTask: (id) => api.get(`/development/tasks/${id}`),
   createTask: (data) => api.post('/development/tasks', data),

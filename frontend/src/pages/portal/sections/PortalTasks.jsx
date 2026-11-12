@@ -45,6 +45,7 @@ import {
 import { getAssetUrl } from '../../../utils/assetUrl';
 import { CardSkeleton } from '../../../components/ui/Skeleton';
 import { Button } from '../../../components/ui/button';
+import { useDateFilter } from '../../../context/DateFilterContext';
 
 // Helper to format file sizes cleanly
 const formatBytes = (bytes) => {
@@ -237,6 +238,7 @@ export default function PortalTasks() {
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'needs_review', 'in_progress', 'completed'
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all', 'website', 'content'
   const [previewImage, setPreviewImage] = useState(null);
+  const { isDateInRange } = useDateFilter();
 
   const { data, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['portal-tasks'],
@@ -246,7 +248,10 @@ export default function PortalTasks() {
     },
   });
 
-  const tasks = data || [];
+  const tasks = useMemo(
+    () => (data || []).filter((t) => isDateInRange([t.dueDate, t.createdAt, t.completedAt])),
+    [data, isDateInRange]
+  );
 
   // Summary Metrics calculations
   const metrics = useMemo(() => {

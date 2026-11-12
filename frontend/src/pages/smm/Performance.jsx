@@ -7,6 +7,7 @@ import {
 import { smmApi } from '../../api/smm';
 import { PageHeader } from '../../components/ui/page';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import {
@@ -15,9 +16,10 @@ import {
 
 export default function Performance() {
   const navigate = useNavigate();
+  const { startDate, endDate, isDateInRange } = useDateFilter();
   const [dashboardData, setDashboardData] = useState(null);
-  const [campaigns, setCampaigns] = useState([]);
-  const [videos, setVideos] = useState([]);
+  const [rawCampaigns, setRawCampaigns] = useState([]);
+  const [rawVideos, setRawVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState('');
   const [clientsList, setClientsList] = useState([]);
@@ -28,17 +30,21 @@ export default function Performance() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      const dateParams = {
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      };
       const [cRes, campRes, vRes, dashRes] = await Promise.all([
         smmApi.getClients().catch((err) => { console.error('SMM Analytics getClients error:', err); return { data: { success: false, data: [] } }; }),
-        smmApi.getCampaigns({ client: selectedClient || undefined }).catch((err) => { console.error('SMM Analytics getCampaigns error:', err); return { data: { success: false, data: [] } }; }),
-        smmApi.getContents({ client: selectedClient || undefined, limit: 100 }).catch((err) => { console.error('SMM Analytics getContents error:', err); return { data: { success: false, data: [] } }; }),
-        smmApi.getDashboardStats({ client: selectedClient || undefined }).catch((err) => { console.error('SMM Analytics getDashboardStats error:', err); return { data: { success: false, data: null } }; }),
+        smmApi.getCampaigns({ client: selectedClient || undefined, ...dateParams }).catch((err) => { console.error('SMM Analytics getCampaigns error:', err); return { data: { success: false, data: [] } }; }),
+        smmApi.getContents({ client: selectedClient || undefined, limit: 100, ...dateParams }).catch((err) => { console.error('SMM Analytics getContents error:', err); return { data: { success: false, data: [] } }; }),
+        smmApi.getDashboardStats({ client: selectedClient || undefined, ...dateParams }).catch((err) => { console.error('SMM Analytics getDashboardStats error:', err); return { data: { success: false, data: null } }; }),
       ]);
 
       if (cRes.data?.success) setClientsList(cRes.data.data || []);
-      if (campRes.data?.success) setCampaigns(campRes.data.data || []);
+      if (campRes.data?.success) setRawCampaigns(campRes.data.data || []);
       if (vRes.data?.success) {
-        setVideos(vRes.data.data || []);
+        setRawVideos(vRes.data.data || []);
         if (vRes.data.data?.length > 0 && !evaluatorVideoId) {
           setEvaluatorVideoId(vRes.data.data[0]._id);
         }
@@ -53,7 +59,16 @@ export default function Performance() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedClient]);
+  }, [selectedClient, startDate, endDate]);
+
+  const campaigns = React.useMemo(
+    () => rawCampaigns.filter((c) => isDateInRange([c.startDate, c.endDate, c.createdAt])),
+    [rawCampaigns, isDateInRange]
+  );
+  const videos = React.useMemo(
+    () => rawVideos.filter((v) => isDateInRange([v.actualPostedDate, v.publishedDate, v.scheduledDate, v.createdAt])),
+    [rawVideos, isDateInRange]
+  );
 
   const kpi = dashboardData?.kpi || {};
   const organicVsPaid = kpi.organicVsPaid || {};

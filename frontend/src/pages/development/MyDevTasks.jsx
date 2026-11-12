@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
+import { useDateFilter } from '../../context/DateFilterContext';
 import {
   CheckSquare,
   GitPullRequest,
@@ -19,6 +20,7 @@ import { toast } from 'react-hot-toast';
 
 export default function MyDevTasks() {
   const { user } = useSelector((state) => state.auth);
+  const { isDateInRange } = useDateFilter();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('assigned'); // assigned | reviews | qa
@@ -45,8 +47,9 @@ export default function MyDevTasks() {
     fetchMyTasks();
   }, [fetchMyTasks]);
 
-  // Filter tasks based on activeTab
-  const filteredTasks = tasks.filter((t) => {
+  // Filter tasks based on global date filter + activeTab
+  const filteredTasks = useMemo(() => tasks.filter((t) => {
+    if (!isDateInRange([t.dueDate, t.createdAt])) return false;
     const dev = t.development || {};
     const uId = user?._id?.toString();
 
@@ -67,7 +70,7 @@ export default function MyDevTasks() {
     }
 
     return true;
-  });
+  }), [tasks, isDateInRange, activeTab, user?._id]);
 
   return (
     <div className="space-y-6">

@@ -7,14 +7,16 @@ import { PageHeader, SearchField } from '../../components/ui/page';
 import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 
 export default function Ads() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { startDate, endDate, isDateInRange } = useDateFilter();
 
-  const [ads, setAds] = useState([]);
+  const [rawAds, setAds] = useState([]);
   const [adSets, setAdSets] = useState([]);
   const [videoList, setVideoList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ export default function Ads() {
     try {
       setLoading(true);
       const [adsRes, setsRes, videosRes] = await Promise.all([
-        smmApi.getAds({ search, approvalStatus: approvalFilter }),
+        smmApi.getAds({ search, approvalStatus: approvalFilter, startDate: startDate || undefined, endDate: endDate || undefined }),
         smmApi.getAdSets({ limit: 100 }),
         smmApi.getContents({ limit: 100 }),
       ]);
@@ -57,7 +59,12 @@ export default function Ads() {
 
   useEffect(() => {
     fetchData();
-  }, [search, approvalFilter]);
+  }, [search, approvalFilter, startDate, endDate]);
+
+  const ads = useMemo(
+    () => rawAds.filter((a) => isDateInRange([a.createdAt, a.updatedAt])),
+    [rawAds, isDateInRange]
+  );
 
   // If navigated from AdSets with location.state.adSet, pre-fill and open drawer
   useEffect(() => {

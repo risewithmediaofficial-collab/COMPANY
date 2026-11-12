@@ -49,7 +49,6 @@ import {
 import { WorkspacePage } from '../../components/ui/WorkspacePage';
 import { DatabaseView } from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
 
 const PIPELINE_STAGES = ['new', 'contacted', 'qualified', 'meeting_booked', 'proposal_sent', 'negotiation', 'won', 'lost', 'refollow_later'];
 

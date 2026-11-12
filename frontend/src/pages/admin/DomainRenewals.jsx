@@ -34,6 +34,7 @@ import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { formatINR } from '../../utils/currency';
 import {
   AlertDialog,
@@ -302,6 +303,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 };
 
 export default function DomainRenewals() {
+  const { isDateInRange } = useDateFilter();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -325,10 +327,13 @@ export default function DomainRenewals() {
   };
 
   const renewalsList = useMemo(() => {
-    if (Array.isArray(renewals)) return renewals;
-    if (Array.isArray(renewals?.records)) return renewals.records;
-    return [];
-  }, [renewals]);
+    const raw = Array.isArray(renewals)
+      ? renewals
+      : Array.isArray(renewals?.records)
+      ? renewals.records
+      : [];
+    return raw.filter((item) => isDateInRange([item.expiryDate, item.purchaseDate, item.createdAt]));
+  }, [renewals, isDateInRange]);
 
   const filteredRenewals = useMemo(() => {
     return renewalsList.filter((item) => {

@@ -650,7 +650,7 @@ export default function ExpensesSection({ onQuickAdd }) {
         ? `Yearly (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
         : fromDate && toDate
         ? `${formatDateIST(fromDate)} – ${formatDateIST(toDate)}`
-        : 'All Time Records'
+        : 'All Dates'
     );
 
     const rowsHtml = itemsToPrint.map((e, idx) => {
@@ -2950,7 +2950,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           ? `Yearly (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
                           : fromDate && toDate
                           ? `${formatDateIST(fromDate)} – ${formatDateIST(toDate)}`
-                          : 'All Time Records'}
+                          : 'All Dates'}
                       </span>
                     </div>
 
@@ -3005,7 +3005,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                   ? `Yearly (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
                                   : fromDate && toDate
                                   ? `${formatDateIST(fromDate)} – ${formatDateIST(toDate)}`
-                                  : 'All Time Statement',
+                                  : 'All Dates Statement',
                                 `Individual vendor statement & payment clearance ledger for ${activePayeeDetails.name}`
                               );
                             }}

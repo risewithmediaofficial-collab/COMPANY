@@ -5,6 +5,7 @@ import api from '../../../api';
 import { TableSkeleton } from '../../../components/ui/Skeleton';
 import { exportInvoiceToPDF } from '../../../utils/pdfExport';
 import { ShareInvoiceModal } from '../../../components/modals/ShareInvoiceModal';
+import { useDateFilter } from '../../../context/DateFilterContext';
 
 const currency = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -36,7 +37,8 @@ const normalizeStatus = (status) => {
 };
 
 export default function PortalInvoices() {
-  const [invoices, setInvoices] = useState([]);
+  const { isDateInRange } = useDateFilter();
+  const [rawInvoices, setInvoices] = useState([]);
   const [financeRecords, setFinanceRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [shareInvoice, setShareInvoice] = useState(null);
@@ -57,6 +59,11 @@ export default function PortalInvoices() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const invoices = useMemo(
+    () => rawInvoices.filter((inv) => isDateInRange([inv.issueDate, inv.dueDate, inv.createdAt])),
+    [rawInvoices, isDateInRange]
+  );
 
   const summary = useMemo(() => ({
     total: invoices.reduce((sum, item) => sum + Number(item.totalAmount || item.total || 0), 0),

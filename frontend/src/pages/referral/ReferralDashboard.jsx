@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dialog';
 import WorkspacePage from '../../components/ui/WorkspacePage';
 import DatabaseView from '../../components/ui/DatabaseView';
+import { useDateFilter } from '../../context/DateFilterContext';
 
 const statusTone = {
   submitted: 'bg-secondary text-muted-foreground border-border',
@@ -42,6 +43,7 @@ const statusTone = {
 
 const ReferralDashboard = () => {
   const { user } = useSelector((state) => state.auth);
+  const { isDateInRange } = useDateFilter();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLeadForm, setShowLeadForm] = useState(false);
@@ -98,7 +100,10 @@ const ReferralDashboard = () => {
     }
   };
 
-  const referrals = data?.referrals || [];
+  const referrals = useMemo(
+    () => (data?.referrals || []).filter((r) => isDateInRange([r.createdAt, r.updatedAt])),
+    [data?.referrals, isDateInRange]
+  );
   const filteredReferrals = useMemo(() => {
     if (!search.trim()) return referrals;
     const q = search.toLowerCase();

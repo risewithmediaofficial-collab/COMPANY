@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { devApi } from '../../api/development';
 import { DevelopmentSubNav } from '../../components/development/DevelopmentSubNav';
 import { PageHeader } from '../../components/ui/page';
+import { useDateFilter } from '../../context/DateFilterContext';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,8 @@ import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 
 export default function DevelopmentReleases() {
-  const [releases, setReleases] = useState([]);
+  const { isDateInRange } = useDateFilter();
+  const [rawReleases, setReleases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -60,6 +62,11 @@ export default function DevelopmentReleases() {
   useEffect(() => {
     fetchReleases();
   }, [fetchReleases]);
+
+  const releases = useMemo(
+    () => rawReleases.filter((r) => isDateInRange([r.releaseDate, r.createdAt])),
+    [rawReleases, isDateInRange]
+  );
 
   const handleOpenCreate = () => {
     setEditingId(null);

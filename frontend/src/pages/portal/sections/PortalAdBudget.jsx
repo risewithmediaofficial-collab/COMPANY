@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../../api/index';
+import { useDateFilter } from '../../../context/DateFilterContext';
 import { IndianRupee, Calendar, DollarSign, FileText, CheckCircle2, Clock, AlertCircle } from '@/components/ui/muiIcons';
 import { toast } from 'react-hot-toast';
 
 export default function PortalAdBudget() {
+  const { isDateInRange } = useDateFilter();
   const [data, setData] = useState({
     totals: {
       monthlyBudget: 0,
@@ -38,7 +40,15 @@ export default function PortalAdBudget() {
 
   const fmt = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
-  const { totals, campaigns, recentLogs } = data;
+  const { totals, campaigns: rawCampaigns, recentLogs: rawLogs } = data;
+  const campaigns = useMemo(
+    () => (rawCampaigns || []).filter((c) => isDateInRange([c.updatedAt, c.createdAt])),
+    [rawCampaigns, isDateInRange]
+  );
+  const recentLogs = useMemo(
+    () => (rawLogs || []).filter((l) => isDateInRange([l.date, l.createdAt])),
+    [rawLogs, isDateInRange]
+  );
 
   if (loading) {
     return (

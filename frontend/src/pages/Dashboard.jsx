@@ -76,12 +76,11 @@ import { formatINR } from '../utils/currency';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocket } from '../context/SocketContext';
 import { useDateFilter } from '../context/DateFilterContext';
-import { DateRangePicker } from '../components/ui/DateRangePicker';
 
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const { startDate, endDate, period, setFromDate, setToDate, setPeriod, resetDateFilter } = useDateFilter();
+  const { startDate, endDate, period, isDateInRange } = useDateFilter();
   const queryClient = useQueryClient();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -98,7 +97,6 @@ const Dashboard = () => {
   const [createClientOpen, setCreateClientOpen] = useState(false);
 
   const [eodSearch, setEodSearch] = useState('');
-  const [eodDays, setEodDays] = useState(7);
   const [showFinance, setShowFinance] = useState(false);
   const [userMetricSearch, setUserMetricSearch] = useState('');
   const [userMetricRoleFilter, setUserMetricRoleFilter] = useState('all');
@@ -107,14 +105,23 @@ const Dashboard = () => {
   const isAdminOrManager = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager';
 
   // Queries for manager and employee EOD views
-  const { data: eodData } = useEodReports(eodDays, {}, { enabled: isAdminOrManager });
+  const { data: eodData } = useEodReports(
+    (startDate || endDate) ? 'all' : 7,
+    { startDate: startDate || undefined, endDate: endDate || undefined },
+    { enabled: isAdminOrManager }
+  );
   const rawEodReports = eodData?.records || [];
 
-  const { data: myEodData } = useEodReports(14, { mine: 'true' }, { enabled: user?.role === 'employee' });
-  const myEodReports = myEodData?.records || data?.recentEodReports || [];
+  const { data: myEodData } = useEodReports(
+    (startDate || endDate) ? 'all' : 14,
+    { mine: 'true', startDate: startDate || undefined, endDate: endDate || undefined },
+    { enabled: user?.role === 'employee' }
+  );
+  const myEodReports = (myEodData?.records || data?.recentEodReports || []).filter((r) => isDateInRange(r.date));
 
   // Filtered reports for manager
   const eodReports = rawEodReports.filter((report) => {
+    if (!isDateInRange(report.date)) return false;
     if (!eodSearch.trim()) return true;
     const query = eodSearch.toLowerCase();
     const name = report.user?.name?.toLowerCase() || '';
@@ -1151,17 +1158,6 @@ const Dashboard = () => {
                     className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:border-foreground outline-none"
                   />
                 </div>
-
-                <select
-                  value={eodDays}
-                  onChange={(e) => setEodDays(Number(e.target.value))}
-                  className="px-3 py-1.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground focus:border-foreground outline-none cursor-pointer"
-                >
-                  <option value={1}>Today</option>
-                  <option value={7}>Last 7 Days</option>
-                  <option value={14}>Last 14 Days</option>
-                  <option value={30}>Last 30 Days</option>
-                </select>
               </div>
             </div>
 

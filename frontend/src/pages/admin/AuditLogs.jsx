@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/muiIcons';
 import api from '../../api';
 import { useSocket } from '../../context/SocketContext';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'sonner';
 
 const MODULE_OPTIONS = [
@@ -53,14 +54,8 @@ const ACTION_GROUPS = [
   { id: 'delete', label: 'Deleted' },
 ];
 
-const TIMEFRAMES = [
-  { id: 'all', label: 'All Time' },
-  { id: 'today', label: 'Today' },
-  { id: 'week', label: 'Past 7 Days' },
-  { id: 'month', label: 'Past 30 Days' },
-];
-
 export default function AuditLogs() {
+  const { startDate, endDate, resetDateFilter } = useDateFilter();
   const currentUser = useSelector((state) => state.auth?.user);
   const currentUserId = currentUser?._id;
   const socket = useSocket();
@@ -83,7 +78,6 @@ export default function AuditLogs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModule, setSelectedModule] = useState('all');
   const [selectedActionGroup, setSelectedActionGroup] = useState('all');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [filterMyActionsOnly, setFilterMyActionsOnly] = useState(false);
   const [expandedLogId, setExpandedLogId] = useState(null);
 
@@ -98,7 +92,8 @@ export default function AuditLogs() {
           search: searchTerm.trim() || undefined,
           entityType: selectedModule !== 'all' ? selectedModule : undefined,
           actionType: selectedActionGroup !== 'all' ? selectedActionGroup : undefined,
-          timeframe: selectedTimeframe !== 'all' ? selectedTimeframe : undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
           actor: filterMyActionsOnly ? 'me' : undefined,
         };
 
@@ -118,7 +113,7 @@ export default function AuditLogs() {
         setLoading(false);
       }
     },
-    [page, searchTerm, selectedModule, selectedActionGroup, selectedTimeframe, filterMyActionsOnly]
+    [page, searchTerm, selectedModule, selectedActionGroup, startDate, endDate, filterMyActionsOnly]
   );
 
   useEffect(() => {
@@ -338,24 +333,6 @@ export default function AuditLogs() {
               className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
             />
           </div>
-
-          {/* Timeframe Buttons */}
-          <div className="flex items-center gap-1.5 p-1 bg-secondary rounded-xl self-stretch sm:self-auto overflow-x-auto">
-            {TIMEFRAMES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setSelectedTimeframe(t.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                  selectedTimeframe === t.id
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Action Group Filter Pills */}
@@ -433,7 +410,7 @@ export default function AuditLogs() {
                 setSearchTerm('');
                 setSelectedModule('all');
                 setSelectedActionGroup('all');
-                setSelectedTimeframe('all');
+                resetDateFilter();
                 setFilterMyActionsOnly(false);
               }}
               className="mt-4 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 cursor-pointer"

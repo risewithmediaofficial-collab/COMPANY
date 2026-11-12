@@ -17,7 +17,26 @@ import { createActivityLog } from '../../utils/activity.js';
 // ── GET Development Dashboard Metrics ─────────────────────────────────────────
 export const getDevDashboard = async (req, res) => {
   try {
-    const tasks = await DevTask.find()
+    const { startDate, endDate } = req.query;
+    const taskQuery = {};
+    if (startDate || endDate) {
+      const range = {};
+      if (startDate) {
+        const [y, m, d] = startDate.split('-').map(Number);
+        range.$gte = new Date(y, m - 1, d, 0, 0, 0, 0);
+      }
+      if (endDate) {
+        const [y, m, d] = endDate.split('-').map(Number);
+        range.$lte = new Date(y, m - 1, d, 23, 59, 59, 999);
+      }
+      taskQuery.$or = [
+        { dueDate: range },
+        { createdAt: range },
+        { updatedAt: range },
+      ];
+    }
+
+    const tasks = await DevTask.find(taskQuery)
       .populate('project', 'name')
       .populate('client', 'name company')
       .populate('assignedTo', 'name email avatar role')

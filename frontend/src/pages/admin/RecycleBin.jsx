@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/muiIcons';
 import api from '../../api';
 import { useSocket } from '../../context/SocketContext';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -42,8 +43,9 @@ const ENTITY_TABS = [
 
 export default function RecycleBin() {
   const socket = useSocket();
+  const { startDate, endDate, isDateInRange } = useDateFilter();
 
-  const [items, setItems] = useState([]);
+  const [rawItems, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [countsByType, setCountsByType] = useState({});
   const [page, setPage] = useState(1);
@@ -70,6 +72,8 @@ export default function RecycleBin() {
           limit: 30,
           entityType: selectedType !== 'all' ? selectedType : undefined,
           search: searchTerm.trim() || undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
         };
 
         const res = await api.get('/recycle-bin', { params });
@@ -88,7 +92,12 @@ export default function RecycleBin() {
         setLoading(false);
       }
     },
-    [page, selectedType, searchTerm]
+    [page, selectedType, searchTerm, startDate, endDate]
+  );
+
+  const items = React.useMemo(
+    () => rawItems.filter((it) => isDateInRange([it.deletedAt, it.createdAt])),
+    [rawItems, isDateInRange]
   );
 
   useEffect(() => {

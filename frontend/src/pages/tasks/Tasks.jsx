@@ -235,14 +235,6 @@ export const TASK_CATEGORY_PILLS = [
   { key: 'content', label: 'Content / Script', icon: FileEdit },
 ];
 
-export const TASK_PERIOD_OPTIONS = [
-  { key: 'all', label: 'All Tasks' },
-  { key: 'today', label: 'Today' },
-  { key: 'weekly', label: 'This Week' },
-  { key: 'this_month', label: 'This Month' },
-  { key: 'overdue', label: 'Overdue' },
-];
-
 export const TASK_SORT_OPTIONS = [
   { value: 'dueDate_asc', label: 'Due Date: Earliest First' },
   { value: 'dueDate_desc', label: 'Due Date: Latest First' },
@@ -284,7 +276,6 @@ const Tasks = () => {
   const [deleteTaskId, setDeleteTaskId] = useState(null);
   const [currentView, setCurrentView] = useState('board'); // 'board' | 'table'
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [periodFilter, setPeriodFilter] = useState('all');
   const [showTodayTray, setShowTodayTray] = useState(true);
   const [sortBy, setSortBy] = useState('dueDate_asc');
   const [filters, setFilters] = useState({
@@ -308,7 +299,6 @@ const Tasks = () => {
       taskType: filters.taskType,
       priority: filters.priority,
       dueDate: filters.dueDate,
-      period: periodFilter !== 'all' ? periodFilter : undefined,
       sortBy: sortBy,
       search: debouncedSearch,
       limit: 300,
@@ -321,7 +311,6 @@ const Tasks = () => {
       filters.taskType,
       filters.priority,
       filters.dueDate,
-      periodFilter,
       sortBy,
       debouncedSearch,
     ]
@@ -555,7 +544,6 @@ const Tasks = () => {
     let count = 0;
     if (departmentFilter !== 'all') count++;
     if (categoryFilter !== 'all') count++;
-    if (periodFilter !== 'all') count++;
     if (filters.client) count++;
     if (filters.priority) count++;
     if (filters.status) count++;
@@ -564,12 +552,11 @@ const Tasks = () => {
     if (quickFilter !== 'all') count++;
     if (isGlobalDateFiltered || globalStartDate || globalEndDate) count++;
     return count;
-  }, [departmentFilter, categoryFilter, periodFilter, filters, quickFilter, isGlobalDateFiltered, globalStartDate, globalEndDate]);
+  }, [departmentFilter, categoryFilter, filters, quickFilter, isGlobalDateFiltered, globalStartDate, globalEndDate]);
 
   const clearAllFilters = () => {
     setDepartmentFilter('all');
     setCategoryFilter('all');
-    setPeriodFilter('all');
     setQuickFilter('all');
     setSortBy('dueDate_asc');
     resetDateFilter();
@@ -592,56 +579,6 @@ const Tasks = () => {
       result = result.filter((task) =>
         isCategoryMatch(task.taskType || task.taskCategory, categoryFilter, task.taskTitle || task.title)
       );
-    }
-
-    // Period filter ('today', 'weekly', 'this_month', 'overdue')
-    if (periodFilter && periodFilter !== 'all') {
-      const now = new Date();
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-
-      result = result.filter((task) => {
-        const due = task.dueDate ? new Date(task.dueDate) : null;
-        const shoot = task.shootDate ? new Date(task.shootDate) : null;
-        const post = task.postingScheduleDate ? new Date(task.postingScheduleDate) : null;
-        const created = task.createdAt ? new Date(task.createdAt) : null;
-
-        if (periodFilter === 'today') {
-          const matchDue = due && due >= startOfToday && due <= endOfToday;
-          const matchShoot = shoot && shoot >= startOfToday && shoot <= endOfToday;
-          const matchPost = post && post >= startOfToday && post <= endOfToday;
-          const matchCreated = created && created >= startOfToday && created <= endOfToday;
-          return matchDue || matchShoot || matchPost || matchCreated;
-        }
-
-        if (periodFilter === 'weekly' || periodFilter === 'this_week') {
-          const day = now.getDay();
-          const diffToMonday = day === 0 ? -6 : 1 - day;
-          const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 0, 0, 0, 0);
-          const endOfWeek = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + 6, 23, 59, 59, 999);
-          const matchDue = due && due >= startOfWeek && due <= endOfWeek;
-          const matchShoot = shoot && shoot >= startOfWeek && shoot <= endOfWeek;
-          const matchPost = post && post >= startOfWeek && post <= endOfWeek;
-          const matchCreated = created && created >= startOfWeek && created <= endOfWeek;
-          return matchDue || matchShoot || matchPost || matchCreated;
-        }
-
-        if (periodFilter === 'this_month') {
-          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-          const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-          const matchDue = due && due >= startOfMonth && due <= endOfMonth;
-          const matchShoot = shoot && shoot >= startOfMonth && shoot <= endOfMonth;
-          const matchPost = post && post >= startOfMonth && post <= endOfMonth;
-          const matchCreated = created && created >= startOfMonth && created <= endOfMonth;
-          return matchDue || matchShoot || matchPost || matchCreated;
-        }
-
-        if (periodFilter === 'overdue') {
-          return isTaskOverdue(task);
-        }
-
-        return true;
-      });
     }
 
     // Client filter
@@ -738,7 +675,7 @@ const Tasks = () => {
     });
 
     return result;
-  }, [dateFilteredTasks, categoryFilter, periodFilter, filters, deferredSearch, quickFilter, sortBy, currentView]);
+  }, [departmentFilteredTasks, categoryFilter, filters, deferredSearch, quickFilter, sortBy, currentView]);
 
   const columns = [
     {
@@ -1140,20 +1077,6 @@ const Tasks = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              {todayTasks.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setPeriodFilter('today')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border ${
-                    periodFilter === 'today'
-                      ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                      : 'bg-background border-border text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  <Sparkles size={12} />
-                  <span>Filter Board to Today</span>
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => setShowTodayTray((prev) => !prev)}
@@ -1370,24 +1293,6 @@ const Tasks = () => {
                       {taskCountsByDepartment.non_content}
                     </span>
                   </button>
-                </div>
-
-                {/* Period Filter Switcher (All | Today | This Week | This Month | Overdue) */}
-                <div className="flex items-center p-0.5 rounded-xl border border-border bg-secondary/40 shrink-0 gap-0.5">
-                  {TASK_PERIOD_OPTIONS.map((period) => (
-                    <button
-                      key={period.key}
-                      type="button"
-                      onClick={() => setPeriodFilter(period.key)}
-                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                        periodFilter === period.key
-                          ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      <span>{period.label}</span>
-                    </button>
-                  ))}
                 </div>
 
                 {/* Category Filter Dropdown (Adaptive to active department) */}

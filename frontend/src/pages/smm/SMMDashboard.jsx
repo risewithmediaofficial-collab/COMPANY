@@ -4,7 +4,6 @@ import { smmApi } from '../../api/smm';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { SMMFilterBar } from '../../components/smm/SMMFilterBar';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../../components/ui/DateRangePicker';
 import {
   FileText, Video, CheckCircle2, Clock, Megaphone, PlayCircle,
   PauseCircle, IndianRupee, Users, TrendingUp, Share2,
@@ -28,7 +27,6 @@ export const SMMDashboard = () => {
     platform: '',
     contentType: '',
     campaignStatus: '',
-    dateRange: 'all',
   });
 
   const fetchDashboardStats = async () => {
@@ -40,8 +38,8 @@ export const SMMDashboard = () => {
         platform: filters.platform || undefined,
         contentType: filters.contentType || undefined,
         campaignStatus: filters.campaignStatus || undefined,
-        startDate: filters.startDate || startDate || undefined,
-        endDate: filters.endDate || endDate || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
       };
       const res = await smmApi.getDashboardStats(params);
       if (res.data?.success) {
@@ -73,7 +71,6 @@ export const SMMDashboard = () => {
       platform: '',
       contentType: '',
       campaignStatus: '',
-      dateRange: 'all',
     });
   };
 

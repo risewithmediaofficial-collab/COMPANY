@@ -12,7 +12,6 @@ import { useAssets, useCreateAsset, useDeleteAsset, useUpdateAsset } from '../..
 import { uploadFiles } from '../../utils/taskFields';
 import { getAssetUrl } from '../../utils/assetUrl';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { DateRangePicker } from '../ui/DateRangePicker';
 
 export const assetCategories = [
   { value: 'logo', label: 'Logo' },

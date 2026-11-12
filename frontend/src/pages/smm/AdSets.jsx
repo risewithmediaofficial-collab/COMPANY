@@ -7,6 +7,7 @@ import { PageHeader, SearchField } from '../../components/ui/page';
 import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
+import { useDateFilter } from '../../context/DateFilterContext';
 import { toast } from 'react-hot-toast';
 import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
 import { getDestinationsForObjective, normalizeObjective } from '../../utils/smmDestinations';
@@ -16,8 +17,9 @@ const PLACEMENTS_LIST = ['Facebook Feed', 'Instagram Feed', 'Stories', 'Reels', 
 export default function AdSets() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { startDate, endDate, isDateInRange } = useDateFilter();
 
-  const [adSets, setAdSets] = useState([]);
+  const [rawAdSets, setAdSets] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -54,7 +56,7 @@ export default function AdSets() {
     try {
       setLoading(true);
       const [adSetRes, campRes] = await Promise.all([
-        smmApi.getAdSets({ search, status: statusFilter }),
+        smmApi.getAdSets({ search, status: statusFilter, startDate: startDate || undefined, endDate: endDate || undefined }),
         smmApi.getCampaigns({ limit: 100 }),
       ]);
       if (adSetRes.data?.success) setAdSets(adSetRes.data.data || []);
@@ -68,7 +70,12 @@ export default function AdSets() {
 
   useEffect(() => {
     fetchData();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, startDate, endDate]);
+
+  const adSets = useMemo(
+    () => rawAdSets.filter((s) => isDateInRange([s.createdAt, s.updatedAt])),
+    [rawAdSets, isDateInRange]
+  );
 
   // If navigated from Create Campaign with location.state.campaign, auto-open drawer with prefilled data
   useEffect(() => {
