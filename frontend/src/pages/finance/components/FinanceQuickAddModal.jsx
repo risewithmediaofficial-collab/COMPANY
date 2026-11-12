@@ -463,19 +463,19 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         variant="side"
         size="xl"
         noPadding={true}
-        className="bg-card border-l border-border shadow-2xl overflow-hidden flex flex-col font-sans"
+        className="bg-card overflow-hidden flex flex-col font-sans"
       >
         {/* ── DRAWER HEADER (PINNED) ───────────────────────────────────── */}
-        <div className="shrink-0 border-b border-border px-4 sm:px-6 pt-4 sm:pt-5 pb-3.5 sm:pb-4 bg-muted/20 pr-14 sm:pr-28 select-none">
+        <div className="shrink-0 px-4 sm:px-6 pt-4 sm:pt-5 pb-3.5 sm:pb-4 bg-muted/20 pr-14 sm:pr-28 select-none">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary border border-border text-foreground font-bold text-base shadow-2xs shrink-0">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground font-bold text-base shrink-0">
               +
             </div>
             <div>
-              <DialogTitle className="text-sm sm:text-base font-bold text-foreground tracking-tight">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
                 Add New Financial Transaction
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+              <DialogDescription className="sr-only">
                 Record operational entries with double-entry reconciliation into RiseWithMedia Finance.
               </DialogDescription>
             </div>
@@ -493,8 +493,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onClick={() => setActiveAction(tab.id)}
                   className={`flex items-center justify-center gap-2 h-9 px-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-xs font-bold'
-                      : 'bg-card border border-border text-foreground hover:bg-secondary'
+                      ? 'bg-primary text-primary-foreground font-bold'
+                      : 'bg-card text-foreground hover:bg-secondary'
                   }`}
                 >
                   <Icon className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
@@ -506,7 +506,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         </div>
 
         {/* ── SCROLLABLE FORM BODY ─────────────────────────────────────── */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-7 space-y-6 custom-scrollbar overscroll-contain">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-7 space-y-6 custom-scrollbar overscroll-contain text-left">
           {/* 1. INVOICE FORM */}
           {activeAction === 'invoice' && (
             <form id="finance-modal-form" onSubmit={handleInvoiceSubmit} className="space-y-6">
@@ -515,7 +515,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={invForm.client}
                   onChange={(e) => setInvForm({ ...invForm, client: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="">-- Choose Client --</option>
                   {clients.map((c) => (
@@ -533,7 +533,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={invForm.servicePeriod}
                   onChange={(e) => setInvForm({ ...invForm, servicePeriod: e.target.value })}
                   placeholder="e.g. October 2026"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -544,7 +544,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={invForm.invoiceDate}
                   onChange={(e) => setInvForm({ ...invForm, invoiceDate: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 />
               </div>
 
@@ -555,7 +555,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={invForm.dueDate}
                   onChange={(e) => setInvForm({ ...invForm, dueDate: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 />
               </div>
 
@@ -564,7 +564,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={invForm.taxType}
                   onChange={(e) => setInvForm({ ...invForm, taxType: e.target.value, taxRate: e.target.value === 'exempt' ? 0 : 18 })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 >
                   <option value="exclusive">GST 18% Exclusive</option>
                   <option value="inclusive">GST 18% Inclusive</option>
@@ -573,11 +573,10 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
               </div>
 
               {/* Line Items Card */}
-              <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <div className="rounded-2xl bg-muted/20 p-5 space-y-4">
                 <div className="flex justify-between items-center">
                   <div>
                     <span className="font-bold text-foreground text-sm">Deliverable Line Items</span>
-                    <p className="text-xs text-muted-foreground mt-0.5">Add deliverables or services with customized rates</p>
                   </div>
                   <button
                     type="button"
@@ -590,7 +589,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                         ],
                       })
                     }
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary text-foreground font-semibold text-xs hover:bg-muted transition-colors border border-border shadow-2xs cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary text-foreground font-semibold text-xs hover:bg-muted transition-colors cursor-pointer"
                   >
                     <Plus className="h-4 w-4 shrink-0" /> Add Line Item
                   </button>
@@ -599,7 +598,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 {/* Item Cards */}
                 <div className="space-y-3">
                   {invForm.lineItems.map((item, idx) => (
-                    <div key={idx} className="p-3.5 rounded-xl border border-border bg-card space-y-3">
+                    <div key={idx} className="p-3.5 rounded-xl bg-card space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider tabular-nums">
                           Item #{idx + 1}
@@ -621,7 +620,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                               });
                             }
                           }}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent transition-colors cursor-pointer"
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary border-transparent transition-colors cursor-pointer"
                           title={invForm.lineItems.length > 1 ? 'Delete line item' : 'Clear item fields'}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -630,7 +629,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
 
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1">Service / Deliverable *</label>
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">Service / Deliverable *</label>
                           <input
                             type="text"
                             placeholder="Service name / Deliverable"
@@ -640,11 +639,11 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                               copy[idx].serviceName = e.target.value;
                               setInvForm({ ...invForm, lineItems: copy });
                             }}
-                            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20"
+                            className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1">Description</label>
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">Description</label>
                           <input
                             type="text"
                             placeholder="Optional item description"
@@ -654,11 +653,11 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                               copy[idx].description = e.target.value;
                               setInvForm({ ...invForm, lineItems: copy });
                             }}
-                            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20"
+                            className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1">Type</label>
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">Type</label>
                           <select
                             value={item.itemType || 'service'}
                             onChange={(e) => {
@@ -666,7 +665,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                               copy[idx].itemType = e.target.value;
                               setInvForm({ ...invForm, lineItems: copy });
                             }}
-                            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
+                            className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                           >
                             <option value="service">Service Fee</option>
                             <option value="ad_budget_pass_through">Ad Budget (Pass)</option>
@@ -674,7 +673,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1">Quantity</label>
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">Quantity</label>
                           <input
                             type="number"
                             min="1"
@@ -685,11 +684,11 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                               copy[idx].quantity = e.target.value;
                               setInvForm({ ...invForm, lineItems: copy });
                             }}
-                            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20"
+                            className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1">Rate (₹)</label>
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">Rate (₹)</label>
                           <input
                             type="number"
                             placeholder="0.00"
@@ -699,7 +698,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                               copy[idx].rate = e.target.value;
                               setInvForm({ ...invForm, lineItems: copy });
                             }}
-                            className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm font-semibold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20"
+                            className="h-11 w-full rounded-xl bg-background px-4 text-sm font-semibold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20"
                           />
                         </div>
                       </div>
@@ -708,7 +707,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 </div>
 
                 {/* Subtotal & Totals Strip */}
-                <div className="pt-3 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-muted-foreground font-medium tabular-nums">
+                <div className="pt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-muted-foreground font-medium tabular-nums">
                   <span>Subtotal: <strong className="text-foreground">{formatINR(invoiceSubtotal)}</strong></span>
                   <span>Tax ({invForm.taxType === 'exclusive' ? `${invForm.taxRate || 18}% GST Exclusive` : invForm.taxType === 'inclusive' ? `${invForm.taxRate || 18}% GST Inclusive` : 'Exempt'}): <strong className="text-foreground">{formatINR(invoiceTaxAmount)}</strong></span>
                   <span className="text-base font-extrabold text-foreground">Total: {formatINR(invoiceTotal)}</span>
@@ -726,7 +725,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={receiptForm.client}
                   onChange={(e) => setReceiptForm({ ...receiptForm, client: e.target.value })}
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 >
                   <option value="">-- Choose Client --</option>
                   {clients.map((c) => (
@@ -740,7 +739,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={receiptForm.invoice}
                   onChange={(e) => setReceiptForm({ ...receiptForm, invoice: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 >
                   <option value="">-- Unallocated / Advance Credit --</option>
                   {unpaidInvoices
@@ -761,7 +760,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setReceiptForm({ ...receiptForm, amount: e.target.value })}
                   placeholder="e.g. 25000"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 "
                 />
               </div>
 
@@ -770,7 +769,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={receiptForm.paymentMode}
                   onChange={(e) => setReceiptForm({ ...receiptForm, paymentMode: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="Bank">Bank Transfer (NEFT/RTGS/IMPS)</option>
                   <option value="UPI">UPI (GPay / PhonePe / QR)</option>
@@ -785,7 +784,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={receiptForm.reference}
                   onChange={(e) => setReceiptForm({ ...receiptForm, reference: e.target.value })}
                   placeholder="e.g. UTR102938475"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -796,7 +795,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={receiptForm.receivedDate}
                   onChange={(e) => setReceiptForm({ ...receiptForm, receivedDate: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 />
               </div>
             </form>
@@ -813,7 +812,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setExpForm({ ...expForm, title: e.target.value })}
                   placeholder="e.g. Freelance Videographer Shoot"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -824,7 +823,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={expForm.vendor}
                   onChange={(e) => setExpForm({ ...expForm, vendor: e.target.value })}
                   placeholder="e.g. VJ, Videographer, Ramesh"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
                   <span className="text-xs text-muted-foreground font-medium">Quick suggestions:</span>
@@ -833,10 +832,10 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                       key={sug}
                       type="button"
                       onClick={() => setExpForm({ ...expForm, vendor: sug })}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                         expForm.vendor === sug 
-                          ? 'bg-primary text-primary-foreground border-primary font-semibold' 
-                          : 'bg-secondary/60 text-secondary-foreground border-border hover:bg-secondary'
+                          ? 'bg-primary text-primary-foreground font-semibold' 
+                          : 'bg-secondary/60 text-secondary-foreground hover:bg-secondary'
                       }`}
                     >
                       {sug}
@@ -853,7 +852,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setExpForm({ ...expForm, amount: e.target.value })}
                   placeholder="e.g. 4500"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 "
                 />
               </div>
 
@@ -862,7 +861,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={expForm.category}
                   onChange={(e) => setExpForm({ ...expForm, category: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="production_shoot">Production / Video Shoot</option>
                   <option value="rj">RJ (Radio Jockey / Voice Talent)</option>
@@ -883,7 +882,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={expForm.costType}
                   onChange={(e) => setExpForm({ ...expForm, costType: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="agency_overhead">Agency Overhead</option>
                   <option value="client_project">Direct Client Project Cost</option>
@@ -895,7 +894,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={expForm.paymentStatus}
                   onChange={(e) => setExpForm({ ...expForm, paymentStatus: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="paid">Paid Now (Full Cash Outflow)</option>
                   <option value="partially_paid">Partially Paid (Advance / 1st Installment)</option>
@@ -910,7 +909,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={expForm.date}
                   onChange={(e) => setExpForm({ ...expForm, date: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 />
               </div>
 
@@ -927,7 +926,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     onChange={(e) => setExpForm({ ...expForm, advanceAmount: e.target.value })}
                     placeholder="e.g. 1500"
                     required
-                    className="h-11 w-full rounded-xl border border-primary/30 bg-background px-4 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 "
                   />
                   {expForm.amount && expForm.advanceAmount && (
                     <div className="text-xs text-muted-foreground mt-1.5 font-medium">
@@ -944,7 +943,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     <select
                       value={expForm.paymentMode}
                       onChange={(e) => setExpForm({ ...expForm, paymentMode: e.target.value })}
-                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     >
                       <option value="Bank">Bank Transfer (NEFT/RTGS/IMPS)</option>
                       <option value="UPI">UPI (GPay / PhonePe / QR)</option>
@@ -959,7 +958,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     <select
                       value={expForm.fundingAccount}
                       onChange={(e) => setExpForm({ ...expForm, fundingAccount: e.target.value })}
-                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     >
                       <option value="">Default / Not specified</option>
                       {accounts.map((acc) => (
@@ -982,7 +981,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={expForm.notes}
                   onChange={(e) => setExpForm({ ...expForm, notes: e.target.value })}
                   placeholder="Optional notes, invoice / receipt reference, vendor payment arrangements..."
-                  className="w-full p-3.5 rounded-xl border border-border bg-background text-sm text-foreground shadow-2xs resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full min-h-[96px] px-4 py-3 rounded-xl bg-background text-sm font-normal text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
             </form>
@@ -999,7 +998,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
                   placeholder="e.g. Apex Dental Clinic"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1010,7 +1009,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={clientForm.contactName}
                   onChange={(e) => setClientForm({ ...clientForm, contactName: e.target.value })}
                   placeholder="e.g. Dr. Rajesh Sharma"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1021,7 +1020,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={clientForm.email}
                   onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
                   placeholder="client@company.com"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1032,7 +1031,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={clientForm.phone}
                   onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
                   placeholder="+91 98765 43210"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1043,7 +1042,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={clientForm.monthlyPlanFee}
                   onChange={(e) => setClientForm({ ...clientForm, monthlyPlanFee: e.target.value })}
                   placeholder="e.g. 35000"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1054,7 +1053,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={clientForm.deliverables}
                   onChange={(e) => setClientForm({ ...clientForm, deliverables: e.target.value })}
                   placeholder="e.g. 8 reels + 6 posts"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1067,7 +1066,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={clientForm.billingDate}
                   onChange={(e) => setClientForm({ ...clientForm, billingDate: e.target.value })}
                   placeholder="e.g. 1"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
             </form>
@@ -1092,7 +1091,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                     });
                   }}
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="">-- Choose Employee --</option>
                   {employees.map((emp) => (
@@ -1108,7 +1107,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={payrollForm.month}
                   onChange={(e) => setPayrollForm({ ...payrollForm, month: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m) => (
                     <option key={m} value={m}>{m} {payrollForm.year}</option>
@@ -1129,7 +1128,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   placeholder="e.g. 30000"
                   required
                   min="0"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1145,7 +1144,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   }}
                   placeholder="0"
                   min="0"
-                  className="h-11 w-full rounded-xl border border-border bg-background text-foreground font-semibold tabular-nums px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background text-foreground font-semibold tabular-nums px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 "
                 />
               </div>
 
@@ -1161,11 +1160,11 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   }}
                   placeholder="0"
                   min="0"
-                  className="h-11 w-full rounded-xl border border-border bg-background text-foreground font-semibold tabular-nums px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background text-foreground font-semibold tabular-nums px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20 "
                 />
               </div>
 
-              <div className="p-4 bg-secondary rounded-2xl border border-border flex items-center justify-between gap-3">
+              <div className="p-4 bg-secondary rounded-2xl flex items-center justify-between gap-3">
                 <div>
                   <div className="font-bold text-sm text-foreground">Calculated Net Payable:</div>
                   <div className="text-xs text-muted-foreground mt-0.5">Base + Additions − Deductions</div>
@@ -1185,7 +1184,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={founderForm.founderName}
                   onChange={(e) => setFounderForm({ ...founderForm, founderName: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 >
                   <option value="Dinesh M">Dinesh M (Founder / CEO)</option>
                   <option value="Sathish Kumar">Sathish Kumar (Founder / Partner)</option>
@@ -1197,7 +1196,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={founderForm.transactionType}
                   onChange={(e) => setFounderForm({ ...founderForm, transactionType: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 >
                   <option value="capital_introduced">Capital Introduced (Equity Inflow)</option>
                   <option value="drawings">Drawings (Equity Outflow)</option>
@@ -1215,7 +1214,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setFounderForm({ ...founderForm, amount: e.target.value })}
                   placeholder="e.g. 100000"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 "
                 />
               </div>
 
@@ -1226,11 +1225,11 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={founderForm.date}
                   onChange={(e) => setFounderForm({ ...founderForm, date: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 />
               </div>
 
-              <div className="p-4 bg-secondary/50 rounded-2xl border border-border text-foreground text-xs flex items-center gap-2.5">
+              <div className="p-4 bg-secondary/50 rounded-2xl text-foreground text-xs flex items-center gap-2.5">
                 <CheckCircle2 className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span>Founder movements are equity/liability records and strictly isolated from agency operational revenue.</span>
               </div>
@@ -1241,7 +1240,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
           {activeAction === 'transfer' && (
             <form id="finance-modal-form" onSubmit={handleTransferSubmit} className="space-y-6">
               {accounts.length < 2 ? (
-                <div className="p-4 bg-secondary/60 rounded-2xl border border-border text-foreground text-xs flex items-center gap-2.5">
+                <div className="p-4 bg-secondary/60 rounded-2xl text-foreground text-xs flex items-center gap-2.5">
                   <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span>No company bank accounts configured yet. Once bank accounts are added, you can record internal transfers between accounts here.</span>
                 </div>
@@ -1253,7 +1252,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                       value={transferForm.fromAccount}
                       onChange={(e) => setTransferForm({ ...transferForm, fromAccount: e.target.value })}
                       required
-                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     >
                       {accounts.map((a) => (
                         <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
@@ -1267,7 +1266,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                       value={transferForm.toAccount}
                       onChange={(e) => setTransferForm({ ...transferForm, toAccount: e.target.value })}
                       required
-                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     >
                       {accounts.map((a) => (
                         <option key={a._id} value={a._id}>{a.accountName} (₹{a.currentBalance})</option>
@@ -1285,7 +1284,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setTransferForm({ ...transferForm, amount: e.target.value })}
                   placeholder="e.g. 50000"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1296,7 +1295,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={transferForm.bankFee}
                   onChange={(e) => setTransferForm({ ...transferForm, bankFee: e.target.value })}
                   placeholder="0.00"
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1307,7 +1306,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={transferForm.date}
                   onChange={(e) => setTransferForm({ ...transferForm, date: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 />
               </div>
             </form>
@@ -1324,7 +1323,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setSubForm({ ...subForm, serviceName: e.target.value })}
                   placeholder="e.g. Figma / Adobe Suite"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1335,7 +1334,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={subForm.vendor}
                   onChange={(e) => setSubForm({ ...subForm, vendor: e.target.value })}
                   placeholder="e.g. Adobe Inc."
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1347,7 +1346,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   onChange={(e) => setSubForm({ ...subForm, expectedAmount: e.target.value })}
                   placeholder="e.g. 2400"
                   required
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1356,7 +1355,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                 <select
                   value={subForm.frequency}
                   onChange={(e) => setSubForm({ ...subForm, frequency: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="annual">Annual</option>
@@ -1370,7 +1369,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
                   value={subForm.nextRenewalDate}
                   onChange={(e) => setSubForm({ ...subForm, nextRenewalDate: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 />
               </div>
             </form>
@@ -1378,8 +1377,8 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
         </div>
 
         {/* ── MODAL FOOTER ─────────────────────────────────────────────── */}
-        <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 select-none">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary border border-border text-foreground text-xs font-semibold">
+        <div className="shrink-0 bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 select-none">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-foreground text-xs font-semibold">
             <span className="flex h-2 w-2 rounded-full bg-foreground shrink-0" />
             <span className="truncate">Double-Entry Verified · Asia/Kolkata</span>
           </div>
@@ -1389,7 +1388,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
               type="button"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
-              className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground font-semibold text-xs sm:text-sm transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+              className="h-11 px-5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
@@ -1397,7 +1396,7 @@ export default function FinanceQuickAddModal({ open, onOpenChange, initialAction
               type="submit"
               form="finance-modal-form"
               disabled={isSubmitting}
-              className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

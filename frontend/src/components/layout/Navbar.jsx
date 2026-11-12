@@ -351,7 +351,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between border-b border-border bg-card px-3.5 sm:px-5 select-none">
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 min-w-0 items-center justify-between bg-background/95 px-4 sm:px-6 lg:px-8 select-none">
         {/* Left: Mobile Toggle & Dynamic Interactive Breadcrumbs */}
         <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
           <button
@@ -367,7 +367,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
           <nav aria-label="Breadcrumb" className="flex items-center gap-1 min-w-0 text-xs text-muted-foreground overflow-hidden">
             <Link
               to="/"
-              className="font-bold text-foreground/80 hover:text-foreground transition-colors hidden md:inline truncate shrink-0"
+              className="font-bold text-foreground/85 hover:text-primary transition-colors hidden md:inline truncate shrink-0"
             >
               RiseWithMedia
             </Link>
@@ -407,12 +407,12 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
           <AppTooltip content="Search Workspace (Ctrl+K / Cmd+K)">
             <button
               onClick={() => onOpenSearch ? onOpenSearch() : setSearchOpen(true)}
-              className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border/80 bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all text-xs"
+              className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-card text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors text-xs cursor-pointer"
               title="Search Workspace (Cmd+K)"
             >
               <Search size={14} />
               <span className="text-xs text-muted-foreground">Search...</span>
-              <kbd className="px-1.5 py-0.2 rounded bg-background border border-border text-[10px] font-mono text-muted-foreground">
+              <kbd className="px-1.5 py-0.5 rounded bg-background text-[10px] font-mono text-muted-foreground">
                 ⌘K
               </kbd>
             </button>
@@ -422,7 +422,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
           {canCreate && (
             <DropdownMenu>
               <AppTooltip content="Quick Create Task, Project, Client, or Lead">
-                <DropdownMenuTrigger className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 shadow-sm transition-all">
+                <DropdownMenuTrigger className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 shadow-[0_4px_12px_-4px_hsl(var(--brand)/0.45)] transition-all cursor-pointer">
                   <Plus size={14} className="stroke-[2.5]" />
                   <span className="hidden sm:inline">New</span>
                 </DropdownMenuTrigger>
@@ -431,19 +431,19 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                 <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-muted-foreground">Quick Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateTaskOpen(true)}>
-                  <CheckSquare size={14} className="text-muted-foreground" />
+                  <CheckSquare size={14} className="text-primary" />
                   <span>Create Task</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateProjectOpen(true)}>
-                  <Briefcase size={14} className="text-muted-foreground" />
+                  <Briefcase size={14} className="text-primary" />
                   <span>Create Project</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateClientOpen(true)}>
-                  <Users size={14} className="text-muted-foreground" />
+                  <Users size={14} className="text-primary" />
                   <span>Add Client</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setCreateLeadOpen(true)}>
-                  <TrendingUp size={14} className="text-muted-foreground" />
+                  <TrendingUp size={14} className="text-primary" />
                   <span>Add Lead</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -471,7 +471,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
               <DropdownMenuTrigger className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative">
                 <Bell size={17} />
                 {(notificationData?.unreadCount > 0 || (notificationData?.notifications || []).filter((n) => !n.isRead).length > 0) && (
-                  <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-primary text-primary-foreground rounded-full border border-card text-[9px] font-bold flex items-center justify-center tabular-nums">
+                  <span className="absolute top-1 right-1 min-w-3.5 h-3.5 px-0.5 bg-primary text-primary-foreground rounded-full ring-2 ring-background text-[9px] font-bold flex items-center justify-center tabular-nums">
                     {Math.min(notificationData?.unreadCount ?? (notificationData?.notifications || []).filter((n) => !n.isRead).length, 9)}
                   </span>
                 )}
@@ -482,7 +482,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                 const unreadNotifications = (notificationData?.notifications || []).filter((n) => !n.isRead);
                 return (
                   <>
-                    <DropdownMenuLabel className="flex items-center justify-between text-xs px-3.5 py-2.5 border-b border-border bg-card">
+                    <DropdownMenuLabel className="flex items-center justify-between text-xs px-3.5 py-2.5 bg-card/60">
                       <span className="font-bold text-foreground">Notifications</span>
                       {unreadNotifications.length > 0 && (
                         <button
@@ -498,7 +498,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
 
                     {/* Web Push Setup only if permission not yet decided or denied */}
                     {isIOSRequiresHomeInstall() ? (
-                      <div className="m-2 p-2.5 bg-secondary/70 border border-border rounded-xl text-xs space-y-1">
+                      <div className="m-2 p-2.5 bg-secondary/70 rounded-xl text-xs space-y-1">
                         <div className="flex items-center gap-1.5 text-foreground font-bold text-[11px]">
                           <Smartphone size={13} className="shrink-0 text-muted-foreground" />
                           <span>iPhone / iPad Setup</span>
@@ -508,8 +508,8 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                         </p>
                       </div>
                     ) : pushPermission === 'denied' ? (
-                      <div className="m-2 p-2 bg-destructive/10 border border-destructive/20 rounded-xl text-xs flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5 text-destructive font-semibold text-[11px]">
+                      <div className="m-2 p-2 bg-secondary rounded-xl text-xs flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-foreground font-semibold text-[11px]">
                           <BellOff size={13} className="shrink-0" />
                           <span>Notifications Blocked</span>
                         </div>
@@ -518,7 +518,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                         </p>
                       </div>
                     ) : !pushSubscribed && pushPermission !== 'granted' ? (
-                      <div className="m-2 p-2 bg-secondary/70 border border-border rounded-xl text-xs flex items-center justify-between gap-2">
+                      <div className="m-2 p-2 bg-secondary/70 rounded-xl text-xs flex items-center justify-between gap-2">
                         <span className="text-foreground flex items-center gap-1.5 font-medium text-[11px]">
                           <BellRing size={13} className="text-muted-foreground shrink-0" />
                           Banner Alerts
@@ -527,7 +527,7 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                           id="enable-web-push-btn"
                           onClick={handleEnablePush}
                           disabled={pushLoading}
-                          className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[10px] transition-colors shrink-0 shadow-xs disabled:opacity-50 cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[10px] transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
                         >
                           {pushLoading ? 'Enabling...' : 'Enable Banners'}
                         </button>
@@ -544,13 +544,13 @@ function NavbarComponent({ onOpenSearch, currentPath }) {
                         <p className="text-[11px] text-muted-foreground">No unread notifications.</p>
                       </div>
                     ) : (
-                      <div className="max-h-80 overflow-y-auto divide-y divide-border/50">
+                      <div className="max-h-80 overflow-y-auto p-1 space-y-0.5">
                         {unreadNotifications.map((notification) => (
                           <DropdownMenuItem key={notification._id} asChild>
                             <Link
                               to={notification.link || '/'}
                               onClick={() => markNotificationRead.mutate(notification._id)}
-                              className="flex flex-col items-start gap-1 p-3 hover:bg-secondary/70 transition-colors cursor-pointer rounded-none"
+                              className="flex flex-col items-start gap-1 p-2.5 rounded-xl hover:bg-secondary/70 transition-colors cursor-pointer"
                             >
                               <div className="flex items-center justify-between w-full">
                                 <span className="text-xs font-bold text-foreground">{notification.title}</span>

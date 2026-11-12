@@ -8,7 +8,7 @@ import { StatusBadgeSmm } from '../../components/smm/StatusBadgeSmm';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
 import { getDestinationsForObjective, normalizeObjective } from '../../utils/smmDestinations';
 
@@ -237,7 +237,7 @@ export default function AdSets() {
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
             <span className="truncate">{row.campaign?.name || 'Unassigned Campaign'}</span>
             {row.formType && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary text-foreground border border-border shrink-0">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary text-foreground shrink-0">
                 {row.formType}
               </span>
             )}
@@ -264,7 +264,7 @@ export default function AdSets() {
       label: 'Destination / Form Type',
       render: (row) => (
         <div className="space-y-1">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-secondary text-foreground border border-border block w-fit">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-secondary text-foreground block w-fit">
             {row.formType || 'Instant Form'}
           </span>
           {row.campaign?.objective && (
@@ -291,7 +291,7 @@ export default function AdSets() {
       render: (row) => (
         <button
           onClick={() => handleLaunchAds(row)}
-          className="px-2.5 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+          className="px-2.5 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
         >
           <Play size={12} /> <span>Run Ads</span>
         </button>
@@ -302,10 +302,9 @@ export default function AdSets() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Ad Sets & Audience Targeting"
-        subtitle="Configure target audiences, locations, lead form destinations & campaign placement settings"
+        title="Ad Sets"
         actions={
-          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-sm hover:opacity-90 cursor-pointer">
+          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 hover:opacity-90 cursor-pointer">
             <Plus size={18} />
             <span>Create Ad Set</span>
           </button>
@@ -314,7 +313,7 @@ export default function AdSets() {
 
       <SMMSubNav />
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl border border-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl ">
         <div className="flex-1 w-full">
           <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Ad Sets..." />
         </div>
@@ -339,7 +338,7 @@ export default function AdSets() {
           fetchData();
         }}
         emptyTitle="No Ad Sets found"
-        emptyDescription="Create an Ad Set within a campaign."
+        emptyDescription=""
       />
 
       {/* Create / Edit Ad Set Drawer */}
@@ -348,10 +347,10 @@ export default function AdSets() {
         onClose={() => setIsDrawerOpen(false)}
         title={editingAdSet ? 'Edit Ad Set' : 'Create Ad Set (Step 2 of 3)'}
       >
-        <form onSubmit={handleSave} className="space-y-4 text-xs">
+        <form onSubmit={handleSave} className="space-y-5 text-left">
           {/* Campaign Selection & Auto-details */}
           <div>
-            <label className="font-semibold text-foreground mb-1 block">Parent Campaign *</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block">Parent Campaign *</label>
             <select
               required
               value={formData.campaign}
@@ -369,14 +368,14 @@ export default function AdSets() {
 
           {/* Auto-inherited Campaign Information Banner */}
           {selectedCampaign && (
-            <div className="p-3 bg-secondary/50 rounded-2xl border border-border space-y-1.5 text-xs">
+            <div className="p-3.5 bg-secondary/50 rounded-2xl space-y-1.5 text-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-foreground">Campaign Summary</span>
-                <span className="px-2 py-0.5 rounded-full bg-card border border-border text-foreground font-semibold text-[10px]">
+                <span className="px-2 py-0.5 rounded-full bg-card text-foreground font-semibold text-xs">
                   {selectedCampaign.platform || 'Meta'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground pt-1 tabular-nums">
+              <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground pt-1 tabular-nums">
                 <div>Client: <strong className="text-foreground">{selectedCampaign.client?.company || selectedCampaign.client?.name}</strong></div>
                 <div>Project: <strong className="text-foreground">{selectedCampaign.project?.name || 'General'}</strong></div>
                 <div>Objective: <strong className="text-foreground">{selectedCampaign.objective}</strong></div>
@@ -390,7 +389,7 @@ export default function AdSets() {
           )}
 
           <div>
-            <label className="font-semibold text-foreground mb-1 block">Ad Set Name *</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block">Ad Set Name *</label>
             <input
               type="text"
               required
@@ -402,9 +401,9 @@ export default function AdSets() {
           </div>
 
           {/* Extra Fields: Target Audience & Location */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground mb-1 inline-flex items-center gap-1.5">
+              <label className="text-sm font-semibold text-foreground mb-1.5 inline-flex items-center gap-1.5">
                 <Target size={14} className="text-foreground shrink-0" /> <span>Target Audience *</span>
               </label>
               <input
@@ -418,7 +417,7 @@ export default function AdSets() {
             </div>
 
             <div>
-              <label className="font-semibold text-foreground mb-1 inline-flex items-center gap-1.5">
+              <label className="text-sm font-semibold text-foreground mb-1.5 inline-flex items-center gap-1.5">
                 <MapPin size={14} className="text-foreground shrink-0" /> <span>Target Location *</span>
               </label>
               <input
@@ -447,11 +446,11 @@ export default function AdSets() {
           />
 
           {/* Detailed Demographic Targeting */}
-          <div className="p-3.5 bg-secondary/30 rounded-2xl border border-border space-y-2.5">
-            <h4 className="font-bold text-foreground uppercase tracking-wider text-[11px]">Demographics & Age Range</h4>
-            <div className="grid grid-cols-3 gap-2.5">
+          <div className="p-4 bg-secondary/30 rounded-2xl space-y-3">
+            <h4 className="font-bold text-foreground text-sm">Demographics &amp; Age Range</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-[11px] font-medium text-muted-foreground block mb-1">Gender</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Gender</label>
                 <select
                   value={formData.audience?.gender}
                   onChange={e => setFormData({...formData, audience: {...formData.audience, gender: e.target.value}})}
@@ -463,7 +462,7 @@ export default function AdSets() {
                 </select>
               </div>
               <div>
-                <label className="text-[11px] font-medium text-muted-foreground block mb-1">Age Min</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Age Min</label>
                 <input
                   type="number"
                   value={formData.audience?.ageMin}
@@ -472,7 +471,7 @@ export default function AdSets() {
                 />
               </div>
               <div>
-                <label className="text-[11px] font-medium text-muted-foreground block mb-1">Age Max</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Age Max</label>
                 <input
                   type="number"
                   value={formData.audience?.ageMax}
@@ -484,11 +483,11 @@ export default function AdSets() {
           </div>
 
           {/* Placements */}
-          <div className="p-3.5 bg-secondary/30 rounded-2xl border border-border space-y-2">
-            <h4 className="font-bold text-foreground uppercase tracking-wider text-[11px]">Placements</h4>
+          <div className="p-4 bg-secondary/30 rounded-2xl space-y-2.5">
+            <h4 className="font-bold text-foreground text-sm">Placements</h4>
             <div className="grid grid-cols-2 gap-2">
               {PLACEMENTS_LIST.map(p => (
-                <label key={p} className="flex items-center gap-2 text-xs cursor-pointer p-2 rounded-xl border border-border hover:bg-secondary">
+                <label key={p} className="flex items-center gap-2 text-sm font-normal text-foreground cursor-pointer p-2 rounded-xl hover:bg-secondary">
                   <input type="checkbox" checked={formData.placements?.includes(p)} onChange={() => togglePlacement(p)} className="rounded" />
                   {p}
                 </label>
@@ -497,18 +496,18 @@ export default function AdSets() {
           </div>
 
           {/* Budget & Bid Strategy */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Ad Set Daily Budget (₹)</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Ad Set Daily Budget (₹)</label>
               <input
                 type="number"
                 value={formData.budget}
                 onChange={e => setFormData({...formData, budget: Number(e.target.value)})}
-                className="app-input font-bold"
+                className="app-input tabular-nums"
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Bid Strategy</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Bid Strategy</label>
               <select
                 value={formData.bidStrategy}
                 onChange={e => setFormData({...formData, bidStrategy: e.target.value})}
@@ -521,9 +520,9 @@ export default function AdSets() {
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-border">
-            <button type="button" onClick={() => setIsDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="app-button-primary">Save Ad Set</button>
+          <div className="pt-4 flex justify-end gap-2.5">
+            <button type="button" onClick={() => setIsDrawerOpen(false)} className="h-11 px-5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors cursor-pointer">Cancel</button>
+            <button type="submit" className="h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 transition-colors cursor-pointer">Save Ad Set</button>
           </div>
         </form>
       </SMMDrawer>
@@ -531,18 +530,15 @@ export default function AdSets() {
       {/* Post-Creation Action Modal: Ad Set Created -> Convert to Running Ads */}
       {createdAdSetForNextStep && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-          <div className="bg-card border border-border max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center mx-auto">
+          <div className="bg-card max-w-md w-full p-6 rounded-3xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-secondary text-foreground flex items-center justify-center mx-auto">
               <CheckCircle size={28} />
             </div>
-            <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-foreground">Ad Set Configured!</h3>
-              <p className="text-xs text-muted-foreground">
-                <strong>{createdAdSetForNextStep.name}</strong> is ready. Now convert campaign video(s) into active ads and start running!
-              </p>
+            <div className="text-center">
+              <h3 className="text-base font-bold text-foreground">Ad Set Configured</h3>
             </div>
 
-            <div className="p-3 bg-secondary/50 rounded-2xl border border-border text-xs space-y-1.5">
+            <div className="p-3 bg-secondary/50 rounded-2xl text-xs space-y-1.5">
               <div className="flex justify-between text-muted-foreground gap-2">
                 <span>Target Audience:</span>
                 <span className="font-semibold text-foreground text-right">{createdAdSetForNextStep.targetAudienceText || 'Broad'}</span>
@@ -564,13 +560,13 @@ export default function AdSets() {
                   setCreatedAdSetForNextStep(null);
                   navigate('/smm/ads', { state: { adSet: set, campaign: set.campaign } });
                 }}
-                className="flex-1 py-2.5 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs inline-flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+                className="flex-1 py-2.5 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Play size={14} /> <span>Convert to Ads & Start Running</span> <ArrowRight size={14} />
               </button>
               <button
                 onClick={() => setCreatedAdSetForNextStep(null)}
-                className="py-2.5 px-4 bg-secondary text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80 cursor-pointer border border-border"
+                className="py-2.5 px-4 bg-secondary text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80 cursor-pointer "
               >
                 Stay in Ad Sets
               </button>

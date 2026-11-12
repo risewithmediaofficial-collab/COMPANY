@@ -97,7 +97,7 @@ export function MobileAppInstallButton() {
           <button
             type="button"
             onClick={handleInstallClick}
-            className="relative flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 bg-zinc-950 text-white rounded-full border border-zinc-700 shadow-lg hover:scale-105 active:scale-95 transition-all text-xs font-bold select-none min-h-[44px]"
+            className="relative flex items-center gap-2 pl-3.5 pr-2.5 py-2.5 bg-zinc-950 text-white rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all text-xs font-bold select-none min-h-[44px]"
             aria-label="Download App"
           >
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-100 text-zinc-950">
@@ -122,7 +122,7 @@ export function MobileAppInstallButton() {
 
       {/* iOS Installation Guide Modal */}
       <Dialog open={showIosGuide} onOpenChange={setShowIosGuide}>
-        <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-5 sm:p-6">
+        <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-black text-white flex items-center gap-2">
               <Smartphone className="text-zinc-200" size={20} />
@@ -134,7 +134,7 @@ export function MobileAppInstallButton() {
           </DialogHeader>
 
           <div className="space-y-3 pt-2 text-xs text-zinc-300">
-            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 ">
               <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <Share2 size={16} />
               </div>
@@ -144,7 +144,7 @@ export function MobileAppInstallButton() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 ">
               <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <PlusSquare size={16} />
               </div>
@@ -154,7 +154,7 @@ export function MobileAppInstallButton() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 ">
               <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <CheckCircle2 size={16} />
               </div>
@@ -169,7 +169,7 @@ export function MobileAppInstallButton() {
 
       {/* Android / Chrome Manual Guide Modal */}
       <Dialog open={showAndroidGuide} onOpenChange={setShowAndroidGuide}>
-        <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white border-zinc-800 p-5 sm:p-6">
+        <DialogContent className="w-[calc(100vw-32px)] max-w-sm rounded-3xl bg-zinc-950 text-white p-5 sm:p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-black text-white flex items-center gap-2">
               <Smartphone className="text-zinc-200" size={20} />
@@ -181,7 +181,7 @@ export function MobileAppInstallButton() {
           </DialogHeader>
 
           <div className="space-y-3 pt-2 text-xs text-zinc-300">
-            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 ">
               <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <ArrowUpRight size={16} />
               </div>
@@ -191,7 +191,7 @@ export function MobileAppInstallButton() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 border border-zinc-800">
+            <div className="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900 ">
               <div className="p-1.5 rounded-lg bg-zinc-800 text-zinc-200 shrink-0 mt-0.5">
                 <Download size={16} />
               </div>

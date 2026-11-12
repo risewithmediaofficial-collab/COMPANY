@@ -31,7 +31,7 @@ export const SMMSubNav = () => {
   const location = useLocation();
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-1.5 sm:p-2 shadow-xs mb-4 sm:mb-6 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
+    <div className="bg-card rounded-2xl p-1.5 sm:p-2 mb-4 sm:mb-6 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30">
       <div className="flex items-center gap-1 sm:gap-1.5 min-w-max">
         {SMM_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -46,18 +46,13 @@ export const SMMSubNav = () => {
           return (
             <React.Fragment key={item.path}>
               {showDivider && (
-                <div className="flex items-center gap-1.5 sm:gap-2 px-1 sm:px-1.5">
-                  <div className="w-px h-4 sm:h-5 bg-border/80" />
-                  <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-md bg-muted/60 border border-border/40 select-none">
-                    {SECTION_LABELS[item.path]}
-                  </span>
-                </div>
+                <div className="h-5 w-px bg-foreground/10 mx-1 shrink-0" />
               )}
               <Link
                 to={item.path}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 min-h-[38px] transition-all duration-200 ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 min-h-[38px] transition-all duration-150 ${
                   isActive
-                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-[1.02]'
+                    ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_-4px_hsl(var(--brand)/0.45)]'
                     : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
               >

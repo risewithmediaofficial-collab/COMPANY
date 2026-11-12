@@ -79,7 +79,6 @@ import {
 } from '../../utils/taskFields';
 import { cn } from '../../utils/cn';
 import { getAssetUrl } from '../../utils/assetUrl';
-import jsPDF from 'jspdf';
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const VIEW_OPTIONS = [
@@ -94,57 +93,57 @@ export const TASK_STATUS_COLORS = {
   'To Do': {
     label: 'To Do / Scheduled',
     dot: 'bg-muted-foreground',
-    border: 'border-border',
+    border: '',
     bg: 'bg-secondary/50 hover:bg-secondary/80 text-foreground',
-    badge: 'bg-secondary/70 text-muted-foreground border-border',
+    badge: 'bg-secondary/70 text-muted-foreground ',
     sign: 'To Do',
   },
   'On Process': {
     label: 'In Process / Active',
     dot: 'bg-foreground',
-    border: 'border-foreground/30',
+    border: '',
     bg: 'bg-secondary/70 hover:bg-secondary text-foreground',
-    badge: 'bg-secondary text-foreground border-foreground/30',
+    badge: 'bg-secondary text-foreground ',
     sign: 'In Process',
   },
   'Waiting for Client': {
     label: 'Waiting for Client',
     dot: 'bg-foreground/70',
-    border: 'border-foreground/25',
+    border: '',
     bg: 'bg-secondary/60 hover:bg-secondary/90 text-foreground',
-    badge: 'bg-secondary/80 text-foreground border-border',
+    badge: 'bg-secondary/80 text-foreground ',
     sign: 'Waiting Client',
   },
   'Review Required': {
     label: 'Review Required',
     dot: 'bg-foreground',
-    border: 'border-foreground/35',
+    border: '',
     bg: 'bg-secondary/75 hover:bg-secondary text-foreground',
-    badge: 'bg-secondary text-foreground border-foreground/35',
+    badge: 'bg-secondary text-foreground ',
     sign: 'Review Needed',
   },
   'Rework': {
     label: 'Rework Required',
     dot: 'bg-primary',
-    border: 'border-primary/40',
+    border: '',
     bg: 'bg-primary/[0.06] hover:bg-primary/10 text-foreground',
-    badge: 'bg-secondary text-foreground border-primary/40',
+    badge: 'bg-secondary text-foreground ',
     sign: 'Rework',
   },
   'Completed': {
     label: 'Completed / Approved',
     dot: 'bg-primary-foreground',
-    border: 'border-primary',
+    border: '',
     bg: 'bg-secondary hover:bg-secondary/80 text-foreground',
-    badge: 'bg-primary text-primary-foreground border-primary',
+    badge: 'bg-primary text-primary-foreground ',
     sign: 'Completed',
   },
   'Approved': {
     label: 'Approved',
     dot: 'bg-primary-foreground',
-    border: 'border-primary',
+    border: '',
     bg: 'bg-secondary hover:bg-secondary/80 text-foreground',
-    badge: 'bg-primary text-primary-foreground border-primary',
+    badge: 'bg-primary text-primary-foreground ',
     sign: 'Approved',
   },
 };
@@ -153,32 +152,32 @@ export const TASK_PRIORITY_COLORS = {
   Urgent: {
     label: 'Urgent',
     dot: 'bg-primary',
-    badge: 'bg-primary text-primary-foreground font-black shadow-xs',
-    pill: 'bg-primary text-primary-foreground border-primary',
+    badge: 'bg-primary text-primary-foreground font-black ',
+    pill: 'bg-primary text-primary-foreground ',
     sign: 'Urgent',
-    borderLeft: 'border-l-4 border-l-primary',
+    borderLeft: ' ',
   },
   High: {
     label: 'High',
     dot: 'bg-foreground',
-    badge: 'bg-secondary text-foreground border border-foreground/35 font-bold',
-    pill: 'bg-secondary text-foreground border-foreground/35',
+    badge: 'bg-secondary text-foreground font-bold',
+    pill: 'bg-secondary text-foreground ',
     sign: 'High',
-    borderLeft: 'border-l-4 border-l-foreground/50',
+    borderLeft: ' ',
   },
   Medium: {
     label: 'Medium',
     dot: 'bg-muted-foreground',
-    badge: 'bg-secondary/70 text-foreground border border-border font-semibold',
-    pill: 'bg-secondary/70 text-foreground border-border',
+    badge: 'bg-secondary/70 text-foreground font-semibold',
+    pill: 'bg-secondary/70 text-foreground ',
     sign: 'Medium',
     borderLeft: '',
   },
   Low: {
     label: 'Low',
     dot: 'bg-muted-foreground/60',
-    badge: 'bg-secondary/40 text-muted-foreground border border-border font-medium',
-    pill: 'bg-secondary/40 text-muted-foreground border-border',
+    badge: 'bg-secondary/40 text-muted-foreground font-medium',
+    pill: 'bg-secondary/40 text-muted-foreground ',
     sign: 'Low',
     borderLeft: '',
   },
@@ -348,7 +347,8 @@ const buildGuidanceForDate = (tasksForDate = []) => {
   };
 };
 
-const downloadWeeklyReportPdf = ({ report, range, employeeName }) => {
+const downloadWeeklyReportPdf = async ({ report, range, employeeName }) => {
+  const { default: jsPDF } = await import('jspdf');
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -434,14 +434,14 @@ const FileLinks = ({ files = [], emptyMessage = 'No files available.' }) => {
           href={fileUrl}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background px-3 py-2 text-sm transition-colors hover:bg-secondary/40"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-background px-3 py-2 text-sm transition-colors hover:bg-secondary/40"
         >
           <span className="flex min-w-0 items-center gap-3">
             {isImage ? (
               <img
                 src={fileUrl}
                 alt={file.name || 'Attachment preview'}
-                className="h-12 w-12 shrink-0 rounded-xl border border-border object-cover"
+                className="h-12 w-12 shrink-0 rounded-xl object-cover"
                 loading="lazy"
               />
             ) : null}
@@ -460,31 +460,31 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-3xl max-h-[90dvh]">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-3xl max-h-[90dvh]">
         <div className="flex flex-col min-h-0 h-full">
           {/* Pinned Header */}
-          <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+          <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+              <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-primary">
                 <FileText className="h-5 w-5" />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                   {task?.taskTitle || task?.title || 'Task Details'}
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                <DialogDescription className="sr-only">
                   Review task details, delivery files, and confirm your response
                 </DialogDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+              <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 px-2 py-0.5 rounded-md">
                 ESC
               </span>
               <DialogClose asChild>
                 <button
                   type="button"
-                  className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                  className="h-9 w-9 rounded-xl bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -497,41 +497,41 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
             {task ? (
               <div className="space-y-6">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Task Category</p>
                     <p className="mt-1 text-sm font-semibold text-foreground">
                       {task.taskCategory === 'non_content' ? 'Non-Content Task' : 'Content Task'}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Task Type</p>
                     <p className="mt-1 text-sm font-semibold text-foreground">{formatTaskTypeLabel(task.taskType)}</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Assigned Person</p>
                     <p className="mt-1 text-sm font-semibold text-foreground">
                       {task.assignedPersonName || task.assignedTo?.map((item) => item.name).join(', ') || 'Unassigned'}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Current Status</p>
                     <p className="mt-1 text-sm font-semibold text-foreground">{statusMeta.label}</p>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-border bg-background p-4 text-sm text-foreground shadow-2xs">
+                <div className="rounded-xl bg-background p-4 text-sm text-foreground ">
                   <p className="font-semibold text-sm">Progress Alert</p>
                   <p className="mt-1 text-sm text-muted-foreground">{statusMeta.alert}</p>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="text-xs font-semibold text-foreground mb-1">Requirements</p>
                     <p className="whitespace-pre-wrap text-sm text-muted-foreground">
                       {task.description || task.websiteRequirements || 'No requirements shared yet.'}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="text-xs font-semibold text-foreground mb-1">Notes Visible To You</p>
                     <p className="whitespace-pre-wrap text-sm text-muted-foreground">
                       {task.clientVisibleNotes || 'No client-visible notes available.'}
@@ -541,13 +541,13 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
 
                 {task.taskCategory !== 'non_content' ? (
                   <div className="space-y-4">
-                    <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <div className="rounded-xl bg-background p-4 ">
                       <p className="text-xs font-semibold text-foreground mb-1">Script / Script Link</p>
                       <p className="whitespace-pre-wrap text-sm text-muted-foreground">
                         {task.scriptText || task.scriptLink || 'No script shared.'}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                    <div className="rounded-xl bg-background p-4 ">
                       <p className="text-xs font-semibold text-foreground mb-1">Caption / Editor Guide</p>
                       <p className="whitespace-pre-wrap text-sm text-muted-foreground">{task.caption || 'No caption shared.'}</p>
                       {task.editorGuide ? <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{task.editorGuide}</p> : null}
@@ -556,11 +556,11 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
                 ) : null}
 
                 <div className="space-y-4">
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="mb-2 text-xs font-semibold text-foreground">Attachments</p>
                     <FileLinks files={task.attachments || []} />
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-4 shadow-2xs">
+                  <div className="rounded-xl bg-background p-4 ">
                     <p className="mb-2 text-xs font-semibold text-foreground">Completed Files</p>
                     <FileLinks files={task.completedFiles || []} />
                   </div>
@@ -572,13 +572,13 @@ const ClientTaskDialog = ({ task, open, onOpenChange, onSubmitted }) => {
           </div>
 
           {/* Pinned Sticky Footer */}
-          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
             <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+              className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium w-full sm:w-auto"
             >
               Close
             </Button>
@@ -601,33 +601,33 @@ const TaskSummaryCard = ({ task, onOpen }) => {
       type="button"
       onClick={() => onOpen(task)}
       className={cn(
-        'w-full rounded-2xl border p-4 text-left shadow-sm transition-colors relative overflow-hidden cursor-pointer',
+        'w-full rounded-2xl p-4 text-left transition-colors relative overflow-hidden cursor-pointer',
         statusTheme.border,
         statusTheme.bg,
-        isUrgent && 'border-l-4 border-l-primary ring-1 ring-primary/30 bg-primary/[0.06]',
-        isHigh && !isUrgent && 'border-l-4 border-l-foreground/45',
-        task.isOverdue && 'border-primary/70 bg-primary/[0.08]',
+        isUrgent && ' ring-1 ring-primary/30 bg-primary/[0.06]',
+        isHigh && !isUrgent && ' ',
+        task.isOverdue && ' bg-primary/[0.08]',
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className={cn('px-2.5 py-0.5 rounded-lg text-[11px] font-bold border inline-flex items-center gap-1.5', statusTheme.badge)}>
+            <span className={cn('px-2.5 py-0.5 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5', statusTheme.badge)}>
               <span className={cn('h-2 w-2 rounded-full shrink-0', statusTheme.dot)} />
               <span>{normalizedStatus}</span>
             </span>
 
             {isUrgent ? (
-              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-primary text-primary-foreground shadow-xs inline-flex items-center gap-1">
+              <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-primary text-primary-foreground inline-flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3 shrink-0" />
                 <span>URGENT</span>
               </span>
             ) : isHigh ? (
-              <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-secondary text-foreground border border-foreground/35">
+              <span className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-secondary text-foreground ">
                 High Priority
               </span>
             ) : task.priority ? (
-              <span className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-secondary text-muted-foreground border border-border">
+              <span className="px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-secondary text-muted-foreground ">
                 {priorityTheme.sign || task.priority}
               </span>
             ) : null}
@@ -647,7 +647,7 @@ const TaskSummaryCard = ({ task, onOpen }) => {
           </p>
         </div>
 
-        <div className="rounded-xl bg-card border border-border px-3 py-2 text-right shadow-2xs shrink-0">
+        <div className="rounded-xl bg-card px-3 py-2 text-right shrink-0">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Due Date</p>
           <p className="mt-0.5 text-xs font-black text-foreground tabular-nums">
             {task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : 'No date'}
@@ -656,17 +656,17 @@ const TaskSummaryCard = ({ task, onOpen }) => {
       </div>
 
       <div className="mt-3.5 grid gap-2.5 md:grid-cols-3">
-        <div className="rounded-xl border border-border/80 bg-background/80 px-3 py-2">
+        <div className="rounded-xl bg-background/80 px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Client</p>
           <p className="mt-0.5 text-xs font-semibold text-foreground truncate">{task.client?.name || task.client?.company || task.clientName || 'No client linked'}</p>
         </div>
-        <div className="rounded-xl border border-border/80 bg-background/80 px-3 py-2">
+        <div className="rounded-xl bg-background/80 px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Assigned To</p>
           <p className="mt-0.5 text-xs font-semibold text-foreground truncate">
             {task.assignedPersonName || task.assignedTo?.map((item) => item.name).join(', ') || 'Unassigned'}
           </p>
         </div>
-        <div className="rounded-xl border border-border/80 bg-background/80 px-3 py-2">
+        <div className="rounded-xl bg-background/80 px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Project</p>
           <p className="mt-0.5 text-xs font-semibold text-foreground truncate">{task.project?.name || task.projectName || 'No project linked'}</p>
         </div>
@@ -872,9 +872,9 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   };
 
   const renderMonthView = () => (
-    <div className="responsive-table-container rounded-2xl border border-border bg-card shadow-xs">
+    <div className="responsive-table-container rounded-2xl bg-card ">
       <div className="min-w-[680px]">
-        <div className="grid grid-cols-7 border-b border-border bg-secondary/40">
+        <div className="grid grid-cols-7 bg-secondary/40">
           {DAY_NAMES.map((day) => (
             <div key={day} className="py-1.5 px-1 text-center text-[11px] font-black uppercase tracking-wider text-muted-foreground">
               {day}
@@ -895,7 +895,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                 type="button"
                 onClick={() => openDateDetails(day)}
                 className={cn(
-                  'min-h-[72px] sm:min-h-[80px] max-h-[105px] overflow-hidden border-b border-r border-border/70 p-1 sm:p-1.5 text-left align-top transition-colors focus:outline-none focus:ring-1 focus:ring-primary/30',
+                  'min-h-[72px] sm:min-h-[80px] max-h-[105px] overflow-hidden p-1 sm:p-1.5 text-left align-top transition-colors focus:outline-none focus:ring-1 focus:ring-primary/30',
                   !inCurrentMonth && 'bg-secondary/15 opacity-55',
                   isDayToday && 'bg-primary/5 ring-1 ring-inset ring-primary/25',
                   dayTasks.length ? 'hover:bg-secondary/35' : 'hover:bg-secondary/15',
@@ -906,7 +906,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                     className={cn(
                       'flex h-6 w-6 items-center justify-center rounded-full text-xs sm:text-sm font-black tracking-tight tabular-nums',
                       isDayToday
-                        ? 'bg-primary text-primary-foreground font-black shadow-xs ring-1 ring-primary/40'
+                        ? 'bg-primary text-primary-foreground font-black ring-1 ring-primary/40'
                         : inCurrentMonth
                         ? 'text-foreground font-black'
                         : 'text-muted-foreground font-bold',
@@ -915,7 +915,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                     {format(day, 'd')}
                   </div>
                   {dayTasks.length ? (
-                    <span className="rounded-full bg-secondary border border-border px-1.5 py-0.5 text-[10px] font-black text-foreground leading-none tabular-nums">
+                    <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-black text-foreground leading-none tabular-nums">
                       {dayTasks.length}
                     </span>
                   ) : null}
@@ -936,12 +936,12 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                           handleOpenTask(task);
                         }}
                         className={cn(
-                          'group/task relative rounded-md border px-1.5 py-0.5 text-left shadow-2xs transition-colors hover:shadow-xs cursor-pointer',
+                          'group/task relative rounded-md px-1.5 py-0.5 text-left transition-colors cursor-pointer',
                           statusTheme.border,
                           statusTheme.bg,
-                          isUrgent && 'border-l-[3px] border-l-primary ring-1 ring-primary/35 bg-primary/[0.07]',
-                          isHigh && !isUrgent && 'border-l-[3px] border-l-foreground/45',
-                          task.isOverdue && 'border-primary/70 bg-primary/10',
+                          isUrgent && ' ring-1 ring-primary/35 bg-primary/[0.07]',
+                          isHigh && !isUrgent && ' ',
+                          task.isOverdue && ' bg-primary/10',
                         )}
                       >
                         <div className="flex items-center justify-between gap-1">
@@ -991,7 +991,6 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
       return (
         <EmptyState
           title="No tasks found"
-          description="Adjust your filters or date range to see tasks."
           action={canManageCalendar ? (
             <Button onClick={() => navigate('/tasks/new')}>
               <Plus size={16} className="mr-2" />
@@ -1003,7 +1002,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
     }
 
     return (
-      <div className="responsive-table-container rounded-[20px] border border-border">
+      <div className="responsive-table-container rounded-[20px] ">
         <div className="min-w-[720px] space-y-1">
           {/* Header Row */}
           <div className="grid items-center gap-2 bg-secondary/60 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground"
@@ -1020,8 +1019,8 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             <div key={dateKey}>
               {/* Date Group Header */}
               <div className={cn(
-                'sticky top-0 z-10 flex items-center gap-3 border-y border-border bg-card px-4 py-2',
-                dateKey !== 'no-date' && isToday(new Date(dateKey)) && 'bg-secondary border-foreground/25',
+                'sticky top-0 z-10 flex items-center gap-3 bg-card px-4 py-2',
+                dateKey !== 'no-date' && isToday(new Date(dateKey)) && 'bg-secondary ',
               )}>
                 <div className={cn(
                   'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black tabular-nums',
@@ -1047,9 +1046,9 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                     type="button"
                     onClick={() => handleOpenTask(task)}
                     className={cn(
-                      'w-full grid items-center gap-2 border-b border-border/50 px-4 py-3 text-left transition-all hover:bg-secondary/30',
+                      'w-full grid items-center gap-2 px-4 py-3 text-left transition-all hover:bg-secondary/30',
                       idx % 2 === 0 ? 'bg-background' : 'bg-secondary/10',
-                      task.isOverdue && 'border-l-2 border-l-primary',
+                      task.isOverdue && ' ',
                     )}
                     style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 100px' }}
                   >
@@ -1111,7 +1110,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
         const dayTasks = tasksByDate.get(key) || [];
 
         return (
-          <div key={key} className={cn('rounded-[24px] border border-border bg-card p-4 shadow-sm', view === 'day' && 'lg:col-span-7')}>
+          <div key={key} className={cn('rounded-[24px] bg-card p-4 ', view === 'day' && 'lg:col-span-7')}>
             <button type="button" onClick={() => openDateDetails(day)} className="w-full text-left">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -1130,7 +1129,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                   <TaskSummaryCard key={task._id} task={task} onOpen={handleOpenTask} />
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-border bg-background px-4 py-10 text-center text-sm text-muted-foreground">
+                <div className="rounded-2xl bg-background px-4 py-10 text-center text-sm text-muted-foreground">
                   {canManageCalendar
                     ? 'No tasks here yet. Click the date above to add one.'
                     : canLogDailyUpdates
@@ -1148,7 +1147,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
   return (
     <div className={cn('space-y-2.5', embedded && 'p-3 sm:p-4')}>
       {/* ── Compact Header & View Toolbar ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 bg-card rounded-2xl border border-border p-3 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 bg-card rounded-2xl p-3 ">
         {/* Left: Title + Date Range Period + Nav Arrows */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
@@ -1159,7 +1158,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           </div>
 
           {/* Date Navigation & Period Label */}
-          <div className="flex items-center gap-1.5 bg-secondary/50 rounded-xl p-0.5 border border-border/70">
+          <div className="flex items-center gap-1.5 bg-secondary/50 rounded-xl p-0.5 ">
             <button
               type="button"
               onClick={() => setCurrentDate((current) => shiftDateByView(current, view, -1))}
@@ -1183,7 +1182,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             >
               <ChevronRight size={15} />
             </button>
-            <span className="text-xs font-black text-primary px-2 border-l border-border/80">
+            <span className="text-xs font-black text-primary px-2 ">
               {toolbarTitle}
             </span>
           </div>
@@ -1191,7 +1190,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
 
         {/* Right: View Options + Action Button */}
         <div className="flex items-center gap-2 self-start md:self-auto flex-wrap w-full md:w-auto justify-between md:justify-end">
-          <div className="inline-flex rounded-xl border border-border bg-secondary/40 p-0.5 shadow-2xs overflow-x-auto max-w-full">
+          <div className="inline-flex rounded-xl bg-secondary/40 p-0.5 overflow-x-auto max-w-full">
             {VIEW_OPTIONS.map(({ value, label, icon: Icon }) => (
               <button
                 key={value}
@@ -1199,7 +1198,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer shrink-0 min-h-[32px] sm:min-h-[36px]',
                   view === value
-                    ? 'bg-primary text-primary-foreground shadow-xs font-black'
+                    ? 'bg-primary text-primary-foreground font-black'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/60',
                 )}
               >
@@ -1213,7 +1212,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             <Button
               size="sm"
               onClick={() => navigate('/tasks/new')}
-              className="h-8 rounded-xl text-xs font-bold gap-1 px-3 shadow-xs shrink-0"
+              className="h-8 rounded-xl text-xs font-bold gap-1 px-3 shrink-0"
             >
               <Plus size={14} className="stroke-[2.5]" />
               <span>Create Task</span>
@@ -1223,26 +1222,26 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
       </div>
 
       {/* ── Compact Metric Badges & Search Ribbon ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 bg-card rounded-xl border border-border px-3 py-1.5 shadow-2xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2 bg-card rounded-xl px-3 py-1.5 ">
         {/* Metric Badges */}
         <div className="flex items-center gap-2 flex-wrap text-xs">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary text-foreground font-semibold">
             <CalendarDays size={12} className="text-muted-foreground shrink-0" />
             <span>Visible Tasks: <strong className="font-black text-sm tabular-nums">{summary.total}</strong></span>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary text-foreground font-semibold">
             <Clock3 size={12} className="text-muted-foreground shrink-0" />
             <span>Waiting for Client: <strong className="font-black text-sm tabular-nums">{summary.waitingForClient}</strong></span>
           </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-secondary text-foreground font-semibold">
             <CheckCircle2 size={12} className="text-muted-foreground shrink-0" />
             <span>Completed / Approved: <strong className="font-black text-sm tabular-nums">{summary.completed}</strong></span>
           </div>
           <div className={cn(
-            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg font-semibold border',
+            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg font-semibold',
             summary.overdue > 0
-              ? 'bg-primary border-primary text-primary-foreground'
-              : 'bg-secondary border-border text-muted-foreground'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary text-muted-foreground'
           )}>
             <TimerReset size={12} className="shrink-0" />
             <span>Overdue: <strong className="font-black text-sm tabular-nums">{summary.overdue}</strong></span>
@@ -1256,7 +1255,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search task titles, clients, scripts..."
-            className="w-full h-7 rounded-lg bg-background border border-border px-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
+            className="w-full h-7 rounded-lg bg-background px-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/40"
           />
           {search && (
             <button
@@ -1285,10 +1284,10 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               type="button"
               onClick={() => setFilters((current) => ({ ...current, status: isSelected ? '' : statusKey }))}
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer shrink-0 shadow-2xs select-none',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer shrink-0 select-none',
                 meta.badge,
                 isSelected
-                  ? 'ring-2 ring-primary ring-offset-1 shadow-xs font-black'
+                  ? 'ring-2 ring-primary ring-offset-1 font-black'
                   : 'hover:opacity-90'
               )}
             >
@@ -1313,10 +1312,10 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               type="button"
               onClick={() => setFilters((current) => ({ ...current, priority: isSelected ? '' : prioKey }))}
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer shrink-0 shadow-2xs select-none',
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-colors cursor-pointer shrink-0 select-none',
                 meta.pill,
                 isSelected
-                  ? 'ring-2 ring-primary ring-offset-1 shadow-xs font-black'
+                  ? 'ring-2 ring-primary ring-offset-1 font-black'
                   : 'hover:opacity-90'
               )}
             >
@@ -1346,7 +1345,7 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
         {isLoading ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div key={item} className="h-32 animate-pulse rounded-2xl border border-border bg-secondary/50" />
+              <div key={item} className="h-32 animate-pulse rounded-2xl bg-secondary/50" />
             ))}
           </div>
         ) : view === 'agenda' ? (
@@ -1361,7 +1360,6 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
           ) : (
             <EmptyState
               title="No tasks found for this view"
-              description="Adjust your filters or date range to surface the tasks you want to review."
               action={canManageCalendar ? (
                 <Button onClick={() => navigate('/tasks/new')}>
                   <Plus size={16} className="mr-2" />
@@ -1394,12 +1392,12 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
 
       <Dialog open={showDayDialog} onOpenChange={setShowDayDialog}>
         <DialogContent noPadding className="w-[calc(100vw-24px)] max-h-[90dvh] overflow-hidden p-0 sm:max-w-4xl">
-          <div className="border-b border-border bg-card px-4 sm:px-6 py-4 sm:py-5">
-            <DialogHeader className="border-b-0 mb-0 pb-0">
+          <div className="bg-card px-4 sm:px-6 py-4 sm:py-5">
+            <DialogHeader className="mb-0 pb-0">
               <DialogTitle className="text-xl sm:text-2xl tracking-tight">
                 {selectedDate ? format(selectedDate, 'EEEE, MMMM d, yyyy') : 'Tasks'}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="sr-only">
                 {selectedDateTasks.length} scheduled {selectedDateTasks.length === 1 ? 'task' : 'tasks'} for this date.
               </DialogDescription>
             </DialogHeader>
@@ -1417,7 +1415,6 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                 ) : (
                   <EmptyState
                     title="No tasks due on this date"
-                    description="This date does not currently have any scheduled tasks."
                     action={canManageCalendar ? (
                       <Button
                         onClick={() => {
@@ -1444,11 +1441,11 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
               </div>
 
               <div className="space-y-4">
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-2xl bg-card p-5 ">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Do</p>
                   <ul className="mt-3 space-y-2.5 text-sm text-foreground">
                     {selectedDateGuidance.dos.map((item) => (
-                      <li key={item} className="rounded-xl border border-border bg-secondary/50 px-3 py-2.5 flex items-start gap-2.5">
+                      <li key={item} className="rounded-xl bg-secondary/50 px-3 py-2.5 flex items-start gap-2.5">
                         <CheckCircle2 className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
                         <span>{item}</span>
                       </li>
@@ -1456,11 +1453,11 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                   </ul>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-2xl bg-card p-5 ">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Don&apos;t</p>
                   <ul className="mt-3 space-y-2.5 text-sm text-foreground">
                     {selectedDateGuidance.donts.map((item) => (
-                      <li key={item} className="rounded-xl border border-border bg-secondary/35 px-3 py-2.5 flex items-start gap-2.5">
+                      <li key={item} className="rounded-xl bg-secondary/35 px-3 py-2.5 flex items-start gap-2.5">
                         <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                         <span>{item}</span>
                       </li>
@@ -1468,11 +1465,11 @@ const ContentCalendar = ({ embedded = false, defaultView = 'month' }) => {
                   </ul>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-2xl bg-card p-5 ">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Work Process</p>
                   <ol className="mt-3 space-y-2.5 text-sm text-foreground">
                     {selectedDateGuidance.process.map((item, index) => (
-                      <li key={item} className="flex items-start gap-3 rounded-xl border border-border bg-secondary/50 px-3 py-2.5">
+                      <li key={item} className="flex items-start gap-3 rounded-xl bg-secondary/50 px-3 py-2.5">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground tabular-nums">
                           {index + 1}
                         </span>

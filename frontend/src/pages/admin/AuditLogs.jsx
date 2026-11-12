@@ -177,7 +177,7 @@ export default function AuditLogs() {
       return {
         icon: LogIn,
         label: 'User Login',
-        badge: 'bg-secondary text-foreground border-border',
+        badge: 'bg-secondary text-foreground ',
         dot: 'bg-foreground',
       };
     }
@@ -185,7 +185,7 @@ export default function AuditLogs() {
       return {
         icon: Trash2,
         label: 'Deleted',
-        badge: 'bg-secondary text-foreground border-foreground/40',
+        badge: 'bg-secondary text-foreground ',
         dot: 'bg-foreground',
       };
     }
@@ -193,7 +193,7 @@ export default function AuditLogs() {
       return {
         icon: RotateCcw,
         label: 'Restored',
-        badge: 'bg-secondary text-foreground border-border',
+        badge: 'bg-secondary text-foreground ',
         dot: 'bg-muted-foreground',
       };
     }
@@ -201,56 +201,53 @@ export default function AuditLogs() {
       return {
         icon: PlusCircle,
         label: 'Created',
-        badge: 'bg-primary text-primary-foreground border-primary',
+        badge: 'bg-primary text-primary-foreground ',
         dot: 'bg-primary',
       };
     }
     return {
       icon: Edit3,
       label: 'Updated',
-      badge: 'bg-muted text-foreground border-border',
+      badge: 'bg-muted text-foreground ',
       dot: 'bg-muted-foreground',
     };
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto font-sans">
+    <div className="space-y-6">
       {/* ── 1. HEADER SECTION ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-foreground border border-border">
-              <ShieldCheck size={13} className="stroke-[2.5] shrink-0" />
-              System Audit Logs
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+            <ShieldCheck size={20} />
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
-            Platform Activity & Change History
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            Audit Logs
           </h1>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => setFilterMyActionsOnly((prev) => !prev)}
-            className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold border transition-all cursor-pointer ${
+            className={`h-10 inline-flex items-center gap-1.5 rounded-xl px-4 text-xs font-semibold transition-all cursor-pointer ${
               filterMyActionsOnly
-                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                : 'bg-card border-border text-foreground hover:bg-secondary'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-foreground hover:bg-secondary'
             }`}
           >
-            <User size={13} className="shrink-0" />
-            <span>{filterMyActionsOnly ? 'Showing: My Actions Only' : 'Filter: My Actions Only'}</span>
+            <User size={14} className="shrink-0" />
+            <span>{filterMyActionsOnly ? 'My Actions' : 'All Actions'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => fetchAuditLogs(page)}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground shadow-2xs hover:bg-secondary cursor-pointer disabled:opacity-50"
+            className="h-10 inline-flex items-center gap-1.5 rounded-xl bg-card px-4 text-xs font-semibold text-foreground hover:bg-secondary cursor-pointer disabled:opacity-50"
             title="Refresh logs"
           >
-            <RefreshCw size={13} className={loading ? 'animate-spin text-foreground shrink-0' : 'shrink-0'} />
+            <RefreshCw size={14} className={loading ? 'animate-spin text-foreground shrink-0' : 'shrink-0'} />
             <span>Refresh</span>
           </button>
         </div>
@@ -258,69 +255,63 @@ export default function AuditLogs() {
 
       {/* ── 2. METRIC SUMMARY STAT CARDS ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-2xl bg-card px-4 py-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Total Events
           </span>
-          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-foreground mt-1.5 tabular-nums">
             {stats.total.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-muted-foreground">All matching logs</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-            <Clock size={12} className="shrink-0" /> Today's Events
+        <div className="rounded-2xl bg-card px-4 py-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <Clock size={12} className="shrink-0" /> Today
           </span>
-          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-foreground mt-1.5 tabular-nums">
             {stats.todayCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-muted-foreground">Since 12:00 AM</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+        <div className="rounded-2xl bg-card px-4 py-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
             <LogIn size={12} className="shrink-0" /> Logins
           </span>
-          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-foreground mt-1.5 tabular-nums">
             {stats.loginCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-muted-foreground">User sessions</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+        <div className="rounded-2xl bg-card px-4 py-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
             <PlusCircle size={12} className="shrink-0" /> Created
           </span>
-          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-foreground mt-1.5 tabular-nums">
             {stats.createdCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-muted-foreground">New records</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+        <div className="rounded-2xl bg-card px-4 py-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
             <Edit3 size={12} className="shrink-0" /> Updates
           </span>
-          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-foreground mt-1.5 tabular-nums">
             {stats.updatedCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-muted-foreground">Edits & statuses</span>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+        <div className="rounded-2xl bg-card px-4 py-4">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
             <Trash2 size={12} className="shrink-0" /> Deletions
           </span>
-          <div className="text-xl font-black text-foreground mt-1 tabular-nums">
+          <div className="text-2xl font-bold text-foreground mt-1.5 tabular-nums">
             {stats.deletedCount.toLocaleString('en-IN')}
           </div>
-          <span className="text-[10px] text-muted-foreground">Archived items</span>
         </div>
       </div>
 
       {/* ── 3. FILTER BAR ── */}
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-xs space-y-3.5">
+      <div className="rounded-2xl bg-card p-4 space-y-3.5">
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           {/* Search bar */}
           <div className="relative w-full sm:w-80">
@@ -330,13 +321,13 @@ export default function AuditLogs() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by action, title, user..."
-              className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="h-10 w-full rounded-xl bg-background pl-10 pr-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary/15"
             />
           </div>
         </div>
 
         {/* Action Group Filter Pills */}
-        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-border">
+        <div className="flex items-center gap-2 flex-wrap pt-2 ">
           <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mr-1 flex items-center gap-1">
             <Filter size={11} className="shrink-0" /> Action:
           </span>
@@ -345,10 +336,10 @@ export default function AuditLogs() {
               key={act.id}
               type="button"
               onClick={() => setSelectedActionGroup(act.id)}
-              className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 selectedActionGroup === act.id
-                  ? 'bg-primary text-primary-foreground border-primary shadow-2xs'
-                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
               }`}
             >
               {act.label}
@@ -386,24 +377,18 @@ export default function AuditLogs() {
       {/* ── 4. AUDIT LOGS LIST ── */}
       <div className="space-y-3">
         {loading && logs.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+          <div className="rounded-2xl bg-card p-12 text-center">
             <RefreshCw className="mx-auto h-8 w-8 text-foreground animate-spin mb-3" />
             <h3 className="text-sm font-bold text-foreground">
               Loading audit logs...
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Querying database for real-time activity events
-            </p>
           </div>
         ) : logs.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-12 text-center">
+          <div className="rounded-2xl bg-card p-12 text-center">
             <ShieldCheck className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
             <h3 className="text-sm font-bold text-foreground">
               No audit logs found
             </h3>
-            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-              No activity logs match your selected filter criteria. Try resetting filters or clearing the search term.
-            </p>
             <button
               type="button"
               onClick={() => {
@@ -428,18 +413,18 @@ export default function AuditLogs() {
             return (
               <div
                 key={log._id}
-                className="rounded-2xl border border-border bg-card p-4 shadow-2xs hover:shadow-sm transition-all"
+                className="rounded-2xl bg-card p-4 transition-all"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
                   {/* Left: User Avatar & Activity Description */}
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     {/* Actor Avatar */}
                     <div className="relative shrink-0">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground font-black text-sm border border-border">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-foreground font-black text-sm ">
                         {log.actor?.name ? log.actor.name.charAt(0).toUpperCase() : 'U'}
                       </div>
                       <span
-                        className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-card ${design.dot}`}
+                        className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full ring-2 ring-card ${design.dot}`}
                         title={design.label}
                       />
                     </div>
@@ -461,14 +446,14 @@ export default function AuditLogs() {
 
                         {/* Actor Role */}
                         {log.actor?.role && (
-                          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground border border-border">
+                          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground ">
                             {log.actor.role}
                           </span>
                         )}
 
                         {/* Action Badge */}
                         <span
-                          className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${design.badge}`}
+                          className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${design.badge}`}
                         >
                           <ActionIcon size={10} className="shrink-0" />
                           <span>{log.action}</span>
@@ -496,13 +481,13 @@ export default function AuditLogs() {
                       {(log.relatedClient || log.relatedProject) && (
                         <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground flex-wrap">
                           {log.relatedClient && (
-                            <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 font-semibold text-foreground border border-border">
+                            <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 font-semibold text-foreground ">
                               <Building2 size={11} className="text-muted-foreground shrink-0" />
                               {log.relatedClient.company || log.relatedClient.name || 'Client'}
                             </span>
                           )}
                           {log.relatedProject && (
-                            <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 font-semibold text-foreground border border-border">
+                            <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 font-semibold text-foreground ">
                               <Briefcase size={11} className="text-muted-foreground shrink-0" />
                               {log.relatedProject.name || 'Project'}
                             </span>
@@ -538,12 +523,12 @@ export default function AuditLogs() {
 
                 {/* Collapsible Metadata Payload */}
                 {isExpanded && log.metadata && (
-                  <div className="mt-3 pt-3 border-t border-border">
+                  <div className="mt-3 pt-3 ">
                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground mb-1.5">
                       <Info size={12} className="text-foreground shrink-0" />
                       <span>Event Metadata Payload</span>
                     </div>
-                    <pre className="rounded-xl bg-zinc-950 border border-border p-3 text-[11px] text-zinc-100 font-mono overflow-x-auto max-h-48 custom-scrollbar">
+                    <pre className="rounded-xl bg-zinc-950 p-3 text-[11px] text-zinc-100 font-mono overflow-x-auto max-h-48 custom-scrollbar">
                       {JSON.stringify(log.metadata, null, 2)}
                     </pre>
                   </div>
@@ -556,7 +541,7 @@ export default function AuditLogs() {
 
       {/* ── 5. PAGINATION ── */}
       {pages > 1 && (
-        <div className="flex items-center justify-between border-t border-border pt-4">
+        <div className="flex items-center justify-between pt-4">
           <span className="text-xs text-muted-foreground tabular-nums">
             Page <strong className="text-foreground">{page}</strong> of{' '}
             <strong className="text-foreground">{pages}</strong> ({total} total logs)
@@ -571,7 +556,7 @@ export default function AuditLogs() {
                 setPage(newPage);
                 fetchAuditLogs(newPage);
               }}
-              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
+              className="rounded-xl bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Previous
             </button>
@@ -583,7 +568,7 @@ export default function AuditLogs() {
                 setPage(newPage);
                 fetchAuditLogs(newPage);
               }}
-              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
+              className="rounded-xl bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Next
             </button>

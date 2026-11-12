@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-
 export const Skeleton = ({ className = '', ...props }) => {
   return (
     <div
@@ -10,7 +8,7 @@ export const Skeleton = ({ className = '', ...props }) => {
 };
 
 export const CardSkeleton = () => (
-  <div className="rounded-2xl p-5 border border-border bg-card flex flex-col gap-4 shadow-xs">
+  <div className="rounded-2xl p-5 bg-card flex flex-col gap-4">
     <div className="flex justify-between items-center">
       <Skeleton className="h-4 w-24" />
       <Skeleton className="h-8 w-8 rounded-xl" />
@@ -21,7 +19,7 @@ export const CardSkeleton = () => (
 );
 
 export const ChartSkeleton = () => (
-  <div className="rounded-2xl p-6 border border-border bg-card flex flex-col gap-4 h-[320px] shadow-xs">
+  <div className="rounded-2xl p-6 bg-card flex flex-col gap-4 h-[320px]">
     <div className="flex justify-between items-center">
       <div>
         <Skeleton className="h-4 w-32 mb-2" />
@@ -44,13 +42,13 @@ export const ChartSkeleton = () => (
 );
 
 export const TableSkeleton = ({ columns = 5, rows = 5 }) => (
-  <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
-    <div className="px-6 py-4 border-b border-border bg-muted/20">
+  <div className="rounded-2xl bg-card overflow-hidden">
+    <div className="px-6 py-4 bg-secondary/50">
       <Skeleton className="h-4 w-32" />
     </div>
     <div className="p-6 space-y-4">
       {[...Array(rows)].map((_, r) => (
-        <div key={r} className="flex items-center gap-4 justify-between border-b border-border/50 pb-4 last:border-b-0 last:pb-0">
+        <div key={r} className="flex items-center gap-4 justify-between">
           {[...Array(columns)].map((_, c) => (
             <Skeleton key={c} className="h-4 flex-1" style={{ maxWidth: c === 0 ? '120px' : 'none' }} />
           ))}
@@ -71,7 +69,7 @@ export const DetailSkeleton = ({ dark }) => (
     </div>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-2 space-y-6">
-        <div className="p-6 border border-border rounded-2xl bg-card space-y-4">
+        <div className="p-6 rounded-2xl bg-card space-y-4">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full" />
@@ -79,7 +77,7 @@ export const DetailSkeleton = ({ dark }) => (
         </div>
       </div>
       <div className="space-y-6">
-        <div className="p-6 border border-border rounded-2xl bg-card space-y-4">
+        <div className="p-6 rounded-2xl bg-card space-y-4">
           <Skeleton className="h-5 w-24" />
           <div className="space-y-2">
             <Skeleton className="h-8 w-full" />

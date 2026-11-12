@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import Client from '../models/client.model.js';
 import User from '../models/user.model.js';
 import Project from '../models/project.model.js';
+import Task from '../models/task.model.js';
 import ActivityLog from '../models/activityLog.model.js';
 import SmmClient from '../models/smm/smmClient.model.js';
 import { sendEmail } from '../utils/email.js';
@@ -139,12 +140,126 @@ export const getClients = async (req, res) => {
         .lean(),
     ]);
 
+    const clientIds = clients.map((c) => c._id);
+    const projectSummaryMap = {};
+    const taskSummaryMap = {};
+
+    if (clientIds.length > 0) {
+      const clientProjects = await Project.find({ client: { $in: clientIds } })
+        .select('client name category startDate dueDate status createdAt')
+        .lean();
+
+      const projectToClientMap = {};
+      const projectIds = [];
+
+      clientProjects.forEach((proj) => {
+        const cid = String(proj.client);
+        projectToClientMap[String(proj._id)] = cid;
+        projectIds.push(proj._id);
+
+        if (!projectSummaryMap[cid]) {
+          projectSummaryMap[cid] = {
+            projectCount: 0,
+            startDate: null,
+            endDate: null,
+            categories: new Set(),
+          };
+        }
+
+        const bucket = projectSummaryMap[cid];
+        bucket.projectCount += 1;
+        if (proj.category && proj.category !== 'other') {
+          bucket.categories.add(proj.category);
+        } else if (proj.category) {
+          bucket.categories.add(proj.category);
+        }
+
+        if (proj.startDate) {
+          const sTime = new Date(proj.startDate).getTime();
+          if (!Number.isNaN(sTime) && (!bucket.startDate || sTime < new Date(bucket.startDate).getTime())) {
+            bucket.startDate = proj.startDate;
+          }
+        }
+        if (proj.dueDate) {
+          const eTime = new Date(proj.dueDate).getTime();
+          if (!Number.isNaN(eTime) && (!bucket.endDate || eTime > new Date(bucket.endDate).getTime())) {
+            bucket.endDate = proj.dueDate;
+          }
+        }
+      });
+
+      const taskQueryOr = [{ client: { $in: clientIds } }];
+      if (projectIds.length > 0) {
+        taskQueryOr.push({ project: { $in: projectIds } });
+      }
+
+      const clientTasks = await Task.find({ $or: taskQueryOr })
+        .select('client project status')
+        .lean();
+
+      const completedSet = new Set(['done', 'approved', 'completed', 'Completed', 'Done', 'Approved']);
+      const ongoingSet = new Set([
+        'in_progress',
+        'on_process',
+        'review',
+        'client_approval',
+        'smm_team',
+        'drive_uploaded',
+        'rework',
+        'rework_completed',
+        'review_required',
+        'waiting_for_client',
+        'In Progress',
+        'On Process',
+        'In Review',
+        'Rework',
+        'Rework Completed',
+        'Review Required',
+        'Waiting for Client',
+      ]);
+
+      clientTasks.forEach((t) => {
+        const cid = String(t.client || (t.project ? projectToClientMap[String(t.project)] : '') || '');
+        if (!cid) return;
+        if (!taskSummaryMap[cid]) {
+          taskSummaryMap[cid] = { totalTasks: 0, ongoingTasks: 0, pendingTasks: 0, completedTasks: 0 };
+        }
+        const stats = taskSummaryMap[cid];
+        stats.totalTasks += 1;
+        if (completedSet.has(t.status)) {
+          stats.completedTasks += 1;
+        } else if (ongoingSet.has(t.status)) {
+          stats.ongoingTasks += 1;
+        } else {
+          stats.pendingTasks += 1;
+        }
+      });
+    }
+
+    const enrichedClients = clients.map((client) => {
+      const cid = String(client._id);
+      const pSum = projectSummaryMap[cid];
+      const tSum = taskSummaryMap[cid] || { totalTasks: 0, ongoingTasks: 0, pendingTasks: 0, completedTasks: 0 };
+
+      return {
+        ...serializeClient(client),
+        projectCount: pSum?.projectCount || 0,
+        projectStartDate: pSum?.startDate || client.contractStartDate || null,
+        projectEndDate: pSum?.endDate || client.contractEndDate || null,
+        projectTypes: pSum ? Array.from(pSum.categories) : [],
+        totalTasks: tSum.totalTasks,
+        ongoingTasks: tSum.ongoingTasks,
+        pendingTasks: tSum.pendingTasks,
+        completedTasks: tSum.completedTasks,
+      };
+    });
+
     res.json({
       success: true,
       total,
       page,
       pages: Math.ceil(total / limit),
-      clients: clients.map(serializeClient),
+      clients: enrichedClients,
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -244,7 +359,7 @@ export const getClient = async (req, res) => {
     }
 
     const [projects, recentActivity] = await Promise.all([
-      Project.find({ client: client._id }).select('name status progress dueDate budget').sort({ createdAt: -1 }),
+      Project.find({ client: client._id }).select('name status progress startDate dueDate category priority budget').sort({ createdAt: -1 }),
       ActivityLog.find({ relatedClient: client._id })
         .populate('actor', 'name avatar role')
         .sort({ createdAt: -1 })

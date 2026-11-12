@@ -57,9 +57,9 @@ const roles = [
 ];
 
 const statusStyles = {
-  pending: 'bg-secondary text-foreground border-foreground/40',
-  approved: 'bg-primary text-primary-foreground border-primary',
-  rejected: 'bg-muted text-muted-foreground border-border',
+  pending: 'bg-secondary text-foreground ',
+  approved: 'bg-primary text-primary-foreground ',
+  rejected: 'bg-muted text-muted-foreground ',
 };
 
 const Users = () => {
@@ -160,14 +160,14 @@ const Users = () => {
       label: 'Team Member / Client',
       render: (u) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-secondary text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {u.name?.charAt(0) || 'U'}
           </div>
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">
               <p className="font-bold text-foreground">{u.name}</p>
               {u.clientId?.company && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground">
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-secondary text-foreground">
                   {u.clientId.company}
                 </span>
               )}
@@ -188,7 +188,7 @@ const Users = () => {
           value={u.role}
           onChange={(e) => handleRoleChange(u._id, e.target.value)}
           disabled={!['superAdmin', 'admin'].includes(currentUser?.role) && u.role === 'superAdmin'}
-          className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-semibold"
+          className="h-8 px-2.5 rounded-lg bg-background text-xs font-semibold"
         >
           {roles.map((r) => (
             <option key={r.value} value={r.value}>
@@ -205,21 +205,21 @@ const Users = () => {
         const st = u.approvalStatus || 'approved';
         return (
           <div className="flex items-center gap-1.5">
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${statusStyles[st] || statusStyles.approved}`}>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${statusStyles[st] || statusStyles.approved}`}>
               {st}
             </span>
             {st === 'pending' && (
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleApprovalChange(u._id, 'approved')}
-                  className="p-1 rounded-md bg-secondary border border-border text-foreground hover:bg-primary hover:text-primary-foreground"
+                  className="p-1 rounded-md bg-secondary text-foreground hover:bg-primary hover:text-primary-foreground"
                   title="Approve User"
                 >
                   <Check size={13} />
                 </button>
                 <button
                   onClick={() => handleApprovalChange(u._id, 'rejected')}
-                  className="p-1 rounded-md bg-secondary border border-border text-muted-foreground hover:text-foreground"
+                  className="p-1 rounded-md bg-secondary text-muted-foreground hover:text-foreground"
                   title="Reject User"
                 >
                   <X size={13} />
@@ -270,16 +270,16 @@ const Users = () => {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border text-foreground uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary text-foreground uppercase tracking-wider">
             {u.role}
           </span>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize ${statusStyles[st] || statusStyles.approved}`}>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusStyles[st] || statusStyles.approved}`}>
             {st}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-secondary border border-border flex items-center justify-center font-black text-sm text-foreground shrink-0">
+          <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center font-black text-sm text-foreground shrink-0">
             {u.name?.charAt(0) || 'U'}
           </div>
           <div className="min-w-0">
@@ -288,7 +288,7 @@ const Users = () => {
           </div>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
+        <div className="p-2.5 rounded-xl bg-secondary/40 space-y-1 text-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Department:</span>
             <span className="font-semibold text-foreground">{u.department || u.position || 'General'}</span>
@@ -299,7 +299,7 @@ const Users = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/40">
+        <div className="flex items-center justify-end gap-1 pt-1 ">
           <button
             onClick={() => setPermissionsUser(u)}
             className="px-2.5 py-1 rounded-lg hover:bg-secondary text-xs font-semibold text-foreground flex items-center gap-1"
@@ -345,7 +345,7 @@ const Users = () => {
           size="sm"
           onClick={() => refetch()}
           variant="outline"
-          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs min-h-[38px] cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold min-h-[38px] cursor-pointer"
         >
           <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
           <span>Refresh</span>
@@ -360,8 +360,8 @@ const Users = () => {
             onClick={() => setRoleFilter(r)}
             className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
               roleFilter === r
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-primary text-primary-foreground '
+                : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
             {r === 'all' ? 'All Roles' : r.replace(/([A-Z])/g, ' $1')}
@@ -394,27 +394,27 @@ const Users = () => {
 
       {/* Reset Password Modal */}
       <Dialog open={Boolean(passwordUser)} onOpenChange={(open) => !open && setPasswordUser(null)}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-xl max-h-[90dvh]">
-          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-xl max-h-[90dvh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0 ">
                 <KeyRound size={20} />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                  Reset Password for {passwordUser?.name}
+                  Reset Password — {passwordUser?.name}
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                  Set a new secure password for this user account
+                <DialogDescription className="sr-only">
+                  Reset password
                 </DialogDescription>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary text-[10px] font-mono font-medium text-muted-foreground select-none">
                 ESC
               </kbd>
-              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-all active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <X size={16} className="stroke-[2.5]" />
                 <span className="sr-only">Close</span>
               </DialogClose>
@@ -434,7 +434,7 @@ const Users = () => {
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                     placeholder="At least 6 characters"
-                    className="w-full h-11 rounded-xl border border-border bg-background px-4 pr-11 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                    className="w-full h-11 rounded-xl bg-background px-4 pr-11 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                   />
                   <button
                     type="button"
@@ -456,7 +456,7 @@ const Users = () => {
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                     placeholder="Re-enter password"
-                    className="w-full h-11 rounded-xl border border-border bg-background px-4 pr-11 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                    className="w-full h-11 rounded-xl bg-background px-4 pr-11 text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                   />
                   <button
                     type="button"
@@ -471,10 +471,10 @@ const Users = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
-                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                   ESC
                 </kbd>
                 <span>to close</span>
@@ -491,7 +491,7 @@ const Users = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
                 >
                   Update Password
                 </Button>
@@ -503,10 +503,10 @@ const Users = () => {
 
       {/* Delete User Modal */}
       <AlertDialog open={Boolean(deleteUserTarget)} onOpenChange={(open) => !open && setDeleteUserTarget(null)}>
-        <AlertDialogContent className="bg-card border border-border">
+        <AlertDialogContent className="bg-card ">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base font-bold">Delete User Account?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogTitle className="text-base font-bold">Delete {deleteUserTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription className="sr-only">
               Are you sure you want to permanently delete {deleteUserTarget?.name}? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -110,12 +110,12 @@ export const ProjectMonthlyDeliverablesCard = ({
   return (
     <>
       <div
-        className={`rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-sm space-y-4 transition-all ${className}`}
+        className={`rounded-3xl bg-card p-5 sm:p-6 space-y-4 transition-all ${className}`}
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0">
               <Target size={20} />
             </div>
             <div>
@@ -133,7 +133,7 @@ export const ProjectMonthlyDeliverablesCard = ({
 
           {/* Month controls & Actions */}
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <div className="flex items-center rounded-xl border border-border bg-secondary/30 p-0.5">
+            <div className="flex items-center rounded-xl bg-secondary/30 p-0.5">
               <button
                 type="button"
                 onClick={handlePrevMonth}
@@ -161,7 +161,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                 onClick={handleOpenManageModal}
                 size="sm"
                 variant="outline"
-                className="h-8 rounded-xl border-border text-xs font-bold hover:bg-secondary"
+                className="h-8 rounded-xl text-xs font-bold hover:bg-secondary"
               >
                 <Edit2 size={13} className="mr-1.5" />
                 {deliverables.length === 0 ? 'Set Targets' : 'Manage Targets'}
@@ -176,7 +176,7 @@ export const ProjectMonthlyDeliverablesCard = ({
             Loading monthly deliverables...
           </div>
         ) : deliverables.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-secondary/15 py-8 px-4 text-center">
+          <div className="flex flex-col items-center justify-center rounded-2xl bg-secondary/15 py-8 px-4 text-center">
             <Target size={28} className="text-muted-foreground/50 mb-2" />
             <p className="text-sm font-semibold text-foreground">No Deliverable Targets Set</p>
             <p className="text-xs text-muted-foreground max-w-sm mt-0.5">
@@ -187,7 +187,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                 type="button"
                 onClick={handleOpenManageModal}
                 size="sm"
-                className="mt-3.5 h-8 rounded-xl bg-primary text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90"
+                className="mt-3.5 h-8 rounded-xl bg-primary text-xs font-bold text-primary-foreground hover:bg-primary/90"
               >
                 <Plus size={14} className="mr-1" /> Configure {monthName} Targets
               </Button>
@@ -205,16 +205,16 @@ export const ProjectMonthlyDeliverablesCard = ({
               const isReached = item.status === 'TARGET_REACHED';
               const visualProgress = Math.min(100, item.progressPercentage || 0);
 
-              let badgeBg = 'bg-secondary text-foreground border-border';
+              let badgeBg = 'bg-secondary text-foreground ';
               let badgeText = `${item.remaining} Remaining`;
               let BadgeIcon = Clock;
 
               if (isReached) {
-                badgeBg = 'bg-primary text-primary-foreground border-primary';
+                badgeBg = 'bg-primary text-primary-foreground ';
                 badgeText = 'Target Reached';
                 BadgeIcon = CheckCircle2;
               } else if (isOver) {
-                badgeBg = 'bg-foreground text-background border-foreground font-extrabold';
+                badgeBg = 'bg-brand text-brand-foreground font-extrabold';
                 badgeText = `Over by ${item.overBy}`;
                 BadgeIcon = AlertTriangle;
               }
@@ -222,10 +222,10 @@ export const ProjectMonthlyDeliverablesCard = ({
               return (
                 <div
                   key={item._id || item.contentType}
-                  className={`relative flex flex-col justify-between rounded-2xl border p-4 transition-all duration-200 ${
+                  className={`relative flex flex-col justify-between rounded-2xl p-4 transition-all duration-200 ${
                     isOver || isReached
-                      ? 'border-foreground/40 bg-secondary/40 shadow-xs'
-                      : 'border-border bg-secondary/15 hover:border-border/80'
+                      ? ' bg-secondary/40 '
+                      : ' bg-secondary/15 '
                   }`}
                 >
                   {/* Top: Icon & Status Badge */}
@@ -235,7 +235,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-bold text-xs ${
                           isOver || isReached
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-foreground border border-border'
+                            : 'bg-secondary text-foreground '
                         }`}
                       >
                         <IconComponent size={16} />
@@ -244,7 +244,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                     </div>
 
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold shrink-0 tabular-nums ${badgeBg}`}
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0 tabular-nums ${badgeBg}`}
                     >
                       <BadgeIcon size={11} className="shrink-0" />
                       <span>{badgeText}</span>
@@ -272,8 +272,8 @@ export const ProjectMonthlyDeliverablesCard = ({
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
                           isOver || isReached
-                            ? 'bg-foreground'
-                            : 'bg-foreground/70'
+                            ? 'bg-brand'
+                            : 'bg-primary'
                         }`}
                         style={{ width: `${visualProgress}%` }}
                       />
@@ -293,13 +293,13 @@ export const ProjectMonthlyDeliverablesCard = ({
             size="lg"
             noPadding
             hideCloseButton
-            className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+            className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-2xl max-h-[90vh]"
           >
             {/* Pinned Sticky Header */}
-            <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+            <DialogHeader className="px-6 py-5 bg-card shrink-0 select-none">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                     <Target size={20} />
                   </div>
                   <div>
@@ -312,7 +312,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                  <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded-md">
                     ESC
                   </span>
                   <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
@@ -335,14 +335,14 @@ export const ProjectMonthlyDeliverablesCard = ({
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowManageModal(false)}
-                  className="h-11 px-5 rounded-xl border-border font-semibold text-sm"
+                  className="h-11 px-5 rounded-xl font-semibold text-sm"
                 >
                   Cancel
                 </Button>
@@ -350,7 +350,7 @@ export const ProjectMonthlyDeliverablesCard = ({
                   type="button"
                   onClick={handleSaveModal}
                   disabled={batchSave.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary font-bold text-sm text-primary-foreground shadow-sm hover:bg-primary/90"
+                  className="h-11 px-6 rounded-xl bg-primary font-bold text-sm text-primary-foreground hover:bg-primary/90"
                 >
                   {batchSave.isPending ? 'Saving...' : 'Save Targets'}
                 </Button>

@@ -115,16 +115,16 @@ export const TaskSubmitModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="p-0 overflow-hidden bg-card border-border shadow-2xl">
-        <DialogHeader className="px-5 sm:px-6 pt-5 pb-3 border-b border-border bg-card">
+      <DialogContent size="lg" className="p-0 overflow-hidden bg-card ">
+        <DialogHeader className="px-5 sm:px-6 pt-5 pb-3 bg-card">
           <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-xl border shrink-0 ${
-              isLate ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border text-foreground'
+            <div className={`p-2.5 rounded-xl shrink-0 ${
+              isLate ? 'bg-primary text-primary-foreground ' : 'bg-secondary text-foreground'
             }`}>
               {isLate ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
             </div>
-            <div>
-              <DialogTitle className="text-base sm:text-lg font-black text-foreground">
+            <div className="text-left">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight">
                 {isLate ? 'Submit Task (Overdue / Delayed)' : 'Submit Completed Task'}
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
@@ -134,35 +134,35 @@ export const TaskSubmitModal = ({
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-7 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar text-left">
           {/* Timer Summary Banner */}
-          <div className={`rounded-xl border p-3.5 space-y-2 ${
-            isLate ? 'border-primary/40 bg-secondary/70' : 'border-border bg-secondary/40'
+          <div className={`rounded-xl p-3.5 space-y-2 ${
+            isLate ? ' bg-secondary/70' : ' bg-secondary/40'
           }`}>
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="flex items-center gap-1.5 text-foreground">
                 <Clock size={13} className="text-foreground" />
                 <span>Timer Summary</span>
               </span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${
-                isLate ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border'
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                isLate ? 'bg-primary text-primary-foreground ' : 'bg-card text-foreground '
               }`}>
                 {isLate ? 'Overdue' : 'Within Time'}
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-              <div className="p-2 rounded-lg bg-card border border-border">
+              <div className="p-2 rounded-lg bg-card ">
                 <span className="text-[10px] text-muted-foreground block font-medium">Allocated Time</span>
                 <span className="font-bold text-foreground tabular-nums">
                   {totalAllocatedMinutes > 0 ? `${task.allocatedHours || 0}h ${task.allocatedMinutes || 0}m` : 'None specified'}
                 </span>
               </div>
-              <div className="p-2 rounded-lg bg-card border border-border">
+              <div className="p-2 rounded-lg bg-card ">
                 <span className="text-[10px] text-muted-foreground block font-medium">Time Taken</span>
                 <span className="font-bold text-foreground tabular-nums">{elapsedStr}</span>
               </div>
-              <div className="col-span-2 sm:col-span-1 p-2 rounded-lg bg-card border border-border">
+              <div className="col-span-2 sm:col-span-1 p-2 rounded-lg bg-card ">
                 <span className="text-[10px] text-muted-foreground block font-medium">Started At</span>
                 <span className="font-bold text-foreground tabular-nums">
                   {startTime ? new Date(startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
@@ -173,17 +173,17 @@ export const TaskSubmitModal = ({
 
           {/* Submission Mode Selector */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground uppercase tracking-wider block">
+            <label className="text-sm font-semibold text-foreground block mb-1.5">
               Submission Type
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setSubmissionType('completed')}
-                className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                className={`p-3 rounded-xl text-left transition-all cursor-pointer ${
                   submissionType === 'completed'
-                    ? 'border-primary bg-secondary text-foreground ring-1 ring-primary font-bold'
-                    : 'border-border bg-card text-muted-foreground hover:bg-secondary/60'
+                    ? ' bg-secondary text-foreground ring-1 ring-primary font-bold'
+                    : ' bg-card text-muted-foreground hover:bg-secondary/60'
                 }`}
               >
                 <div className="flex items-center gap-1.5 text-xs font-bold">
@@ -198,10 +198,10 @@ export const TaskSubmitModal = ({
               <button
                 type="button"
                 onClick={() => setSubmissionType('incomplete_with_reason')}
-                className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                className={`p-3 rounded-xl text-left transition-all cursor-pointer ${
                   submissionType === 'incomplete_with_reason'
-                    ? 'border-primary bg-secondary text-foreground ring-1 ring-primary font-bold'
-                    : 'border-border bg-card text-muted-foreground hover:bg-secondary/60'
+                    ? ' bg-secondary text-foreground ring-1 ring-primary font-bold'
+                    : ' bg-card text-muted-foreground hover:bg-secondary/60'
                 }`}
               >
                 <div className="flex items-center gap-1.5 text-xs font-bold">
@@ -216,15 +216,15 @@ export const TaskSubmitModal = ({
           </div>
 
           {/* Reason Input (Required if overdue or incomplete) */}
-          <div className={`rounded-xl border p-4 space-y-2.5 transition-all ${
-            isReasonRequired ? 'border-foreground/35 bg-secondary/50' : 'border-border bg-background'
+          <div className={`rounded-xl p-4 space-y-2.5 transition-all ${
+            isReasonRequired ? ' bg-secondary/50' : ' bg-background'
           }`}>
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                <FileText size={13} className="text-foreground" />
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5 mb-1.5">
+                <FileText size={14} className="text-foreground" />
                 <span>
                   Reason for {isLate ? 'Delay / Overdue' : 'Incomplete Status'}
-                  {isReasonRequired && <span className="text-foreground font-black ml-1">* Required</span>}
+                  {isReasonRequired && <span className="text-foreground font-bold ml-1">* Required</span>}
                 </span>
               </label>
             </div>
@@ -236,10 +236,10 @@ export const TaskSubmitModal = ({
                   key={idx}
                   type="button"
                   onClick={() => setReason(preset)}
-                  className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all cursor-pointer select-none text-left ${
+                  className={`text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer select-none text-left ${
                     reason === preset
-                      ? 'bg-primary text-primary-foreground border-primary font-bold'
-                      : 'bg-card hover:bg-secondary border-border text-muted-foreground hover:text-foreground'
+                      ? 'bg-primary text-primary-foreground font-semibold'
+                      : 'bg-card hover:bg-secondary text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {preset}
@@ -252,19 +252,19 @@ export const TaskSubmitModal = ({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="State the reason clearly (e.g. why the timer was exceeded or why the task could not be completed on time)..."
-              className="w-full text-xs rounded-xl border border-border bg-card p-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="min-h-[96px] w-full text-sm font-normal leading-relaxed rounded-xl bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
               required={isReasonRequired}
             />
           </div>
 
           {/* Deliverables / Completed Files */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-foreground uppercase tracking-wider block">
+            <label className="text-sm font-semibold text-foreground block mb-1.5">
               Deliverable Files / Attachments
             </label>
 
             <div className="flex items-center gap-2">
-              <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-primary/50 bg-secondary/20 hover:bg-secondary/40 rounded-xl p-3 cursor-pointer transition-colors text-xs font-semibold text-muted-foreground hover:text-foreground">
+              <label className="flex-1 flex items-center justify-center gap-2 bg-secondary/20 hover:bg-secondary/40 rounded-xl p-3 cursor-pointer transition-colors text-sm font-semibold text-muted-foreground hover:text-foreground">
                 <UploadCloud size={16} className="text-primary" />
                 <span>Click to select completed work files</span>
                 <input
@@ -279,7 +279,7 @@ export const TaskSubmitModal = ({
             {files.length > 0 && (
               <div className="space-y-1.5 pt-1">
                 {files.map((f, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-card border border-border text-xs">
+                  <div key={i} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-card text-xs">
                     <span className="truncate max-w-[80%] font-medium text-foreground flex items-center gap-1.5">
                       <Paperclip size={12} className="text-primary shrink-0" />
                       <span className="truncate">{f.name}</span>
@@ -299,7 +299,7 @@ export const TaskSubmitModal = ({
 
           {/* Notes / Remarks */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-foreground uppercase tracking-wider block">
+            <label className="text-sm font-semibold text-foreground block mb-1.5">
               Additional Notes / Summary
             </label>
             <textarea
@@ -307,16 +307,16 @@ export const TaskSubmitModal = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any comments, link to live preview, or notes for the reviewer..."
-              className="w-full text-xs rounded-xl border border-border bg-card p-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="min-h-[84px] w-full text-sm font-normal leading-relaxed rounded-xl bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
 
           {/* Footer Submit Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border">
+          <div className="flex items-center justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="px-4 py-2 text-xs font-bold text-muted-foreground hover:text-foreground rounded-xl border border-border hover:bg-secondary cursor-pointer"
+              className="h-11 px-5 text-sm font-semibold text-foreground bg-secondary hover:bg-secondary/80 rounded-xl cursor-pointer transition-colors"
             >
               Cancel
             </button>
@@ -324,9 +324,9 @@ export const TaskSubmitModal = ({
             <button
               type="submit"
               disabled={isUploading || submitMutation.isLoading}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl text-primary-foreground bg-primary hover:bg-primary/90 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              className="inline-flex h-11 items-center gap-2 px-6 text-sm font-bold rounded-xl text-primary-foreground bg-primary hover:bg-primary/95 transition-all cursor-pointer disabled:opacity-50"
             >
-              <Send size={13} />
+              <Send size={14} />
               <span>
                 {isUploading ? 'Uploading Files...' : submitMutation.isLoading ? 'Submitting...' : 'Submit & Note All'}
               </span>

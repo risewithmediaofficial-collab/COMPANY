@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity,
   AlertCircle,
@@ -98,16 +97,12 @@ const ImagePreviewModal = ({ file, onClose }) => {
   const fileUrl = getAssetUrl(file.url);
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative max-h-[90dvh] w-[calc(100vw-24px)] max-w-4xl flex flex-col rounded-3xl border border-border bg-card overflow-hidden shadow-2xl"
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 animate-in fade-in duration-150">
+        <div
+          className="relative max-h-[90dvh] w-[calc(100vw-24px)] max-w-4xl flex flex-col rounded-3xl bg-card overflow-hidden animate-in zoom-in-95 fade-in duration-150"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-card">
+          <div className="flex items-center justify-between px-5 py-3.5 bg-card">
             <div className="flex items-center gap-2.5 truncate">
               <ImageIcon size={18} className="text-foreground shrink-0" />
               <span className="font-semibold text-sm text-foreground truncate">{file.name || 'Deliverable Preview'}</span>
@@ -118,7 +113,7 @@ const ImagePreviewModal = ({ file, onClose }) => {
                 download={file.name || 'deliverable'}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-secondary text-foreground text-xs font-medium hover:bg-muted transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary text-foreground text-xs font-medium hover:bg-muted transition-all"
               >
                 <Download size={14} className="shrink-0" />
                 <span>Download</span>
@@ -138,12 +133,11 @@ const ImagePreviewModal = ({ file, onClose }) => {
             <img
               src={fileUrl}
               alt={file.name || 'Preview'}
-              className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain shadow-md"
+              className="max-h-[75vh] w-auto max-w-full rounded-xl object-contain "
             />
           </div>
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 };
 
@@ -156,13 +150,13 @@ const DeliverableFileCard = ({ file, onPreviewImage, isDeliverable = true }) => 
   const isCode = /\.(html|css|js|jsx|ts|tsx|json|py)$/i.test(file.url || file.name || '');
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-2xl border border-border/80 bg-background p-3 hover:border-foreground/40 hover:shadow-md transition-all">
+    <div className="group relative flex flex-col justify-between rounded-2xl bg-background p-3 transition-all">
       <div className="flex items-start gap-3">
         {/* Preview Thumbnail or Format Icon */}
         {isImage ? (
           <div
             onClick={() => onPreviewImage(file)}
-            className="relative h-14 w-14 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-border bg-muted/30"
+            className="relative h-14 w-14 shrink-0 cursor-pointer overflow-hidden rounded-xl bg-muted/30"
           >
             <img
               src={fileUrl}
@@ -175,7 +169,7 @@ const DeliverableFileCard = ({ file, onPreviewImage, isDeliverable = true }) => 
             </div>
           </div>
         ) : (
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-foreground">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground">
             {isVideo ? (
               <Film size={22} />
             ) : isZip ? (
@@ -207,7 +201,7 @@ const DeliverableFileCard = ({ file, onPreviewImage, isDeliverable = true }) => 
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-border/40 pt-2.5">
+      <div className="mt-3 flex items-center justify-end gap-1.5 pt-2.5">
         {isImage && (
           <button
             type="button"
@@ -223,7 +217,7 @@ const DeliverableFileCard = ({ file, onPreviewImage, isDeliverable = true }) => 
           download={file.name || 'file'}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1 rounded-lg bg-secondary border border-border px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-xs"
+          className="flex items-center gap-1 rounded-lg bg-secondary px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-primary hover:text-primary-foreground transition-all "
         >
           <Download size={13} className="shrink-0" />
           <span>Download</span>
@@ -319,22 +313,10 @@ export default function PortalTasks() {
       {previewImage && <ImagePreviewModal file={previewImage} onClose={() => setPreviewImage(null)} />}
 
       {/* Top Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
-              <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
-              Client Deliverables OS
-            </span>
-            <span className="text-xs text-muted-foreground hidden sm:inline">• Live Real-Time Tracking</span>
-          </div>
-          <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Tasks & Deliverables
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-            Track real-time progress, review creative & development milestones, inspect deliverable files, and confirm approvals.
-          </p>
-        </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Tasks &amp; Deliverables
+        </h1>
 
         {/* Top Right Controls */}
         <div className="flex items-center gap-2.5">
@@ -347,7 +329,7 @@ export default function PortalTasks() {
               toast.success('Deliverables synced with live production');
             }}
             disabled={isRefetching}
-            className="gap-2 rounded-xl border-border bg-card shadow-xs text-xs font-semibold h-9 px-3.5 hover:bg-secondary"
+            className="gap-2 rounded-xl bg-card text-xs font-semibold h-9 px-3.5 hover:bg-secondary"
           >
             <RefreshCw size={14} className={isRefetching ? 'animate-spin text-foreground shrink-0' : 'text-muted-foreground shrink-0'} />
             <span className="hidden sm:inline">{isRefetching ? 'Syncing...' : 'Sync Pipeline'}</span>
@@ -358,60 +340,55 @@ export default function PortalTasks() {
       {/* Executive KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         {/* Total Deliverables */}
-        <motion.div
-          whileHover={{ y: -2 }}
+        <div
           onClick={() => setStatusFilter('all')}
-          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 ${
             statusFilter === 'all'
-              ? 'border-primary bg-secondary/40 shadow-sm'
-              : 'border-border bg-card hover:border-foreground/30'
+              ? ' bg-secondary/40 '
+              : ' bg-card '
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Total Milestones</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <Layers size={16} />
             </div>
           </div>
           <p className="mt-2 text-2xl font-black text-foreground tabular-nums">{metrics.total}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Scheduled deliverables</p>
-        </motion.div>
+        </div>
 
         {/* In Production */}
-        <motion.div
-          whileHover={{ y: -2 }}
+        <div
           onClick={() => setStatusFilter('in_progress')}
-          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 ${
             statusFilter === 'in_progress'
-              ? 'border-primary bg-secondary/40 shadow-sm'
-              : 'border-border bg-card hover:border-foreground/30'
+              ? ' bg-secondary/40 '
+              : ' bg-card '
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">In Production</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <Activity size={16} />
             </div>
           </div>
           <p className="mt-2 text-2xl font-black text-foreground tabular-nums">{metrics.inProgress}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Active development & creative</p>
-        </motion.div>
+        </div>
 
         {/* Needs Your Review */}
-        <motion.div
-          whileHover={{ y: -2 }}
+        <div
           onClick={() => setStatusFilter('needs_review')}
-          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 ${
             statusFilter === 'needs_review'
-              ? 'border-primary bg-secondary/40 shadow-sm'
+              ? ' bg-secondary/40 '
               : metrics.needsReview > 0
-              ? 'border-foreground/40 bg-secondary/20'
-              : 'border-border bg-card hover:border-foreground/30'
+              ? ' bg-secondary/20'
+              : ' bg-card '
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Needs Review</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <Sparkles size={16} />
             </div>
           </div>
@@ -423,32 +400,29 @@ export default function PortalTasks() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Ready for your sign-off</p>
-        </motion.div>
+        </div>
 
         {/* Completed & Approved */}
-        <motion.div
-          whileHover={{ y: -2 }}
+        <div
           onClick={() => setStatusFilter('completed')}
-          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 ${
             statusFilter === 'completed'
-              ? 'border-primary bg-secondary/40 shadow-sm'
-              : 'border-border bg-card hover:border-foreground/30'
+              ? ' bg-secondary/40 '
+              : ' bg-card '
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Completed & Delivered</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <CheckCircle2 size={16} />
             </div>
           </div>
           <p className="mt-2 text-2xl font-black text-foreground tabular-nums">{metrics.completed}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Approved milestones</p>
-        </motion.div>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:flex-row sm:items-center sm:justify-between shadow-xs">
+      <div className="flex flex-col gap-3 rounded-2xl bg-card p-3 sm:flex-row sm:items-center sm:justify-between ">
         {/* Status Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto responsive-table-container pb-1 sm:pb-0">
           {[
@@ -462,7 +436,7 @@ export default function PortalTasks() {
               onClick={() => setStatusFilter(tab.id)}
               className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold shrink-0 min-h-[36px] transition-all ${
                 statusFilter === tab.id
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-primary text-primary-foreground '
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
@@ -472,7 +446,7 @@ export default function PortalTasks() {
                   statusFilter === tab.id
                     ? 'bg-primary-foreground/20 text-primary-foreground'
                     : tab.alert
-                    ? 'bg-secondary text-foreground border border-border font-extrabold'
+                    ? 'bg-secondary text-foreground font-extrabold'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
@@ -485,11 +459,11 @@ export default function PortalTasks() {
         {/* Search & Category Filter */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Category Toggle */}
-          <div className="flex items-center rounded-xl border border-border bg-background p-0.5 text-xs">
+          <div className="flex items-center rounded-xl bg-background p-0.5 text-xs">
             <button
               onClick={() => setCategoryFilter('all')}
               className={`px-2.5 py-1 rounded-lg font-medium min-h-[32px] transition-all ${
-                categoryFilter === 'all' ? 'bg-secondary text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                categoryFilter === 'all' ? 'bg-secondary text-foreground ' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               All
@@ -497,7 +471,7 @@ export default function PortalTasks() {
             <button
               onClick={() => setCategoryFilter('website')}
               className={`px-2.5 py-1 rounded-lg font-medium min-h-[32px] transition-all ${
-                categoryFilter === 'website' ? 'bg-secondary text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                categoryFilter === 'website' ? 'bg-secondary text-foreground ' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Web
@@ -505,7 +479,7 @@ export default function PortalTasks() {
             <button
               onClick={() => setCategoryFilter('content')}
               className={`px-2.5 py-1 rounded-lg font-medium min-h-[32px] transition-all ${
-                categoryFilter === 'content' ? 'bg-secondary text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                categoryFilter === 'content' ? 'bg-secondary text-foreground ' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Content
@@ -520,7 +494,7 @@ export default function PortalTasks() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search deliverables..."
-              className="w-full rounded-xl border border-border bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 min-h-[34px]"
+              className="w-full rounded-xl bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/20 min-h-[34px]"
             />
             {searchQuery && (
               <button
@@ -537,21 +511,16 @@ export default function PortalTasks() {
       {/* Loading Skeleton State */}
       {isLoading ? (
         <div className="space-y-4">
-          <div className="h-64 rounded-3xl border border-border bg-card" />
-          <div className="h-64 rounded-3xl border border-border bg-card" />
+          <div className="h-64 rounded-3xl bg-card" />
+          <div className="h-64 rounded-3xl bg-card" />
         </div>
       ) : filteredTasks.length === 0 ? (
         /* Empty State */
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card py-16 px-6 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary border border-border text-foreground mb-4">
+        <div className="flex flex-col items-center justify-center rounded-3xl bg-card py-16 px-6 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-foreground mb-4">
             <Layers size={28} />
           </div>
           <h3 className="text-base font-bold text-foreground">No deliverables found</h3>
-          <p className="mt-1 text-xs text-muted-foreground max-w-sm">
-            {searchQuery || statusFilter !== 'all' || categoryFilter !== 'all'
-              ? 'No deliverables match your active search or filter criteria. Try clearing filters.'
-              : 'No project tasks or deliverables have been assigned yet. Your deliverables will appear here as soon as scheduled.'}
-          </p>
           {(searchQuery || statusFilter !== 'all' || categoryFilter !== 'all') && (
             <Button
               type="button"
@@ -602,17 +571,14 @@ export default function PortalTasks() {
               .toUpperCase();
 
             return (
-              <motion.div
+              <div
                 key={task._id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className={`relative overflow-hidden rounded-3xl border bg-card transition-all shadow-xs hover:shadow-md ${
+                className={`relative overflow-hidden rounded-3xl bg-card transition-all ${
                   needsReview
-                    ? 'border-foreground/50 ring-1 ring-border'
+                    ? ' ring-1 ring-border'
                     : isApproved
-                    ? 'border-foreground/30'
-                    : 'border-border'
+                    ? ''
+                    : ''
                 }`}
               >
                 {/* Status Accent Line on Top */}
@@ -633,14 +599,14 @@ export default function PortalTasks() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Category Badge */}
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
                         <CategoryIcon size={13} className="shrink-0" />
                         <span>{formatTaskTypeLabel(task.taskType)}</span>
                       </span>
 
                       {/* Project Tag if available */}
                       {task.project?.name && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground">
                           <FolderKanban size={12} className="text-muted-foreground shrink-0" />
                           <span>{task.project.name}</span>
                         </span>
@@ -648,7 +614,7 @@ export default function PortalTasks() {
 
                       {/* Priority Tag */}
                       {task.priority && ['High', 'Urgent'].includes(task.priority) && (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-foreground/30 bg-secondary px-2.5 py-0.5 text-[11px] font-bold text-foreground">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-bold text-foreground">
                           <Zap size={11} className="shrink-0" />
                           <span>{task.priority} Priority</span>
                         </span>
@@ -658,14 +624,14 @@ export default function PortalTasks() {
                     {/* Status Pill */}
                     <div className="shrink-0">
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold ${
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold ${
                           isApproved || normalizedStatus === 'Completed'
-                            ? 'border-primary bg-primary text-primary-foreground'
+                            ? ' bg-primary text-primary-foreground'
                             : needsReview
-                            ? 'border-foreground/40 bg-secondary text-foreground'
+                            ? ' bg-secondary text-foreground'
                             : normalizedStatus === 'On Process'
-                            ? 'border-border bg-secondary/80 text-foreground'
-                            : 'border-border bg-muted text-muted-foreground'
+                            ? ' bg-secondary/80 text-foreground'
+                            : ' bg-muted text-muted-foreground'
                         }`}
                       >
                         {isApproved ? (
@@ -706,7 +672,7 @@ export default function PortalTasks() {
                     <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                       {/* Specialist */}
                       <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary border border-border text-foreground font-bold text-[10px] shrink-0">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-foreground font-bold text-[10px] shrink-0">
                           {assigneeInitials}
                         </div>
                         <span className="font-medium text-foreground">{assigneeName}</span>
@@ -743,7 +709,7 @@ export default function PortalTasks() {
                   </div>
 
                   {/* 4-Stage Visual Delivery Roadmap */}
-                  <div className="rounded-2xl border border-border/80 bg-background p-4">
+                  <div className="rounded-2xl bg-background p-4">
                     <div className="flex items-center justify-between text-xs font-semibold mb-2.5">
                       <span className="text-foreground">Production Pipeline</span>
                       <span className="text-muted-foreground font-mono text-[11px] tabular-nums">{milestone.percent}% Completed</span>
@@ -775,9 +741,9 @@ export default function PortalTasks() {
                             <span
                               className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold tabular-nums transition-all ${
                                 isDoneStep
-                                  ? 'bg-primary text-primary-foreground shadow-xs'
+                                  ? 'bg-primary text-primary-foreground '
                                   : isCurrent
-                                  ? 'bg-secondary text-foreground border border-foreground/40 ring-2 ring-border'
+                                  ? 'bg-secondary text-foreground ring-2 ring-border'
                                   : 'bg-muted text-muted-foreground'
                               }`}
                             >
@@ -827,11 +793,11 @@ export default function PortalTasks() {
                         ))}
                       </div>
                     ) : (
-                      <div className="rounded-2xl border border-dashed border-border bg-background p-4 text-center">
+                      <div className="rounded-2xl bg-background p-4 text-center">
                         <p className="text-xs text-muted-foreground">
                           {normalizedStatus === 'Completed' || isApproved
-                            ? 'Milestone completed and verified. Any deliverables or links will be shared by your team.'
-                            : 'Production deliverables and preview files will appear here once ready for your review.'}
+                            ? 'Milestone completed'
+                            : 'No files uploaded yet'}
                         </p>
                       </div>
                     )}
@@ -839,7 +805,7 @@ export default function PortalTasks() {
 
                   {/* Requirements & Specifications (Unified & Non-Redundant) */}
                   {(task.description || task.websiteRequirements || task.requiredFeatures || task.caption || task.scriptText) && (
-                    <div className="rounded-2xl border border-border/80 bg-background p-4 sm:p-5">
+                    <div className="rounded-2xl bg-background p-4 sm:p-5">
                       <div className="flex items-center gap-2 mb-3">
                         <FileText size={16} className="text-muted-foreground shrink-0" />
                         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -854,7 +820,7 @@ export default function PortalTasks() {
 
                       {/* Content specific fields (Caption / Script) */}
                       {task.taskCategory !== 'non_content' && (task.caption || task.scriptText || task.scriptLink) && (
-                        <div className="mt-4 pt-3 border-t border-border/60 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="mt-4 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {task.scriptText && (
                             <div>
                               <p className="text-[11px] font-semibold text-muted-foreground mb-1">Script:</p>
@@ -872,7 +838,7 @@ export default function PortalTasks() {
 
                       {/* Website/Technical details if present */}
                       {(task.domainDetails || task.hostingDetails) && (
-                        <div className="mt-4 pt-3 border-t border-border/60 flex flex-wrap gap-2 text-xs">
+                        <div className="mt-4 pt-3 flex flex-wrap gap-2 text-xs">
                           {task.domainDetails && (
                             <span className="rounded-lg bg-secondary px-2.5 py-1 text-muted-foreground">
                               <span className="font-semibold text-foreground">Domain: </span> {task.domainDetails}
@@ -890,9 +856,9 @@ export default function PortalTasks() {
 
                   {/* Team Note to You (Only shown if team added notes!) */}
                   {task.clientVisibleNotes && (
-                    <div className="rounded-2xl border border-border bg-secondary/40 p-4 sm:p-5">
+                    <div className="rounded-2xl bg-secondary/40 p-4 sm:p-5">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground">
                           <MessageSquareQuote size={16} />
                         </div>
                         <div>
@@ -927,7 +893,7 @@ export default function PortalTasks() {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

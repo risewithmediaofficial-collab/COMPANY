@@ -57,7 +57,7 @@ const LeadDetails = () => {
     return (
       <div className="mx-auto max-w-7xl space-y-4">
         <div className="h-8 w-64 rounded-xl bg-secondary/70" />
-        <div className="h-96 rounded-3xl border border-border bg-card" />
+        <div className="h-96 rounded-3xl bg-card" />
       </div>
     );
   }
@@ -84,7 +84,7 @@ const LeadDetails = () => {
       icon={Building2}
       status={<StatusBadge tone={stageTone[status] || 'neutral'}>{status}</StatusBadge>}
       actions={(
-        <Button size="sm" onClick={() => setEditing(true)} className="h-9 rounded-xl gap-2 text-xs font-bold shadow-sm">
+        <Button size="sm" onClick={() => setEditing(true)} className="h-9 rounded-xl gap-2 text-xs font-bold ">
           <Pencil size={13} />
           Edit Lead
         </Button>
@@ -131,7 +131,7 @@ const LeadDetails = () => {
 
         {lead.notes ? (
           <NotionSection title="Notes">
-            <div className="rounded-2xl border border-border/60 bg-secondary/35 px-5 py-4">
+            <div className="rounded-2xl bg-secondary/35 px-5 py-4">
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">{lead.notes}</p>
             </div>
           </NotionSection>

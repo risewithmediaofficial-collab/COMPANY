@@ -144,7 +144,7 @@ export const TaskCountdownTimer = ({
   if (compact) {
     if (isCompleted) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-secondary text-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-secondary text-foreground ">
           <CheckCircle2 size={11} />
           <span>Completed</span>
         </span>
@@ -152,7 +152,7 @@ export const TaskCountdownTimer = ({
     }
     if (!task?.isAccepted) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-secondary/70 text-muted-foreground border border-border tabular-nums">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-secondary/70 text-muted-foreground tabular-nums">
           <Clock size={11} />
           <span>Timer: {task.allocatedHours || 0}h {task.allocatedMinutes || 0}m</span>
         </span>
@@ -160,14 +160,14 @@ export const TaskCountdownTimer = ({
     }
     if (isOverdue) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-primary text-primary-foreground border border-primary tabular-nums">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-primary text-primary-foreground tabular-nums">
           <AlertTriangle size={11} />
           <span>Overdue (+{overdueDuration.formatted})</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-secondary text-foreground border border-foreground/30 tabular-nums">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-secondary text-foreground tabular-nums">
         <Timer size={11} className="text-foreground" />
         <span>{timeFormatted.formatted} left</span>
       </span>
@@ -179,17 +179,17 @@ export const TaskCountdownTimer = ({
   // Case 1: Task Completed
   if (isCompleted) {
     return (
-      <div className={`rounded-2xl border p-4 transition-all shadow-xs ${
+      <div className={`rounded-2xl p-4 transition-all ${
         task.submissionStatus === 'completed_with_delay' || task.isOverdue
-          ? 'border-foreground/35 bg-secondary/70'
-          : 'border-border bg-secondary/40'
+          ? ' bg-secondary/70'
+          : ' bg-secondary/40'
       } ${className}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className={`p-2.5 rounded-xl border shrink-0 ${
+            <div className={`p-2.5 rounded-xl shrink-0 ${
               task.submissionStatus === 'completed_with_delay' || task.isOverdue
-                ? 'bg-secondary border-foreground/30 text-foreground'
-                : 'bg-primary border-primary text-primary-foreground'
+                ? 'bg-secondary text-foreground'
+                : 'bg-primary text-primary-foreground'
             }`}>
               <CheckCircle2 size={20} />
             </div>
@@ -202,10 +202,10 @@ export const TaskCountdownTimer = ({
                     ? 'Task Completed with Delay'
                     : 'Task Completed On Time'}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                   task.submissionStatus === 'completed_with_delay' || task.isOverdue
-                    ? 'bg-secondary text-foreground border-foreground/30'
-                    : 'bg-primary text-primary-foreground border-primary'
+                    ? 'bg-secondary text-foreground '
+                    : 'bg-primary text-primary-foreground '
                 }`}>
                   {task.submissionStatus === 'completed_with_delay' || task.isOverdue ? 'Overdue Submission' : 'On Time'}
                 </span>
@@ -224,7 +224,7 @@ export const TaskCountdownTimer = ({
             <button
               type="button"
               onClick={onOpenSubmitModal}
-              className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-secondary text-foreground shrink-0 transition-all cursor-pointer"
+              className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-card hover:bg-secondary text-foreground shrink-0 transition-all cursor-pointer"
             >
               Update Submission
             </button>
@@ -233,8 +233,8 @@ export const TaskCountdownTimer = ({
 
         {/* Delay / Incomplete Reason display */}
         {task.completionReason && (
-          <div className="mt-3.5 pt-3 border-t border-border">
-            <div className="rounded-xl border border-border bg-card p-3 space-y-1">
+          <div className="mt-3.5 pt-3 ">
+            <div className="rounded-xl bg-card p-3 space-y-1">
               <span className="text-[11px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
                 <FileText size={13} />
                 <span>Recorded Delay / Incomplete Reason</span>
@@ -243,7 +243,7 @@ export const TaskCountdownTimer = ({
                 &ldquo;{task.completionReason}&rdquo;
               </p>
               {task.submissionNotes && (
-                <p className="text-[11px] text-muted-foreground pt-1 border-t border-border">
+                <p className="text-[11px] text-muted-foreground pt-1 ">
                   <span className="font-semibold text-foreground">Submission Note:</span> {task.submissionNotes}
                 </p>
               )}
@@ -257,10 +257,10 @@ export const TaskCountdownTimer = ({
   // Case 2: Not Accepted Yet
   if (!task?.isAccepted) {
     return (
-      <div className={`rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs transition-all ${className}`}>
+      <div className={`rounded-2xl bg-card p-4 sm:p-5 transition-all ${className}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="p-3 rounded-2xl bg-secondary border border-border text-foreground shrink-0">
+            <div className="p-3 rounded-2xl bg-secondary text-foreground shrink-0">
               <Clock size={22} />
             </div>
             <div className="space-y-1">
@@ -268,7 +268,7 @@ export const TaskCountdownTimer = ({
                 <span className="font-black text-sm sm:text-base text-foreground tracking-tight">
                   Task Completion Timer
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border">
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground ">
                   Ready to Start
                 </span>
               </div>
@@ -293,13 +293,13 @@ export const TaskCountdownTimer = ({
                 type="button"
                 disabled={acceptTaskMutation.isLoading}
                 onClick={handleAcceptTask}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-primary-foreground bg-primary hover:bg-primary/90 active:scale-95 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-primary-foreground bg-primary hover:bg-primary/90 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
               >
                 <Play size={15} fill="currentColor" />
                 <span>{acceptTaskMutation.isLoading ? 'Starting...' : 'Accept Task & Start Timer'}</span>
               </button>
             ) : (
-              <span className="text-xs text-muted-foreground italic px-3 py-1.5 rounded-xl bg-secondary border border-border">
+              <span className="text-xs text-muted-foreground italic px-3 py-1.5 rounded-xl bg-secondary ">
                 Awaiting assigned employee acceptance
               </span>
             )}
@@ -312,7 +312,7 @@ export const TaskCountdownTimer = ({
   // Case 3: Timer Expired / Overdue
   if (isOverdue) {
     return (
-      <div className={`rounded-2xl border-2 border-primary bg-secondary/70 p-4 sm:p-5 shadow-sm space-y-3 animate-in fade-in duration-300 ${className}`}>
+      <div className={`rounded-2xl bg-secondary/70 p-4 sm:p-5 space-y-3 animate-in fade-in duration-300 ${className}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="p-3 rounded-2xl bg-primary text-primary-foreground shrink-0">
@@ -323,7 +323,7 @@ export const TaskCountdownTimer = ({
                 <span className="font-black text-sm sm:text-base text-foreground uppercase tracking-tight">
                   Task Overdue Alert
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-black uppercase bg-primary text-primary-foreground shadow-xs">
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-black uppercase bg-primary text-primary-foreground ">
                   Timer Expired
                 </span>
               </div>
@@ -337,7 +337,7 @@ export const TaskCountdownTimer = ({
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
-            <div className="text-center sm:text-right px-3 py-2 rounded-xl bg-card border border-primary/40">
+            <div className="text-center sm:text-right px-3 py-2 rounded-xl bg-card ">
               <span className="text-[10px] uppercase font-bold text-muted-foreground block">Exceeded by</span>
               <span className="font-mono font-black text-foreground text-sm sm:text-base tabular-nums">
                 +{overdueDuration.formatted}
@@ -348,7 +348,7 @@ export const TaskCountdownTimer = ({
               <button
                 type="button"
                 onClick={onOpenSubmitModal}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-primary-foreground bg-primary hover:bg-primary/90 active:scale-95 shadow-sm transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-primary-foreground bg-primary hover:bg-primary/90 active:scale-95 transition-all cursor-pointer"
               >
                 <Send size={14} />
                 <span>Submit with Reason</span>
@@ -364,17 +364,17 @@ export const TaskCountdownTimer = ({
   const isRunningLow = remainingMs <= 15 * 60 * 1000; // <= 15 minutes left
 
   return (
-    <div className={`rounded-2xl border p-4 sm:p-5 shadow-xs transition-all ${
+    <div className={`rounded-2xl p-4 sm:p-5 transition-all ${
       isRunningLow
-        ? 'border-foreground/45 bg-secondary/70'
-        : 'border-border bg-card'
+        ? ' bg-secondary/70'
+        : ' bg-card'
     } ${className}`}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className={`p-3 rounded-2xl border shrink-0 ${
+          <div className={`p-3 rounded-2xl shrink-0 ${
             isRunningLow
-              ? 'bg-primary border-primary text-primary-foreground'
-              : 'bg-secondary border-border text-foreground'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary text-foreground'
           }`}>
             <Hourglass size={22} />
           </div>
@@ -383,10 +383,10 @@ export const TaskCountdownTimer = ({
               <span className="font-black text-sm sm:text-base text-foreground tracking-tight">
                 Active Completion Countdown
               </span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                 isRunningLow
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-secondary text-foreground border-border'
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary text-foreground '
               }`}>
                 {isRunningLow ? 'Time Running Low' : 'In Progress'}
               </span>
@@ -401,10 +401,10 @@ export const TaskCountdownTimer = ({
 
         <div className="flex items-center gap-3 shrink-0 self-stretch sm:self-auto justify-between sm:justify-end">
           {/* Big Live Countdown Digits */}
-          <div className={`px-4 py-2 rounded-2xl border text-center font-mono ${
+          <div className={`px-4 py-2 rounded-2xl text-center font-mono ${
             isRunningLow
-              ? 'bg-secondary border-foreground/40 text-foreground'
-              : 'bg-background border-border text-foreground shadow-2xs'
+              ? 'bg-secondary text-foreground'
+              : 'bg-background text-foreground '
           }`}>
             <span className="text-[10px] uppercase font-bold text-muted-foreground block tracking-wider">Remaining</span>
             <span className="text-base sm:text-xl font-black tracking-widest text-foreground tabular-nums">
@@ -416,7 +416,7 @@ export const TaskCountdownTimer = ({
             <button
               type="button"
               onClick={onOpenSubmitModal}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-primary-foreground bg-primary hover:bg-primary/90 active:scale-95 shadow-sm transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-primary-foreground bg-primary hover:bg-primary/90 active:scale-95 transition-all cursor-pointer"
             >
               <CheckCircle2 size={15} />
               <span>Submit Task</span>

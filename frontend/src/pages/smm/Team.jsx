@@ -4,7 +4,7 @@ import { smmApi } from '../../api/smm';
 import { PageHeader } from '../../components/ui/page';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import api from '../../api/index';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function Team() {
   const [users, setUsers] = useState([]);
@@ -32,8 +32,7 @@ export default function Team() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Team Management & Workloads"
-        subtitle="Role-based SMM team assignments, pending tasks, and completion metrics"
+        title="SMM Team"
       />
 
       <SMMSubNav />
@@ -52,7 +51,7 @@ export default function Team() {
             return (
               <div key={member._id} className="app-card p-6 space-y-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-12 h-12 rounded-2xl bg-secondary border border-border text-foreground font-bold text-base flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-secondary text-foreground font-bold text-base flex items-center justify-center shrink-0">
                     {member.name?.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
@@ -62,11 +61,11 @@ export default function Team() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-2">
-                  <div className="p-3 bg-secondary/50 rounded-xl border border-border text-center">
+                  <div className="p-3 bg-secondary/50 rounded-xl text-center">
                     <span className="text-xs text-muted-foreground block font-medium">Pending Tasks</span>
                     <span className="text-lg font-bold text-foreground tabular-nums">{pendingTasks.length}</span>
                   </div>
-                  <div className="p-3 bg-secondary/50 rounded-xl border border-border text-center">
+                  <div className="p-3 bg-secondary/50 rounded-xl text-center">
                     <span className="text-xs text-muted-foreground block font-medium">Completed</span>
                     <span className="text-lg font-bold text-foreground tabular-nums">{completedTasks.length}</span>
                   </div>
@@ -79,10 +78,10 @@ export default function Team() {
                   ) : (
                     <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                       {assignedTasks.slice(0, 4).map(t => (
-                        <div key={t._id} className="text-xs p-2 rounded-lg bg-secondary/30 border border-border/60 flex items-center justify-between gap-2">
+                        <div key={t._id} className="text-xs p-2 rounded-lg bg-secondary/30 flex items-center justify-between gap-2">
                           <span className="truncate text-foreground font-medium min-w-0">{t.title}</span>
                           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
-                            t.status === 'Done' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
+                            t.status === 'Done' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground'
                           }`}>{t.status}</span>
                         </div>
                       ))}

@@ -22,7 +22,7 @@ import {
   Edit2,
   Save,
 } from '@/components/ui/muiIcons';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const TYPE_CONFIG = {
   reel: {
@@ -31,8 +31,8 @@ const TYPE_CONFIG = {
     prefix: 'R',
     icon: Film,
     color: 'text-foreground',
-    badge: 'bg-primary text-primary-foreground border-primary',
-    border: 'border-l-4 border-l-foreground',
+    badge: 'bg-primary text-primary-foreground ',
+    border: ' ',
   },
   post: {
     label: 'Feed Post / Graphic',
@@ -40,8 +40,8 @@ const TYPE_CONFIG = {
     prefix: 'P',
     icon: Image,
     color: 'text-foreground',
-    badge: 'bg-secondary text-foreground border-border',
-    border: 'border-l-4 border-l-zinc-500',
+    badge: 'bg-secondary text-foreground ',
+    border: ' ',
   },
   story: {
     label: 'Story Update',
@@ -49,8 +49,8 @@ const TYPE_CONFIG = {
     prefix: 'S',
     icon: Smartphone,
     color: 'text-muted-foreground',
-    badge: 'bg-muted text-muted-foreground border-border',
-    border: 'border-l-4 border-l-zinc-400',
+    badge: 'bg-muted text-muted-foreground ',
+    border: ' ',
   },
 };
 
@@ -58,22 +58,22 @@ const STATUS_CONFIG = {
   todo: {
     label: 'TODO',
     icon: ListTodo,
-    badge: 'bg-muted text-muted-foreground border-border',
+    badge: 'bg-muted text-muted-foreground ',
   },
   pending: {
     label: 'PENDING',
     icon: Clock,
-    badge: 'bg-secondary text-foreground border-zinc-400 dark:border-zinc-600',
+    badge: 'bg-secondary text-foreground ',
   },
   done: {
     label: 'DONE',
     icon: CheckCircle2,
-    badge: 'bg-primary text-primary-foreground border-primary',
+    badge: 'bg-primary text-primary-foreground ',
   },
   skip: {
     label: 'SKIP',
     icon: X,
-    badge: 'bg-muted/60 text-muted-foreground border-border opacity-75',
+    badge: 'bg-muted/60 text-muted-foreground opacity-75',
   },
 };
 
@@ -384,11 +384,11 @@ export const TrackerDayDeliverablesDrawer = ({
       onClick={onClose}
     >
       <div
-        className="relative flex h-full w-full max-w-full sm:max-w-xl md:max-w-2xl flex-col bg-card shadow-2xl border-l border-border animate-in slide-in-from-right duration-300"
+        className="relative flex h-full w-full max-w-full sm:max-w-xl md:max-w-2xl flex-col bg-card animate-in slide-in-from-right duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── 1. Drawer Header ── */}
-        <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-secondary/40 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 bg-secondary/40 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground font-black text-sm">
               {clientName.charAt(0).toUpperCase()}
@@ -446,7 +446,7 @@ export const TrackerDayDeliverablesDrawer = ({
 
             <div className="grid grid-cols-3 gap-2.5 tabular-nums">
               {/* Reels Stat Card */}
-              <div className="rounded-2xl border border-border bg-secondary/40 p-3">
+              <div className="rounded-2xl bg-secondary/40 p-3">
                 <div className="flex items-center justify-between text-foreground">
                   <span className="text-xs font-bold flex items-center gap-1">
                     <Film size={13} className="shrink-0" /> Reels
@@ -462,7 +462,7 @@ export const TrackerDayDeliverablesDrawer = ({
               </div>
 
               {/* Posts Stat Card */}
-              <div className="rounded-2xl border border-border bg-secondary/40 p-3">
+              <div className="rounded-2xl bg-secondary/40 p-3">
                 <div className="flex items-center justify-between text-foreground">
                   <span className="text-xs font-bold flex items-center gap-1">
                     <Image size={13} className="shrink-0" /> Posts
@@ -478,7 +478,7 @@ export const TrackerDayDeliverablesDrawer = ({
               </div>
 
               {/* Stories Stat Card */}
-              <div className="rounded-2xl border border-border bg-secondary/40 p-3">
+              <div className="rounded-2xl bg-secondary/40 p-3">
                 <div className="flex items-center justify-between text-foreground">
                   <span className="text-xs font-bold flex items-center gap-1">
                     <Smartphone size={13} className="shrink-0" /> Stories
@@ -504,14 +504,14 @@ export const TrackerDayDeliverablesDrawer = ({
           </div>
 
           {/* ── 3. Deliverables Header & Filter Tabs ── */}
-          <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-border">
+          <div className="flex items-center justify-between flex-wrap gap-2 pt-2 ">
             <div className="flex items-center gap-1.5 p-1 bg-secondary rounded-xl text-xs font-bold tabular-nums">
               <button
                 type="button"
                 onClick={() => setFilterType('all')}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
                   filterType === 'all'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-primary text-primary-foreground '
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -522,7 +522,7 @@ export const TrackerDayDeliverablesDrawer = ({
                 onClick={() => setFilterType('reel')}
                 className={`px-2.5 py-1 rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer ${
                   filterType === 'reel'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-primary text-primary-foreground '
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
                 }`}
               >
@@ -533,7 +533,7 @@ export const TrackerDayDeliverablesDrawer = ({
                 onClick={() => setFilterType('post')}
                 className={`px-2.5 py-1 rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer ${
                   filterType === 'post'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-primary text-primary-foreground '
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
                 }`}
               >
@@ -544,7 +544,7 @@ export const TrackerDayDeliverablesDrawer = ({
                 onClick={() => setFilterType('story')}
                 className={`px-2.5 py-1 rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer ${
                   filterType === 'story'
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-primary text-primary-foreground '
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
                 }`}
               >
@@ -555,7 +555,7 @@ export const TrackerDayDeliverablesDrawer = ({
             <button
               type="button"
               onClick={() => setShowAddForm((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer"
             >
               <Plus size={14} />
               <span>Add Extra Deliverable</span>
@@ -566,16 +566,16 @@ export const TrackerDayDeliverablesDrawer = ({
           {showAddForm && (
             <form
               onSubmit={handleAddNewItem}
-              className="rounded-2xl border-2 border-foreground/30 bg-secondary/40 p-4 space-y-3.5 animate-in fade-in duration-200"
+              className="rounded-2xl bg-secondary/40 p-4 space-y-3.5 animate-in fade-in duration-200"
             >
-              <div className="flex items-center justify-between pb-1 border-b border-border">
-                <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                  <Plus size={13} /> Add New Deliverable for Day {dayNumber}
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  <Plus size={14} /> Add New Deliverable for Day {dayNumber}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="text-muted-foreground hover:text-foreground text-xs cursor-pointer"
+                  className="text-muted-foreground hover:text-foreground text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -594,10 +594,10 @@ export const TrackerDayDeliverablesDrawer = ({
                       key={t.id}
                       type="button"
                       onClick={() => setNewType(t.id)}
-                      className={`rounded-xl border p-2 text-center text-xs font-bold transition-all cursor-pointer ${
+                      className={`rounded-xl p-2 text-center text-xs font-bold transition-all cursor-pointer ${
                         newType === t.id
-                          ? 'border-foreground bg-primary text-primary-foreground shadow-xs'
-                          : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
+                          ? ' bg-primary text-primary-foreground '
+                          : ' bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
                       }`}
                     >
                       <div className="inline-flex items-center justify-center gap-1.5">
@@ -611,9 +611,9 @@ export const TrackerDayDeliverablesDrawer = ({
               </div>
 
               {/* Label Code & Posting Time */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Label Code (e.g. R2 7:30P)
                   </label>
                   <input
@@ -621,12 +621,12 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newLabel}
                     onChange={(e) => setNewLabel(e.target.value)}
                     placeholder="e.g. R2 7:30P"
-                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20"
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-ring/20"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Scheduled Time
                   </label>
                   <input
@@ -634,16 +634,16 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
                     placeholder="07:30 PM"
-                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20 tabular-nums"
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-ring/20 tabular-nums"
                   />
                   {/* Quick Time Pills */}
-                  <div className="mt-1 flex flex-wrap gap-1">
+                  <div className="mt-1.5 flex flex-wrap gap-1">
                     {COMMON_TIMES.slice(0, 4).map((time) => (
                       <button
                         key={time}
                         type="button"
                         onClick={() => setNewTime(time)}
-                        className="rounded-md bg-card border border-border px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer tabular-nums"
+                        className="rounded-md bg-card px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer tabular-nums"
                       >
                         {time}
                       </button>
@@ -653,15 +653,15 @@ export const TrackerDayDeliverablesDrawer = ({
               </div>
 
               {/* Initial Status & Topic */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Initial Status
                   </label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground cursor-pointer"
+                    className="app-select h-11 bg-background px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
                   >
                     <option value="todo">TODO</option>
                     <option value="pending">PENDING</option>
@@ -671,7 +671,7 @@ export const TrackerDayDeliverablesDrawer = ({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Topic / Concept (Optional)
                   </label>
                   <input
@@ -679,15 +679,15 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="e.g. Behind the scenes reel"
-                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40"
                   />
                 </div>
               </div>
 
               {/* Drive Link & Notes */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Google Drive / Asset Link
                   </label>
                   <input
@@ -695,12 +695,12 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newDriveLink}
                     onChange={(e) => setNewDriveLink(e.target.value)}
                     placeholder="https://drive.google.com/..."
-                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Caption / Notes
                   </label>
                   <input
@@ -708,7 +708,7 @@ export const TrackerDayDeliverablesDrawer = ({
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
                     placeholder="Caption copy or instructions"
-                    className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
+                    className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40"
                   />
                 </div>
               </div>
@@ -716,7 +716,7 @@ export const TrackerDayDeliverablesDrawer = ({
               <div className="flex justify-end pt-2">
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground hover:bg-primary/95 transition-all cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Add to Day {dayNumber}</span>
@@ -728,7 +728,7 @@ export const TrackerDayDeliverablesDrawer = ({
           {/* ── 5. Deliverables List ── */}
           <div className="space-y-3">
             {filteredItems.length === 0 ? (
-              <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
+              <div className="rounded-2xl p-8 text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground mb-3">
                   <Layers size={22} />
                 </div>
@@ -741,7 +741,7 @@ export const TrackerDayDeliverablesDrawer = ({
                 <button
                   type="button"
                   onClick={() => setShowAddForm(true)}
-                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Add First Deliverable</span>
@@ -760,12 +760,12 @@ export const TrackerDayDeliverablesDrawer = ({
                     <form
                       key={item.id || index}
                       onSubmit={handleSaveEdit}
-                      className="rounded-2xl border-2 border-foreground bg-card p-4 shadow-lg space-y-3.5 animate-in fade-in duration-200"
+                      className="rounded-2xl bg-card p-4 shadow-lg space-y-3.5 animate-in fade-in duration-200"
                     >
                       {/* Edit Header */}
-                      <div className="flex items-center justify-between pb-2 border-b border-border">
-                        <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                          <Edit2 size={13} /> Edit Deliverable
+                      <div className="flex items-center justify-between pb-2">
+                        <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                          <Edit2 size={14} /> Edit Deliverable
                         </span>
                         <button
                           type="button"
@@ -789,10 +789,10 @@ export const TrackerDayDeliverablesDrawer = ({
                               key={t.id}
                               type="button"
                               onClick={() => setEditDraft((prev) => ({ ...prev, type: t.id }))}
-                              className={`rounded-xl border p-2 text-center text-xs font-bold transition-all cursor-pointer ${
+                              className={`rounded-xl p-2 text-center text-xs font-bold transition-all cursor-pointer ${
                                 editDraft.type === t.id
-                                  ? 'border-foreground bg-primary text-primary-foreground shadow-xs'
-                                  : 'border-border bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary'
+                                  ? ' bg-primary text-primary-foreground '
+                                  : ' bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-secondary'
                               }`}
                             >
                               <div className="inline-flex items-center justify-center gap-1.5">
@@ -806,9 +806,9 @@ export const TrackerDayDeliverablesDrawer = ({
                       </div>
 
                       {/* Label Code & Posting Time */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[11px] font-bold text-foreground mb-1">
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">
                             Label Code (e.g. R2 7:30P)
                           </label>
                           <input
@@ -816,12 +816,12 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.label || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, label: e.target.value }))}
                             placeholder="e.g. R2 7:30P"
-                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20"
+                            className="h-11 w-full rounded-xl bg-secondary/75 px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-ring/20"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-foreground mb-1">
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">
                             Scheduled Time
                           </label>
                           <input
@@ -829,16 +829,16 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.time || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, time: e.target.value }))}
                             placeholder="07:30 PM"
-                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground focus:ring-2 focus:ring-ring/20 tabular-nums"
+                            className="h-11 w-full rounded-xl bg-secondary/75 px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-ring/20 tabular-nums"
                           />
                           {/* Quick Time Pills */}
-                          <div className="mt-1 flex flex-wrap gap-1">
+                          <div className="mt-1.5 flex flex-wrap gap-1">
                             {COMMON_TIMES.slice(0, 4).map((time) => (
                               <button
                                 key={time}
                                 type="button"
                                 onClick={() => setEditDraft((prev) => ({ ...prev, time }))}
-                                className="rounded-md bg-secondary border border-border px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-pointer tabular-nums"
+                                className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer tabular-nums"
                               >
                                 {time}
                               </button>
@@ -848,15 +848,15 @@ export const TrackerDayDeliverablesDrawer = ({
                       </div>
 
                       {/* Status & Topic */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[11px] font-bold text-foreground mb-1">
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">
                             Status
                           </label>
                           <select
                             value={editDraft.status || 'todo'}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, status: e.target.value }))}
-                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none focus:border-foreground cursor-pointer"
+                            className="app-select h-11 px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
                           >
                             <option value="todo">TODO</option>
                             <option value="pending">PENDING</option>
@@ -866,7 +866,7 @@ export const TrackerDayDeliverablesDrawer = ({
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-foreground mb-1">
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">
                             Topic / Concept (Optional)
                           </label>
                           <input
@@ -874,15 +874,15 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.title || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, title: e.target.value }))}
                             placeholder="e.g. Behind the scenes reel"
-                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
+                            className="h-11 w-full rounded-xl bg-secondary/75 px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40"
                           />
                         </div>
                       </div>
 
                       {/* Drive Link & Notes */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[11px] font-bold text-foreground mb-1">
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">
                             Google Drive / Asset Link
                           </label>
                           <input
@@ -890,12 +890,12 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.driveLink || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, driveLink: e.target.value }))}
                             placeholder="https://drive.google.com/..."
-                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
+                            className="h-11 w-full rounded-xl bg-secondary/75 px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-foreground mb-1">
+                          <label className="block text-sm font-semibold text-foreground mb-1.5">
                             Caption / Notes
                           </label>
                           <input
@@ -903,36 +903,36 @@ export const TrackerDayDeliverablesDrawer = ({
                             value={editDraft.note || ''}
                             onChange={(e) => setEditDraft((prev) => ({ ...prev, note: e.target.value }))}
                             placeholder="Caption copy or instructions"
-                            className="w-full rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground outline-none focus:border-foreground"
+                            className="h-11 w-full rounded-xl bg-secondary/75 px-4 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-brand/40"
                           />
                         </div>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <div className="flex items-center justify-between pt-2">
                         <button
                           type="button"
                           onClick={() => handleDeleteItem(item.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-1.5 text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                          className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-secondary px-4 text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
                           title="Delete this deliverable"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                           <span>Delete Deliverable</span>
                         </button>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <button
                             type="button"
                             onClick={handleCancelEdit}
-                            className="rounded-xl border border-border bg-card px-3.5 py-1.5 text-xs font-bold text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                            className="h-11 rounded-xl bg-secondary px-5 text-sm font-semibold text-foreground hover:bg-secondary/80 transition-colors cursor-pointer"
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 transition-all cursor-pointer"
+                            className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-primary px-6 text-sm font-bold text-primary-foreground hover:bg-primary/95 transition-all cursor-pointer"
                           >
-                            <Save size={13} />
+                            <Save size={14} />
                             <span>Save Changes</span>
                           </button>
                         </div>
@@ -944,14 +944,14 @@ export const TrackerDayDeliverablesDrawer = ({
                 return (
                   <div
                     key={item.id || index}
-                    className={`rounded-2xl border border-border bg-card p-4 shadow-xs transition-all hover:border-foreground/40 ${typeCfg.border}`}
+                    className={`rounded-2xl bg-card p-4 transition-all ${typeCfg.border}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       {/* Left: Type Badge, Label, Time */}
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
-                            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-xs font-black uppercase tracking-wider border ${typeCfg.badge}`}
+                            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-xs font-black uppercase tracking-wider ${typeCfg.badge}`}
                           >
                             <TypeIcon size={12} />
                             <span>{typeCfg.shortLabel}</span>
@@ -1002,7 +1002,7 @@ export const TrackerDayDeliverablesDrawer = ({
                         <button
                           type="button"
                           onClick={() => handleToggleItemStatus(item.id)}
-                          className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-bold transition-all cursor-pointer select-none ${statusCfg.badge}`}
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold transition-all cursor-pointer select-none ${statusCfg.badge}`}
                           title="Click to cycle status (TODO → PENDING → DONE → SKIP)"
                         >
                           <StatusIcon size={12} />
@@ -1038,14 +1038,14 @@ export const TrackerDayDeliverablesDrawer = ({
         </div>
 
         {/* ── 6. Drawer Sticky Footer ── */}
-        <div className="border-t border-border px-5 py-3.5 bg-secondary/40 flex items-center justify-between shrink-0">
+        <div className="px-5 py-3.5 bg-secondary/40 flex items-center justify-between shrink-0">
           <div className="text-xs text-muted-foreground font-medium tabular-nums">
             Total on Day {dayNumber}: <strong className="text-foreground font-bold">{items.length} deliverables</strong>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-foreground hover:bg-muted border border-border transition-colors cursor-pointer"
+            className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
           >
             Done & Close
           </button>

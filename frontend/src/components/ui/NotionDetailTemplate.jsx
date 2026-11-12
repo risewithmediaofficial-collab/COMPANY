@@ -17,7 +17,7 @@ export const NotionDetailPage = ({
   className,
 }) => (
   <div className={cn('mx-auto max-w-6xl space-y-6 pb-16', className)}>
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 py-2">
+    <div className="flex flex-wrap items-center justify-between gap-3 py-1">
       <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-muted-foreground">
         {backTo ? (
           <Link to={backTo} className="flex items-center gap-1 transition-colors hover:text-foreground">
@@ -31,15 +31,15 @@ export const NotionDetailPage = ({
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
 
-    <section className="rounded-3xl border border-border bg-card p-4 sm:p-6 md:p-8 shadow-sm">
+    <section className="rounded-3xl bg-card p-5 sm:p-6 md:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-secondary/70 text-primary shadow-xs">
+          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-background text-primary">
             {Icon ? <Icon size={22} /> : <span className="text-lg font-black">{iconContent}</span>}
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <h1 className="break-words text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-foreground">{title}</h1>
+              <h1 className="break-words text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground">{title}</h1>
               {isValidElement(status) ? status : status ? (
                 <span
                   className={cn(
@@ -56,7 +56,7 @@ export const NotionDetailPage = ({
         </div>
       </div>
 
-      {children ? <div className="mt-6 border-t border-border/70 pt-5">{children}</div> : null}
+      {children ? <div className="mt-6 pt-4">{children}</div> : null}
     </section>
   </div>
 );
@@ -94,7 +94,7 @@ export const NotionPropertyGrid = ({ children, className }) => (
 );
 
 export const NotionTabs = ({ tabs, activeTab, onTabChange, className }) => (
-  <div className={cn('flex w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1.5 custom-scrollbar', className)}>
+  <div className={cn('flex w-full items-center gap-1 overflow-x-auto rounded-2xl bg-card p-1.5 custom-scrollbar', className)}>
     {tabs.map((tab) => {
       const Icon = tab.icon;
       const isActive = activeTab === tab.id;
@@ -105,8 +105,8 @@ export const NotionTabs = ({ tabs, activeTab, onTabChange, className }) => (
           type="button"
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-all min-h-[40px]',
-            isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+            'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors min-h-[40px] cursor-pointer',
+            isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
           )}
         >
           {Icon ? <Icon size={15} /> : null}

@@ -26,7 +26,6 @@ import {
   VolumeX,
   Volume2,
 } from '@/components/ui/muiIcons';
-import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { ProfileImageCropModal } from '../components/modals/ProfileImageCropModal';
 import { toggleDarkMode } from '../store/slices/uiSlice';
@@ -365,7 +364,7 @@ const Settings = () => {
   };
 
   if (isLoading) {
-    return <div className="h-96 rounded-2xl border border-border bg-card" />;
+    return <div className="h-96 rounded-2xl bg-card animate-pulse" />;
   }
 
   return (
@@ -375,15 +374,15 @@ const Settings = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-        <div className="lg:col-span-1 flex flex-row overflow-x-auto lg:flex-col gap-2 pb-2 lg:pb-0 custom-scrollbar">
+        <div className="lg:col-span-1 flex flex-row overflow-x-auto lg:flex-col gap-1.5 pb-2 lg:pb-0 custom-scrollbar">
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
-              className={`flex items-center px-4 py-3 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0 lg:w-full ${
+              className={`flex items-center px-4 py-3 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap shrink-0 lg:w-full cursor-pointer ${
                 activeSection === section.id
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/50 lg:border-transparent'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-card hover:text-foreground'
               }`}
             >
               <section.icon size={18} className="mr-2 sm:mr-3 shrink-0" />
@@ -393,15 +392,13 @@ const Settings = () => {
         </div>
 
         <div className="lg:col-span-3">
-          <motion.div
+          <div
             key={activeSection}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-card rounded-2xl border border-border shadow-sm p-6 md:p-8"
+            className="bg-card rounded-2xl p-6 md:p-8 animate-in fade-in duration-150"
           >
             {activeSection === 'profile' && (
               <div className="space-y-8">
-                <div className="flex flex-col md:flex-row items-center gap-8 border-b border-border pb-8">
+                <div className="flex flex-col md:flex-row items-center gap-8 pb-4">
                   <div className="relative group">
                     <input
                       id="profile-avatar-upload"
@@ -410,13 +407,13 @@ const Settings = () => {
                       className="hidden"
                       onChange={handleAvatarFileSelect}
                     />
-                    <div className="w-24 h-24 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-3xl font-black shadow-md overflow-hidden">
+                    <div className="w-24 h-24 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-3xl font-bold overflow-hidden">
                       {avatarPreview || currentAvatar ? <img src={getAssetUrl(avatarPreview || currentAvatar)} alt="" className="h-full w-full object-cover" /> : profileUser?.name?.charAt(0)}
                     </div>
                     <label
                       htmlFor="profile-avatar-upload"
                       aria-disabled={uploadProfileAvatar.isPending || updateProfile.isPending}
-                      className={`absolute -bottom-2 -right-2 rounded-xl border border-border bg-card p-2 text-foreground shadow-md transition-all ${
+                      className={`absolute -bottom-2 -right-2 rounded-xl bg-background p-2 text-foreground shadow-sm transition-colors ${
                         uploadProfileAvatar.isPending || updateProfile.isPending
                           ? 'pointer-events-none opacity-60'
                           : 'cursor-pointer hover:bg-primary hover:text-primary-foreground'
@@ -429,16 +426,13 @@ const Settings = () => {
                   <div className="text-center md:text-left">
                     <h3 className="text-xl font-bold">{profileUser?.name}</h3>
                     <p className="text-sm text-muted-foreground capitalize">{profileUser?.role} / {profileUser?.department || 'Operations'}</p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {uploadProfileAvatar.isPending || updateProfile.isPending ? 'Saving cropped profile picture...' : 'Upload a photo to crop, zoom, and rotate as you wish.'}
-                    </p>
                     <div className="mt-4 flex flex-wrap items-center gap-2.5 justify-center md:justify-start">
                       <label
                         htmlFor="profile-avatar-upload"
-                        className={`inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm font-bold transition-all shadow-xs ${
+                        className={`inline-flex items-center rounded-xl bg-background px-4 py-2 text-sm font-semibold transition-colors ${
                           uploadProfileAvatar.isPending || updateProfile.isPending
                             ? 'pointer-events-none opacity-60'
-                            : 'cursor-pointer hover:border-primary hover:text-primary hover:bg-primary/5'
+                            : 'cursor-pointer hover:bg-secondary'
                         }`}
                       >
                         <Camera size={16} className="mr-2" />
@@ -450,7 +444,7 @@ const Settings = () => {
                             type="button"
                             onClick={handleCropCurrentAvatar}
                             disabled={uploadProfileAvatar.isPending || updateProfile.isPending}
-                            className="inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm font-bold text-foreground transition-all hover:border-primary hover:text-primary hover:bg-primary/5 shadow-xs disabled:opacity-60 cursor-pointer"
+                            className="inline-flex items-center rounded-xl bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary disabled:opacity-60 cursor-pointer"
                             title="Re-crop or adjust your current profile picture"
                           >
                             <Crop size={16} className="mr-2 text-primary" />
@@ -460,7 +454,7 @@ const Settings = () => {
                             type="button"
                             onClick={removeAvatar}
                             disabled={updateProfile.isPending}
-                            className="inline-flex items-center rounded-xl border border-destructive/20 px-4 py-2 text-sm font-bold text-destructive transition-all hover:bg-destructive/10 disabled:opacity-60 cursor-pointer shadow-xs"
+                            className="inline-flex items-center rounded-xl bg-background px-4 py-2 text-sm font-semibold text-destructive transition-colors hover:bg-secondary disabled:opacity-60 cursor-pointer"
                           >
                             <Trash2 size={16} className="mr-2" />
                             Remove
@@ -480,7 +474,7 @@ const Settings = () => {
                     ['position', 'Position', Briefcase, 'text'],
                   ].map(([name, label, Icon, type]) => (
                     <div key={name} className="space-y-2">
-                      <label className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</label>
+                      <label className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
                       <div className="relative">
                         <Icon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <input
@@ -489,7 +483,7 @@ const Settings = () => {
                           value={profileData[name]}
                           onChange={handleProfileChange}
                           disabled={name === 'email'}
-                          className="w-full pl-12 pr-4 py-3 rounded-xl bg-secondary/30 border border-border text-sm focus:ring-2 focus:ring-primary/20 transition-all disabled:opacity-70"
+                          className="w-full pl-12 pr-4 py-3 rounded-xl bg-background text-sm outline-none focus:ring-2 focus:ring-brand/40 transition-colors disabled:opacity-70"
                         />
                       </div>
                     </div>
@@ -500,7 +494,7 @@ const Settings = () => {
                   <button
                     onClick={saveProfile}
                     disabled={updateProfile.isPending}
-                    className="flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold shadow-sm hover:bg-primary/90 transition-all disabled:opacity-60"
+                    className="flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 cursor-pointer"
                   >
                     <Save size={18} className="mr-2" />
                     {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
@@ -513,49 +507,47 @@ const Settings = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-bold">Notification Preferences</h3>
-                  <p className="text-sm text-muted-foreground">Manage your real-time desktop push alerts and event preferences.</p>
                 </div>
 
                 {/* Native Desktop / Browser Push Notifications Card */}
-                <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
+                <div className="rounded-2xl bg-background p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                      <div className="p-2.5 rounded-xl bg-secondary text-foreground shrink-0">
                         <BellRing size={20} />
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                          Banner & Push Notifications
-                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-md bg-secondary text-foreground border border-border">
-                            Heads-Up & Desktop
+                        <h4 className="text-sm font-bold text-foreground flex flex-wrap items-center gap-2">
+                          Banner &amp; Push Notifications
+                          <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-secondary text-foreground">
+                            Heads-Up &amp; Desktop
                           </span>
                         </h4>
-                        <p className="text-xs text-muted-foreground">Receive instant popup banner alerts on your device for tasks, leads, and messages even when the app is closed.</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {browserPermission === 'granted' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground border border-primary">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
                           <CheckCircle2 size={13} /> Banner Alerts Active
                         </span>
                       ) : browserPermission === 'denied' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-foreground border border-border">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-foreground">
                           <AlertTriangle size={13} /> Blocked in Browser
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-muted-foreground border border-border">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-secondary text-muted-foreground">
                           <AlertTriangle size={13} /> Not Enabled
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <div className="flex flex-wrap items-center gap-2.5 pt-1">
                     {browserPermission !== 'granted' && (
                       <button
                         type="button"
                         onClick={handleEnableBrowserNotifications}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                       >
                         <BellRing size={14} />
                         Enable Banner Notifications
@@ -566,7 +558,7 @@ const Settings = () => {
                       type="button"
                       disabled={isTestingNotification}
                       onClick={handleTestNotification}
-                      className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-xl hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
                       title="Trigger both in-app top banner and desktop banner alert"
                     >
                       <BellRing size={14} className={isTestingNotification ? 'animate-bounce' : ''} />
@@ -577,7 +569,7 @@ const Settings = () => {
                       type="button"
                       disabled={isTestingDelayed}
                       onClick={handleDelayedPushTest}
-                      className="flex items-center gap-2 px-3.5 py-2 bg-secondary text-secondary-foreground text-xs font-semibold rounded-xl hover:bg-secondary/80 transition-all border border-border cursor-pointer active:scale-95 disabled:opacity-50 tabular-nums"
+                      className="flex items-center gap-2 px-3.5 py-2 bg-secondary text-secondary-foreground text-xs font-semibold rounded-xl hover:bg-secondary/80 transition-colors cursor-pointer disabled:opacity-50 tabular-nums"
                       title="Schedules a push in 10 seconds so you can close this tab and verify background delivery"
                     >
                       <Clock size={14} className={isTestingDelayed ? 'animate-spin' : ''} />
@@ -587,39 +579,18 @@ const Settings = () => {
                     <button
                       type="button"
                       onClick={toggleBannerSound}
-                      className="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-muted text-foreground text-xs font-semibold rounded-xl transition-all border border-border cursor-pointer"
-                      title="Toggle synthesizer audio chime on banner alerts"
+                      className="flex items-center gap-2 px-3.5 py-2 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                      title="Toggle audio chime on banner alerts"
                     >
                       {bannerSoundMuted ? <VolumeX size={14} className="text-muted-foreground" /> : <Volume2 size={14} className="text-foreground" />}
                       <span>{bannerSoundMuted ? 'Sound Muted' : 'Sound Enabled'}</span>
                     </button>
                   </div>
-
-                  {/* Troubleshooting Helper Box */}
-                  <div className="mt-3 p-3.5 rounded-xl bg-secondary/30 border border-border/60 text-xs space-y-2 text-muted-foreground">
-                    <div className="font-semibold text-foreground flex items-center gap-1.5">
-                      <Laptop size={14} className="text-primary" /> How Banner Notifications Work:
-                    </div>
-                    <ul className="list-disc pl-4 space-y-1 text-[11px] leading-relaxed">
-                      <li>
-                        <strong className="text-foreground">In-App Floating Banners:</strong> When working inside the app, interactive slide-down banners appear at the top center of your screen with sound, view buttons, and auto-dismiss.
-                      </li>
-                      <li>
-                        <strong className="text-foreground">System OS Desktop Banners:</strong> When minimized or browsing other tabs, persistent system desktop notifications pop up via Chrome/Edge and Windows Action Center / macOS Notification Center.
-                      </li>
-                      <li>
-                        <strong className="text-foreground">Closed App Background Push:</strong> Through our Web Push gateway, notifications arrive on your devices even when all tabs and the browser are completely closed.
-                      </li>
-                      <li>
-                        <strong className="text-foreground">Mobile Android Heads-Up:</strong> Enhanced vibration and high-urgency headers ensure notifications pop down as high-priority heads-up banners on Android devices.
-                      </li>
-                    </ul>
-                  </div>
                 </div>
 
                 {/* Event Preferences */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notification Types</h4>
+                <div className="space-y-2.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Notification Types</h4>
                   {[
                     ['email', 'Email notifications'],
                     ['inApp', 'In-app notifications'],
@@ -628,13 +599,13 @@ const Settings = () => {
                     ['financeAlerts', 'Finance alerts'],
                     ['dailyDigest', 'Daily digest'],
                   ].map(([key, label]) => (
-                    <label key={key} className="flex items-center justify-between rounded-xl border border-border bg-secondary/20 p-4">
+                    <label key={key} className="flex items-center justify-between rounded-xl bg-background p-4 cursor-pointer hover:bg-secondary/50 transition-colors">
                       <span className="text-sm font-semibold">{label}</span>
                       <input
                         type="checkbox"
                         checked={Boolean(preferences.notifications?.[key])}
                         onChange={(event) => setNotification(key, event.target.checked)}
-                        className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
+                        className="h-5 w-5 rounded text-primary focus:ring-primary accent-foreground cursor-pointer"
                       />
                     </label>
                   ))}
@@ -645,51 +616,50 @@ const Settings = () => {
             {activeSection === 'company' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-bold">Company Details & GST Settings</h3>
-                  <p className="text-sm text-muted-foreground">Configure your agency name, GSTIN, address, contact details, and logo to appear on official invoices & proposals.</p>
+                  <h3 className="text-lg font-bold">Company Details &amp; GST Settings</h3>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-4">
+                <div className="space-y-5">
                   <div className="grid gap-4 md:grid-cols-2">
                     <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Company Name *</span>
-                      <input value={companyProfile.name} onChange={(event) => setCompanyProfile((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold text-foreground" placeholder="RISE WITH MEDIA" />
+                      <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company Name *</span>
+                      <input value={companyProfile.name} onChange={(event) => setCompanyProfile((current) => ({ ...current, name: event.target.value }))} className="w-full rounded-xl bg-background px-4 py-3 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-brand/40" placeholder="RISE WITH MEDIA" />
                     </label>
                     <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">GSTIN / GST Number</span>
-                      <input value={companyProfile.gstNumber} onChange={(event) => setCompanyProfile((current) => ({ ...current, gstNumber: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-bold tracking-wider text-primary" placeholder="29ABCDE1234F1Z5" />
+                      <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">GSTIN / GST Number</span>
+                      <input value={companyProfile.gstNumber} onChange={(event) => setCompanyProfile((current) => ({ ...current, gstNumber: event.target.value }))} className="w-full rounded-xl bg-background px-4 py-3 text-sm font-bold tracking-wider text-primary outline-none focus:ring-2 focus:ring-brand/40" placeholder="29ABCDE1234F1Z5" />
                     </label>
                     <label className="space-y-2 md:col-span-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Company Logo Image / URL</span>
+                      <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Company Logo Image / URL</span>
                       <div className="flex gap-3">
-                        <input value={companyProfile.logoUrl} onChange={(event) => setCompanyProfile((current) => ({ ...current, logoUrl: event.target.value }))} className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="https://domain.com/logo.png" />
+                        <input value={companyProfile.logoUrl} onChange={(event) => setCompanyProfile((current) => ({ ...current, logoUrl: event.target.value }))} className="flex-1 rounded-xl bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand/40" placeholder="https://domain.com/logo.png" />
                         {companyProfile.logoUrl && (
-                          <div className="h-11 w-11 shrink-0 rounded-xl border border-border bg-white p-1 shadow-sm flex items-center justify-center overflow-hidden">
+                          <div className="h-11 w-11 shrink-0 rounded-xl bg-white p-1.5 flex items-center justify-center overflow-hidden">
                             <img src={getAssetUrl(companyProfile.logoUrl)} alt="Company Logo" className="h-full w-full object-contain" />
                           </div>
                         )}
                       </div>
                     </label>
                     <label className="space-y-2 md:col-span-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Registered Office Address</span>
-                      <textarea value={companyProfile.address} onChange={(event) => setCompanyProfile((current) => ({ ...current, address: event.target.value }))} rows={3} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Street Address, City, State, PIN Code" />
+                      <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Registered Office Address</span>
+                      <textarea value={companyProfile.address} onChange={(event) => setCompanyProfile((current) => ({ ...current, address: event.target.value }))} rows={3} className="w-full rounded-xl bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand/40" placeholder="Street Address, City, State, PIN Code" />
                     </label>
                     <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Official Email</span>
-                      <input value={companyProfile.email} onChange={(event) => setCompanyProfile((current) => ({ ...current, email: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="hello@risewithmedia.com" />
+                      <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Official Email</span>
+                      <input value={companyProfile.email} onChange={(event) => setCompanyProfile((current) => ({ ...current, email: event.target.value }))} className="w-full rounded-xl bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand/40" placeholder="hello@risewithmedia.com" />
                     </label>
                     <label className="space-y-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Official Phone Number</span>
-                      <input value={companyProfile.phone} onChange={(event) => setCompanyProfile((current) => ({ ...current, phone: event.target.value }))} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="+91 9876543210" />
+                      <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Official Phone Number</span>
+                      <input value={companyProfile.phone} onChange={(event) => setCompanyProfile((current) => ({ ...current, phone: event.target.value }))} className="w-full rounded-xl bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand/40" placeholder="+91 9876543210" />
                     </label>
                     <label className="space-y-2 md:col-span-2">
-                      <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Services / Agency Tagline</span>
-                      <textarea value={companyProfile.services} onChange={(event) => setCompanyProfile((current) => ({ ...current, services: event.target.value }))} rows={2} className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" placeholder="Social Media Management, Video Production, Meta & Google Ads, Web Development" />
+                      <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Services / Agency Tagline</span>
+                      <textarea value={companyProfile.services} onChange={(event) => setCompanyProfile((current) => ({ ...current, services: event.target.value }))} rows={2} className="w-full rounded-xl bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand/40" placeholder="Social Media Management, Video Production, Meta & Google Ads, Web Development" />
                     </label>
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <button onClick={() => updateCompany.mutate(companyProfile)} disabled={updateCompany.isPending} className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all disabled:opacity-60">
+                    <button onClick={() => updateCompany.mutate(companyProfile)} disabled={updateCompany.isPending} className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-60 cursor-pointer">
                       {updateCompany.isPending ? 'Saving...' : 'Save Company Details & GST Settings'}
                     </button>
                   </div>
@@ -701,31 +671,34 @@ const Settings = () => {
               <div className="space-y-8">
                 <div>
                   <h3 className="text-lg font-bold">Theme Preferences</h3>
-                  <p className="text-sm text-muted-foreground">Customize how the platform looks for you.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
                     onClick={() => !darkMode && dispatch(toggleDarkMode())}
-                    className={`p-6 rounded-xl border-2 transition-all flex flex-col items-center gap-4 ${darkMode ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}
+                    className={`p-6 rounded-2xl transition-all flex flex-col items-center gap-4 cursor-pointer ${
+                      darkMode ? 'bg-secondary ring-2 ring-primary' : 'bg-background hover:bg-secondary/60'
+                    }`}
                   >
-                    <div className="w-12 h-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center">
                       <Palette size={24} />
                     </div>
                     <span className="font-bold">Dark Mode</span>
                   </button>
                   <button
                     onClick={() => darkMode && dispatch(toggleDarkMode())}
-                    className={`p-6 rounded-xl border-2 transition-all flex flex-col items-center gap-4 ${!darkMode ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}
+                    className={`p-6 rounded-2xl transition-all flex flex-col items-center gap-4 cursor-pointer ${
+                      !darkMode ? 'bg-secondary ring-2 ring-primary' : 'bg-background hover:bg-secondary/60'
+                    }`}
                   >
-                    <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center shadow-sm border border-border">
+                    <div className="w-12 h-12 rounded-xl bg-white text-neutral-900 flex items-center justify-center shadow-xs">
                       <Palette size={24} />
                     </div>
                     <span className="font-bold">Light Mode</span>
                   </button>
                 </div>
 
-                <div className="pt-8 border-t border-border">
+                <div className="pt-4">
                   <h3 className="text-lg font-bold mb-4">Regional Settings</h3>
                   <div className="grid gap-4 md:grid-cols-3">
                     {[
@@ -734,11 +707,11 @@ const Settings = () => {
                       ['currency', 'Currency', ['INR']],
                     ].map(([key, label, options]) => (
                       <label key={key} className="space-y-2">
-                        <span className="text-xs font-bold text-muted-foreground uppercase">{label}</span>
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
                         <select
                           value={preferences.regional?.[key] || options[0]}
                           onChange={(event) => setRegional(key, event.target.value)}
-                          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                          className="w-full rounded-xl bg-background px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
                         >
                           {options.map((option) => <option key={option}>{option}</option>)}
                         </select>
@@ -748,7 +721,7 @@ const Settings = () => {
                   <button
                     onClick={() => savePreferences()}
                     disabled={updatePreferences.isPending}
-                    className="mt-6 inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-60"
+                    className="mt-6 inline-flex items-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 cursor-pointer"
                   >
                     <Globe size={16} className="mr-2" />
                     Save Regional Settings
@@ -761,16 +734,14 @@ const Settings = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-bold">Security</h3>
-                  <p className="text-sm text-muted-foreground">Manage your password for this account.</p>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-secondary/20 p-5 space-y-5">
+                <div className="rounded-2xl bg-background p-5 space-y-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold">Password management</p>
-                      <p className="mt-1 text-sm text-muted-foreground">Change your password here, or keep using the reset-email flow from the sign-in screen if you ever get locked out.</p>
                     </div>
-                    <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                    <div className="rounded-xl bg-secondary p-3 text-foreground">
                       <KeyRound size={18} />
                     </div>
                   </div>
@@ -782,19 +753,19 @@ const Settings = () => {
                       ['confirmPassword', 'Confirm new password'],
                     ].map(([name, label]) => (
                       <label key={name} className="space-y-2">
-                        <span className="ml-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+                        <span className="ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
                         <div className="relative">
                           <input
                             type={showPasswordFields[name] ? 'text' : 'password'}
                             name={name}
                             value={passwordData[name]}
                             onChange={handlePasswordFieldChange}
-                            className="w-full rounded-xl border border-border bg-background px-4 py-3 pr-11 text-sm transition-all focus:ring-2 focus:ring-primary/20"
+                            className="w-full rounded-xl bg-card px-4 py-3 pr-11 text-sm outline-none transition-colors focus:ring-2 focus:ring-brand/40"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPasswordFields((prev) => ({ ...prev, [name]: !prev[name] }))}
-                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground cursor-pointer"
                             aria-label={showPasswordFields[name] ? 'Hide password' : 'Show password'}
                           >
                             {showPasswordFields[name] ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -808,7 +779,7 @@ const Settings = () => {
                     <button
                       onClick={handleChangePassword}
                       disabled={changePassword.isPending}
-                      className="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:opacity-60"
+                      className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60 cursor-pointer"
                     >
                       {changePassword.isPending ? 'Updating...' : 'Update Password'}
                     </button>
@@ -819,14 +790,13 @@ const Settings = () => {
 
             {activeSection === 'permissions' && (
               <div className="space-y-4">
-                <h3 className="text-lg font-bold">Role & Permissions</h3>
-                <div className="rounded-xl border border-border bg-secondary/20 p-5">
+                <h3 className="text-lg font-bold">Role &amp; Permissions</h3>
+                <div className="rounded-2xl bg-background p-5">
                   <p className="text-sm font-semibold capitalize">{profileUser?.role}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">Access is enforced by protected API routes and role checks.</p>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   {Object.entries(permissions).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between rounded-xl border border-border p-4">
+                    <div key={key} className="flex items-center justify-between rounded-xl bg-background p-4">
                       <span className="text-sm font-medium">{key.replace(/([A-Z])/g, ' $1')}</span>
                       <span className={`text-xs font-bold ${value ? 'text-foreground' : 'text-muted-foreground'}`}>{value ? 'Enabled' : 'Disabled'}</span>
                     </div>
@@ -834,7 +804,7 @@ const Settings = () => {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
 

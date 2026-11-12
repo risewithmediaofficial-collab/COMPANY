@@ -6,7 +6,7 @@ import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { PageHeader } from '../../components/ui/page';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import {
   DollarSign, PlusCircle, Download,
   Trash2, Edit3, Calendar, Filter, RefreshCcw,
@@ -85,19 +85,18 @@ const createDepositEntry = (fromDate = '', toDate = '', depositDate = '') => ({
 });
 
 // ─── KPI Card Component ───────────────────────────────────────────────────────
-const KPICard = ({ icon: Icon, label, value, sub, testId }) => (
+const KPICard = ({ icon: Icon, label, value, testId }) => (
   <div
     id={testId}
-    className="bg-card border border-border rounded-2xl p-4 space-y-3 hover:border-foreground/30 transition-colors shadow-xs"
+    className="bg-card rounded-2xl p-4 space-y-2 transition-colors"
   >
     <div className="flex items-center justify-between gap-2">
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">{label}</span>
-      <div className="w-8 h-8 rounded-xl flex items-center justify-center border border-border bg-secondary text-foreground shrink-0">
+      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate">{label}</span>
+      <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-secondary text-foreground shrink-0">
         <Icon size={16} />
       </div>
     </div>
     <p className="text-2xl font-bold text-foreground tabular-nums">{value}</p>
-    {sub && <p className="text-[11px] text-muted-foreground font-medium">{sub}</p>}
   </div>
 );
 
@@ -478,14 +477,13 @@ export default function AdBudgetDashboard() {
       {/* ── Page Header ─────────────────────────────────────────────── */}
       <PageHeader
         title="Client Ad Budget"
-        subtitle="Manage client monthly ad budgets, period date ranges, deposited amounts, and balance tracking"
         actions={
           <div className="flex items-center gap-2">
             <button
               id="export-csv-btn"
               onClick={handleExportCSV}
               disabled={exporting}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary border border-border text-foreground font-semibold rounded-xl text-sm hover:bg-secondary/80 disabled:opacity-60 transition-colors shadow-xs"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-foreground font-semibold rounded-xl text-sm hover:bg-secondary/80 disabled:opacity-60 transition-colors "
             >
               <Download size={16} className="shrink-0" />
               <span>{exporting ? 'Exporting...' : 'Export CSV'}</span>
@@ -493,7 +491,7 @@ export default function AdBudgetDashboard() {
             <button
               id="log-budget-entry-btn"
               onClick={handleOpenCreateDrawer}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm shadow-xs hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:bg-primary/90 transition-colors"
             >
               <PlusCircle size={16} className="shrink-0" />
               <span>Add Budget</span>
@@ -539,7 +537,7 @@ export default function AdBudgetDashboard() {
       {/* ── Filter Bar ───────────────────────────────────────────────── */}
       <div
         id="budget-filter-bar"
-        className="bg-card border border-border rounded-2xl p-4 space-y-3 shadow-xs"
+        className="bg-card rounded-2xl p-4 space-y-3 "
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -602,12 +600,12 @@ export default function AdBudgetDashboard() {
       </div>
 
       {/* ── Client Budget Ledger Table (Daily budget removed) ───────── */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
-        <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/30">
+      <div className="bg-card rounded-2xl overflow-hidden ">
+        <div className="flex items-center justify-between p-4 bg-secondary/30">
           <div className="flex items-center gap-2">
             <Building2 size={16} className="text-foreground shrink-0" />
             <h3 className="font-bold text-foreground text-sm">Client Budget Ledger</h3>
-            <span className="text-xs bg-secondary text-foreground border border-border px-2.5 py-0.5 rounded-full font-semibold tabular-nums">
+            <span className="text-xs bg-secondary text-foreground px-2.5 py-0.5 rounded-full font-semibold tabular-nums">
               {budgets.length} entries
             </span>
           </div>
@@ -622,10 +620,9 @@ export default function AdBudgetDashboard() {
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
             <IndianRupee size={36} className="opacity-40 text-foreground" />
             <p className="text-sm font-medium text-foreground">No budget records found</p>
-            <p className="text-xs text-muted-foreground">Add a client monthly budget with date range and deposited amounts</p>
             <button
               onClick={handleOpenCreateDrawer}
-              className="mt-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-xl text-xs inline-flex items-center gap-1.5 shadow-xs hover:bg-primary/90 transition-colors"
+              className="mt-2 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-xl text-xs inline-flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
             >
               <PlusCircle size={14} className="shrink-0" />
               <span>Add Budget</span>
@@ -635,7 +632,7 @@ export default function AdBudgetDashboard() {
           <div className="responsive-table-container overflow-x-auto">
             <table className="w-full text-xs min-w-[700px]" id="budget-ledger-table">
               <thead>
-                <tr className="border-b border-border bg-secondary/50">
+                <tr className="bg-secondary/50">
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Client</th>
                   <th className="text-left px-3 py-3 font-semibold text-muted-foreground">Budget Period</th>
                   <th className="text-right px-3 py-3 font-semibold text-muted-foreground">Monthly Budget</th>
@@ -646,7 +643,7 @@ export default function AdBudgetDashboard() {
                   <th className="text-center px-3 py-3 font-semibold text-muted-foreground w-24">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border tabular-nums">
+              <tbody className="divide-y divide-foreground/[0.05] tabular-nums">
                 {budgets.map((b) => {
                   const clientObj = b.client;
                   const comp = b.companyName || clientObj?.company || clientObj?.companyName || '';
@@ -698,12 +695,12 @@ export default function AdBudgetDashboard() {
                         {/* Balance Amount */}
                         <td className="px-3 py-3.5 text-right">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-md font-bold text-[12px] border ${
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-md font-bold text-[12px] ${
                               balance > 0
-                                ? 'bg-secondary text-foreground border-border'
+                                ? 'bg-secondary text-foreground '
                                 : balance === 0
-                                ? 'bg-muted text-muted-foreground border-border'
-                                : 'bg-primary text-primary-foreground border-primary'
+                                ? 'bg-muted text-muted-foreground '
+                                : 'bg-primary text-primary-foreground '
                             }`}
                           >
                             {fmt(balance)}
@@ -715,7 +712,7 @@ export default function AdBudgetDashboard() {
                           {deposits.length > 0 ? (
                             <button
                               onClick={() => toggleExpanded(b._id)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-secondary text-foreground border border-border rounded-lg text-[11px] font-semibold hover:bg-secondary/80 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-secondary text-foreground rounded-lg text-[11px] font-semibold hover:bg-secondary/80 transition-colors"
                             >
                               {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                               <span>{deposits.length} deposit{deposits.length !== 1 ? 's' : ''}</span>
@@ -764,10 +761,10 @@ export default function AdBudgetDashboard() {
                                 {deposits.map((dep, idx) => (
                                   <div
                                     key={idx}
-                                    className="p-3 bg-card border border-border rounded-xl shadow-xs space-y-1.5"
+                                    className="p-3 bg-card rounded-xl space-y-1.5"
                                   >
                                     <div className="flex items-center justify-between">
-                                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary border border-border px-1.5 py-0.5 rounded">
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">
                                         Tranche #{idx + 1}
                                       </span>
                                       <span className="text-[13px] font-bold text-foreground tabular-nums">
@@ -795,7 +792,7 @@ export default function AdBudgetDashboard() {
 
                                     {/* Note */}
                                     {dep.notes && (
-                                      <p className="text-[10px] text-muted-foreground italic border-t border-border pt-1 truncate" title={dep.notes}>
+                                      <p className="text-[10px] text-muted-foreground italic pt-1 truncate" title={dep.notes}>
                                         {dep.notes}
                                       </p>
                                     )}
@@ -820,21 +817,20 @@ export default function AdBudgetDashboard() {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         title={editingId ? 'Edit Client Budget' : 'Add Client Budget'}
-        subtitle="Select dates first, enter monthly budget, and add multiple deposit tranches"
       >
-        <form onSubmit={handleSaveBudget} className="space-y-4 text-xs" id="budget-entry-form">
+        <form onSubmit={handleSaveBudget} className="space-y-5 text-left" id="budget-entry-form">
 
           {/* ── Step 1: Client Selection ───────────────────────────────── */}
           <div>
-            <label className="font-semibold text-foreground mb-1 flex items-center gap-1.5">
-              <Building2 size={13} className="text-foreground shrink-0" /> Client *
+            <label className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+              <Building2 size={14} className="text-foreground shrink-0" /> Client *
             </label>
             <select
               id="log-client-select"
               required
               value={form.client}
               onChange={e => setForm({ ...form, client: e.target.value })}
-              className="app-select w-full font-medium"
+              className="app-select w-full"
             >
               <option value="">Select Client (Company Name - Client Name) *</option>
               {clientsList.map(c => (
@@ -846,18 +842,17 @@ export default function AdBudgetDashboard() {
           </div>
 
           {/* ── Step 2: Monthly Budget Period & Amount ─────────────────── */}
-          <div className="p-3.5 bg-secondary/40 border border-border rounded-2xl space-y-3">
+          <div className="p-4 bg-secondary/40 rounded-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-bold text-foreground text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar size={13} className="text-foreground shrink-0" /> 1. Monthly Budget Period
+              <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                <Calendar size={14} className="text-foreground shrink-0" /> 1. Monthly Budget Period
               </h4>
-              <span className="text-[10px] text-muted-foreground">Select dates first</span>
             </div>
 
             {/* From Date & To Date selection */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="font-semibold text-foreground block mb-1">
+                <label className="text-sm font-semibold text-foreground block mb-1.5">
                   From Date *
                 </label>
                 <input
@@ -866,11 +861,12 @@ export default function AdBudgetDashboard() {
                   required
                   value={form.fromDate}
                   onChange={e => handlePeriodChange('fromDate', e.target.value)}
-                  className="app-input w-full"
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="app-input w-full cursor-pointer"
                 />
               </div>
               <div>
-                <label className="font-semibold text-foreground block mb-1">
+                <label className="text-sm font-semibold text-foreground block mb-1.5">
                   To Date *
                 </label>
                 <input
@@ -880,20 +876,21 @@ export default function AdBudgetDashboard() {
                   min={form.fromDate || undefined}
                   value={form.toDate}
                   onChange={e => handlePeriodChange('toDate', e.target.value)}
-                  className="app-input w-full"
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="app-input w-full cursor-pointer"
                 />
               </div>
             </div>
 
             {/* Monthly Budget Amount (Enabled only after From & To Date are chosen) */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="font-semibold text-foreground">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-semibold text-foreground">
                   Monthly Budget Amount (₹) *
                 </label>
                 {!isPeriodSelected && (
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <AlertCircle size={10} /> Select From &amp; To Date first
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <AlertCircle size={12} /> Select From &amp; To Date first
                   </span>
                 )}
               </div>
@@ -906,7 +903,7 @@ export default function AdBudgetDashboard() {
                 placeholder={isPeriodSelected ? "e.g. 50000" : "Please select From and To Date above first"}
                 value={form.monthlyBudget}
                 onChange={e => setForm({ ...form, monthlyBudget: e.target.value })}
-                className={`app-input font-bold tabular-nums w-full ${
+                className={`app-input tabular-nums w-full ${
                   !isPeriodSelected ? 'opacity-50 cursor-not-allowed bg-secondary/50' : ''
                 }`}
               />
@@ -914,13 +911,13 @@ export default function AdBudgetDashboard() {
           </div>
 
           {/* ── Step 3: Deposit Entries (Multiple with + Option) ──────── */}
-          <div className="p-3.5 bg-secondary/40 border border-border rounded-2xl space-y-3">
+          <div className="p-4 bg-secondary/40 rounded-2xl space-y-4">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <h4 className="font-bold text-foreground text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                  <IndianRupee size={13} className="text-foreground shrink-0" />
+                <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                  <IndianRupee size={14} className="text-foreground shrink-0" />
                   <span>2. Amount Deposited</span>
-                  <span className="ml-1 px-1.5 py-0.5 bg-card border border-border text-foreground rounded-md text-[10px] font-bold tabular-nums">
+                  <span className="ml-1 px-2 py-0.5 bg-card text-foreground rounded-md text-xs font-semibold tabular-nums">
                     {form.deposits.length} tranche{form.deposits.length !== 1 ? 's' : ''}
                   </span>
                 </h4>
@@ -930,17 +927,13 @@ export default function AdBudgetDashboard() {
                 type="button"
                 id="add-deposit-btn"
                 onClick={handleAddDeposit}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-primary text-primary-foreground rounded-lg text-[11px] font-semibold hover:bg-primary/90 transition-colors shadow-xs shrink-0"
+                className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-xl text-xs font-semibold hover:bg-primary/90 transition-colors shrink-0 cursor-pointer"
                 title="Add another deposit tranche"
               >
-                <Plus size={13} className="shrink-0" />
+                <Plus size={14} className="shrink-0" />
                 <span>Add Deposit</span>
               </button>
             </div>
-
-            <p className="text-[10px] text-muted-foreground">
-              Select date range &amp; date deposited. Each new tranche automatically continues from the next day (e.g. 1st–6th → 7th).
-            </p>
 
             <div className="space-y-3">
               {form.deposits.map((dep, idx) => {
@@ -951,12 +944,12 @@ export default function AdBudgetDashboard() {
                 return (
                   <div
                     key={idx}
-                    className="p-3 bg-card border border-border rounded-xl space-y-2.5 relative shadow-xs"
+                    className="p-4 bg-card rounded-xl space-y-3 relative"
                   >
                     {/* Entry Header */}
-                    <div className="flex items-center justify-between border-b border-border pb-1.5">
-                      <span className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
-                        <span className="w-5 h-5 rounded-full bg-secondary border border-border text-foreground flex items-center justify-center text-[10px] font-bold tabular-nums">
+                    <div className="flex items-center justify-between pb-1">
+                      <span className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-secondary text-foreground flex items-center justify-center text-xs font-bold tabular-nums">
                           {idx + 1}
                         </span>
                         Deposit #{idx + 1}
@@ -965,18 +958,18 @@ export default function AdBudgetDashboard() {
                         <button
                           type="button"
                           onClick={() => handleRemoveDeposit(idx)}
-                          className="p-1 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors"
+                          className="p-1 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-colors cursor-pointer"
                           title="Remove this deposit"
                         >
-                          <X size={13} />
+                          <X size={14} />
                         </button>
                       )}
                     </div>
 
                     {/* Deposit Date Range (e.g. 1st to 6th, then next 7th onwards) */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="font-semibold text-muted-foreground block mb-1 text-[10px] uppercase tracking-wider">
+                        <label className="text-sm font-semibold text-foreground block mb-1.5">
                           Period: From Date
                         </label>
                         <input
@@ -984,11 +977,12 @@ export default function AdBudgetDashboard() {
                           min={minFromDate || undefined}
                           value={dep.fromDate}
                           onChange={e => handleDepositChange(idx, 'fromDate', e.target.value)}
-                          className="app-input w-full text-xs"
+                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                          className="app-input w-full cursor-pointer"
                         />
                       </div>
                       <div>
-                        <label className="font-semibold text-muted-foreground block mb-1 text-[10px] uppercase tracking-wider">
+                        <label className="text-sm font-semibold text-foreground block mb-1.5">
                           Period: To Date
                         </label>
                         <input
@@ -996,28 +990,30 @@ export default function AdBudgetDashboard() {
                           min={dep.fromDate || minFromDate || undefined}
                           value={dep.toDate}
                           onChange={e => handleDepositChange(idx, 'toDate', e.target.value)}
-                          className="app-input w-full text-xs"
+                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                          className="app-input w-full cursor-pointer"
                         />
                       </div>
                     </div>
 
                     {/* Date Deposited & Amount */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="font-semibold text-foreground mb-1 text-[11px] flex items-center gap-1">
-                          <Clock size={11} className="shrink-0" /> Date of Deposit *
+                        <label className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                          <Clock size={13} className="shrink-0" /> Date of Deposit *
                         </label>
                         <input
                           type="date"
                           required
                           value={dep.depositDate}
                           onChange={e => handleDepositChange(idx, 'depositDate', e.target.value)}
-                          className="app-input w-full text-xs"
+                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                          className="app-input w-full cursor-pointer"
                         />
                       </div>
                       <div>
-                        <label className="font-semibold text-foreground mb-1 text-[11px] flex items-center gap-1">
-                          <IndianRupee size={11} className="shrink-0" /> Amount Deposited (₹) *
+                        <label className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+                          <IndianRupee size={13} className="shrink-0" /> Amount Deposited (₹) *
                         </label>
                         <input
                           type="number"
@@ -1026,7 +1022,7 @@ export default function AdBudgetDashboard() {
                           placeholder="e.g. 15000"
                           value={dep.amount}
                           onChange={e => handleDepositChange(idx, 'amount', e.target.value)}
-                          className="app-input font-bold tabular-nums w-full text-xs"
+                          className="app-input tabular-nums w-full"
                         />
                       </div>
                     </div>
@@ -1038,7 +1034,7 @@ export default function AdBudgetDashboard() {
                         placeholder="Optional remarks (e.g. Bank transfer, Ref #12345)"
                         value={dep.notes}
                         onChange={e => handleDepositChange(idx, 'notes', e.target.value)}
-                        className="app-input w-full text-[11px]"
+                        className="app-input w-full"
                       />
                     </div>
                   </div>
@@ -1051,9 +1047,9 @@ export default function AdBudgetDashboard() {
               type="button"
               id="add-another-deposit-btn"
               onClick={handleAddDeposit}
-              className="w-full py-2.5 border-2 border-dashed border-border rounded-xl text-[11px] font-semibold text-foreground hover:border-foreground/40 hover:bg-secondary/60 transition-colors flex items-center justify-center gap-1.5"
+              className="w-full h-11 rounded-xl text-sm font-semibold text-foreground hover:bg-secondary/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <Plus size={14} className="shrink-0" />
+              <Plus size={15} className="shrink-0" />
               <span>Add Another Deposit Tranche</span>
             </button>
           </div>
@@ -1061,28 +1057,28 @@ export default function AdBudgetDashboard() {
           {/* ── Live Dynamic Balance Summary ──────────────────────────── */}
           <div
             id="live-balance-preview"
-            className="p-3.5 bg-card rounded-xl border border-border text-xs space-y-2 shadow-xs tabular-nums"
+            className="p-4 bg-card rounded-xl text-sm space-y-2 tabular-nums"
           >
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-              <DollarSign size={11} className="text-foreground shrink-0" /> Live Balance Summary
+            <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+              <DollarSign size={13} className="text-foreground shrink-0" /> Live Balance Summary
             </p>
-            <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+            <div className="flex items-center justify-between text-muted-foreground text-sm">
               <span>Monthly Budget:</span>
               <span className="font-bold text-foreground">{fmt(liveMonthly)}</span>
             </div>
-            <div className="flex items-center justify-between text-muted-foreground text-[11px]">
+            <div className="flex items-center justify-between text-muted-foreground text-sm">
               <span>Total Deposited ({form.deposits.length} {form.deposits.length === 1 ? 'entry' : 'entries'}):</span>
               <span className="font-bold text-foreground">{fmt(liveDeposited)}</span>
             </div>
-            <div className="pt-2 border-t border-border flex items-center justify-between">
+            <div className="pt-2 flex items-center justify-between">
               <span className="font-bold text-foreground">
-                Balance Amount <span className="text-[10px] text-muted-foreground font-normal">(Monthly - Deposited)</span>:
+                Balance Amount <span className="text-xs text-muted-foreground font-normal">(Monthly - Deposited)</span>:
               </span>
               <span
-                className={`font-bold text-sm px-2.5 py-0.5 rounded-md border ${
+                className={`font-bold text-sm px-2.5 py-0.5 rounded-md ${
                   liveBalance >= 0
-                    ? 'bg-secondary text-foreground border-border'
-                    : 'bg-primary text-primary-foreground border-primary'
+                    ? 'bg-secondary text-foreground '
+                    : 'bg-primary text-primary-foreground '
                 }`}
               >
                 {fmt(liveBalance)}
@@ -1092,25 +1088,25 @@ export default function AdBudgetDashboard() {
 
           {/* ── General Notes / Remarks ────────────────────────────────── */}
           <div>
-            <label className="font-semibold text-foreground mb-1 flex items-center gap-1.5">
-              <FileText size={13} className="text-muted-foreground shrink-0" /> Budget Notes / Remarks
+            <label className="text-sm font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
+              <FileText size={14} className="text-muted-foreground shrink-0" /> Budget Notes / Remarks
             </label>
             <textarea
               id="log-notes"
-              rows={2}
+              rows={3}
               placeholder="e.g. Client ad campaign for festival promotion with phased tranche deposits..."
               value={form.notes}
               onChange={e => setForm({ ...form, notes: e.target.value })}
-              className="w-full p-2.5 bg-background border border-border rounded-xl outline-none text-xs resize-none focus:border-foreground/50 transition-colors"
+              className="w-full min-h-[96px] px-4 py-3 bg-secondary/75 rounded-xl outline-none focus:bg-background focus:ring-2 focus:ring-brand/40 text-sm font-normal text-foreground resize-none transition-colors"
             />
           </div>
 
           {/* ── Drawer Actions ─────────────────────────────────────────── */}
-          <div className="pt-3 border-t border-border flex justify-end gap-2">
+          <div className="pt-4 flex justify-end gap-2.5">
             <button
               type="button"
               onClick={() => setIsDrawerOpen(false)}
-              className="app-button-secondary"
+              className="h-11 px-5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -1118,9 +1114,9 @@ export default function AdBudgetDashboard() {
               id="save-budget-entry-btn"
               type="submit"
               disabled={saving}
-              className="app-button-primary disabled:opacity-60 flex items-center gap-1.5"
+              className="h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 disabled:opacity-60 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <CheckCircle2 size={14} />
+              <CheckCircle2 size={15} />
               {saving ? 'Saving...' : editingId ? 'Update Budget' : 'Save Budget Entry'}
             </button>
           </div>

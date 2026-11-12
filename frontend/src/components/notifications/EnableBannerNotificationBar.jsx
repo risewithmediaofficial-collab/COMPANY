@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   BellRing,
   Sparkles,
@@ -128,27 +127,20 @@ export const EnableBannerNotificationBar = () => {
   if (!isVisible) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: 'auto', opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        className="w-full overflow-hidden border-b border-zinc-800 bg-zinc-950 text-zinc-100 shadow-xs"
-      >
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+    <div className="w-full overflow-hidden bg-zinc-950 text-zinc-100 animate-in fade-in duration-150">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
           {/* Left Info Column */}
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="relative shrink-0 flex items-center justify-center p-2 rounded-xl bg-zinc-900 text-zinc-200 border border-zinc-700">
+            <div className="relative shrink-0 flex items-center justify-center p-2 rounded-xl bg-brand/15 text-brand ring-1 ring-brand/25">
               <BellRing size={16} />
-              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-zinc-300" />
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-brand" />
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs sm:text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
                   Enable Banner Notifications
-                  <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-200 border border-zinc-700">
+                  <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full bg-brand/20 text-brand">
                     Recommended
                   </span>
                 </span>
@@ -168,7 +160,7 @@ export const EnableBannerNotificationBar = () => {
               type="button"
               onClick={handleEnable}
               disabled={loading}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold shadow-xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex-1 sm:flex-initial"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold transition-all cursor-pointer active:scale-95 disabled:opacity-50 flex-1 sm:flex-initial"
             >
               {loading ? (
                 <>
@@ -195,8 +187,7 @@ export const EnableBannerNotificationBar = () => {
             </button>
           </div>
         </div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
   );
 };
 

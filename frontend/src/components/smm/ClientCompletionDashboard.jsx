@@ -73,7 +73,7 @@ const EditableNumber = ({ value, onSave, min = 0, max = 999 }) => {
             setEditing(false);
           }
         }}
-        className="w-12 text-center text-xs py-0.5 px-1 border border-foreground rounded bg-background text-foreground font-bold outline-none shadow-xs tabular-nums"
+        className="w-12 text-center text-xs py-0.5 px-1 rounded bg-background text-foreground font-bold outline-none focus:ring-2 focus:ring-brand/40 tabular-nums"
       />
     );
   }
@@ -146,9 +146,9 @@ export const ClientCompletionDashboard = ({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* ── Left Column: Summary Table + Workflow Callout ── */}
         <div className="xl:col-span-7 flex flex-col space-y-3">
-          <div className="border border-border rounded-xl overflow-hidden shadow-xs bg-card">
+          <div className="rounded-xl overflow-hidden bg-card">
             {/* Monochrome Header Banner */}
-            <div className="bg-zinc-950 text-zinc-50 text-center py-2 sm:py-2.5 px-3 sm:px-4 border-b border-zinc-800">
+            <div className="bg-zinc-950 text-zinc-50 text-center py-2 sm:py-2.5 px-3 sm:px-4 ">
               <h3 className="text-xs md:text-sm font-black tracking-widest uppercase">
                 CLIENT COMPLETION DASHBOARD
               </h3>
@@ -159,14 +159,14 @@ export const ClientCompletionDashboard = ({
               <table className="w-full text-xs border-collapse min-w-[500px]">
                 <thead>
                   <tr className="bg-secondary text-muted-foreground uppercase text-[10.5px] font-black tracking-wider">
-                    <th className="py-2.5 px-3 text-left w-36 border border-border">CLIENT</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-border">REELS</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-border">POSTS</th>
-                    <th className="py-2.5 px-2 text-center w-16 border border-border">STORIES</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-border">TOTAL</th>
-                    <th className="py-2.5 px-2 text-center w-14 border border-border">DONE</th>
-                    <th className="py-2.5 px-2 text-center w-16 border border-border">PENDING</th>
-                    <th className="py-2.5 px-2 text-center w-20 border border-border">COMPLETE %</th>
+                    <th className="py-2.5 px-3 text-left w-36 ">CLIENT</th>
+                    <th className="py-2.5 px-2 text-center w-14 ">REELS</th>
+                    <th className="py-2.5 px-2 text-center w-14 ">POSTS</th>
+                    <th className="py-2.5 px-2 text-center w-16 ">STORIES</th>
+                    <th className="py-2.5 px-2 text-center w-14 ">TOTAL</th>
+                    <th className="py-2.5 px-2 text-center w-14 ">DONE</th>
+                    <th className="py-2.5 px-2 text-center w-16 ">PENDING</th>
+                    <th className="py-2.5 px-2 text-center w-20 ">COMPLETE %</th>
                   </tr>
                 </thead>
                 <tbody className="tabular-nums">
@@ -186,7 +186,7 @@ export const ClientCompletionDashboard = ({
                         }`}
                       >
                         {/* Client Name */}
-                        <td className="py-2 px-3 font-bold text-foreground border border-border/80">
+                        <td className="py-2 px-3 font-bold text-foreground ">
                           <div className="flex items-center justify-between gap-1.5">
                             <span className="truncate max-w-[120px]" title={item.clientName}>
                               {item.clientName}
@@ -205,7 +205,7 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Editable Reels */}
-                        <td className="py-2 px-2 text-center border border-border/80">
+                        <td className="py-2 px-2 text-center ">
                           <EditableNumber
                             value={item.reels}
                             onSave={(val) => onUpdatePlan?.(idx, val, item.posts)}
@@ -213,7 +213,7 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Editable Posts */}
-                        <td className="py-2 px-2 text-center border border-border/80">
+                        <td className="py-2 px-2 text-center ">
                           <EditableNumber
                             value={item.posts}
                             onSave={(val) => onUpdatePlan?.(idx, item.reels, val)}
@@ -221,7 +221,7 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Editable Stories */}
-                        <td className="py-2 px-2 text-center border border-border/80">
+                        <td className="py-2 px-2 text-center ">
                           <EditableNumber
                             value={item.stories}
                             onSave={(val) => onUpdateStories?.(idx, val)}
@@ -229,28 +229,28 @@ export const ClientCompletionDashboard = ({
                         </td>
 
                         {/* Total Quota */}
-                        <td className="py-2 px-2 text-center font-bold text-foreground border border-border/80">
+                        <td className="py-2 px-2 text-center font-bold text-foreground ">
                           {item.total}
                         </td>
 
                         {/* Done */}
-                        <td className="py-2 px-2 text-center font-bold text-foreground border border-border/80">
+                        <td className="py-2 px-2 text-center font-bold text-foreground ">
                           {item.done}
                         </td>
 
                         {/* Pending */}
-                        <td className="py-2 px-2 text-center font-semibold text-muted-foreground border border-border/80">
+                        <td className="py-2 px-2 text-center font-semibold text-muted-foreground ">
                           {item.pending}
                         </td>
 
                         {/* Complete % */}
-                        <td className="py-2 px-2 text-center font-black border border-border/80">
+                        <td className="py-2 px-2 text-center font-black ">
                           <span
                             className={`inline-block px-1.5 py-0.5 rounded text-[11px] ${
                               item.pct === 100
                                 ? 'bg-primary text-primary-foreground'
                                 : item.pct > 0
-                                ? 'bg-secondary text-foreground border border-border font-bold'
+                                ? 'bg-secondary text-foreground font-bold'
                                 : 'text-muted-foreground'
                             }`}
                           >
@@ -266,7 +266,7 @@ export const ClientCompletionDashboard = ({
           </div>
 
           {/* Workflow Callout Box */}
-          <div className="border border-border bg-secondary/50 rounded-lg p-3 text-foreground">
+          <div className="bg-secondary/50 rounded-lg p-3 text-foreground">
             <p className="text-[11px] font-semibold leading-relaxed text-muted-foreground">
               <span className="font-bold tracking-wide text-foreground uppercase">WORKFLOW:</span>{' '}
               Plan row shows upload schedule → status row below it: select DONE → completion badge → percentage and chart update automatically
@@ -275,7 +275,7 @@ export const ClientCompletionDashboard = ({
         </div>
 
         {/* ── Right Column: Bar Graph Visual ── */}
-        <div className="xl:col-span-5 bg-card border border-border/80 rounded-xl p-3 sm:p-4 shadow-xs flex flex-col overflow-hidden">
+        <div className="xl:col-span-5 bg-card rounded-xl p-3 sm:p-4 flex flex-col overflow-hidden">
           <div className="w-full overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] custom-scrollbar">
             <svg
               viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -352,7 +352,7 @@ export const ClientCompletionDashboard = ({
                         y={barY}
                         width={barWidth}
                         height={barHeight}
-                        fill={isHovered ? 'hsl(var(--foreground))' : '#52525b'}
+                        fill={isHovered ? '#12B7D4' : '#0EA5C6'}
                         rx="2"
                         style={{
                           transition: 'height 0.4s ease-out, y 0.4s ease-out, fill 0.2s',
@@ -399,7 +399,7 @@ export const ClientCompletionDashboard = ({
           </div>
 
           {/* Quick Metrics Bar at bottom of chart */}
-          <div className="mt-auto pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground px-2 tabular-nums">
+          <div className="mt-auto pt-3 flex items-center justify-between text-xs text-muted-foreground px-2 tabular-nums">
             <span>Clients: <strong className="text-foreground">{metrics.length}</strong></span>
             <span>Avg Completion: <strong className="text-foreground">{metrics.length > 0 ? Math.round(metrics.reduce((a,c)=>a+c.pct,0)/metrics.length) : 0}%</strong></span>
             <span className="text-foreground font-semibold">Total Done: {metrics.reduce((a,c)=>a+c.done,0)}</span>

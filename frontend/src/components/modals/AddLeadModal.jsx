@@ -133,10 +133,10 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent variant="side" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
-        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
+      <DialogContent variant="side" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-background ">
+        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 bg-background shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
               <UserPlus size={20} />
             </div>
             <div className="min-w-0">
@@ -150,10 +150,10 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -174,7 +174,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           placeholder="e.g. John Doe"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -193,7 +193,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                         <Input
                           type="email"
                           placeholder="e.g. john@example.com"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -211,7 +211,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           placeholder="e.g. +91 98765 43210"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -229,7 +229,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           placeholder="e.g. Acme Innovations"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -247,7 +247,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           placeholder="e.g. Social media marketing, Website development, Performance ads..."
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -265,7 +265,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           placeholder="e.g. Founder, CEO, Marketing VP..."
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -282,7 +282,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormLabel className="text-sm font-semibold text-foreground">Lead Source</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select lead source" />
                           </SelectTrigger>
                         </FormControl>
@@ -305,7 +305,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                               <FormControl>
                                 <Input
                                   placeholder="Specify lead source..."
-                                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                                   {...cf}
                                 />
                               </FormControl>
@@ -327,7 +327,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormLabel className="text-sm font-semibold text-foreground">Pipeline Status</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                         </FormControl>
@@ -356,7 +356,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormLabel className="text-sm font-semibold text-foreground">Priority</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select priority" />
                           </SelectTrigger>
                         </FormControl>
@@ -382,7 +382,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                         <Input
                           type="number"
                           placeholder="e.g. 50000"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
                         />
@@ -400,7 +400,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormLabel className="text-sm font-semibold text-foreground">Currency</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || 'INR'}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select currency" />
                           </SelectTrigger>
                         </FormControl>
@@ -425,7 +425,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           type="date"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -443,7 +443,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           type="date"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -460,7 +460,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormLabel className="text-sm font-semibold text-foreground">Proposal Status</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select proposal status" />
                           </SelectTrigger>
                         </FormControl>
@@ -486,7 +486,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormLabel className="text-sm font-semibold text-foreground">Assign To Team Member</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select employee" />
                           </SelectTrigger>
                         </FormControl>
@@ -512,7 +512,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Input
                           placeholder="e.g. Budget constraint, postponed to next quarter..."
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -530,7 +530,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                       <FormControl>
                         <Textarea
                           placeholder="Add any conversation notes, key requirements, or client background..."
-                          className="min-h-[100px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="min-h-[100px] rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -542,10 +542,10 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-background px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
-                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                   ESC
                 </kbd>
                 <span>to close</span>
@@ -564,7 +564,7 @@ export const AddLeadModal = ({ open, onOpenChange, lead = null }) => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
                 >
                   {isLoading ? 'Saving...' : lead ? 'Update Lead' : 'Create Lead'}
                 </Button>

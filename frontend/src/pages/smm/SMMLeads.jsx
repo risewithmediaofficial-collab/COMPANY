@@ -181,19 +181,17 @@ export const SMMLeads = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Campaign & Social Media Leads</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Track leads, qualified conversions, cost per lead (CPL), and campaign performance
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <Target className="text-primary shrink-0" size={22} />
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">SMM Leads</h1>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-colors cursor-pointer"
+          className="h-10 inline-flex items-center gap-2 px-4 bg-primary text-primary-foreground font-semibold text-xs rounded-xl hover:bg-primary/90 transition-colors cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Lead</span>
@@ -208,69 +206,60 @@ export const SMMLeads = () => {
       />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="bg-card rounded-2xl p-4">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Leads</span>
-            <Users size={16} className="text-foreground" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Leads</span>
+            <Users size={15} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.totalLeads || 0}</div>
-          <span className="text-[11px] text-muted-foreground mt-1 block tabular-nums">
-            {stats.leadsToday || 0} leads today
-          </span>
+          <div className="text-2xl font-bold text-foreground tabular-nums">{stats.totalLeads || 0}</div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
+        <div className="bg-card rounded-2xl p-4">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Qualified Leads</span>
-            <UserCheck size={16} className="text-foreground" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Qualified</span>
+            <UserCheck size={15} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.qualifiedLeads || 0}</div>
-          <span className="text-[11px] text-muted-foreground mt-1 block">Verified prospect intent</span>
+          <div className="text-2xl font-bold text-foreground tabular-nums">{stats.qualifiedLeads || 0}</div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
+        <div className="bg-card rounded-2xl p-4">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Converted Leads</span>
-            <Award size={16} className="text-foreground" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Converted</span>
+            <Award size={15} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.convertedLeads || 0}</div>
-          <span className="text-[11px] text-foreground font-semibold mt-1 block tabular-nums">
-            {stats.conversionRate || 0}% Conversion Rate
-          </span>
+          <div className="text-2xl font-bold text-foreground tabular-nums">{stats.convertedLeads || 0}</div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
+        <div className="bg-card rounded-2xl p-4">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Cost Per Lead</span>
-            <DollarSign size={16} className="text-foreground" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Cost Per Lead</span>
+            <DollarSign size={15} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground tabular-nums">₹{stats.costPerLead || 0}</div>
-          <span className="text-[11px] text-muted-foreground mt-1 block">Ad spend / total leads</span>
+          <div className="text-2xl font-bold text-foreground tabular-nums">₹{stats.costPerLead || 0}</div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
+        <div className="bg-card rounded-2xl p-4 col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">This Month</span>
-            <TrendingUp size={16} className="text-foreground" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider">This Month</span>
+            <TrendingUp size={15} className="text-foreground" />
           </div>
-          <div className="text-2xl font-extrabold text-foreground tabular-nums">{stats.leadsThisMonth || 0}</div>
-          <span className="text-[11px] text-muted-foreground mt-1 block">Leads generated in 30 days</span>
+          <div className="text-2xl font-bold text-foreground tabular-nums">{stats.leadsThisMonth || 0}</div>
         </div>
       </div>
 
       {/* Leads Management Table */}
-      <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
+      <div className="bg-card rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-xs text-muted-foreground">Loading leads data...</div>
+          <div className="p-12 text-center text-xs text-muted-foreground">Loading...</div>
         ) : leads.length === 0 ? (
-          <div className="p-12 text-center text-xs text-muted-foreground">
-            No lead records found for selected Client/Project filters. Click "+ Add Lead" to record one.
+          <div className="p-12 text-center text-sm font-semibold text-foreground">
+            No leads found
           </div>
         ) : (
           <div className="responsive-table-container overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[700px]">
-              <thead className="bg-muted/40 text-muted-foreground border-b border-border font-medium">
+              <thead className="bg-muted/40 text-muted-foreground font-medium">
                 <tr>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Lead Name</th>
@@ -282,7 +271,7 @@ export const SMMLeads = () => {
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-foreground/[0.05]">
                 {leads.map((item) => (
                   <tr key={item._id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-3 text-muted-foreground">
@@ -311,14 +300,14 @@ export const SMMLeads = () => {
                       <select
                         value={item.status}
                         onChange={(e) => handleStatusChange(item._id, e.target.value)}
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full border cursor-pointer ${
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer ${
                           item.status === 'Converted'
-                            ? 'bg-primary text-primary-foreground border-primary'
+                            ? 'bg-primary text-primary-foreground '
                             : item.status === 'Qualified'
-                            ? 'bg-secondary text-foreground border-border'
+                            ? 'bg-secondary text-foreground '
                             : item.status === 'Lost'
-                            ? 'bg-card text-muted-foreground border-border'
-                            : 'bg-background text-foreground border-border'
+                            ? 'bg-card text-muted-foreground '
+                            : 'bg-background text-foreground '
                         }`}
                       >
                         <option value="New">New</option>
@@ -347,27 +336,27 @@ export const SMMLeads = () => {
 
       {/* ADD LEAD MODAL */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
-          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
                 <Target size={20} />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                  Record New Social Media Lead
+                  Add Social Media Lead
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                  Capture new prospect information from Meta Ads, Google Ads, or organic social channels
+                <DialogDescription className="sr-only">
+                  Add lead form
                 </DialogDescription>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
                 ESC
               </kbd>
-              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <X size={16} className="stroke-[2.5]" />
                 <span className="sr-only">Close</span>
               </DialogClose>
@@ -383,7 +372,7 @@ export const SMMLeads = () => {
                   required
                   value={formData.client}
                   onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '', campaign: '' })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-foreground shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-foreground cursor-pointer"
                 >
                   <option value="">-- Choose Client --</option>
                   {clientsList.map((c) => {
@@ -408,7 +397,7 @@ export const SMMLeads = () => {
                   value={formData.project}
                   onChange={(e) => setFormData({ ...formData, project: e.target.value })}
                   disabled={!formData.client}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground cursor-pointer"
                 >
                   <option value="">-- Choose Project --</option>
                   {projectsList.map((p) => (
@@ -425,7 +414,7 @@ export const SMMLeads = () => {
                   value={formData.campaign}
                   onChange={(e) => setFormData({ ...formData, campaign: e.target.value })}
                   disabled={!formData.client}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 text-sm text-foreground cursor-pointer"
                 >
                   <option value="">-- No Linked Campaign --</option>
                   {campaignsList.map((c) => (
@@ -444,7 +433,7 @@ export const SMMLeads = () => {
                   placeholder="e.g. Rahul Sharma"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-foreground shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl focus:ring-2 focus:ring-primary/20 outline-none text-sm text-foreground "
                 />
               </div>
 
@@ -455,7 +444,7 @@ export const SMMLeads = () => {
                   placeholder="+91 98765 43210"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl font-mono text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-normal text-foreground focus:ring-2 focus:ring-primary/20 outline-none"
                 />
               </div>
 
@@ -466,7 +455,7 @@ export const SMMLeads = () => {
                   placeholder="rahul@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -475,7 +464,7 @@ export const SMMLeads = () => {
                 <select
                   value={formData.source}
                   onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                 >
                   <option value="Meta Ads">Meta Ads</option>
                   <option value="Google Ads">Google Ads</option>
@@ -491,7 +480,7 @@ export const SMMLeads = () => {
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                 >
                   <option value="New">New</option>
                   <option value="Contacted">Contacted</option>
@@ -504,10 +493,10 @@ export const SMMLeads = () => {
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
-                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                   ESC
                 </kbd>
                 <span>to close</span>
@@ -524,7 +513,7 @@ export const SMMLeads = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-colors"
                 >
                   Record Lead
                 </Button>

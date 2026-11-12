@@ -11,7 +11,7 @@ import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { SMMDestinationSelector } from '../../components/smm/SMMDestinationSelector';
 import { SMM_OBJECTIVES, getDestinationsForObjective } from '../../utils/smmDestinations';
 
@@ -553,13 +553,13 @@ export default function Campaigns() {
               <span className="text-[11px] font-semibold text-foreground/80">{clientDisplay}</span>
               <span className="text-[10px] text-muted-foreground">· {row.objective}</span>
               {row.destination && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border text-[10px] font-semibold">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground text-[10px] font-semibold">
                   <MapPin size={9} className="shrink-0" />
                   {row.destination}
                 </span>
               )}
               {row.sourceContentId && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border text-[10px] font-semibold">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground text-[10px] font-semibold">
                   <Video size={9} className="shrink-0" />
                   Video Ad
                 </span>
@@ -607,7 +607,7 @@ export default function Campaigns() {
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-xs text-foreground block">₹{Number(deposited).toLocaleString()}</span>
               {depCount > 1 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-secondary border border-border text-foreground text-[9px] font-semibold">
+                <span className="px-1.5 py-0.5 rounded-full bg-secondary text-foreground text-[9px] font-semibold">
                   {depCount} deposits
                 </span>
               )}
@@ -680,7 +680,7 @@ export default function Campaigns() {
       render: (row) => (
         <button
           onClick={() => openDailyLog(row)}
-          className="px-2.5 py-1 bg-secondary text-foreground hover:bg-secondary/80 rounded-lg text-xs font-semibold inline-flex items-center gap-1 border border-border transition-colors"
+          className="px-2.5 py-1 bg-secondary text-foreground hover:bg-secondary/80 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition-colors"
         >
           <Calendar size={13} className="shrink-0" />
           <span>Log Spend/Leads</span>
@@ -692,10 +692,9 @@ export default function Campaigns() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Campaigns & Money Ledger"
-        subtitle="Manage assigned & daily budgets, track Deposited vs Amount Spent, and monitor balance"
+        title="Campaigns"
         actions={
-          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-xs hover:bg-primary/90 transition-colors">
+          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 hover:bg-primary/90 transition-colors">
             <Plus size={18} className="shrink-0" />
             <span>Create Campaign</span>
           </button>
@@ -704,7 +703,7 @@ export default function Campaigns() {
 
       <SMMSubNav />
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl border border-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl ">
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto flex-1">
           <div className="w-full sm:w-auto sm:flex-1">
             <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search campaigns..." />
@@ -729,10 +728,10 @@ export default function Campaigns() {
         </div>
 
         {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-xl border border-border">
+          <div className="flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-xl ">
             <span className="text-xs font-bold text-foreground tabular-nums">{selectedIds.length} Selected</span>
             <button onClick={() => handleBulkStatus('Active')} className="px-2.5 py-1 bg-primary text-primary-foreground rounded-lg text-xs font-semibold hover:bg-primary/90 transition-colors">Set Active</button>
-            <button onClick={() => handleBulkStatus('Paused')} className="px-2.5 py-1 bg-card border border-border text-foreground rounded-lg text-xs font-semibold hover:bg-secondary/80 transition-colors">Pause</button>
+            <button onClick={() => handleBulkStatus('Paused')} className="px-2.5 py-1 bg-card text-foreground rounded-lg text-xs font-semibold hover:bg-secondary/80 transition-colors">Pause</button>
           </div>
         )}
       </div>
@@ -756,11 +755,11 @@ export default function Campaigns() {
         onClose={() => setIsDailyLogDrawerOpen(false)}
         title={`Log Daily Spend & Leads — ${activeCampaignForLog?.name}`}
       >
-        <form onSubmit={handleAddDailyLog} className="space-y-4 text-xs">
+        <form onSubmit={handleAddDailyLog} className="space-y-5 text-left">
           {/* Campaign Money Summary */}
-          <div className="p-3.5 bg-secondary/50 border border-border rounded-2xl space-y-1 tabular-nums">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground block">Budget &amp; Ledger Summary</span>
-            <div className="flex items-center justify-between font-bold text-xs pt-1 text-foreground">
+          <div className="p-4 bg-secondary/50 rounded-2xl space-y-1.5 tabular-nums">
+            <span className="text-xs font-bold text-muted-foreground block">Budget &amp; Ledger Summary</span>
+            <div className="flex items-center justify-between font-bold text-sm pt-1 text-foreground">
               <span>Deposited: ₹{(activeCampaignForLog?.amountAdded || 0).toLocaleString()}</span>
               <span className="text-muted-foreground">Spent: ₹{(activeCampaignForLog?.amountSpent || 0).toLocaleString()}</span>
               <span>Balance: ₹{(activeCampaignForLog?.remainingBalance || 0).toLocaleString()}</span>
@@ -770,11 +769,11 @@ export default function Campaigns() {
           {/* Select Video in Campaign */}
           {activeCampaignForLog && (
             <div>
-              <label className="font-semibold text-foreground block mb-1">Select Video in Campaign (Optional)</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Select Video in Campaign (Optional)</label>
               <select
                 value={dailyLogForm.sourceContentId || ''}
                 onChange={e => setDailyLogForm({ ...dailyLogForm, sourceContentId: e.target.value })}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none text-xs"
+                className="app-select w-full"
               >
                 <option value="">-- All Videos / Entire Campaign Level --</option>
                 {(activeCampaignForLog.sourceContentIds || []).map(v => (
@@ -791,68 +790,69 @@ export default function Campaigns() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground block mb-1">Date</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Date</label>
               <input
                 type="date"
                 required
                 value={dailyLogForm.date}
                 onChange={e => setDailyLogForm({...dailyLogForm, date: e.target.value})}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none"
+                onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                className="app-input w-full cursor-pointer"
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground block mb-1">Deposited Funds (₹)</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Deposited Funds (₹)</label>
               <input
                 type="number"
                 placeholder="0"
                 value={dailyLogForm.amountAdded}
                 onChange={e => setDailyLogForm({...dailyLogForm, amountAdded: Number(e.target.value)})}
                 onWheel={e => e.currentTarget.blur()}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none tabular-nums"
+                className="app-input w-full tabular-nums"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground block mb-1">Today&apos;s Spend (₹) *</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Today&apos;s Spend (₹) *</label>
               <input
                 type="number"
                 required
                 value={dailyLogForm.spend}
                 onChange={e => setDailyLogForm({...dailyLogForm, spend: Number(e.target.value)})}
                 onWheel={e => e.currentTarget.blur()}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none tabular-nums"
+                className="app-input w-full tabular-nums"
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground block mb-1">Leads Generated</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Leads Generated</label>
               <input
                 type="number"
                 value={dailyLogForm.leads}
                 onChange={e => setDailyLogForm({...dailyLogForm, leads: Number(e.target.value)})}
                 onWheel={e => e.currentTarget.blur()}
-                className="w-full h-9 px-3 bg-background border border-border rounded-xl outline-none tabular-nums"
+                className="app-input w-full tabular-nums"
               />
             </div>
           </div>
 
           <div>
-            <label className="font-semibold text-foreground block mb-1">Notes</label>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">Notes</label>
             <textarea
-              rows={2}
+              rows={3}
               placeholder="e.g. Budget scaled up today due to high conversion rate..."
               value={dailyLogForm.notes}
               onChange={e => setDailyLogForm({...dailyLogForm, notes: e.target.value})}
-              className="w-full p-2.5 bg-background border border-border rounded-xl outline-none"
+              className="w-full min-h-[84px] px-4 py-3 bg-secondary/75 rounded-xl text-sm font-normal text-foreground outline-none focus:bg-background focus:ring-2 focus:ring-brand/40"
             />
           </div>
 
-          <div className="pt-3 border-t border-border flex justify-end gap-2">
-            <button type="button" onClick={() => setIsDailyLogDrawerOpen(false)} className="px-4 py-2 bg-secondary text-foreground rounded-xl">Cancel</button>
-            <button type="submit" className="px-5 py-2 bg-primary text-primary-foreground font-bold rounded-xl shadow-xs">Save Ledger Entry</button>
+          <div className="pt-4 flex justify-end gap-2.5">
+            <button type="button" onClick={() => setIsDailyLogDrawerOpen(false)} className="h-11 px-5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors cursor-pointer">Cancel</button>
+            <button type="submit" className="h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 transition-colors cursor-pointer">Save Ledger Entry</button>
           </div>
         </form>
       </SMMDrawer>
@@ -863,11 +863,11 @@ export default function Campaigns() {
         onClose={() => setIsDrawerOpen(false)}
         title={editingCampaign ? 'Edit Campaign' : 'Create Campaign'}
       >
-        <form onSubmit={handleSave} className="space-y-4 text-xs">
+        <form onSubmit={handleSave} className="space-y-5 text-left">
           {/* Step 1: Client & Project Selection */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground block mb-1">Client *</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Client *</label>
               <select
                 required
                 value={formData.client}
@@ -890,8 +890,8 @@ export default function Campaigns() {
               </select>
             </div>
             <div>
-              <label className="font-semibold text-foreground block mb-1">
-                Project * {loadingProjects && <span className="text-[10px] text-muted-foreground font-normal">(Loading...)</span>}
+              <label className="text-sm font-semibold text-foreground block mb-1.5">
+                Project * {loadingProjects && <span className="text-xs text-muted-foreground font-normal">(Loading...)</span>}
               </label>
               <select
                 required
@@ -908,7 +908,7 @@ export default function Campaigns() {
 
           {/* Step 2: Campaign Name */}
           <div>
-            <label className="font-semibold text-foreground block mb-1">Campaign Name *</label>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">Campaign Name *</label>
             <input
               type="text"
               required
@@ -920,9 +920,9 @@ export default function Campaigns() {
           </div>
 
           {/* Step 3: Platform & Objective */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground block mb-1">Platform *</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Platform *</label>
               <select
                 value={formData.platform}
                 onChange={e => setFormData({ ...formData, platform: e.target.value })}
@@ -936,7 +936,7 @@ export default function Campaigns() {
               </select>
             </div>
             <div>
-              <label className="font-semibold text-foreground block mb-1">Objective *</label>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">Objective *</label>
               <select
                 value={formData.objective}
                 onChange={e => {
@@ -953,7 +953,7 @@ export default function Campaigns() {
                     destinationPlatforms: platforms,
                   }));
                 }}
-                className="app-select font-semibold"
+                className="app-select"
               >
                 {SMM_OBJECTIVES.map(obj => (
                   <option key={obj} value={obj}>{obj}</option>
@@ -977,24 +977,24 @@ export default function Campaigns() {
           />
 
           {/* Step 5: Multi-Video Selector from Database */}
-          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border space-y-2.5">
+          <div className="p-4 rounded-2xl bg-secondary/50 space-y-2.5">
             <div className="flex items-center justify-between gap-2">
-              <label className="font-bold text-foreground inline-flex items-center gap-1.5">
+              <label className="text-sm font-semibold text-foreground inline-flex items-center gap-1.5">
                 <Sparkles size={14} className="shrink-0" />
                 <span>Select Videos to Run Ads (Multiple Allowed)</span>
               </label>
-              <span className="text-[11px] font-bold text-foreground bg-card border border-border px-2 py-0.5 rounded-full tabular-nums shrink-0">
+              <span className="text-xs font-bold text-foreground bg-card px-2.5 py-0.5 rounded-full tabular-nums shrink-0">
                 {formData.sourceContentIds?.length || 0} Selected
               </span>
             </div>
 
             {!formData.client ? (
-              <p className="text-[11px] text-muted-foreground italic py-2 text-center">
-                Please select a Client above to view their available videos and reels.
+              <p className="text-xs text-muted-foreground py-2 text-center">
+                Select a client first
               </p>
             ) : clientVideos.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground italic py-2 text-center">
-                No videos found for this client in database. You can still proceed with general campaign setup.
+              <p className="text-xs text-muted-foreground py-2 text-center">
+                No videos found for this client
               </p>
             ) : (
               <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
@@ -1004,28 +1004,28 @@ export default function Campaigns() {
                     <div
                       key={v._id}
                       onClick={() => toggleVideoSelection(v._id)}
-                      className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-colors ${
+                      className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-colors ${
                         isChecked
-                          ? 'bg-card border-foreground text-foreground font-semibold'
-                          : 'bg-background/80 hover:bg-background border-border text-foreground'
+                          ? 'bg-card text-foreground font-semibold'
+                          : 'bg-background/80 hover:bg-background text-foreground'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`w-4 h-4 rounded flex items-center justify-center border shrink-0 ${isChecked ? 'bg-primary border-primary text-primary-foreground' : 'border-border'}`}>
+                        <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${isChecked ? 'bg-primary text-primary-foreground' : ''}`}>
                           {isChecked && <Check size={12} />}
                         </div>
                         <div className="min-w-0">
-                          <span className="text-xs font-medium truncate block">{v.name}</span>
-                          <span className="text-[10px] text-muted-foreground block">{v.contentType || 'Video'} · {v.platforms?.join(', ') || 'Meta'}</span>
+                          <span className="text-sm font-medium truncate block">{v.name}</span>
+                          <span className="text-xs text-muted-foreground block">{v.contentType || 'Video'} · {v.platforms?.join(', ') || 'Meta'}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {v.adRecommendation === '🔥 HIGH POTENTIAL' && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
                             <Flame size={9} className="shrink-0" /> Hot
                           </span>
                         )}
-                        <span className="text-[10px] text-muted-foreground uppercase">{v.status || 'Ready'}</span>
+                        <span className="text-xs text-muted-foreground">{v.status || 'Ready'}</span>
                       </div>
                     </div>
                   );
@@ -1035,102 +1035,95 @@ export default function Campaigns() {
           </div>
 
           {/* Step 6: Campaign Dates, Assigned Budget & Daily Deposited Budget */}
-          <div className="bg-secondary/40 p-3.5 rounded-2xl border border-border space-y-3.5">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar size={13} className="text-foreground shrink-0" />
+          <div className="bg-secondary/40 p-4 rounded-2xl space-y-4">
+            <div className="flex items-center justify-between pb-1">
+              <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                <Calendar size={14} className="text-foreground shrink-0" />
                 <span>Campaign Dates &amp; Assigned Budget</span>
               </h4>
-              <span className="text-[10px] text-muted-foreground font-medium">Independent manual entry</span>
             </div>
 
             {/* Campaign Dates */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="font-semibold text-foreground block mb-1">From Date (Start Date)</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">From Date (Start Date)</label>
                 <input
                   type="date"
                   value={formData.startDate}
                   onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                  className="app-input font-medium"
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="app-input cursor-pointer"
                 />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign start date</span>
               </div>
               <div>
-                <label className="font-semibold text-foreground block mb-1">To Date (End Date)</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">To Date (End Date)</label>
                 <input
                   type="date"
                   value={formData.endDate}
                   onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                  className="app-input font-medium"
+                  onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                  className="app-input cursor-pointer"
                 />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Campaign end date</span>
               </div>
             </div>
 
             {/* Assigned & Daily Budget Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div>
-                <label className="font-semibold text-foreground block mb-1">Assigned Budget (₹) *</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Assigned Budget (₹) *</label>
                 <input
                   type="number"
                   min="0"
                   value={formData.totalBudget ?? ''}
                   onChange={e => handleTotalBudgetChange(e.target.value)}
                   onWheel={e => e.currentTarget.blur()}
-                  className="app-input font-bold text-foreground tabular-nums"
+                  className="app-input tabular-nums"
                   placeholder="e.g. 800"
                 />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Total budget assigned for date range</span>
               </div>
               <div>
-                <label className="font-semibold text-foreground block mb-1">Daily Budget (₹)</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Daily Budget (₹)</label>
                 <input
                   type="number"
                   min="0"
                   value={formData.dailyBudget ?? ''}
                   onChange={e => handleDailyBudgetChange(e.target.value)}
                   onWheel={e => e.currentTarget.blur()}
-                  className="app-input font-medium tabular-nums"
+                  className="app-input tabular-nums"
                   placeholder="e.g. 100"
                 />
-                <span className="text-[10px] text-muted-foreground block mt-0.5">Manual daily budget (no auto-calc)</span>
               </div>
             </div>
 
             {/* Daily Deposited Budget & Tranches */}
-            <div className="p-3 bg-card rounded-xl border border-border space-y-3">
+            <div className="p-4 bg-card rounded-xl space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <h5 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
-                    <DollarSign size={13} className="text-foreground shrink-0" />
+                  <h5 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                    <DollarSign size={14} className="text-foreground shrink-0" />
                     <span>Daily Deposited Budget</span>
                   </h5>
-                  <span className="px-2 py-0.5 rounded-full bg-secondary border border-border text-foreground font-semibold text-[10px] tabular-nums shrink-0">
+                  <span className="px-2 py-0.5 rounded-full bg-secondary text-foreground font-semibold text-xs tabular-nums shrink-0">
                     {(formData.deposits || []).length} tranche{(formData.deposits || []).length !== 1 ? 's' : ''}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleAddDeposit}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground font-semibold rounded-lg text-[11px] shadow-xs hover:bg-primary/90 transition-colors shrink-0"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground font-semibold rounded-xl text-xs hover:bg-primary/90 transition-colors shrink-0 cursor-pointer"
                   title="Add another daily deposit tranche"
                 >
-                  <Plus size={13} className="shrink-0" />
+                  <Plus size={14} className="shrink-0" />
                   <span>Add Deposit</span>
                 </button>
               </div>
 
-              <p className="text-[10px] text-muted-foreground">
-                Deposit funds for daily ad spend. Use <strong>Add Deposit</strong> to add multiple deposit entries.
-              </p>
-
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {(formData.deposits || []).map((dep, idx) => (
-                  <div key={idx} className="p-2.5 bg-secondary/40 rounded-xl border border-border space-y-2">
-                    <div className="flex items-center justify-between border-b border-border pb-1.5">
-                      <span className="font-bold text-foreground text-[11px] flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-full bg-secondary border border-border text-foreground flex items-center justify-center text-[9px] font-bold tabular-nums">
+                  <div key={idx} className="p-3 bg-secondary/40 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between pb-1">
+                      <span className="font-bold text-foreground text-sm flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-secondary text-foreground flex items-center justify-center text-xs font-bold tabular-nums">
                           {idx + 1}
                         </span>
                         Deposit #{idx + 1}
@@ -1139,26 +1132,27 @@ export default function Campaigns() {
                         <button
                           type="button"
                           onClick={() => handleRemoveDeposit(idx)}
-                          className="text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
+                          className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors cursor-pointer"
                           title="Remove deposit"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={14} />
                         </button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="font-semibold text-foreground block mb-0.5 text-[10px]">Date of Deposit</label>
+                        <label className="text-sm font-semibold text-foreground block mb-1.5">Date of Deposit</label>
                         <input
                           type="date"
                           value={dep.depositDate}
                           onChange={e => handleDepositChange(idx, 'depositDate', e.target.value)}
-                          className="app-input font-medium text-xs"
+                          onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
+                          className="app-input cursor-pointer"
                         />
                       </div>
                       <div>
-                        <label className="font-semibold text-foreground block mb-0.5 text-[10px]">
+                        <label className="text-sm font-semibold text-foreground block mb-1.5">
                           Deposited Amount (₹) *
                         </label>
                         <input
@@ -1167,7 +1161,7 @@ export default function Campaigns() {
                           value={dep.amount ?? ''}
                           onChange={e => handleDepositChange(idx, 'amount', e.target.value)}
                           onWheel={e => e.currentTarget.blur()}
-                          className="app-input font-bold text-foreground text-xs tabular-nums"
+                          className="app-input tabular-nums"
                           placeholder="e.g. 800"
                         />
                       </div>
@@ -1179,7 +1173,7 @@ export default function Campaigns() {
                         placeholder="Optional remarks (e.g. UPI, Bank transfer, Tranche 1)"
                         value={dep.notes || ''}
                         onChange={e => handleDepositChange(idx, 'notes', e.target.value)}
-                        className="app-input text-[11px] h-7"
+                        className="app-input"
                       />
                     </div>
                   </div>
@@ -1190,9 +1184,9 @@ export default function Campaigns() {
               <button
                 type="button"
                 onClick={handleAddDeposit}
-                className="w-full py-2 border-2 border-dashed border-border rounded-xl text-[11px] font-semibold text-foreground hover:border-foreground/40 hover:bg-secondary/60 transition-colors flex items-center justify-center gap-1.5"
+                className="w-full h-11 rounded-xl text-sm font-semibold text-foreground hover:bg-secondary/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus size={13} className="shrink-0" />
+                <Plus size={15} className="shrink-0" />
                 <span>Add Another Deposit Tranche</span>
               </button>
             </div>
@@ -1204,10 +1198,10 @@ export default function Campaigns() {
               const remainingFromAssigned = liveAssigned - liveDeposited;
 
               return (
-                <div className="p-3 bg-card rounded-xl border border-border space-y-2 shadow-xs tabular-nums">
-                  <div className="flex items-center justify-between text-[11px] border-b border-border pb-1.5">
-                    <span className="font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <TrendingUp size={12} className="text-foreground shrink-0" />
+                <div className="p-3.5 bg-card rounded-xl space-y-2 tabular-nums">
+                  <div className="flex items-center justify-between text-xs pb-1">
+                    <span className="font-bold text-muted-foreground flex items-center gap-1.5">
+                      <TrendingUp size={13} className="text-foreground shrink-0" />
                       <span>Budget &amp; Deposit Ledger Summary</span>
                     </span>
                     <span className="font-bold text-foreground">
@@ -1215,15 +1209,15 @@ export default function Campaigns() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 rounded-lg bg-secondary/50 border border-border">
-                      <span className="text-[10px] text-muted-foreground block font-medium">Assigned Budget</span>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="p-2.5 rounded-lg bg-secondary/50 ">
+                      <span className="text-xs text-muted-foreground block font-medium">Assigned Budget</span>
                       <span className="text-sm font-bold text-foreground block mt-0.5">
                         ₹{liveAssigned.toLocaleString()}
                       </span>
                     </div>
-                    <div className="p-2 rounded-lg bg-secondary/50 border border-border">
-                      <span className="text-[10px] text-muted-foreground block font-medium">Total Deposited</span>
+                    <div className="p-2.5 rounded-lg bg-secondary/50 ">
+                      <span className="text-xs text-muted-foreground block font-medium">Total Deposited</span>
                       <span className="text-sm font-bold text-foreground block mt-0.5">
                         ₹{liveDeposited.toLocaleString()}
                       </span>
@@ -1231,18 +1225,18 @@ export default function Campaigns() {
                   </div>
 
                   {/* Balance Amount: Assigned Budget MINUS Deposited Amount */}
-                  <div className="p-3 rounded-xl bg-secondary/35 border border-border flex items-center justify-between gap-2">
+                  <div className="p-3 rounded-xl bg-secondary/35 flex items-center justify-between gap-2">
                     <div>
-                      <span className="font-bold text-foreground text-xs block">
+                      <span className="font-bold text-foreground text-sm block">
                         Balance Amount
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         Assigned ₹{liveAssigned.toLocaleString()} − Deposited ₹{liveDeposited.toLocaleString()}
                       </span>
                     </div>
                     <div className="text-right">
                       {liveAssigned > 0 && remainingFromAssigned > 0 ? (
-                        <span className="text-sm font-bold px-2.5 py-1 rounded-lg bg-secondary border border-border text-foreground">
+                        <span className="text-sm font-bold px-2.5 py-1 rounded-lg bg-secondary text-foreground">
                           ₹{remainingFromAssigned.toLocaleString()}
                         </span>
                       ) : liveAssigned > 0 && remainingFromAssigned === 0 ? (
@@ -1250,7 +1244,7 @@ export default function Campaigns() {
                           <Check size={12} className="shrink-0" /> ₹0 (100% Deposited)
                         </span>
                       ) : remainingFromAssigned < 0 ? (
-                        <span className="text-sm font-bold px-2.5 py-1 rounded-lg bg-secondary border border-border text-foreground">
+                        <span className="text-sm font-bold px-2.5 py-1 rounded-lg bg-secondary text-foreground">
                           +₹{Math.abs(remainingFromAssigned).toLocaleString()} Extra Deposited
                         </span>
                       ) : (
@@ -1263,9 +1257,9 @@ export default function Campaigns() {
             })()}
           </div>
 
-          <div className="pt-4 border-t border-border flex justify-end gap-3">
-            <button type="button" onClick={() => setIsDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="app-button-primary">Save Campaign</button>
+          <div className="pt-4 flex justify-end gap-2.5">
+            <button type="button" onClick={() => setIsDrawerOpen(false)} className="h-11 px-5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors cursor-pointer">Cancel</button>
+            <button type="submit" className="h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 transition-colors cursor-pointer">Save Campaign</button>
           </div>
         </form>
       </SMMDrawer>
@@ -1273,18 +1267,15 @@ export default function Campaigns() {
       {/* Post-Creation Prompt Modal: Campaign Created -> Create Ad Set */}
       {createdCampaignForNextStep && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in">
-          <div className="bg-card border border-border max-w-md w-full p-6 rounded-2xl shadow-2xl space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center mx-auto">
+          <div className="bg-card max-w-md w-full p-6 rounded-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-secondary text-foreground flex items-center justify-center mx-auto">
               <CheckCircle size={28} />
             </div>
-            <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-foreground">Campaign Created Successfully!</h3>
-              <p className="text-xs text-muted-foreground">
-                <strong className="text-foreground">{createdCampaignForNextStep.name}</strong> is now configured in your ledger. Would you like to create the Ad Set &amp; set audience targeting now?
-              </p>
+            <div className="text-center">
+              <h3 className="text-base font-bold text-foreground">Campaign Created</h3>
             </div>
 
-            <div className="p-3 bg-secondary/50 rounded-xl border border-border text-xs space-y-1.5 tabular-nums">
+            <div className="p-3 bg-secondary/50 rounded-xl text-xs space-y-1.5 tabular-nums">
               <div className="flex justify-between text-muted-foreground">
                 <span>Client:</span>
                 <span className="font-semibold text-foreground">{createdCampaignForNextStep.client?.company || createdCampaignForNextStep.client?.name}</span>
@@ -1320,7 +1311,7 @@ export default function Campaigns() {
                     }
                   });
                 }}
-                className="flex-1 py-2.5 px-4 bg-primary text-primary-foreground font-semibold rounded-xl text-xs inline-flex items-center justify-center gap-1.5 shadow-xs hover:bg-primary/90 transition-colors"
+                className="flex-1 py-2.5 px-4 bg-primary text-primary-foreground font-semibold rounded-xl text-xs inline-flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors"
               >
                 <Layers size={14} className="shrink-0" />
                 <span>Create Ad Set &amp; Targeting</span>
@@ -1328,7 +1319,7 @@ export default function Campaigns() {
               </button>
               <button
                 onClick={() => setCreatedCampaignForNextStep(null)}
-                className="py-2.5 px-4 bg-secondary border border-border text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80 transition-colors"
+                className="py-2.5 px-4 bg-secondary text-foreground font-medium rounded-xl text-xs hover:bg-secondary/80 transition-colors"
               >
                 View Campaigns
               </button>

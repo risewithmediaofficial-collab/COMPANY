@@ -226,64 +226,61 @@ export default function RecycleBin() {
       case 'task':
         return {
           icon: CheckSquare,
-          badge: 'bg-secondary text-foreground border-border',
+          badge: 'bg-secondary text-foreground ',
         };
       case 'project':
         return {
           icon: Briefcase,
-          badge: 'bg-secondary text-foreground border-border',
+          badge: 'bg-secondary text-foreground ',
         };
       case 'client':
         return {
           icon: Building2,
-          badge: 'bg-secondary text-foreground border-border',
+          badge: 'bg-secondary text-foreground ',
         };
       case 'lead':
         return {
           icon: TrendingUp,
-          badge: 'bg-secondary text-foreground border-border',
+          badge: 'bg-secondary text-foreground ',
         };
       case 'expense':
       case 'invoice':
         return {
           icon: CreditCard,
-          badge: 'bg-secondary text-foreground border-border',
+          badge: 'bg-secondary text-foreground ',
         };
       default:
         return {
           icon: Layers,
-          badge: 'bg-muted text-foreground border-border',
+          badge: 'bg-muted text-foreground ',
         };
     }
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto font-sans">
+    <div className="space-y-6">
       {/* ── 1. HEADER SECTION ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-foreground border border-border">
-              <Trash2 size={13} className="stroke-[2.5] shrink-0" />
-              Data Recovery & Retention
-            </span>
-            <span className="text-xs text-muted-foreground font-bold tabular-nums">
-              {total} {total === 1 ? 'item' : 'items'} in trash
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+            <Trash2 size={20} />
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
             Recycle Bin
           </h1>
+          <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold text-foreground tabular-nums">
+            {total}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {total > 0 && (
             <button
               type="button"
               onClick={() => setShowEmptyConfirm(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-foreground/30 bg-secondary px-3.5 py-2 text-xs font-bold text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer transition-colors"
+              className="h-10 inline-flex items-center gap-1.5 rounded-xl bg-secondary px-4 text-xs font-semibold text-foreground hover:bg-primary hover:text-primary-foreground cursor-pointer transition-colors"
             >
-              <Trash2 size={13} className="shrink-0" />
+              <Trash2 size={14} className="shrink-0" />
               <span>Empty Recycle Bin</span>
             </button>
           )}
@@ -292,17 +289,17 @@ export default function RecycleBin() {
             type="button"
             onClick={() => fetchRecycleBin(page)}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground shadow-2xs hover:bg-secondary cursor-pointer disabled:opacity-50"
+            className="h-10 inline-flex items-center gap-1.5 rounded-xl bg-card px-4 text-xs font-semibold text-foreground hover:bg-secondary cursor-pointer disabled:opacity-50"
             title="Refresh recycle bin"
           >
-            <RefreshCw size={13} className={loading ? 'animate-spin text-foreground shrink-0' : 'shrink-0'} />
+            <RefreshCw size={14} className={loading ? 'animate-spin text-foreground shrink-0' : 'shrink-0'} />
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {/* ── 2. FILTER & SEARCH BAR ── */}
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-xs space-y-3.5">
+      <div className="rounded-2xl bg-card p-4 space-y-3.5">
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           {/* Search bar */}
           <div className="relative w-full sm:w-80">
@@ -312,7 +309,7 @@ export default function RecycleBin() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search deleted items..."
-              className="h-10 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-xs text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="h-10 w-full rounded-xl bg-background pl-10 pr-3 text-xs text-foreground outline-none focus:ring-2 focus:ring-primary/15"
             />
           </div>
 
@@ -323,7 +320,7 @@ export default function RecycleBin() {
         </div>
 
         {/* Entity Tabs */}
-        <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-border">
+        <div className="flex items-center gap-1.5 flex-wrap pt-2 ">
           {ENTITY_TABS.map((tab) => {
             const Icon = tab.icon;
             const count = countsByType[tab.id] ?? (tab.id === 'all' ? total : 0);
@@ -335,7 +332,7 @@ export default function RecycleBin() {
                 onClick={() => setSelectedType(tab.id)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    ? 'bg-primary text-primary-foreground '
                     : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
@@ -346,7 +343,7 @@ export default function RecycleBin() {
                     className={`rounded-full px-1.5 py-0.2 text-[10px] font-black tabular-nums ${
                       isSelected
                         ? 'bg-primary-foreground/20 text-primary-foreground'
-                        : 'bg-background text-foreground border border-border'
+                        : 'bg-background text-foreground '
                     }`}
                   >
                     {count}
@@ -361,23 +358,20 @@ export default function RecycleBin() {
       {/* ── 3. ITEMS LIST ── */}
       <div className="space-y-3">
         {loading && items.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-12 text-center">
+          <div className="rounded-2xl bg-card p-12 text-center">
             <RefreshCw className="mx-auto h-8 w-8 text-foreground animate-spin mb-3" />
             <h3 className="text-sm font-bold text-foreground">
               Loading Recycle Bin...
             </h3>
           </div>
         ) : items.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-border bg-card p-14 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary border border-border text-foreground mb-3">
+          <div className="rounded-2xl bg-card p-14 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary text-foreground mb-3">
               <Trash2 size={26} />
             </div>
             <h3 className="text-base font-bold text-foreground">
               Recycle Bin is Empty
             </h3>
-            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-              No deleted items found in this section. Whenever tasks, projects, clients, or expenses are deleted, they will be safely held here for recovery.
-            </p>
           </div>
         ) : (
           items.map((item) => {
@@ -388,12 +382,12 @@ export default function RecycleBin() {
             return (
               <div
                 key={item._id}
-                className="rounded-2xl border border-border bg-card p-4 shadow-2xs hover:border-foreground/30 transition-all"
+                className="rounded-2xl bg-card p-4 transition-all"
               >
                 <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
                   {/* Left: Icon, Details */}
                   <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground border border-border">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground ">
                       <TypeIcon size={18} />
                     </div>
 
@@ -401,7 +395,7 @@ export default function RecycleBin() {
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Entity Type Badge */}
                         <span
-                          className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider border ${design.badge}`}
+                          className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${design.badge}`}
                         >
                           <TypeIcon size={11} className="shrink-0" />
                           <span>{item.entityType}</span>
@@ -409,7 +403,7 @@ export default function RecycleBin() {
 
                         {/* Original Location */}
                         {item.originalLocation && (
-                          <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground border border-border">
+                          <span className="flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground ">
                             <FolderOpen size={10} className="text-foreground shrink-0" />
                             <span>Location: {item.originalLocation}</span>
                           </span>
@@ -453,7 +447,7 @@ export default function RecycleBin() {
                       type="button"
                       onClick={() => handleRestore(item)}
                       disabled={isRestoring}
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
                     >
                       <RotateCcw size={13} className={isRestoring ? 'animate-spin shrink-0' : 'shrink-0'} />
                       <span>{isRestoring ? 'Restoring...' : 'Restore Item'}</span>
@@ -463,7 +457,7 @@ export default function RecycleBin() {
                     <button
                       type="button"
                       onClick={() => setPermanentTarget(item)}
-                      className="rounded-xl border border-border p-2 text-muted-foreground hover:border-foreground/40 hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+                      className="rounded-xl p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                       title="Delete permanently"
                     >
                       <Trash2 size={14} />
@@ -478,7 +472,7 @@ export default function RecycleBin() {
 
       {/* ── 4. PAGINATION ── */}
       {pages > 1 && (
-        <div className="flex items-center justify-between border-t border-border pt-4">
+        <div className="flex items-center justify-between pt-4">
           <span className="text-xs text-muted-foreground tabular-nums">
             Page <strong className="text-foreground">{page}</strong> of{' '}
             <strong className="text-foreground">{pages}</strong>
@@ -493,7 +487,7 @@ export default function RecycleBin() {
                 setPage(newPage);
                 fetchRecycleBin(newPage);
               }}
-              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
+              className="rounded-xl bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Previous
             </button>
@@ -505,7 +499,7 @@ export default function RecycleBin() {
                 setPage(newPage);
                 fetchRecycleBin(newPage);
               }}
-              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
+              className="rounded-xl bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary disabled:opacity-40 cursor-pointer"
             >
               Next
             </button>
@@ -515,10 +509,10 @@ export default function RecycleBin() {
 
       {/* ── 5. CONFIRMATION DIALOG: PERMANENT DELETE ── */}
       <AlertDialog open={Boolean(permanentTarget)} onOpenChange={(open) => !open && setPermanentTarget(null)}>
-        <AlertDialogContent className="max-w-md p-6 bg-card border border-border shadow-2xl rounded-2xl">
+        <AlertDialogContent className="max-w-md p-6 bg-card rounded-2xl">
           <AlertDialogHeader className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground border border-border shadow-xs">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground ">
                 <AlertTriangle className="h-6 w-6 stroke-[2.2]" />
               </div>
               <div>
@@ -531,10 +525,8 @@ export default function RecycleBin() {
               </div>
             </div>
 
-            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
-              Are you sure you want to permanently delete{' '}
-              <strong className="text-foreground font-bold">"{permanentTarget?.title}"</strong>?
-              This record will be completely removed from the database and cannot be recovered.
+            <AlertDialogDescription className="sr-only">
+              Permanent delete confirmation
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -542,14 +534,14 @@ export default function RecycleBin() {
             <button
               type="button"
               onClick={() => setPermanentTarget(null)}
-              className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
+              className="rounded-xl bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handlePermanentDelete}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
             >
               <Trash2 size={13} className="shrink-0" />
               <span>Yes, Delete Permanently</span>
@@ -560,10 +552,10 @@ export default function RecycleBin() {
 
       {/* ── 6. CONFIRMATION DIALOG: EMPTY RECYCLE BIN ── */}
       <AlertDialog open={showEmptyConfirm} onOpenChange={setShowEmptyConfirm}>
-        <AlertDialogContent className="max-w-md p-6 bg-card border border-border shadow-2xl rounded-2xl">
+        <AlertDialogContent className="max-w-md p-6 bg-card rounded-2xl">
           <AlertDialogHeader className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground border border-border shadow-xs">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground ">
                 <ShieldAlert className="h-6 w-6 stroke-[2.2]" />
               </div>
               <div>
@@ -576,8 +568,8 @@ export default function RecycleBin() {
               </div>
             </div>
 
-            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
-              All <strong className="text-foreground font-bold tabular-nums">{total} items</strong> currently in the Recycle Bin will be permanently wiped out. This action cannot be undone.
+            <AlertDialogDescription className="sr-only">
+              Empty recycle bin confirmation
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -585,7 +577,7 @@ export default function RecycleBin() {
             <button
               type="button"
               onClick={() => setShowEmptyConfirm(false)}
-              className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
+              className="rounded-xl bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary cursor-pointer"
             >
               Cancel
             </button>
@@ -593,7 +585,7 @@ export default function RecycleBin() {
               type="button"
               onClick={handleEmptyRecycleBin}
               disabled={emptying}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
             >
               <Trash2 size={13} className={emptying ? 'animate-spin shrink-0' : 'shrink-0'} />
               <span>{emptying ? 'Emptying...' : 'Yes, Empty Recycle Bin'}</span>

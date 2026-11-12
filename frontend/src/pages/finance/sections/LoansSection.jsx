@@ -187,7 +187,7 @@ export default function LoansSection({ onQuickAdd }) {
     if (status === 'closed') {
       return {
         label: 'Fully Paid / Closed',
-        color: 'bg-primary text-primary-foreground border-primary',
+        color: 'bg-primary text-primary-foreground ',
         isUrgent: false,
       };
     }
@@ -195,7 +195,7 @@ export default function LoansSection({ onQuickAdd }) {
     if (!nextPaymentDate) {
       return {
         label: 'No Due Date Set',
-        color: 'bg-muted text-muted-foreground border-border',
+        color: 'bg-muted text-muted-foreground ',
         isUrgent: false,
       };
     }
@@ -210,34 +210,34 @@ export default function LoansSection({ onQuickAdd }) {
     if (diffDays < 0) {
       return {
         label: `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'}`,
-        color: 'bg-primary text-primary-foreground border-primary font-bold',
+        color: 'bg-primary text-primary-foreground font-bold',
         isUrgent: true,
       };
     }
     if (diffDays === 0) {
       return {
         label: 'Due Today',
-        color: 'bg-primary text-primary-foreground border-primary font-bold',
+        color: 'bg-primary text-primary-foreground font-bold',
         isUrgent: true,
       };
     }
     if (diffDays === 1) {
       return {
         label: 'Due Tomorrow',
-        color: 'bg-secondary text-foreground border-foreground/40 font-semibold',
+        color: 'bg-secondary text-foreground font-semibold',
         isUrgent: true,
       };
     }
     if (diffDays === 2) {
       return {
         label: 'Due in 2 Days (Reminded)',
-        color: 'bg-secondary text-foreground border-foreground/30 font-semibold',
+        color: 'bg-secondary text-foreground font-semibold',
         isUrgent: true,
       };
     }
     return {
       label: `Due in ${diffDays} days (${formatDateIST(nextPaymentDate)})`,
-      color: 'bg-secondary text-muted-foreground border-border',
+      color: 'bg-secondary text-muted-foreground ',
       isUrgent: false,
     };
   };
@@ -375,7 +375,7 @@ export default function LoansSection({ onQuickAdd }) {
       {/* ── TOP KPI SUMMARY CARDS ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Borrowed */}
-        <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-card rounded-xl p-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total Borrowed</p>
             <h3 className="text-xl font-bold text-foreground mt-1 tabular-nums">
@@ -385,13 +385,13 @@ export default function LoansSection({ onQuickAdd }) {
               Across {summary.totalCount || 0} loan{summary.totalCount === 1 ? '' : 's'}
             </p>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground shrink-0">
+          <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center text-foreground shrink-0">
             <Landmark className="h-5 w-5" />
           </div>
         </div>
 
         {/* Total Repaid */}
-        <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-card rounded-xl p-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total Repaid</p>
             <h3 className="text-xl font-bold text-foreground mt-1 tabular-nums">
@@ -403,27 +403,26 @@ export default function LoansSection({ onQuickAdd }) {
                 : '0% repaid'}
             </p>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground shrink-0">
+          <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center text-foreground shrink-0">
             <CheckCircle2 className="h-5 w-5" />
           </div>
         </div>
 
         {/* Remaining Liability */}
-        <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-card rounded-xl p-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Remaining Balance</p>
             <h3 className="text-xl font-bold text-foreground mt-1 tabular-nums">
               {formatINR(summary.totalRemaining, false)}
             </h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Active loan liabilities</p>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground shrink-0">
+          <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center text-foreground shrink-0">
             <CreditCard className="h-5 w-5" />
           </div>
         </div>
 
         {/* Active Loans & Monthly EMIs */}
-        <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-card rounded-xl p-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Active Loans</p>
             <h3 className="text-xl font-bold text-foreground mt-1 tabular-nums">
@@ -435,14 +434,14 @@ export default function LoansSection({ onQuickAdd }) {
                 : `${summary.closedCount} loan(s) closed`}
             </p>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground shrink-0">
+          <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center text-foreground shrink-0">
             <Clock className="h-5 w-5" />
           </div>
         </div>
       </div>
 
       {/* ── CONTROLS & FILTER BAR ────────────────────────────────────────── */}
-      <div className="bg-card border border-border rounded-xl p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-card rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-0 w-full sm:w-auto">
           {/* Search */}
           <div className="relative flex-1 max-w-sm">
@@ -452,17 +451,17 @@ export default function LoansSection({ onQuickAdd }) {
               placeholder="Search by loan name, bank, or account no..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
           {/* Status Tabs */}
-          <div className="flex items-center gap-1 bg-secondary p-1 rounded-lg border border-border tabular-nums">
+          <div className="flex items-center gap-1 bg-secondary p-1 rounded-lg tabular-nums">
             <button
               onClick={() => setStatusFilter('active')}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 statusFilter === 'active'
-                  ? 'bg-card text-foreground shadow-xs'
+                  ? 'bg-card text-foreground '
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -472,7 +471,7 @@ export default function LoansSection({ onQuickAdd }) {
               onClick={() => setStatusFilter('all')}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 statusFilter === 'all'
-                  ? 'bg-card text-foreground shadow-xs'
+                  ? 'bg-card text-foreground '
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -482,7 +481,7 @@ export default function LoansSection({ onQuickAdd }) {
               onClick={() => setStatusFilter('closed')}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 statusFilter === 'closed'
-                  ? 'bg-card text-foreground shadow-xs'
+                  ? 'bg-card text-foreground '
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -494,7 +493,7 @@ export default function LoansSection({ onQuickAdd }) {
         {/* Add Loan Button */}
         <button
           onClick={handleOpenAdd}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all cursor-pointer"
         >
           <Plus className="h-4 w-4 shrink-0" /> Add Loan
         </button>
@@ -502,24 +501,19 @@ export default function LoansSection({ onQuickAdd }) {
 
       {/* ── LOANS LIST ───────────────────────────────────────────────────── */}
       {isLoading ? (
-        <div className="bg-card border border-border rounded-xl p-12 text-center">
+        <div className="bg-card rounded-xl p-12 text-center">
           <div className="h-7 w-7 rounded-full border-2 border-muted-foreground/30 border-t-foreground animate-spin mx-auto mb-3" />
           <p className="text-xs font-medium text-muted-foreground">Loading loan records...</p>
         </div>
       ) : loans.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-12 text-center">
-          <div className="h-12 w-12 rounded-2xl bg-secondary border border-border flex items-center justify-center text-foreground mx-auto mb-3">
+        <div className="bg-card rounded-xl p-12 text-center">
+          <div className="h-12 w-12 rounded-2xl bg-secondary flex items-center justify-center text-foreground mx-auto mb-3">
             <Landmark className="h-6 w-6" />
           </div>
-          <h3 className="text-base font-bold text-foreground">No Loans Found</h3>
-          <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1 mb-4">
-            {search
-              ? 'No loan matches your current search criteria.'
-              : 'Keep track of company loans, bank borrowings, monthly EMIs, repayments, and automated 2-day due reminders in one simple place.'}
-          </p>
+          <h3 className="text-base font-bold text-foreground mb-3">No Loans Found</h3>
           <button
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
           >
             <Plus className="h-4 w-4 shrink-0" /> Add Your First Loan
           </button>
@@ -536,7 +530,7 @@ export default function LoansSection({ onQuickAdd }) {
             return (
               <div
                 key={loan._id}
-                className="bg-card border border-border hover:border-foreground/40 rounded-xl p-5 shadow-xs transition-all flex flex-col justify-between"
+                className="bg-card rounded-xl p-5 transition-all flex flex-col justify-between"
               >
                 <div>
                   {/* Card Header */}
@@ -547,10 +541,10 @@ export default function LoansSection({ onQuickAdd }) {
                           {loan.loanName}
                         </h4>
                         <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                             loan.status === 'active'
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'bg-muted text-muted-foreground border-border'
+                              ? 'bg-primary text-primary-foreground '
+                              : 'bg-muted text-muted-foreground '
                           }`}
                         >
                           {loan.status === 'active' ? 'Active' : 'Closed'}
@@ -573,14 +567,14 @@ export default function LoansSection({ onQuickAdd }) {
 
                     {/* Due Badge */}
                     <span
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border text-right shrink-0 tabular-nums ${dueInfo.color}`}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg text-right shrink-0 tabular-nums ${dueInfo.color}`}
                     >
                       {dueInfo.label}
                     </span>
                   </div>
 
                   {/* Repayment Progress Bar */}
-                  <div className="bg-secondary/50 border border-border rounded-lg p-3 my-3">
+                  <div className="bg-secondary/50 rounded-lg p-3 my-3">
                     <div className="flex items-center justify-between text-xs mb-1.5 tabular-nums">
                       <span className="text-muted-foreground font-medium">
                         Repaid: <strong className="text-foreground font-bold">{formatINR(paid, false)}</strong>
@@ -602,7 +596,7 @@ export default function LoansSection({ onQuickAdd }) {
                   </div>
 
                   {/* Key Metrics Grid */}
-                  <div className="grid grid-cols-3 gap-2 py-2 text-center border-t border-b border-border text-xs tabular-nums">
+                  <div className="grid grid-cols-3 gap-2 py-2 text-center text-xs tabular-nums">
                     <div>
                       <span className="text-[10px] text-muted-foreground uppercase font-semibold block">Principal</span>
                       <span className="font-bold text-foreground">{formatINR(loan.loanAmount, false)}</span>
@@ -628,7 +622,7 @@ export default function LoansSection({ onQuickAdd }) {
                 </div>
 
                 {/* Card Action Buttons */}
-                <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border">
+                <div className="flex items-center justify-between gap-2 mt-4 pt-3 ">
                   <div className="flex items-center gap-1.5">
                     {/* View History Button */}
                     <button
@@ -663,7 +657,7 @@ export default function LoansSection({ onQuickAdd }) {
                   {loan.status === 'active' && (
                     <button
                       onClick={() => handleOpenPayEMI(loan)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs transition-colors cursor-pointer"
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-colors cursor-pointer"
                     >
                       <CreditCard className="h-3.5 w-3.5 shrink-0" /> Pay EMI
                     </button>
@@ -678,31 +672,31 @@ export default function LoansSection({ onQuickAdd }) {
       {/* ── ADD / EDIT LOAN MODAL ────────────────────────────────────────── */}
       {showAddModal && (
         <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90vh]">
             <form onSubmit={handleSubmitLoan} className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
-              <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
+                  <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center shrink-0 text-foreground">
                     <Landmark className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                       {editingLoan ? 'Edit Loan Details' : 'Add New Loan'}
                     </DialogTitle>
-                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    <DialogDescription className="sr-only">
                       Track borrowing details, monthly EMIs, and automatic reminders
                     </DialogDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
                     ESC
                   </span>
                   <DialogClose asChild>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-xl bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -722,7 +716,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. Workstation Laptops Loan, HDFC Business Loan"
                     value={formData.loanName}
                     onChange={(e) => setFormData({ ...formData, loanName: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -736,7 +730,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. HDFC Bank, ICICI Bank, SBI, Partner"
                     value={formData.lender}
                     onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -749,7 +743,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. LN-98420-2026"
                     value={formData.accountNumber}
                     onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -764,7 +758,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 500000"
                     value={formData.loanAmount}
                     onChange={(e) => handleAmountOrInterestChange('loanAmount', e.target.value)}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -779,7 +773,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 10.5"
                     value={formData.interestRate}
                     onChange={(e) => handleAmountOrInterestChange('interestRate', e.target.value)}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -793,7 +787,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 12, 24, 36"
                     value={formData.tenureMonths}
                     onChange={(e) => handleAmountOrInterestChange('tenureMonths', e.target.value)}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -807,7 +801,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 550000"
                     value={formData.totalPayable}
                     onChange={(e) => setFormData({ ...formData, totalPayable: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -822,7 +816,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 15000"
                     value={formData.emiAmount}
                     onChange={(e) => setFormData({ ...formData, emiAmount: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground font-bold tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground font-semibold tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -835,7 +829,7 @@ export default function LoansSection({ onQuickAdd }) {
                     required
                     value={formData.nextPaymentDate}
                     onChange={(e) => setFormData({ ...formData, nextPaymentDate: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
@@ -847,7 +841,7 @@ export default function LoansSection({ onQuickAdd }) {
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
@@ -862,7 +856,7 @@ export default function LoansSection({ onQuickAdd }) {
                       placeholder="e.g. 30000 (if already begun)"
                       value={formData.initialPaidAmount}
                       onChange={(e) => setFormData({ ...formData, initialPaidAmount: e.target.value })}
-                      className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                      className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                     />
                   </div>
                 )}
@@ -876,11 +870,11 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="Additional notes about loan conditions, auto-debit bank account, or collateral..."
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden resize-none"
+                    className="w-full rounded-xl bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden resize-none"
                   />
                 </div>
 
-                <div className="bg-secondary/60 border border-border rounded-xl p-3.5 flex items-center gap-3 text-xs text-foreground">
+                <div className="bg-secondary/60 rounded-xl p-3.5 flex items-center gap-3 text-xs text-foreground">
                   <BellRing className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span>
                     <strong>Automated Reminder:</strong> Notification will be dispatched to admins & managers <strong>2 days before</strong> the next payment date.
@@ -889,21 +883,21 @@ export default function LoansSection({ onQuickAdd }) {
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowAddModal(false)}
-                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                    className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={createLoan.isPending || updateLoan.isPending}
-                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-sm transition-all w-full sm:w-auto"
+                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm transition-all w-full sm:w-auto"
                   >
                     {editingLoan ? 'Save Changes' : 'Create Loan'}
                   </Button>
@@ -917,31 +911,31 @@ export default function LoansSection({ onQuickAdd }) {
       {/* ── RECORD EMI / REPAYMENT MODAL ─────────────────────────────────── */}
       {recordingPaymentLoan && (
         <Dialog open={!!recordingPaymentLoan} onOpenChange={() => setRecordingPaymentLoan(null)}>
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90vh]">
             <form onSubmit={handleSubmitPayment} className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
-              <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
+                  <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center shrink-0 text-foreground">
                     <CreditCard className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                       Record EMI Payment
                     </DialogTitle>
-                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    <DialogDescription className="sr-only">
                       {recordingPaymentLoan.loanName} ({recordingPaymentLoan.lender})
                     </DialogDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
                     ESC
                   </span>
                   <DialogClose asChild>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-xl bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -951,7 +945,7 @@ export default function LoansSection({ onQuickAdd }) {
 
               {/* Scrollable Linear Body */}
               <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-                <div className="bg-secondary/50 border border-border rounded-xl p-4 flex items-center justify-between text-xs tabular-nums">
+                <div className="bg-secondary/50 rounded-xl p-4 flex items-center justify-between text-xs tabular-nums">
                   <div>
                     <span className="text-muted-foreground block text-[11px]">Remaining Balance</span>
                     <span className="font-bold text-foreground text-sm mt-0.5 block">
@@ -977,7 +971,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. 15000"
                     value={paymentForm.amount}
                     onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground font-bold tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground font-semibold tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -990,7 +984,7 @@ export default function LoansSection({ onQuickAdd }) {
                     required
                     value={paymentForm.paymentDate}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
@@ -1001,7 +995,7 @@ export default function LoansSection({ onQuickAdd }) {
                   <select
                     value={paymentForm.paymentMode}
                     onChange={(e) => setPaymentForm({ ...paymentForm, paymentMode: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   >
                     <option value="Bank Transfer">Bank Transfer</option>
                     <option value="Auto Debit">Auto Debit (ECS/NACH)</option>
@@ -1020,7 +1014,7 @@ export default function LoansSection({ onQuickAdd }) {
                     type="date"
                     value={paymentForm.nextPaymentDate}
                     onChange={(e) => setPaymentForm({ ...paymentForm, nextPaymentDate: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
@@ -1033,7 +1027,7 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="e.g. UTR-849204859"
                     value={paymentForm.reference}
                     onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs font-mono transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -1046,27 +1040,27 @@ export default function LoansSection({ onQuickAdd }) {
                     placeholder="Optional payment notes..."
                     value={paymentForm.notes}
                     onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setRecordingPaymentLoan(null)}
-                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                    className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={recordPayment.isPending}
-                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm shadow-sm transition-all w-full sm:w-auto"
+                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm transition-all w-full sm:w-auto"
                   >
                     Confirm Payment
                   </Button>
@@ -1080,31 +1074,31 @@ export default function LoansSection({ onQuickAdd }) {
       {/* ── REPAYMENT HISTORY MODAL ──────────────────────────────────────── */}
       {historyLoan && (
         <Dialog open={!!historyLoan} onOpenChange={() => setHistoryLoan(null)}>
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90vh]">
             <div className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
-              <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
+                  <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center shrink-0 text-foreground">
                     <History className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                       Repayment History: {historyLoan.loanName}
                     </DialogTitle>
-                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate tabular-nums">
+                    <DialogDescription className="sr-only">
                       Total repaid: {formatINR(historyLoan.paidAmount, false)} • Lender: {historyLoan.lender}
                     </DialogDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
                     ESC
                   </span>
                   <DialogClose asChild>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-xl bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -1115,7 +1109,7 @@ export default function LoansSection({ onQuickAdd }) {
               {/* Scrollable Body */}
               <div className="space-y-4 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
                 {!historyLoan.payments || historyLoan.payments.length === 0 ? (
-                  <div className="p-8 text-center bg-secondary/40 border border-border rounded-xl">
+                  <div className="p-8 text-center bg-secondary/40 rounded-xl">
                     <p className="text-xs text-muted-foreground">No repayment entries recorded yet.</p>
                   </div>
                 ) : (
@@ -1123,14 +1117,14 @@ export default function LoansSection({ onQuickAdd }) {
                     {historyLoan.payments.map((p, idx) => (
                       <div
                         key={p._id || idx}
-                        className="p-4 bg-secondary/40 hover:bg-secondary/60 border border-border rounded-xl flex items-center justify-between transition-colors"
+                        className="p-4 bg-secondary/40 hover:bg-secondary/60 rounded-xl flex items-center justify-between transition-colors"
                       >
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-foreground tabular-nums">
                               {formatINR(p.amount, false)}
                             </span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-card text-foreground border border-border">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-card text-foreground ">
                               {p.paymentMode || 'Bank Transfer'}
                             </span>
                           </div>
@@ -1160,13 +1154,13 @@ export default function LoansSection({ onQuickAdd }) {
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setHistoryLoan(null)}
-                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto ml-auto"
+                  className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium w-full sm:w-auto ml-auto"
                 >
                   Close
                 </Button>

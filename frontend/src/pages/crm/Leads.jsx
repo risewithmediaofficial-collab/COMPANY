@@ -20,7 +20,6 @@ import {
   Clock,
   X,
 } from '@/components/ui/muiIcons';
-import { motion } from 'framer-motion';
 import { useAddLeadActivity, useLeadsKanban, useLeads, useUpdateLeadStage, useDeleteLead } from '../../hooks/useLeads';
 import { AddLeadModal } from '../../components/modals/AddLeadModal';
 import { formatINR } from '../../utils/currency';
@@ -56,64 +55,64 @@ const STAGE_META = {
   new: {
     label: 'New',
     description: 'Fresh leads waiting for first touch.',
-    badge: 'bg-secondary text-foreground border border-border',
-    surface: 'border-border bg-secondary/20',
+    badge: 'bg-secondary text-foreground ',
+    surface: ' bg-secondary/20',
   },
   qualified: {
     label: 'Qualified',
     description: 'Great-fit leads ready for deeper discovery.',
-    badge: 'bg-secondary text-foreground border border-border',
-    surface: 'border-border bg-secondary/25',
+    badge: 'bg-secondary text-foreground ',
+    surface: ' bg-secondary/25',
   },
   contacted: {
     label: 'Contacted',
     description: 'Leads touched by call, WhatsApp, or email.',
-    badge: 'bg-secondary text-foreground border border-border',
-    surface: 'border-border bg-secondary/20',
+    badge: 'bg-secondary text-foreground ',
+    surface: ' bg-secondary/20',
   },
   meeting_booked: {
     label: 'Meeting Booked',
     description: 'Calls and demos already on the calendar.',
-    badge: 'bg-secondary text-foreground border border-border',
-    surface: 'border-border bg-secondary/25',
+    badge: 'bg-secondary text-foreground ',
+    surface: ' bg-secondary/25',
   },
   proposal_sent: {
     label: 'Proposal Sent',
     description: 'Decision makers reviewing your offer.',
-    badge: 'bg-secondary text-foreground border border-border',
-    surface: 'border-border bg-secondary/20',
+    badge: 'bg-secondary text-foreground ',
+    surface: ' bg-secondary/20',
   },
   negotiation: {
     label: 'Negotiation',
     description: 'Active conversations near the finish line.',
-    badge: 'bg-secondary text-foreground border border-foreground/30',
-    surface: 'border-border bg-secondary/30',
+    badge: 'bg-secondary text-foreground ',
+    surface: ' bg-secondary/30',
   },
   won: {
     label: 'Won',
     description: 'Closed business ready for handoff.',
-    badge: 'bg-primary text-primary-foreground border border-primary',
-    surface: 'border-border bg-secondary/30',
+    badge: 'bg-primary text-primary-foreground ',
+    surface: ' bg-secondary/30',
   },
   lost: {
     label: 'Lost',
     description: 'Archived opportunities and learnings.',
-    badge: 'bg-muted text-muted-foreground border border-border',
-    surface: 'border-border bg-card',
+    badge: 'bg-muted text-muted-foreground ',
+    surface: ' bg-card',
   },
   refollow_later: {
     label: 'Refollow Later',
     description: 'Not now, but worth reconnecting with later.',
-    badge: 'bg-muted text-foreground border border-border',
-    surface: 'border-border bg-secondary/15',
+    badge: 'bg-muted text-foreground ',
+    surface: ' bg-secondary/15',
   },
 };
 
 const PRIORITY_META = {
-  low: 'bg-muted text-muted-foreground border border-border',
-  medium: 'bg-secondary text-foreground border border-border',
-  high: 'bg-secondary text-foreground border border-foreground/30',
-  urgent: 'bg-primary text-primary-foreground border border-primary',
+  low: 'bg-muted text-muted-foreground ',
+  medium: 'bg-secondary text-foreground ',
+  high: 'bg-secondary text-foreground ',
+  urgent: 'bg-primary text-primary-foreground ',
 };
 
 const formatDate = (value) => {
@@ -185,29 +184,29 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-2xl max-h-[90vh]"
       >
         {/* Pinned Header */}
-        <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-border bg-card px-6 py-5 select-none z-10">
+        <DialogHeader className="shrink-0 flex flex-row items-center justify-between bg-card px-6 py-5 select-none z-10">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shadow-xs shrink-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <MessageSquarePlus className="h-5 w-5" />
             </div>
             <div>
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
                 Add Follow-up Note
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
+              <DialogDescription className="sr-only">
                 Record what happened with {lead?.name || 'this lead'} and set the next action.
               </DialogDescription>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -224,7 +223,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
               <select
                 value={form.type}
                 onChange={(event) => updateField('type', event.target.value)}
-                className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
               >
                 <option value="follow_up">Follow-up</option>
                 <option value="call">Call</option>
@@ -245,7 +244,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
                 value={form.outcome}
                 onChange={(event) => updateField('outcome', event.target.value)}
                 placeholder="Interested, no response, call later..."
-                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                className="h-11 rounded-xl bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 "
               />
             </div>
 
@@ -258,7 +257,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
                 value={form.nextFollowUpDate}
                 onChange={(event) => updateField('nextFollowUpDate', event.target.value)}
                 onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
+                className="h-11 rounded-xl bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 cursor-pointer "
               />
             </div>
 
@@ -271,7 +270,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
                 value={form.refollowDate}
                 onChange={(event) => updateField('refollowDate', event.target.value)}
                 onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-2xs"
+                className="h-11 rounded-xl bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 cursor-pointer "
               />
             </div>
 
@@ -282,7 +281,7 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
               <select
                 value={form.stage}
                 onChange={(event) => updateField('stage', event.target.value)}
-                className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
               >
                 <option value="">Keep current stage</option>
                 {PIPELINE_STAGES.map((stage) => (
@@ -301,13 +300,13 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
                 onChange={(event) => updateField('description', event.target.value)}
                 placeholder="Write the call/message summary and what to remember..."
                 required
-                className="rounded-xl border-border bg-background p-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs resize-none"
+                className="rounded-xl bg-background p-4 text-sm focus:ring-2 focus:ring-primary/20 resize-none"
               />
             </div>
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
             <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
               Press <kbd className="font-mono text-foreground font-bold">ESC</kbd> to exit
             </span>
@@ -318,14 +317,14 @@ const LeadActivityDialog = ({ open, onOpenChange, lead, onSave, saving }) => {
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={saving}
-                className="h-11 px-5 rounded-xl border-border hover:bg-muted font-semibold text-sm cursor-pointer"
+                className="h-11 px-5 rounded-xl hover:bg-muted font-semibold text-sm cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={saving}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm transition-all cursor-pointer"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all cursor-pointer"
               >
                 {saving ? 'Saving...' : 'Save Note'}
               </Button>
@@ -442,60 +441,6 @@ const Leads = () => {
     return date < todayStart && !['won', 'lost'].includes(lead.stage);
   }).length;
 
-  const pipelineHighlights = [
-    {
-      label: 'Total leads',
-      value: totalLeads,
-      helper: 'Every opportunity in your funnel',
-      icon: Target,
-      tone: 'bg-card text-foreground border-border cursor-pointer',
-      onClick: () => {
-        setSelectedFollowUpDate(null);
-        setSelectedTodayFollowedOnly(false);
-        setFollowUpFilter('');
-      }
-    },
-    {
-      label: 'Today followed',
-      value: todayFollowed,
-      helper: 'Leads touched today',
-      icon: TrendingUp,
-      tone: selectedTodayFollowedOnly ? 'bg-secondary text-foreground ring-2 ring-primary cursor-pointer' : 'bg-card text-foreground border-border cursor-pointer',
-      onClick: () => {
-        setSelectedTodayFollowedOnly(!selectedTodayFollowedOnly);
-        setSelectedFollowUpDate(null);
-        setFollowUpFilter('');
-      }
-    },
-    {
-      label: 'Next Followup Date',
-      value: nextFollowUpDateStr,
-      helper: nextFollowUpDateObj ? `${nextFollowUpLeadsCount} leads scheduled` : 'No upcoming follow-ups',
-      icon: Calendar,
-      tone: selectedFollowUpDate ? 'bg-secondary text-foreground ring-2 ring-primary cursor-pointer' : 'bg-card text-foreground border-border cursor-pointer',
-      onClick: () => {
-        if (nextFollowUpDateObj) {
-          const dateStr = nextFollowUpDateObj.toISOString().split('T')[0];
-          setSelectedFollowUpDate(selectedFollowUpDate === dateStr ? null : dateStr);
-          setSelectedTodayFollowedOnly(false);
-          setFollowUpFilter('');
-        }
-      }
-    },
-    {
-      label: 'Followup Pending',
-      value: followUpPending,
-      helper: 'Overdue follow-ups',
-      icon: ClipboardList,
-      tone: followUpFilter === 'overdue' ? 'bg-secondary text-foreground ring-2 ring-primary cursor-pointer' : 'bg-card text-foreground border-border cursor-pointer',
-      onClick: () => {
-        setFollowUpFilter(followUpFilter === 'overdue' ? '' : 'overdue');
-        setSelectedFollowUpDate(null);
-        setSelectedTodayFollowedOnly(false);
-      }
-    },
-  ];
-
   const { isDateInRange } = useDateFilter();
 
   const filteredListLeads = useMemo(() => {
@@ -589,7 +534,7 @@ const Leads = () => {
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-muted-foreground">Leads Board</h2>
           </div>
-          <div className="rounded-full border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground shadow-sm tabular-nums">
+          <div className="rounded-full bg-card px-4 py-2 text-xs font-medium text-muted-foreground tabular-nums">
             {activeLeads} active leads across {PIPELINE_STAGES.length} stages
           </div>
         </div>
@@ -615,11 +560,11 @@ const Leads = () => {
                     }
                   }}
                   onDrop={(e) => handleDrop(e, stage)}
-                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] border bg-card shadow-sm transition-all ${stageInfo.surface} ${
-                    isColActive ? 'ring-2 ring-primary/40 border-primary bg-primary/5 shadow-md' : ''
+                  className={`flex flex-col min-h-[500px] max-h-[calc(100vh-300px)] rounded-[28px] bg-card transition-all ${stageInfo.surface} ${
+                    isColActive ? 'ring-2 ring-primary/40 bg-primary/5 ' : ''
                   }`}
                 >
-                  <div className="border-b border-border/70 px-4 py-4 shrink-0">
+                  <div className="px-4 py-4 shrink-0">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
@@ -645,9 +590,9 @@ const Leads = () => {
                         return (
                           <React.Fragment key={lead._id}>
                             {showDropIndicatorBefore && (
-                              <div className="h-1.5 rounded-full bg-primary my-1 shadow-xs" />
+                              <div className="h-1.5 rounded-full bg-primary my-1 " />
                             )}
-                            <motion.article
+                            <article
                               draggable
                               onDragStart={(e) => {
                                 dragLeadRef.current = true;
@@ -682,8 +627,8 @@ const Leads = () => {
                               }}
                               role="button"
                               tabIndex={0}
-                              className={`group cursor-grab rounded-2xl border border-border/80 bg-background p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:cursor-grabbing ${
-                                isBeingDragged ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40' : ''
+                              className={`group cursor-grab rounded-2xl bg-background p-4 transition-all duration-200 hover:-translate-y-0.5 active:cursor-grabbing ${
+                                isBeingDragged ? 'opacity-30 scale-95 ring-1 ring-primary/40' : ''
                               }`}
                             >
                             <div className="flex items-start justify-between gap-3">
@@ -762,7 +707,7 @@ const Leads = () => {
 
                             <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-secondary/60 px-3 py-2.5">
                               <div className="flex min-w-0 items-center gap-2">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary border border-border text-[11px] font-bold text-foreground shrink-0">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[11px] font-bold text-foreground shrink-0">
                                   {lead.assignedTo?.name?.charAt(0) || 'U'}
                                 </div>
                                 <div className="min-w-0">
@@ -781,17 +726,17 @@ const Leads = () => {
                                 </p>
                               </div>
                             </div>
-                          </motion.article>
+                          </article>
                         </React.Fragment>
                       );
                     })}
                     {isColActive && dragOverLeadIndex >= stageLeads.length && (
-                      <div className="h-1.5 rounded-full bg-primary my-1 shadow-xs" />
+                      <div className="h-1.5 rounded-full bg-primary my-1 " />
                     )}
                     </>
                   ) : (
-                    <div className={`flex flex-1 items-center justify-center rounded-[24px] border border-dashed p-6 text-center transition-all ${
-                      isColActive ? 'border-primary bg-primary/10 text-primary font-semibold' : 'border-border bg-background/80 text-muted-foreground'
+                    <div className={`flex flex-1 items-center justify-center rounded-[24px] p-6 text-center transition-all ${
+                      isColActive ? ' bg-primary/10 text-primary font-semibold' : ' bg-background/80 text-muted-foreground'
                     }`}>
                       <div>
                         <p className="text-sm font-semibold">{isColActive ? `Drop here to move to ${stageInfo.label}` : `No leads in ${stageInfo.label.toLowerCase()}`}</p>
@@ -826,7 +771,7 @@ const Leads = () => {
             setSelectedLead(null);
             setShowAddModal(true);
           }}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 cursor-pointer"
         >
           <Plus size={14} className="stroke-[2.5]" />
           <span>Add Lead</span>
@@ -851,10 +796,10 @@ const Leads = () => {
                 setFollowUpFilter(followUpFilter === 'today' ? '' : 'today');
                 setView('list');
               }}
-              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+              className={`rounded-xl px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 followUpFilter === 'today'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  ? ' bg-primary text-primary-foreground'
+                  : ' bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               Today ({followUpToday})
@@ -864,10 +809,10 @@ const Leads = () => {
                 setFollowUpFilter(followUpFilter === 'overdue' ? '' : 'overdue');
                 setView('list');
               }}
-              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+              className={`rounded-xl px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 followUpFilter === 'overdue'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  ? ' bg-primary text-primary-foreground'
+                  : ' bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               Overdue ({overdueFollowUps})
@@ -877,10 +822,10 @@ const Leads = () => {
                 setFollowUpFilter(followUpFilter === 'refollow' ? '' : 'refollow');
                 setView('list');
               }}
-              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+              className={`rounded-xl px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 followUpFilter === 'refollow'
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  ? ' bg-primary text-primary-foreground'
+                  : ' bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               Refollow ({refollowLeads})
@@ -892,7 +837,7 @@ const Leads = () => {
         <TableSkeleton columns={5} rows={6} dark={false} />
       ) : (
         view === 'kanban' ? renderKanban() : (
-          <div className="overflow-hidden rounded-[28px] border border-border bg-card shadow-sm">
+          <div className="overflow-hidden rounded-[28px] bg-card ">
             {filteredListLeads.length === 0 ? (
               <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
                 <div className="rounded-full bg-secondary p-4 text-muted-foreground">
@@ -907,19 +852,19 @@ const Leads = () => {
                 <table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="text-muted-foreground">
                     <tr>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Lead Name</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Company</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Email</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Interest</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Value</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Follow-up</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Created</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Stage</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">Owner</th>
-                      <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6 text-right">Actions</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Lead Name</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Company</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Email</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Interest</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Value</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Follow-up</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Created</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Stage</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6">Owner</th>
+                      <th className="sticky top-0 z-10 bg-card px-4 py-4 font-semibold sm:px-6 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-foreground/[0.05]">
                     {filteredListLeads.map((lead) => {
                       const stageInfo = STAGE_META[lead.stage] || STAGE_META.new;
 
@@ -963,7 +908,7 @@ const Leads = () => {
                           </td>
                           <td className="px-4 py-4 sm:px-6">
                             <div className="flex items-center gap-2">
-                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary border border-border text-[11px] font-bold text-foreground shrink-0">
+                              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-[11px] font-bold text-foreground shrink-0">
                                 {lead.assignedTo?.name?.charAt(0) || 'U'}
                               </div>
                               <span className="text-xs text-foreground">{lead.assignedTo?.name || 'Unassigned'}</span>
@@ -1033,8 +978,8 @@ const Leads = () => {
       <AlertDialog open={!!deleteLeadId} onOpenChange={(open) => !open && setDeleteLeadId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Lead</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle>Delete Lead?</AlertDialogTitle>
+            <AlertDialogDescription className="sr-only">
               Are you sure you want to delete this lead? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

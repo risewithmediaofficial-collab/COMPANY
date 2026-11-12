@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles,
   Volume2,
@@ -22,31 +21,31 @@ import {
 const STICKER_DATA = {
   early: {
     title: 'Royal Early Bird',
-    badge: 'bg-primary text-primary-foreground border-primary',
+    badge: 'bg-primary text-primary-foreground ',
     imageSrc: '/images/stickers/sticker_1_early_bird_1793767351724.webp',
     glowColor: '',
   },
   sharp: {
     title: '9:30 Sharp Dot',
-    badge: 'bg-secondary text-foreground border-border',
+    badge: 'bg-secondary text-foreground ',
     imageSrc: '/images/stickers/sticker_2_sharp_930_dot_1793767391963.webp',
     glowColor: '',
   },
   late: {
     title: 'Kaipulla Escape Pass',
-    badge: 'bg-muted text-foreground border-border',
+    badge: 'bg-muted text-foreground ',
     imageSrc: '/images/stickers/sticker_3_kaipulla_late_arrival_1793767415224.webp',
     glowColor: '',
   },
   afternoon: {
     title: 'Chief Guest Arrival',
-    badge: 'bg-secondary text-muted-foreground border-border',
+    badge: 'bg-secondary text-muted-foreground ',
     imageSrc: '/images/stickers/sticker_4_chief_guest_arrival_1793767436185.webp',
     glowColor: '',
   },
   clockout: {
     title: 'Varata Mame! Punch Out',
-    badge: 'bg-secondary text-foreground border-border',
+    badge: 'bg-secondary text-foreground ',
     imageSrc: '/images/stickers/sticker_5_punch_out_scooter_1793767458852.webp',
     glowColor: '',
   },
@@ -147,29 +146,21 @@ export const AttendanceVibeCard = ({
   }
 
   return (
-    <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         {/* Backdrop Overlay */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           onClick={handleClose}
-          className="fixed inset-0 bg-black/75"
+          className="fixed inset-0 bg-black/75 animate-in fade-in duration-150"
         />
 
         {/* WhatsApp-Style Comedian Sticker Popup Card */}
-        <motion.div
-          initial={{ scale: 0.4, opacity: 0, y: 40, rotate: -8 }}
-          animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
-          exit={{ scale: 0.6, opacity: 0, y: 30 }}
-          transition={{ type: 'spring', stiffness: 450, damping: 25 }}
-          className="relative w-full max-w-sm bg-card border-2 border-border rounded-3xl shadow-2xl p-5 z-10 flex flex-col items-center select-none"
+        <div
+          className="relative w-full max-w-sm bg-card rounded-3xl p-5 z-10 flex flex-col items-center select-none animate-in zoom-in-95 fade-in duration-200"
         >
           {/* Header Bar */}
-          <div className="w-full flex items-center justify-between pb-3 border-b border-border/50">
+          <div className="w-full flex items-center justify-between pb-3 ">
             {/* Tier Badge */}
-            <div className={`px-3 py-1 rounded-full border text-xs font-black tracking-wide flex items-center gap-1.5 shadow-sm ${sticker.badge}`}>
+            <div className={`px-3 py-1 rounded-full text-xs font-black tracking-wide flex items-center gap-1.5 ${sticker.badge}`}>
               <Sparkles size={13} className="shrink-0" />
               <span>{sticker.title}</span>
             </div>
@@ -202,23 +193,10 @@ export const AttendanceVibeCard = ({
 
           {/* Centered Large Sticker Image */}
           <div className="relative py-4 flex flex-col items-center justify-center">
-            <motion.div
-              initial={{ scale: 0.8, rotate: -6 }}
-              animate={{
-                scale: [1, 1.03, 0.98, 1],
-                rotate: [0, -2, 2, 0],
-              }}
-              transition={{
-                duration: 2.2,
-                repeat: Infinity,
-                repeatType: 'mirror',
-                ease: 'easeInOut',
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.94 }}
+            <div
               onClick={handleReplay}
               title="Click to replay comedian sound!"
-              className="cursor-pointer group relative"
+              className="cursor-pointer group relative transition-transform duration-150 hover:scale-105 active:scale-95"
             >
               {/* WhatsApp Sticker Styling */}
               <img
@@ -233,12 +211,12 @@ export const AttendanceVibeCard = ({
                 <Volume2 size={12} className="shrink-0" />
                 <span>Tap to Replay</span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Timestamp Pill & Replay Audio Button */}
           <div className="w-full flex items-center justify-between gap-2 px-1 pt-1 pb-3 text-xs">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary/60 border border-border/60 text-muted-foreground font-mono font-bold tabular-nums">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary/60 text-muted-foreground font-mono font-bold tabular-nums">
               <Clock size={13} className="text-foreground shrink-0" />
               <span>{type === 'clockout' ? 'Clocked Out' : 'Clocked In'}: {formattedTime}</span>
             </div>
@@ -246,7 +224,7 @@ export const AttendanceVibeCard = ({
             <button
               type="button"
               onClick={handleReplay}
-              className="px-3 py-1.5 rounded-xl bg-secondary hover:bg-muted text-foreground border border-border font-bold flex items-center gap-1.5 cursor-pointer transition-all hover:scale-105 active:scale-95"
+              className="px-3 py-1.5 rounded-xl bg-secondary hover:bg-muted text-foreground font-bold flex items-center gap-1.5 cursor-pointer transition-all hover:scale-105 active:scale-95"
               title="Replay dialogue audio"
             >
               <Volume2 size={13} className="shrink-0" />
@@ -258,14 +236,13 @@ export const AttendanceVibeCard = ({
           <button
             type="button"
             onClick={handleClose}
-            className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-black text-sm shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-2xl bg-primary text-primary-foreground font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
           >
             <Check size={16} />
             <span>Mass Thalaiva!</span>
           </button>
-        </motion.div>
+        </div>
       </div>
-    </AnimatePresence>
   );
 };
 

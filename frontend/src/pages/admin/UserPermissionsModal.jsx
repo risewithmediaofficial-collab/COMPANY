@@ -70,27 +70,27 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
-        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0 ">
               <ShieldCheck size={20} />
             </div>
             <div className="min-w-0">
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                Access Control & Permissions
+                Permissions — {user?.name || 'User'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                Configure role permissions and workspaces for {user?.name || 'User'}
+              <DialogDescription className="sr-only">
+                Role permissions
               </DialogDescription>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-all active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -106,12 +106,12 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
             </label>
             <div className="space-y-2.5">
               {PERMISSIONS.map(p => (
-                <label key={p.key} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-secondary/40 cursor-pointer transition-colors shadow-2xs">
+                <label key={p.key} className="flex items-center gap-3 p-3.5 rounded-xl bg-background hover:bg-secondary/40 cursor-pointer transition-colors ">
                   <input 
                     type="checkbox" 
                     checked={!!permissions[p.key]} 
                     onChange={() => handleTogglePermission(p.key)}
-                    className="w-4 h-4 rounded border-border accent-primary focus:ring-primary/20 cursor-pointer shrink-0"
+                    className="w-4 h-4 rounded accent-primary focus:ring-primary/20 cursor-pointer shrink-0"
                   />
                   <span className="text-sm font-medium text-foreground">{p.label}</span>
                 </label>
@@ -126,18 +126,18 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
             </label>
             <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
               {allBrands.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic p-3 bg-secondary/40 rounded-xl border border-border">No workspaces available.</p>
+                <p className="text-sm text-muted-foreground italic p-3 bg-secondary/40 rounded-xl ">No workspaces available.</p>
               ) : (
                 allBrands.map(brand => (
-                  <label key={brand._id} className="flex items-center gap-3 p-3.5 rounded-xl border border-border bg-background hover:bg-secondary/40 cursor-pointer transition-colors shadow-2xs">
+                  <label key={brand._id} className="flex items-center gap-3 p-3.5 rounded-xl bg-background hover:bg-secondary/40 cursor-pointer transition-colors ">
                     <input 
                       type="checkbox" 
                       checked={assignedBrands.includes(brand._id)} 
                       onChange={() => handleToggleBrand(brand._id)}
-                      className="w-4 h-4 rounded border-border accent-primary focus:ring-primary/20 cursor-pointer shrink-0"
+                      className="w-4 h-4 rounded accent-primary focus:ring-primary/20 cursor-pointer shrink-0"
                     />
                     <span className="text-sm font-medium flex-1 text-foreground">{brand.name}</span>
-                    <span className="text-xs text-muted-foreground px-2.5 py-0.5 bg-secondary rounded-full border border-border">{brand.status}</span>
+                    <span className="text-xs text-muted-foreground px-2.5 py-0.5 bg-secondary rounded-full ">{brand.status}</span>
                   </label>
                 ))
               )}
@@ -146,10 +146,10 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
         </div>
 
         {/* Pinned Sticky Bottom Action Footer */}
-        <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
           <span className="text-xs text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
             <span>Press</span>
-            <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+            <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
               ESC
             </kbd>
             <span>to close</span>
@@ -169,7 +169,7 @@ export default function UserPermissionsModal({ user, onClose, onSave }) {
               type="button"
               onClick={handleSave}
               disabled={loading}
-              className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+              className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
             >
               {loading ? 'Saving...' : 'Save Permissions'}
             </Button>

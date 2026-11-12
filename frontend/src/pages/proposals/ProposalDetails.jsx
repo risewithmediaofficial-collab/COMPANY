@@ -127,11 +127,11 @@ const ProposalDetails = () => {
   };
 
   if (!isNew && isLoading) {
-    return <div className="h-64 rounded-3xl border border-border bg-card" />;
+    return <div className="h-64 rounded-3xl bg-card" />;
   }
 
   const paperField = (label, value) => (
-    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+    <div className="rounded-2xl bg-neutral-50 px-4 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">{label}</p>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-neutral-800 tabular-nums">{value || '—'}</p>
     </div>
@@ -157,21 +157,21 @@ const ProposalDetails = () => {
             {paperField('End Date', proposal.endDate ? new Date(proposal.endDate).toLocaleDateString() : '—')}
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-3 tabular-nums">
-            <div className="rounded-3xl border border-neutral-300 bg-neutral-100 p-5">
+            <div className="rounded-3xl bg-neutral-100 p-5">
               <div className="flex items-center gap-2 text-neutral-700">
                 <CircleDollarSign size={18} className="shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">Amount</span>
               </div>
               <p className="mt-4 text-3xl font-black tracking-tight text-neutral-900">{formatINR(proposal.amount)}</p>
             </div>
-            <div className="rounded-3xl border border-neutral-300 bg-neutral-100 p-5">
+            <div className="rounded-3xl bg-neutral-100 p-5">
               <div className="flex items-center gap-2 text-neutral-700">
                 <Clock3 size={18} className="shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">Status</span>
               </div>
               <p className="mt-4 text-xl font-black capitalize tracking-tight text-neutral-900">{proposal.status || 'draft'}</p>
             </div>
-            <div className="rounded-3xl border border-neutral-300 bg-neutral-100 p-5">
+            <div className="rounded-3xl bg-neutral-100 p-5">
               <div className="flex items-center gap-2 text-neutral-700">
                 <Layers3 size={18} className="shrink-0" />
                 <span className="text-xs font-bold uppercase tracking-[0.18em]">Revisions</span>
@@ -205,7 +205,7 @@ const ProposalDetails = () => {
         <div className="space-y-5">
           {paperField('Terms and Conditions', proposal.termsAndConditions)}
           {paperField('Notes', proposal.notes)}
-          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+          <div className="rounded-2xl bg-neutral-50 px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">Attachments & Links</p>
             <div className="mt-3 text-sm text-neutral-700">
               <LinksList links={proposal.links} />
@@ -226,7 +226,7 @@ const ProposalDetails = () => {
         subtitle={proposal?.proposalNumber || form.proposalType || 'Service proposal'}
         icon={FileText}
         status={proposal?.status}
-        statusClassName={proposal?.status === 'accepted' ? 'bg-primary text-primary-foreground border border-primary' : 'bg-secondary text-foreground border border-border'}
+        statusClassName={proposal?.status === 'accepted' ? 'bg-primary text-primary-foreground ' : 'bg-secondary text-foreground '}
         actions={(
           <>
             {isClient && proposal?.status === 'sent' ? (
@@ -245,7 +245,7 @@ const ProposalDetails = () => {
                 <Button
                   variant="outline"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="border-border text-foreground hover:bg-secondary"
+                  className="text-foreground hover:bg-secondary"
                 >
                   <Trash2 size={15} className="mr-1.5" />
                   <span>Delete</span>
@@ -278,13 +278,13 @@ const ProposalDetails = () => {
           <Input placeholder="Proposal Title *" value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} />
           
           {/* Choose Type: Clients or Leads */}
-          <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl border border-border">
+          <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-xl ">
             <button
               type="button"
               onClick={() => setForm((current) => ({ ...current, recipientType: 'client' }))}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
                 form.recipientType === 'client'
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-primary text-primary-foreground '
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
               }`}
             >
@@ -296,7 +296,7 @@ const ProposalDetails = () => {
               onClick={() => setForm((current) => ({ ...current, recipientType: 'lead' }))}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold transition-all ${
                 form.recipientType === 'lead'
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-primary text-primary-foreground '
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
               }`}
             >
@@ -357,11 +357,10 @@ const ProposalDetails = () => {
           </div>
         </div>
       ) : (
-        <div className="rounded-[2rem] border border-border bg-secondary/40 p-2.5 sm:p-4 md:p-6">
-          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-dashed border-border bg-background/80 px-4 py-3">
+        <div className="rounded-[2rem] bg-secondary/40 p-2.5 sm:p-4 md:p-6">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-background/80 px-4 py-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">Print Layout Preview</p>
-              <p className="mt-1 text-xs sm:text-sm text-muted-foreground">Proposal pages are shown in A4 order for both team and client viewing.</p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary self-start sm:self-auto">
               <FileText size={14} />
@@ -373,15 +372,15 @@ const ProposalDetails = () => {
             {proposalPages.map((page) => (
               <section
                 key={page.page}
-                className="mx-auto flex w-full max-w-[210mm] flex-col rounded-[24px] sm:rounded-[28px] border border-neutral-200 bg-white p-4 sm:p-6 md:p-12 text-neutral-900 shadow-[0_18px_60px_rgba(0,0,0,0.08)] md:min-h-[297mm]"
+                className="mx-auto flex w-full max-w-[210mm] flex-col rounded-[24px] sm:rounded-[28px] bg-white p-4 sm:p-6 md:p-12 text-neutral-900 shadow-[0_18px_60px_rgba(0,0,0,0.08)] md:min-h-[297mm]"
               >
-                <div className="flex items-start justify-between gap-3 sm:gap-4 border-b border-neutral-200 pb-5 sm:pb-6">
+                <div className="flex items-start justify-between gap-3 sm:gap-4 pb-5 sm:pb-6">
                   <div className="min-w-0">
                     <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.28em] text-neutral-400">Rise With Media Proposal</p>
                     <h2 className="mt-2 sm:mt-3 text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-neutral-900 break-words">{page.title}</h2>
                     <p className="mt-1.5 text-xs sm:text-sm text-neutral-500 break-words">{page.subtitle}</p>
                   </div>
-                  <div className="shrink-0 rounded-2xl border border-neutral-200 px-3 py-2 sm:px-4 sm:py-3 text-right tabular-nums">
+                  <div className="shrink-0 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 text-right tabular-nums">
                     <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">Page</p>
                     <p className="mt-0.5 sm:mt-1 text-xl sm:text-2xl font-black tracking-tight text-neutral-900">{page.page}</p>
                   </div>
@@ -391,7 +390,7 @@ const ProposalDetails = () => {
                   {page.content}
                 </div>
 
-                <div className="mt-auto flex items-center justify-between border-t border-neutral-200 pt-5 text-xs text-neutral-400">
+                <div className="mt-auto flex items-center justify-between pt-5 text-xs text-neutral-400">
                   <span>{proposal?.proposalNumber || 'Proposal Draft'}</span>
                   <span>{proposal?.client?.company || proposal?.client?.name || 'Client Proposal'}</span>
                 </div>
@@ -406,15 +405,13 @@ const ProposalDetails = () => {
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
       >
-        <AlertDialogContent className="rounded-2xl border-border bg-card">
+        <AlertDialogContent className="rounded-2xl bg-card">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold text-foreground">
-              Delete Proposal
+              Delete Proposal "{proposal?.title}"?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Are you sure you want to delete proposal{' '}
-              <strong className="text-foreground font-semibold">"{proposal?.title}"</strong>{' '}
-              ({proposal?.proposalNumber || 'Proposal'})? This action cannot be undone.
+            <AlertDialogDescription className="sr-only">
+              Are you sure you want to delete proposal "{proposal?.title}" ({proposal?.proposalNumber || 'Proposal'})? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex items-center justify-end gap-2 pt-2">

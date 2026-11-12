@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/muiIcons';
 import { devApi } from '../../api/development';
 import api from '../../api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const TECH_TYPES = [
   { id: 'website_development', label: 'Web Feature / App Dev', defaultChecklist: ['Review Specs & Wireframes', 'Component / API Implementation', 'Responsive Mobile Verification', 'Deploy to Staging'] },
@@ -197,30 +197,27 @@ export const CreateDevTaskModal = ({
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-background"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
+        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 bg-background shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shadow-2xs">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground ">
               <Code2 size={20} />
             </div>
-            <div className="min-w-0">
-              <DialogTitle className="text-base sm:text-lg font-bold text-foreground leading-tight truncate">
+            <div className="min-w-0 text-left">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 Create Development Task
               </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground mt-0.5 truncate">
-                Creates a tech task directly in the Development module
-              </DialogDescription>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
             <DialogClose
               type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand/40"
             >
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
@@ -230,11 +227,11 @@ export const CreateDevTaskModal = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 custom-scrollbar overscroll-contain">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-7 space-y-5 sm:space-y-6 custom-scrollbar overscroll-contain">
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-foreground mb-1.5">
-              Task Title <span className="text-muted-foreground">*</span>
+            <label className="block text-sm font-semibold text-foreground mb-1.5">
+              Task Title *
             </label>
             <input
               type="text"
@@ -242,20 +239,20 @@ export const CreateDevTaskModal = ({
               placeholder="e.g. Build client portal authentication & OAuth2 integration"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-foreground"
+              className="h-11 w-full px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-normal focus:outline-none focus:ring-2 focus:ring-ring/30"
             />
           </div>
 
           {/* Type & Priority Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Development Type
               </label>
               <select
                 value={taskType}
                 onChange={(e) => setTaskType(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 {TECH_TYPES.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -266,13 +263,13 @@ export const CreateDevTaskModal = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Initial Pipeline Stage
               </label>
               <select
                 value={stage}
                 onChange={(e) => setStage(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="backlog">Backlog</option>
                 <option value="analysis">Analysis</option>
@@ -282,13 +279,13 @@ export const CreateDevTaskModal = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Priority
               </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
@@ -299,15 +296,15 @@ export const CreateDevTaskModal = ({
           </div>
 
           {/* Project & Client */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Associated Project
               </label>
               <select
                 value={selectedProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="">No Project (Internal / Tech)</option>
                 {projects.map((p) => (
@@ -319,13 +316,13 @@ export const CreateDevTaskModal = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Client
               </label>
               <select
                 value={selectedClient}
                 onChange={(e) => setSelectedClient(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="">Internal / Agency Task</option>
                 {clients.map((c) => (
@@ -338,15 +335,15 @@ export const CreateDevTaskModal = ({
           </div>
 
           {/* Roles: Developer, Reviewer, Tester */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Lead Developer
               </label>
               <select
                 value={developerId}
                 onChange={(e) => setDeveloperId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="">Select Developer</option>
                 {users.map((u) => (
@@ -358,13 +355,13 @@ export const CreateDevTaskModal = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Code Reviewer
               </label>
               <select
                 value={reviewerId}
                 onChange={(e) => setReviewerId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="">Select Reviewer (Optional)</option>
                 {users.map((u) => (
@@ -376,13 +373,13 @@ export const CreateDevTaskModal = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 QA Tester
               </label>
               <select
                 value={testerId}
                 onChange={(e) => setTesterId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="">Select QA Tester (Optional)</option>
                 {users.map((u) => (
@@ -395,15 +392,15 @@ export const CreateDevTaskModal = ({
           </div>
 
           {/* Sprint & Release */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Sprint
               </label>
               <select
                 value={sprintId}
                 onChange={(e) => setSprintId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="">No Sprint Assigned</option>
                 {sprints.map((s) => (
@@ -415,13 +412,13 @@ export const CreateDevTaskModal = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Release / Deployment
               </label>
               <select
                 value={releaseId}
                 onChange={(e) => setReleaseId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="app-select h-11 px-4 text-sm font-normal"
               >
                 <option value="">No Release Assigned</option>
                 {releases.map((r) => (
@@ -433,22 +430,22 @@ export const CreateDevTaskModal = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Target Due Date
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="h-11 w-full px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-normal focus:outline-none focus:ring-2 focus:ring-ring/30"
               />
             </div>
           </div>
 
           {/* Git Branch & PR */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Git Branch Name
               </label>
               <input
@@ -456,12 +453,12 @@ export const CreateDevTaskModal = ({
                 placeholder="e.g. feat/client-vault"
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="h-11 w-full px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-normal focus:outline-none focus:ring-2 focus:ring-ring/30"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-muted-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-1.5">
                 Pull Request URL
               </label>
               <input
@@ -469,14 +466,14 @@ export const CreateDevTaskModal = ({
                 placeholder="https://github.com/..."
                 value={pullRequestUrl}
                 onChange={(e) => setPullRequestUrl(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="h-11 w-full px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-normal focus:outline-none focus:ring-2 focus:ring-ring/30"
               />
             </div>
           </div>
 
           {/* Scope / Requirements */}
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1">
+            <label className="block text-sm font-semibold text-foreground mb-1.5">
               Technical Scope / Requirements
             </label>
             <textarea
@@ -484,20 +481,20 @@ export const CreateDevTaskModal = ({
               placeholder="Describe technical implementation details, architecture, API payload structures, or UI components needed..."
               value={techScope}
               onChange={(e) => setTechScope(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+              className="min-h-[96px] w-full px-4 py-3 rounded-xl bg-secondary/75 text-foreground text-sm font-normal leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring/30"
             />
           </div>
 
           {/* Bug Details Section (if bug_fix selected) */}
           {taskType === 'bug_fix' && (
-            <div className="p-4 rounded-xl border border-border bg-secondary/40 space-y-3">
-              <div className="flex items-center gap-2 text-foreground text-xs font-bold">
+            <div className="p-4 rounded-xl bg-secondary/40 space-y-3">
+              <div className="flex items-center gap-2 text-foreground text-sm font-bold">
                 <Bug size={15} />
                 <span>Bug Details</span>
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                <label className="block text-sm font-semibold text-foreground mb-1.5">
                   Severity
                 </label>
                 <div className="flex gap-2">
@@ -506,9 +503,9 @@ export const CreateDevTaskModal = ({
                       key={sev}
                       type="button"
                       onClick={() => setBugSeverity(sev)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl text-sm font-semibold capitalize transition-all cursor-pointer ${
                         bugSeverity === sev
-                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          ? 'bg-primary text-primary-foreground '
                           : 'bg-secondary text-muted-foreground hover:text-foreground'
                       }`}
                     >
@@ -518,9 +515,9 @@ export const CreateDevTaskModal = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Steps to Reproduce
                   </label>
                   <textarea
@@ -528,11 +525,11 @@ export const CreateDevTaskModal = ({
                     placeholder="1. Go to page... 2. Click button..."
                     value={stepsToReproduce}
                     onChange={(e) => setStepsToReproduce(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs"
+                    className="min-h-[84px] w-full px-4 py-3 rounded-xl bg-secondary/75 text-foreground text-sm font-normal leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring/30"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
                     Expected vs Actual
                   </label>
                   <textarea
@@ -540,7 +537,7 @@ export const CreateDevTaskModal = ({
                     placeholder="Expected 200 OK, but received 500 internal server error..."
                     value={expectedResult}
                     onChange={(e) => setExpectedResult(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background text-foreground text-xs"
+                    className="min-h-[84px] w-full px-4 py-3 rounded-xl bg-secondary/75 text-foreground text-sm font-normal leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring/30"
                   />
                 </div>
               </div>
@@ -549,12 +546,12 @@ export const CreateDevTaskModal = ({
 
           {/* Checklist */}
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+            <label className="block text-sm font-semibold text-foreground mb-1.5">
               Implementation Checklist
             </label>
             <div className="space-y-1.5 mb-2">
               {checklist.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-secondary/50 border border-border/60 text-xs">
+                <div key={idx} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-secondary/50 text-sm">
                   <span className="text-foreground">{item.title}</span>
                   <button
                     type="button"
@@ -578,40 +575,40 @@ export const CreateDevTaskModal = ({
                     handleAddChecklist();
                   }
                 }}
-                className="flex-1 px-3 py-1.5 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring/30"
+                className="h-11 flex-1 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-normal focus:outline-none focus:ring-2 focus:ring-ring/30"
               />
               <button
                 type="button"
                 onClick={handleAddChecklist}
-                className="inline-flex items-center gap-1 px-3 py-1.5 bg-secondary text-foreground hover:bg-secondary/80 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                className="inline-flex h-11 items-center gap-1.5 px-4 bg-secondary text-foreground hover:bg-secondary/80 rounded-xl text-sm font-semibold transition-all cursor-pointer"
               >
-                <Plus size={14} /> Add
+                <Plus size={15} /> Add
               </button>
             </div>
           </div>
           </div>
 
           {/* Footer */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 sm:px-6 py-3 sm:py-4 bg-card shrink-0 select-none">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-background shrink-0 select-none">
             <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
               <span>Press</span>
-              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                 ESC
               </kbd>
               <span>to close</span>
             </span>
-            <div className="flex items-center gap-2.5 ml-auto">
+            <div className="flex items-center gap-3 ml-auto">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-all min-h-[38px] cursor-pointer"
+                className="h-11 px-5 rounded-xl text-sm font-semibold text-foreground bg-secondary hover:bg-secondary/80 transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-primary-foreground bg-primary hover:bg-primary/90 shadow-xs transition-all disabled:opacity-50 min-h-[38px] cursor-pointer"
+                className="flex h-11 items-center justify-center gap-1.5 px-6 rounded-xl text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/95 transition-all disabled:opacity-50 cursor-pointer"
               >
                 <CheckCircle2 size={15} />
                 <span>{submitting ? 'Creating...' : 'Create Dev Task'}</span>

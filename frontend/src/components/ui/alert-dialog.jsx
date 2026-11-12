@@ -14,7 +14,7 @@ export const AlertDialogContent = React.forwardRef(({ className, ...props }, ref
       <AlertDialogPrimitive.Content
         ref={ref}
         className={cn(
-          'relative w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 duration-200 custom-scrollbar',
+          'relative w-full my-auto max-w-md max-h-[min(90vh,calc(100dvh-2rem))] overflow-y-auto overscroll-contain rounded-2xl bg-background p-5 sm:p-6 shadow-[0_24px_48px_-12px_rgb(0,0,0,0.16)] dark:shadow-[0_24px_48px_-12px_rgb(0,0,0,0.55)] outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 duration-200 custom-scrollbar',
           className
         )}
         {...props}
@@ -46,7 +46,7 @@ AlertDialogAction.displayName = 'AlertDialogAction';
 export const AlertDialogCancel = React.forwardRef(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
-    className={cn('inline-flex items-center justify-center rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold hover:bg-secondary', className)}
+    className={cn('inline-flex items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-semibold hover:bg-secondary/80', className)}
     {...props}
   />
 ));

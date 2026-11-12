@@ -6,7 +6,6 @@ import {
   ChevronLeft, ChevronRight, RefreshCw, Filter, Share2, Check,
   TrendingUp, Activity, BarChart2
 } from '@/components/ui/muiIcons';
-import { motion } from 'framer-motion';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -196,14 +195,14 @@ export default function PortalSMMTracker() {
     }
     if (s === 'pending') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-secondary text-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-secondary text-foreground ">
           <Clock size={11} className="shrink-0" /> PENDING
         </span>
       );
     }
     if (s === 'skip') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/60 text-muted-foreground border border-border">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-muted/60 text-muted-foreground ">
           SKIP
         </span>
       );
@@ -218,30 +217,23 @@ export default function PortalSMMTracker() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto p-4 sm:p-6">
       {/* ── Page Header & Month Selector ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border/60">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <span className="p-2.5 rounded-2xl bg-secondary text-foreground border border-border shrink-0">
-              <Calendar size={22} />
-            </span>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
-                SMM Tracker Sheet
-                {clientRow?.client?.companyName && (
-                  <span className="text-xs px-2.5 py-0.5 rounded-lg bg-secondary text-foreground border border-border font-bold">
-                    {clientRow.client.companyName}
-                  </span>
-                )}
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Day-by-day status of your brand's posts, reels, and stories scheduled & published this month
-              </p>
-            </div>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
+        <div className="flex items-center gap-2.5">
+          <span className="p-2 rounded-xl bg-secondary text-foreground shrink-0">
+            <Calendar size={20} />
+          </span>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            SMM Tracker Sheet
+            {clientRow?.client?.companyName && (
+              <span className="text-xs px-2.5 py-0.5 rounded-lg bg-secondary text-foreground font-semibold">
+                {clientRow.client.companyName}
+              </span>
+            )}
+          </h1>
         </div>
 
         {/* Month Navigation */}
-        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto bg-card border border-border/60 p-1 rounded-2xl shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto bg-card p-1 rounded-2xl ">
           <button
             type="button"
             onClick={handlePrevMonth}
@@ -277,7 +269,7 @@ export default function PortalSMMTracker() {
       {/* ── Deliverables Overview Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Deliverables */}
-        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card space-y-3 ">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Overall Progress</span>
             <span className="text-xs font-black text-foreground tabular-nums">{metrics.completionRate}%</span>
@@ -299,7 +291,7 @@ export default function PortalSMMTracker() {
         </div>
 
         {/* Reels / Videos */}
-        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card space-y-3 ">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-foreground">
               <Film size={15} className="shrink-0 text-muted-foreground" />
@@ -328,7 +320,7 @@ export default function PortalSMMTracker() {
         </div>
 
         {/* Feed Posts */}
-        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card space-y-3 ">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-foreground">
               <Layers size={15} className="shrink-0 text-muted-foreground" />
@@ -357,7 +349,7 @@ export default function PortalSMMTracker() {
         </div>
 
         {/* Daily Stories */}
-        <div className="p-4 rounded-2xl bg-card border border-border/80 space-y-3 shadow-sm">
+        <div className="p-4 rounded-2xl bg-card space-y-3 ">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-foreground">
               <Sparkles size={15} className="shrink-0 text-muted-foreground" />
@@ -387,21 +379,16 @@ export default function PortalSMMTracker() {
       </div>
 
       {/* ── Tracker Sheet Table Card ── */}
-      <div className="rounded-3xl bg-card border border-border/60 shadow-sm overflow-hidden space-y-4 p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
-          <div>
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <span>{MONTHS[selectedMonth - 1]} Content Calendar</span>
-              {clientRow?.plan && (
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-secondary text-foreground border border-border font-bold">
-                  {clientRow.plan}
-                </span>
-              )}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Day-by-day deliverables breakdown for {clientRow?.client?.companyName || 'your brand'}
-            </p>
-          </div>
+      <div className="rounded-3xl bg-card overflow-hidden space-y-4 p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+            <span>{MONTHS[selectedMonth - 1]} Content Calendar</span>
+            {clientRow?.plan && (
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-secondary text-foreground font-bold">
+                {clientRow.plan}
+              </span>
+            )}
+          </h2>
 
           {/* Filter Pills */}
           <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto bg-secondary/50 p-1 rounded-xl">
@@ -417,7 +404,7 @@ export default function PortalSMMTracker() {
                 onClick={() => setFilterType(f.id)}
                 className={`px-3 py-1.5 text-[11px] font-bold rounded-lg min-h-[32px] transition-all ${
                   filterType === f.id
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground '
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -440,7 +427,7 @@ export default function PortalSMMTracker() {
           <div className="responsive-table-container overflow-x-auto">
             <table className="w-full min-w-[700px] text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-border/60 text-[11px] font-semibold text-muted-foreground uppercase">
+                <tr className="text-[11px] font-semibold text-muted-foreground uppercase">
                   <th className="py-3 px-4 w-28">Date</th>
                   <th className="py-3 px-4">Post / Reel Topic</th>
                   <th className="py-3 px-4 w-32 text-center">Post Status</th>
@@ -449,7 +436,7 @@ export default function PortalSMMTracker() {
                   <th className="py-3 px-4">Notes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/30">
+              <tbody className="divide-y divide-foreground/[0.05]">
                 {filteredDays.map((day) => {
                   const today = isToday(day.day);
                   const sunday = isSunday(day.day);
@@ -471,9 +458,9 @@ export default function PortalSMMTracker() {
                           <span
                             className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-black tabular-nums ${
                               today
-                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                ? 'bg-primary text-primary-foreground '
                                 : sunday
-                                ? 'bg-secondary text-foreground border border-border'
+                                ? 'bg-secondary text-foreground '
                                 : 'bg-secondary text-foreground'
                             }`}
                           >
@@ -491,11 +478,11 @@ export default function PortalSMMTracker() {
                         {day.postLabel ? (
                           <div className="flex items-center gap-2">
                             {/R/i.test(day.postLabel) ? (
-                              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px] shrink-0">
+                              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground font-bold text-[10px] shrink-0">
                                 Reel
                               </span>
                             ) : (
-                              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px] shrink-0">
+                              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground font-bold text-[10px] shrink-0">
                                 Post
                               </span>
                             )}

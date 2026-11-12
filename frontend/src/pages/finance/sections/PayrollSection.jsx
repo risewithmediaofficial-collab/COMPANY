@@ -298,10 +298,10 @@ export default function PayrollSection() {
     <div className="space-y-6">
       {/* ── TOP KPI SUMMARY CARDS ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+        <div className="bg-card p-5 rounded-xl transition-shadow">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
             <span>Total Base Salaries</span>
-            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center font-bold shrink-0">
+            <div className="h-7 w-7 rounded-lg bg-secondary text-foreground flex items-center justify-center font-bold shrink-0">
               ₹
             </div>
           </div>
@@ -311,10 +311,10 @@ export default function PayrollSection() {
           </div>
         </div>
 
-        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+        <div className="bg-card p-5 rounded-xl transition-shadow">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
             <span>Net Approved Payroll</span>
-            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
+            <div className="h-7 w-7 rounded-lg bg-secondary text-foreground flex items-center justify-center shrink-0">
               <Clock className="h-4 w-4" />
             </div>
           </div>
@@ -322,10 +322,10 @@ export default function PayrollSection() {
           <div className="text-[11px] text-muted-foreground mt-1">Net take-home after additions/deductions</div>
         </div>
 
-        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+        <div className="bg-card p-5 rounded-xl transition-shadow">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
             <span>Disbursed Salaries</span>
-            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
+            <div className="h-7 w-7 rounded-lg bg-secondary text-foreground flex items-center justify-center shrink-0">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
@@ -335,10 +335,10 @@ export default function PayrollSection() {
           </div>
         </div>
 
-        <div className="bg-card p-5 rounded-xl border border-border shadow-2xs hover:shadow-xs transition-shadow">
+        <div className="bg-card p-5 rounded-xl transition-shadow">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
             <span>Pending Approvals</span>
-            <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
+            <div className="h-7 w-7 rounded-lg bg-secondary text-foreground flex items-center justify-center shrink-0">
               <AlertCircle className="h-4 w-4" />
             </div>
           </div>
@@ -348,11 +348,11 @@ export default function PayrollSection() {
       </div>
 
       {/* ── ACTION & FILTER TOOLBAR ─────────────────────────────────────── */}
-      <div className="bg-card p-4 rounded-xl border border-border shadow-2xs space-y-3">
+      <div className="bg-card p-4 rounded-xl space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Period Selector & Primary Add Action */}
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-1.5 bg-secondary/60 border border-border rounded-lg p-1">
+            <div className="flex items-center gap-1.5 bg-secondary/60 rounded-lg p-1">
               <Calendar className="h-3.5 w-3.5 text-muted-foreground ml-1.5 shrink-0" />
               <select
                 value={selectedMonth}
@@ -380,7 +380,7 @@ export default function PayrollSection() {
             {/* PRIMARY BUTTON: Manual Entry by Employee Selection */}
             <button
               onClick={handleOpenAdd}
-              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-lg shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-lg transition-all cursor-pointer"
             >
               <Plus className="h-4 w-4 shrink-0" />
               <span>Enter Employee Payroll</span>
@@ -396,13 +396,13 @@ export default function PayrollSection() {
                 placeholder="Search employee or role..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring w-full sm:w-56"
+                className="pl-8 pr-3 py-1.5 text-xs rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring w-full sm:w-56"
               />
             </div>
 
             <button
               onClick={handleExport}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-foreground font-semibold text-xs hover:bg-secondary transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-foreground font-semibold text-xs hover:bg-secondary transition-colors cursor-pointer"
             >
               <Download className="h-3.5 w-3.5 shrink-0" />
               <span className="hidden sm:inline">Export</span>
@@ -411,7 +411,7 @@ export default function PayrollSection() {
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1 pt-2 border-t border-border overflow-x-auto text-xs">
+        <div className="flex items-center gap-1 pt-2 overflow-x-auto text-xs">
           {[
             { id: 'all', label: 'All Records', count: records.length },
             { id: 'pending', label: 'Pending Approval', count: pendingCount },
@@ -423,14 +423,14 @@ export default function PayrollSection() {
               onClick={() => setStatusFilter(tab.id)}
               className={`px-3 py-1.5 rounded-md font-medium text-xs transition-colors flex items-center gap-1.5 shrink-0 min-h-[36px] cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+                  ? 'bg-primary text-primary-foreground font-semibold '
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               <span>{tab.label}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full tabular-nums ${
-                  statusFilter === tab.id ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-foreground border border-border'
+                  statusFilter === tab.id ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-foreground '
                 }`}
               >
                 {tab.count}
@@ -441,24 +441,19 @@ export default function PayrollSection() {
       </div>
 
       {/* ── PAYROLL REGISTER TABLE ───────────────────────────────────────── */}
-      <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2 tabular-nums">
-              <span>Payroll Register: {selectedMonth} {selectedYear}</span>
-              <span className="text-xs font-normal text-muted-foreground">
-                ({filteredRecords.length} {filteredRecords.length === 1 ? 'employee' : 'employees'})
-              </span>
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Enter employee salary, bonuses, and approved deductions manually. Approving books the salary expense; disbursing records bank outflow.
-            </p>
-          </div>
+      <div className="bg-card rounded-xl overflow-hidden">
+        <div className="p-4 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2 tabular-nums">
+            <span>Payroll Register: {selectedMonth} {selectedYear}</span>
+            <span className="text-xs font-normal text-muted-foreground">
+              ({filteredRecords.length})
+            </span>
+          </h3>
         </div>
 
         <div className="responsive-table-container overflow-y-auto max-h-[580px] text-xs">
           <table className="w-full min-w-[700px] text-left">
-            <thead className="sticky top-0 z-10 bg-secondary border-b border-border shadow-2xs text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="sticky top-0 z-10 bg-secondary text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3.5">Employee</th>
                 <th className="p-3.5 text-right">Base Salary</th>
@@ -469,7 +464,7 @@ export default function PayrollSection() {
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-foreground/[0.05]">
               {isLoading ? (
                 <tr>
                   <td colSpan="7" className="p-8 text-center text-muted-foreground">
@@ -480,18 +475,15 @@ export default function PayrollSection() {
                 <tr>
                   <td colSpan="7" className="p-12 text-center">
                     <div className="max-w-sm mx-auto space-y-3">
-                      <div className="h-10 w-10 mx-auto rounded-full bg-secondary border border-border text-foreground flex items-center justify-center font-bold">
+                      <div className="h-10 w-10 mx-auto rounded-full bg-secondary text-foreground flex items-center justify-center font-bold">
                         <Users className="h-5 w-5" />
                       </div>
                       <div className="font-semibold text-foreground text-sm">
-                        No payroll entries found for {selectedMonth} {selectedYear}
+                        No payroll entries for {selectedMonth} {selectedYear}
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Click "Enter Employee Payroll" above to select an employee and input their salary, allowances, and deductions manually.
-                      </p>
                       <button
                         onClick={handleOpenAdd}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-lg shadow-xs hover:bg-primary/90 cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-lg hover:bg-primary/90 cursor-pointer"
                       >
                         <Plus className="h-4 w-4 shrink-0" /> Add First Entry
                       </button>
@@ -508,7 +500,7 @@ export default function PayrollSection() {
                       {/* Employee Info */}
                       <td className="p-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs uppercase shadow-2xs shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs uppercase shrink-0">
                             {rec.employee?.name ? rec.employee.name.charAt(0) : 'E'}
                           </div>
                           <div className="min-w-0">
@@ -567,8 +559,8 @@ export default function PayrollSection() {
                             rec.status === 'paid'
                               ? 'bg-primary text-primary-foreground'
                               : rec.status === 'approved'
-                              ? 'bg-secondary text-foreground border border-border'
-                              : 'bg-muted text-muted-foreground border border-border'
+                              ? 'bg-secondary text-foreground '
+                              : 'bg-muted text-muted-foreground '
                           }`}
                         >
                           {rec.status === 'paid' && <Check className="h-3 w-3 shrink-0" />}
@@ -583,7 +575,7 @@ export default function PayrollSection() {
                             <button
                               onClick={() => approvePayroll.mutate(rec._id)}
                               disabled={approvePayroll.isPending}
-                              className="px-2.5 py-1 rounded-md bg-secondary hover:bg-muted text-foreground font-semibold text-[11px] transition-colors border border-border cursor-pointer"
+                              className="px-2.5 py-1 rounded-md bg-secondary hover:bg-muted text-foreground font-semibold text-[11px] transition-colors cursor-pointer"
                             >
                               Approve
                             </button>
@@ -595,7 +587,7 @@ export default function PayrollSection() {
                                 setPayModalRecord(rec);
                                 setFundingAccount(accounts[0]?._id || '');
                               }}
-                              className="px-2.5 py-1 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[11px] transition-colors shadow-2xs cursor-pointer"
+                              className="px-2.5 py-1 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-[11px] transition-colors cursor-pointer"
                             >
                               Disburse
                             </button>
@@ -643,26 +635,26 @@ export default function PayrollSection() {
           size="lg"
           noPadding
           hideCloseButton
-          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90vh]"
         >
           {/* Pinned Sticky Header */}
-          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+          <DialogHeader className="px-6 py-5 bg-card shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
                   <Banknote size={20} />
                 </div>
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
-                    {editingRecord ? 'Edit Employee Payroll' : 'Manual Employee Payroll Entry'}
+                    {editingRecord ? 'Edit Employee Payroll' : 'Employee Payroll'}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 tabular-nums">
-                    Period: <strong className="text-foreground">{selectedMonth} {selectedYear}</strong> · Base salary, bonus & deductions
+                  <DialogDescription className="sr-only">
+                    Employee payroll entry
                   </DialogDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary border border-border rounded-md">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary rounded-md">
                   ESC
                 </span>
                 <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer">
@@ -683,7 +675,7 @@ export default function PayrollSection() {
                   onChange={(e) => handleEmployeeSelect(e.target.value)}
                   disabled={Boolean(editingRecord)}
                   required
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-ring/20 "
                 >
                   <option value="">-- Choose Employee --</option>
                   {employees.map((emp) => (
@@ -704,7 +696,7 @@ export default function PayrollSection() {
                   placeholder="e.g. 30000"
                   required
                   min="0"
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-bold text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl px-4 text-sm font-bold text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 "
                 />
               </div>
 
@@ -714,7 +706,7 @@ export default function PayrollSection() {
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm font-semibold text-foreground bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl px-4 text-sm font-semibold text-foreground bg-background focus:ring-2 focus:ring-ring/20 "
                 >
                   <option value="pending">Pending Approval (Draft)</option>
                   <option value="approved">Approved (Expense Recognized)</option>
@@ -723,69 +715,69 @@ export default function PayrollSection() {
               </div>
 
               {/* Additions / Incentives */}
-              <div className="p-4 bg-secondary/40 rounded-2xl border border-border space-y-3">
-                <div className="font-semibold text-foreground text-xs sm:text-sm flex items-center justify-between">
+              <div className="p-4 bg-secondary/40 rounded-2xl space-y-3">
+                <div className="font-semibold text-foreground text-sm flex items-center justify-between">
                   <span>Additions / Incentives / OTS (+)</span>
-                  <span className="text-xs sm:text-sm text-foreground font-mono font-bold tabular-nums">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
+                  <span className="text-sm text-foreground font-bold tabular-nums">₹{Number(form.additions || 0).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Addition Amount (₹)</label>
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">Addition Amount (₹)</label>
                     <input
                       type="number"
                       value={form.additions}
                       onChange={(e) => handleAdditionsChange(e.target.value)}
                       placeholder="e.g. 2000"
                       min="0"
-                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl bg-background px-4 text-sm font-normal text-foreground tabular-nums focus:ring-2 focus:ring-ring/20"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Reason for Addition</label>
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">Reason for Addition</label>
                     <input
                       type="text"
                       value={form.additionReason}
                       onChange={(e) => setForm({ ...form, additionReason: e.target.value })}
                       placeholder="e.g. Performance Bonus / Overtime"
-                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-2 focus:ring-ring/20"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Deductions */}
-              <div className="p-4 bg-secondary/40 rounded-2xl border border-border space-y-3">
-                <div className="font-semibold text-foreground text-xs sm:text-sm flex items-center justify-between">
+              <div className="p-4 bg-secondary/40 rounded-2xl space-y-3">
+                <div className="font-semibold text-foreground text-sm flex items-center justify-between">
                   <span>Deductions / TDS / Advances (-)</span>
-                  <span className="text-xs sm:text-sm text-foreground font-mono font-bold tabular-nums">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
+                  <span className="text-sm text-foreground font-bold tabular-nums">₹{Number(form.deductions || 0).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Deduction Amount (₹)</label>
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">Deduction Amount (₹)</label>
                     <input
                       type="number"
                       value={form.deductions}
                       onChange={(e) => handleDeductionsChange(e.target.value)}
                       placeholder="e.g. 1500"
                       min="0"
-                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl bg-background px-4 text-sm font-normal text-foreground tabular-nums focus:ring-2 focus:ring-ring/20"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground mb-1 block">Reason for Deduction</label>
+                    <label className="text-sm font-semibold text-foreground mb-1.5 block">Reason for Deduction</label>
                     <input
                       type="text"
                       value={form.deductionReason}
                       onChange={(e) => setForm({ ...form, deductionReason: e.target.value })}
                       placeholder="e.g. Leave / TDS / Salary Advance"
-                      className="w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                      className="w-full h-11 rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:ring-2 focus:ring-ring/20"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Net Take-Home Salary Display */}
-              <div className="p-4 bg-secondary rounded-2xl border border-border flex items-center justify-between gap-3">
+              <div className="p-4 bg-secondary rounded-2xl flex items-center justify-between gap-3">
                 <div>
                   <span className="text-foreground font-bold block text-xs sm:text-sm">Calculated Net Payable:</span>
                   <span className="text-xs text-muted-foreground tabular-nums">Base (₹{form.baseSalary || 0}) + Add (₹{form.additions || 0}) − Ded (₹{form.deductions || 0})</span>
@@ -803,26 +795,26 @@ export default function PayrollSection() {
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   placeholder="e.g. Verified by Accounts"
-                  className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 shadow-2xs"
+                  className="w-full h-11 rounded-xl px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 "
                 />
               </div>
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <button
                   type="button"
                   onClick={() => setEntryModalOpen(false)}
-                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer"
+                  className="h-11 px-5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createPayroll.isPending || updatePayroll.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {createPayroll.isPending || updatePayroll.isPending ? (
                     <>
@@ -848,26 +840,26 @@ export default function PayrollSection() {
           size="md"
           noPadding
           hideCloseButton
-          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-lg max-h-[90vh]"
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-lg max-h-[90vh]"
         >
           {/* Pinned Sticky Header */}
-          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+          <DialogHeader className="px-6 py-5 bg-card shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
                   <CheckCircle2 size={20} />
                 </div>
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
-                    Disburse Salary
+                    Disburse Salary — {payModalRecord?.employee?.name}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 tabular-nums">
-                    {payModalRecord?.employee?.name} · {payModalRecord?.month} {payModalRecord?.year}
+                  <DialogDescription className="sr-only">
+                    Disburse salary confirmation
                   </DialogDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary border border-border rounded-md">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary rounded-md">
                   ESC
                 </span>
                 <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer">
@@ -880,7 +872,7 @@ export default function PayrollSection() {
           {/* Form with Body and Pinned Footer */}
           <form onSubmit={handleExecutePayment} className="flex flex-col min-h-0 flex-1 overflow-hidden">
             <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-              <div className="p-4 bg-secondary/50 rounded-2xl text-foreground text-sm border border-border space-y-1.5">
+              <div className="p-4 bg-secondary/50 rounded-2xl text-foreground text-sm space-y-1.5">
                 <div className="tabular-nums">
                   Confirming will record salary payout of <strong>{formatINR(payModalRecord?.netSalary || 0)}</strong> for <strong>{payModalRecord?.employee?.name}</strong>.
                 </div>
@@ -890,11 +882,11 @@ export default function PayrollSection() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">Disbursement Account</label>
+                <label className="block text-sm font-semibold text-foreground mb-1.5">Disbursement Account</label>
                 <select
                   value={fundingAccount}
                   onChange={(e) => setFundingAccount(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 cursor-pointer"
                 >
                   <option value="">Select Account (Optional)</option>
                   {accounts.map((acc) => (
@@ -903,27 +895,24 @@ export default function PayrollSection() {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  Selecting an account will automatically reconcile and deduct the salary amount from the account balance.
-                </p>
               </div>
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
               <div className="flex items-center gap-2.5 ml-auto">
                 <button
                   type="button"
                   onClick={() => setPayModalRecord(null)}
-                  className="h-11 px-5 rounded-xl border border-border bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer"
+                  className="h-11 px-5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold text-sm transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={payPayroll.isPending}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {payPayroll.isPending ? (
                     <>

@@ -16,7 +16,7 @@ export const SelectTrigger = React.forwardRef(({ className, children, ...props }
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-11 w-full items-center justify-between rounded-xl border border-border/80 bg-background px-3.5 py-2 text-sm text-foreground shadow-xs outline-none transition-all duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
+      'flex h-11 w-full items-center justify-between rounded-xl bg-secondary/75 px-4 py-2 text-sm font-normal leading-normal text-left text-foreground outline-none transition-colors duration-150 hover:bg-secondary focus:bg-secondary/50 focus:ring-2 focus:ring-brand/40 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
       className
     )}
     {...props}
@@ -126,7 +126,7 @@ export const SelectContent = React.forwardRef(
           position={position}
           onKeyDown={handleContentKeyDown}
           className={cn(
-            'z-[99999] min-w-[8rem] max-h-[340px] overflow-hidden rounded-2xl border border-border bg-card p-1.5 shadow-xl animate-in fade-in-80 zoom-in-95 duration-100',
+            'z-[99999] min-w-[8rem] max-h-[340px] overflow-hidden rounded-2xl bg-popover p-1.5 shadow-[0_16px_40px_-8px_rgb(0,0,0,0.12)] dark:shadow-[0_16px_40px_-8px_rgb(0,0,0,0.5)] animate-in fade-in-80 zoom-in-95 duration-100',
             position === 'popper' &&
               'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
             className
@@ -137,7 +137,7 @@ export const SelectContent = React.forwardRef(
           {searchable && (isSearching || searchQuery) && (
             <div
               onPointerDown={(e) => e.stopPropagation()}
-              className="flex items-center gap-2 px-3 py-2 mb-1.5 rounded-xl bg-secondary/50 border border-border/80 shadow-2xs transition-all animate-in fade-in slide-in-from-top-1 duration-150"
+              className="flex items-center gap-2 px-3 py-2 mb-1.5 rounded-xl bg-secondary/75 transition-colors animate-in fade-in slide-in-from-top-1 duration-150"
             >
               <Search size={14} className="text-primary shrink-0" />
               <input
@@ -173,7 +173,7 @@ export const SelectContent = React.forwardRef(
                   <X size={13} />
                 </button>
               )}
-              <span className="text-[10px] font-mono font-medium text-muted-foreground/90 px-1.5 py-0.5 rounded-md bg-background/80 border border-border/60 shrink-0 select-none">
+              <span className="text-[10px] font-mono font-medium text-muted-foreground/90 px-1.5 py-0.5 rounded-md bg-background/90 shrink-0 select-none">
                 {matchCount}
               </span>
             </div>

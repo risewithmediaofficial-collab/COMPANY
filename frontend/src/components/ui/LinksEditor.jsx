@@ -17,7 +17,7 @@ const LinksEditor = ({ links = [], onChange, label = 'Attachments & Links' }) =>
   const removeLink = (index) => onChange(links.filter((_, i) => i !== index));
 
   return (
-    <div className="rounded-2xl border border-border bg-secondary/20 p-4 space-y-3">
+    <div className="rounded-2xl bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold flex items-center gap-2">
           <Link2 size={16} className="text-primary" />
@@ -34,7 +34,7 @@ const LinksEditor = ({ links = [], onChange, label = 'Attachments & Links' }) =>
       ) : (
         <div className="space-y-2">
           {links.map((link, index) => (
-            <div key={index} className="grid gap-2 rounded-xl border border-border bg-card p-3 md:grid-cols-[1fr_1fr_auto]">
+            <div key={index} className="grid gap-2 rounded-xl bg-background p-3 md:grid-cols-[1fr_1fr_auto]">
               <Input
                 placeholder="Link title (e.g. Brand Guide)"
                 value={link.title || ''}

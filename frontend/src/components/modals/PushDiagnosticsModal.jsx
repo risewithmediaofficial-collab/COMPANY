@@ -120,13 +120,13 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90dvh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90dvh]"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-border bg-card shrink-0 select-none">
+        <DialogHeader className="px-4 py-3.5 sm:px-6 sm:py-5 bg-card shrink-0 select-none">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                 <BellRing size={20} />
               </div>
               <div>
@@ -139,7 +139,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded-md">
                 ESC
               </span>
               <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
@@ -158,7 +158,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
           <div className="space-y-4 sm:space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
             {/* Status Overview Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-              <div className="p-2.5 rounded-xl border border-border bg-card/60 flex flex-col gap-1">
+              <div className="p-2.5 rounded-xl bg-card/60 flex flex-col gap-1">
                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Device & OS</span>
                 <span className="font-semibold text-foreground truncate flex items-center gap-1.5">
                   {platformName.includes('Android') || platformName.includes('iOS') ? (
@@ -171,7 +171,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                 <span className="text-[10px] text-muted-foreground">{browserName}</span>
               </div>
 
-              <div className="p-2.5 rounded-xl border border-border bg-card flex flex-col gap-1">
+              <div className="p-2.5 rounded-xl bg-card flex flex-col gap-1">
                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">PWA Mode</span>
                 <span className="font-semibold text-foreground flex items-center gap-1.5">
                   {diagnostics?.isStandalone ? (
@@ -187,7 +187,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                 </span>
               </div>
 
-              <div className="p-2.5 rounded-xl border border-border bg-card flex flex-col gap-1 col-span-2 sm:col-span-1">
+              <div className="p-2.5 rounded-xl bg-card flex flex-col gap-1 col-span-2 sm:col-span-1">
                 <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Permission</span>
                 <span className="font-semibold capitalize flex items-center gap-1.5">
                   {diagnostics?.permission === 'granted' ? (
@@ -210,7 +210,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
 
             {/* iOS Safari Home Screen Warning */}
             {isIOSRequiresHomeInstall() && (
-              <div className="p-3 bg-secondary/60 border border-border rounded-xl text-xs space-y-1.5">
+              <div className="p-3 bg-secondary/60 rounded-xl text-xs space-y-1.5">
                 <div className="flex items-center gap-1.5 text-foreground font-bold">
                   <Smartphone size={14} className="shrink-0" />
                   <span>iPhone / iPad Action Required</span>
@@ -228,13 +228,13 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
             )}
 
             {/* Test Actions */}
-            <div className="p-3.5 rounded-xl border border-border bg-secondary/20 space-y-2.5">
+            <div className="p-3.5 rounded-xl bg-secondary/20 space-y-2.5">
               <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                 <Send size={13} className="text-foreground shrink-0" /> Test Background Push Delivery
               </span>
 
               {countdown !== null && (
-                <div className="p-2.5 bg-secondary border border-border rounded-xl text-xs text-foreground font-semibold flex items-center justify-between tabular-nums">
+                <div className="p-2.5 bg-secondary rounded-xl text-xs text-foreground font-semibold flex items-center justify-between tabular-nums">
                   <span className="flex items-center gap-1.5">
                     <Clock size={14} className="animate-spin shrink-0" /> Close this tab now! Push fires in:
                   </span>
@@ -249,7 +249,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   type="button"
                   onClick={handleTestNow}
                   disabled={testing}
-                  className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer "
                 >
                   <Send size={12} className="shrink-0" />
                   <span>Send Test Now</span>
@@ -259,7 +259,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   type="button"
                   onClick={() => handleScheduledTest(10)}
                   disabled={testing}
-                  className="px-3 py-1.5 rounded-xl border border-border bg-secondary hover:bg-secondary/80 text-foreground text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                  className="px-3 py-1.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer "
                   title="Gives you 10 seconds to close the browser tab or lock your phone"
                 >
                   <Clock size={12} className="shrink-0" />
@@ -270,7 +270,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   type="button"
                   onClick={handleResync}
                   disabled={testing}
-                  className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl bg-card text-muted-foreground hover:text-foreground text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                   title="Re-synchronize subscription with server"
                 >
                   <RefreshCw size={12} className={`shrink-0 ${testing ? 'animate-spin' : ''}`} />
@@ -292,7 +292,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                     }
                   }}
                   disabled={testing}
-                  className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-foreground hover:bg-secondary text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl bg-card text-foreground hover:bg-secondary text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                   title="Simulate 9:00 - 9:30 AM Attendance Reminder and test delivery on your screen"
                 >
                   <Clock size={12} className="shrink-0" />
@@ -314,7 +314,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                     }
                   }}
                   disabled={testing}
-                  className="px-2.5 py-1.5 rounded-xl border border-border bg-card text-foreground hover:bg-secondary text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl bg-card text-foreground hover:bg-secondary text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                   title="Simulate 6:00 - 6:30 PM Evening Clock-Out & EOD Reminder and test delivery on your screen"
                 >
                   <Clock size={12} className="shrink-0" />
@@ -331,7 +331,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
               </div>
 
               {(diagnostics?.backend?.devices || []).length === 0 ? (
-                <div className="p-3 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
+                <div className="p-3 rounded-xl text-center text-xs text-muted-foreground">
                   No active push subscriptions registered in database. Click &quot;Enable Notifications&quot; or &quot;Re-sync&quot; above.
                 </div>
               ) : (
@@ -339,7 +339,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                   {diagnostics.backend.devices.map((dev, idx) => (
                     <div
                       key={idx}
-                      className="p-2 rounded-xl border border-border/80 bg-card flex items-center justify-between text-xs"
+                      className="p-2 rounded-xl bg-card flex items-center justify-between text-xs"
                     >
                       <div className="min-w-0">
                         <p className="font-semibold text-foreground text-[11px] truncate flex items-center gap-1.5">
@@ -350,7 +350,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
                           {dev.endpointDomain} &nbsp;•&nbsp; Registered {new Date(dev.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-secondary border border-border text-foreground shrink-0">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-secondary text-foreground shrink-0">
                         Active
                       </span>
                     </div>
@@ -360,7 +360,7 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
             </div>
 
             {/* Troubleshooting & OS Tips */}
-            <div className="p-3 bg-muted/40 border border-border rounded-xl space-y-2 text-xs">
+            <div className="p-3 bg-muted/40 rounded-xl space-y-2 text-xs">
               <span className="font-bold text-foreground flex items-center gap-1">
                 <HelpCircle size={13} className="text-foreground shrink-0" /> Background Delivery Tips
               </span>
@@ -383,12 +383,12 @@ export const PushDiagnosticsModal = ({ open, onOpenChange }) => {
         )}
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 bg-card px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-3 z-10 select-none">
           <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl border border-border font-semibold text-xs sm:text-sm hover:bg-secondary cursor-pointer transition-colors ml-auto"
+            className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl font-semibold text-xs sm:text-sm hover:bg-secondary cursor-pointer transition-colors ml-auto"
           >
             Close
           </button>

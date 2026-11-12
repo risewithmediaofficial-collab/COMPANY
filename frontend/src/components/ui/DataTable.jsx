@@ -28,7 +28,7 @@ export const DataTable = ({
   canEditRow = null,
   canDeleteRow = null,
   emptyTitle = 'No records found',
-  emptyDescription = 'Get started by creating a new entry.',
+  emptyDescription = '',
   emptyAction = null,
   // maxHeight controls the inline vertical scroll — table body scrolls, header stays fixed
   maxHeight = 'calc(100vh - 350px)',
@@ -38,20 +38,20 @@ export const DataTable = ({
 
   if (loading) {
     return (
-      <div className={cn('overflow-hidden rounded-[28px] border border-border bg-card shadow-sm', className)}>
+      <div className={cn('overflow-hidden rounded-2xl bg-card', className)}>
         <div className={cn('w-full', scrollClass)} style={{ maxHeight }}>
           <table className="w-full min-w-[760px] text-left text-sm">
             <thead className="text-muted-foreground">
               <tr>
                 {columns.map((col, i) => (
-                  <th key={col.key || i} className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">
+                  <th key={col.key || i} className="sticky top-0 z-10 bg-secondary/50 px-4 py-3.5 text-xs font-semibold uppercase tracking-wider sm:px-6">
                     <div className="h-4 w-24 animate-pulse rounded-md bg-secondary" />
                   </th>
                 ))}
-                {hasActions ? <th className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 sm:px-6" /> : null}
+                {hasActions ? <th className="sticky top-0 z-10 bg-secondary/50 px-4 py-3.5 sm:px-6" /> : null}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody>
               {[1, 2, 3, 4, 5].map((row) => (
                 <tr key={row}>
                   {columns.map((col, i) => (
@@ -82,25 +82,25 @@ export const DataTable = ({
   }
 
   return (
-    <div className={cn('overflow-hidden rounded-[28px] border border-border bg-card shadow-sm', className)}>
+    <div className={cn('overflow-hidden rounded-2xl bg-card', className)}>
       <div className={cn('w-full', scrollClass)} style={{ maxHeight }}>
         <table className="w-full min-w-[760px] text-left text-sm">
           {/* Sticky header — stays fixed while rows scroll */}
           <thead className="text-muted-foreground">
             <tr>
               {columns.map((col) => (
-                <th key={col.key} scope="col" className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 font-semibold sm:px-6">
+                <th key={col.key} scope="col" className="sticky top-0 z-10 bg-secondary/60 px-4 py-3.5 text-xs font-semibold uppercase tracking-wider sm:px-6">
                   {col.label}
                 </th>
               ))}
               {hasActions ? (
-                <th scope="col" className="sticky top-0 z-10 border-b border-border bg-card px-4 py-4 text-right font-semibold sm:px-6">
+                <th scope="col" className="sticky top-0 z-10 bg-secondary/60 px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider sm:px-6">
                   Actions
                 </th>
               ) : null}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody>
             {data.map((row) => {
               const interactive = Boolean(onRowClick);
 
@@ -120,8 +120,8 @@ export const DataTable = ({
                       : undefined
                   }
                   className={cn(
-                    'group transition-colors hover:bg-secondary/20',
-                    interactive ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/20' : '',
+                    'group transition-colors hover:bg-secondary/50',
+                    interactive ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand/45' : '',
                   )}
                 >
                   {columns.map((col) => (

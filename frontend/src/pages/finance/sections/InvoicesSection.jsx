@@ -158,7 +158,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
     <div className="space-y-6">
       {/* Top Banner KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+        <div className="bg-card p-4 rounded-xl ">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
             <span>Total Invoiced</span>
             <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -167,7 +167,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           <div className="text-[11px] text-muted-foreground mt-1">Total billed including service & taxes</div>
         </div>
 
-        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+        <div className="bg-card p-4 rounded-xl ">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
             <span>Outstanding Receivables</span>
             <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -176,7 +176,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           <div className="text-[11px] text-muted-foreground mt-1">Pending collection against issued invoices</div>
         </div>
 
-        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+        <div className="bg-card p-4 rounded-xl ">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-1">
             <span>Overdue Invoices</span>
             <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -187,7 +187,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       </div>
 
       {/* Filter and Action Bar */}
-      <div className="bg-card p-4 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-card p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           <div className="relative w-full sm:w-56">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
@@ -196,14 +196,14 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
               placeholder="Search invoice number or client..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-border text-xs text-foreground focus:ring-1 focus:ring-ring bg-background"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring bg-background"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto rounded-lg border border-border px-3 py-1.5 text-xs bg-background text-foreground font-medium cursor-pointer"
+            className="w-full sm:w-auto rounded-lg px-3 py-1.5 text-xs bg-background text-foreground font-medium cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="draft">Drafts</option>
@@ -216,7 +216,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
           <select
             value={clientFilter}
             onChange={(e) => setClientFilter(e.target.value)}
-            className="w-full sm:w-auto rounded-lg border border-border px-3 py-1.5 text-xs bg-background text-foreground font-medium cursor-pointer"
+            className="w-full sm:w-auto rounded-lg px-3 py-1.5 text-xs bg-background text-foreground font-medium cursor-pointer"
           >
             <option value="all">All Clients</option>
             {clients.map((c) => (
@@ -230,14 +230,14 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
           <button
             onClick={handleExport}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border text-foreground font-semibold hover:bg-secondary flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-foreground font-semibold hover:bg-secondary flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
           >
             <Download className="h-3.5 w-3.5 shrink-0" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => onQuickAdd('invoice')}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-2xs flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5 shrink-0" />
             <span>New Invoice</span>
@@ -246,10 +246,10 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       </div>
 
       {/* Invoices Master Table */}
-      <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden flex flex-col">
+      <div className="bg-card rounded-xl overflow-hidden flex flex-col">
         <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
           <table className="w-full min-w-[750px] text-left">
-            <thead className="bg-secondary sticky top-0 z-10 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
+            <thead className="bg-secondary sticky top-0 z-10 text-muted-foreground font-semibold uppercase tracking-wider text-[10px] ">
               <tr>
                 <th className="p-3">Invoice #</th>
                 <th className="p-3">Client</th>
@@ -272,7 +272,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-foreground/[0.05]">
               {sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="p-8 text-center text-muted-foreground">
@@ -308,12 +308,12 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                           inv.displayStatus === 'paid'
                             ? 'bg-primary text-primary-foreground'
                             : inv.displayStatus === 'overdue'
-                            ? 'bg-secondary text-foreground border border-foreground/40 font-bold'
+                            ? 'bg-secondary text-foreground font-bold'
                             : inv.displayStatus === 'partially_paid'
-                            ? 'bg-secondary text-foreground border border-border'
+                            ? 'bg-secondary text-foreground '
                             : inv.displayStatus === 'draft'
-                            ? 'bg-muted text-muted-foreground border border-border'
-                            : 'bg-secondary text-muted-foreground border border-border'
+                            ? 'bg-muted text-muted-foreground '
+                            : 'bg-secondary text-muted-foreground '
                         }`}
                       >
                         {inv.displayStatus || inv.status}
@@ -338,7 +338,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                         {inv.balanceAmount > 0 && inv.status !== 'draft' && inv.status !== 'void' && (
                           <button
                             onClick={() => onRecordPayment(inv)}
-                            className="px-2 py-0.5 rounded bg-secondary border border-border text-foreground hover:bg-muted font-semibold text-[11px] cursor-pointer"
+                            className="px-2 py-0.5 rounded bg-secondary text-foreground hover:bg-muted font-semibold text-[11px] cursor-pointer"
                           >
                             Pay
                           </button>
@@ -371,31 +371,31 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       {/* DETAILED PRINTABLE / DOWNLOADABLE INVOICE VIEW MODAL */}
       <Dialog open={Boolean(selectedInvoice)} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
         {selectedInvoice && (
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
             <div className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
-              <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
+                  <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center shrink-0 text-foreground">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate tabular-nums">
                       {selectedInvoice.invoiceNumber}
                     </DialogTitle>
-                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                    <DialogDescription className="sr-only">
                       Tax Invoice • Rise With Media Agency OS
                     </DialogDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
                     ESC
                   </span>
                   <DialogClose asChild>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-xl bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -406,12 +406,12 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
               {/* Scrollable Body */}
               <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
                 {/* Status & Due Date row */}
-                <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted/30 rounded-xl border border-border">
+                <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted/30 rounded-xl ">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
                       selectedInvoice.status === 'paid'
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-foreground border border-border'
+                        : 'bg-secondary text-foreground '
                     }`}
                   >
                     {selectedInvoice.status}
@@ -422,7 +422,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                 </div>
 
                 {/* Billed to */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl border border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl ">
                   <div>
                     <span className="text-[11px] font-bold text-muted-foreground uppercase">Billed To</span>
                     <div className="font-bold text-foreground text-sm mt-0.5">
@@ -439,9 +439,9 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                 </div>
 
                 {/* Items */}
-                <div className="responsive-table-container rounded-xl border border-border">
+                <div className="responsive-table-container rounded-xl ">
                   <table className="w-full min-w-[500px] text-left text-xs">
-                    <thead className="bg-secondary text-muted-foreground uppercase text-[10px] font-semibold border-b border-border">
+                    <thead className="bg-secondary text-muted-foreground uppercase text-[10px] font-semibold ">
                       <tr>
                         <th className="p-3">Item & Description</th>
                         <th className="p-3">Type</th>
@@ -450,7 +450,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                         <th className="p-3 text-right">Amount</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-foreground/[0.05]">
                       {(selectedInvoice.lineItems || []).map((item, idx) => (
                         <tr key={idx}>
                           <td className="p-3">
@@ -472,7 +472,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                 </div>
 
                 {/* Financial Totals */}
-                <div className="border border-border rounded-xl p-4 space-y-2 text-xs text-muted-foreground bg-muted/20 tabular-nums">
+                <div className="rounded-xl p-4 space-y-2 text-xs text-muted-foreground bg-muted/20 tabular-nums">
                   <div className="flex justify-between">
                     <span>Agency Service Subtotal:</span>
                     <span className="font-semibold text-foreground">{formatINR(selectedInvoice.serviceRevenue ?? selectedInvoice.subtotal)}</span>
@@ -489,7 +489,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                       <span className="font-semibold text-foreground">{formatINR(selectedInvoice.taxAmount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-sm font-bold text-foreground border-t border-border pt-2">
+                  <div className="flex justify-between text-sm font-bold text-foreground pt-2">
                     <span>Total Payable:</span>
                     <span>{formatINR(selectedInvoice.total || selectedInvoice.totalAmount)}</span>
                   </div>
@@ -497,7 +497,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                     <span>Amount Paid:</span>
                     <span>-{formatINR(selectedInvoice.paidAmount || 0)}</span>
                   </div>
-                  <div className="flex justify-between text-sm font-bold text-foreground border-t border-dashed border-border pt-1.5">
+                  <div className="flex justify-between text-sm font-bold text-foreground pt-1.5">
                     <span>Balance Outstanding:</span>
                     <span>{formatINR(selectedInvoice.balanceAmount || 0)}</span>
                   </div>
@@ -505,7 +505,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <button
                   type="button"
                   onClick={() => updateWorkflow.mutate({ id: selectedInvoice._id, workflowStatus: 'void', voidReason: 'Cancelled by user' })}
@@ -518,14 +518,14 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                     type="button"
                     variant="outline"
                     onClick={() => setSelectedInvoice(null)}
-                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium"
+                    className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium"
                   >
                     Close
                   </Button>
                   <Button
                     type="button"
                     onClick={() => handlePrint(selectedInvoice)}
-                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-sm transition-all flex items-center gap-2"
+                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm transition-all flex items-center gap-2"
                   >
                     <Printer className="h-4 w-4 shrink-0" /> Print / Save PDF
                   </Button>
@@ -539,31 +539,31 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
       {/* EDIT INVOICE MODAL */}
       <Dialog open={Boolean(editingInvoice)} onOpenChange={(open) => !open && setEditingInvoice(null)}>
         {editingInvoice && (
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90vh]">
             <form onSubmit={handleSaveEditInvoice} className="flex flex-col min-h-0 h-full">
               {/* Pinned Header */}
-              <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+              <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
+                  <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center shrink-0 text-foreground">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
-                      Edit Invoice
+                      Edit Invoice {editingInvoice.invoiceNumber}
                     </DialogTitle>
-                    <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate tabular-nums">
-                      Update parameters for invoice {editingInvoice.invoiceNumber}
+                    <DialogDescription className="sr-only">
+                      Edit invoice
                     </DialogDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-md">
+                  <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
                     ESC
                   </span>
                   <DialogClose asChild>
                     <button
                       type="button"
-                      className="h-9 w-9 rounded-xl border border-border bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                      className="h-9 w-9 rounded-xl bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -581,7 +581,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                     value={invoiceForm.dueDate}
                     onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
                     onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden cursor-pointer"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-ring/20 transition-all outline-hidden cursor-pointer"
                   />
                 </div>
 
@@ -590,7 +590,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                   <select
                     value={invoiceForm.status}
                     onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   >
                     <option value="unpaid">Unpaid</option>
                     <option value="partially_paid">Partially Paid</option>
@@ -608,7 +608,7 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                     value={invoiceForm.terms}
                     onChange={(e) => setInvoiceForm({ ...invoiceForm, terms: e.target.value })}
                     placeholder="e.g. Net 15 Days"
-                    className="w-full h-11 rounded-xl text-sm border border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden"
+                    className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden"
                   />
                 </div>
 
@@ -619,27 +619,27 @@ export default function InvoicesSection({ onQuickAdd, onRecordPayment }) {
                     value={invoiceForm.notes}
                     onChange={(e) => setInvoiceForm({ ...invoiceForm, notes: e.target.value })}
                     placeholder="Optional internal remarks..."
-                    className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-ring/20 shadow-2xs transition-all outline-hidden resize-none"
+                    className="w-full rounded-xl bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-ring/20 transition-all outline-hidden resize-none"
                   />
                 </div>
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
                 <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setEditingInvoice(null)}
-                    className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                    className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     disabled={updateInvoice.isPending}
-                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                    className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm transition-all w-full sm:w-auto"
                   >
                     {updateInvoice.isPending ? 'Saving...' : 'Save Changes'}
                   </Button>

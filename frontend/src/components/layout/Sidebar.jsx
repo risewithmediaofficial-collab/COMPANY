@@ -41,7 +41,6 @@ import {
   Trash2,
 } from '@/components/ui/muiIcons';
 import { toggleSidebar, setSidebarOpen } from '../../store/slices/uiSlice';
-import { motion } from 'framer-motion';
 import { useSidebarBadges } from '../../hooks/useSidebarBadges';
 import { AppTooltip } from '../ui/tooltip';
 import { preloadRoute } from '../../utils/routePreload';
@@ -330,37 +329,25 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
     return all.filter((item) => pinnedPaths.includes(item.path));
   }, [navSections, pinnedPaths]);
 
-  const sidebarVariants = {
-    mobile: {
-      width: Math.min(270, typeof window !== 'undefined' ? Math.max(260, window.innerWidth - 32) : 270),
-      x: sidebarOpen ? 0 : -300,
-    },
-    desktop: {
-      width: 260,
-      x: 0,
-    },
-  };
-
   return (
     <>
       {/* Mobile Backdrop */}
       {isMobile && sidebarOpen && (
         <div
           onClick={() => dispatch(toggleSidebar())}
-          className="fixed inset-0 bg-black/60 z-40 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/60 z-40 transition-opacity duration-200"
         />
       )}
 
-      <motion.aside
-        initial={false}
-        animate={isMobile ? sidebarVariants.mobile : sidebarVariants.desktop}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="fixed left-0 top-0 h-screen w-[min(270px,calc(100vw-32px))] md:w-[260px] bg-card border-r border-border z-50 flex flex-col shadow-lg select-none"
+      <aside
+        className={`fixed left-0 top-0 h-screen w-[min(270px,calc(100vw-32px))] md:w-[260px] bg-card z-50 flex flex-col select-none transition-transform duration-200 ease-out ${
+          isMobile && !sidebarOpen ? '-translate-x-full pointer-events-none' : 'translate-x-0'
+        }`}
       >
         {/* Workspace Brand / Header */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-border bg-card shrink-0">
+        <div className="h-16 flex items-center justify-between px-4 pt-1 bg-card shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-background border border-border/80 p-1 shadow-xs">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-brand/10 ring-1 ring-brand/25 p-1.5">
               <img
                 src="/branding/rise-with-media-logo.png"
                 alt="RWM logo"
@@ -371,7 +358,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
               <span className="truncate text-sm font-extrabold tracking-tight text-foreground font-sans">
                 RiseWithMedia
               </span>
-              <span className="truncate text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+              <span className="truncate text-[10px] font-bold text-primary uppercase tracking-widest">
                 Agency OS
               </span>
             </div>
@@ -395,13 +382,13 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           {/* Quick Search Shortcut */}
           <button
             onClick={() => onOpenSearch && onOpenSearch()}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-border/70 bg-secondary/30 text-muted-foreground hover:text-foreground hover:bg-secondary/70 hover:border-border transition-all text-xs font-semibold"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-background/80 text-muted-foreground hover:text-foreground hover:bg-background transition-colors text-xs font-semibold cursor-pointer"
           >
             <span className="flex items-center gap-2">
               <Search size={14} className="text-muted-foreground" />
               <span>Search Workspace...</span>
             </span>
-            <kbd className="px-1.5 py-0.5 rounded-md bg-background border border-border text-[10px] font-mono text-muted-foreground">
+            <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono text-muted-foreground">
               ⌘K
             </kbd>
           </button>
@@ -410,7 +397,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
           {pinnedItems.length > 0 && (
             <div className="space-y-0.5">
               <div className="px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase text-muted-foreground/80 flex items-center gap-1.5 font-sans">
-                <Star size={11} className="fill-current text-zinc-600 dark:text-zinc-400" />
+                <Star size={11} className="fill-current text-brand" />
                 <span>Favorites</span>
               </div>
               {pinnedItems.map((item) => {
@@ -420,7 +407,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                     key={`pinned-${item.path}`}
                     className={`group relative flex items-center rounded-xl text-xs font-semibold transition-all ${
                       isActive
-                        ? 'bg-primary text-primary-foreground font-bold shadow-xs'
+                        ? 'bg-primary text-primary-foreground font-bold shadow-[0_6px_16px_-6px_hsl(var(--brand)/0.55)]'
                         : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'
                     }`}
                   >
@@ -483,7 +470,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                         key={item.path}
                         className={`group relative flex items-center rounded-xl text-xs font-semibold transition-all ${
                           isActive
-                            ? 'bg-primary text-primary-foreground font-bold shadow-xs'
+                            ? 'bg-primary text-primary-foreground font-bold shadow-[0_6px_16px_-6px_hsl(var(--brand)/0.55)]'
                             : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'
                         }`}
                       >
@@ -509,7 +496,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                           {/* Badge count if pending */}
                           {count > 0 && (
                             <span className={`ml-2 px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
-                              isActive ? 'bg-primary-foreground/15 text-primary-foreground' : 'bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900'
+                              isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-brand/15 text-primary'
                             }`}>
                               {count}
                             </span>
@@ -524,7 +511,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
                             isPinned
                               ? isActive
                                 ? 'opacity-100 text-primary-foreground'
-                                : 'opacity-100 text-zinc-700 dark:text-zinc-300'
+                                : 'opacity-100 text-brand'
                               : isActive
                                 ? 'opacity-0 group-hover:opacity-100 text-primary-foreground/80 hover:text-primary-foreground'
                                 : 'opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground'
@@ -544,16 +531,16 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
         </div>
 
         {/* Footer / Settings Link */}
-        <div className="p-3 border-t border-border bg-card shrink-0">
+        <div className="p-3 bg-card shrink-0">
           <Link
             to="/settings"
             onMouseEnter={() => preloadRoute('/settings')}
             onFocus={() => preloadRoute('/settings')}
             onTouchStart={() => preloadRoute('/settings')}
             onClick={() => isMobile && dispatch(toggleSidebar())}
-            className={`flex items-center px-3 py-2 min-h-[44px] rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center px-3 py-2 min-h-[44px] rounded-xl text-xs font-semibold transition-colors ${
               pathname === '/settings'
-                ? 'bg-primary/10 text-primary font-bold'
+                ? 'bg-primary text-primary-foreground font-bold'
                 : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'
             }`}
           >
@@ -561,7 +548,7 @@ function SidebarComponent({ onOpenSearch, currentPath }) {
             <span className="ml-2.5 font-sans">Settings</span>
           </Link>
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 }

@@ -1,20 +1,20 @@
 import React from 'react';
 
 const platformStyles = {
-  Meta: 'bg-secondary text-foreground border-border',
-  'Meta Ads': 'bg-secondary text-foreground border-border',
-  Google: 'bg-secondary text-foreground border-border',
-  'Google Ads': 'bg-secondary text-foreground border-border',
-  LinkedIn: 'bg-secondary text-foreground border-border',
-  YouTube: 'bg-secondary text-foreground border-border',
-  TikTok: 'bg-primary text-primary-foreground border-primary',
-  Instagram: 'bg-secondary text-foreground border-border',
+  Meta: 'bg-secondary text-foreground ',
+  'Meta Ads': 'bg-secondary text-foreground ',
+  Google: 'bg-secondary text-foreground ',
+  'Google Ads': 'bg-secondary text-foreground ',
+  LinkedIn: 'bg-secondary text-foreground ',
+  YouTube: 'bg-secondary text-foreground ',
+  TikTok: 'bg-primary text-primary-foreground ',
+  Instagram: 'bg-secondary text-foreground ',
 };
 
 export const PlatformBadge = ({ platform }) => {
-  const style = platformStyles[platform] || 'bg-secondary text-muted-foreground border-border';
+  const style = platformStyles[platform] || 'bg-secondary text-muted-foreground ';
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${style}`}>
       {platform}
     </span>
   );

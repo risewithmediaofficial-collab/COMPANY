@@ -44,14 +44,14 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
   };
 
   return (
-    <div className={`rounded-2xl border transition-all ${compact ? 'p-3' : 'p-5'} ${
+    <div className={`rounded-2xl transition-all ${compact ? 'p-3' : 'p-5'} ${
       responseState === 'yes'
-        ? 'border-foreground/30 bg-secondary/70'
+        ? ' bg-secondary/70'
         : responseState === 'no'
-        ? 'border-foreground/25 bg-secondary/50'
+        ? ' bg-secondary/50'
         : canRespond
-        ? 'border-primary/40 bg-card shadow-sm'
-        : 'border-border bg-card'
+        ? ' bg-card '
+        : ' bg-card'
     }`}>
       {/* Response Status Display */}
       {responseState === 'yes' && (
@@ -71,7 +71,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
       {responseState === 'no' && (
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground">
               <AlertTriangle size={18} />
             </div>
             <div>
@@ -82,7 +82,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
             </div>
           </div>
           {task.clientFeedback && (
-            <div className="rounded-xl border border-border bg-background p-3 text-xs text-foreground">
+            <div className="rounded-xl bg-background p-3 text-xs text-foreground">
               <p className="font-semibold text-muted-foreground mb-1">Your notes to the team:</p>
               <p className="whitespace-pre-wrap">{task.clientFeedback}</p>
             </div>
@@ -95,12 +95,11 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
         <div>
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary border border-border text-foreground">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
                 <Sparkles size={15} />
               </span>
               <div>
                 <h4 className="text-sm font-bold text-foreground">Ready for Your Sign-off</h4>
-                <p className="text-xs text-muted-foreground">Please review the deliverables above and confirm your approval.</p>
               </div>
             </div>
           </div>
@@ -110,7 +109,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
               type="button"
               onClick={() => handleRespond('yes')}
               disabled={submitResponse.isPending}
-              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs font-semibold px-4 text-xs h-9"
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 text-xs h-9"
             >
               {submitResponse.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
               Approve Deliverable
@@ -120,7 +119,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
               variant="outline"
               onClick={() => setShowFeedback((curr) => !curr)}
               disabled={submitResponse.isPending}
-              className="gap-2 text-xs font-semibold h-9 px-4 border-border hover:bg-secondary"
+              className="gap-2 text-xs font-semibold h-9 px-4 hover:bg-secondary"
             >
               <MessageSquarePlus size={14} />
               {showFeedback ? 'Close Feedback' : 'Request Changes'}
@@ -128,7 +127,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
           </div>
 
           {showFeedback && (
-            <div className="mt-3.5 space-y-3 rounded-xl border border-border bg-background p-3.5">
+            <div className="mt-3.5 space-y-3 rounded-xl bg-background p-3.5">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-foreground">What adjustments are needed?</p>
                 <button
@@ -144,7 +143,7 @@ export const ClientTaskResponsePanel = ({ task, onSubmitted, compact = false }) 
                 onChange={(event) => setFeedback(event.target.value)}
                 placeholder="Describe the adjustments needed (e.g., text edits, layout adjustments, additional features)..."
                 rows={3}
-                className="w-full resize-none rounded-xl border border-border bg-card px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                className="w-full resize-none rounded-xl bg-card px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/20"
               />
               <div className="flex justify-end gap-2">
                 <Button

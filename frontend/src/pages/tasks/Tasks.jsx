@@ -35,6 +35,9 @@ import {
   Search,
   Laptop,
   FileText,
+  ListChecks,
+  Maximize2,
+  Minimize2,
 } from '@/components/ui/muiIcons';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getPersonColor, extractTaskAssignees, PersonAssigneeBadge } from '../../utils/personColors';
@@ -333,6 +336,12 @@ const Tasks = () => {
   const [workflowTaskId, setWorkflowTaskId] = useState(null);
   const [showWorkflowDrawer, setShowWorkflowDrawer] = useState(false);
   const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [expandedMobileTaskIds, setExpandedMobileTaskIds] = useState({});
+
+  const toggleMobileTaskExpand = (e, taskId) => {
+    e.stopPropagation();
+    setExpandedMobileTaskIds((prev) => ({ ...prev, [taskId]: !prev[taskId] }));
+  };
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') || searchParams.get('team');
@@ -686,7 +695,7 @@ const Tasks = () => {
           <div className="flex items-center gap-1.5 font-bold text-foreground text-xs hover:text-foreground/80 transition-colors">
             <span className="truncate">{row.taskTitle || row.title}</span>
             {row.isOverTarget && (
-              <span className="inline-flex items-center gap-1 rounded bg-primary border border-primary px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary-foreground shrink-0">
+              <span className="inline-flex items-center gap-1 rounded bg-primary px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary-foreground shrink-0">
                 <AlertTriangle size={9} />
                 <span>Over Task</span>
               </span>
@@ -729,7 +738,7 @@ const Tasks = () => {
                   const name = row.scriptWriterAssigned.name || row.scriptWriterName || 'Writer';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                    <span className={`px-1.5 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
                       <FileEdit size={10} />
                       <span>{name}</span>
                     </span>
@@ -739,7 +748,7 @@ const Tasks = () => {
                   const name = row.voiceArtistAssigned.name || row.voiceArtistName || 'RJ / Voice';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                    <span className={`px-1.5 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
                       <Mic size={10} />
                       <span>{name}</span>
                     </span>
@@ -749,7 +758,7 @@ const Tasks = () => {
                   const name = row.videographerAssigned.name || row.videographerName || 'Videographer';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                    <span className={`px-1.5 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
                       <Video size={10} />
                       <span>{name}</span>
                     </span>
@@ -759,7 +768,7 @@ const Tasks = () => {
                   const name = row.editorAssigned.name || row.editorName || 'Editor';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                    <span className={`px-1.5 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
                       <Scissors size={10} />
                       <span>{name}</span>
                     </span>
@@ -769,7 +778,7 @@ const Tasks = () => {
                   const name = row.publisherAssigned.name || row.publisherName || 'Publisher';
                   const c = getPersonColor(name);
                   return (
-                    <span className={`px-1.5 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                    <span className={`px-1.5 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
                       <Smartphone size={10} />
                       <span>{name}</span>
                     </span>
@@ -789,7 +798,7 @@ const Tasks = () => {
           value={row.status}
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => updateStatusMutation.mutate({ id: row._id, status: e.target.value })}
-          className="rounded-xl border border-border bg-background px-2.5 py-1 text-xs font-semibold text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15 cursor-pointer"
+          className="rounded-xl bg-background px-2.5 py-1 text-xs font-semibold text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/15 cursor-pointer"
         >
           {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((option) => (
             <option key={option} value={option}>
@@ -819,7 +828,7 @@ const Tasks = () => {
               {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '—'}
             </span>
             {overdue && (
-              <span className="px-1.5 py-0.5 rounded-md bg-primary border border-primary text-[9px] font-bold text-primary-foreground shrink-0">
+              <span className="px-1.5 py-0.5 rounded-md bg-primary text-[9px] font-bold text-primary-foreground shrink-0">
                 Overdue
               </span>
             )}
@@ -853,12 +862,12 @@ const Tasks = () => {
                 </span>
               )}
               {row.isAccepted && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-secondary text-foreground border border-border">
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-secondary text-foreground ">
                   Accepted
                 </span>
               )}
               {overdue && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground border border-primary">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground ">
                   <AlertTriangle size={9} />
                   <span>Overdue</span>
                 </span>
@@ -933,7 +942,7 @@ const Tasks = () => {
           <Button
             size="sm"
             onClick={handleOpenCreateGeneral}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
           >
             <Plus size={15} className="mr-1 stroke-[2.5]" />
             New Task
@@ -946,10 +955,10 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('all')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'all'
-                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
-                : 'bg-card border-border text-foreground hover:bg-secondary/80'
+                ? 'bg-primary text-primary-foreground ring-2 ring-primary/20'
+                : 'bg-card text-foreground hover:bg-secondary/80'
             }`}
           >
             <CheckSquare size={13} />
@@ -960,10 +969,10 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('inProgress')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'inProgress'
-                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
-                : 'bg-card border-border text-foreground hover:bg-secondary/80'
+                ? 'bg-primary text-primary-foreground ring-2 ring-primary/20'
+                : 'bg-card text-foreground hover:bg-secondary/80'
             }`}
           >
             <Clock size={13} />
@@ -974,10 +983,10 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('done')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'done'
-                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
-                : 'bg-card border-border text-foreground hover:bg-secondary/80'
+                ? 'bg-primary text-primary-foreground ring-2 ring-primary/20'
+                : 'bg-card text-foreground hover:bg-secondary/80'
             }`}
           >
             <CheckCircle2 size={13} />
@@ -988,12 +997,12 @@ const Tasks = () => {
           <button
             type="button"
             onClick={() => handleQuickFilterChange('overdue')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
               quickFilter === 'overdue'
-                ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
+                ? 'bg-primary text-primary-foreground ring-2 ring-primary/20'
                 : taskMetrics.overdue > 0
-                ? 'bg-secondary border-foreground/30 text-foreground hover:bg-secondary/80'
-                : 'bg-card border-border text-muted-foreground hover:bg-secondary/80'
+                ? 'bg-secondary text-foreground hover:bg-secondary/80'
+                : 'bg-card text-muted-foreground hover:bg-secondary/80'
             }`}
           >
             <AlertTriangle size={13} />
@@ -1005,10 +1014,10 @@ const Tasks = () => {
             <button
               type="button"
               onClick={() => handleQuickFilterChange('overTarget')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none tabular-nums ${
                 quickFilter === 'overTarget'
-                  ? 'bg-primary text-primary-foreground border-primary shadow-xs ring-2 ring-primary/20'
-                  : 'bg-secondary border-foreground/30 text-foreground hover:bg-secondary/80'
+                  ? 'bg-primary text-primary-foreground ring-2 ring-primary/20'
+                  : 'bg-secondary text-foreground hover:bg-secondary/80'
               }`}
             >
               <AlertTriangle size={13} />
@@ -1021,7 +1030,7 @@ const Tasks = () => {
             <button
               type="button"
               onClick={() => setQuickFilter('all')}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary hover:bg-secondary/80 border border-border transition-all cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground bg-secondary hover:bg-secondary/80 transition-all cursor-pointer"
             >
               <X size={13} />
               <span>Clear Filter</span>
@@ -1042,10 +1051,10 @@ const Tasks = () => {
         )}
 
         {/* ── TODAY'S DELIVERABLES OVERVIEW (Agency-Wide for Admin/SuperAdmin, Personal for Employee) ── */}
-        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs space-y-3.5 transition-all">
+        <div className="rounded-2xl bg-card p-4 sm:p-5 space-y-3.5 transition-all">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
                 <Calendar size={18} />
               </div>
               <div className="min-w-0">
@@ -1053,26 +1062,10 @@ const Tasks = () => {
                   <h3 className="text-sm sm:text-base font-bold text-foreground tracking-tight">
                     Today&apos;s Deliverables &amp; Action Items
                   </h3>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border tabular-nums">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground tabular-nums">
                     {todayTasks.length} {todayTasks.length === 1 ? 'Task' : 'Tasks'}
                   </span>
-                  {isEmployee ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">
-                      <User size={10} />
-                      <span>My Assigned Deliverables</span>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">
-                      <ShieldCheck size={10} />
-                      <span>Agency-Wide Overview</span>
-                    </span>
-                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {isEmployee
-                    ? "Deliverables, scheduled shoots, edits, and deadlines assigned to you for today."
-                    : "Agency-wide deliverables, scheduled shoots, edits, and deadlines across all assignees today."}
-                </p>
               </div>
             </div>
 
@@ -1080,7 +1073,7 @@ const Tasks = () => {
               <button
                 type="button"
                 onClick={() => setShowTodayTray((prev) => !prev)}
-                className="p-1.5 rounded-xl border border-border bg-background hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                className="p-1.5 rounded-xl bg-background hover:bg-secondary text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                 title={showTodayTray ? 'Collapse overview' : 'Expand overview'}
               >
                 {showTodayTray ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -1091,13 +1084,8 @@ const Tasks = () => {
           {showTodayTray && (
             <>
               {todayTasks.length === 0 ? (
-                <div className="p-6 text-center rounded-xl bg-secondary/40 border border-dashed border-border text-xs text-muted-foreground space-y-1">
-                  <p className="font-semibold text-foreground">All clear for today!</p>
-                  <p>
-                    {isEmployee
-                      ? "You have no deliverables or tasks scheduled for today."
-                      : "No team members have deliverables due or scheduled for today."}
-                  </p>
+                <div className="p-5 text-center rounded-xl bg-secondary/40 text-xs text-muted-foreground">
+                  <p className="font-semibold text-foreground">No deliverables today</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -1107,7 +1095,7 @@ const Tasks = () => {
                     return (
                       <div
                         key={t._id}
-                        className="p-3.5 rounded-xl border border-border bg-background hover:border-foreground/40 hover:shadow-md transition-all flex flex-col justify-between space-y-3 relative group"
+                        className="p-3.5 rounded-xl bg-background transition-all flex flex-col justify-between space-y-3 relative group"
                       >
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between gap-1 flex-wrap">
@@ -1116,7 +1104,7 @@ const Tasks = () => {
                             </span>
                             <div className="flex items-center gap-1.5">
                               {overdue && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground border border-primary">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground ">
                                   <AlertTriangle size={9} />
                                   <span>Overdue</span>
                                 </span>
@@ -1154,19 +1142,19 @@ const Tasks = () => {
                           {(t.scriptWriterAssigned || t.videographerAssigned || t.editorAssigned) && (
                             <div className="flex flex-wrap gap-1 text-[9px] pt-0.5">
                               {t.scriptWriterAssigned && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-semibold">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground font-semibold">
                                   <FileEdit size={9} />
                                   <span>{t.scriptWriterAssigned.name || 'Writer'}</span>
                                 </span>
                               )}
                               {t.videographerAssigned && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-semibold">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground font-semibold">
                                   <Video size={9} />
                                   <span>{t.videographerAssigned.name || 'Videographer'}</span>
                                 </span>
                               )}
                               {t.editorAssigned && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-semibold">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary text-foreground font-semibold">
                                   <Scissors size={9} />
                                   <span>{t.editorAssigned.name || 'Editor'}</span>
                                 </span>
@@ -1176,11 +1164,11 @@ const Tasks = () => {
                         </div>
 
                         {/* Footer with status selector & FULL VIEW button */}
-                        <div className="pt-2 border-t border-border flex items-center justify-between gap-2">
+                        <div className="pt-2 flex items-center justify-between gap-2">
                           <select
                             value={t.status}
                             onChange={(e) => updateStatusMutation.mutate({ id: t._id, status: e.target.value })}
-                            className="rounded-lg border border-border bg-card px-2 py-0.5 text-[11px] font-bold text-foreground outline-none transition-all focus:border-primary max-w-[125px] truncate cursor-pointer"
+                            className="rounded-lg bg-card px-2 py-0.5 text-[11px] font-bold text-foreground outline-none focus:ring-2 focus:ring-brand/40 transition-all max-w-[125px] truncate cursor-pointer"
                           >
                             {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
                               <option key={opt} value={opt}>
@@ -1200,7 +1188,7 @@ const Tasks = () => {
                             </button>
                             <Link
                               to={`/tasks/${t._id}`}
-                              className="px-2.5 py-1 rounded-lg bg-secondary hover:bg-primary text-foreground hover:text-primary-foreground border border-border text-[11px] font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-secondary hover:bg-primary text-foreground hover:text-primary-foreground text-[11px] font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
                               title="Open Full Page View"
                             >
                               <span>Full View</span>
@@ -1229,13 +1217,13 @@ const Tasks = () => {
               {/* Filter Dropdowns Group */}
               <div className="flex items-center gap-2 flex-wrap min-w-0">
                 {/* Team Department Segmented Switcher */}
-                <div className="flex items-center p-0.5 rounded-xl border border-border bg-secondary/40 shrink-0 gap-0.5">
+                <div className="flex items-center p-0.5 rounded-xl bg-secondary/40 shrink-0 gap-0.5">
                   <button
                     type="button"
                     onClick={() => handleDepartmentFilterChange('all')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                       departmentFilter === 'all'
-                        ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                        ? 'bg-primary text-primary-foreground font-bold'
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                     }`}
                   >
@@ -1245,7 +1233,7 @@ const Tasks = () => {
                       className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
                         departmentFilter === 'all'
                           ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-background text-muted-foreground border border-border'
+                          : 'bg-background text-muted-foreground '
                       }`}
                     >
                       {taskCountsByDepartment.all}
@@ -1256,7 +1244,7 @@ const Tasks = () => {
                     onClick={() => handleDepartmentFilterChange('content')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                       departmentFilter === 'content'
-                        ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                        ? 'bg-primary text-primary-foreground font-bold'
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                     }`}
                   >
@@ -1266,7 +1254,7 @@ const Tasks = () => {
                       className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
                         departmentFilter === 'content'
                           ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-background text-muted-foreground border border-border'
+                          : 'bg-background text-muted-foreground '
                       }`}
                     >
                       {taskCountsByDepartment.content}
@@ -1277,7 +1265,7 @@ const Tasks = () => {
                     onClick={() => handleDepartmentFilterChange('non_content')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                       departmentFilter === 'non_content'
-                        ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                        ? 'bg-primary text-primary-foreground font-bold'
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                     }`}
                   >
@@ -1287,7 +1275,7 @@ const Tasks = () => {
                       className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums ${
                         departmentFilter === 'non_content'
                           ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-background text-muted-foreground border border-border'
+                          : 'bg-background text-muted-foreground '
                       }`}
                     >
                       {taskCountsByDepartment.non_content}
@@ -1365,7 +1353,7 @@ const Tasks = () => {
                   size="sm"
                   variant="ghost"
                   onClick={clearAllFilters}
-                  className="h-8 px-2.5 text-xs text-foreground bg-secondary hover:bg-secondary/80 border border-border inline-flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
+                  className="h-8 px-2.5 text-xs text-foreground bg-secondary hover:bg-secondary/80 inline-flex items-center gap-1 rounded-xl transition-all font-bold cursor-pointer tabular-nums"
                   title="Clear all active filters"
                 >
                   <RotateCcw size={12} />
@@ -1394,7 +1382,7 @@ const Tasks = () => {
                 }
                 onDelete={canDelete ? (id) => setDeleteTaskId(id) : undefined}
                 emptyTitle="No tasks found"
-                emptyDescription="Create a task to assign scripting, filming, editing, or publishing deliverables."
+                emptyDescription=""
               />
             </div>
 
@@ -1403,199 +1391,237 @@ const Tasks = () => {
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((n) => (
-                    <div key={n} className="h-28 rounded-2xl bg-card border border-border animate-pulse p-4" />
+                    <div key={n} className="h-28 rounded-2xl bg-card animate-pulse p-4" />
                   ))}
                 </div>
               ) : displayedTasks.length === 0 ? (
-                <div className="p-8 text-center bg-card rounded-2xl border border-border text-xs text-muted-foreground">
-                  No tasks found. Click "New Task" to create one.
+                <div className="p-8 text-center bg-card rounded-2xl text-xs text-muted-foreground">
+                  No tasks found
                 </div>
               ) : (
-                displayedTasks.map((task) => (
+                displayedTasks.map((task) => {
+                  const isExpanded = Boolean(expandedMobileTaskIds[task._id]);
+                  const checklist = Array.isArray(task.checklist) ? task.checklist : [];
+                  const completedChecklistCount = checklist.filter((i) => i.isCompleted).length;
+                  const categoryLabel = formatTaskTypeLabel(task.taskType) || task.taskType || (task.taskCategory === 'content' ? 'Content' : 'Task');
+
+                  return (
                   <div
                     key={task._id}
                     onClick={() => handleRowClick(task)}
-                    className="p-4 rounded-2xl border border-border bg-card shadow-xs hover:border-foreground/40 transition-all space-y-3 cursor-pointer active:scale-[0.99]"
+                    className="p-4 rounded-2xl bg-card transition-all space-y-2.5 cursor-pointer active:scale-[0.99]"
                   >
+                    {/* Compact Initial Row 1: Name + Enlarge Button */}
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-foreground text-sm leading-snug">
-                          {task.taskTitle || task.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {task.client?.company || task.client?.name || task.clientName || 'Internal Task'}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
-                          {task.priority || 'Medium'}
-                        </StatusBadge>
-                        {canCreate && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openTaskDetail(task._id);
-                            }}
-                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                            title="Open Task"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                        )}
-                        {canDelete && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteTaskId(task._id);
-                            }}
-                            className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                            title="Delete Task"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
+                      <h4 className="font-bold text-foreground text-sm leading-snug flex-1 min-w-0 line-clamp-2">
+                        {task.taskTitle || task.title}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={(e) => toggleMobileTaskExpand(e, task._id)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-secondary/80 hover:bg-secondary text-foreground text-[10px] font-semibold shrink-0 transition-colors cursor-pointer"
+                        title={isExpanded ? 'Collapse card' : 'Enlarge card'}
+                        aria-label={isExpanded ? 'Collapse card' : 'Enlarge card'}
+                      >
+                        {isExpanded ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
+                        <span>{isExpanded ? 'Less' : 'Enlarge'}</span>
+                      </button>
                     </div>
 
-                    {/* Assignees & Sub-roles */}
-                    {(() => {
-                      const assignees = extractTaskAssignees(task);
-                      return (
-                        <div className="space-y-1.5 pt-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {assignees.length > 0 ? (
-                              assignees.map((person, pIdx) => (
-                                <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
-                              ))
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-secondary text-muted-foreground border border-border">
-                                <User size={10} /> Unassigned
-                              </span>
+                    {/* Compact Initial Row 2: Category + Tasks */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap tabular-nums">
+                      <span className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold bg-secondary text-foreground truncate max-w-[175px]">
+                        {task.taskCategory === 'content' ? <Video size={11} className="shrink-0" /> : <Code2 size={11} className="shrink-0" />}
+                        <span className="truncate">{categoryLabel}</span>
+                      </span>
+
+                      <span className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold bg-secondary/70 text-foreground">
+                        <ListChecks size={12} className="shrink-0 text-muted-foreground" />
+                        <span>
+                          {checklist.length > 0 ? `${completedChecklistCount}/${checklist.length} tasks` : `${checklist.length} tasks`}
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Remaining Details Revealed When Enlarged */}
+                    {isExpanded && (
+                      <div className="space-y-3 pt-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-muted-foreground truncate">
+                            {task.client?.company || task.client?.name || task.clientName || 'Internal Task'}
+                          </p>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <StatusBadge tone={priorityTone[task.priority] || 'neutral'}>
+                              {task.priority || 'Medium'}
+                            </StatusBadge>
+                            {canCreate && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openTaskDetail(task._id);
+                                }}
+                                className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                title="Open Task"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                            )}
+                            {canDelete && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTaskId(task._id);
+                                }}
+                                className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                                title="Delete Task"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             )}
                           </div>
-
-                          {(task.scriptWriterAssigned || task.voiceArtistAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
-                            <div className="flex flex-wrap gap-1 text-[10px]">
-                              {task.scriptWriterAssigned && (() => {
-                                const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
-                                const c = getPersonColor(name);
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    <FileEdit size={10} />
-                                    <span>{name}</span>
-                                  </span>
-                                );
-                              })()}
-                              {task.voiceArtistAssigned && (() => {
-                                const name = task.voiceArtistAssigned.name || task.voiceArtistName || 'RJ / Voice';
-                                const c = getPersonColor(name);
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    <Mic size={10} />
-                                    <span>{name}</span>
-                                  </span>
-                                );
-                              })()}
-                              {task.videographerAssigned && (() => {
-                                const name = task.videographerAssigned.name || task.videographerName || 'Videographer';
-                                const c = getPersonColor(name);
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    <Video size={10} />
-                                    <span>{name}</span>
-                                  </span>
-                                );
-                              })()}
-                              {task.editorAssigned && (() => {
-                                const name = task.editorAssigned.name || task.editorName || 'Editor';
-                                const c = getPersonColor(name);
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    <Scissors size={10} />
-                                    <span>{name}</span>
-                                  </span>
-                                );
-                              })()}
-                              {task.publisherAssigned && (() => {
-                                const name = task.publisherAssigned.name || task.publisherName || 'Publisher';
-                                const c = getPersonColor(name);
-                                return (
-                                  <span className={`px-2 py-0.5 rounded-md border font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
-                                    <Smartphone size={10} />
-                                    <span>{name}</span>
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          )}
-
-                          {/* Development Pipeline Workflow in List/Table view */}
-                          {(task.department === 'Development' || task.development?.isDevTask || isWebsiteTaskType(task.taskType)) && (
-                            <div className="flex flex-wrap items-center gap-1.5 text-[10px] pt-1">
-                              <span className={`px-2 py-0.5 rounded-md border font-bold inline-flex items-center gap-1 shadow-2xs ${
-                                task.development?.isBlocked
-                                  ? 'bg-primary text-primary-foreground border-primary'
-                                  : 'bg-secondary text-foreground border-border'
-                              }`}>
-                                <Code2 size={11} />
-                                <span>Dev: {task.development?.isBlocked ? 'Blocked' : (DEV_STAGE_SHORT_LABELS[task.development?.stage] || 'In Dev')}</span>
-                              </span>
-                              {task.development?.reviewer && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border font-semibold bg-secondary text-foreground border-border">
-                                  <Search size={10} />
-                                  <span>Review: {task.development.reviewer.name || 'Reviewer'}</span>
-                                </span>
-                              )}
-                              {task.development?.tester && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border font-semibold bg-secondary text-foreground border-border">
-                                  <ShieldCheck size={10} />
-                                  <span>QA: {task.development.tester.name || 'Tester'}</span>
-                                </span>
-                              )}
-                            </div>
-                          )}
                         </div>
-                      );
-                    })()}
 
-                    {/* Status Select & Due Date */}
-                    <div className="flex items-center justify-between pt-2.5 border-t border-border gap-2">
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <select
-                          value={task.status}
-                          onChange={(e) => updateStatusMutation.mutate({ id: task._id, status: e.target.value })}
-                          className="rounded-xl border border-border bg-background px-2.5 py-1 text-xs font-bold text-foreground outline-none transition-all focus:border-primary cursor-pointer"
-                        >
-                          {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-wrap tabular-nums">
-                        {task.createdAt && (
-                          <div className="text-[11px] inline-flex items-center gap-1 text-muted-foreground">
-                            <Calendar size={11} className="text-muted-foreground shrink-0" />
-                            <span>Created {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                          </div>
-                        )}
+                        {/* Assignees & Sub-roles */}
                         {(() => {
-                          const overdue = isTaskOverdue(task);
+                          const assignees = extractTaskAssignees(task);
                           return (
-                            <div className={`text-[11px] inline-flex items-center gap-1 font-medium ${overdue ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
-                              {overdue ? <AlertTriangle size={12} className="text-foreground shrink-0" /> : <Clock size={12} className="text-muted-foreground shrink-0" />}
-                              <span>{task.dueDate ? `${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString()}` : 'No deadline'}</span>
+                            <div className="space-y-1.5">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                {assignees.length > 0 ? (
+                                  assignees.map((person, pIdx) => (
+                                    <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
+                                  ))
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium bg-secondary text-muted-foreground ">
+                                    <User size={10} /> Unassigned
+                                  </span>
+                                )}
+                              </div>
+
+                              {(task.scriptWriterAssigned || task.voiceArtistAssigned || task.videographerAssigned || task.editorAssigned || task.publisherAssigned) && (
+                                <div className="flex flex-wrap gap-1 text-[10px]">
+                                  {task.scriptWriterAssigned && (() => {
+                                    const name = task.scriptWriterAssigned.name || task.scriptWriterName || 'Writer';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-2 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                        <FileEdit size={10} />
+                                        <span>{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.voiceArtistAssigned && (() => {
+                                    const name = task.voiceArtistAssigned.name || task.voiceArtistName || 'RJ / Voice';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-2 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                        <Mic size={10} />
+                                        <span>{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.videographerAssigned && (() => {
+                                    const name = task.videographerAssigned.name || task.videographerName || 'Videographer';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-2 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                        <Video size={10} />
+                                        <span>{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.editorAssigned && (() => {
+                                    const name = task.editorAssigned.name || task.editorName || 'Editor';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-2 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                        <Scissors size={10} />
+                                        <span>{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                  {task.publisherAssigned && (() => {
+                                    const name = task.publisherAssigned.name || task.publisherName || 'Publisher';
+                                    const c = getPersonColor(name);
+                                    return (
+                                      <span className={`px-2 py-0.5 rounded-md font-semibold inline-flex items-center gap-1 ${c.bg} ${c.text} ${c.border}`}>
+                                        <Smartphone size={10} />
+                                        <span>{name}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+
+                              {(task.department === 'Development' || task.development?.isDevTask || isWebsiteTaskType(task.taskType)) && (
+                                <div className="flex flex-wrap items-center gap-1.5 text-[10px] pt-1">
+                                  <span className={`px-2 py-0.5 rounded-md font-bold inline-flex items-center gap-1 ${
+                                    task.development?.isBlocked
+                                      ? 'bg-primary text-primary-foreground '
+                                      : 'bg-secondary text-foreground '
+                                  }`}>
+                                    <Code2 size={11} />
+                                    <span>Dev: {task.development?.isBlocked ? 'Blocked' : (DEV_STAGE_SHORT_LABELS[task.development?.stage] || 'In Dev')}</span>
+                                  </span>
+                                  {task.development?.reviewer && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold bg-secondary text-foreground ">
+                                      <Search size={10} />
+                                      <span>Review: {task.development.reviewer.name || 'Reviewer'}</span>
+                                    </span>
+                                  )}
+                                  {task.development?.tester && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold bg-secondary text-foreground ">
+                                      <ShieldCheck size={10} />
+                                      <span>QA: {task.development.tester.name || 'Tester'}</span>
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           );
                         })()}
+
+                        {/* Status Select & Due Date */}
+                        <div className="flex items-center justify-between pt-2 gap-2">
+                          <div onClick={(e) => e.stopPropagation()}>
+                            <select
+                              value={task.status}
+                              onChange={(e) => updateStatusMutation.mutate({ id: task._id, status: e.target.value })}
+                              className="rounded-xl bg-background px-2.5 py-1 text-xs font-bold text-foreground outline-none focus:ring-2 focus:ring-brand/40 transition-all cursor-pointer"
+                            >
+                              {(isEmployee ? TEAM_STATUS_OPTIONS : TASK_STATUS_OPTIONS).map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-wrap tabular-nums">
+                            {task.createdAt && (
+                              <div className="text-[11px] inline-flex items-center gap-1 text-muted-foreground">
+                                <Calendar size={11} className="text-muted-foreground shrink-0" />
+                                <span>Created {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                              </div>
+                            )}
+                            {(() => {
+                              const overdue = isTaskOverdue(task);
+                              return (
+                                <div className={`text-[11px] inline-flex items-center gap-1 font-medium ${overdue ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
+                                  {overdue ? <AlertTriangle size={12} className="text-foreground shrink-0" /> : <Clock size={12} className="text-muted-foreground shrink-0" />}
+                                  <span>{task.dueDate ? `${overdue ? 'Overdue: ' : 'Due '}${new Date(task.dueDate).toLocaleDateString()}` : 'No deadline'}</span>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -1653,8 +1679,8 @@ const Tasks = () => {
       <AlertDialog open={!!deleteTaskId} onOpenChange={(open) => !open && setDeleteTaskId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Task</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+            <AlertDialogDescription className="sr-only">
               Are you sure you want to delete this task? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

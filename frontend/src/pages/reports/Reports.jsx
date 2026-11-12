@@ -9,8 +9,6 @@ import {
   FileSpreadsheet, FileText, Calendar, Clock, PhoneCall, Eye, X,
 } from '@/components/ui/muiIcons';
 import { useAdminReport, useMonthlyEmployeeReport } from '../../hooks/useReports';
-import { motion } from 'framer-motion';
-import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import { formatINR } from '../../utils/currency';
 import { useDateFilter } from '../../context/DateFilterContext';
@@ -23,7 +21,7 @@ import {
   DialogClose,
 } from '../../components/ui/dialog';
 
-const COLORS = ['hsl(var(--foreground))', '#52525b', '#71717a', '#a1a1aa', '#3f3f46', '#d4d4d8'];
+const COLORS = ['#12B7D4', '#0891b2', '#38bdf8', '#0284c7', '#64748b', '#94a3b8'];
 
 const formatTime = (isoString) => {
   if (!isoString) return '--:--';
@@ -89,12 +87,12 @@ const Reports = () => {
   if (isLoading) {
     return (
       <div className="space-y-6 animate-pulse">
-        <div className="h-32 bg-card rounded-3xl border border-border" />
-        <div className="grid grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-28 bg-card rounded-2xl border border-border" />)}
+        <div className="h-32 bg-card rounded-3xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <div key={i} className="h-28 bg-card rounded-2xl" />)}
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          {[1,2].map(i => <div key={i} className="h-72 bg-card rounded-2xl border border-border" />)}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {[1,2].map(i => <div key={i} className="h-72 bg-card rounded-2xl" />)}
         </div>
       </div>
     );
@@ -278,7 +276,8 @@ const Reports = () => {
     }
   ];
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    const { default: jsPDF } = await import('jspdf');
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
@@ -382,15 +381,14 @@ const Reports = () => {
             <BarChart3 size={24} className="text-foreground shrink-0" />
             <span>Analytics &amp; Reports</span>
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Company-wide revenue, pipeline health, and delivery metrics.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {activeTab === 'employees' && (
-            <div className="flex items-center gap-2 bg-card border border-border rounded-xl p-1 shadow-xs">
+            <div className="flex items-center gap-2 bg-card rounded-xl p-1">
               <select
                 value={reportMonth}
                 onChange={(e) => setReportMonth(parseInt(e.target.value, 10))}
-                className="app-select !py-1 !px-2.5 !text-xs font-bold w-32 border-none bg-transparent"
+                className="app-select !py-1.5 !px-2.5 !text-xs font-bold w-32 bg-transparent"
               >
                 {MONTHS.map(m => (
                   <option key={m.value} value={m.value}>{m.label}</option>
@@ -399,7 +397,7 @@ const Reports = () => {
               <select
                 value={reportYear}
                 onChange={(e) => setReportYear(parseInt(e.target.value, 10))}
-                className="app-select !py-1 !px-2.5 !text-xs font-bold w-24 border-none bg-transparent tabular-nums"
+                className="app-select !py-1.5 !px-2.5 !text-xs font-bold w-24 bg-transparent tabular-nums"
               >
                 {YEARS.map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -409,14 +407,14 @@ const Reports = () => {
           )}
           <button
             onClick={handleDownloadPDF}
-            className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-secondary cursor-pointer"
           >
             <FileText size={16} className="shrink-0" />
             <span>PDF</span>
           </button>
           <button
             onClick={handleDownloadExcel}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 cursor-pointer"
           >
             <FileSpreadsheet size={16} className="shrink-0" />
             <span>Excel</span>
@@ -425,19 +423,23 @@ const Reports = () => {
       </div>
 
       {/* Tab Switcher */}
-      <div className="border-b border-border flex items-center gap-6 overflow-x-auto custom-scrollbar">
+      <div className="inline-flex items-center gap-1 rounded-xl bg-card p-1 overflow-x-auto custom-scrollbar max-w-full">
         <button
           onClick={() => setActiveTab('overall')}
-          className={`pb-3 text-sm font-bold border-b-2 transition-colors shrink-0 min-h-[40px] ${
-            activeTab === 'overall' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+          className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors shrink-0 min-h-[38px] cursor-pointer ${
+            activeTab === 'overall'
+              ? 'bg-background text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Overall Summary
         </button>
         <button
           onClick={() => setActiveTab('employees')}
-          className={`pb-3 text-sm font-bold border-b-2 transition-colors shrink-0 min-h-[40px] ${
-            activeTab === 'employees' ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+          className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors shrink-0 min-h-[38px] cursor-pointer ${
+            activeTab === 'employees'
+              ? 'bg-background text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Employee Monthly Summary
@@ -448,20 +450,17 @@ const Reports = () => {
         <>
           {/* KPI Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {kpiCards.map((card, i) => (
-              <motion.div
+            {kpiCards.map((card) => (
+              <div
                 key={card.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-card rounded-2xl border border-border shadow-xs p-5 flex items-start gap-4 card-hover"
+                className="bg-card rounded-2xl p-5 sm:p-6 flex items-start gap-4 card-hover"
               >
-                <div className="p-3 rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                <div className="p-3 rounded-xl bg-background text-foreground shrink-0">
                   <card.icon size={22} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">{card.label}</p>
-                  <p className="text-2xl font-bold mt-1 tracking-tight text-foreground tabular-nums">{card.value}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">{card.label}</p>
+                  <p className="text-2xl font-bold mt-1.5 tracking-tight text-foreground tabular-nums">{card.value}</p>
                   <div className="flex items-center gap-1.5 mt-1 tabular-nums">
                     {card.up
                       ? <ArrowUpRight size={12} className="text-foreground shrink-0" />
@@ -471,39 +470,46 @@ const Reports = () => {
                     <span className="text-xs text-muted-foreground">· {card.sub}</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* Charts Row 1 */}
           <div className="grid gap-6 xl:grid-cols-3">
             {/* Revenue Trend - wide */}
-            <div className="xl:col-span-2 bg-card rounded-2xl border border-border shadow-xs p-6">
+            <div className="xl:col-span-2 bg-card rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="font-bold text-foreground">Revenue Trend</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Monthly revenue from paid invoices</p>
                 </div>
                 <TrendingUp size={18} className="text-foreground shrink-0" />
               </div>
               <div className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={revenue}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--foreground) / 0.06)" />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={formatCompactCurrency} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', color: 'hsl(var(--foreground))', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: 'none',
+                        borderRadius: '12px',
+                        color: 'hsl(var(--foreground))',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                      }}
                       formatter={v => [formatCurrency(v), 'Revenue']}
                     />
                     <Area
                       type="monotone"
                       dataKey="revenue"
-                      stroke="hsl(var(--foreground))"
+                      stroke="#12B7D4"
                       strokeWidth={2.5}
-                      fillOpacity={0.08}
-                      fill="hsl(var(--foreground))"
-                      dot={{ fill: 'hsl(var(--foreground))', strokeWidth: 0, r: 4 }}
+                      fillOpacity={0.14}
+                      fill="#12B7D4"
+                      dot={{ fill: '#12B7D4', strokeWidth: 0, r: 4 }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -511,11 +517,10 @@ const Reports = () => {
             </div>
 
             {/* Task Breakdown Pie */}
-            <div className="bg-card rounded-2xl border border-border shadow-xs p-6">
+            <div className="bg-card rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="font-bold text-foreground">Task Status</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Current task distribution</p>
                 </div>
                 <CheckCircle2 size={18} className="text-foreground shrink-0" />
               </div>
@@ -527,7 +532,17 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '10px', color: 'hsl(var(--foreground))' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: 'none',
+                        borderRadius: '12px',
+                        color: 'hsl(var(--foreground))',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -548,22 +563,29 @@ const Reports = () => {
           {/* Charts Row 2 */}
           <div className="grid gap-6 xl:grid-cols-2">
             {/* Lead Funnel */}
-            <div className="bg-card rounded-2xl border border-border shadow-xs p-6">
+            <div className="bg-card rounded-2xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="font-bold text-foreground">Lead Funnel</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Leads by pipeline stage</p>
-                </div>
+                <h2 className="font-bold text-foreground">Lead Funnel</h2>
                 <Target size={18} className="text-foreground shrink-0" />
               </div>
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={leadFunnel} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--foreground) / 0.06)" />
                     <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                     <YAxis type="category" dataKey="stage" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={80} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '10px', color: 'hsl(var(--foreground))' }} />
-                    <Bar dataKey="count" fill="hsl(var(--foreground))" radius={[0, 8, 8, 0]}>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: 'none',
+                        borderRadius: '12px',
+                        color: 'hsl(var(--foreground))',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                      }}
+                    />
+                    <Bar dataKey="count" fill="#12B7D4" radius={[0, 8, 8, 0]}>
                       {leadFunnel.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -574,10 +596,9 @@ const Reports = () => {
             </div>
 
             {/* Business Health Summary */}
-            <div className="bg-card rounded-2xl border border-border shadow-xs p-6">
+            <div className="bg-card rounded-2xl p-6">
               <div className="mb-6">
                 <h2 className="font-bold text-foreground">Business Health</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Key performance ratios</p>
               </div>
               <div className="space-y-5">
                 {businessHealth.map((metric) => (
@@ -587,14 +608,11 @@ const Reports = () => {
                       <span className="font-bold text-foreground tabular-nums">{metric.value}%</span>
                     </div>
                     <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(metric.value, 100)}%` }}
-                        transition={{ duration: 0.8, ease: 'easeOut' }}
-                        className="h-full rounded-full bg-foreground"
+                      <div
+                        style={{ width: `${Math.min(metric.value, 100)}%` }}
+                        className="h-full rounded-full bg-foreground transition-[width] duration-500 ease-out"
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">{metric.note}</p>
                   </div>
                 ))}
               </div>
@@ -602,17 +620,15 @@ const Reports = () => {
           </div>
         </>
       ) : (
-        <div className="bg-card rounded-2xl border border-border shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-border bg-secondary/20 flex items-center justify-between">
-            <div>
-              <h2 className="font-bold text-foreground flex items-center gap-2">
-                <Users size={18} className="text-foreground shrink-0" />
-                <span>Employee Performance Summary</span>
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Attendance and call logs breakdown for {MONTHS.find(m => m.value === reportMonth)?.label} {reportYear}
-              </p>
-            </div>
+        <div className="bg-card rounded-2xl overflow-hidden">
+          <div className="p-6 flex items-center justify-between">
+            <h2 className="font-bold text-foreground flex items-center gap-2">
+              <Users size={18} className="text-foreground shrink-0" />
+              <span>Employee Performance Summary</span>
+            </h2>
+            <span className="text-xs font-semibold text-muted-foreground tabular-nums">
+              {MONTHS.find(m => m.value === reportMonth)?.label} {reportYear}
+            </span>
           </div>
 
           {isEmployeeLoading ? (
@@ -620,47 +636,47 @@ const Reports = () => {
               Loading employee monthly statistics...
             </div>
           ) : (
-            <div className="responsive-table-container overflow-x-auto">
-              <table className="w-full text-left text-sm min-w-[700px]">
+            <div className="responsive-table-container overflow-x-auto px-3 pb-3">
+              <table className="w-full text-left text-sm min-w-[700px] border-collapse">
                 <thead>
-                  <tr className="text-muted-foreground font-semibold border-b border-border bg-secondary/40">
-                    <th className="px-6 py-4">Employee</th>
-                    <th className="px-6 py-4">Role / Department</th>
-                    <th className="px-6 py-4 text-center">Present</th>
-                    <th className="px-6 py-4 text-center">Absent</th>
-                    <th className="px-6 py-4 text-center">Leave</th>
-                    <th className="px-6 py-4 text-center">Holiday</th>
-                    <th className="px-6 py-4 text-center">Hours Logged</th>
-                    <th className="px-6 py-4 text-center">Calls Logged</th>
-                    <th className="px-6 py-4 text-center">Sessions Log</th>
+                  <tr className="text-muted-foreground font-semibold bg-secondary/70 text-xs">
+                    <th className="px-5 py-3.5 rounded-l-xl">Employee</th>
+                    <th className="px-5 py-3.5">Role / Department</th>
+                    <th className="px-5 py-3.5 text-center">Present</th>
+                    <th className="px-5 py-3.5 text-center">Absent</th>
+                    <th className="px-5 py-3.5 text-center">Leave</th>
+                    <th className="px-5 py-3.5 text-center">Holiday</th>
+                    <th className="px-5 py-3.5 text-center">Hours Logged</th>
+                    <th className="px-5 py-3.5 text-center">Calls Logged</th>
+                    <th className="px-5 py-3.5 text-center rounded-r-xl">Sessions Log</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border tabular-nums">
+                <tbody className="divide-y divide-foreground/[0.05] tabular-nums">
                   {(employeeReportData?.summary || []).map((row) => (
-                    <tr key={row.user?._id} className="hover:bg-secondary/30 transition-colors">
-                      <td className="px-6 py-4 font-semibold">
+                    <tr key={row.user?._id} className="hover:bg-background/60 transition-colors">
+                      <td className="px-5 py-4 font-semibold">
                         <div className="flex flex-col">
                           <span className="text-foreground">{row.user?.name}</span>
                           <span className="text-[11px] text-muted-foreground font-normal">{row.user?.email}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-5 py-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-foreground text-xs">{row.user?.position || row.user?.role}</span>
                           <span className="text-[10px] text-muted-foreground uppercase">{row.user?.department || 'General'}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center font-semibold text-foreground">{row.present} Days</td>
-                      <td className="px-6 py-4 text-center font-semibold text-muted-foreground">{row.absent} Days</td>
-                      <td className="px-6 py-4 text-center font-semibold text-muted-foreground">{row.leave} Days</td>
-                      <td className="px-6 py-4 text-center font-semibold text-muted-foreground">{row.holiday} Days</td>
-                      <td className="px-6 py-4 text-center font-semibold text-foreground">{row.totalHours} hrs</td>
-                      <td className="px-6 py-4 text-center font-semibold text-foreground">{row.callCount} Calls</td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-5 py-4 text-center font-semibold text-foreground">{row.present} Days</td>
+                      <td className="px-5 py-4 text-center font-semibold text-muted-foreground">{row.absent} Days</td>
+                      <td className="px-5 py-4 text-center font-semibold text-muted-foreground">{row.leave} Days</td>
+                      <td className="px-5 py-4 text-center font-semibold text-muted-foreground">{row.holiday} Days</td>
+                      <td className="px-5 py-4 text-center font-semibold text-foreground">{row.totalHours} hrs</td>
+                      <td className="px-5 py-4 text-center font-semibold text-foreground">{row.callCount} Calls</td>
+                      <td className="px-5 py-4 text-center">
                         <button
                           type="button"
                           onClick={() => setSelectedEmployeeLogs(row)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground border border-border font-semibold text-xs transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-background hover:bg-secondary text-foreground font-semibold text-xs transition-colors cursor-pointer"
                           title="View all daily login & logout timings"
                         >
                           <Eye size={13} className="shrink-0" />
@@ -689,26 +705,26 @@ const Reports = () => {
           size="lg"
           noPadding
           hideCloseButton
-          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-4xl max-h-[90dvh]"
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-background w-[calc(100vw-24px)] max-w-4xl max-h-[90dvh]"
         >
           {/* Pinned Sticky Header */}
-          <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+          <DialogHeader className="px-6 py-5 bg-background shrink-0 select-none">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
                   <Clock size={20} />
                 </div>
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
-                    Daily Attendance &amp; Login/Logout Logs
+                    Daily Attendance — {selectedEmployeeLogs?.user?.name}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                    {selectedEmployeeLogs?.user?.name} ({selectedEmployeeLogs?.user?.email}) — {MONTHS.find(m => m.value === reportMonth)?.label} {reportYear}
+                  <DialogDescription className="sr-only">
+                    Employee daily login logs
                   </DialogDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary border border-border rounded-md">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-secondary rounded-md">
                   ESC
                 </span>
                 <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer">
@@ -723,43 +739,43 @@ const Reports = () => {
               {/* Scrollable Body */}
               <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center tabular-nums">
-                  <div className="p-3.5 rounded-xl bg-secondary/60 border border-border">
+                  <div className="p-3.5 rounded-xl bg-card">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Present</span>
                     <div className="text-base sm:text-lg font-bold text-foreground mt-0.5">{selectedEmployeeLogs.present} Days</div>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-secondary/60 border border-border">
+                  <div className="p-3.5 rounded-xl bg-card">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Absent</span>
                     <div className="text-base sm:text-lg font-bold text-foreground mt-0.5">{selectedEmployeeLogs.absent} Days</div>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-secondary/60 border border-border">
+                  <div className="p-3.5 rounded-xl bg-card">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Holidays</span>
                     <div className="text-base sm:text-lg font-bold text-foreground mt-0.5">{selectedEmployeeLogs.holiday} Days</div>
                   </div>
-                  <div className="p-3.5 rounded-xl bg-secondary/60 border border-border">
+                  <div className="p-3.5 rounded-xl bg-card">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Hours</span>
                     <div className="text-base sm:text-lg font-bold text-foreground mt-0.5">{selectedEmployeeLogs.totalHours} hrs</div>
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-border">
+                <div className="overflow-hidden rounded-2xl bg-card p-2">
                   <div className="responsive-table-container overflow-x-auto">
-                    <table className="w-full text-left text-xs min-w-[500px]">
-                      <thead className="bg-secondary/50 font-semibold border-b border-border text-muted-foreground">
+                    <table className="w-full text-left text-xs min-w-[500px] border-collapse">
+                      <thead className="bg-secondary/70 font-semibold text-muted-foreground">
                         <tr>
-                          <th className="px-4 py-3">Date</th>
+                          <th className="px-4 py-3 rounded-l-lg">Date</th>
                           <th className="px-4 py-3">Status</th>
                           <th className="px-4 py-3">First In / Last Out</th>
                           <th className="px-4 py-3">All Login &amp; Logout Sessions</th>
-                          <th className="px-4 py-3 text-right">Hours</th>
+                          <th className="px-4 py-3 text-right rounded-r-lg">Hours</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-border tabular-nums">
+                      <tbody className="divide-y divide-foreground/[0.05] tabular-nums">
                         {(selectedEmployeeLogs.dailyRecords || []).map((record) => {
                           const dObj = new Date(record.date);
                           const isSunday = dObj.getDay() === 0;
 
                           return (
-                            <tr key={record._id || record.date} className="hover:bg-secondary/30">
+                            <tr key={record._id || record.date} className="hover:bg-background/60 transition-colors">
                               <td className="px-4 py-3">
                                 <div className="font-semibold text-foreground">
                                   {dObj.toLocaleDateString([], { month: 'short', day: 'numeric' })}
@@ -770,12 +786,12 @@ const Reports = () => {
                               </td>
                               <td className="px-4 py-3">
                                 <span
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                                     record.status === 'present'
                                       ? 'bg-primary text-primary-foreground'
                                       : record.status === 'absent' || record.status === 'leave'
-                                      ? 'bg-secondary text-foreground border border-foreground/30'
-                                      : 'bg-muted text-muted-foreground border border-border'
+                                      ? 'bg-background text-foreground'
+                                      : 'bg-background text-muted-foreground'
                                   }`}
                                 >
                                   {record.status?.replace(/_/g, ' ') || (isSunday ? 'holiday' : '—')}
@@ -797,7 +813,7 @@ const Reports = () => {
                                 {record.sessions && record.sessions.length > 0 ? (
                                   <div className="flex flex-col gap-1 text-[11px]">
                                     {record.sessions.map((s, idx) => (
-                                      <div key={idx} className="flex items-center gap-2 bg-secondary/40 border border-border/60 px-2 py-1 rounded-lg">
+                                      <div key={idx} className="flex items-center gap-2 bg-background px-2.5 py-1 rounded-lg">
                                         <span className="font-bold text-foreground">#{idx + 1}</span>
                                         <span className="text-foreground font-semibold">{formatTime(s.clockIn)}</span>
                                         <span className="text-muted-foreground">→</span>
@@ -823,12 +839,12 @@ const Reports = () => {
               </div>
 
               {/* Pinned Sticky Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-background px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
                 <button
                   type="button"
                   onClick={() => setSelectedEmployeeLogs(null)}
-                  className="h-11 px-6 rounded-xl border border-border font-semibold text-sm text-foreground hover:bg-secondary cursor-pointer transition-colors ml-auto"
+                  className="h-11 px-6 rounded-xl bg-secondary font-semibold text-sm text-foreground hover:bg-secondary/80 cursor-pointer transition-colors ml-auto"
                 >
                   Close
                 </button>

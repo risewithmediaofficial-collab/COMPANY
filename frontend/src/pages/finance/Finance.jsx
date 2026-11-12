@@ -126,10 +126,10 @@ export default function Finance() {
   return (
     <div className="space-y-5 pb-12 font-sans">
       {/* ── TOP DASHBOARD CONTROL CARD ──────────────────────────────────── */}
-      <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
+      <div className="bg-card rounded-2xl p-4 sm:p-5 ">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs font-bold text-lg shrink-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg shrink-0">
               ₹
             </div>
             <div>
@@ -142,7 +142,7 @@ export default function Finance() {
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-border bg-card hover:bg-secondary text-foreground font-semibold text-xs rounded-xl shadow-2xs transition-colors cursor-pointer min-h-[38px]"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-card hover:bg-secondary text-foreground font-semibold text-xs rounded-xl transition-colors cursor-pointer min-h-[38px]"
                 title="Refresh Finance Overview"
               >
                 <RefreshCw className="h-3.5 w-3.5 shrink-0" />
@@ -152,7 +152,7 @@ export default function Finance() {
             {/* Central Add New Button */}
             <button
               onClick={() => openQuickAdd('invoice')}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer min-h-[38px]"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs rounded-xl transition-colors cursor-pointer min-h-[38px]"
             >
               <Plus className="h-4 w-4 shrink-0" />
               <span>Add New</span>
@@ -161,7 +161,7 @@ export default function Finance() {
         </div>
 
         {/* ── 10 HORIZONTAL SECTION NAVIGATION TABS ───────────────────────── */}
-        <div className="mt-4 pt-3 border-t border-border overflow-x-auto custom-scrollbar">
+        <div className="mt-4 pt-3 overflow-x-auto custom-scrollbar">
           <div className="flex items-center gap-1.5 min-w-max pb-1">
             {TABS.map((tab) => {
               const Icon = tab.icon;
@@ -172,7 +172,7 @@ export default function Finance() {
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors shrink-0 min-h-[38px] ${
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      ? 'bg-primary text-primary-foreground '
                       : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >

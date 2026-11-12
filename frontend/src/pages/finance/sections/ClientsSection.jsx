@@ -205,7 +205,7 @@ export default function ClientsSection({ onQuickAdd }) {
   return (
     <div className="space-y-6">
       {/* Search and Action Bar */}
-      <div className="bg-card p-4 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-card p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <input
@@ -213,21 +213,21 @@ export default function ClientsSection({ onQuickAdd }) {
             placeholder="Search client, business name, or plan..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-border text-xs text-foreground focus:ring-1 focus:ring-ring bg-background"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs text-foreground focus:ring-1 focus:ring-ring bg-background"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={handleExport}
-            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-foreground font-semibold hover:bg-secondary flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-foreground font-semibold hover:bg-secondary flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
           >
             <Download className="h-3.5 w-3.5 shrink-0" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => onQuickAdd('client')}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-2xs flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 flex-1 sm:flex-initial min-h-[36px] transition-colors cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5 shrink-0" />
             <span>New Client Master</span>
@@ -236,8 +236,8 @@ export default function ClientsSection({ onQuickAdd }) {
       </div>
 
       {/* Client Master & Profitability Table */}
-      <div className="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
-        <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="bg-card rounded-xl overflow-hidden">
+        <div className="p-4 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-foreground">Active Retainer Clients & Contribution Margins</h3>
             <p className="text-xs text-muted-foreground tabular-nums">
@@ -248,7 +248,7 @@ export default function ClientsSection({ onQuickAdd }) {
 
         <div className="responsive-table-container overflow-y-auto max-h-[580px] text-xs">
           <table className="w-full min-w-[780px] text-left">
-            <thead className="sticky top-0 z-10 bg-secondary border-b border-border shadow-2xs text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
+            <thead className="sticky top-0 z-10 bg-secondary text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="p-3">Client / Business</th>
                 <th className="p-3">Plan & Deliverables</th>
@@ -260,7 +260,7 @@ export default function ClientsSection({ onQuickAdd }) {
                 <th className="p-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-foreground/[0.05]">
               {filteredClients.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="p-8 text-center text-muted-foreground">
@@ -322,8 +322,8 @@ export default function ClientsSection({ onQuickAdd }) {
                               margin >= 40
                                 ? 'bg-primary text-primary-foreground'
                                 : margin >= 20
-                                ? 'bg-secondary text-foreground border border-border'
-                                : 'bg-muted text-muted-foreground border border-border'
+                                ? 'bg-secondary text-foreground '
+                                : 'bg-muted text-muted-foreground '
                             }`}
                           >
                             {margin}%
@@ -337,7 +337,7 @@ export default function ClientsSection({ onQuickAdd }) {
                           <button
                             type="button"
                             onClick={() => setSelectedClientForLedger(client)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-secondary hover:bg-muted text-foreground border border-border font-semibold text-xs transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-secondary hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
                             title="Open Invoices, Receipts & Dues Statement in sidebar"
                           >
                             <Receipt className="h-3 w-3 shrink-0" /> Ledger
@@ -345,7 +345,7 @@ export default function ClientsSection({ onQuickAdd }) {
                           <button
                             type="button"
                             onClick={() => handleOpenEditClient(client)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-secondary hover:bg-muted text-foreground border border-border font-semibold text-xs transition-colors cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded bg-secondary hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
                             title="Edit Plan Fee, Deliverables & Billing"
                           >
                             <Edit2 className="h-3 w-3 shrink-0" /> Edit
@@ -356,7 +356,7 @@ export default function ClientsSection({ onQuickAdd }) {
                               setSelectedClientForCost(client);
                               setShowCostModal(true);
                             }}
-                            className="px-2.5 py-1 rounded bg-secondary hover:bg-muted text-foreground border border-border font-semibold text-xs transition-colors cursor-pointer"
+                            className="px-2.5 py-1 rounded bg-secondary hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer"
                           >
                             Add Cost
                           </button>
@@ -374,27 +374,27 @@ export default function ClientsSection({ onQuickAdd }) {
       {/* COST ALLOCATION MODAL */}
       <Dialog open={Boolean(showCostModal && selectedClientForCost)} onOpenChange={(open) => !open && setShowCostModal(false)}>
         {showCostModal && selectedClientForCost && (
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]">
-            <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90vh]">
+            <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0 ">
                   <DollarSign size={20} />
                 </div>
                 <div className="min-w-0">
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                    Assign Cost to {selectedClientForCost.company || selectedClientForCost.name}
+                    Assign Cost — {selectedClientForCost.company || selectedClientForCost.name}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal tabular-nums">
-                    Period: {retainerPeriod} · Distribute direct service cost without creating agency expense
+                  <DialogDescription className="sr-only">
+                    Assign direct cost
                   </DialogDescription>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary text-[10px] font-mono font-medium text-muted-foreground select-none">
                   ESC
                 </kbd>
-                <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-ring/20">
+                <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring/20">
                   <X size={16} />
                   <span className="sr-only">Close</span>
                 </DialogClose>
@@ -409,7 +409,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   <select
                     value={allocForm.activityDeliverable}
                     onChange={(e) => setAllocForm({ ...allocForm, activityDeliverable: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl border border-border text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none shadow-2xs cursor-pointer"
+                    className="w-full h-11 px-4 rounded-xl text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
                   >
                     <option value="Video Editing">Video Editing (Editor Cost)</option>
                     <option value="Graphic Design">Graphic Design (Designer Cost)</option>
@@ -425,7 +425,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   <select
                     value={allocForm.costType}
                     onChange={(e) => setAllocForm({ ...allocForm, costType: e.target.value })}
-                    className="w-full h-11 px-4 rounded-xl border border-border text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none shadow-2xs cursor-pointer"
+                    className="w-full h-11 px-4 rounded-xl text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
                   >
                     <option value="direct">Direct Service Cost (Reduces Contribution)</option>
                     <option value="overhead">Shared Overhead (Reduces Net Profit)</option>
@@ -440,7 +440,7 @@ export default function ClientsSection({ onQuickAdd }) {
                     onChange={(e) => setAllocForm({ ...allocForm, allocatedAmount: e.target.value })}
                     placeholder="e.g. 4000"
                     required
-                    className="w-full h-11 px-4 rounded-xl border border-border text-sm font-semibold text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 outline-none shadow-2xs"
+                    className="w-full h-11 px-4 rounded-xl text-sm font-semibold text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 outline-none "
                   />
                 </div>
 
@@ -451,16 +451,16 @@ export default function ClientsSection({ onQuickAdd }) {
                     value={allocForm.notes}
                     onChange={(e) => setAllocForm({ ...allocForm, notes: e.target.value })}
                     placeholder="e.g. 8 Reels edited by senior editor"
-                    className="w-full h-11 px-4 rounded-xl border border-border text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none shadow-2xs"
+                    className="w-full h-11 px-4 rounded-xl text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none "
                   />
                 </div>
               </div>
 
               {/* Pinned Sticky Bottom Action Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
                   <span>Press</span>
-                  <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                     ESC
                   </kbd>
                   <span>to close</span>
@@ -478,7 +478,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   <Button
                     type="submit"
                     disabled={createAllocation.isPending}
-                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
                   >
                     {createAllocation.isPending ? 'Assigning...' : 'Assign Cost'}
                   </Button>
@@ -492,27 +492,27 @@ export default function ClientsSection({ onQuickAdd }) {
       {/* EDIT CLIENT RETAINER MODAL */}
       <Dialog open={Boolean(showEditClientModal && editingClient)} onOpenChange={(open) => !open && setShowEditClientModal(false)}>
         {showEditClientModal && editingClient && (
-          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
-            <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+          <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-2xl max-h-[90vh]">
+            <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0 ">
                   <Building size={20} />
                 </div>
                 <div className="min-w-0">
                   <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                    Edit Retainer Plan: {editingClient.company || editingClient.name}
+                    Edit Retainer Plan — {editingClient.company || editingClient.name}
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                    Update monthly recurring fee, contracted deliverables, and billing dates
+                  <DialogDescription className="sr-only">
+                    Edit retainer plan
                   </DialogDescription>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary text-[10px] font-mono font-medium text-muted-foreground select-none">
                   ESC
                 </kbd>
-                <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-colors cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-ring/20">
+                <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring/20">
                   <X size={16} />
                   <span className="sr-only">Close</span>
                 </DialogClose>
@@ -531,7 +531,7 @@ export default function ClientsSection({ onQuickAdd }) {
                     placeholder="e.g. 25000"
                     required
                     min="0"
-                    className="w-full h-11 rounded-xl border border-border px-4 text-sm font-bold text-foreground tabular-nums bg-background shadow-2xs focus:ring-2 focus:ring-ring/20 outline-none"
+                    className="w-full h-11 rounded-xl px-4 text-sm font-bold text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 outline-none"
                   />
                   <span className="text-xs text-muted-foreground mt-1 block">Amount billed recurringly each month</span>
                 </div>
@@ -543,7 +543,7 @@ export default function ClientsSection({ onQuickAdd }) {
                     value={clientForm.servicePlan}
                     onChange={(e) => setClientForm({ ...clientForm, servicePlan: e.target.value })}
                     placeholder="e.g. Retainer, Social Media"
-                    className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-ring/20 outline-none"
+                    className="w-full h-11 rounded-xl px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none"
                   />
                 </div>
 
@@ -554,7 +554,7 @@ export default function ClientsSection({ onQuickAdd }) {
                     value={clientForm.deliverables}
                     onChange={(e) => setClientForm({ ...clientForm, deliverables: e.target.value })}
                     placeholder="e.g. 12 Reels, 15 Graphic Posts, Ad Campaign Management"
-                    className="w-full min-h-[90px] rounded-xl border border-border p-3.5 text-sm text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-ring/20 outline-none resize-y"
+                    className="w-full min-h-[90px] rounded-xl p-3.5 text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none resize-y"
                   />
                 </div>
 
@@ -563,7 +563,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   <select
                     value={clientForm.billingDate}
                     onChange={(e) => setClientForm({ ...clientForm, billingDate: e.target.value })}
-                    className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground tabular-nums bg-background shadow-2xs focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
+                    className="w-full h-11 rounded-xl px-4 text-sm text-foreground tabular-nums bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
                   >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                       <option key={d} value={d}>
@@ -578,7 +578,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   <select
                     value={clientForm.billingCycle}
                     onChange={(e) => setClientForm({ ...clientForm, billingCycle: e.target.value })}
-                    className="w-full h-11 rounded-xl border border-border px-4 text-sm text-foreground bg-background shadow-2xs focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
+                    className="w-full h-11 rounded-xl px-4 text-sm text-foreground bg-background focus:ring-2 focus:ring-ring/20 outline-none cursor-pointer"
                   >
                     <option value="monthly">Monthly</option>
                     <option value="quarterly">Quarterly</option>
@@ -594,7 +594,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   if (clientAllocations.length === 0) return null;
 
                   return (
-                    <div className="pt-4 border-t border-border space-y-3">
+                    <div className="pt-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-foreground text-sm tabular-nums">
                           Direct Costs in {retainerPeriod} ({clientAllocations.length})
@@ -607,7 +607,7 @@ export default function ClientsSection({ onQuickAdd }) {
                         {clientAllocations.map((alloc) => (
                           <div
                             key={alloc._id}
-                            className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 border border-border text-xs"
+                            className="flex items-center justify-between p-3 rounded-xl bg-secondary/40 text-xs"
                           >
                             <div>
                               <span className="font-bold text-foreground">{alloc.activityDeliverable}</span>
@@ -639,10 +639,10 @@ export default function ClientsSection({ onQuickAdd }) {
               </div>
 
               {/* Pinned Sticky Bottom Action Footer */}
-              <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+              <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
                 <span className="text-xs text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
                   <span>Press</span>
-                  <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                  <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                     ESC
                   </kbd>
                   <span>to close</span>
@@ -660,7 +660,7 @@ export default function ClientsSection({ onQuickAdd }) {
                   <Button
                     type="submit"
                     disabled={updateClient.isPending}
-                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                    className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
                   >
                     {updateClient.isPending ? 'Saving...' : 'Save Retainer Details'}
                   </Button>
@@ -674,15 +674,15 @@ export default function ClientsSection({ onQuickAdd }) {
       {/* CLIENT FINANCIAL STATEMENT & LEDGER SIDE BAR DRAWER */}
       <Dialog open={Boolean(selectedClientForLedger)} onOpenChange={(open) => !open && setSelectedClientForLedger(null)}>
         {selectedClientForLedger && activeClientLedger && (
-          <DialogContent variant="side" size="xl" className="flex flex-col h-full bg-card text-foreground text-xs border-l border-border shadow-2xl p-0">
-            <DialogHeader className="p-5 border-b border-border bg-secondary/40 pr-12">
+          <DialogContent variant="side" size="xl" className="flex flex-col h-full bg-card text-foreground text-xs p-0">
+            <DialogHeader className="p-5 bg-secondary/40 pr-12">
               <div className="flex items-center justify-between">
                 <div>
                   <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
                     <Receipt className="h-4 w-4 text-muted-foreground shrink-0" />
                     <span>Client Statement & Ledger: {activeClientLedger.client.company || activeClientLedger.client.name}</span>
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                  <DialogDescription className="sr-only">
                     {activeClientLedger.client.contactName || activeClientLedger.client.name} · {activeClientLedger.client.servicePlan || 'Retainer'} · Complete statement of invoices, receipts, and dues
                   </DialogDescription>
                 </div>
@@ -693,17 +693,17 @@ export default function ClientsSection({ onQuickAdd }) {
 
             {/* Top KPI Cards Strip */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              <div className="p-3 rounded-xl bg-secondary/50 border border-border">
+              <div className="p-3 rounded-xl bg-secondary/50 ">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Invoiced</span>
                 <div className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{formatINR(activeClientLedger.totalInvoiced)}</div>
                 <div className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{activeClientLedger.invoicesCount} invoices issued</div>
               </div>
-              <div className="p-3 rounded-xl bg-secondary/50 border border-border">
+              <div className="p-3 rounded-xl bg-secondary/50 ">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Collected / Paid</span>
                 <div className="text-lg font-bold text-foreground mt-0.5 tabular-nums">{formatINR(activeClientLedger.totalPaid)}</div>
                 <div className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{activeClientLedger.receiptsCount} receipts cleared</div>
               </div>
-              <div className={`p-3 rounded-xl border ${activeClientLedger.totalPending > 0 ? 'bg-secondary border-foreground/30' : 'bg-secondary/50 border-border'}`}>
+              <div className={`p-3 rounded-xl ${activeClientLedger.totalPending > 0 ? 'bg-secondary ' : 'bg-secondary/50 '}`}>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pending Balance Due</span>
                 <div className={`text-lg font-bold mt-0.5 tabular-nums ${activeClientLedger.totalPending > 0 ? 'text-foreground font-extrabold' : 'text-foreground'}`}>
                   {formatINR(activeClientLedger.totalPending)}
@@ -716,14 +716,14 @@ export default function ClientsSection({ onQuickAdd }) {
 
             {/* Invoices List */}
             <div className="space-y-4">
-              <div className="rounded-xl border border-border overflow-hidden bg-card">
-                <div className="p-2.5 bg-secondary/60 border-b border-border flex items-center justify-between">
+              <div className="rounded-xl overflow-hidden bg-card">
+                <div className="p-2.5 bg-secondary/60 flex items-center justify-between">
                   <span className="font-bold text-foreground text-[11px] uppercase tracking-wider tabular-nums">Invoices ({activeClientLedger.invoices.length})</span>
                   <span className="text-[10px] text-muted-foreground">Billed Services & Retainers</span>
                 </div>
                 <div className="responsive-table-container max-h-[220px] overflow-y-auto text-xs">
                   <table className="w-full min-w-[550px] text-left">
-                    <thead className="bg-secondary border-b border-border text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
+                    <thead className="bg-secondary text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
                       <tr>
                         <th className="p-2.5">Date</th>
                         <th className="p-2.5">Invoice #</th>
@@ -734,7 +734,7 @@ export default function ClientsSection({ onQuickAdd }) {
                         <th className="p-2.5 text-center">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-foreground/[0.05]">
                       {activeClientLedger.invoices.length === 0 ? (
                         <tr>
                           <td colSpan="7" className="p-4 text-center text-muted-foreground">
@@ -757,8 +757,8 @@ export default function ClientsSection({ onQuickAdd }) {
                                 inv.status === 'paid'
                                   ? 'bg-primary text-primary-foreground'
                                   : inv.status === 'partially_paid'
-                                  ? 'bg-secondary text-foreground border border-border'
-                                  : 'bg-muted text-muted-foreground border border-border'
+                                  ? 'bg-secondary text-foreground '
+                                  : 'bg-muted text-muted-foreground '
                               }`}>
                                 {inv.status?.replace(/_/g, ' ')}
                               </span>
@@ -772,14 +772,14 @@ export default function ClientsSection({ onQuickAdd }) {
               </div>
 
               {/* Payment Receipts List */}
-              <div className="rounded-xl border border-border overflow-hidden bg-card">
-                <div className="p-2.5 bg-secondary/60 border-b border-border flex items-center justify-between">
+              <div className="rounded-xl overflow-hidden bg-card">
+                <div className="p-2.5 bg-secondary/60 flex items-center justify-between">
                   <span className="font-bold text-foreground text-[11px] uppercase tracking-wider tabular-nums">Payment Receipts Received ({activeClientLedger.receipts.length})</span>
                   <span className="text-[10px] text-muted-foreground">Collected in Bank / UPI / Cash</span>
                 </div>
                 <div className="responsive-table-container max-h-[180px] overflow-y-auto text-xs">
                   <table className="w-full min-w-[450px] text-left">
-                    <thead className="bg-secondary border-b border-border text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
+                    <thead className="bg-secondary text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
                       <tr>
                         <th className="p-2.5">Date Received</th>
                         <th className="p-2.5">Payment Mode</th>
@@ -787,7 +787,7 @@ export default function ClientsSection({ onQuickAdd }) {
                         <th className="p-2.5 text-right">Amount Received</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-foreground/[0.05]">
                       {activeClientLedger.receipts.length === 0 ? (
                         <tr>
                           <td colSpan="4" className="p-4 text-center text-muted-foreground">
@@ -811,7 +811,7 @@ export default function ClientsSection({ onQuickAdd }) {
               </div>
             </div>
 
-            <div className="p-4 border-t border-border bg-secondary/40 flex justify-between items-center">
+            <div className="p-4 bg-secondary/40 flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -838,7 +838,7 @@ export default function ClientsSection({ onQuickAdd }) {
               <button
                 type="button"
                 onClick={() => setSelectedClientForLedger(null)}
-                className="px-4 py-1.5 rounded-lg border border-border text-foreground font-semibold text-xs hover:bg-secondary cursor-pointer transition-colors"
+                className="px-4 py-1.5 rounded-lg text-foreground font-semibold text-xs hover:bg-secondary cursor-pointer transition-colors"
               >
                 Close
               </button>

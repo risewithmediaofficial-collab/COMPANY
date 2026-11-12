@@ -325,10 +325,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent variant="side" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
-        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
+      <DialogContent variant="side" size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-background ">
+        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 bg-background shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
               <FolderOpen size={20} />
             </div>
             <div className="min-w-0">
@@ -342,10 +342,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -366,7 +366,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Input
                           placeholder="e.g. John Doe"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -384,7 +384,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Input
                           placeholder="e.g. Acme Corporation"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -403,7 +403,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                         <Input
                           type="email"
                           placeholder="e.g. john@acme.com"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -421,7 +421,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Input
                           placeholder="e.g. +91 98765 43210"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -439,7 +439,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Input
                           placeholder="e.g. https://www.company.com"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -457,7 +457,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Input
                           placeholder="https://drive.google.com/drive/folders/..."
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -477,7 +477,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormLabel className="text-sm font-semibold text-foreground">Type / Sector</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select sector" />
                           </SelectTrigger>
                         </FormControl>
@@ -498,7 +498,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                               <FormControl>
                                 <Input
                                   placeholder="Specify your sector..."
-                                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                                   {...customField}
                                 />
                               </FormControl>
@@ -520,7 +520,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormLabel className="text-sm font-semibold text-foreground">Status</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                         </FormControl>
@@ -546,7 +546,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormLabel className="text-sm font-semibold text-foreground">Budget Type / Retainer Mode</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select budget type" />
                           </SelectTrigger>
                         </FormControl>
@@ -572,7 +572,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                         <Input
                           type="number"
                           placeholder="e.g. 50000"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                           value={field.value ?? ''}
                           onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
@@ -593,7 +593,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Input
                           type="date"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -611,7 +611,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Input
                           type="date"
-                          className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -631,7 +631,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormLabel className="text-sm font-semibold text-foreground">Referred By Mode</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue placeholder="Select input mode" />
                           </SelectTrigger>
                         </FormControl>
@@ -655,7 +655,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                         <FormLabel className="text-sm font-semibold text-foreground">Referred By User</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                            <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                               <SelectValue placeholder="Select a team member" />
                             </SelectTrigger>
                           </FormControl>
@@ -683,7 +683,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                         <FormControl>
                           <Input
                             placeholder="Enter referrer name"
-                            className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                            className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                             {...field}
                           />
                         </FormControl>
@@ -702,7 +702,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                     return (
                       <FormItem>
                         <FormLabel className="text-sm font-semibold text-foreground">Client Requirements</FormLabel>
-                        <div className="flex flex-col gap-1.5 rounded-2xl border border-border bg-card/50 p-4">
+                        <div className="flex flex-col gap-1.5 rounded-2xl bg-card/50 p-4">
                           {CLIENT_REQUIREMENTS.map((requirement) => {
                             const checked = selected.includes(requirement);
 
@@ -721,7 +721,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                                       field.onChange(selected.filter((item) => item !== requirement));
                                     }
                                   }}
-                                  className="h-4.5 w-4.5 rounded border-border accent-primary cursor-pointer"
+                                  className="h-4.5 w-4.5 rounded accent-primary cursor-pointer"
                                 />
                                 <span>{requirement}</span>
                               </label>
@@ -737,7 +737,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                                 <FormControl>
                                   <Input
                                     placeholder="Specify other requirement..."
-                                    className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                                    className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                                     {...customField}
                                   />
                                 </FormControl>
@@ -761,7 +761,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                       <FormControl>
                         <Textarea
                           placeholder="Add any additional notes about this client..."
-                          className="min-h-[100px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="min-h-[100px] rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </FormControl>
@@ -773,10 +773,10 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-background px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
-                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                   ESC
                 </kbd>
                 <span>to close</span>
@@ -795,7 +795,7 @@ export const AddClientModal = ({ open, onOpenChange, client = null, initialStatu
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
                 >
                   {isLoading ? 'Saving...' : client ? 'Update Client' : 'Create Client'}
                 </Button>

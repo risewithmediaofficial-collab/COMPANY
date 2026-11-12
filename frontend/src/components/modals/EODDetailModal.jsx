@@ -33,13 +33,13 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90vh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90vh]"
       >
         {/* Pinned Sticky Header */}
-        <div className="shrink-0 bg-secondary/40 p-5 sm:p-6 border-b border-border select-none">
-          <DialogHeader className="border-b-0 mb-0 pb-0">
+        <div className="shrink-0 bg-secondary/40 p-5 sm:p-6 select-none">
+          <DialogHeader className="mb-0 pb-0">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground bg-secondary px-3 py-1 rounded-full border border-border">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground bg-secondary px-3 py-1 rounded-full ">
                 <CheckCircle2 size={14} className="shrink-0" /> EOD Report Submitted
               </span>
               <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
                     <Clock size={13} className="shrink-0" /> {submittedTime}
                   </span>
                 )}
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded-md">
                   ESC
                 </span>
                 <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
@@ -66,8 +66,8 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
           </DialogHeader>
 
           {/* User profile row */}
-          <div className="mt-4 flex items-center gap-3 pt-3 border-t border-border/50">
-            <div className="h-10 w-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground font-bold text-sm overflow-hidden shrink-0">
+          <div className="mt-4 flex items-center gap-3 pt-3 ">
+            <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center text-foreground font-bold text-sm overflow-hidden shrink-0">
               {user.avatar ? (
                 <img src={getAssetUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
               ) : (
@@ -90,7 +90,7 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
               <FileText size={14} className="text-foreground shrink-0" /> Daily Summary
             </h4>
-            <div className="bg-secondary/40 rounded-xl p-4 border border-border text-sm text-foreground leading-relaxed whitespace-pre-line">
+            <div className="bg-secondary/40 rounded-xl p-4 text-sm text-foreground leading-relaxed whitespace-pre-line">
               {eod.summary || 'No summary text available.'}
             </div>
           </div>
@@ -103,8 +103,8 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
             {eod.tasksCompleted && eod.tasksCompleted.length > 0 ? (
               <ul className="space-y-2">
                 {eod.tasksCompleted.map((task, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm bg-card p-3 rounded-xl border border-border shadow-xs">
-                    <span className="h-5 w-5 rounded-full bg-secondary border border-border text-foreground flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">
+                  <li key={idx} className="flex items-start gap-2 text-sm bg-card p-3 rounded-xl ">
+                    <span className="h-5 w-5 rounded-full bg-secondary text-foreground flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold">
                       ✓
                     </span>
                     <span className="text-foreground font-medium">{task}</span>
@@ -122,19 +122,19 @@ export const EODDetailModal = ({ open, onOpenChange, record }) => {
               <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2 flex items-center gap-1.5">
                 <AlertCircle size={14} className="shrink-0" /> Reported Blockers
               </h4>
-              <div className="bg-secondary/60 border border-border text-foreground rounded-xl p-4 text-sm font-medium">
+              <div className="bg-secondary/60 text-foreground rounded-xl p-4 text-sm font-medium">
                 {eod.blockers}
               </div>
             </div>
           ) : (
-            <div className="bg-secondary/30 border border-border rounded-xl p-3 text-xs text-muted-foreground flex items-center gap-2">
+            <div className="bg-secondary/30 rounded-xl p-3 text-xs text-muted-foreground flex items-center gap-2">
               <CheckCircle2 size={15} className="shrink-0" /> No blockers reported for this day.
             </div>
           )}
         </div>
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
           <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
           <Button
             variant="outline"

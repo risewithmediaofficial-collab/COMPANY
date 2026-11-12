@@ -16,7 +16,7 @@ import {
   ChevronRight,
   ExternalLink,
 } from '@/components/ui/muiIcons';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function MyDevTasks() {
   const { user } = useSelector((state) => state.auth);
@@ -76,12 +76,11 @@ export default function MyDevTasks() {
     <div className="space-y-6">
       <PageHeader
         title="My Development Tasks"
-        subtitle="Your personalized development queue: assigned tasks, code review requests, and testing runs"
         actions={
           <button
             onClick={fetchMyTasks}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs min-h-[38px]"
+            className="flex items-center gap-2 h-10 px-3.5 bg-secondary text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all cursor-pointer"
           >
             <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
             Refresh
@@ -92,12 +91,12 @@ export default function MyDevTasks() {
       <DevelopmentSubNav />
 
       {/* ── Tabs Header ─────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto responsive-table-container">
+      <div className="flex items-center gap-2 pb-3 overflow-x-auto responsive-table-container">
         <button
           onClick={() => setActiveTab('assigned')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all cursor-pointer ${
             activeTab === 'assigned'
-              ? 'bg-primary text-primary-foreground shadow-xs'
+              ? 'bg-primary text-primary-foreground '
               : 'text-muted-foreground hover:bg-secondary'
           }`}
         >
@@ -107,7 +106,7 @@ export default function MyDevTasks() {
           onClick={() => setActiveTab('reviews')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all cursor-pointer ${
             activeTab === 'reviews'
-              ? 'bg-primary text-primary-foreground shadow-xs'
+              ? 'bg-primary text-primary-foreground '
               : 'text-muted-foreground hover:bg-secondary'
           }`}
         >
@@ -117,7 +116,7 @@ export default function MyDevTasks() {
           onClick={() => setActiveTab('qa')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold shrink-0 min-h-[38px] transition-all cursor-pointer ${
             activeTab === 'qa'
-              ? 'bg-primary text-primary-foreground shadow-xs'
+              ? 'bg-primary text-primary-foreground '
               : 'text-muted-foreground hover:bg-secondary'
           }`}
         >
@@ -126,7 +125,7 @@ export default function MyDevTasks() {
       </div>
 
       {/* ── Task List ────────────────────────────────────────────────── */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
+      <div className="bg-card rounded-2xl overflow-hidden ">
         {loading ? (
           <div className="p-12 text-center text-muted-foreground text-xs flex items-center justify-center gap-2">
             <RefreshCcw size={16} className="animate-spin text-foreground" /> Loading tasks...
@@ -134,11 +133,10 @@ export default function MyDevTasks() {
         ) : filteredTasks.length === 0 ? (
           <div className="p-12 text-center text-muted-foreground text-xs space-y-2">
             <CheckCircle2 size={32} className="mx-auto text-muted-foreground/50" />
-            <p className="font-semibold text-foreground">You are all caught up!</p>
-            <p className="text-muted-foreground">No tasks found for the selected category.</p>
+            <p className="font-semibold text-foreground">No tasks in this queue</p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-foreground/[0.05]">
             {filteredTasks.map((task) => {
               const dev = task.development || {};
               const isBlocked = dev.isBlocked || dev.stage === 'blocked';
@@ -157,11 +155,11 @@ export default function MyDevTasks() {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary px-2 py-0.5 rounded">
                         {task.project?.name || 'CRM Task'}
                       </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground border border-border">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary text-foreground ">
                         {dev.stage?.replace(/_/g, ' ') || 'backlog'}
                       </span>
                       {isBlocked && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary text-primary-foreground border border-primary">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary text-primary-foreground ">
                           Blocked: {dev.blockedReason}
                         </span>
                       )}

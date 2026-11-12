@@ -8,7 +8,7 @@ import {
   Layers, Check, Sparkles, PhoneCall, MessageSquare, AlertCircle, X
 } from '@/components/ui/muiIcons';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -260,23 +260,20 @@ export default function DailyTracking() {
   const clientObj = clientsList.find((c) => c._id === selectedClient);
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 space-y-6">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <Clock className="text-primary" size={24} />
-            Daily Tracking & Social Media Report
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <Clock className="text-primary shrink-0" size={22} />
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            Daily Tracking
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Log daily content publishing, organic results, daily spend ledger, tagged notes, and activity timeline.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsSpendModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold text-xs rounded-xl border border-border transition-colors cursor-pointer"
+            className="h-10 inline-flex items-center gap-1.5 px-4 bg-card text-foreground hover:bg-secondary font-semibold text-xs rounded-xl transition-colors cursor-pointer"
           >
             <DollarSign size={15} className="text-foreground shrink-0" />
             <span>Log Spend / Funds</span>
@@ -285,10 +282,10 @@ export default function DailyTracking() {
           <button
             onClick={handleSaveReport}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+            className="h-10 inline-flex items-center gap-1.5 px-4 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs rounded-xl transition-colors cursor-pointer disabled:opacity-50"
           >
             <Save size={15} className="shrink-0" />
-            <span>{saving ? 'Saving...' : 'Save Daily Report'}</span>
+            <span>{saving ? 'Saving...' : 'Save Report'}</span>
           </button>
         </div>
       </div>
@@ -296,14 +293,14 @@ export default function DailyTracking() {
       <SMMSubNav />
 
       {/* Date & Client Filter Header */}
-      <div className="bg-card border border-border p-4 rounded-2xl shadow-xs flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-4">
           <div>
-            <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Select Client</label>
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Client</label>
             <select
               value={selectedClient}
               onChange={(e) => setSelectedClient(e.target.value)}
-              className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none text-foreground cursor-pointer"
+              className="h-10 px-3 bg-secondary/50 rounded-xl font-semibold text-xs outline-none focus:ring-2 focus:ring-brand/40 text-foreground cursor-pointer"
             >
               {clientsList.map((c) => (
                 <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>
@@ -312,12 +309,12 @@ export default function DailyTracking() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Report Date</label>
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">Date</label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none text-foreground cursor-pointer"
+              className="h-10 px-3 bg-secondary/50 rounded-xl font-semibold text-xs outline-none focus:ring-2 focus:ring-brand/40 text-foreground cursor-pointer"
             />
           </div>
         </div>
@@ -327,7 +324,7 @@ export default function DailyTracking() {
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
             report.status === 'Completed'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary text-foreground border border-border'
+              : 'bg-secondary text-foreground '
           }`}>
             {report.status === 'Completed' ? (
               <>
@@ -348,9 +345,9 @@ export default function DailyTracking() {
           {/* ── LEFT & CENTER: DAILY SOCIAL MEDIA REPORT DOCUMENT (2 cols) ── */}
           <div className="lg:col-span-2 space-y-6">
             {/* The Printable / Presentation Daily Report Card */}
-            <div className="bg-card border border-border rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="bg-card rounded-3xl p-6 space-y-6">
               {/* Report Header */}
-              <div className="border-b border-border/80 pb-4 flex items-center justify-between gap-4">
+              <div className="pb-4 flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <span className="text-[10px] uppercase font-extrabold tracking-widest text-muted-foreground block">
                     Daily Social Media & Ads Report
@@ -376,15 +373,15 @@ export default function DailyTracking() {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">1. Content Production & Publishing</h3>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Videos Posted</span>
                     <span className="text-xl font-black text-foreground tabular-nums block mt-0.5">{report.contentSummary?.videosPosted || 0}</span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Videos Scheduled</span>
                     <span className="text-xl font-black text-foreground tabular-nums block mt-0.5">{report.contentSummary?.videosScheduled || 0}</span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Pending Approval</span>
                     <span className="text-xl font-black text-muted-foreground tabular-nums block mt-0.5">{report.contentSummary?.videosPendingApproval || 0}</span>
                   </div>
@@ -398,25 +395,25 @@ export default function DailyTracking() {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">2. Organic Performance</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Total Views</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {(report.organicSummary?.views || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Total Reach</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {(report.organicSummary?.reach || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Engagement</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {(report.organicSummary?.engagement || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-semibold">Followers Added</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       +{report.organicSummary?.followersGained || 0}
@@ -432,25 +429,25 @@ export default function DailyTracking() {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">3. Advertising Spend & Results</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-bold">Amount Added</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       ₹{(report.adsSummary?.amountAdded || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-bold">Amount Spent</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       ₹{(report.adsSummary?.amountSpent || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-bold">Leads Generated</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       {report.adsSummary?.leads || 0}
                     </span>
                   </div>
-                  <div className="p-3 bg-secondary/40 rounded-2xl border border-border text-center">
+                  <div className="p-3 bg-secondary/40 rounded-2xl text-center">
                     <span className="text-[10px] text-muted-foreground block font-bold">Cost Per Lead (CPL)</span>
                     <span className="text-lg font-black text-foreground tabular-nums block mt-0.5">
                       ₹{report.adsSummary?.cpl || 0}
@@ -459,11 +456,11 @@ export default function DailyTracking() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-2.5 rounded-xl bg-secondary/30 border border-border flex items-center justify-between">
+                  <div className="p-2.5 rounded-xl bg-secondary/30 flex items-center justify-between">
                     <span className="text-muted-foreground inline-flex items-center gap-1.5"><MessageSquare size={13} className="shrink-0" /> Direct Messages</span>
                     <span className="font-bold text-foreground tabular-nums">{report.adsSummary?.messages || 0}</span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-secondary/30 border border-border flex items-center justify-between">
+                  <div className="p-2.5 rounded-xl bg-secondary/30 flex items-center justify-between">
                     <span className="text-muted-foreground inline-flex items-center gap-1.5"><PhoneCall size={13} className="shrink-0" /> Phone Calls</span>
                     <span className="font-bold text-foreground tabular-nums">{report.adsSummary?.calls || 0}</span>
                   </div>
@@ -482,12 +479,12 @@ export default function DailyTracking() {
 
                 <div className="space-y-2">
                   {(report.notes || []).length === 0 ? (
-                    <div className="p-4 rounded-xl bg-secondary/20 border border-border text-center text-xs text-muted-foreground">
+                    <div className="p-4 rounded-xl bg-secondary/20 text-center text-xs text-muted-foreground">
                       No notes logged for today yet. Use the note input below.
                     </div>
                   ) : (
                     report.notes.map((note, idx) => (
-                      <div key={idx} className="p-3 rounded-xl bg-secondary/30 border border-border flex items-start justify-between gap-3 text-xs">
+                      <div key={idx} className="p-3 rounded-xl bg-secondary/30 flex items-start justify-between gap-3 text-xs">
                         <div className="flex items-start gap-2.5 min-w-0">
                           <span className="mt-0.5 text-foreground shrink-0">
                             {note.tag === 'success' ? (
@@ -518,11 +515,11 @@ export default function DailyTracking() {
                 </div>
 
                 {/* Add Note Input */}
-                <form onSubmit={handleAddNote} className="flex gap-2">
+                <form onSubmit={handleAddNote} className="flex flex-wrap sm:flex-nowrap gap-2">
                   <select
                     value={newNoteTag}
                     onChange={(e) => setNewNoteTag(e.target.value)}
-                    className="h-9 px-2.5 bg-secondary/40 border border-border rounded-xl text-xs font-bold outline-none text-foreground cursor-pointer shrink-0"
+                    className="h-11 px-4 bg-secondary/75 rounded-xl text-sm font-normal outline-none focus:bg-background focus:ring-2 focus:ring-brand/40 text-foreground cursor-pointer shrink-0"
                   >
                     <option value="success">Success</option>
                     <option value="warning">Warning</option>
@@ -539,12 +536,12 @@ export default function DailyTracking() {
                         handleAddNote();
                       }
                     }}
-                    className="flex-1 h-9 px-3 bg-secondary/40 border border-border rounded-xl text-xs outline-none text-foreground placeholder:text-muted-foreground"
+                    className="flex-1 h-11 px-4 bg-secondary/75 rounded-xl text-sm font-normal outline-none focus:bg-background focus:ring-2 focus:ring-brand/40 text-foreground placeholder:text-muted-foreground"
                   />
                   <button
                     type="button"
                     onClick={handleAddNote}
-                    className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-xl text-xs shrink-0 cursor-pointer shadow-xs"
+                    className="h-11 px-5 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl text-sm shrink-0 cursor-pointer"
                   >
                     Add Note
                   </button>
@@ -561,7 +558,7 @@ export default function DailyTracking() {
                   <span className="text-[10px] text-muted-foreground">Chronological Activity Log</span>
                 </div>
 
-                <div className="space-y-2 relative border-l-2 border-border/80 ml-3 pl-4 py-1">
+                <div className="space-y-2 relative ml-3 pl-4 py-1">
                   {(report.activityTimeline || []).length === 0 ? (
                     <div className="text-xs text-muted-foreground py-2">No timeline events added yet.</div>
                   ) : (
@@ -586,12 +583,12 @@ export default function DailyTracking() {
                 </div>
 
                 {/* Add Timeline Event Input */}
-                <form onSubmit={handleAddTimeline} className="flex gap-2">
+                <form onSubmit={handleAddTimeline} className="flex flex-wrap sm:flex-nowrap gap-2">
                   <input
                     type="time"
                     value={newTimelineTime}
                     onChange={(e) => setNewTimelineTime(e.target.value)}
-                    className="h-9 px-2 bg-secondary/40 border border-border rounded-xl text-xs font-mono font-bold outline-none text-foreground cursor-pointer shrink-0"
+                    className="h-11 px-4 bg-secondary/75 rounded-xl text-sm font-normal outline-none focus:bg-background focus:ring-2 focus:ring-brand/40 text-foreground cursor-pointer shrink-0"
                   />
                   <input
                     type="text"
@@ -604,12 +601,12 @@ export default function DailyTracking() {
                         handleAddTimeline();
                       }
                     }}
-                    className="flex-1 h-9 px-3 bg-secondary/40 border border-border rounded-xl text-xs outline-none text-foreground placeholder:text-muted-foreground"
+                    className="flex-1 h-11 px-4 bg-secondary/75 rounded-xl text-sm font-normal outline-none focus:bg-background focus:ring-2 focus:ring-brand/40 text-foreground placeholder:text-muted-foreground"
                   />
                   <button
                     type="button"
                     onClick={handleAddTimeline}
-                    className="px-4 py-2 bg-secondary text-foreground hover:bg-secondary/80 font-bold rounded-xl text-xs shrink-0 cursor-pointer border border-border"
+                    className="h-11 px-5 bg-secondary text-foreground hover:bg-secondary/80 font-semibold rounded-xl text-sm shrink-0 cursor-pointer"
                   >
                     Add Event
                   </button>
@@ -620,8 +617,8 @@ export default function DailyTracking() {
 
           {/* ── RIGHT COLUMN: DAILY CASH & SPEND LEDGER (1 col) ── */}
           <div className="space-y-6">
-            <div className="bg-card border border-border rounded-3xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-border pb-3">
+            <div className="bg-card rounded-3xl p-5 space-y-4">
+              <div className="flex items-center justify-between pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <DollarSign size={16} className="text-foreground shrink-0" />
@@ -644,7 +641,7 @@ export default function DailyTracking() {
                   <div className="p-8 text-center text-xs text-muted-foreground">No spend entries logged for this client yet.</div>
                 ) : (
                   spendLogs.slice(0, 8).map((log) => (
-                    <div key={log._id} className="p-3 rounded-2xl bg-secondary/30 border border-border/70 text-xs space-y-1">
+                    <div key={log._id} className="p-3 rounded-2xl bg-secondary/30 text-xs space-y-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-bold text-foreground truncate min-w-0">{log.campaign?.name || 'Campaign'}</span>
                         <span className="font-mono text-[10px] text-muted-foreground tabular-nums shrink-0">{new Date(log.date).toLocaleDateString()}</span>
@@ -654,13 +651,13 @@ export default function DailyTracking() {
                         <span className="text-muted-foreground font-semibold">-₹{(log.amountSpent || 0).toLocaleString()} spent</span>
                       </div>
                       {log.leadsGenerated > 0 && (
-                        <div className="pt-1 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground tabular-nums">
+                        <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground tabular-nums">
                           <span>{log.leadsGenerated} leads generated</span>
                           <span>CPL: ₹{log.cpl || 0}</span>
                         </div>
                       )}
                       {log.isAnomaly && (
-                        <div className="text-[10px] font-bold text-foreground bg-secondary border border-border p-1.5 rounded-md mt-1">
+                        <div className="text-[10px] font-bold text-foreground bg-secondary p-1.5 rounded-md mt-1">
                           {log.anomalyReason}
                         </div>
                       )}
@@ -675,27 +672,27 @@ export default function DailyTracking() {
 
       {/* ── MODAL: LOG DAILY SPEND / FUND DEPOSIT ── */}
       <Dialog open={isSpendModalOpen} onOpenChange={setIsSpendModalOpen}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
-          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
                 <DollarSign size={20} />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                  Log Daily Ad Spend & Funds Added
+                  Log Ad Spend & Funds
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                  Record daily spend, leads generated, and budget deposited for real-time ledger accounting
+                <DialogDescription className="sr-only">
+                  Log ad spend
                 </DialogDescription>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
                 ESC
               </kbd>
-              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <X size={16} className="stroke-[2.5]" />
                 <span className="sr-only">Close</span>
               </DialogClose>
@@ -711,7 +708,7 @@ export default function DailyTracking() {
                   required
                   value={spendForm.campaign}
                   onChange={(e) => setSpendForm({ ...spendForm, campaign: e.target.value, sourceContentId: '' })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                 >
                   <option value="">-- Choose Campaign --</option>
                   {campaignsList.map((c) => {
@@ -735,7 +732,7 @@ export default function DailyTracking() {
                   <select
                     value={spendForm.sourceContentId}
                     onChange={(e) => setSpendForm({ ...spendForm, sourceContentId: e.target.value })}
-                    className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                    className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                   >
                     <option value="">-- Entire Campaign Level --</option>
                     {(campaignsList.find(c => String(c._id) === String(spendForm.campaign))?.sourceContentIds || []).map((v) => (
@@ -754,7 +751,7 @@ export default function DailyTracking() {
                   required
                   value={spendForm.date}
                   onChange={(e) => setSpendForm({ ...spendForm, date: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -765,7 +762,7 @@ export default function DailyTracking() {
                   placeholder="0"
                   value={spendForm.amountAdded}
                   onChange={(e) => setSpendForm({ ...spendForm, amountAdded: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -777,7 +774,7 @@ export default function DailyTracking() {
                   placeholder="0"
                   value={spendForm.amountSpent}
                   onChange={(e) => setSpendForm({ ...spendForm, amountSpent: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -788,12 +785,12 @@ export default function DailyTracking() {
                   placeholder="0"
                   value={spendForm.leadsGenerated}
                   onChange={(e) => setSpendForm({ ...spendForm, leadsGenerated: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
               {(Number(spendForm.amountAdded) > 0 || Number(spendForm.amountSpent) > 0) && (
-                <div className="p-3 bg-secondary/50 rounded-xl border border-border flex items-center justify-between text-sm">
+                <div className="p-3 bg-secondary/50 rounded-xl flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-medium">Balance Amount (Deposited - Spent):</span>
                   <span className="font-bold font-mono tabular-nums text-foreground">
                     ₹{Math.max(0, (Number(spendForm.amountAdded) || 0) - (Number(spendForm.amountSpent) || 0)).toLocaleString()}
@@ -808,7 +805,7 @@ export default function DailyTracking() {
                   placeholder="0"
                   value={spendForm.messages}
                   onChange={(e) => setSpendForm({ ...spendForm, messages: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -819,7 +816,7 @@ export default function DailyTracking() {
                   placeholder="0"
                   value={spendForm.calls}
                   onChange={(e) => setSpendForm({ ...spendForm, calls: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -830,16 +827,16 @@ export default function DailyTracking() {
                   placeholder="e.g. Targeting changed today resulting in lower CPL..."
                   value={spendForm.notes}
                   onChange={(e) => setSpendForm({ ...spendForm, notes: e.target.value })}
-                  className="w-full min-h-[90px] p-3.5 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs resize-y"
+                  className="w-full min-h-[90px] p-3.5 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-y"
                 />
               </div>
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
-                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                   ESC
                 </kbd>
                 <span>to close</span>
@@ -856,7 +853,7 @@ export default function DailyTracking() {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-colors"
                 >
                   Save Spend Entry
                 </Button>

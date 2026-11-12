@@ -3,8 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginUser, clearError } from '../../store/slices/authSlice';
 import { Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from '@/components/ui/muiIcons';
-import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -39,7 +38,7 @@ const Login = () => {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-3.5 rounded-xl bg-destructive/15 text-destructive text-sm font-medium flex items-center gap-2.5 border border-destructive/30 shadow-xs animate-in fade-in slide-in-from-top-2">
+        <div className="p-3.5 rounded-xl bg-destructive/15 text-destructive text-sm font-medium flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2">
           <div className="h-7 w-7 rounded-lg bg-destructive/20 text-destructive flex items-center justify-center shrink-0">
             <AlertCircle size={16} />
           </div>
@@ -64,7 +63,7 @@ const Login = () => {
               required
               value={formData.email}
               onChange={handleChange}
-              className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-xl bg-secondary/30 placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm text-foreground"
+              className="block w-full pl-10 pr-3 py-2.5 rounded-xl bg-background placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 transition-colors text-sm text-foreground"
               placeholder="name@company.com or phone number"
             />
           </div>
@@ -91,7 +90,7 @@ const Login = () => {
               required
               value={formData.password}
               onChange={handleChange}
-              className="block w-full pl-10 pr-10 py-2.5 border border-border rounded-xl bg-secondary/30 placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm text-foreground"
+              className="block w-full pl-10 pr-10 py-2.5 rounded-xl bg-background placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 transition-colors text-sm text-foreground"
               placeholder="••••••••"
             />
             <button
@@ -107,20 +106,16 @@ const Login = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+          className="w-full flex items-center justify-center py-3 px-4 rounded-xl text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer"
         >
           {loading ? (
             <Loader2 className="animate-spin" size={18} />
           ) : (
             <span className="flex items-center">
-              Sign In 
-              <motion.span 
-                animate={{ x: [0, 5, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="ml-2"
-              >
+              Sign In
+              <span className="ml-2 transition-transform duration-150 group-hover:translate-x-1">
                 →
-              </motion.span>
+              </span>
             </span>
           )}
         </button>

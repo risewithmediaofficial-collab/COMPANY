@@ -148,30 +148,36 @@ const MyEODReports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6 space-y-5">
-      {/* ── Page Header ── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground border border-primary flex items-center justify-center shadow-sm shrink-0">
-              <FileText size={20} />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-foreground tracking-tight">
-                My EOD Reports
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                View and export your End of Day reports as Word documents
-              </p>
-            </div>
+    <div className="space-y-5">
+      {/* ── Page Header & Search ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+            <FileText size={20} />
           </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            My EOD Reports
+          </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              type="text"
+              placeholder="Search reports..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-10 pl-9 pr-3 text-xs rounded-xl bg-card outline-none focus:ring-2 focus:ring-brand/40 text-foreground"
+            />
+          </div>
           <button
             onClick={() => refetch()}
             disabled={isLoading}
-            className="p-2.5 rounded-xl border border-border bg-card hover:bg-secondary transition-colors shadow-xs cursor-pointer"
+            className="h-10 w-10 inline-flex items-center justify-center rounded-xl bg-card hover:bg-secondary transition-colors cursor-pointer shrink-0"
             title="Refresh"
           >
             <RefreshCw
@@ -182,7 +188,7 @@ const MyEODReports = () => {
           <button
             onClick={handleExport}
             disabled={exporting || records.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="h-10 flex items-center gap-2 px-4 bg-primary text-primary-foreground text-xs font-bold rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
           >
             {exporting ? (
               <>
@@ -196,26 +202,6 @@ const MyEODReports = () => {
               </>
             )}
           </button>
-        </div>
-      </div>
-
-      {/* ── Filter Bar ── */}
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-xs">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search */}
-          <div className="relative w-full sm:w-auto sm:flex-1 sm:min-w-[220px] sm:max-w-sm">
-            <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="text"
-              placeholder="Search reports..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-border bg-background focus:border-primary outline-none text-foreground"
-            />
-          </div>
         </div>
       </div>
 
@@ -245,7 +231,7 @@ const MyEODReports = () => {
         ].map((card) => (
           <div
             key={card.label}
-            className="bg-card border border-border rounded-2xl p-4 shadow-xs"
+            className="bg-card rounded-2xl p-4 "
           >
             <div className="flex items-center justify-between mb-2">
               <card.icon size={18} className="text-muted-foreground shrink-0" />
@@ -265,13 +251,10 @@ const MyEODReports = () => {
           <p className="text-sm text-muted-foreground font-semibold">Loading your reports…</p>
         </div>
       ) : records.length === 0 ? (
-        <div className="py-20 text-center bg-card border border-border rounded-2xl">
-          <FileText size={40} className="mx-auto text-muted-foreground/30 mb-3" />
-          <p className="text-sm text-muted-foreground font-semibold">
-            No EOD reports found for this period.
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Submit your daily report from the Dashboard to see it here.
+        <div className="py-16 text-center bg-card rounded-2xl">
+          <FileText size={36} className="mx-auto text-muted-foreground/30 mb-3" />
+          <p className="text-sm text-foreground font-semibold">
+            No EOD reports found
           </p>
         </div>
       ) : (
@@ -287,12 +270,12 @@ const MyEODReports = () => {
             return (
               <div
                 key={record._id}
-                className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 group"
+                className="bg-card rounded-2xl overflow-hidden transition-all duration-200 group"
               >
                 {/* Card Header */}
-                <div className="flex items-center justify-between px-5 py-3.5 bg-secondary/20 border-b border-border/60">
+                <div className="flex items-center justify-between px-5 py-3.5 bg-secondary/20 ">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0">
+                    <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center shrink-0">
                       <Calendar size={16} className="text-foreground" />
                     </div>
                     <div>
@@ -314,7 +297,7 @@ const MyEODReports = () => {
                   </div>
                   <button
                     onClick={() => setSelectedRecord(record)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary rounded-lg border border-transparent hover:border-border transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary rounded-lg border-transparent transition-colors cursor-pointer"
                   >
                     <Eye size={13} />
                     View
@@ -345,7 +328,7 @@ const MyEODReports = () => {
                         {tasks.slice(0, 5).map((task, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-secondary text-foreground border border-border rounded-lg"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-secondary text-foreground rounded-lg"
                           >
                             <CheckCircle2 size={10} className="shrink-0" />
                             <span className="max-w-[200px] truncate">{task}</span>
@@ -362,7 +345,7 @@ const MyEODReports = () => {
 
                   {/* Blockers */}
                   {eod.blockers && (
-                    <div className="flex items-start gap-2 bg-muted border border-border rounded-xl p-2.5">
+                    <div className="flex items-start gap-2 bg-muted rounded-xl p-2.5">
                       <AlertCircle
                         size={14}
                         className="text-foreground mt-0.5 shrink-0"
@@ -386,7 +369,7 @@ const MyEODReports = () => {
 
       {/* ── Footer Stats ── */}
       {!isLoading && records.length > 0 && (
-        <div className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between shadow-xs">
+        <div className="bg-card rounded-2xl p-4 flex items-center justify-between ">
           <span className="text-xs text-muted-foreground tabular-nums">
             Showing <strong className="text-foreground">{records.length}</strong> reports
             {(globalStartDate || globalEndDate) && ` (${globalStartDate || '...'} to ${globalEndDate || '...'})`}
@@ -394,7 +377,7 @@ const MyEODReports = () => {
           <button
             onClick={handleExport}
             disabled={exporting || records.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary rounded-lg border border-border transition-colors disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground hover:bg-secondary rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
           >
             <Download size={13} />
             Download Word Report

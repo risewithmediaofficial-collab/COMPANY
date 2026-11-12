@@ -22,7 +22,7 @@ const FavoritesPanel = () => {
       <DropdownMenuTrigger className="p-2 rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground relative inline-flex items-center justify-center" title="View Favorites">
         <Star size={18} className={favorites.length > 0 ? 'fill-current text-foreground' : ''} />
         {favorites.length > 0 && (
-          <span className="absolute top-1 right-1 min-w-4 h-4 px-1 bg-primary text-primary-foreground rounded-full border-2 border-card text-[9px] font-bold flex items-center justify-center tabular-nums">
+          <span className="absolute top-1 right-1 min-w-4 h-4 px-1 bg-primary text-primary-foreground rounded-full ring-2 ring-card text-[9px] font-bold flex items-center justify-center tabular-nums">
             {Math.min(favorites.length, 9)}
           </span>
         )}
@@ -54,9 +54,9 @@ const FavoritesPanel = () => {
                 <button
                   key={`${favorite.type}-${favorite.id}`}
                   onClick={() => handleNavigate(favorite.path || '/')}
-                  className="w-full px-3 py-2 hover:bg-secondary/80 flex items-center gap-3 transition-colors text-left border-b border-border/50 last:border-0"
+                  className="w-full px-3 py-2 hover:bg-secondary/80 flex items-center gap-3 transition-colors text-left last:border-0"
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary border border-border text-foreground">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
                     <FavIcon size={14} />
                   </div>
                   <div className="min-w-0 flex-1">

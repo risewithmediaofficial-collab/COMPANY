@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   X,
   CalendarDays,
@@ -490,10 +489,10 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl">
-        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 pr-4 sm:pr-6 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-background ">
+        <DialogHeader className="px-4 py-3 sm:px-6 sm:py-4 bg-background shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 pr-4 sm:pr-6 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
               <Briefcase size={20} />
             </div>
             <div className="min-w-0">
@@ -507,10 +506,10 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -537,7 +536,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     </FormLabel>
                     <FormControl>
                       <Input
-                        className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60 shadow-2xs"
+                        className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60 "
                         placeholder="e.g. Website Redesign & SEO"
                         {...field}
                       />
@@ -569,7 +568,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       value={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                           <SelectValue placeholder="Select project type" />
                         </SelectTrigger>
                       </FormControl>
@@ -621,7 +620,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       value={field.value || (isSaasOrInternal ? 'none' : '')}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                           <SelectValue placeholder={isSaasOrInternal ? 'None (Internal SaaS Product)' : 'Select client'} />
                         </SelectTrigger>
                       </FormControl>
@@ -645,7 +644,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
               {/* SaaS Mode Helpful Notice */}
               {isSaasOrInternal && (
-                <div className="p-3.5 rounded-xl bg-secondary border border-border text-xs sm:text-sm text-foreground flex items-center gap-2.5">
+                <div className="p-3.5 rounded-xl bg-secondary text-xs sm:text-sm text-foreground flex items-center gap-2.5">
                   <Rocket size={16} className="shrink-0" />
                   <span className="font-semibold">
                     SaaS Product Mode Active: You can create and build this SaaS platform without adding an external client.
@@ -662,7 +661,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     <FormLabel className="text-sm font-semibold text-foreground">Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
@@ -688,7 +687,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     <FormLabel className="text-sm font-semibold text-foreground">Priority</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                        <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
@@ -718,7 +717,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           type="date"
-                          className="h-11 rounded-xl border-border bg-background pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </div>
@@ -742,7 +741,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         <CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           type="date"
-                          className="h-11 rounded-xl border-border bg-background pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                         />
                       </div>
@@ -767,7 +766,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         <Input
                           type="number"
                           placeholder="e.g. 50000 (optional)"
-                          className="h-11 rounded-xl border-border bg-background pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                          className="h-11 rounded-xl bg-secondary/75 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 "
                           {...field}
                           value={field.value ?? ''}
                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
@@ -788,7 +787,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     <FormLabel className="text-sm font-semibold text-foreground">Project Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        className="min-h-[105px] rounded-xl border-border bg-background p-3.5 text-sm leading-relaxed focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                        className="min-h-[105px] rounded-xl bg-secondary/75 p-3.5 text-sm leading-relaxed focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                         placeholder="Brief summary of goals, milestones, and deliverables..."
                         {...field}
                       />
@@ -800,14 +799,14 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
             </div>
 
             {/* Field 10: Monthly Deliverables & Targets Toggle Section */}
-            <div className="rounded-2xl border border-border/80 bg-secondary/20 p-5 space-y-3.5 transition-all shadow-2xs">
+            <div className="rounded-2xl bg-secondary/20 p-5 space-y-3.5 transition-all ">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
                       includeMonthlyDeliverables
-                        ? 'bg-primary/10 text-primary border-primary/25'
-                        : 'bg-muted/60 text-muted-foreground border-border'
+                        ? 'bg-primary/10 text-primary '
+                        : 'bg-muted/60 text-muted-foreground '
                     }`}
                   >
                     <Target size={17} />
@@ -818,7 +817,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                         Monthly Deliverables & Content Quotas
                       </h3>
                       {isDevCategory && (
-                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-secondary text-foreground border border-border">
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-secondary text-foreground ">
                           Non-content (Optional)
                         </span>
                       )}
@@ -844,13 +843,13 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       setHasUserToggledDeliverables(true);
                       setIncludeMonthlyDeliverables(e.target.checked);
                     }}
-                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 cursor-pointer"
+                    className="h-4 w-4 rounded text-primary focus:ring-primary/20 cursor-pointer"
                   />
                 </label>
               </div>
 
               {includeMonthlyDeliverables ? (
-                <div className="pt-2 border-t border-border/60">
+                <div className="pt-2 ">
                   <MonthlyDeliverablesSection
                     deliverables={monthlyDeliverables}
                     onChange={setMonthlyDeliverables}
@@ -861,7 +860,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                   />
                 </div>
               ) : (
-                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-background/70 border border-border/70 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between gap-2 p-3.5 rounded-xl bg-secondary/75/70 text-xs text-muted-foreground">
                   <span className="flex items-center gap-2">
                     <CheckCircle2 size={16} className="text-foreground shrink-0" />
                     <span>
@@ -886,15 +885,15 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
 
             {/* Field 11: Direct Move to Development Pipeline Toggle (for Dev / Software / Web projects) */}
             {isDevCategory && !project && (
-              <div className="rounded-2xl border border-border bg-secondary/40 p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs">
+              <div className="rounded-2xl bg-secondary/40 p-4 sm:p-4.5 flex items-center justify-between gap-3 ">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
                     <Rocket size={17} className="shrink-0" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-foreground flex items-center gap-2">
                       <span>Directly Move to Development Board</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-foreground border border-border">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-foreground ">
                         Dev Workflow
                       </span>
                     </div>
@@ -908,7 +907,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                     type="checkbox"
                     checked={moveToDevelopment}
                     onChange={(e) => setMoveToDevelopment(e.target.checked)}
-                    className="h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                    className="h-4 w-4 rounded accent-primary cursor-pointer"
                   />
                   <span>Move to Dev</span>
                 </label>
@@ -916,7 +915,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
             )}
 
             {/* Field 12: Budget & Payment Section (Linear Single Column) */}
-            <div className="rounded-2xl border border-border/80 bg-secondary/20 p-5 space-y-4 shadow-2xs">
+            <div className="rounded-2xl bg-secondary/20 p-5 space-y-4 ">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <IndianRupee className="h-4 w-4 text-primary" /> Budget & Payment Workflow
               </h3>
@@ -930,7 +929,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       <FormLabel className="text-sm font-semibold text-foreground">Currency</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -953,7 +952,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       <FormLabel className="text-sm font-semibold text-foreground">Payment Status</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs">
+                          <SelectTrigger className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 ">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
@@ -975,7 +974,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       <FormLabel className="text-sm font-semibold text-foreground">Budget Notes</FormLabel>
                       <FormControl>
                         <Textarea
-                          className="min-h-[85px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                          className="min-h-[85px] rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                           placeholder="Payment schedule, milestone terms, invoice notes..."
                           {...field}
                         />
@@ -989,17 +988,17 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
             </div>
 
             {/* Modern Pinned Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-background px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 select-none">
               <div className="flex items-center gap-2">
                 {isDevCategory && !project ? (
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-secondary text-foreground border border-border inline-flex items-center gap-1.5 shadow-2xs">
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-secondary text-foreground inline-flex items-center gap-1.5 ">
                     <Code2 size={14} className="shrink-0" />
                     <span>Website &amp; Software Workflow</span>
                   </span>
                 ) : (
                   <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                     <span>Press</span>
-                    <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                    <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                       ESC
                     </kbd>
                     <span>to close</span>
@@ -1027,7 +1026,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                       setMoveToDevelopment(true);
                       form.handleSubmit(onSubmit, onFormError)();
                     }}
-                    className="h-11 px-5 rounded-xl border border-border text-sm font-bold shadow-sm gap-2 cursor-pointer transition-all"
+                    className="h-11 px-5 rounded-xl text-sm font-bold gap-2 cursor-pointer transition-all"
                   >
                     <Rocket size={15} className="shrink-0" />
                     <span>Create &amp; Move to Dev</span>
@@ -1037,7 +1036,7 @@ export const AddProjectModal = ({ open, onOpenChange, project = null, defaultCli
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
                 >
                   {isLoading ? 'Saving...' : project ? 'Update Project' : 'Create Project'}
                 </Button>

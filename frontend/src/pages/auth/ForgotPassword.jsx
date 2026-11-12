@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Mail, Loader2, ArrowLeft } from '@/components/ui/muiIcons';
 import { Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -28,13 +28,10 @@ const ForgotPassword = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold tracking-tight">Reset your password</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Enter your email and we&apos;ll notify the administrator to reset your password.
-        </p>
       </div>
 
       {submitted ? (
-        <div className="rounded-xl border border-border bg-secondary p-4 text-sm text-foreground">
+        <div className="rounded-xl bg-secondary p-4 text-sm text-foreground">
           Your password reset request has been sent to the administrator.
         </div>
       ) : (
@@ -53,7 +50,7 @@ const ForgotPassword = () => {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="block w-full rounded-xl border border-border bg-secondary/30 py-2.5 pl-10 pr-3 text-sm text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="block w-full rounded-xl bg-background py-2.5 pl-10 pr-3 text-sm text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-brand/40"
                 placeholder="name@company.com"
               />
             </div>
@@ -62,7 +59,7 @@ const ForgotPassword = () => {
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : 'Submit Request'}
           </button>

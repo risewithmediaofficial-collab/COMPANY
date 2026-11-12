@@ -74,14 +74,14 @@ const getRemainingDays = (expiryDate) => {
 };
 
 const toneByStatus = {
-  active: 'bg-secondary text-foreground border-border',
-  pending: 'bg-muted text-foreground border-border',
-  renewed: 'bg-primary text-primary-foreground border-primary',
-  expired: 'bg-secondary text-foreground border-foreground/40 font-black',
+  active: 'bg-secondary text-foreground ',
+  pending: 'bg-muted text-foreground ',
+  renewed: 'bg-primary text-primary-foreground ',
+  expired: 'bg-secondary text-foreground font-black',
 };
 
 const FormField = ({ label, children }) => (
-  <label className="space-y-1.5 text-xs font-semibold text-foreground block">
+  <label className="space-y-1.5 text-sm font-semibold text-foreground block text-left">
     <span>{label}</span>
     {children}
   </label>
@@ -128,27 +128,27 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
-        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0 ">
               <Globe2 size={20} />
             </div>
             <div className="min-w-0">
               <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {record ? 'Edit Domain / Renewal Asset' : 'Add Domain / Hosting Asset'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                Track registrar expiration dates and prevent website downtime for clients
+              <DialogDescription className="sr-only">
+                Domain renewal asset form
               </DialogDescription>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted border border-border transition-all active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted transition-all active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -168,7 +168,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                   onChange={(e) => updateField('itemName', e.target.value)}
                   placeholder="e.g. risewithmedia.com, Client AWS Hosting"
                   required
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -180,7 +180,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                   value={form.itemType}
                   onChange={(e) => updateField('itemType', e.target.value)}
                   required
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="w-full h-11 px-4 rounded-xl bg-background text-sm focus:ring-2 focus:ring-primary/20 "
                 >
                   {renewalTypeOptions.map((type) => (
                     <option key={type.value} value={type.value}>
@@ -195,7 +195,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                 <select
                   value={form.clientId}
                   onChange={(e) => updateField('clientId', e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="w-full h-11 px-4 rounded-xl bg-background text-sm focus:ring-2 focus:ring-primary/20 "
                 >
                   <option value="all">None / Internal</option>
                   {clients.map((c) => (
@@ -212,7 +212,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                   value={form.provider}
                   onChange={(e) => updateField('provider', e.target.value)}
                   placeholder="e.g. GoDaddy, Hostinger, AWS, Namecheap"
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -225,7 +225,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                   value={form.expiryDate}
                   onChange={(e) => updateField('expiryDate', e.target.value)}
                   required
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -236,7 +236,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                   value={form.renewalCost}
                   onChange={(e) => updateField('renewalCost', e.target.value)}
                   placeholder="₹ Amount"
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -245,7 +245,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                 <select
                   value={form.status}
                   onChange={(e) => updateField('status', e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="w-full h-11 px-4 rounded-xl bg-background text-sm focus:ring-2 focus:ring-primary/20 "
                 >
                   {renewalStatusOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -262,17 +262,17 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
                   onChange={(e) => updateField('notes', e.target.value)}
                   placeholder="Auto-renewal enabled, primary billing card info, credentials location..."
                   rows={3}
-                  className="min-h-[100px] rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs resize-y"
+                  className="min-h-[100px] rounded-xl bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 resize-y"
                 />
               </div>
             </div>
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
             <span className="text-xs text-muted-foreground hidden sm:inline-flex items-center gap-1.5">
               <span>Press</span>
-              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                 ESC
               </kbd>
               <span>to close</span>
@@ -290,7 +290,7 @@ const RenewalFormDialog = ({ open, onOpenChange, record, clients, projects, onSa
               <Button
                 type="submit"
                 disabled={saving}
-                className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                className="h-11 px-6 rounded-xl bg-primary hover:opacity-90 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
               >
                 {saving ? 'Saving...' : record ? 'Save Changes' : 'Track Asset'}
               </Button>
@@ -366,7 +366,7 @@ export default function DomainRenewals() {
       label: 'Domain / Asset',
       render: (item) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="h-7 w-7 rounded-lg bg-secondary text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {item.itemType === 'hosting' ? <Server size={14} /> : <Globe2 size={14} />}
           </div>
           <div>
@@ -396,12 +396,12 @@ export default function DomainRenewals() {
             <p className="font-semibold text-foreground">{formatDate(item.expiryDate)}</p>
             {days !== null && (
               <span
-                className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded border mt-0.5 tabular-nums ${
+                className={`inline-block text-[10px] font-bold px-1.5 py-0.2 rounded mt-0.5 tabular-nums ${
                   days < 0 || days <= 15
-                    ? 'bg-primary text-primary-foreground border-primary'
+                    ? 'bg-primary text-primary-foreground '
                     : days <= 30
-                    ? 'bg-secondary text-foreground border-foreground/40'
-                    : 'bg-secondary text-muted-foreground border-border'
+                    ? 'bg-secondary text-foreground '
+                    : 'bg-secondary text-muted-foreground '
                 }`}
               >
                 {days < 0 ? `Expired ${Math.abs(days)}d ago` : `${days} days remaining`}
@@ -424,7 +424,7 @@ export default function DomainRenewals() {
       key: 'status',
       label: 'Status',
       render: (item) => (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${toneByStatus[item.status] || toneByStatus.active}`}>
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${toneByStatus[item.status] || toneByStatus.active}`}>
           {item.status}
         </span>
       ),
@@ -465,7 +465,7 @@ export default function DomainRenewals() {
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
             {item.itemType}
           </span>
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border capitalize ${toneByStatus[item.status] || toneByStatus.active}`}>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded capitalize ${toneByStatus[item.status] || toneByStatus.active}`}>
             {item.status}
           </span>
         </div>
@@ -478,7 +478,7 @@ export default function DomainRenewals() {
           </p>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
+        <div className="p-2.5 rounded-xl bg-secondary/40 space-y-1 text-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Provider:</span>
             <span className="font-semibold text-foreground">{item.provider || '—'}</span>
@@ -494,7 +494,7 @@ export default function DomainRenewals() {
         </div>
 
         {days !== null && days <= 30 && (
-          <div className="flex items-center gap-1.5 p-2 rounded-lg bg-secondary border border-foreground/30 text-foreground text-xs font-bold tabular-nums">
+          <div className="flex items-center gap-1.5 p-2 rounded-lg bg-secondary text-foreground text-xs font-bold tabular-nums">
             <AlertTriangle size={13} className="shrink-0" />
             <span>Expires in {days} days! Action required.</span>
           </div>
@@ -521,7 +521,7 @@ export default function DomainRenewals() {
             setSelectedRecord(null);
             setOpenDialog(true);
           }}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
         >
           <Plus size={14} className="stroke-[2.5]" />
           <span>Add Asset</span>
@@ -536,8 +536,8 @@ export default function DomainRenewals() {
             onClick={() => setStatusFilter(st)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap shrink-0 min-h-[36px] ${
               statusFilter === st
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-primary text-primary-foreground '
+                : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
             {st === 'all' ? 'All Statuses' : st}
@@ -567,10 +567,10 @@ export default function DomainRenewals() {
       />
 
       <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent className="bg-card border border-border">
+        <AlertDialogContent className="bg-card ">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold">Delete Renewal Asset?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogDescription className="sr-only">
               This will remove this asset from the renewal tracking dashboard.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -54,7 +54,7 @@ export const DialogContent = React.forwardRef(
           <DialogPrimitive.Content
             ref={ref}
             className={cn(
-              'fixed top-0 bottom-0 right-0 z-50 flex h-screen h-[100dvh] max-h-screen w-full flex-col border-l border-border bg-card shadow-2xl outline-none duration-300 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right overflow-hidden rounded-none',
+              'fixed top-0 bottom-0 right-0 z-50 flex h-screen h-[100dvh] max-h-screen w-full flex-col bg-background shadow-[-24px_0_48px_-12px_rgb(0,0,0,0.12)] dark:shadow-[-24px_0_48px_-12px_rgb(0,0,0,0.5)] outline-none duration-300 ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right overflow-hidden rounded-none',
               sizeClasses[size] || sizeClasses.default,
               sanitizedClassName
             )}
@@ -75,10 +75,10 @@ export const DialogContent = React.forwardRef(
             {/* Notion-Style Header Close Action Group */}
             {!hideCloseButton && (
               <div className="absolute right-4 top-4 sm:right-6 sm:top-5 z-50 flex items-center gap-2">
-                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary text-[10px] font-mono font-medium text-muted-foreground select-none">
                   ESC
                 </kbd>
-                <DialogPrimitive.Close className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <DialogPrimitive.Close className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand/40">
                   <X size={15} className="stroke-[2.5]" />
                   <span className="sr-only">Close</span>
                 </DialogPrimitive.Close>
@@ -100,7 +100,7 @@ export const DialogContent = React.forwardRef(
             <DialogPrimitive.Content
               ref={ref}
               className={cn(
-                'relative w-full my-auto max-h-[min(92vh,calc(100dvh-1rem))] rounded-2xl sm:rounded-3xl border border-border bg-card shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 duration-200 flex flex-col min-h-0 overflow-hidden',
+                'relative w-full my-auto max-h-[min(92vh,calc(100dvh-1rem))] rounded-2xl sm:rounded-3xl bg-background shadow-[0_24px_48px_-12px_rgb(0,0,0,0.16)] dark:shadow-[0_24px_48px_-12px_rgb(0,0,0,0.55)] outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 duration-200 flex flex-col min-h-0 overflow-hidden',
                 sizeClasses[size] || sizeClasses.sm,
                 className
               )}
@@ -120,10 +120,10 @@ export const DialogContent = React.forwardRef(
               <DialogPrimitive.Description className="sr-only">Dialog modal window</DialogPrimitive.Description>
               {!hideCloseButton && (
                 <div className="absolute right-3.5 top-3.5 z-50 flex items-center gap-1.5">
-                  <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 rounded bg-secondary/80 border border-border text-[9px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+                  <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 rounded bg-secondary text-[9px] font-mono font-medium text-muted-foreground select-none">
                     ESC
                   </kbd>
-                  <DialogPrimitive.Close className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-border/60 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none">
+                  <DialogPrimitive.Close className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors cursor-pointer focus:outline-none">
                     <X size={14} className="stroke-[2.5]" />
                     <span className="sr-only">Close</span>
                   </DialogPrimitive.Close>
@@ -148,7 +148,7 @@ DialogContent.displayName = 'DialogContent';
 export const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
-      'flex flex-col space-y-1.5 text-left border-b border-border/80 pt-5 pb-5 mb-6 pr-24 select-none shrink-0',
+      'flex flex-col space-y-1.5 text-left pt-5 pb-4 mb-5 pr-24 select-none shrink-0',
       className
     )}
     {...props}
@@ -176,7 +176,7 @@ DialogDescription.displayName = 'DialogDescription';
 export const DialogFooter = ({ className, ...props }) => (
   <div
     className={cn(
-      'flex flex-wrap items-center justify-end gap-3 pt-5 mt-6 border-t border-border/80',
+      'flex flex-wrap items-center justify-end gap-3 pt-5 mt-6',
       className
     )}
     {...props}

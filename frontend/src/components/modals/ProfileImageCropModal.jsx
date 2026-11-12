@@ -268,13 +268,13 @@ export const ProfileImageCropModal = ({
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[92dvh] sm:max-h-[90vh] rounded-3xl"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[92dvh] sm:max-h-[90vh] rounded-3xl"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none">
+        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 bg-card shrink-0 select-none">
           <div className="flex items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                 <Sparkles size={18} />
               </div>
               <div className="min-w-0">
@@ -287,7 +287,7 @@ export const ProfileImageCropModal = ({
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded-md">
                 ESC
               </span>
               <DialogClose className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center">
@@ -304,7 +304,7 @@ export const ProfileImageCropModal = ({
             <div className="flex flex-col items-center space-y-4 w-full sm:w-auto">
               {/* Crop Viewport Box */}
               <div
-                className="relative rounded-2xl overflow-hidden shadow-inner bg-black border border-border select-none touch-none cursor-grab active:cursor-grabbing max-w-[min(320px,calc(100vw-64px))] max-h-[min(320px,calc(100vw-64px))]"
+                className="relative rounded-2xl overflow-hidden shadow-inner bg-black select-none touch-none cursor-grab active:cursor-grabbing max-w-[min(320px,calc(100vw-64px))] max-h-[min(320px,calc(100vw-64px))]"
                 style={{
                   width: `${CROP_CONTAINER_SIZE}px`,
                   height: `${CROP_CONTAINER_SIZE}px`,
@@ -382,7 +382,7 @@ export const ProfileImageCropModal = ({
                       stroke="rgba(255, 255, 255, 0.9)"
                       strokeWidth="2"
                       strokeDasharray="6 4"
-                      className="shadow-sm"
+                      className=""
                     />
                   ) : (
                     <rect
@@ -428,7 +428,7 @@ export const ProfileImageCropModal = ({
                 </svg>
 
                 {/* Floating "Drag to Move" Pill */}
-                <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/80 border border-white/15 text-[11px] font-semibold text-white flex items-center gap-1.5 shadow-lg">
+                <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/80 text-[11px] font-semibold text-white flex items-center gap-1.5 shadow-lg">
                   <Move size={12} className="shrink-0" />
                   <span>Drag to reposition</span>
                 </div>
@@ -473,11 +473,11 @@ export const ProfileImageCropModal = ({
               </div>
 
               {/* Transform Action Bar */}
-              <div className="flex items-center gap-1.5 bg-secondary/50 p-1.5 rounded-xl border border-border/80">
+              <div className="flex items-center gap-1.5 bg-secondary/50 p-1.5 rounded-xl ">
                 <button
                   type="button"
                   onClick={() => handleRotate('ccw')}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border border-transparent hover:border-border transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border-transparent transition-all cursor-pointer"
                   title="Rotate 90° Left"
                 >
                   <RotateCcw size={14} />
@@ -487,7 +487,7 @@ export const ProfileImageCropModal = ({
                 <button
                   type="button"
                   onClick={() => handleRotate('cw')}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border border-transparent hover:border-border transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border-transparent transition-all cursor-pointer"
                   title="Rotate 90° Right"
                 >
                   <RotateCw size={14} />
@@ -498,10 +498,10 @@ export const ProfileImageCropModal = ({
                   type="button"
                   onClick={() => setFlipH((f) => !f)}
                   className={cn(
-                    'flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer',
+                    'flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer',
                     flipH
-                      ? 'bg-primary/10 text-primary border-primary/30'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-card border-transparent hover:border-border'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card'
                   )}
                   title="Flip Horizontal"
                 >
@@ -515,7 +515,7 @@ export const ProfileImageCropModal = ({
                 <button
                   type="button"
                   onClick={() => setCropShape((s) => (s === 'circle' ? 'square' : 'circle'))}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border border-transparent hover:border-border transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border-transparent transition-all cursor-pointer"
                   title={cropShape === 'circle' ? 'Switch to Square View' : 'Switch to Circle View'}
                 >
                   {cropShape === 'circle' ? <Circle size={14} /> : <Square size={14} />}
@@ -525,7 +525,7 @@ export const ProfileImageCropModal = ({
                 <button
                   type="button"
                   onClick={resetAdjustments}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border border-transparent hover:border-border transition-all cursor-pointer"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border-transparent transition-all cursor-pointer"
                   title="Reset Adjustments"
                 >
                   <ResetIcon size={14} />
@@ -534,7 +534,7 @@ export const ProfileImageCropModal = ({
             </div>
 
             {/* ── Right Column: Live Previews & Details ── */}
-            <div className="w-full lg:w-72 flex flex-col justify-between bg-secondary/25 rounded-2xl p-5 border border-border/70 space-y-5">
+            <div className="w-full lg:w-72 flex flex-col justify-between bg-secondary/25 rounded-2xl p-5 space-y-5">
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
                   Live Avatar Preview
@@ -545,7 +545,7 @@ export const ProfileImageCropModal = ({
                   <div className="relative group">
                     <div
                       className={cn(
-                        'w-[88px] h-[88px] overflow-hidden bg-card border-2 border-primary/30 shadow-xl flex items-center justify-center',
+                        'w-[88px] h-[88px] overflow-hidden bg-card shadow-xl flex items-center justify-center',
                         cropShape === 'circle' ? 'rounded-full' : 'rounded-2xl'
                       )}
                     >
@@ -567,12 +567,12 @@ export const ProfileImageCropModal = ({
                   </div>
 
                   {/* Header / Navbar Avatar Simulation Preview */}
-                  <div className="w-full pt-3 border-t border-border/60 flex items-center justify-between px-3 py-2 rounded-xl bg-card/60 border border-border/40">
+                  <div className="w-full pt-3 flex items-center justify-between px-3 py-2 rounded-xl bg-card/60 ">
                     <span className="text-xs font-medium text-muted-foreground">Navbar View:</span>
                     <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          'w-9 h-9 overflow-hidden bg-card border border-primary/40 shadow-xs flex items-center justify-center',
+                          'w-9 h-9 overflow-hidden bg-card flex items-center justify-center',
                           cropShape === 'circle' ? 'rounded-full' : 'rounded-xl'
                         )}
                       >
@@ -591,7 +591,7 @@ export const ProfileImageCropModal = ({
               </div>
 
               {/* Usage Hints */}
-              <div className="space-y-2 text-[11px] text-muted-foreground bg-card/50 p-3 rounded-xl border border-border/50">
+              <div className="space-y-2 text-[11px] text-muted-foreground bg-card/50 p-3 rounded-xl ">
                 <div className="font-semibold text-foreground">Quick Tips:</div>
                 <ul className="space-y-1 list-disc pl-3.5 leading-relaxed">
                   <li>Scroll mouse wheel over image to zoom.</li>
@@ -618,7 +618,7 @@ export const ProfileImageCropModal = ({
         </div>
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
           <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
           <div className="flex items-center gap-2.5 ml-auto">
             <Button
@@ -635,7 +635,7 @@ export const ProfileImageCropModal = ({
               type="button"
               onClick={handleApplyCrop}
               disabled={isSaving || isProcessing}
-              className="h-11 px-6 rounded-xl text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shadow-md"
+              className="h-11 px-6 rounded-xl text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-2 "
             >
               {isSaving || isProcessing ? (
                 <>

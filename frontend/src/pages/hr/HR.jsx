@@ -78,7 +78,7 @@ const HR = () => {
       label: 'Employee Name',
       render: (row) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-secondary text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {row.name?.charAt(0) || 'E'}
           </div>
           <div>
@@ -156,14 +156,14 @@ const HR = () => {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
             {row.department || 'General'}
           </span>
           <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
               clockedIn
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-secondary text-muted-foreground border-border'
+                ? 'bg-primary text-primary-foreground '
+                : 'bg-secondary text-muted-foreground '
             }`}
           >
             <span className={`h-1.5 w-1.5 rounded-full ${clockedIn ? 'bg-primary-foreground' : 'bg-muted-foreground'}`} />
@@ -172,7 +172,7 @@ const HR = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-secondary border border-border flex items-center justify-center font-black text-sm text-foreground shrink-0">
+          <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center font-black text-sm text-foreground shrink-0">
             {row.name?.charAt(0) || 'E'}
           </div>
           <div>
@@ -181,7 +181,7 @@ const HR = () => {
           </div>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
+        <div className="p-2.5 rounded-xl bg-secondary/40 space-y-1 text-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Today's Hours:</span>
             <span className="font-bold text-foreground tabular-nums">
@@ -194,7 +194,7 @@ const HR = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-1 pt-1 border-t border-border/40">
+        <div className="flex items-center justify-end gap-1 pt-1 ">
           <button
             onClick={() => {
               setSelectedEmployee(row);
@@ -233,7 +233,7 @@ const HR = () => {
             setSelectedEmployee(null);
             setShowAddEmployeeModal(true);
           }}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
         >
           <Plus size={14} className="stroke-[2.5]" />
           <span>Add Employee</span>
@@ -248,8 +248,8 @@ const HR = () => {
             onClick={() => setDeptFilter(d)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap shrink-0 min-h-[36px] ${
               deptFilter === d
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-primary text-primary-foreground '
+                : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
             {d === 'all' ? 'All Departments' : d}
@@ -275,10 +275,10 @@ const HR = () => {
       />
 
       <AlertDialog open={Boolean(deleteEmployeeId)} onOpenChange={(open) => !open && setDeleteEmployeeId(null)}>
-        <AlertDialogContent className="bg-card border border-border">
+        <AlertDialogContent className="bg-card ">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold">Delete Employee Record?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogDescription className="sr-only">
               This action will remove the employee from the HR directory.
             </AlertDialogDescription>
           </AlertDialogHeader>

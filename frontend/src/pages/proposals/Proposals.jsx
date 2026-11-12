@@ -34,12 +34,12 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const statusTone = {
-  draft: 'bg-secondary text-muted-foreground border-border',
-  sent: 'bg-secondary text-foreground border-border',
-  viewed: 'bg-muted text-foreground border-border',
-  accepted: 'bg-primary text-primary-foreground border-primary',
-  rejected: 'bg-secondary text-muted-foreground border-border line-through',
-  expired: 'bg-muted text-muted-foreground border-border',
+  draft: 'bg-secondary text-muted-foreground ',
+  sent: 'bg-secondary text-foreground ',
+  viewed: 'bg-muted text-foreground ',
+  accepted: 'bg-primary text-primary-foreground ',
+  rejected: 'bg-secondary text-muted-foreground line-through',
+  expired: 'bg-muted text-muted-foreground ',
 };
 
 const Proposals = () => {
@@ -114,7 +114,7 @@ const Proposals = () => {
         if (row.recipientType === 'lead' || row.lead) {
           return (
             <div className="flex items-center gap-1.5">
-              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px]">Lead</span>
+              <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground font-bold text-[10px]">Lead</span>
               <span className="font-semibold text-xs text-foreground">
                 {row.lead?.name || row.lead?.company || 'Lead Prospect'}
               </span>
@@ -123,7 +123,7 @@ const Proposals = () => {
         }
         return (
           <div className="flex items-center gap-1.5">
-            <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold text-[10px]">Client</span>
+            <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground font-bold text-[10px]">Client</span>
             <span className="font-semibold text-xs text-foreground">
               {row.client?.company || row.client?.name || 'Client Account'}
             </span>
@@ -167,7 +167,7 @@ const Proposals = () => {
       key: 'status',
       label: 'Status',
       render: (row) => (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${statusTone[row.status] || statusTone.draft}`}>
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${statusTone[row.status] || statusTone.draft}`}>
           {row.status || 'draft'}
         </span>
       ),
@@ -244,7 +244,7 @@ const Proposals = () => {
         </p>
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 border-t border-border/40 tabular-nums">
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 tabular-nums">
         <span className="flex items-center gap-1">
           <Calendar size={11} className="text-muted-foreground/70 shrink-0" />
           <span>{row.createdAt ? `Created ${new Date(row.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}` : ''}</span>
@@ -280,7 +280,7 @@ const Proposals = () => {
           <Button
             size="sm"
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 cursor-pointer"
           >
             <Plus size={14} className="stroke-[2.5]" />
             <span>Create Proposal</span>
@@ -296,8 +296,8 @@ const Proposals = () => {
             onClick={() => setStatusFilter(st)}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap shrink-0 min-h-[36px] ${
               statusFilter === st
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-primary text-primary-foreground '
+                : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
             {st === 'all' ? 'All Proposals' : st}
@@ -333,15 +333,13 @@ const Proposals = () => {
           if (!open) setProposalToDelete(null);
         }}
       >
-        <AlertDialogContent className="rounded-2xl border-border bg-card">
+        <AlertDialogContent className="rounded-2xl bg-card">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold text-foreground">
-              Delete Proposal
+              Delete Proposal "{proposalToDelete?.title}"?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground">
-              Are you sure you want to delete proposal{' '}
-              <strong className="text-foreground font-semibold">"{proposalToDelete?.title}"</strong>{' '}
-              ({proposalToDelete?.proposalNumber || 'Proposal'})? This action cannot be undone.
+            <AlertDialogDescription className="sr-only">
+              Are you sure you want to delete proposal "{proposalToDelete?.title}" ({proposalToDelete?.proposalNumber || 'Proposal'})? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex items-center justify-end gap-2 pt-2">

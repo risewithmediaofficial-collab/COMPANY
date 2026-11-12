@@ -54,13 +54,13 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-border bg-background p-4">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl bg-card p-5">
       <div>
         <label className="text-sm font-semibold text-foreground">Completed Work *</label>
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          className="mt-2 min-h-24 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+          className="mt-2 min-h-24 w-full rounded-xl bg-background px-4 py-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-brand/40"
           placeholder="What was completed in this update?"
         />
       </div>
@@ -70,7 +70,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
         <textarea
           value={workNotes}
           onChange={(event) => setWorkNotes(event.target.value)}
-          className="mt-2 min-h-20 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+          className="mt-2 min-h-20 w-full rounded-xl bg-background px-4 py-3 text-sm outline-none transition-colors focus:ring-2 focus:ring-brand/40"
           placeholder="Add any context, blockers, or notes for admin/client review..."
         />
       </div>
@@ -86,7 +86,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
               step="0.5"
               value={hours}
               onChange={(event) => setHours(event.target.value)}
-              className="w-full rounded-2xl border border-border bg-background py-3 pl-11 pr-4 text-sm tabular-nums outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+              className="w-full rounded-xl bg-background py-3 pl-11 pr-4 text-sm tabular-nums outline-none transition-colors focus:ring-2 focus:ring-brand/40"
               placeholder="0"
             />
           </div>
@@ -98,13 +98,13 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
             type="date"
             value={workDate}
             onChange={(event) => setWorkDate(event.target.value)}
-            className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm tabular-nums outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15"
+            className="mt-2 w-full rounded-xl bg-background px-4 py-3 text-sm tabular-nums outline-none transition-colors focus:ring-2 focus:ring-brand/40"
           />
         </div>
 
         <div>
           <label className="text-sm font-semibold text-foreground">Update Attachments</label>
-          <div className="mt-2 rounded-2xl border border-dashed border-border bg-background px-4 py-3">
+          <div className="mt-2 rounded-xl bg-background px-4 py-3">
             <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
               <Upload size={15} className="shrink-0" />
               Upload supporting files
@@ -128,7 +128,7 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
       </div>
 
       {!description.trim() && (
-        <div className="flex gap-2 rounded-2xl border border-border bg-secondary px-4 py-3 text-sm text-foreground">
+        <div className="flex gap-2 rounded-xl bg-secondary px-4 py-3 text-sm text-foreground">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>Add a short summary of completed work before saving the update.</span>
         </div>
@@ -138,14 +138,14 @@ export const ProgressUpdateForm = ({ taskId, onSuccess }) => {
         <button
           type="button"
           onClick={() => setShowForm(false)}
-          className="rounded-2xl border border-border px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:bg-secondary"
+          className="rounded-xl bg-secondary px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary/80 cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={addProgress.isPending || !description.trim()}
-          className="rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
         >
           {addProgress.isPending ? 'Saving...' : 'Save Update'}
         </button>

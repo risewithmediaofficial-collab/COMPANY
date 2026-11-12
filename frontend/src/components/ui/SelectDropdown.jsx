@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Check, Search, X, PenTool, Edit3 } from '@/components/ui/muiIcons';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../utils/cn';
 
 /**
@@ -239,12 +238,12 @@ export const SelectDropdown = ({
         onClick={toggleOpen}
         onKeyDown={handleKeyDown}
         className={cn(
-          'flex w-full items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-border bg-card px-3.5 py-2.5 text-xs sm:text-sm text-foreground shadow-xs transition-all hover:bg-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer',
-          isOpen && 'border-primary ring-2 ring-primary/20 bg-card',
+          'flex h-11 w-full items-center justify-between gap-2 rounded-xl bg-secondary/75 px-4 py-2 text-sm font-normal text-left text-foreground transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer',
+          isOpen && 'ring-2 ring-brand/45 bg-secondary',
           buttonClassName
         )}
       >
-        <span className={cn('truncate font-medium', !selectedOption && !isCustomMode && 'text-muted-foreground')}>
+        <span className={cn('truncate font-normal', !selectedOption && !isCustomMode && 'text-muted-foreground')}>
           {isCustomMode
             ? customText
               ? `Other: ${customText}`
@@ -253,13 +252,14 @@ export const SelectDropdown = ({
             ? selectedOption.label
             : placeholder}
         </span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: 'easeInOut' }}
-          className="text-muted-foreground shrink-0 ml-1"
+        <div
+          className={cn(
+            'text-muted-foreground shrink-0 ml-1 transition-transform duration-200',
+            isOpen && 'rotate-180'
+          )}
         >
           <ChevronDown size={15} />
-        </motion.div>
+        </div>
       </button>
 
       {/* Inline Manual Custom Text Field if "Other" or custom value is selected */}
@@ -267,13 +267,13 @@ export const SelectDropdown = ({
         <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
           <div className="relative flex-1">
             <Edit3 size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-primary" />
-            <input
+              <input
               ref={customInputRef}
               type="text"
               value={customText}
               onChange={handleCustomTextChange}
               placeholder={customInputPlaceholder}
-              className="w-full pl-8 pr-8 py-2 text-xs rounded-xl border border-primary/40 bg-primary/5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary font-medium"
+              className="h-11 w-full pl-9 pr-8 py-2 text-sm font-normal text-left rounded-xl bg-secondary/75 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-brand/40"
             />
             {customText && (
               <button
@@ -292,7 +292,7 @@ export const SelectDropdown = ({
           <button
             type="button"
             onClick={handleClearCustom}
-            className="px-2.5 py-2 rounded-xl border border-border text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors whitespace-nowrap"
+            className="px-2.5 py-2 rounded-xl bg-secondary text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors whitespace-nowrap"
             title="Switch back to dropdown list"
           >
             Reset
@@ -301,20 +301,15 @@ export const SelectDropdown = ({
       )}
 
       {/* Dropdown Menu (Inline Absolute — never blocked by Radix Dialog focus/scroll lock) */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: openUpward ? 4 : -4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: openUpward ? 4 : -4 }}
-            transition={{ duration: 0.16, ease: 'easeOut' }}
-            className={cn(
-              'absolute left-0 z-50 w-full min-w-[200px] max-h-72 flex flex-col rounded-2xl border border-border bg-card p-1.5 shadow-xl',
-              openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-            )}
-          >
+      {isOpen && (
+        <div
+          className={cn(
+            'absolute left-0 z-50 w-full min-w-[200px] max-h-72 flex flex-col rounded-2xl bg-popover p-1.5 shadow-[0_16px_40px_-8px_rgb(0,0,0,0.12)] dark:shadow-[0_16px_40px_-8px_rgb(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-150',
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          )}
+        >
             {/* Search Bar inside Dropdown */}
-            <div className="relative p-1 border-b border-border/60 mb-1 shrink-0">
+            <div className="relative p-1 mb-1 shrink-0">
               <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <input
                 ref={searchInputRef}
@@ -326,7 +321,7 @@ export const SelectDropdown = ({
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder={searchPlaceholder || 'Type to search...'}
-                className="w-full pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border/80 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+                className="w-full pl-7 pr-7 py-1.5 text-xs rounded-xl bg-secondary/75 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 font-medium"
               />
               {searchQuery && (
                 <button
@@ -407,7 +402,7 @@ export const SelectDropdown = ({
                   <button
                     type="button"
                     onClick={() => handleSelect('Other', 'Other')}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold text-primary hover:bg-primary/10 transition-colors border-t border-border/40 mt-1 cursor-pointer"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold text-primary hover:bg-primary/10 transition-colors mt-1 cursor-pointer"
                   >
                     <span className="flex items-center gap-1.5">
                       <PenTool size={12} />
@@ -416,9 +411,8 @@ export const SelectDropdown = ({
                   </button>
                 )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
     </div>
   );
 };

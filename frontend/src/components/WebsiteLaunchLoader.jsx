@@ -130,6 +130,8 @@ const WebsiteLaunchLoader = () => {
   }, []);
 
   useEffect(() => {
+    if (!isMounted) return;
+
     let isCancelled = false;
     let animFrameId = null;
     let holdTimerId = null;

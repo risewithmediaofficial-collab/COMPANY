@@ -7,8 +7,7 @@ const AssetsLibrary = () => {
 
   return (
     <AssetLibraryWorkspace
-      title="Store and manage client assets."
-      description="Keep logos, brand guidelines, creative files, videos, and client documents organized in one dashboard."
+      title="Asset Library"
       canManage={canManage}
       portalMode={false}
     />

@@ -289,93 +289,37 @@ export const SMMContent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-8 space-y-4 sm:space-y-6">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <Video className="text-primary shrink-0" size={24} />
+        <div className="flex items-center gap-2.5">
+          <Video className="text-primary shrink-0" size={22} />
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
             Video & Content Database
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Central repository connecting Content Production, Publishing SLA, Organic Performance & Ad Campaigns
-          </p>
         </div>
 
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs hover:bg-primary/90 transition-colors w-full sm:w-auto cursor-pointer"
+          className="h-10 inline-flex items-center justify-center gap-2 px-4 bg-primary text-primary-foreground font-semibold text-xs rounded-xl hover:bg-primary/90 transition-colors w-full sm:w-auto cursor-pointer"
         >
           <Plus size={16} />
-          <span>Add Video / Content</span>
+          <span>Add Video</span>
         </button>
       </div>
 
       <SMMSubNav />
 
-      {/* ── TOP KPI STATUS CARDS (Posted vs Not Posted Dashboard) ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
-        <div
-          onClick={() => setActiveTab('all')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
-            activeTab === 'all' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
-          }`}
-        >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Total Videos</span>
-          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{totalCount}</span>
-        </div>
-
-        <div
-          onClick={() => setActiveTab('posted')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
-            activeTab === 'posted' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
-          }`}
-        >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Posted</span>
-          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{postedCount}</span>
-        </div>
-
-        <div
-          onClick={() => setActiveTab('not_posted')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
-            activeTab === 'not_posted' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
-          }`}
-        >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Not Posted</span>
-          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{notPostedCount}</span>
-        </div>
-
-        <div
-          onClick={() => setActiveTab('scheduled')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors ${
-            activeTab === 'scheduled' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
-          }`}
-        >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Scheduled</span>
-          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{scheduledCount}</span>
-        </div>
-
-        <div
-          onClick={() => setActiveTab('pending_approval')}
-          className={`cursor-pointer bg-card border p-3 sm:p-3.5 rounded-2xl transition-colors col-span-2 sm:col-span-1 ${
-            activeTab === 'pending_approval' ? 'border-primary shadow-sm bg-secondary/40' : 'border-border hover:border-foreground/30'
-          }`}
-        >
-          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">Approval Pending</span>
-          <span className="text-xl sm:text-2xl font-black text-foreground tabular-nums block mt-1">{pendingApprovalCount}</span>
-        </div>
-      </div>
-
       <SMMFilterBar filters={filters} onFilterChange={handleFilterChange} onReset={() => setFilters({ client: '', project: '', platform: '', contentType: '', notPostedReason: '', campaignStatus: '' })} />
 
-      {/* Sub Tabs: All Videos, Posted, Not Posted, Scheduled, Pending Approval, Performance */}
-      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch] custom-scrollbar">
+      {/* Unified Tab Strip with Inline Counts */}
+      <div className="inline-flex flex-wrap items-center gap-1 rounded-2xl bg-card p-1.5">
         {[
-          { id: 'all', label: 'All Videos', icon: Layers },
-          { id: 'posted', label: 'Posted', icon: CheckCircle2 },
-          { id: 'not_posted', label: 'Not Posted & Reasons', icon: AlertCircle },
-          { id: 'scheduled', label: 'Scheduled', icon: CalendarIcon },
-          { id: 'pending_approval', label: 'Pending Approval (SLA)', icon: Clock },
+          { id: 'all', label: 'All Videos', icon: Layers, count: totalCount },
+          { id: 'posted', label: 'Posted', icon: CheckCircle2, count: postedCount },
+          { id: 'not_posted', label: 'Not Posted', icon: AlertCircle, count: notPostedCount },
+          { id: 'scheduled', label: 'Scheduled', icon: CalendarIcon, count: scheduledCount },
+          { id: 'pending_approval', label: 'Pending Approval', icon: Clock, count: pendingApprovalCount },
           { id: 'performance', label: 'Performance Matrix', icon: TrendingUp },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -384,32 +328,37 @@ export const SMMContent = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[38px] ${
+              className={`h-9 flex items-center gap-2 px-3.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
               <Icon size={14} />
               <span>{tab.label}</span>
+              {tab.count !== undefined && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-foreground'}`}>
+                  {tab.count}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
       {/* Content Table / Cards */}
-      <div className="bg-card border border-border rounded-2xl shadow-xs overflow-hidden">
+      <div className="bg-card rounded-2xl overflow-hidden">
         {loading ? (
-          <div className="p-16 text-center text-xs text-muted-foreground animate-pulse">Loading video records...</div>
+          <div className="p-16 text-center text-xs text-muted-foreground animate-pulse">Loading videos...</div>
         ) : contents.length === 0 ? (
-          <div className="p-16 text-center text-xs text-muted-foreground space-y-3">
-            <Video className="mx-auto text-muted-foreground/50" size={32} />
-            <p>No video records match the selected filter. Click "+ Add Video / Content" to create one.</p>
+          <div className="p-14 text-center text-xs text-muted-foreground space-y-2.5">
+            <Video className="mx-auto text-muted-foreground/40" size={32} />
+            <p className="text-sm font-semibold text-foreground">No videos found</p>
           </div>
         ) : (
           <div className="responsive-table-container overflow-x-auto [touch-action:pan-x] [-webkit-overflow-scrolling:touch]">
             <table className="min-w-[720px] w-full text-left text-xs">
-              <thead className="bg-muted/40 text-muted-foreground border-b border-border font-bold">
+              <thead className="bg-muted/40 text-muted-foreground font-bold">
                 <tr>
                   <th className="px-4 py-3">Video / Reel</th>
                   <th className="px-4 py-3">Client</th>
@@ -422,7 +371,7 @@ export const SMMContent = () => {
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border font-medium">
+              <tbody className="divide-y divide-foreground/[0.05] font-medium">
                 {contents.map((item) => {
                   const p = item.performance || {};
                   const adv = item.advertising || {};
@@ -432,7 +381,7 @@ export const SMMContent = () => {
                     <tr key={item._id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-secondary text-foreground flex items-center justify-center font-bold shrink-0">
                             {['Reel', 'Reel / Story', 'Video', 'Short'].includes(item.contentType) ? <Video size={16} /> : <FileText size={16} />}
                           </div>
                           <div className="min-w-0">
@@ -460,7 +409,7 @@ export const SMMContent = () => {
 
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-secondary border border-border text-foreground">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-secondary text-foreground">
                             {item.contentType}
                           </span>
                           <span className="text-muted-foreground text-[11px] font-medium">
@@ -471,14 +420,14 @@ export const SMMContent = () => {
 
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                             item.postingStatus === 'Published'
-                              ? 'bg-primary text-primary-foreground border-primary'
+                              ? 'bg-primary text-primary-foreground '
                               : item.postingStatus === 'Scheduled'
-                              ? 'bg-secondary text-foreground border-border'
+                              ? 'bg-secondary text-foreground '
                               : item.postingStatus === 'Pending Approval'
-                              ? 'bg-card text-foreground border-foreground/40'
-                              : 'bg-secondary/50 text-muted-foreground border-border'
+                              ? 'bg-card text-foreground '
+                              : 'bg-secondary/50 text-muted-foreground '
                           }`}
                         >
                           {item.postingStatus}
@@ -487,7 +436,7 @@ export const SMMContent = () => {
 
                       {activeTab === 'not_posted' && (
                         <td className="px-4 py-3">
-                          <span className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-secondary text-foreground border border-border">
+                          <span className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-secondary text-foreground ">
                             {item.notPostedReason || 'Not Scheduled'}
                           </span>
                         </td>
@@ -495,12 +444,12 @@ export const SMMContent = () => {
 
                       {activeTab === 'pending_approval' && (
                         <td className="px-4 py-3">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold tabular-nums border ${
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold tabular-nums ${
                             (item.approvalAgingDays || 1) >= 3
-                              ? 'bg-primary text-primary-foreground border-primary'
+                              ? 'bg-primary text-primary-foreground '
                               : (item.approvalAgingDays || 1) >= 2
-                              ? 'bg-secondary text-foreground border-border'
-                              : 'bg-card text-muted-foreground border-border'
+                              ? 'bg-secondary text-foreground '
+                              : 'bg-card text-muted-foreground '
                           }`}>
                             {(item.approvalAgingDays || 1) >= 3 && <AlertCircle size={11} className="shrink-0" />}
                             <span>{item.approvalAgingDays || 1} days waiting</span>
@@ -536,7 +485,7 @@ export const SMMContent = () => {
                             </span>
                           </div>
                         ) : item.adRecommendation === '🔥 HIGH POTENTIAL' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold text-foreground bg-secondary border border-border">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold text-foreground bg-secondary ">
                             <Flame size={10} className="shrink-0" /> High Potential
                           </span>
                         ) : (
@@ -550,7 +499,7 @@ export const SMMContent = () => {
                             <button
                               onClick={() => handleCreateAdFromContent(item)}
                               title="Create Ad Campaign from this Video"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-lg text-[11px] transition-colors shadow-xs cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-primary text-primary-foreground hover:bg-primary/90 font-bold rounded-lg text-[11px] transition-colors cursor-pointer"
                             >
                               <Megaphone size={12} />
                               <span>Create Ad</span>
@@ -590,27 +539,27 @@ export const SMMContent = () => {
 
       {/* ── CREATE VIDEO MODAL ── */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
-          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
                 <Video size={20} />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                  Add Video / Content Record
+                  Add Video / Content
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                  Create a unified content item connected to client workflows and shoot schedules
+                <DialogDescription className="sr-only">
+                  Add Video
                 </DialogDescription>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
                 ESC
               </kbd>
-              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <X size={16} className="stroke-[2.5]" />
                 <span className="sr-only">Close</span>
               </DialogClose>
@@ -626,7 +575,7 @@ export const SMMContent = () => {
                   required
                   value={formData.client}
                   onChange={(e) => setFormData({ ...formData, client: e.target.value, project: '' })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                 >
                   <option value="">-- Choose Client --</option>
                   {clientsList.map((c) => (
@@ -642,7 +591,7 @@ export const SMMContent = () => {
                   disabled={!formData.client || loadingProjects}
                   value={formData.project}
                   onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs disabled:opacity-50 cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50 cursor-pointer"
                 >
                   <option value="">-- Choose Project --</option>
                   {projectsList.map((p) => (
@@ -659,7 +608,7 @@ export const SMMContent = () => {
                   placeholder="e.g. Restaurant Reel #42 - Signature Dish"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -668,7 +617,7 @@ export const SMMContent = () => {
                 <select
                   value={formData.contentType}
                   onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                 >
                   <option value="Reel">Reel (Short Video)</option>
                   <option value="Story">Story</option>
@@ -684,7 +633,7 @@ export const SMMContent = () => {
                 <select
                   value={formData.postingStatus}
                   onChange={(e) => setFormData({ ...formData, postingStatus: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                 >
                   <option value="Draft">Draft</option>
                   <option value="Ready">Ready</option>
@@ -701,7 +650,7 @@ export const SMMContent = () => {
                   <select
                     value={formData.notPostedReason}
                     onChange={(e) => setFormData({ ...formData, notPostedReason: e.target.value })}
-                    className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                    className="w-full h-11 px-4 bg-background rounded-xl text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
                   >
                     {NOT_POSTED_REASONS.map((r) => (
                       <option key={r} value={r}>{r}</option>
@@ -711,7 +660,7 @@ export const SMMContent = () => {
               ) : (
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-1.5 block">Live Status</label>
-                  <div className="h-11 px-4 bg-secondary/50 border border-border text-foreground rounded-xl flex items-center font-bold text-sm shadow-2xs">
+                  <div className="h-11 px-4 bg-secondary/50 text-foreground rounded-xl flex items-center font-bold text-sm ">
                     Published Live to Audience
                   </div>
                 </div>
@@ -725,7 +674,7 @@ export const SMMContent = () => {
                   type="date"
                   value={formData.publishedDate || formData.scheduledDate || new Date().toISOString().split('T')[0]}
                   onChange={(e) => setFormData({ ...formData, publishedDate: e.target.value, scheduledDate: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -736,16 +685,16 @@ export const SMMContent = () => {
                   placeholder="https://instagram.com/reel/..."
                   value={formData.postedUrl}
                   onChange={(e) => setFormData({ ...formData, postedUrl: e.target.value })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
-                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                   ESC
                 </kbd>
                 <span>to close</span>
@@ -762,7 +711,7 @@ export const SMMContent = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-colors"
                 >
                   Save Video Record
                 </Button>
@@ -774,27 +723,27 @@ export const SMMContent = () => {
 
       {/* ── LOG PERFORMANCE MODAL ── */}
       <Dialog open={isPerfModalOpen} onOpenChange={setIsPerfModalOpen}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
-          <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+          <DialogHeader className="px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
                 <TrendingUp size={20} />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
-                  Log Organic Video Performance
+                  Log Video Performance
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal">
-                  Record views, likes, shares, and saves to compute virality score & ad potential
+                <DialogDescription className="sr-only">
+                  Log Performance
                 </DialogDescription>
               </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+              <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
                 ESC
               </kbd>
-              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <X size={16} className="stroke-[2.5]" />
                 <span className="sr-only">Close</span>
               </DialogClose>
@@ -810,7 +759,7 @@ export const SMMContent = () => {
                   type="number"
                   value={perfData.views}
                   onChange={(e) => setPerfData({ ...perfData, views: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -820,7 +769,7 @@ export const SMMContent = () => {
                   type="number"
                   value={perfData.reach}
                   onChange={(e) => setPerfData({ ...perfData, reach: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -830,7 +779,7 @@ export const SMMContent = () => {
                   type="number"
                   value={perfData.likes}
                   onChange={(e) => setPerfData({ ...perfData, likes: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -840,7 +789,7 @@ export const SMMContent = () => {
                   type="number"
                   value={perfData.comments}
                   onChange={(e) => setPerfData({ ...perfData, comments: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -850,7 +799,7 @@ export const SMMContent = () => {
                   type="number"
                   value={perfData.shares}
                   onChange={(e) => setPerfData({ ...perfData, shares: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -860,7 +809,7 @@ export const SMMContent = () => {
                   type="number"
                   value={perfData.saves}
                   onChange={(e) => setPerfData({ ...perfData, saves: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -870,7 +819,7 @@ export const SMMContent = () => {
                   type="number"
                   value={perfData.followersGained}
                   onChange={(e) => setPerfData({ ...perfData, followersGained: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
 
@@ -882,16 +831,16 @@ export const SMMContent = () => {
                   placeholder="Auto-calculated if 0"
                   value={perfData.engagementRate}
                   onChange={(e) => setPerfData({ ...perfData, engagementRate: Number(e.target.value) })}
-                  className="w-full h-11 px-4 bg-background border border-border rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs"
+                  className="w-full h-11 px-4 bg-background rounded-xl text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none "
                 />
               </div>
             </div>
 
             {/* Pinned Sticky Bottom Action Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
                 <span>Press</span>
-                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+                <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                   ESC
                 </kbd>
                 <span>to close</span>
@@ -908,7 +857,7 @@ export const SMMContent = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-colors"
+                  className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-colors"
                 >
                   Save & Recalculate Score
                 </Button>
@@ -925,18 +874,18 @@ export const SMMContent = () => {
             <DialogHeader>
               <DialogTitle className="flex flex-wrap items-center justify-between gap-2">
                 <span className="truncate max-w-[240px] sm:max-w-none">{selectedContent.name}</span>
-                <span className="text-xs font-black text-foreground px-3 py-1 bg-secondary border border-border rounded-full tabular-nums">
+                <span className="text-xs font-black text-foreground px-3 py-1 bg-secondary rounded-full tabular-nums">
                   Score: {selectedContent.performanceScore || 85} / 100
                 </span>
               </DialogTitle>
-              <DialogDescription>
-                Unified Organic + Paid Advertising record for this content item.
+              <DialogDescription className="sr-only">
+                Video details
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-5 text-xs">
               {/* Top Overview */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 bg-secondary/30 p-3.5 rounded-2xl border border-border">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 bg-secondary/30 p-3.5 rounded-2xl ">
                 <div>
                   <span className="text-muted-foreground block text-[10px] uppercase font-bold">Client</span>
                   <span className="font-bold text-foreground text-xs">{selectedContent.client?.company || selectedContent.client?.name}</span>
@@ -964,30 +913,30 @@ export const SMMContent = () => {
               </div>
 
               {/* SECTION: ORGANIC METRICS */}
-              <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <div className="bg-card rounded-2xl p-4 space-y-3">
                 <h4 className="font-bold text-foreground text-xs flex items-center gap-2 uppercase tracking-wider">
                   <TrendingUp size={15} className="text-foreground shrink-0" /> Organic Performance
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Views</span>
                     <span className="font-black text-foreground text-base tabular-nums">
                       {(selectedContent.performance?.views || selectedContent.performance?.videoViews || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Reach</span>
                     <span className="font-black text-foreground text-base tabular-nums">
                       {(selectedContent.performance?.reach || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Likes</span>
                     <span className="font-black text-foreground text-base tabular-nums">
                       {(selectedContent.performance?.likes || 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                  <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                     <span className="text-[10px] text-muted-foreground block">Engagement Rate</span>
                     <span className="font-black text-foreground text-base tabular-nums">
                       {selectedContent.performance?.engagementRate || 0}%
@@ -997,37 +946,37 @@ export const SMMContent = () => {
               </div>
 
               {/* SECTION: AD PERFORMANCE */}
-              <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <div className="bg-card rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-foreground text-xs flex items-center gap-2 uppercase tracking-wider">
                     <Megaphone size={15} className="text-foreground shrink-0" /> Advertising Performance
                   </h4>
-                  <span className="text-[10px] font-extrabold text-foreground bg-secondary border border-border px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-extrabold text-foreground bg-secondary px-2.5 py-0.5 rounded-full">
                     {selectedContent.advertising?.usedAsAd ? 'Used as Ad: YES' : 'Used as Ad: NO'}
                   </span>
                 </div>
 
                 {selectedContent.advertising?.usedAsAd ? (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Amount Added</span>
                       <span className="font-black text-foreground text-base tabular-nums">
                         ₹{(selectedContent.advertising?.amountAdded || 0).toLocaleString()}
                       </span>
                     </div>
-                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Amount Spent</span>
                       <span className="font-black text-foreground text-base tabular-nums">
                         ₹{(selectedContent.advertising?.amountSpent || 0).toLocaleString()}
                       </span>
                     </div>
-                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Leads Generated</span>
                       <span className="font-black text-foreground text-base tabular-nums">
                         {selectedContent.advertising?.leads || 0}
                       </span>
                     </div>
-                    <div className="bg-secondary/40 border border-border p-2.5 rounded-xl text-center">
+                    <div className="bg-secondary/40 p-2.5 rounded-xl text-center">
                       <span className="text-[10px] text-muted-foreground block">Cost Per Lead</span>
                       <span className="font-black text-foreground text-base tabular-nums">
                         ₹{selectedContent.advertising?.cpl || 0}
@@ -1035,14 +984,14 @@ export const SMMContent = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-xl bg-secondary/20 border border-border text-center space-y-2">
+                  <div className="p-4 rounded-xl bg-secondary/20 text-center space-y-2">
                     <p className="text-muted-foreground">This video has not been boosted as a paid advertisement yet.</p>
                     <button
                       onClick={() => {
                         setIsDetailModalOpen(false);
                         handleCreateAdFromContent(selectedContent);
                       }}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl shadow-xs hover:bg-primary/90 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-bold text-xs rounded-xl hover:bg-primary/90 cursor-pointer"
                     >
                       <Rocket size={13} />
                       <span>Boost / Create Ad from this Video</span>

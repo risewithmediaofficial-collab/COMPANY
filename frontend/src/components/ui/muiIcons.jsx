@@ -364,6 +364,7 @@ export const LogOut = createMuiIcon(LogoutOutlined, 'LogOut');
 export const Mail = createMuiIcon(MailOutlineOutlined, 'Mail');
 export const MapPin = createMuiIcon(LocationOnOutlined, 'MapPin');
 export const Maximize2 = createMuiIcon(OpenInFullOutlined, 'Maximize2');
+export const Minimize2 = createMuiIcon(KeyboardArrowUpOutlined, 'Minimize2');
 export const Megaphone = createMuiIcon(CampaignOutlined, 'Megaphone');
 export const Menu = createMuiIcon(MenuOutlined, 'Menu');
 export const MessageCircle = createMuiIcon(ChatBubbleOutlineOutlined, 'MessageCircle');

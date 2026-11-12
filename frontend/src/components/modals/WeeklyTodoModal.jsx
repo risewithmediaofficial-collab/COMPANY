@@ -41,10 +41,10 @@ const DAYS_OF_WEEK = [
 ];
 
 const PRIORITIES = [
-  { value: 'low', label: 'Low', color: 'bg-muted text-muted-foreground border-border' },
-  { value: 'medium', label: 'Medium', color: 'bg-secondary text-foreground border-border' },
-  { value: 'high', label: 'High', color: 'bg-secondary text-foreground border-foreground/40 font-semibold' },
-  { value: 'urgent', label: 'Urgent', color: 'bg-primary text-primary-foreground border-primary font-bold' },
+  { value: 'low', label: 'Low', color: 'bg-muted text-muted-foreground ' },
+  { value: 'medium', label: 'Medium', color: 'bg-secondary text-foreground ' },
+  { value: 'high', label: 'High', color: 'bg-secondary text-foreground font-semibold' },
+  { value: 'urgent', label: 'Urgent', color: 'bg-primary text-primary-foreground font-bold' },
 ];
 
 const CATEGORIES = [
@@ -130,10 +130,10 @@ export function WeeklyTodoModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
-        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-background max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 bg-background shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
               <CheckSquare size={20} />
             </div>
             <div className="min-w-0">
@@ -149,10 +149,10 @@ export function WeeklyTodoModal({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -175,7 +175,7 @@ export function WeeklyTodoModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Deliver Brand Guidelines v2, Complete QA test sprint..."
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                  className="w-full h-11 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
 
@@ -192,7 +192,7 @@ export function WeeklyTodoModal({
                   <select
                     value={assignedTo}
                     onChange={(e) => setAssignedTo(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                    className="w-full h-11 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
                   >
                     <option value={currentUser?._id}>Myself ({currentUser?.name || 'Me'})</option>
                     {assignableUsers
@@ -205,7 +205,7 @@ export function WeeklyTodoModal({
                   </select>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-xl bg-secondary/40 border border-border flex items-center gap-2.5 text-xs text-muted-foreground">
+                <div className="p-3.5 rounded-xl bg-secondary/40 flex items-center gap-2.5 text-xs text-muted-foreground">
                   <User size={15} className="text-primary shrink-0" />
                   <span>
                     Assignee: <strong className="text-foreground">{currentUser?.name}</strong> (Personal Todo)
@@ -222,7 +222,7 @@ export function WeeklyTodoModal({
                 <select
                   value={dayOfWeek}
                   onChange={(e) => setDayOfWeek(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                  className="w-full h-11 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
                 >
                   {DAYS_OF_WEEK.map((day) => (
                     <option key={day} value={day}>
@@ -241,7 +241,7 @@ export function WeeklyTodoModal({
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all"
+                  className="w-full h-11 px-4 rounded-xl bg-secondary/75 text-foreground text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
                 >
                   {PRIORITIES.map((p) => (
                     <option key={p.value} value={p.value}>
@@ -267,8 +267,8 @@ export function WeeklyTodoModal({
                         onClick={() => setCategory(c.value)}
                         className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                            : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border'
+                            ? 'bg-primary text-primary-foreground font-semibold '
+                            : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground '
                         }`}
                       >
                         <span>{c.label}</span>
@@ -289,7 +289,7 @@ export function WeeklyTodoModal({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Add specifics, links, or requirements for this todo..."
-                  className="w-full p-3.5 rounded-xl border border-border bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all resize-none"
+                  className="w-full p-3.5 rounded-xl bg-secondary/75 text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all resize-none"
                 />
               </div>
 
@@ -304,17 +304,17 @@ export function WeeklyTodoModal({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g., Blocked on client review, Draft sent for feedback..."
-                  className="w-full p-3.5 rounded-xl border border-border bg-background text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs transition-all resize-none"
+                  className="w-full p-3.5 rounded-xl bg-secondary/75 text-foreground text-sm font-medium placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all resize-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-background px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
             <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
               <span>Press</span>
-              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                 ESC
               </kbd>
               <span>to close</span>
@@ -333,7 +333,7 @@ export function WeeklyTodoModal({
               <Button
                 type="submit"
                 disabled={isPending || !title.trim()}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all gap-2"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground cursor-pointer transition-all gap-2"
               >
                 {isPending ? (
                   <>

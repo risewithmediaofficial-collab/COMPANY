@@ -87,26 +87,26 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+        <DialogHeader className="px-6 py-5 bg-card shrink-0 select-none">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                 <FolderOpen size={20} />
               </div>
               <div>
                 <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
                   {isEditing ? 'Edit Asset' : 'Upload Asset'}
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                <DialogDescription className="sr-only">
                   Store client logos, guidelines, creatives, videos, and brand files
                 </DialogDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded-md">
                 ESC
               </span>
               <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
@@ -129,7 +129,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
                 onChange={(event) => updateField('name', event.target.value)}
                 required
                 placeholder="Primary logo pack"
-                className="h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                className="h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 "
               />
             </div>
 
@@ -141,7 +141,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
               <select
                 value={form.category}
                 onChange={(event) => updateField('category', event.target.value)}
-                className="w-full h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 "
               >
                 {assetCategories.map((item) => (
                   <option key={item.value} value={item.value}>{item.label}</option>
@@ -157,7 +157,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
               <select
                 value={form.client}
                 onChange={(event) => updateField('client', event.target.value)}
-                className="w-full h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 "
                 required
               >
                 <option value="">Select client</option>
@@ -175,7 +175,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
               <select
                 value={form.project}
                 onChange={(event) => updateField('project', event.target.value)}
-                className="w-full h-11 rounded-xl border border-border px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                className="w-full h-11 rounded-xl px-4 text-sm font-medium text-foreground bg-background focus:ring-2 focus:ring-primary/20 "
               >
                 <option value="">No linked project</option>
                 {filteredProjects.map((project) => (
@@ -193,7 +193,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
                 value={form.description}
                 onChange={(event) => updateField('description', event.target.value)}
                 placeholder="What does this asset contain and when should it be used?"
-                className="rounded-xl text-sm border-border bg-background p-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs min-h-[90px]"
+                className="rounded-xl text-sm bg-background p-4 text-foreground focus:ring-2 focus:ring-primary/20 min-h-[90px]"
               />
             </div>
 
@@ -206,7 +206,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
                 value={form.tags}
                 onChange={(event) => updateField('tags', event.target.value)}
                 placeholder="logo, approved, campaign, q3"
-                className="h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                className="h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 "
               />
             </div>
 
@@ -215,7 +215,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
               <label className="text-sm font-semibold text-foreground mb-1.5 block">
                 Files {!isEditing ? '*' : ''}
               </label>
-              <div className="rounded-2xl border border-dashed border-border bg-secondary/20 p-5">
+              <div className="rounded-2xl bg-secondary/20 p-5">
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <Upload size={16} className="text-primary" />
                   Upload asset files
@@ -227,7 +227,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
                   className="w-full text-sm text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
                 />
                 {asset?.files?.length ? (
-                  <div className="mt-4 pt-3 border-t border-border/60">
+                  <div className="mt-4 pt-3 ">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Existing files</p>
                     <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
                       {asset.files.map((file, index) => <li key={`${file.url}-${index}`} className="flex items-center gap-2"><span>•</span> {file.name}</li>)}
@@ -235,7 +235,7 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
                   </div>
                 ) : null}
                 {files.length ? (
-                  <div className="mt-4 pt-3 border-t border-border/60">
+                  <div className="mt-4 pt-3 ">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">New files to upload</p>
                     <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
                       {files.map((file) => <li key={`${file.name}-${file.size}`} className="flex items-center gap-2 text-primary font-medium"><span>•</span> {file.name}</li>)}
@@ -246,36 +246,35 @@ const AssetFormDialog = ({ open, onOpenChange, asset, clients, projects, onSave,
             </div>
 
             {/* Visible to client */}
-            <label className="flex items-center gap-3.5 rounded-2xl border border-border bg-secondary/20 p-4 cursor-pointer hover:bg-secondary/30 transition-colors">
+            <label className="flex items-center gap-3.5 rounded-2xl bg-secondary/20 p-4 cursor-pointer hover:bg-secondary/30 transition-colors">
               <input
                 type="checkbox"
                 checked={Boolean(form.isClientVisible)}
                 onChange={(event) => updateField('isClientVisible', event.target.checked)}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20"
+                className="h-4 w-4 rounded text-primary focus:ring-primary/20"
               />
               <div>
                 <p className="text-sm font-semibold text-foreground">Visible to client</p>
-                <p className="text-xs text-muted-foreground">Allow the client to see and download this asset in their portal.</p>
               </div>
             </label>
           </div>
 
           {/* Pinned Sticky Footer */}
-          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
             <span className="text-xs text-muted-foreground hidden sm:inline">Press ESC to exit</span>
             <div className="flex items-center gap-2.5 ml-auto">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="h-11 px-5 rounded-xl border-border font-semibold text-sm"
+                className="h-11 px-5 rounded-xl font-semibold text-sm"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={saving}
-                className="h-11 px-6 rounded-xl font-bold text-sm shadow-md"
+                className="h-11 px-6 rounded-xl font-bold text-sm "
               >
                 {saving ? 'Saving...' : isEditing ? 'Update Asset' : 'Upload Asset'}
               </Button>
@@ -372,19 +371,18 @@ export const AssetLibraryWorkspace = ({
     <div className="space-y-6">
       <PageHeader
         title={portalMode ? 'Client Assets' : 'Asset Library'}
-        description={description}
         actions={canManage ? (
-          <Button onClick={() => { setSelectedAsset(null); setFormOpen(true); }}>
+          <Button className="h-10 rounded-xl" onClick={() => { setSelectedAsset(null); setFormOpen(true); }}>
             <Plus size={16} className="mr-2" />
             Upload Asset
           </Button>
         ) : null}
       >
         <MetricGrid>
-          <MetricCard label="Assets" value={metrics.total} helper="Records in this view" icon={FolderOpen} tone="neutral" />
-          <MetricCard label="Client Visible" value={metrics.visible} helper="Available in the client portal" icon={ImageIcon} tone="neutral" />
-          <MetricCard label="Files" value={metrics.files} helper="Files stored across all assets" icon={FileText} tone="neutral" />
-          <MetricCard label="Categories" value={metrics.categories} helper="Asset types represented here" icon={Tag} tone="neutral" />
+          <MetricCard label="Assets" value={metrics.total} icon={FolderOpen} tone="neutral" />
+          <MetricCard label="Client Visible" value={metrics.visible} icon={ImageIcon} tone="neutral" />
+          <MetricCard label="Files" value={metrics.files} icon={FileText} tone="neutral" />
+          <MetricCard label="Categories" value={metrics.categories} icon={Tag} tone="neutral" />
         </MetricGrid>
       </PageHeader>
 
@@ -404,7 +402,6 @@ export const AssetLibraryWorkspace = ({
 
       <SectionCard
         title={portalMode ? 'Shared Brand Assets' : 'Stored Client Assets'}
-        description={portalMode ? 'Download the latest brand assets and supporting files shared with you.' : 'Manage brand files, logo packs, guidelines, and delivery-ready resources.'}
         action={<span className="app-pill">{assets.length} records</span>}
       >
         <DataTable
@@ -415,7 +412,7 @@ export const AssetLibraryWorkspace = ({
           onEdit={canManage ? (asset) => { setSelectedAsset(asset); setFormOpen(true); } : null}
           onDelete={canManage ? (id) => { if (window.confirm('Delete this asset from the library?')) deleteAsset.mutate(id); } : null}
           emptyTitle="No assets found"
-          emptyDescription={portalMode ? 'No assets have been shared with you yet.' : 'Upload the first asset to start your library.'}
+          emptyDescription=""
           emptyAction={canManage ? <Button onClick={() => setFormOpen(true)}><Plus size={16} className="mr-2" />Upload First Asset</Button> : null}
         />
       </SectionCard>
@@ -425,16 +422,16 @@ export const AssetLibraryWorkspace = ({
           <DialogContent className="w-[calc(100vw-24px)] max-w-3xl max-h-[90dvh] overflow-y-auto custom-scrollbar">
             <DialogHeader>
               <DialogTitle>{selectedAsset.name}</DialogTitle>
-              <DialogDescription>{selectedAsset.client?.company || selectedAsset.client?.name || 'Client asset'} • {categoryLabelMap[selectedAsset.category] || 'Other'}</DialogDescription>
+              <DialogDescription className="sr-only">{selectedAsset.client?.company || selectedAsset.client?.name || 'Client asset'} • {categoryLabelMap[selectedAsset.category] || 'Other'}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-border bg-card p-4">
+                <div className="rounded-2xl bg-card p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Description</p>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{selectedAsset.description || 'No description added.'}</p>
                 </div>
-                <div className="rounded-2xl border border-border bg-card p-4">
+                <div className="rounded-2xl bg-card p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Tags</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(selectedAsset.tags || []).length
@@ -444,7 +441,7 @@ export const AssetLibraryWorkspace = ({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="rounded-2xl bg-card p-4">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Files</p>
                 <div className="space-y-3">
                   {(selectedAsset.files || []).map((file, index) => {
@@ -458,14 +455,14 @@ export const AssetLibraryWorkspace = ({
                         href={fileUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border bg-background p-3 sm:px-4 sm:py-3 transition-colors hover:bg-secondary/40"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-background p-3 sm:px-4 sm:py-3 transition-colors hover:bg-secondary/40"
                       >
                         <div className="flex min-w-0 items-center gap-3">
                           {isImage ? (
                             <img
                               src={fileUrl}
                               alt={file.name || 'Asset preview'}
-                              className="h-14 w-14 shrink-0 rounded-xl border border-border object-cover"
+                              className="h-14 w-14 shrink-0 rounded-xl object-cover"
                               loading="lazy"
                             />
                           ) : (

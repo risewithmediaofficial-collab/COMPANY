@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useSelector, useDispatch } from 'react-redux';
 import { Suspense, lazy, useEffect } from 'react';
 import { fetchMe } from './store/slices/authSlice';
-import { Toaster as HotToaster } from 'react-hot-toast';
 import { Toaster as SonnerToaster } from 'sonner';
 import WebsiteLaunchLoader from './components/WebsiteLaunchLoader';
 import BannerNotificationHost from './components/notifications/BannerNotificationHost';
@@ -58,8 +57,6 @@ const PortalSMMTracker = lazy(() => import('./pages/portal/sections/PortalSMMTra
 const SMMDashboard = lazy(() => import('./pages/smm/SMMDashboard'));
 const SMMContent = lazy(() => import('./pages/smm/SMMContent'));
 const SMMLeads = lazy(() => import('./pages/smm/SMMLeads'));
-const SMMClients = lazy(() => import('./pages/smm/SMMClients'));
-const SMMProjects = lazy(() => import('./pages/smm/SMMProjects'));
 const Campaigns = lazy(() => import('./pages/smm/Campaigns'));
 const AdSets = lazy(() => import('./pages/smm/AdSets'));
 const Ads = lazy(() => import('./pages/smm/Ads'));
@@ -163,18 +160,11 @@ const App = () => {
         <LoadingScreen />
       ) : (
         <Router future={{ v7_relativeSplatPath: true }}>
-      <HotToaster
-        position="top-right"
-        reverseOrder={false}
-        toastOptions={{
-          className: '!bg-card !text-foreground !border !border-border !shadow-md !rounded-xl !text-xs !font-semibold',
-        }}
-      />
       <SonnerToaster
         position="top-right"
         closeButton
         toastOptions={{
-          className: 'bg-card text-foreground border border-border shadow-md rounded-xl',
+          className: 'bg-popover text-foreground border-0 shadow-[0_12px_32px_rgba(0,0,0,0.1)] rounded-xl',
         }}
       />
       <BannerNotificationHost />

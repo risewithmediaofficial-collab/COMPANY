@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   ArrowRight,
   Calendar,
@@ -66,78 +65,63 @@ export default function ClientProposals() {
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
       {/* Page Header */}
       <div>
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
-            <Sparkles size={12} className="shrink-0" />
-            Client Scope Agreements
-          </span>
-          <span className="text-xs text-muted-foreground hidden sm:inline">• Official Project Contracts</span>
-        </div>
-        <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-          Proposals & Agreements
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Proposals &amp; Agreements
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-          Review formal project proposals, scope of work, deliverables, and confirm agreement sign-offs.
-        </p>
       </div>
 
       {/* KPI Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 tabular-nums">
         {/* Total Proposals */}
-        <motion.div
-          whileHover={{ y: -2 }}
+        <div
           onClick={() => setStatusFilter('all')}
-          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 ${
             statusFilter === 'all'
-              ? 'border-foreground bg-secondary/40 shadow-sm'
-              : 'border-border bg-card hover:border-foreground/40'
+              ? ' bg-secondary/40 '
+              : ' bg-card '
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Total Proposals</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <FileText size={16} />
             </div>
           </div>
           <p className="mt-2 text-2xl font-black text-foreground">{metrics.total}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Official documents sent</p>
-        </motion.div>
+        </div>
 
         {/* Accepted & Active */}
-        <motion.div
-          whileHover={{ y: -2 }}
+        <div
           onClick={() => setStatusFilter('accepted')}
-          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 ${
             statusFilter === 'accepted'
-              ? 'border-foreground bg-secondary/40 shadow-sm'
-              : 'border-border bg-card hover:border-foreground/40'
+              ? ' bg-secondary/40 '
+              : ' bg-card '
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Accepted & Active</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <CheckCircle2 size={16} />
             </div>
           </div>
           <p className="mt-2 text-2xl font-black text-foreground">{metrics.accepted}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Signed agreements</p>
-        </motion.div>
+        </div>
 
         {/* Awaiting Decision */}
-        <motion.div
-          whileHover={{ y: -2 }}
+        <div
           onClick={() => setStatusFilter('pending')}
-          className={`cursor-pointer rounded-2xl border p-4 transition-all ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-150 hover:-translate-y-0.5 ${
             statusFilter === 'pending'
-              ? 'border-foreground bg-secondary/40 shadow-sm'
+              ? ' bg-secondary/40 '
               : metrics.pending > 0
-              ? 'border-foreground/40 bg-card'
-              : 'border-border bg-card hover:border-foreground/40'
+              ? ' bg-card'
+              : ' bg-card '
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Awaiting Decision</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <Clock size={16} />
             </div>
           </div>
@@ -149,27 +133,24 @@ export default function ClientProposals() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Pending your review</p>
-        </motion.div>
+        </div>
 
         {/* Total Proposal Value */}
-        <motion.div
-          whileHover={{ y: -2 }}
-          className="rounded-2xl border border-border bg-card p-4"
+        <div
+          className="rounded-2xl bg-card p-4 transition-transform duration-150 hover:-translate-y-0.5"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">Agreement Value</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
               <IndianRupee size={16} />
             </div>
           </div>
           <p className="mt-2 text-2xl font-black text-foreground">{formatINR(metrics.totalValue)}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Cumulative proposal value</p>
-        </motion.div>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:flex-row sm:items-center sm:justify-between shadow-xs">
+      <div className="flex flex-col gap-3 rounded-2xl bg-card p-3 sm:flex-row sm:items-center sm:justify-between ">
         {/* Status Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
           {[
@@ -182,7 +163,7 @@ export default function ClientProposals() {
               onClick={() => setStatusFilter(tab.id)}
               className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all shrink-0 min-h-[36px] whitespace-nowrap cursor-pointer ${
                 statusFilter === tab.id
-                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  ? 'bg-primary text-primary-foreground '
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }`}
             >
@@ -210,7 +191,7 @@ export default function ClientProposals() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search proposals..."
-            className="w-full rounded-xl border border-border bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+            className="w-full rounded-xl bg-background py-1.5 pl-8 pr-7 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary/20"
           />
           {searchQuery && (
             <button
@@ -226,20 +207,15 @@ export default function ClientProposals() {
       {/* Proposals Grid / List */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-56 rounded-3xl border border-border bg-card" />
-          <div className="h-56 rounded-3xl border border-border bg-card" />
+          <div className="h-56 rounded-3xl bg-card" />
+          <div className="h-56 rounded-3xl bg-card" />
         </div>
       ) : filteredProposals.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card py-16 px-6 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-foreground border border-border mb-4">
+        <div className="flex flex-col items-center justify-center rounded-3xl bg-card py-16 px-6 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-foreground mb-4">
             <FileText size={28} />
           </div>
           <h3 className="text-base font-bold text-foreground">No proposals found</h3>
-          <p className="mt-1 text-xs text-muted-foreground max-w-sm">
-            {searchQuery || statusFilter !== 'all'
-              ? 'No proposals match your search or filter. Try clearing your filters.'
-              : 'You do not have any active proposals yet. Formal proposals sent by RiseWithMedia will be shown here.'}
-          </p>
           {(searchQuery || statusFilter !== 'all') && (
             <Button
               type="button"
@@ -262,14 +238,13 @@ export default function ClientProposals() {
             const isRejected = prop.status === 'rejected';
 
             return (
-              <motion.div
+              <div
                 key={prop._id}
-                whileHover={{ y: -2 }}
                 onClick={() => navigate(`/proposals/${prop._id}`)}
-                className={`cursor-pointer relative overflow-hidden rounded-3xl border p-4 sm:p-6 transition-all shadow-xs hover:shadow-md bg-card flex flex-col justify-between gap-5 ${
+                className={`cursor-pointer relative overflow-hidden rounded-3xl p-4 sm:p-6 transition-all duration-150 hover:-translate-y-0.5 bg-card flex flex-col justify-between gap-5 ${
                   isAccepted
-                    ? 'border-foreground/40'
-                    : 'border-border hover:border-foreground/40'
+                    ? ''
+                    : ' '
                 }`}
               >
                 {/* Top status accent */}
@@ -290,12 +265,12 @@ export default function ClientProposals() {
                       {prop.proposalNumber || 'PROP-OFFICIAL'}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
                         isAccepted
-                          ? 'bg-primary text-primary-foreground border-primary'
+                          ? 'bg-primary text-primary-foreground '
                           : isRejected
-                          ? 'bg-secondary text-muted-foreground border-border line-through'
-                          : 'bg-secondary text-foreground border-border'
+                          ? 'bg-secondary text-muted-foreground line-through'
+                          : 'bg-secondary text-foreground '
                       }`}
                     >
                       {isAccepted ? <CheckCircle2 size={12} className="shrink-0" /> : isRejected ? <XCircle size={12} className="shrink-0" /> : <Clock size={12} className="shrink-0" />}
@@ -329,7 +304,7 @@ export default function ClientProposals() {
                 </div>
 
                 {/* Footer with Amount & Action Button */}
-                <div className="pt-4 border-t border-border/60 flex items-center justify-between gap-3">
+                <div className="pt-4 flex items-center justify-between gap-3">
                   <div>
                     <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                       Total Agreement
@@ -345,14 +320,14 @@ export default function ClientProposals() {
                     className={`gap-1.5 rounded-xl font-bold text-xs h-9 px-4 ${
                       isAccepted
                         ? 'bg-secondary text-foreground hover:bg-secondary/80'
-                        : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs'
+                        : 'bg-primary hover:bg-primary/90 text-primary-foreground '
                     }`}
                   >
                     <span>{isAccepted ? 'View Agreement' : 'Review & Sign'}</span>
                     <ArrowRight size={13} />
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

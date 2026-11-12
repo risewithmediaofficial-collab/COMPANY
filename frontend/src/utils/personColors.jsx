@@ -121,16 +121,16 @@ export const PersonAssigneeBadge = ({ person, size = 'sm', showRole = false }) =
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-lg border font-bold transition-all ${
+      className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-colors ${
         isSmall ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs'
-      } ${color.bg} ${color.text} ${color.border} shadow-2xs`}
+      } ${color.bg} ${color.text}`}
       title={`Assigned to: ${name}${role ? ` (${role})` : ''}`}
     >
       {avatar ? (
         <img
           src={getAssetUrl(avatar)}
           alt=""
-          className={`${isSmall ? 'w-3.5 h-3.5' : 'w-4 h-4'} rounded-full object-cover shrink-0 ring-1 ring-border`}
+          className={`${isSmall ? 'w-3.5 h-3.5' : 'w-4 h-4'} rounded-full object-cover shrink-0`}
         />
       ) : (
         <span

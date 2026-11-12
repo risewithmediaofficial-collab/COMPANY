@@ -124,7 +124,6 @@ export const CategoryColorLegend = ({
   selectedCategory = 'all',
   onSelectCategory,
   title = 'Board Category Guide',
-  description = 'Left-border shades identify deliverable & project categories at a glance',
   className = '',
   collapsible = true,
   defaultExpanded = true,
@@ -132,19 +131,16 @@ export const CategoryColorLegend = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className={`rounded-2xl border border-border bg-card p-3 sm:p-3.5 shadow-xs space-y-2.5 transition-all ${className}`}>
+    <div className={`rounded-2xl bg-card p-3 sm:p-3.5 space-y-2.5 transition-colors ${className}`}>
       {/* Header Bar */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-lg bg-secondary text-foreground flex items-center justify-center border border-border">
+          <div className="h-6 w-6 rounded-lg bg-background text-foreground flex items-center justify-center">
             <Palette size={13} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-foreground">{title}</span>
-              <span className="text-[10px] text-muted-foreground font-medium hidden sm:inline">
-                • {description}
-              </span>
             </div>
           </div>
         </div>
@@ -175,7 +171,7 @@ export const CategoryColorLegend = ({
 
       {/* Color Pills & Descriptions */}
       {isExpanded && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-1 border-t border-border/50">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-1">
           {BOARD_CATEGORY_DEFINITIONS.map((item) => {
             const Icon = item.icon;
             const isSelected =
@@ -185,16 +181,16 @@ export const CategoryColorLegend = ({
               <div
                 key={item.key}
                 onClick={() => onSelectCategory?.(isSelected ? 'all' : item.key)}
-                className={`p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-1.5 group select-none ${
+                className={`p-2.5 rounded-xl transition-colors cursor-pointer flex flex-col justify-between space-y-1.5 group select-none ${
                   isSelected
-                    ? `${item.badgeClass} ring-2 ring-primary/40 font-bold shadow-xs`
-                    : 'border-border/60 bg-secondary/30 hover:border-border hover:bg-secondary/60 text-foreground'
+                    ? 'bg-secondary ring-2 ring-primary/40 font-bold text-foreground'
+                    : 'bg-background hover:bg-secondary/75 text-foreground'
                 }`}
                 title={`${item.label}: ${item.description}`}
               >
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={`h-2.5 w-2.5 rounded-full ${item.dotColor} shrink-0 shadow-2xs`} />
+                    <span className={`h-2.5 w-2.5 rounded-full ${item.dotColor} shrink-0`} />
                     <Icon size={12} className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
                   </div>
                   <span className={`h-1.5 w-4 rounded-full ${item.swatchClass} opacity-80`} />
@@ -203,9 +199,6 @@ export const CategoryColorLegend = ({
                   <span className="text-[11px] font-bold tracking-tight block truncate leading-tight">
                     {item.label}
                   </span>
-                  <p className="text-[9px] text-muted-foreground truncate leading-none">
-                    {item.description}
-                  </p>
                 </div>
               </div>
             );

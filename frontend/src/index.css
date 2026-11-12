@@ -4,74 +4,83 @@
 
 @layer base {
   :root {
-    --background: 0 0% 97.5%;
-    --foreground: 0 0% 7%;
+    --background: 0 0% 100%;
+    --foreground: 240 10% 6%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 7%;
+    --card: 240 5% 96.5%;
+    --card-foreground: 240 10% 6%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 7%;
+    --popover-foreground: 240 10% 6%;
 
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+    /* RiseWithMedia Brand Blue (#12B7D4) */
+    --brand: 189 84% 45%;
+    --brand-foreground: 194 78% 7%;
 
-    --secondary: 0 0% 93.5%;
-    --secondary-foreground: 0 0% 11%;
+    /* Light Mode Primary calibrated on brand hue (189°) for crisp white text contrast */
+    --primary: 189 89% 37%;
+    --primary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 41%;
+    --secondary: 240 5% 92.5%;
+    --secondary-foreground: 240 6% 12%;
 
-    --accent: 0 0% 93%;
-    --accent-foreground: 0 0% 9%;
+    --muted: 240 4.5% 94.5%;
+    --muted-foreground: 240 4% 43%;
+
+    --accent: 189 48% 93%;
+    --accent-foreground: 191 78% 18%;
 
     --destructive: 0 0% 18%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 86%;
-    --ring: 0 0% 20%;
+    --border: 240 5% 91%;
+    --input: 240 5% 91%;
+    --ring: 189 84% 45%;
 
-    --radius: 0.5rem;
-    --tracker-status-sticky: #f4f4f5;
+    --radius: 0.75rem;
+    --tracker-status-sticky: #f5f5f7;
   }
 
   .dark {
     color-scheme: dark;
-    --tracker-status-sticky: #18181b;
-    --background: 0 0% 5%;
+    --tracker-status-sticky: #17171a;
+    --background: 240 6% 5%;
     --foreground: 0 0% 96%;
 
-    --card: 0 0% 9%;
+    --card: 240 5% 9.5%;
     --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 10%;
+    --popover: 240 5% 11.5%;
     --popover-foreground: 0 0% 96%;
 
-    --primary: 0 0% 94%;
-    --primary-foreground: 0 0% 8%;
+    /* Exact RiseWithMedia Logo Blue (#12B7D4) pops cleanly on dark surfaces */
+    --brand: 189 84% 45%;
+    --brand-foreground: 194 78% 7%;
 
-    --secondary: 0 0% 14%;
+    --primary: 189 84% 45%;
+    --primary-foreground: 194 78% 7%;
+
+    --secondary: 240 4.5% 15%;
     --secondary-foreground: 0 0% 95%;
 
-    --muted: 0 0% 13%;
-    --muted-foreground: 0 0% 62%;
+    --muted: 240 4.5% 12.5%;
+    --muted-foreground: 240 4% 63%;
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 96%;
+    --accent: 189 45% 16%;
+    --accent-foreground: 189 85% 78%;
 
     --destructive: 0 0% 85%;
-    --destructive-foreground: 0 0% 9%;
+    --destructive-foreground: 240 6% 9%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 19%;
-    --ring: 0 0% 72%;
+    --border: 240 4% 16%;
+    --input: 240 4% 18%;
+    --ring: 189 84% 45%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
   html, body, #root {
     min-height: 100%;
@@ -84,6 +93,7 @@
     text-rendering: optimizeLegibility;
     font-feature-settings: "rlig" 1, "calt" 1;
     letter-spacing: -0.011em;
+    line-height: 1.5;
   }
 
   /* Universal SaaS Typography Hierarchy */
@@ -110,6 +120,22 @@
     letter-spacing: inherit;
   }
 
+  form {
+    text-align: left;
+  }
+
+  form label {
+    text-align: left;
+    letter-spacing: normal;
+  }
+
+  form input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="hidden"]),
+  form select,
+  form textarea {
+    font-family: inherit;
+    text-align: left;
+  }
+
   .MuiSvgIcon-root {
     vertical-align: middle;
   }
@@ -127,53 +153,49 @@
     background-color: hsl(var(--background));
   }
   ::selection {
-    background: hsl(var(--primary) / 0.18);
+    background: hsl(var(--brand) / 0.24);
     color: hsl(var(--foreground));
   }
   :focus-visible {
-    outline: 2px solid hsl(var(--ring) / 0.45);
+    outline: 2px solid hsl(var(--ring) / 0.65);
     outline-offset: 2px;
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar (Lightweight) */
 ::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a1a1aa;
+  background: rgba(113, 113, 122, 0.35);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #71717a;
+  background: rgba(113, 113, 122, 0.6);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: rgba(161, 161, 170, 0.25);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: rgba(161, 161, 170, 0.45);
 }
 
-/* Surface Utilities */
+/* Surface Utilities (Borderless Minimalist Tonal Steps) */
 .glass {
-  @apply bg-card border border-border;
+  @apply bg-card;
 }
 
 .card-hover {
-  @apply transition-all duration-200 hover:border-foreground/30 hover:-translate-y-0.5;
+  @apply transition-colors duration-150 hover:bg-secondary/75;
 }
 
 .gradient-text {
@@ -182,23 +204,23 @@
 
 @layer components {
   .app-card {
-    @apply rounded-[24px] border border-border bg-card shadow-sm;
+    @apply rounded-2xl bg-card;
   }
 
   .app-card-muted {
-    @apply rounded-[20px] border border-border bg-secondary/40 shadow-none;
+    @apply rounded-2xl bg-secondary/70;
   }
 
   .app-pill {
-    @apply inline-flex items-center rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground;
+    @apply inline-flex items-center rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-primary;
   }
 
   .app-input {
-    @apply w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15;
+    @apply h-11 w-full rounded-xl bg-secondary/75 px-4 py-2.5 text-sm font-normal leading-normal text-left text-foreground outline-none transition-colors duration-150 placeholder:text-muted-foreground/60 hover:bg-secondary focus:bg-background focus:ring-2 focus:ring-brand/40;
   }
 
   .app-select {
-    @apply w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/15 appearance-none pr-10 cursor-pointer;
+    @apply h-11 w-full rounded-xl bg-secondary/75 px-4 py-2.5 text-sm font-normal leading-normal text-left text-foreground outline-none transition-colors duration-150 hover:bg-secondary focus:bg-background focus:ring-2 focus:ring-brand/40 appearance-none pr-10 cursor-pointer;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 0.75rem center;
     background-repeat: no-repeat;
@@ -206,13 +228,17 @@
   }
 
   .app-button-secondary {
-    @apply inline-flex items-center justify-center rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary;
+    @apply inline-flex items-center justify-center rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors duration-150 hover:bg-secondary/75;
+  }
+
+  .app-popover {
+    @apply bg-popover rounded-2xl shadow-[0_12px_32px_-4px_rgb(0,0,0,0.08)] dark:shadow-[0_12px_32px_-4px_rgb(0,0,0,0.45)];
   }
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(113, 113, 122, 0.45) transparent;
+  scrollbar-color: rgba(113, 113, 122, 0.35) transparent;
 }
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -222,11 +248,11 @@
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(113, 113, 122, 0.45);
+  background: rgba(113, 113, 122, 0.35);
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(113, 113, 122, 0.7);
+  background: rgba(113, 113, 122, 0.6);
 }
 
 /* Fix date, datetime, time, month & week input text clipping/truncation */
@@ -281,47 +307,6 @@ input[type="week"]::-webkit-calendar-picker-indicator {
   overscroll-behavior: contain;
 }
 
-/* Visible sleek custom scrollbar for inline scrolling */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #a1a1aa rgba(0, 0, 0, 0.04);
-}
-
-.dark .custom-scrollbar {
-  scrollbar-color: #3f3f46 rgba(255, 255, 255, 0.04);
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 9999px;
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #a1a1aa;
-  border-radius: 9999px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #71717a;
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
-}
-
 /* Remove number input spin buttons / up-down arrows for keyboard-only input */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -349,6 +334,16 @@ input[type="number"] {
 }
 .pt-safe {
   padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Performance & Accessibility: honor reduced motion on low-end mobile devices */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 

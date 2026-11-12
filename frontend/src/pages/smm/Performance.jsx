@@ -9,7 +9,7 @@ import { PageHeader } from '../../components/ui/page';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid
 } from 'recharts';
@@ -101,30 +101,25 @@ export default function Performance() {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-            <BarChart2 className="text-primary" size={24} />
-            Organic vs Paid Analytics & Decision Hub
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <BarChart2 className="text-primary shrink-0" size={22} />
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            Organic vs Paid Analytics
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Compare organic growth against paid advertising, evaluate video boosting potential, and inspect campaign efficiency.
-          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <select
-            value={selectedClient}
-            onChange={(e) => setSelectedClient(e.target.value)}
-            className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs outline-none"
-          >
-            <option value="">All Clients</option>
-            {clientsList.map((c) => (
-              <option key={c._id} value={c._id}>{c.company || c.name}</option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={selectedClient}
+          onChange={(e) => setSelectedClient(e.target.value)}
+          className="h-10 px-3.5 bg-card rounded-xl font-semibold text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
+        >
+          <option value="">All Clients</option>
+          {clientsList.map((c) => (
+            <option key={c._id} value={c._id}>{c.company || c.name}</option>
+          ))}
+        </select>
       </div>
 
       <SMMSubNav />
@@ -135,8 +130,8 @@ export default function Performance() {
         <div className="space-y-8">
           {/* ── SECTION 1: ORGANIC VS PAID COMPARISON CARDS & GRAPH ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-border pb-3">
+            <div className="lg:col-span-2 bg-card rounded-3xl p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3">
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <TrendingUp className="text-primary" size={16} />
                   Side-by-Side Channel Comparison
@@ -147,7 +142,7 @@ export default function Performance() {
               {/* Comparison table */}
               <div className="responsive-table-container overflow-x-auto">
                 <table className="w-full text-left text-xs min-w-[500px]">
-                  <thead className="bg-secondary/60 text-muted-foreground font-bold uppercase tracking-wider text-[10px] border-b border-border">
+                  <thead className="bg-secondary/60 text-muted-foreground font-bold uppercase tracking-wider text-[10px] ">
                     <tr>
                       <th className="px-4 py-3">Metric</th>
                       <th className="px-4 py-3 text-foreground">Organic</th>
@@ -155,7 +150,7 @@ export default function Performance() {
                       <th className="px-4 py-3 text-right">Ratio / Delta</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border font-semibold tabular-nums">
+                  <tbody className="divide-y divide-foreground/[0.05] font-semibold tabular-nums">
                     <tr>
                       <td className="px-4 py-3 text-muted-foreground">Audience Reach</td>
                       <td className="px-4 py-3 text-foreground">{(organicVsPaid.reach?.organic || 0).toLocaleString()}</td>
@@ -195,7 +190,7 @@ export default function Performance() {
               </div>
 
               {/* Organic vs Paid Visual Bar Chart */}
-              <div className="pt-4 border-t border-border">
+              <div className="pt-4 ">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reach & Views Distribution</span>
                   <span className="text-[10px] text-muted-foreground">Organic (Charcoal) vs Paid (Grey)</span>
@@ -203,22 +198,23 @@ export default function Performance() {
                 <div className="h-44 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--foreground) / 0.06)" vertical={false} />
                       <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} axisLine={false} tickLine={false} />
                       <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} axisLine={false} tickLine={false} tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: 'hsl(var(--card))',
-                          borderColor: 'hsl(var(--border))',
+                          backgroundColor: 'hsl(var(--popover))',
+                          border: 'none',
                           color: 'hsl(var(--foreground))',
                           borderRadius: '0.75rem',
                           fontSize: '12px',
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
                         }}
                         formatter={(value) => Number(value).toLocaleString()}
                       />
                       <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-                      <Bar dataKey="Organic" fill="hsl(var(--foreground))" radius={[6, 6, 0, 0]} />
-                      <Bar dataKey="Paid" fill="#71717a" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Organic" fill="#12B7D4" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Paid" fill="#64748b" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -226,40 +222,32 @@ export default function Performance() {
             </div>
 
             {/* Client Health & Consistency Score */}
-            <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4 text-center flex flex-col justify-center">
-              <div className="w-20 h-20 rounded-full bg-secondary border-2 border-border flex items-center justify-center mx-auto">
-                <span className="text-2xl font-black text-foreground tabular-nums">{clientHealthScore}</span>
+            <div className="bg-card rounded-3xl p-6 space-y-4 text-center flex flex-col justify-center">
+              <div className="w-20 h-20 rounded-full bg-brand/12 ring-2 ring-brand/30 flex items-center justify-center mx-auto">
+                <span className="text-2xl font-black text-primary tabular-nums">{clientHealthScore}</span>
               </div>
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block">Client Health Score</span>
-                <h4 className="text-sm font-bold text-foreground mt-0.5 inline-flex items-center justify-center gap-1.5">
-                  <span className={`h-2 w-2 rounded-full ${clientHealthScore >= 80 ? 'bg-foreground' : clientHealthScore >= 60 ? 'bg-muted-foreground' : 'bg-zinc-400'}`} />
+                <h4 className="text-sm font-bold text-foreground mt-1 inline-flex items-center justify-center gap-1.5">
+                  <span className={`h-2 w-2 rounded-full ${clientHealthScore >= 80 ? 'bg-brand' : clientHealthScore >= 60 ? 'bg-muted-foreground' : 'bg-zinc-400'}`} />
                   <span>{clientHealthScore >= 80 ? 'Excellent Performance' : clientHealthScore >= 60 ? 'Good Consistency' : 'Action Required'}</span>
                 </h4>
-                <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-                  Aggregates content publishing frequency, organic engagement velocity, paid lead conversion rate, and approval turnaround.
-                </p>
               </div>
             </div>
           </div>
 
-          {/* ── SECTION 2: "SHOULD WE ADVERTISE THIS VIDEO?" DECISION SYSTEM ── */}
-          <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="text-foreground shrink-0" size={20} />
-                  <h3 className="text-base font-black text-foreground">Video Evaluation & Ad Recommendation Engine</h3>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Internal rule-based system analyzing organic traction, engagement rate, saves, and virality to recommend boosting.
-                </p>
+          {/* ── SECTION 2: VIDEO EVALUATION ── */}
+          <div className="bg-card rounded-3xl p-6 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="text-primary shrink-0" size={18} />
+                <h3 className="text-base font-bold text-foreground">Video Ad Recommendations</h3>
               </div>
 
               <select
                 value={evaluatorVideoId}
                 onChange={(e) => setEvaluatorVideoId(e.target.value)}
-                className="h-9 px-3 bg-secondary/40 border border-border rounded-xl font-bold text-xs text-foreground outline-none"
+                className="h-10 px-3.5 bg-background rounded-xl font-semibold text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40 cursor-pointer"
               >
                 {videos.map((v) => (
                   <option key={v._id} value={v._id}>{v.name} ({v.contentType})</option>
@@ -269,7 +257,7 @@ export default function Performance() {
 
             {evaluatorVideo ? (
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
-                <div className="p-4 bg-secondary/40 rounded-2xl border border-border/70 space-y-2">
+                <div className="p-4 bg-secondary/40 rounded-2xl space-y-2">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground block">Selected Video</span>
                   <h4 className="text-sm font-bold text-foreground">{evaluatorVideo.name}</h4>
                   <span className="text-xs text-muted-foreground block">{evaluatorVideo.client?.company || evaluatorVideo.client?.name}</span>
@@ -280,13 +268,13 @@ export default function Performance() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-secondary/40 rounded-2xl border border-border/70 text-center space-y-1">
+                <div className="p-4 bg-secondary/40 rounded-2xl text-center space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground block">Performance Score</span>
                   <span className="text-3xl font-black text-foreground block tabular-nums">{evaluatorVideo.performanceScore || 85} / 100</span>
                   <span className="text-[10px] text-muted-foreground font-semibold block">Normalized Virality Index</span>
                 </div>
 
-                <div className="p-4 bg-secondary/40 rounded-2xl border border-border/70 text-center space-y-1">
+                <div className="p-4 bg-secondary/40 rounded-2xl text-center space-y-1">
                   <span className="text-[10px] uppercase font-bold text-muted-foreground block">Recommendation</span>
                   <span className="text-base font-black text-foreground inline-flex items-center justify-center gap-1.5">
                     {evaluatorVideo.adRecommendation === '🔥 HIGH POTENTIAL' ? (
@@ -308,7 +296,7 @@ export default function Performance() {
                 <div className="flex flex-col items-center justify-center gap-2">
                   <button
                     onClick={() => handleCreateAd(evaluatorVideo)}
-                    className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-2xl shadow-xs hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3 bg-primary text-primary-foreground font-bold text-xs rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Megaphone size={15} />
                     <span>Create Ad Campaign</span>
@@ -324,8 +312,8 @@ export default function Performance() {
           </div>
 
           {/* ── SECTION 3: CAMPAIGN COMPARISON TABLE ── */}
-          <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="bg-card rounded-3xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Award className="text-foreground shrink-0" size={18} />
                 Campaign Efficiency Comparison
@@ -335,7 +323,7 @@ export default function Performance() {
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-secondary/60 text-muted-foreground font-bold uppercase tracking-wider text-[10px] border-b border-border">
+                <thead className="bg-secondary/60 text-muted-foreground font-bold uppercase tracking-wider text-[10px] ">
                   <tr>
                     <th className="px-4 py-3">Campaign</th>
                     <th className="px-4 py-3">Platform</th>
@@ -346,7 +334,7 @@ export default function Performance() {
                     <th className="px-4 py-3 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border font-medium tabular-nums">
+                <tbody className="divide-y divide-foreground/[0.05] font-medium tabular-nums">
                   {campaigns.map((c) => (
                     <tr key={c._id} className="hover:bg-secondary/30 transition-colors">
                       <td className="px-4 py-3 font-bold text-foreground">{c.name}</td>
@@ -356,7 +344,7 @@ export default function Performance() {
                       <td className="px-4 py-3 font-bold text-foreground">₹{c.performance?.costPerLead || 0}</td>
                       <td className="px-4 py-3 font-bold text-foreground">{c.performance?.roas ? `${c.performance.roas}x` : '—'}</td>
                       <td className="px-4 py-3 text-right">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground border border-border">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground ">
                           {c.status}
                         </span>
                       </td>
@@ -368,15 +356,15 @@ export default function Performance() {
           </div>
 
           {/* ── SECTION 4: PLATFORM COMPARISON BREAKDOWN ── */}
-          <div className="bg-card border border-border rounded-3xl p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="bg-card rounded-3xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3">
               <h3 className="text-sm font-bold text-foreground">Platform Breakdown (Instagram, Facebook, YouTube, LinkedIn)</h3>
               <span className="text-xs text-muted-foreground font-semibold">Cross-channel distribution</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-secondary/60 text-muted-foreground font-bold uppercase tracking-wider text-[10px] border-b border-border">
+                <thead className="bg-secondary/60 text-muted-foreground font-bold uppercase tracking-wider text-[10px] ">
                   <tr>
                     <th className="px-4 py-3">Platform</th>
                     <th className="px-4 py-3">Posts & Videos</th>
@@ -386,7 +374,7 @@ export default function Performance() {
                     <th className="px-4 py-3 text-right">CPL</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border font-medium tabular-nums">
+                <tbody className="divide-y divide-foreground/[0.05] font-medium tabular-nums">
                   {platformPerf.map((p, idx) => (
                     <tr key={idx} className="hover:bg-secondary/30 transition-colors">
                       <td className="px-4 py-3 font-bold text-foreground">{p.platform}</td>

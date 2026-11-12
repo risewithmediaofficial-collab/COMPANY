@@ -30,8 +30,7 @@ import { useUpdateTaskStatus } from '../../hooks/useTasks';
 import { useAutoScrollOnDrag } from '../../hooks/useAutoScrollOnDrag';
 import { useSocket } from '../../context/SocketContext';
 import api from '../../api';
-import { motion, AnimatePresence } from 'framer-motion';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { KanbanCreateTaskModal } from '../../components/tasks/KanbanCreateTaskModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
 import { TaskDetailModal } from '../../components/ui/TaskDetailModal';
@@ -66,11 +65,11 @@ const statusLabels = {
 };
 
 const projectStatusStyles = {
-  Planning: 'bg-secondary text-muted-foreground border border-border',
-  'In Progress': 'bg-primary text-primary-foreground border border-primary',
-  'On Hold': 'bg-muted text-foreground border border-border',
-  Completed: 'bg-foreground text-background border border-foreground',
-  Cancelled: 'bg-secondary text-muted-foreground border border-border line-through',
+  Planning: 'bg-secondary text-muted-foreground ',
+  'In Progress': 'bg-primary text-primary-foreground ',
+  'On Hold': 'bg-muted text-foreground ',
+  Completed: 'bg-foreground text-background ',
+  Cancelled: 'bg-secondary text-muted-foreground line-through',
 };
 
 const ProjectDetails = () => {
@@ -410,13 +409,13 @@ const ProjectDetails = () => {
   }
 
   if (!project) {
-    return <div className="rounded-3xl border border-border bg-card p-12 text-center text-muted-foreground">Project not found.</div>;
+    return <div className="rounded-3xl bg-card p-12 text-center text-muted-foreground">Project not found.</div>;
   }
 
   if (!isTeamMember && user.role !== 'client') {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
-        <div className="w-20 h-20 bg-secondary border border-border rounded-3xl flex items-center justify-center text-foreground">
+        <div className="w-20 h-20 bg-secondary rounded-3xl flex items-center justify-center text-foreground">
           <Lock size={40} />
         </div>
         <div>
@@ -428,7 +427,7 @@ const ProjectDetails = () => {
         <button
           onClick={handleRequestAccess}
           disabled={isRequesting || hasRequested}
-          className={`px-8 py-3 rounded-2xl font-bold transition-all shadow-sm ${
+          className={`px-8 py-3 rounded-2xl font-bold transition-all ${
             hasRequested
               ? 'bg-secondary text-muted-foreground cursor-default'
               : 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -446,31 +445,31 @@ const ProjectDetails = () => {
     <>
       {/* Confirmation Dialog */}
       <Dialog open={Boolean(pendingDrop)} onOpenChange={(open) => { if (!open) setPendingDrop(null); }}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-md max-h-[90vh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-md max-h-[90vh]">
           <div className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+            <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-foreground">
+                <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center shrink-0 text-foreground">
                   <Activity className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
                   <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                     Confirm Status Change
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
+                  <DialogDescription className="sr-only">
                     Verify deliverable transition
                   </DialogDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 px-2 py-0.5 rounded-md">
                   ESC
                 </span>
                 <DialogClose asChild>
                   <button
                     type="button"
-                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    className="h-9 w-9 rounded-xl bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -480,27 +479,27 @@ const ProjectDetails = () => {
 
             {/* Body */}
             <div className="p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
-              <div className="rounded-xl border border-border bg-secondary/30 p-4 text-sm text-foreground">
+              <div className="rounded-xl bg-secondary/30 p-4 text-sm text-foreground">
                 <p className="leading-relaxed">{pendingDrop?.message || 'Are you sure you want to update the status of this task?'}</p>
               </div>
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
               <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setPendingDrop(null)}
-                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                  className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
                   onClick={confirmPendingDrop}
-                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm transition-all w-full sm:w-auto"
                 >
                   Yes, Confirm
                 </Button>
@@ -552,10 +551,10 @@ const ProjectDetails = () => {
                   }
                 }}
                 onDrop={(e) => handleDrop(e, status)}
-                className={`flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar rounded-2xl border-2 p-3 transition-all duration-150 ${
+                className={`flex-1 space-y-3 overflow-y-auto max-h-[calc(100vh-360px)] custom-scrollbar rounded-2xl p-3 transition-all duration-150 ${
                   isDragOver
-                    ? 'border-primary bg-primary/5 shadow-inner'
-                    : 'border-dashed border-border bg-secondary/20'
+                    ? ' bg-primary/5 shadow-inner'
+                    : ' bg-secondary/20'
                 }`}
               >
                 {(kanban[status] || []).map((task, idx) => {
@@ -567,7 +566,7 @@ const ProjectDetails = () => {
                   return (
                     <React.Fragment key={task._id}>
                       {showDropIndicatorBefore && (
-                        <div className="h-1.5 rounded-full bg-primary/70 my-1 shadow-xs" />
+                        <div className="h-1.5 rounded-full bg-primary/70 my-1 " />
                       )}
                       <div
                         draggable={user?.role !== 'client'}
@@ -584,18 +583,18 @@ const ProjectDetails = () => {
                         }}
                         onDrop={(e) => handleDrop(e, status, idx)}
                         onClick={() => setSelectedTaskId(task._id)}
-                        className={`group cursor-pointer rounded-2xl border border-border bg-card p-4 shadow-xs transition-all active:cursor-grabbing border-l-[4px] ${
+                        className={`group cursor-pointer rounded-2xl bg-card p-4 transition-all active:cursor-grabbing ${
                           getCategoryTheme(task.taskType || task.taskCategory).accentBorder
                         } ${
                           isBeingDragged
-                            ? 'opacity-30 scale-95 border-dashed border-primary ring-1 ring-primary/40'
-                            : 'hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40'
+                            ? 'opacity-30 scale-95 ring-1 ring-primary/40'
+                            : ' hover:-translate-y-0.5 '
                         }`}
                       >
                         <div className="mb-3 flex items-start justify-between">
                           <div className="flex flex-wrap items-center gap-1.5">
                             {task.isOverTarget && (
-                              <span className="rounded bg-foreground text-background border border-foreground px-1.5 py-0.5 text-[8px] font-extrabold uppercase">
+                              <span className="rounded bg-foreground text-background px-1.5 py-0.5 text-[8px] font-extrabold uppercase">
                                 Over Task
                               </span>
                             )}
@@ -603,21 +602,21 @@ const ProjectDetails = () => {
                               const catTheme = getCategoryTheme(task.taskType || task.taskCategory);
                               const Icon = catTheme.icon;
                               return (
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-bold border ${catTheme.badgeClass}`}>
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-bold ${catTheme.badgeClass}`}>
                                   <Icon size={10} className="shrink-0" />
                                   <span>{catTheme.shortLabel || task.taskType || 'Task'}</span>
                                 </span>
                               );
                             })()}
                             {(task.tags || []).length > 0 && task.tags.map((tag) => (
-                              <span key={tag} className="rounded bg-secondary border border-border px-1.5 py-0.5 text-[8px] font-bold uppercase text-foreground">
+                              <span key={tag} className="rounded bg-secondary px-1.5 py-0.5 text-[8px] font-bold uppercase text-foreground">
                                 {tag}
                               </span>
                             ))}
                           </div>
                           <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 ${
                             task.priority === 'Urgent' || task.priority === 'High'
-                              ? 'bg-foreground text-background border border-foreground'
+                              ? 'bg-foreground text-background '
                               : 'bg-secondary text-muted-foreground'
                           }`}>
                             {task.priority || 'Med'}
@@ -633,13 +632,13 @@ const ProjectDetails = () => {
                               <PersonAssigneeBadge key={pIdx} person={person} size="sm" />
                             ))
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-medium bg-secondary text-muted-foreground border border-border/80">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] font-medium bg-secondary text-muted-foreground ">
                               Unassigned
                             </span>
                           )}
                         </div>
 
-                        <div className="mt-3 flex items-center justify-between pt-2 border-t border-border/50 text-[10px] text-muted-foreground tabular-nums">
+                        <div className="mt-3 flex items-center justify-between pt-2 text-[10px] text-muted-foreground tabular-nums">
                           <div className="flex items-center space-x-3">
                             <span className="flex items-center">
                               <MessageSquare size={12} className="mr-1 shrink-0" /> {task.comments?.length || 0}
@@ -665,12 +664,12 @@ const ProjectDetails = () => {
 
                 {/* Drop indicator at the bottom of the column */}
                 {isDragOver && dragOverTaskIndex >= (kanban[status] || []).length && (
-                  <div className="h-1.5 rounded-full bg-primary/70 my-1 shadow-xs" />
+                  <div className="h-1.5 rounded-full bg-primary/70 my-1 " />
                 )}
 
                 {(kanban[status] || []).length === 0 && (
-                  <div className={`flex h-20 items-center justify-center text-xs rounded-xl border border-dashed transition-all ${
-                    isDragOver ? 'border-primary bg-primary/10 text-primary font-semibold' : 'text-muted-foreground italic border-border/60'
+                  <div className={`flex h-20 items-center justify-center text-xs rounded-xl transition-all ${
+                    isDragOver ? ' bg-primary/10 text-primary font-semibold' : 'text-muted-foreground italic '
                   }`}>
                     {isDragOver ? `Drop here to move to ${statusLabels[status]}` : 'No tasks here.'}
                   </div>
@@ -687,13 +686,13 @@ const ProjectDetails = () => {
     const rows = recentTasks.length ? recentTasks : allTasks;
 
     return (
-      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-        <div className="flex items-center justify-between border-b border-border bg-secondary/10 p-5">
+      <div className="overflow-hidden rounded-3xl bg-card ">
+        <div className="flex items-center justify-between bg-secondary/10 p-5">
           <h2 className="font-bold">Recent Tasks</h2>
           {user?.role !== 'client' && (
             <button
               onClick={() => openTaskModal()}
-              className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm hover:bg-primary/90"
+              className="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
             >
               <Plus size={16} className="mr-2" />
               Add Task
@@ -703,7 +702,7 @@ const ProjectDetails = () => {
         <div className="w-full overflow-x-auto overflow-y-auto max-h-[calc(100vh-350px)] custom-scrollbar responsive-table-container">
           <table className="w-full min-w-[640px] text-sm">
             <thead className="sticky top-0 z-10 bg-card">
-              <tr className="border-b border-border text-left text-muted-foreground bg-card">
+              <tr className="text-left text-muted-foreground bg-card">
                 <th className="px-6 py-4">Task</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Priority</th>
@@ -712,7 +711,7 @@ const ProjectDetails = () => {
                 <th className="px-6 py-4">Assignees</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-foreground/[0.05]">
               {rows.length ? rows.map((task) => (
                 <tr
                   key={task._id}
@@ -723,7 +722,7 @@ const ProjectDetails = () => {
                     <div className="flex items-center gap-2">
                       <div className="font-semibold text-foreground group-hover:text-primary">{task.title}</div>
                       {task.isOverTarget && (
-                        <span className="rounded bg-foreground text-background border border-foreground px-1.5 py-0.5 text-[9px] font-extrabold uppercase shrink-0">
+                        <span className="rounded bg-foreground text-background px-1.5 py-0.5 text-[9px] font-extrabold uppercase shrink-0">
                           Over Task
                         </span>
                       )}
@@ -763,7 +762,7 @@ const ProjectDetails = () => {
   };
 
   const renderFiles = () => (
-    <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-3xl bg-card p-6 ">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="font-bold">Files &amp; Attachments</h2>
         <span className="text-xs font-semibold text-muted-foreground">
@@ -782,14 +781,14 @@ const ProjectDetails = () => {
               href={fileUrl}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-secondary/20 p-4 transition-colors hover:bg-secondary/40"
+              className="flex items-center justify-between gap-4 rounded-2xl bg-secondary/20 p-4 transition-colors hover:bg-secondary/40"
             >
               <div className="flex min-w-0 items-center gap-3">
                 {isImage ? (
                   <img
                     src={fileUrl}
                     alt={file.name || 'File preview'}
-                    className="h-12 w-12 shrink-0 rounded-xl border border-border object-cover"
+                    className="h-12 w-12 shrink-0 rounded-xl object-cover"
                     loading="lazy"
                   />
                 ) : (
@@ -808,7 +807,7 @@ const ProjectDetails = () => {
             </a>
           );
         }) : (
-          <div className="rounded-2xl border border-dashed border-border bg-secondary/10 p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-2xl bg-secondary/10 p-12 text-center text-sm text-muted-foreground">
             No project files or task attachments have been uploaded yet.
           </div>
         )}
@@ -818,11 +817,10 @@ const ProjectDetails = () => {
 
   const renderAccessManagement = () => (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-3xl bg-card p-6 ">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold">Team Access</h2>
-            <p className="text-xs text-muted-foreground">Manage who has access to this project and its assets.</p>
           </div>
           <button className="rounded-xl bg-primary/10 px-4 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors flex items-center gap-2">
             <UserPlus size={14} /> Add Member
@@ -831,7 +829,7 @@ const ProjectDetails = () => {
 
         <div className="space-y-3">
           {(project.team || []).map((member) => (
-            <div key={member._id} className="flex items-center justify-between rounded-2xl border border-border p-4 hover:bg-secondary/10 transition-colors">
+            <div key={member._id} className="flex items-center justify-between rounded-2xl p-4 hover:bg-secondary/10 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold">
                   {member.avatar ? <img src={getAssetUrl(member.avatar)} alt="" className="rounded-full" /> : member.name?.charAt(0)}
@@ -848,11 +846,11 @@ const ProjectDetails = () => {
       </div>
 
       {(user.role === 'superAdmin' || user.role === 'admin' || user.role === 'manager') && accessRequests.length > 0 && (
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-3xl bg-card p-6 ">
           <h2 className="mb-4 text-lg font-bold">Pending Requests</h2>
           <div className="space-y-3">
             {accessRequests.filter(r => r.status === 'pending').map((request) => (
-              <div key={request._id} className="flex items-center justify-between rounded-2xl border border-border bg-secondary/40 p-4">
+              <div key={request._id} className="flex items-center justify-between rounded-2xl bg-secondary/40 p-4">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center font-bold">
                     {request.requester.avatar ? <img src={getAssetUrl(request.requester.avatar)} alt="" className="rounded-full" /> : request.requester.name?.charAt(0)}
@@ -888,16 +886,15 @@ const ProjectDetails = () => {
     const proposal = project.acceptedProposalId;
     if (!proposal || typeof proposal === 'string') {
       return (
-        <div className="rounded-3xl border border-dashed border-border bg-card p-12 text-center">
+        <div className="rounded-3xl bg-card p-12 text-center">
           <FileText size={40} className="mx-auto mb-3 text-muted-foreground/40" />
           <p className="font-semibold">No accepted proposal linked</p>
-          <p className="mt-2 text-sm text-muted-foreground">Link an accepted proposal when editing the project, or create one from the Proposals Dashboard.</p>
         </div>
       );
     }
 
     return (
-      <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl bg-card p-6 space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-bold">{proposal.title}</h2>
@@ -908,15 +905,15 @@ const ProjectDetails = () => {
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-border bg-secondary/20 p-4">
+          <div className="rounded-2xl bg-secondary/20 p-4">
             <p className="text-xs text-muted-foreground">Proposal Amount</p>
             <p className="mt-1 text-lg font-bold">{formatINR(proposal.amount)}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-secondary/20 p-4">
+          <div className="rounded-2xl bg-secondary/20 p-4">
             <p className="text-xs text-muted-foreground">Status</p>
             <p className="mt-1 text-lg font-bold capitalize">{proposal.status}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-secondary/20 p-4 md:col-span-2">
+          <div className="rounded-2xl bg-secondary/20 p-4 md:col-span-2">
             <p className="text-xs text-muted-foreground">Accepted Date &amp; Time</p>
             <p className="mt-1 text-lg font-bold">
               {proposal.acceptedAt ? new Date(proposal.acceptedAt).toLocaleString() : '—'}
@@ -946,12 +943,12 @@ const ProjectDetails = () => {
 
     if (isManager) {
       return (
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+        <div className="rounded-3xl bg-card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} className="shrink-0" /> Ads Budget</h2>
             <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold text-muted-foreground">Manager View</span>
           </div>
-          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+          <div className="rounded-2xl bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Project Ads Budget</p>
             <p className="mt-1 text-2xl font-bold text-foreground tabular-nums">{formatINR(b.adsAmount || 0)}</p>
           </div>
@@ -964,11 +961,11 @@ const ProjectDetails = () => {
 
     if (editingBudget) {
       return (
-        <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+        <div className="rounded-3xl bg-card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-bold">Edit Budget</h2>
             <div className="flex gap-2">
-              <button onClick={() => setEditingBudget(false)} className="rounded-xl border border-border px-4 py-2 text-sm">Cancel</button>
+              <button onClick={() => setEditingBudget(false)} className="rounded-xl px-4 py-2 text-sm">Cancel</button>
               <button onClick={handleSaveBudget} disabled={updateProject.isPending} className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
                 Save Budget
               </button>
@@ -1014,35 +1011,35 @@ const ProjectDetails = () => {
     }
 
     return (
-      <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl bg-card p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-bold flex items-center gap-2"><IndianRupee size={18} className="shrink-0" /> Project Budget</h2>
           {user?.role !== 'client' && (
             <button
               onClick={() => { syncBudgetForm(); setEditingBudget(true); }}
-              className="rounded-xl border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary"
+              className="rounded-xl px-4 py-2 text-sm font-semibold hover:bg-secondary"
             >
               Edit Budget
             </button>
           )}
         </div>
         <div className="grid gap-4 md:grid-cols-3 tabular-nums">
-          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+          <div className="rounded-2xl bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Total Budget</p>
             <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(total)}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+          <div className="rounded-2xl bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Amount Received</p>
             <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(received)}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+          <div className="rounded-2xl bg-secondary/40 p-4">
             <p className="text-xs text-muted-foreground">Pending Amount</p>
             <p className="mt-1 text-2xl font-bold text-foreground">{formatINR(pending)}</p>
           </div>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 tabular-nums">
           {budgetFields.map(([key, label]) => (
-            <div key={key} className="rounded-xl border border-border/70 bg-secondary/15 px-3 py-2">
+            <div key={key} className="rounded-xl bg-secondary/15 px-3 py-2">
               <p className="text-[11px] text-muted-foreground">{label}</p>
               <p className="text-sm font-semibold">{formatINR(b[key] || 0)}</p>
             </div>
@@ -1053,14 +1050,14 @@ const ProjectDetails = () => {
           <span className="rounded-full bg-secondary px-3 py-1 text-xs font-bold capitalize">{b.paymentStatus || 'pending'}</span>
         </div>
         {b.budgetNotes ? (
-          <div className="rounded-xl border border-border bg-secondary/10 p-4 text-sm whitespace-pre-wrap">{b.budgetNotes}</div>
+          <div className="rounded-xl bg-secondary/10 p-4 text-sm whitespace-pre-wrap">{b.budgetNotes}</div>
         ) : null}
       </div>
     );
   };
 
   const renderActivity = () => (
-    <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+    <div className="rounded-3xl bg-card p-6 ">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="font-bold">Recent Activity</h2>
         <span className="text-xs font-semibold text-muted-foreground">{recentActivity.length} updates</span>
@@ -1068,7 +1065,7 @@ const ProjectDetails = () => {
 
       <div className="space-y-4">
         {recentActivity.length ? recentActivity.map((item) => (
-          <div key={item._id} className="flex gap-4 rounded-2xl border border-border bg-secondary/15 p-4">
+          <div key={item._id} className="flex gap-4 rounded-2xl bg-secondary/15 p-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Activity size={18} />
             </div>
@@ -1081,7 +1078,7 @@ const ProjectDetails = () => {
             </div>
           </div>
         )) : (
-          <div className="rounded-2xl border border-dashed border-border bg-secondary/10 p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-2xl bg-secondary/10 p-12 text-center text-sm text-muted-foreground">
             No recent activity has been recorded for this project yet.
           </div>
         )}
@@ -1105,7 +1102,7 @@ const ProjectDetails = () => {
         status={
           <div className="flex items-center gap-2 flex-wrap">
             {project.category && (
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getProjectCategoryMeta(project.category).badgeClass}`}>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${getProjectCategoryMeta(project.category).badgeClass}`}>
                 {React.createElement(getProjectCategoryMeta(project.category).icon, { size: 13, className: 'shrink-0' })}
                 <span>{getProjectCategoryMeta(project.category).label}</span>
               </span>
@@ -1125,7 +1122,7 @@ const ProjectDetails = () => {
               {(project.team || []).map((member) => (
                 <div
                   key={member._id}
-                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-card bg-secondary text-xs font-bold text-foreground shadow-sm"
+                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full ring-2 ring-card bg-secondary text-xs font-bold text-foreground "
                   title={member.name}
                 >
                   {member.avatar ? <img src={getAssetUrl(member.avatar)} alt="" /> : member.name.charAt(0)}
@@ -1134,7 +1131,7 @@ const ProjectDetails = () => {
               {user?.role !== 'client' && (
                 <button
                   onClick={() => openTaskModal()}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-primary text-xs font-bold text-primary-foreground transition-transform hover:scale-110"
+                  className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-card bg-primary text-xs font-bold text-primary-foreground transition-transform hover:scale-110"
                   title="Add task"
                 >
                   <Plus size={14} />
@@ -1143,7 +1140,7 @@ const ProjectDetails = () => {
             </div>
             <button
               onClick={handleShare}
-              className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="rounded-xl bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
               title="Share project"
             >
               <Share2 size={18} />
@@ -1151,7 +1148,7 @@ const ProjectDetails = () => {
             {(user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager') && (
               <button
                 onClick={() => setShowProjectModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-all shadow-xs cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-all cursor-pointer"
                 title="Edit Project Details"
               >
                 <Edit3 size={14} />
@@ -1161,7 +1158,7 @@ const ProjectDetails = () => {
             {user?.role !== 'client' && (
               <button
                 onClick={() => setShowProjectModal(true)}
-                className="rounded-xl border border-border bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
+                className="rounded-xl bg-background p-2.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground cursor-pointer"
                 title="Project settings"
               >
                 <Settings size={18} />
@@ -1193,23 +1190,15 @@ const ProjectDetails = () => {
       />
 
       {/* Tab Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-        >
-          {activeTab === 'board' && renderBoard()}
-          {activeTab === 'list' && renderList()}
-          {activeTab === 'files' && renderFiles()}
-          {activeTab === 'activity' && renderActivity()}
-          {activeTab === 'proposal' && renderProposalPanel()}
-          {activeTab === 'budget' && renderBudgetPanel()}
-          {activeTab === 'access' && renderAccessManagement()}
-        </motion.div>
-      </AnimatePresence>
+      <div key={activeTab} className="animate-in fade-in duration-150">
+        {activeTab === 'board' && renderBoard()}
+        {activeTab === 'list' && renderList()}
+        {activeTab === 'files' && renderFiles()}
+        {activeTab === 'activity' && renderActivity()}
+        {activeTab === 'proposal' && renderProposalPanel()}
+        {activeTab === 'budget' && renderBudgetPanel()}
+        {activeTab === 'access' && renderAccessManagement()}
+      </div>
 
       {user?.role !== 'client' && (
         <>

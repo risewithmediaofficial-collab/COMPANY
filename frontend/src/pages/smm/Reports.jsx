@@ -8,7 +8,7 @@ import api from '../../api/index';
 import { PageHeader } from '../../components/ui/page';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function Reports() {
   const { startDate, endDate, period: globalPeriod, isDateInRange } = useDateFilter();
@@ -103,15 +103,14 @@ export default function Reports() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Automated Client Reports Engine"
-        subtitle="Generate client-ready monthly presentations, weekly summaries, and operational exports"
+        title="Client Reports"
         actions={
           <div className="flex items-center gap-2">
             <button onClick={() => handleExport('csv')} className="app-button-secondary gap-2 text-xs">
               <Download size={14} className="shrink-0" />
               <span>Export CSV</span>
             </button>
-            <button onClick={() => handleExport('print')} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-xs inline-flex items-center gap-2 shadow-xs hover:bg-primary/90 transition-colors">
+            <button onClick={() => handleExport('print')} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-xs inline-flex items-center gap-2 hover:bg-primary/90 transition-colors">
               <Printer size={15} className="shrink-0" />
               <span>Print / Save PDF</span>
             </button>
@@ -122,14 +121,14 @@ export default function Reports() {
       <SMMSubNav />
 
       {/* Filter & View Switcher */}
-      <div className="bg-card p-4 rounded-2xl border border-border flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">Target Client</label>
             <select
               value={filters.client}
               onChange={e => setFilters({...filters, client: e.target.value})}
-              className="h-9 px-3 bg-secondary/50 border border-border rounded-xl font-semibold text-xs text-foreground outline-none"
+              className="h-9 px-3 bg-secondary/50 rounded-xl font-semibold text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40"
             >
               <option value="">All Clients</option>
               {crmClients.map(c => <option key={c._id} value={c._id}>{c.company || c.companyName || c.name}</option>)}
@@ -138,13 +137,13 @@ export default function Reports() {
 
           <div>
             <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">Report Cadence</label>
-            <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl border border-border">
+            <div className="flex items-center gap-1 bg-secondary/50 p-1 rounded-xl ">
               {['monthly', 'weekly', 'daily'].map((cad) => (
                 <button
                   key={cad}
                   onClick={() => setReportType(cad)}
                   className={`px-3 py-1 text-xs font-semibold rounded-lg uppercase transition-colors ${
-                    reportType === cad ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                    reportType === cad ? 'bg-primary text-primary-foreground ' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {cad}
@@ -160,9 +159,9 @@ export default function Reports() {
       </div>
 
       {/* ── AUTOMATED CLIENT-READY MONTH-END REPORT DOCUMENT ── */}
-      <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 print:border-none print:shadow-none">
+      <div className="bg-card rounded-2xl p-6 sm:p-8 space-y-8 print:border-none print:shadow-none">
         {/* Document Header */}
-        <div className="border-b border-border pb-6 flex items-start justify-between gap-4">
+        <div className="pb-6 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <span className="text-xs uppercase tracking-widest font-bold text-muted-foreground block">
               Rise With Media · Performance OS
@@ -191,21 +190,21 @@ export default function Reports() {
             <span>1. Executive Performance Summary</span>
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+            <div className="p-4 bg-secondary/40 rounded-xl text-center">
               <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Total Videos Published</span>
               <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">{content.posted || 0}</span>
             </div>
-            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+            <div className="p-4 bg-secondary/40 rounded-xl text-center">
               <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Combined Views</span>
               <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">
                 {((organic.views || 0) + (paid.views || 0)).toLocaleString()}
               </span>
             </div>
-            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+            <div className="p-4 bg-secondary/40 rounded-xl text-center">
               <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Leads Generated</span>
               <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">{paid.leads || 0}</span>
             </div>
-            <div className="p-4 bg-secondary/40 rounded-xl border border-border text-center">
+            <div className="p-4 bg-secondary/40 rounded-xl text-center">
               <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Average CPL</span>
               <span className="text-2xl font-bold text-foreground block mt-1 tabular-nums">₹{paid.costPerLead || 0}</span>
             </div>
@@ -219,17 +218,17 @@ export default function Reports() {
             <span>2. Organic Traction &amp; Community Growth</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 bg-secondary/35 rounded-xl border border-border space-y-1">
+            <div className="p-4 bg-secondary/35 rounded-xl space-y-1">
               <span className="text-xs font-semibold text-muted-foreground block">Organic Reach</span>
               <span className="text-xl font-bold text-foreground block tabular-nums">{(organic.reach || 0).toLocaleString()}</span>
               <span className="text-[11px] text-muted-foreground">Unique accounts reached</span>
             </div>
-            <div className="p-4 bg-secondary/35 rounded-xl border border-border space-y-1">
+            <div className="p-4 bg-secondary/35 rounded-xl space-y-1">
               <span className="text-xs font-semibold text-muted-foreground block">Organic Engagement Rate</span>
               <span className="text-xl font-bold text-foreground block tabular-nums">{organic.engagementRate || 0}%</span>
               <span className="text-[11px] text-muted-foreground tabular-nums">Based on {(organic.engagement || 0).toLocaleString()} interactions</span>
             </div>
-            <div className="p-4 bg-secondary/35 rounded-xl border border-border space-y-1">
+            <div className="p-4 bg-secondary/35 rounded-xl space-y-1">
               <span className="text-xs font-semibold text-muted-foreground block">Net Followers Gained</span>
               <span className="text-xl font-bold text-foreground block tabular-nums">+{organic.followersGained || 0}</span>
               <span className="text-[11px] text-muted-foreground">Target demographic expansion</span>
@@ -244,15 +243,15 @@ export default function Reports() {
             <span>3. Paid Advertising &amp; Budget Ledger</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-            <div className="p-4 bg-secondary/40 rounded-xl border border-border">
+            <div className="p-4 bg-secondary/40 rounded-xl ">
               <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Total Funds Added</span>
               <span className="text-xl font-bold text-foreground block mt-1 tabular-nums">₹{(paid.amountAdded || 0).toLocaleString()}</span>
             </div>
-            <div className="p-4 bg-secondary/40 rounded-xl border border-border">
+            <div className="p-4 bg-secondary/40 rounded-xl ">
               <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Total Spend Utilized</span>
               <span className="text-xl font-bold text-foreground block mt-1 tabular-nums">₹{(paid.amountSpent || 0).toLocaleString()}</span>
             </div>
-            <div className="p-4 bg-secondary/40 rounded-xl border border-border">
+            <div className="p-4 bg-secondary/40 rounded-xl ">
               <span className="text-[10px] text-muted-foreground uppercase font-semibold block tracking-wider">Remaining Account Balance</span>
               <span className="text-xl font-bold text-foreground block mt-1 tabular-nums">₹{(paid.remainingBalance || 0).toLocaleString()}</span>
             </div>
@@ -265,9 +264,9 @@ export default function Reports() {
             <CheckCircle2 size={16} className="text-foreground shrink-0" />
             <span>4. Top Performing Content Assets</span>
           </h3>
-          <div className="responsive-table-container overflow-x-auto rounded-xl border border-border">
+          <div className="responsive-table-container overflow-x-auto rounded-xl ">
             <table className="w-full text-left text-xs min-w-[550px]">
-              <thead className="bg-secondary/60 text-muted-foreground font-semibold border-b border-border">
+              <thead className="bg-secondary/60 text-muted-foreground font-semibold ">
                 <tr>
                   <th className="px-4 py-3">Content / Reel Name</th>
                   <th className="px-4 py-3 text-right">Organic Views</th>
@@ -276,7 +275,7 @@ export default function Reports() {
                   <th className="px-4 py-3 text-right">Ad Leads &amp; CPL</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border font-medium tabular-nums">
+              <tbody className="divide-y divide-foreground/[0.05] font-medium tabular-nums">
                 {topVideos.map((v, i) => (
                   <tr key={v._id} className="hover:bg-secondary/30 transition-colors">
                     <td className="px-4 py-3 font-semibold text-foreground">
@@ -286,7 +285,7 @@ export default function Reports() {
                     <td className="px-4 py-3 text-right font-semibold text-foreground">{v.engagementRate}%</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        v.usedAsAd ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground border border-border'
+                        v.usedAsAd ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground '
                       }`}>
                         {v.usedAsAd ? 'YES' : 'NO'}
                       </span>
@@ -302,7 +301,7 @@ export default function Reports() {
         </div>
 
         {/* 5. CHALLENGES & NEXT MONTH STRATEGY */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-border">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 ">
           <div className="space-y-2">
             <label className="text-xs font-bold text-foreground uppercase tracking-wider inline-flex items-center gap-1.5">
               <AlertTriangle size={15} className="shrink-0" />
@@ -312,7 +311,7 @@ export default function Reports() {
               rows={3}
               value={strategyNotes.challenges}
               onChange={(e) => setStrategyNotes({ ...strategyNotes, challenges: e.target.value })}
-              className="w-full p-3 bg-secondary/30 border border-border rounded-xl text-xs text-foreground outline-none focus:border-foreground/50"
+              className="w-full p-3 bg-secondary/30 rounded-xl text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40 "
             />
           </div>
 
@@ -325,7 +324,7 @@ export default function Reports() {
               rows={3}
               value={strategyNotes.nextMonthStrategy}
               onChange={(e) => setStrategyNotes({ ...strategyNotes, nextMonthStrategy: e.target.value })}
-              className="w-full p-3 bg-secondary/30 border border-border rounded-xl text-xs text-foreground outline-none focus:border-foreground/50"
+              className="w-full p-3 bg-secondary/30 rounded-xl text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40 "
             />
           </div>
         </div>

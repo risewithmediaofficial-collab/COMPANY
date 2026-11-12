@@ -5,21 +5,20 @@ import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import api from '../../api';
 import {
-  Building2, Phone, Mail, IndianRupee,
+  Building2, Phone, Mail, ListChecks, ArrowRight,
   Briefcase, CheckCircle2, Clock, AlertCircle, Users,
   FileText, TrendingUp, Edit2, FolderOpen, Calendar,
   LockKeyhole, KeyRound, Eye, EyeOff, Copy, Check, ExternalLink, Plus, ChevronDown, ChevronUp, AtSign
 } from '@/components/ui/muiIcons';
-import { motion } from 'framer-motion';
 import { AddClientModal } from '../../components/modals/AddClientModal';
 import { AddProjectModal } from '../../components/modals/AddProjectModal';
-import ClientFinancialSummary from '../../components/ui/ClientFinancialSummary';
 import ClientProjectsPanel from '../../components/ui/ClientProjectsPanel';
 import {
   NotionDetailPage,
   NotionTabs,
 } from '../../components/ui/NotionDetailTemplate';
 import { formatINR } from '../../utils/currency';
+import { getProjectCategoryMeta } from '../../utils/projectCategories';
 import { useCredential } from '../../hooks/useClientCredentials';
 
 const PLATFORM_MAP = {
@@ -45,11 +44,11 @@ const onboardingStepLabels = {
 };
 
 const statusStyles = {
-  Active: 'bg-primary text-primary-foreground border-primary',
-  Prospect: 'bg-secondary text-foreground border-foreground/40',
-  Churned: 'bg-muted text-muted-foreground border-border',
-  Inactive: 'bg-secondary text-muted-foreground border-border',
-  Renew: 'bg-secondary text-foreground border-border font-bold',
+  Active: 'bg-primary text-primary-foreground ',
+  Prospect: 'bg-secondary text-foreground ',
+  Churned: 'bg-muted text-muted-foreground ',
+  Inactive: 'bg-secondary text-muted-foreground ',
+  Renew: 'bg-secondary text-foreground font-bold',
 };
 
 const ClientDetails = () => {
@@ -209,9 +208,9 @@ const ClientDetails = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-40 bg-card rounded-3xl border border-border" />
+        <div className="h-40 bg-card rounded-3xl " />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-24 bg-card rounded-2xl border border-border" />)}
+          {[1,2,3,4].map(i => <div key={i} className="h-24 bg-card rounded-2xl " />)}
         </div>
       </div>
     );
@@ -219,8 +218,8 @@ const ClientDetails = () => {
 
   if (!data?.client) {
     return (
-      <div className="p-6 sm:p-10 text-center bg-card rounded-3xl border border-border/80 shadow-xs max-w-md mx-auto my-12 space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center mx-auto">
+      <div className="p-6 sm:p-10 text-center bg-card rounded-3xl max-w-md mx-auto my-12 space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-secondary text-foreground flex items-center justify-center mx-auto">
           <Building2 size={24} />
         </div>
         <div className="space-y-1">
@@ -232,7 +231,7 @@ const ClientDetails = () => {
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           <Link
             to="/clients"
-            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-all inline-flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 transition-all inline-flex items-center gap-1.5"
           >
             <Users size={14} />
             <span>Return to Clients 360</span>
@@ -256,24 +255,16 @@ const ClientDetails = () => {
   const totalSteps = Object.keys(onboardingStepLabels).length;
   const onboardingPercent = Math.round((completedSteps / totalSteps) * 100);
 
-  const paidInvoices = invoices.filter(inv => inv.status?.toLowerCase() === 'paid');
-  const pendingInvoices = invoices.filter(inv => inv.status?.toLowerCase() !== 'paid' && inv.status?.toLowerCase() !== 'cancelled');
-  const totalRevenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || inv.amount || 0), 0);
+  const totalTasksAvailable = projects.reduce((sum, p) => sum + (p.totalTasks || 0), 0);
+  const totalCompletedTasks = projects.reduce((sum, p) => sum + (p.completedTasks ?? p.doneTasks ?? 0), 0);
+  const totalOngoingTasks = projects.reduce((sum, p) => sum + (p.ongoingTasks || 0), 0);
+  const totalPendingTasks = projects.reduce(
+    (sum, p) => sum + (p.pendingTasks ?? Math.max(0, (p.totalTasks || 0) - (p.ongoingTasks || 0) - (p.completedTasks ?? p.doneTasks ?? 0))),
+    0
+  );
   const paymentNotes = financeRecords.flatMap((record) => record.paymentHistory || []);
 
   const isFinanceVisible = user?.role === 'superAdmin' || user?.role === 'admin' || user?.role === 'manager' || !!user?.permissions?.canManageFinance;
-
-  const stats = [
-    ...(isFinanceVisible ? [
-      { label: 'Total Revenue', value: formatINR(totalRevenue), icon: IndianRupee },
-    ] : []),
-    { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length, icon: Briefcase },
-    { label: 'Account Created', value: client.createdAt ? new Date(client.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—', icon: Calendar },
-    ...(isFinanceVisible ? [
-      { label: 'Paid Invoices', value: paidInvoices.length, icon: CheckCircle2 },
-      { label: 'Pending Invoices', value: pendingInvoices.length, icon: AlertCircle },
-    ] : []),
-  ];
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: TrendingUp },
@@ -292,6 +283,7 @@ const ClientDetails = () => {
     <div className="space-y-6 animate-in fade-in duration-500">
 
       <NotionDetailPage
+        className="pb-0"
         backTo={isClientUser ? null : '/clients'}
         backLabel={isClientUser ? null : 'Clients'}
         title={client.company || client.name}
@@ -303,16 +295,16 @@ const ClientDetails = () => {
         ].filter(Boolean).join(' | ')}
         icon={Building2}
         status={client.status}
-        statusClassName={`border ${statusStyles[client.status] || statusStyles.Active}`}
+        statusClassName={` ${statusStyles[client.status] || statusStyles.Active}`}
         actions={(
           <>
             <button
               type="button"
               onClick={() => handleTabChange('vault')}
-              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
                 activeTab === 'vault'
-                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                  : 'border-border bg-secondary text-foreground hover:bg-muted'
+                  ? ' bg-primary text-primary-foreground '
+                  : ' bg-secondary text-foreground hover:bg-muted'
               }`}
             >
               <LockKeyhole size={16} className="shrink-0" /> Client Vault
@@ -320,7 +312,7 @@ const ClientDetails = () => {
             {client.email && (
               <a
                 href={`mailto:${client.email}`}
-                className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+                className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
               >
                 <Mail size={16} className="shrink-0" /> Email Client
               </a>
@@ -330,7 +322,7 @@ const ClientDetails = () => {
                 href={client.driveLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl border border-border bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
               >
                 <FolderOpen size={16} className="shrink-0" /> Drive Folder
               </a>
@@ -338,34 +330,14 @@ const ClientDetails = () => {
             {user?.role !== 'client' && (
               <button
                 onClick={() => setShowEditModal(true)}
-                className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90"
+                className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:opacity-90"
               >
                 <Edit2 size={16} className="shrink-0" /> Edit Client
               </button>
             )}
           </>
         )}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4"
-            >
-              <div className="rounded-2xl p-3 bg-secondary border border-border text-foreground shrink-0">
-                <stat.icon size={20} />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
-                <p className="mt-0.5 text-xl font-bold text-foreground tabular-nums">{stat.value}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </NotionDetailPage>
+      />
 
       {/* Tabs */}
       <NotionTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
@@ -373,14 +345,7 @@ const ClientDetails = () => {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Financial Summary */}
-          <ClientFinancialSummary 
-            clientId={client._id}
-            clientName={client.name}
-            clientTier={client.tier}
-          />
-
-          {/* Projects Panel */}
+          {/* Projects & Task Overview (Initial Landing Section) */}
           <ClientProjectsPanel
             clientId={client._id}
             clientName={client.name}
@@ -389,27 +354,24 @@ const ClientDetails = () => {
 
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Details */}
-            <div className="lg:col-span-2 bg-card rounded-3xl border border-border shadow-sm p-6 space-y-6">
+            <div className="lg:col-span-2 bg-card rounded-3xl p-6 space-y-6">
               <h2 className="font-bold text-lg">Client Information</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
                 {[
                   ['Type / Sector', client.industry || 'Not set'],
-                  [
-                    client.budgetType === 'overall' ? 'Overall Budget Amount' : 'Monthly Budget Amount',
-                    client.contractValue ? `${formatINR(client.contractValue)} (${client.budgetType === 'overall' ? 'Overall' : 'Monthly'})` : '—',
-                  ],
-                  ['Billing Cycle', client.billingCycle || '—'],
+                  ['Account Tier', client.tier || 'Starter'],
                   ['Contract Start', client.contractStartDate ? new Date(client.contractStartDate).toLocaleDateString() : '—'],
                   ['Contract End', client.contractEndDate ? new Date(client.contractEndDate).toLocaleDateString() : 'Ongoing / Retainer (No End Date)'],
                   ['Requirements', client.services?.join(', ') || 'Not set'],
+                  ['Active Projects', `${projects.filter((p) => p.status === 'In Progress' || p.status === 'active').length} of ${projects.length}`],
                 ].map(([label, value]) => (
-                  <div key={label} className="p-4 bg-secondary/30 rounded-2xl border border-border/50">
+                  <div key={label} className="p-4 bg-secondary/30 rounded-2xl ">
                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
                     <p className="font-semibold capitalize">{value}</p>
                   </div>
                 ))}
                 {/* Drive Link — full-width card */}
-                <div className="sm:col-span-2 p-4 bg-secondary/30 rounded-2xl border border-border/50">
+                <div className="sm:col-span-2 p-4 bg-secondary/30 rounded-2xl ">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
                     <FolderOpen size={13} /> Google Drive Folder
                   </p>
@@ -439,7 +401,7 @@ const ClientDetails = () => {
                 </div>
               </div>
               {client.notes && (
-                <div className="p-4 bg-secondary/30 rounded-2xl border border-border/50">
+                <div className="p-4 bg-secondary/30 rounded-2xl ">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Notes</p>
                   <p className="text-sm text-muted-foreground leading-relaxed">{client.notes}</p>
                 </div>
@@ -447,7 +409,7 @@ const ClientDetails = () => {
             </div>
 
             {/* Onboarding Progress Card */}
-            <div className="bg-card rounded-3xl border border-border shadow-sm p-6">
+            <div className="bg-card rounded-3xl p-6">
               <h2 className="font-bold text-lg mb-5">Onboarding Progress</h2>
               <div className="relative mb-6">
                 <div className="flex items-end justify-between mb-2">
@@ -455,11 +417,9 @@ const ClientDetails = () => {
                   <span className="text-2xl font-black text-foreground tabular-nums">{onboardingPercent}%</span>
                 </div>
                 <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${onboardingPercent}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                    className="h-full bg-primary rounded-full"
+                  <div
+                    style={{ width: `${onboardingPercent}%` }}
+                    className="h-full bg-primary rounded-full transition-[width] duration-500 ease-out"
                   />
                 </div>
               </div>
@@ -467,8 +427,8 @@ const ClientDetails = () => {
                 {Object.entries(onboardingStepLabels).map(([key, label]) => {
                   const done = onboardingSteps[key];
                   return (
-                    <div key={key} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${done ? 'border-foreground/30 bg-secondary/60' : 'border-border bg-background'}`}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-primary text-primary-foreground' : 'bg-secondary border border-border'}`}>
+                    <div key={key} className={`flex items-center gap-3 p-3 rounded-xl transition-all ${done ? ' bg-secondary/60' : ' bg-background'}`}>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${done ? 'bg-primary text-primary-foreground' : 'bg-secondary '}`}>
                         {done && <CheckCircle2 size={12} />}
                       </div>
                       <span className={`text-xs font-semibold ${done ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>
@@ -482,37 +442,163 @@ const ClientDetails = () => {
       )}
 
       {activeTab === 'projects' && (
-        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-border bg-secondary/10 flex items-center justify-between">
-            <h2 className="font-bold flex items-center gap-2"><Briefcase size={18} className="text-primary"/>Projects</h2>
-          </div>
-          <div className="divide-y divide-border">
-            {projects.length > 0 ? projects.map(proj => (
-              <Link key={proj._id} to={`/projects/${proj._id}`} className="flex items-center justify-between p-5 hover:bg-secondary/20 transition-colors group">
-                <div>
-                  <p className="font-semibold group-hover:text-primary transition-colors">{proj.name}</p>
-                  <p className="text-xs text-muted-foreground mt-1 capitalize">{proj.status?.replace(/_/g, ' ')}</p>
-                </div>
-                <div className="text-right">
-                  <div className="w-32 h-1.5 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${proj.progress || 0}%` }} />
-                  </div>
-                  <span className="text-xs text-muted-foreground mt-1 block">{proj.progress || 0}% complete</span>
-                </div>
-              </Link>
-            )) : (
-              <div className="p-12 text-center text-muted-foreground text-sm">No projects yet for this client.</div>
+        <div className="space-y-5">
+          {/* Projects Header */}
+          <div className="bg-card rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 rounded-2xl bg-secondary text-foreground flex items-center justify-center shrink-0">
+                <Briefcase size={20} />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg text-foreground">Projects & Completion Status</h2>
+                <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
+                  {projects.length} {projects.length === 1 ? 'project' : 'projects'} · {totalTasksAvailable} tasks available · {totalCompletedTasks} completed
+                </p>
+              </div>
+            </div>
+            {user?.role !== 'client' && (
+              <button
+                type="button"
+                onClick={() => setShowProjectModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer self-start sm:self-auto"
+              >
+                <Plus size={14} />
+                <span>New Project</span>
+              </button>
             )}
           </div>
+
+          {projects.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {projects.map((proj) => {
+                const catMeta = getProjectCategoryMeta(proj.category);
+                const CatIcon = catMeta.icon;
+                const projStatus = String(proj.status || 'Planning').replace(/_/g, ' ');
+                const isDoneStatus = projStatus.toLowerCase() === 'completed';
+                const isActiveStatus = projStatus.toLowerCase() === 'in progress' || projStatus.toLowerCase() === 'active';
+                const pTotal = proj.totalTasks || 0;
+                const pOngoing = proj.ongoingTasks || 0;
+                const pCompleted = proj.completedTasks ?? proj.doneTasks ?? 0;
+                const pPending = proj.pendingTasks ?? Math.max(0, pTotal - pOngoing - pCompleted);
+                const pProgress = proj.progress || 0;
+                const endDateVal = proj.endDate || proj.dueDate;
+
+                return (
+                  <Link
+                    key={proj._id}
+                    to={`/projects/${proj._id}`}
+                    className="bg-card rounded-3xl p-5 sm:p-6 hover:bg-secondary/40 transition-all flex flex-col justify-between gap-4 group"
+                  >
+                    {/* Header: Type, Project Status & Title */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-secondary text-foreground">
+                          <CatIcon size={12} className="shrink-0" />
+                          <span>{catMeta.shortLabel || catMeta.label}</span>
+                        </span>
+                        <span
+                          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider ${
+                            isActiveStatus
+                              ? 'bg-primary text-primary-foreground'
+                              : isDoneStatus
+                              ? 'bg-secondary text-foreground'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          {projStatus}
+                        </span>
+                      </div>
+
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-bold text-base text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                          {proj.name}
+                        </h3>
+                        <ArrowRight size={16} className="text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+                      </div>
+
+                      {/* Start & End Dates */}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground tabular-nums flex-wrap">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar size={12} className="shrink-0" />
+                          <span>
+                            Start: <strong className="text-foreground font-semibold">{proj.startDate ? new Date(proj.startDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</strong>
+                          </span>
+                        </span>
+                        <span>
+                          End: <strong className="text-foreground font-semibold">{endDateVal ? new Date(endDateVal).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing'}</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tasks Completion Status Block */}
+                    <div className="p-4 rounded-2xl bg-background space-y-3 tabular-nums">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-foreground inline-flex items-center gap-1.5">
+                          <ListChecks size={14} className="text-muted-foreground shrink-0" />
+                          <span>Tasks Completion Status</span>
+                        </span>
+                        <span className="font-bold text-foreground">
+                          {pCompleted}/{pTotal} ({pProgress}%)
+                        </span>
+                      </div>
+
+                      <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(pProgress, 100)}%` }}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 pt-0.5 text-center">
+                        <div className="rounded-xl bg-card p-2">
+                          <div className="text-[10px] font-medium text-muted-foreground">Available</div>
+                          <div className="text-sm font-bold text-foreground mt-0.5">{pTotal}</div>
+                        </div>
+                        <div className="rounded-xl bg-card p-2">
+                          <div className="text-[10px] font-medium text-muted-foreground">Ongoing</div>
+                          <div className="text-sm font-bold text-foreground mt-0.5">{pOngoing}</div>
+                        </div>
+                        <div className="rounded-xl bg-card p-2">
+                          <div className="text-[10px] font-medium text-muted-foreground">Pending</div>
+                          <div className="text-sm font-bold text-foreground mt-0.5">{pPending}</div>
+                        </div>
+                        <div className="rounded-xl bg-card p-2">
+                          <div className="text-[10px] font-medium text-muted-foreground">Done</div>
+                          <div className="text-sm font-bold text-foreground mt-0.5">{pCompleted}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-card rounded-3xl p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-secondary text-muted-foreground flex items-center justify-center mx-auto">
+                <Briefcase size={22} />
+              </div>
+              <p className="text-sm text-muted-foreground">No projects yet for this client.</p>
+              {user?.role !== 'client' && (
+                <button
+                  type="button"
+                  onClick={() => setShowProjectModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all cursor-pointer"
+                >
+                  <Plus size={14} />
+                  <span>Create First Project</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {activeTab === 'vault' && (
         <div className="space-y-6">
           {/* Header Banner */}
-          <div className="bg-card rounded-3xl border border-border shadow-sm p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-card rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xl shrink-0">
+              <div className="h-12 w-12 rounded-2xl bg-secondary text-foreground flex items-center justify-center font-bold text-xl shrink-0">
                 <LockKeyhole size={24} />
               </div>
               <div>
@@ -522,16 +608,13 @@ const ClientDetails = () => {
                     {credentials.length} {credentials.length === 1 ? 'Record' : 'Records'}
                   </span>
                 </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Secure credentials, logins, and social accounts for {client.company || client.name}.
-                </p>
               </div>
             </div>
 
             {!isClientUser && (
               <Link
                 to="/client-vault"
-                className="inline-flex items-center gap-2 text-xs font-bold text-foreground bg-secondary hover:bg-muted border border-border px-3.5 py-2 rounded-xl transition-all shadow-2xs"
+                className="inline-flex items-center gap-2 text-xs font-bold text-foreground bg-secondary hover:bg-muted px-3.5 py-2 rounded-xl transition-all "
               >
                 <KeyRound size={14} className="shrink-0" /> Open Full Vault Manager
               </Link>
@@ -540,16 +623,11 @@ const ClientDetails = () => {
 
           {/* Cards or Empty State */}
           {credentials.length === 0 ? (
-            <div className="bg-card rounded-3xl border border-border shadow-sm p-12 text-center space-y-3">
+            <div className="bg-card rounded-3xl p-12 text-center space-y-3">
               <div className="mx-auto w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground">
                 <LockKeyhole size={24} />
               </div>
               <h3 className="font-bold text-base">No Vault Credentials Added</h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                {isClientUser
-                  ? 'Your account credentials and social accounts have not been uploaded to the vault yet. Please contact your account manager.'
-                  : 'No credentials or social accounts have been stored for this client yet. Add them via the Client Vault.'}
-              </p>
               {!isClientUser && (
                 <Link
                   to="/client-vault"
@@ -569,12 +647,12 @@ const ClientDetails = () => {
                 return (
                   <div
                     key={item._id}
-                    className="bg-card rounded-3xl border border-border shadow-sm p-5 space-y-4 flex flex-col justify-between hover:border-foreground/40 transition-all"
+                    className="bg-card rounded-3xl p-5 space-y-4 flex flex-col justify-between transition-all"
                   >
                     <div className="space-y-3.5">
                       {/* Top Bar */}
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-secondary uppercase tracking-wider text-muted-foreground border border-border/50">
+                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-secondary uppercase tracking-wider text-muted-foreground ">
                           {item.credentialType?.replace(/_/g, ' ') || 'Credential'}
                         </span>
                         {item.url && (
@@ -605,7 +683,7 @@ const ClientDetails = () => {
                       </div>
 
                       {/* Primary Credential Box */}
-                      <div className="p-3.5 rounded-2xl bg-secondary/35 border border-border/60 space-y-2 text-xs">
+                      <div className="p-3.5 rounded-2xl bg-secondary/35 space-y-2 text-xs">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
                           <KeyRound size={11} className="shrink-0" /> Primary Credential
                         </div>
@@ -720,7 +798,7 @@ const ClientDetails = () => {
                               setActivePasswordId(item._id);
                               toggleCard(item._id);
                             }}
-                            className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-3 py-2 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/40 transition-all cursor-pointer"
+                            className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-3 py-2 rounded-xl bg-secondary/20 hover:bg-secondary/40 transition-all cursor-pointer"
                           >
                             <span className="flex items-center gap-1.5">
                               <AtSign size={13} className="text-foreground shrink-0" />
@@ -745,11 +823,11 @@ const ClientDetails = () => {
                                 return (
                                   <div
                                     key={accIdx}
-                                    className="rounded-2xl border border-border/80 bg-background p-3 space-y-2 text-xs"
+                                    className="rounded-2xl bg-background p-3 space-y-2 text-xs"
                                   >
                                     <div className="flex items-center justify-between font-bold text-foreground">
                                       <span className="flex items-center gap-1.5">
-                                        <span className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[9px] font-mono">{meta.code}</span>
+                                        <span className="px-1.5 py-0.5 rounded bg-secondary text-[9px] font-mono">{meta.code}</span>
                                         <span>{acc.platformLabel || meta.label}</span>
                                       </span>
                                       {acc.pages && acc.pages.length > 0 && (
@@ -860,7 +938,7 @@ const ClientDetails = () => {
 
                                     {/* Pages if any */}
                                     {acc.pages && acc.pages.length > 0 && (
-                                      <div className="mt-2 pt-2 border-t border-border/40 space-y-1">
+                                      <div className="mt-2 pt-2 space-y-1">
                                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                                           Pages & Roles
                                         </p>
@@ -878,7 +956,7 @@ const ClientDetails = () => {
                                               )}
                                             </div>
                                             <div className="flex items-center gap-1.5 shrink-0">
-                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-secondary border border-border text-foreground">
+                                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-secondary text-foreground">
                                                 {p.role || 'Admin'}
                                               </span>
                                               {p.pageUrl && (
@@ -907,7 +985,7 @@ const ClientDetails = () => {
 
                     {/* Bottom Tags / Footer */}
                     {item.tags && (Array.isArray(item.tags) ? item.tags.length > 0 : Boolean(item.tags)) && (
-                      <div className="pt-2 border-t border-border/40 flex items-center gap-1.5 flex-wrap">
+                      <div className="pt-2 flex items-center gap-1.5 flex-wrap">
                         {(Array.isArray(item.tags) ? item.tags : item.tags.split(','))
                           .map((t) => t.trim())
                           .filter(Boolean)
@@ -930,30 +1008,30 @@ const ClientDetails = () => {
       )}
 
       {activeTab === 'invoices' && (
-        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-border bg-secondary/10">
+        <div className="bg-card rounded-3xl overflow-hidden">
+          <div className="p-5 bg-secondary/10">
             <h2 className="font-bold flex items-center gap-2"><FileText size={18} className="text-foreground shrink-0"/>Invoices</h2>
           </div>
           <div className="overflow-x-auto responsive-table-container">
             <table className="w-full min-w-[540px] text-sm">
               <thead>
-                <tr className="text-muted-foreground font-medium border-b border-border text-left">
+                <tr className="text-muted-foreground font-medium text-left">
                   <th className="px-6 py-4">Invoice #</th>
                   <th className="px-6 py-4 text-right">Amount</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Due Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-foreground/[0.05]">
                 {invoices.length > 0 ? invoices.map(inv => (
                   <tr key={inv._id} className="hover:bg-secondary/20 transition-colors">
                     <td className="px-6 py-4 font-bold tabular-nums">{inv.invoiceNumber}</td>
                     <td className="px-6 py-4 font-bold text-foreground text-right tabular-nums">{formatINR(inv.total || inv.amount || 0)}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        inv.status?.toLowerCase() === 'paid' ? 'bg-primary text-primary-foreground border-primary' :
-                        inv.status?.toLowerCase() === 'overdue' ? 'bg-secondary border-foreground/40 text-foreground' :
-                        'bg-secondary border-border text-muted-foreground'
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        inv.status?.toLowerCase() === 'paid' ? 'bg-primary text-primary-foreground ' :
+                        inv.status?.toLowerCase() === 'overdue' ? 'bg-secondary text-foreground' :
+                        'bg-secondary text-muted-foreground'
                       }`}>{inv.status}</span>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground tabular-nums">{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '—'}</td>
@@ -970,29 +1048,29 @@ const ClientDetails = () => {
       {activeTab === 'finance' && (
         <div className="grid gap-6 lg:grid-cols-2">
           {financeRecords.length > 0 ? financeRecords.map((record) => (
-            <div key={record._id} className="bg-card rounded-3xl border border-border shadow-sm p-6">
+            <div key={record._id} className="bg-card rounded-3xl p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-bold">{record.serviceName}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{record.projectName || record.projectId?.name}</p>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                  record.paymentStatus === 'Paid' ? 'bg-primary text-primary-foreground border-primary' :
-                  record.paymentStatus === 'Overdue' ? 'bg-secondary border-foreground/40 text-foreground' :
-                  record.paymentStatus === 'Partially Paid' ? 'bg-secondary border-border text-foreground' :
-                  'bg-muted border-border text-muted-foreground'
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  record.paymentStatus === 'Paid' ? 'bg-primary text-primary-foreground ' :
+                  record.paymentStatus === 'Overdue' ? 'bg-secondary text-foreground' :
+                  record.paymentStatus === 'Partially Paid' ? 'bg-secondary text-foreground' :
+                  'bg-muted text-muted-foreground'
                 }`}>{record.paymentStatus}</span>
               </div>
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4">
+                <div className="rounded-2xl bg-secondary/30 p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total</p>
                   <p className="mt-1 font-semibold tabular-nums">₹{Number(record.totalProjectAmount || 0).toLocaleString()}</p>
                 </div>
-                <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4">
+                <div className="rounded-2xl bg-secondary/30 p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Paid</p>
                   <p className="mt-1 font-semibold tabular-nums">₹{Number(record.totalPaidAmount || 0).toLocaleString()}</p>
                 </div>
-                <div className="rounded-2xl bg-secondary/30 border border-border/50 p-4">
+                <div className="rounded-2xl bg-secondary/30 p-4">
                   <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Balance</p>
                   <p className="mt-1 font-semibold tabular-nums">₹{Number(record.balanceAmount || 0).toLocaleString()}</p>
                 </div>
@@ -1004,17 +1082,17 @@ const ClientDetails = () => {
               </div>
             </div>
           )) : (
-            <div className="bg-card rounded-3xl border border-border shadow-sm p-12 text-center text-muted-foreground lg:col-span-2">No finance records yet.</div>
+            <div className="bg-card rounded-3xl p-12 text-center text-muted-foreground lg:col-span-2">No finance records yet.</div>
           )}
         </div>
       )}
 
       {activeTab === 'paymentNotes' && (
-        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-border bg-secondary/10">
+        <div className="bg-card rounded-3xl overflow-hidden">
+          <div className="p-5 bg-secondary/10">
             <h2 className="font-bold flex items-center gap-2"><AlertCircle size={18} className="text-foreground shrink-0"/>Payment Notes</h2>
           </div>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-foreground/[0.05]">
             {paymentNotes.length > 0 ? paymentNotes.map((note, index) => (
               <div key={note._id || index} className="p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -1036,11 +1114,11 @@ const ClientDetails = () => {
       )}
 
       {activeTab === 'callHistory' && (
-        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-border bg-secondary/10">
+        <div className="bg-card rounded-3xl overflow-hidden">
+          <div className="p-5 bg-secondary/10">
             <h2 className="font-bold flex items-center gap-2"><Phone size={18} className="text-primary"/>Call History</h2>
           </div>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-foreground/[0.05]">
             {callHistory.length > 0 ? callHistory.map((call) => (
               <div key={call._id} className="p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -1060,11 +1138,11 @@ const ClientDetails = () => {
       )}
 
       {activeTab === 'referrals' && (
-        <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-border bg-secondary/10">
+        <div className="bg-card rounded-3xl overflow-hidden">
+          <div className="p-5 bg-secondary/10">
             <h2 className="font-bold flex items-center gap-2"><Users size={18} className="text-primary"/>Referrals</h2>
           </div>
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-foreground/[0.05]">
             {referrals.length > 0 ? referrals.map((referral) => (
               <div key={referral._id} className="p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -1088,14 +1166,14 @@ const ClientDetails = () => {
 
       {activeTab === 'onboarding' && (
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="bg-card rounded-3xl border border-border shadow-sm p-6">
+          <div className="bg-card rounded-3xl p-6">
             <h2 className="font-bold text-lg mb-5">Onboarding Checklist</h2>
             <div className="space-y-3">
               {Object.entries(onboardingStepLabels).map(([key, label]) => {
                 const done = onboardingSteps[key];
                 return (
-                  <div key={key} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${done ? 'border-foreground/30 bg-secondary/50' : 'border-border bg-background'}`}>
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${done ? 'bg-primary text-primary-foreground' : 'bg-secondary border border-border'}`}>
+                  <div key={key} className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${done ? ' bg-secondary/50' : ' bg-background'}`}>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${done ? 'bg-primary text-primary-foreground' : 'bg-secondary '}`}>
                       {done ? <CheckCircle2 size={16} /> : <Clock size={16} className="text-muted-foreground" />}
                     </div>
                     <div className="flex-1">
@@ -1107,12 +1185,12 @@ const ClientDetails = () => {
               })}
             </div>
           </div>
-          <div className="bg-card rounded-3xl border border-border shadow-sm p-6">
+          <div className="bg-card rounded-3xl p-6">
             <h2 className="font-bold text-lg mb-5">Social Media</h2>
             {client.socialMedia && Object.entries(client.socialMedia).some(([, v]) => v) ? (
               <div className="space-y-3">
                 {Object.entries(client.socialMedia).filter(([, v]) => v).map(([platform, handle]) => (
-                  <div key={platform} className="flex items-center gap-3 p-4 bg-secondary/30 rounded-2xl border border-border/50">
+                  <div key={platform} className="flex items-center gap-3 p-4 bg-secondary/30 rounded-2xl ">
                     <span className="font-bold capitalize text-sm w-24">{platform}</span>
                     <span className="text-sm text-muted-foreground">{handle}</span>
                   </div>
@@ -1134,7 +1212,10 @@ const ClientDetails = () => {
           />
           <AddProjectModal
             open={showProjectModal}
-            onOpenChange={setShowProjectModal}
+            onOpenChange={(open) => {
+              setShowProjectModal(open);
+              if (!open) refetch();
+            }}
             defaultClientId={client._id}
           />
         </>

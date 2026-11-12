@@ -100,13 +100,13 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-xl max-h-[90dvh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-xl max-h-[90dvh]"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-4 py-3.5 sm:px-6 sm:py-5 border-b border-border bg-card shrink-0 select-none">
+        <DialogHeader className="px-4 py-3.5 sm:px-6 sm:py-5 bg-card shrink-0 select-none">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
                 <Share2 size={20} />
               </div>
               <div>
@@ -119,7 +119,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded-md">
                 ESC
               </span>
               <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
@@ -132,7 +132,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
         {/* Scrollable Body */}
         <div className="space-y-4 sm:space-y-6 p-4 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
           {/* Summary Box */}
-          <div className="rounded-2xl border border-border bg-muted/30 p-4 space-y-1.5">
+          <div className="rounded-2xl bg-muted/30 p-4 space-y-1.5">
             <div className="flex justify-between items-center text-sm font-semibold text-foreground">
               <span className="font-bold">{invoice.invoiceNumber}</span>
               <span className="text-foreground font-extrabold text-base tabular-nums">{totalStr}</span>
@@ -146,7 +146,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
           {/* Quick Sharing Options */}
           <div className="space-y-5">
             {/* WhatsApp */}
-            <div className="rounded-2xl border border-border bg-secondary/40 p-5 space-y-3">
+            <div className="rounded-2xl bg-secondary/40 p-5 space-y-3">
               <div className="flex items-center gap-2 text-sm font-bold text-foreground">
                 <MessageCircle size={18} className="shrink-0" />
                 <span>Share via WhatsApp</span>
@@ -157,21 +157,21 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
                   placeholder="e.g. 9876543210 (with country code)"
                   value={customPhone}
                   onChange={(e) => setCustomPhone(e.target.value)}
-                  className="bg-background h-11 rounded-xl text-sm border-border tabular-nums"
+                  className="bg-background h-11 rounded-xl text-sm tabular-nums"
                 />
               </div>
               <Button
                 onClick={handleWhatsAppShare}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2 h-11 rounded-xl text-sm font-semibold shadow-xs"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2 h-11 rounded-xl text-sm font-semibold "
               >
                 <MessageCircle size={16} className="shrink-0" /> Send via WhatsApp
               </Button>
             </div>
 
             {/* Email & Client Portal */}
-            <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-5 gap-3">
+            <div className="flex items-center justify-between rounded-2xl bg-card p-5 gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary border border-border text-foreground shrink-0">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
                   <Mail size={18} className="shrink-0" />
                 </div>
                 <div>
@@ -190,7 +190,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
             </div>
 
             {/* Copy Shareable Link */}
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
+            <div className="rounded-2xl bg-card p-5 space-y-3">
               <label className="text-sm font-semibold text-foreground block">Shareable Public Invoice Link</label>
               <div className="flex gap-2.5">
                 <Input value={publicLink} readOnly className="bg-background h-11 rounded-xl text-sm text-muted-foreground" />
@@ -204,7 +204,7 @@ export const ShareInvoiceModal = ({ open, onOpenChange, invoice }) => {
         </div>
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 bg-card px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 z-10 select-none">
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={handleDownloadPDF} className="gap-2 h-10 sm:h-11 px-3.5 sm:px-4 rounded-xl text-xs sm:text-sm font-semibold">
               <Download size={15} /> Download PDF

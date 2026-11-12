@@ -59,10 +59,10 @@ const DAYS = [
 ];
 
 const PRIORITY_BADGES = {
-  urgent: 'bg-primary text-primary-foreground border-primary font-black',
-  high: 'bg-secondary text-foreground border-foreground/40 font-bold',
-  medium: 'bg-secondary/70 text-foreground border-border',
-  low: 'bg-secondary/40 text-muted-foreground border-border',
+  urgent: 'bg-primary text-primary-foreground font-black',
+  high: 'bg-secondary text-foreground font-bold',
+  medium: 'bg-secondary/70 text-foreground ',
+  low: 'bg-secondary/40 text-muted-foreground ',
 };
 
 const CATEGORY_ICONS = {
@@ -220,12 +220,12 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
   const isCurrentWeek = weekOffset === 0;
 
   return (
-    <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 shadow-sm space-y-5">
+    <div className="bg-card rounded-2xl p-5 sm:p-6 space-y-5">
       {/* ── 1. Header & Week Navigator ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary ">
               <CheckSquare size={12} />
               Weekly Execution Hub
             </span>
@@ -243,7 +243,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
 
         {/* Week Switcher Controls */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center bg-secondary/60 rounded-xl p-1 border border-border">
+          <div className="flex items-center bg-secondary/60 rounded-xl p-1 ">
             <button
               onClick={() => setWeekOffset((prev) => prev - 1)}
               className="p-1.5 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground transition-colors"
@@ -266,7 +266,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
           {!isCurrentWeek && (
             <button
               onClick={() => setWeekOffset(0)}
-              className="px-2.5 py-1.5 rounded-xl border border-border bg-background hover:bg-secondary text-xs font-semibold text-foreground transition-all"
+              className="px-2.5 py-1.5 rounded-xl bg-background hover:bg-secondary text-xs font-semibold text-foreground transition-all"
             >
               Current Week
             </button>
@@ -277,7 +277,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               setEditingTodo(null);
               setModalOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 shadow-sm transition-all"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all"
           >
             <Plus size={15} />
             <span>{isManagerOrAdmin ? 'Assign Todo' : 'Add Todo'}</span>
@@ -286,7 +286,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
       </div>
 
       {/* ── 2. Weekly Progress Metric Bar ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-secondary/30 rounded-2xl p-4 border border-border/70">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-secondary/30 rounded-2xl p-4 ">
         <div className="sm:col-span-2 space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-foreground flex items-center gap-1.5">
@@ -298,7 +298,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
             </span>
           </div>
           {/* Progress Bar */}
-          <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden p-0.5 border border-border/60">
+          <div className="h-2.5 w-full bg-secondary rounded-full overflow-hidden p-0.5 ">
             <div
               className="h-full rounded-full bg-primary transition-all duration-500"
               style={{ width: `${summary.completionRate}%` }}
@@ -311,7 +311,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
           </div>
         </div>
 
-        <div className="p-2.5 rounded-xl bg-card border border-border flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-card flex items-center justify-between">
           <div>
             <span className="text-[10px] uppercase font-bold text-muted-foreground">Pending</span>
             <div className="text-lg font-black text-foreground tabular-nums">{summary.pending}</div>
@@ -319,7 +319,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
           <Clock size={18} className="text-muted-foreground" />
         </div>
 
-        <div className="p-2.5 rounded-xl bg-card border border-border flex items-center justify-between">
+        <div className="p-2.5 rounded-xl bg-card flex items-center justify-between">
           <div>
             <span className="text-[10px] uppercase font-bold text-muted-foreground">Completed</span>
             <div className="text-lg font-black text-foreground tabular-nums">{summary.completed}</div>
@@ -341,8 +341,8 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                 onClick={() => setSelectedDay(day)}
                 className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground shadow-xs font-bold'
-                    : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/60'
+                    ? 'bg-primary text-primary-foreground font-bold'
+                    : 'bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-foreground '
                 }`}
               >
                 <span>{day}</span>
@@ -369,16 +369,16 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search todos, assignees..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-foreground text-xs placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-1 focus:ring-primary"
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-background text-foreground text-xs placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-1 focus:ring-primary"
               />
             </div>
 
             {/* Status pills */}
-            <div className="flex items-center bg-secondary/50 rounded-xl p-0.5 border border-border/60 text-xs">
+            <div className="flex items-center bg-secondary/50 rounded-xl p-0.5 text-xs">
               <button
                 onClick={() => setStatusFilter('all')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  statusFilter === 'all' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'
+                  statusFilter === 'all' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 All
@@ -386,7 +386,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               <button
                 onClick={() => setStatusFilter('pending')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  statusFilter === 'pending' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'
+                  statusFilter === 'pending' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Pending
@@ -394,7 +394,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               <button
                 onClick={() => setStatusFilter('completed')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  statusFilter === 'completed' ? 'bg-card text-foreground shadow-2xs' : 'text-muted-foreground hover:text-foreground'
+                  statusFilter === 'completed' ? 'bg-card text-foreground ' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Done
@@ -409,7 +409,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
               <select
                 value={assigneeFilter}
                 onChange={(e) => setAssigneeFilter(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl border border-border bg-background text-foreground text-xs font-semibold focus:outline-hidden focus:ring-1 focus:ring-primary"
+                className="px-2.5 py-1.5 rounded-xl bg-background text-foreground text-xs font-semibold focus:outline-hidden focus:ring-1 focus:ring-primary"
               >
                 <option value="all">All Team Members</option>
                 <option value="mine">My Own Todos</option>
@@ -434,7 +434,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
             value={quickTitle}
             onChange={(e) => setQuickTitle(e.target.value)}
             placeholder={`+ Quick add weekly todo for ${selectedDay !== 'All Days' ? selectedDay : 'this week'} (press Enter)...`}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-secondary/20 hover:bg-background focus:bg-background text-foreground text-xs placeholder:text-muted-foreground/70 focus:outline-hidden focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-secondary/20 hover:bg-background focus:bg-background text-foreground text-xs placeholder:text-muted-foreground/70 focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all"
           />
         </div>
         <button
@@ -455,7 +455,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
             <span>Loading weekly todos...</span>
           </div>
         ) : filteredTodos.length > 0 ? (
-          <div className="divide-y divide-border/50 rounded-xl border border-border overflow-hidden bg-background">
+          <div className="divide-y divide-foreground/[0.05] rounded-xl overflow-hidden bg-background">
             {filteredTodos.map((todo) => {
               const isCompleted = Boolean(todo.isCompleted);
               const isAssignedToMe = todo.assignedTo?._id === user?._id || todo.assignedTo === user?._id;
@@ -504,7 +504,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                           {/* Priority badge */}
                           {todo.priority && (
                             <span
-                              className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md border ${
+                              className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md ${
                                 PRIORITY_BADGES[todo.priority] || PRIORITY_BADGES.medium
                               }`}
                             >
@@ -514,7 +514,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
 
                           {/* Category badge */}
                           {todo.category && (
-                            <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md inline-flex items-center gap-1 border border-border">
+                            <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-md inline-flex items-center gap-1 ">
                               <CategoryIcon size={11} className="shrink-0" />
                               <span className="capitalize">{todo.category}</span>
                             </span>
@@ -524,7 +524,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                         {/* Metadata Row: Day + Assignee Info */}
                         <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-muted-foreground pt-0.5">
                           {/* Day badge */}
-                          <span className="inline-flex items-center gap-1 font-semibold text-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">
+                          <span className="inline-flex items-center gap-1 font-semibold text-foreground bg-secondary px-2 py-0.5 rounded-md ">
                             <Calendar size={11} />
                             <span>{todo.dayOfWeek || 'Weekly Target'}</span>
                           </span>
@@ -603,7 +603,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
 
                   {/* Expanded description and notes */}
                   {isExpanded && (
-                    <div className="mt-2.5 pt-2.5 border-t border-border/50 pl-7 space-y-2 text-xs">
+                    <div className="mt-2.5 pt-2.5 pl-7 space-y-2 text-xs">
                       {todo.description && (
                         <div>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Description</span>
@@ -611,7 +611,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
                         </div>
                       )}
                       {todo.notes && (
-                        <div className="bg-secondary/40 p-2.5 rounded-xl border border-border/60">
+                        <div className="bg-secondary/40 p-2.5 rounded-xl ">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-foreground flex items-center gap-1">
                             <MessageSquare size={11} />
                             Execution Notes
@@ -626,7 +626,7 @@ export function WeeklyTodosWidget({ isManagerOrAdmin = false, user = null }) {
             })}
           </div>
         ) : (
-          <div className="py-10 text-center bg-secondary/20 rounded-2xl border border-border/80 text-xs text-muted-foreground space-y-2">
+          <div className="py-10 text-center bg-secondary/20 rounded-2xl text-xs text-muted-foreground space-y-2">
             <div className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
               <CheckSquare size={20} />
             </div>

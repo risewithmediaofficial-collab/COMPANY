@@ -65,17 +65,17 @@ const emptyForm = {
 };
 
 const statusTone = {
-  open: 'bg-secondary text-foreground border-border',
-  completed: 'bg-primary text-primary-foreground border-primary',
-  waiting: 'bg-muted text-foreground border-border',
-  cancelled: 'bg-background text-muted-foreground border-border',
+  open: 'bg-secondary text-foreground ',
+  completed: 'bg-primary text-primary-foreground ',
+  waiting: 'bg-muted text-foreground ',
+  cancelled: 'bg-background text-muted-foreground ',
 };
 
 const priorityTone = {
-  low: 'bg-muted text-muted-foreground border border-border',
-  medium: 'bg-secondary text-foreground border border-border',
-  high: 'bg-secondary text-foreground border border-foreground/30',
-  urgent: 'bg-primary text-primary-foreground border border-primary',
+  low: 'bg-muted text-muted-foreground ',
+  medium: 'bg-secondary text-foreground ',
+  high: 'bg-secondary text-foreground ',
+  urgent: 'bg-primary text-primary-foreground ',
 };
 
 const typeIcons = {
@@ -86,10 +86,10 @@ const typeIcons = {
 };
 
 const channelColors = {
-  call: 'bg-secondary text-foreground border border-border',
-  meeting: 'bg-secondary text-foreground border border-border',
-  whatsapp: 'bg-secondary text-foreground border border-border',
-  email: 'bg-secondary text-foreground border border-border',
+  call: 'bg-secondary text-foreground ',
+  meeting: 'bg-secondary text-foreground ',
+  whatsapp: 'bg-secondary text-foreground ',
+  email: 'bg-secondary text-foreground ',
 };
 
 const formatDate = (value) => {
@@ -121,12 +121,12 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent variant="side" size="md" noPadding className="flex flex-col min-h-0 bg-card border-l border-border p-0 overflow-hidden">
+      <DialogContent variant="side" size="md" noPadding className="flex flex-col min-h-0 bg-card p-0 overflow-hidden">
         {/* Monochrome Header */}
-        <div className="bg-secondary/40 border-b border-border px-4 sm:px-6 py-4 pr-20 sm:pr-28 shrink-0">
+        <div className="bg-secondary/40 px-4 sm:px-6 py-4 pr-20 sm:pr-28 shrink-0">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-xl bg-secondary text-foreground flex items-center justify-center shrink-0">
                 <Icon size={20} />
               </div>
               <div className="min-w-0">
@@ -141,7 +141,7 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusTone[followup.status] || statusTone.open}`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${statusTone[followup.status] || statusTone.open}`}>
                 {labelize(followup.status)}
               </span>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${priorityTone[followup.priority] || priorityTone.medium}`}>
@@ -154,18 +154,18 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
         <div className="flex-1 min-h-0 p-6 space-y-5 overflow-y-auto custom-scrollbar">
           {/* Channel + Dates */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="rounded-xl border border-border bg-secondary/30 p-3 space-y-1">
+            <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Channel</p>
               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${channelColors[followup.type] || 'bg-secondary text-foreground'}`}>
                 <Icon size={13} className="shrink-0" />
                 {labelize(followup.type)}
               </span>
             </div>
-            <div className="rounded-xl border border-border bg-secondary/30 p-3 space-y-1">
+            <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Meeting Date</p>
               <p className="text-sm font-semibold text-foreground tabular-nums">{formatDate(followup.meetingDate)}</p>
             </div>
-            <div className="rounded-xl border border-border bg-secondary/30 p-3 space-y-1">
+            <div className="rounded-xl bg-secondary/30 p-3 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next Follow-up</p>
               <p className={`text-sm font-semibold tabular-nums ${followup.nextFollowUpDate ? 'text-foreground' : 'text-muted-foreground'}`}>
                 {formatDate(followup.nextFollowUpDate)}
@@ -175,7 +175,7 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
 
           {/* Project */}
           {followup.project && (
-            <div className="rounded-xl border border-border bg-secondary/20 px-4 py-2.5 flex items-center gap-2.5">
+            <div className="rounded-xl bg-secondary/20 px-4 py-2.5 flex items-center gap-2.5">
               <ClipboardList size={14} className="text-foreground shrink-0" />
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Related Project</p>
@@ -188,7 +188,7 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
           {followup.summary && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Meeting Summary</p>
-              <p className="text-sm text-foreground leading-relaxed bg-secondary/20 rounded-xl px-4 py-3 border border-border/60">
+              <p className="text-sm text-foreground leading-relaxed bg-secondary/20 rounded-xl px-4 py-3 ">
                 {followup.summary}
               </p>
             </div>
@@ -198,7 +198,7 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
           {followup.discussionNotes && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Detailed Notes & Feedback</p>
-              <p className="text-sm text-foreground leading-relaxed bg-secondary/20 rounded-xl px-4 py-3 border border-border/60 whitespace-pre-wrap">
+              <p className="text-sm text-foreground leading-relaxed bg-secondary/20 rounded-xl px-4 py-3 whitespace-pre-wrap">
                 {followup.discussionNotes}
               </p>
             </div>
@@ -208,7 +208,7 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
           {followup.outcome && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Outcome</p>
-              <p className="text-sm text-foreground leading-relaxed bg-secondary/40 border border-border rounded-xl px-4 py-3">
+              <p className="text-sm text-foreground leading-relaxed bg-secondary/40 rounded-xl px-4 py-3">
                 {followup.outcome}
               </p>
             </div>
@@ -216,7 +216,7 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
 
           {/* Next Action */}
           {followup.nextAction && (
-            <div className="rounded-xl border border-border bg-secondary/40 px-4 py-3 flex items-center gap-2.5">
+            <div className="rounded-xl bg-secondary/40 px-4 py-3 flex items-center gap-2.5">
               <ArrowRight size={14} className="text-foreground shrink-0" />
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Next Action Item</p>
@@ -227,7 +227,7 @@ const FollowupViewModal = ({ open, onOpenChange, followup, onEdit, onDelete }) =
         </div>
 
         {/* Footer Actions */}
-        <div className="border-t border-border px-6 py-4 flex items-center justify-between bg-secondary/10">
+        <div className="px-6 py-4 flex items-center justify-between bg-secondary/10">
           <button
             onClick={() => { onDelete && onDelete(followup._id); onOpenChange(false); }}
             className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground px-3 py-2 rounded-xl hover:bg-secondary transition-colors cursor-pointer"
@@ -292,27 +292,27 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
-        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 sm:gap-4 m-0 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-2xl max-h-[90dvh]">
+        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 sm:gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0 ">
               <PhoneCall size={20} />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-base sm:text-xl font-bold text-foreground leading-tight truncate">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {followup ? 'Edit Client Follow-up' : 'Log New Client Touchpoint'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal line-clamp-1">
+              <DialogDescription className="sr-only">
                 Record communication logs, meetings, notes, and action items for this client account
               </DialogDescription>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -328,7 +328,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                 value={form.client}
                 onChange={(e) => updateField('client', e.target.value)}
                 required
-                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
               >
                 <option value="">Select client</option>
                 {clients.map((c) => (
@@ -344,7 +344,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.project}
                 onChange={(e) => updateField('project', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
               >
                 <option value="">None / General</option>
                 {clientProjects.map((p) => (
@@ -360,7 +360,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.type}
                 onChange={(e) => updateField('type', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
               >
                 <option value="call">Phone Call</option>
                 <option value="meeting">Video / In-Person Meeting</option>
@@ -374,7 +374,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.status}
                 onChange={(e) => updateField('status', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
               >
                 <option value="open">Open</option>
                 <option value="waiting">Waiting for Client</option>
@@ -388,7 +388,7 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
               <select
                 value={form.priority}
                 onChange={(e) => updateField('priority', e.target.value)}
-                className="w-full h-11 px-4 rounded-xl border border-border bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none shadow-2xs cursor-pointer"
+                className="w-full h-11 px-4 rounded-xl bg-background text-sm text-foreground focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -482,10 +482,10 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-card px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3 z-10 select-none">
             <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
               <span>Press</span>
-              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                 ESC
               </kbd>
               <span>to close</span>
@@ -496,14 +496,14 @@ const FollowupDialog = ({ open, onOpenChange, followup, clients, projects, onSav
                 type="button"
                 variant="secondary"
                 onClick={() => onOpenChange(false)}
-                className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm font-semibold cursor-pointer flex-1 sm:flex-initial"
+                className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer flex-1 sm:flex-initial"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={saving}
-                className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all flex-1 sm:flex-initial"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-all flex-1 sm:flex-initial"
               >
                 {saving ? 'Saving...' : followup ? 'Save Changes' : 'Log Touchpoint'}
               </Button>
@@ -590,7 +590,7 @@ export default function ClientFollowups() {
           className="flex items-center gap-2.5 cursor-pointer group"
           onClick={() => openViewModal(item)}
         >
-          <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="h-7 w-7 rounded-lg bg-secondary text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             {(item.client?.company || item.client?.name || 'C').charAt(0)}
           </div>
           <div>
@@ -651,7 +651,7 @@ export default function ClientFollowups() {
       key: 'status',
       label: 'Status',
       render: (item) => (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusTone[item.status] || statusTone.open}`}>
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${statusTone[item.status] || statusTone.open}`}>
           {labelize(item.status)}
         </span>
       ),
@@ -726,7 +726,7 @@ export default function ClientFollowups() {
         )}
 
         {item.nextFollowUpDate && (
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1.5 border-t border-border/40 tabular-nums">
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1.5 tabular-nums">
             <CalendarClock size={12} className="text-foreground shrink-0" />
             <span>Next: {formatDate(item.nextFollowUpDate)}</span>
           </div>
@@ -740,7 +740,7 @@ export default function ClientFollowups() {
         )}
 
         {/* Quick edit in card */}
-        <div className="flex items-center justify-end pt-1 border-t border-border/30">
+        <div className="flex items-center justify-end pt-1 ">
           <button
             onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
             className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
@@ -779,7 +779,7 @@ export default function ClientFollowups() {
               setSelectedFollowup(null);
               setOpenDialog(true);
             }}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 cursor-pointer"
           >
             <Plus size={14} className="stroke-[2.5]" />
             <span>Log Touchpoint</span>
@@ -795,8 +795,8 @@ export default function ClientFollowups() {
             onClick={() => setChannelFilter(ch)}
             className={`px-3 py-1 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
               channelFilter === ch
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                ? 'bg-primary text-primary-foreground '
+                : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
             {ch === 'all' ? 'All Channels' : ch}
@@ -841,10 +841,10 @@ export default function ClientFollowups() {
       />
 
       <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent className="bg-card border border-border">
+        <AlertDialogContent className="bg-card ">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold">Delete Follow-up Record?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogDescription className="sr-only">
               This action cannot be undone. This log entry will be permanently removed from the client history.
             </AlertDialogDescription>
           </AlertDialogHeader>

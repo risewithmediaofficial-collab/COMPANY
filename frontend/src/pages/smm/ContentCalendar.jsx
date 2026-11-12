@@ -5,13 +5,13 @@ import { PageHeader } from '../../components/ui/page';
 import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const EVENT_TYPES = [
-  { id: 'Post', label: 'Scheduled Post', color: 'bg-secondary text-foreground border border-border' },
+  { id: 'Post', label: 'Scheduled Post', color: 'bg-secondary text-foreground ' },
   { id: 'Launch', label: 'Campaign Launch', color: 'bg-foreground text-background' },
-  { id: 'Deadline', label: 'Creative Deadline', color: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100 border border-border' },
-  { id: 'Approval', label: 'Approval Deadline', color: 'bg-card text-foreground border border-foreground/40' },
+  { id: 'Deadline', label: 'Creative Deadline', color: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100 ' },
+  { id: 'Approval', label: 'Approval Deadline', color: 'bg-card text-foreground ' },
 ];
 
 export default function ContentCalendar() {
@@ -98,7 +98,7 @@ export default function ContentCalendar() {
         const isApproved = t.status === 'Completed' || t.status === 'Approved' || t.status === 'approved';
         const isReview = t.status === 'Review Required' || t.status === 'review';
 
-        let color = 'bg-secondary text-foreground border border-border';
+        let color = 'bg-secondary text-foreground ';
         let icon = 'post';
         if (isUrgent) {
           color = 'bg-primary text-primary-foreground font-bold';
@@ -107,10 +107,10 @@ export default function ContentCalendar() {
           color = 'bg-foreground text-background font-semibold';
           icon = 'approved';
         } else if (isReview) {
-          color = 'bg-card text-foreground border border-foreground/40 font-semibold';
+          color = 'bg-card text-foreground font-semibold';
           icon = 'review';
         } else if (isHigh) {
-          color = 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100 border border-border font-semibold';
+          color = 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100 font-semibold';
         }
 
         return {
@@ -128,9 +128,8 @@ export default function ContentCalendar() {
     <div className="space-y-6">
       <PageHeader
         title="Content & Campaign Calendar"
-        subtitle="Schedule posts, campaign launches, creative deadlines & approvals"
         actions={
-          <button onClick={() => setIsDrawerOpen(true)} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-sm hover:opacity-90 cursor-pointer">
+          <button onClick={() => setIsDrawerOpen(true)} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 hover:opacity-90 cursor-pointer">
             <Plus size={18} />
             <span>Add Calendar Event</span>
           </button>
@@ -140,10 +139,10 @@ export default function ContentCalendar() {
       <SMMSubNav />
 
       {/* Calendar Header Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-4 rounded-2xl border border-border">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-4 rounded-2xl ">
         <div className="flex items-center gap-3">
           <h3 className="text-lg font-bold text-foreground">{format(currentDate, 'MMMM yyyy')}</h3>
-          <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl border border-border">
+          <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl ">
             <button onClick={prevPeriod} className="p-1 rounded-lg hover:bg-card text-muted-foreground hover:text-foreground cursor-pointer">
               <ChevronLeft size={18} />
             </button>
@@ -163,11 +162,11 @@ export default function ContentCalendar() {
             <span className="text-foreground font-bold">Urgent Priority</span>
           </div>
           <div className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-secondary border border-border" />
+            <span className="w-2.5 h-2.5 rounded-full bg-secondary " />
             <span className="text-muted-foreground font-medium">In Process / Post</span>
           </div>
           <div className="inline-flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-card border border-foreground/50" />
+            <span className="w-2.5 h-2.5 rounded-full bg-card " />
             <span className="text-muted-foreground font-medium">Review Needed</span>
           </div>
           <div className="inline-flex items-center gap-1.5">
@@ -180,7 +179,7 @@ export default function ContentCalendar() {
       {/* Month View Grid */}
       <div className="app-card overflow-hidden">
         {/* Days of week header */}
-        <div className="grid grid-cols-7 border-b border-border bg-secondary/30 text-center text-xs font-bold text-muted-foreground py-3">
+        <div className="grid grid-cols-7 bg-secondary/30 text-center text-xs font-bold text-muted-foreground py-3">
           <div>Sun</div>
           <div>Mon</div>
           <div>Tue</div>
@@ -191,7 +190,7 @@ export default function ContentCalendar() {
         </div>
 
         {/* Month grid */}
-        <div className="grid grid-cols-7 divide-x divide-y divide-border min-h-[600px]">
+        <div className="grid grid-cols-7 divide-x divide-y divide-foreground/[0.05] min-h-[600px]">
           {days.map((d, i) => {
             const dayEvents = getEventsForDay(d);
             const isSelectedMonth = isSameMonth(d, monthStart);
@@ -238,15 +237,15 @@ export default function ContentCalendar() {
         onClose={() => setIsDrawerOpen(false)}
         title="Schedule Event / Deadline"
       >
-        <form onSubmit={handleCreateEvent} className="space-y-4">
+        <form onSubmit={handleCreateEvent} className="space-y-5 text-left">
           <div>
-            <label className="text-xs font-semibold text-foreground mb-1 block">Event Title *</label>
+            <label className="block text-sm font-semibold text-foreground mb-1.5">Event Title *</label>
             <input type="text" required value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})} className="app-input" placeholder="e.g. Meta Reel Post - Summer Promo" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Event Type</label>
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Event Type</label>
               <select value={newEvent.type} onChange={e => setNewEvent({...newEvent, type: e.target.value})} className="app-select">
                 <option value="Post">Scheduled Post</option>
                 <option value="Launch">Campaign Launch</option>
@@ -256,14 +255,14 @@ export default function ContentCalendar() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Scheduled Date</label>
-              <input type="date" required value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} className="app-input" />
+              <label className="block text-sm font-semibold text-foreground mb-1.5">Scheduled Date</label>
+              <input type="date" required value={newEvent.date} onChange={e => setNewEvent({...newEvent, date: e.target.value})} onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }} className="app-input cursor-pointer" />
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-border">
-            <button type="button" onClick={() => setIsDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="bg-primary text-primary-foreground font-semibold px-5 py-2.5 rounded-xl text-sm hover:opacity-90">Schedule Event</button>
+          <div className="pt-4 flex justify-end gap-2.5">
+            <button type="button" onClick={() => setIsDrawerOpen(false)} className="h-11 px-5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors cursor-pointer">Cancel</button>
+            <button type="submit" className="h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity cursor-pointer">Schedule Event</button>
           </div>
         </form>
       </SMMDrawer>

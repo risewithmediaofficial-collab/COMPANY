@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Lock, Loader2, ArrowLeft, Eye, EyeOff } from '@/components/ui/muiIcons';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -42,9 +42,6 @@ const ResetPassword = () => {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold tracking-tight">Create a new password</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Choose a strong password for your account.
-        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,7 +59,7 @@ const ResetPassword = () => {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="block w-full rounded-xl border border-border bg-secondary/30 py-2.5 pl-10 pr-10 text-sm text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="block w-full rounded-xl bg-background py-2.5 pl-10 pr-10 text-sm text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-brand/40"
               placeholder="Enter a new password"
             />
             <button
@@ -90,7 +87,7 @@ const ResetPassword = () => {
               required
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              className="block w-full rounded-xl border border-border bg-secondary/30 py-2.5 pl-10 pr-10 text-sm text-foreground transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="block w-full rounded-xl bg-background py-2.5 pl-10 pr-10 text-sm text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-brand/40"
               placeholder="Confirm your new password"
             />
             <button
@@ -107,7 +104,7 @@ const ResetPassword = () => {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : 'Update password'}
         </button>

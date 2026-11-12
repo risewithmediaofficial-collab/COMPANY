@@ -140,10 +140,10 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]">
-        <DialogHeader className="px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-background max-w-2xl max-h-[90vh]">
+        <DialogHeader className="px-6 py-4 sm:py-5 bg-background shrink-0 select-none flex flex-row items-center justify-between gap-4 m-0 space-y-0">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0 ">
               <FileText size={20} />
             </div>
             <div className="min-w-0">
@@ -157,10 +157,10 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -176,7 +176,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="e.g. Social Media Management Package"
                   value={form.title}
                   onChange={(e) => set('title', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -185,13 +185,13 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                 <span className="text-sm font-semibold text-foreground">
                   Choose Recipient Type <span className="text-destructive">*</span>
                 </span>
-                <div className="grid grid-cols-2 gap-2 p-1 bg-secondary/50 rounded-xl border border-border">
+                <div className="grid grid-cols-2 gap-2 p-1 bg-secondary/50 rounded-xl ">
                   <button
                     type="button"
                     onClick={() => set('recipientType', 'client')}
                     className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       form.recipientType === 'client'
-                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        ? 'bg-primary text-primary-foreground '
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                   >
@@ -203,7 +203,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                     onClick={() => set('recipientType', 'lead')}
                     className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       form.recipientType === 'lead'
-                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        ? 'bg-primary text-primary-foreground '
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                   >
@@ -217,7 +217,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
               {form.recipientType === 'client' ? (
                 <Field label="Select Client" required>
                   <select
-                    className="app-input w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                     value={form.client}
                     onChange={(e) => set('client', e.target.value)}
                   >
@@ -232,7 +232,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
               ) : (
                 <Field label="Select Lead / Prospect" required>
                   <select
-                    className="app-input w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                     value={form.lead}
                     onChange={(e) => set('lead', e.target.value)}
                   >
@@ -248,7 +248,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
 
               <Field label="Service Category" required>
                 <select
-                  className="app-input w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                   value={form.serviceCategory}
                   onChange={(e) => set('serviceCategory', e.target.value)}
                 >
@@ -263,7 +263,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="e.g. Monthly retainer, Project fixed price"
                   value={form.proposalType}
                   onChange={(e) => set('proposalType', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -274,13 +274,13 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="e.g. 50000"
                   value={form.amount}
                   onChange={(e) => set('amount', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
               <Field label="Proposal Status">
                 <select
-                  className="app-input w-full h-11 rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="app-input w-full h-11 rounded-xl bg-secondary/75 px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                   value={form.status}
                   onChange={(e) => set('status', e.target.value)}
                 >
@@ -295,7 +295,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   type="date"
                   value={form.startDate}
                   onChange={(e) => set('startDate', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -304,7 +304,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   type="date"
                   value={form.endDate}
                   onChange={(e) => set('endDate', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -313,7 +313,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="e.g. 3 months, 6 weeks"
                   value={form.timeline}
                   onChange={(e) => set('timeline', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -323,7 +323,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   min="0"
                   value={form.revisionLimit}
                   onChange={(e) => set('revisionLimit', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -332,7 +332,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="e.g. 50% advance, 50% on delivery"
                   value={form.paymentTerms}
                   onChange={(e) => set('paymentTerms', e.target.value)}
-                  className="h-11 rounded-xl border-border bg-background px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="h-11 rounded-xl bg-secondary/75 px-4 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -342,7 +342,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="Brief overview of the proposal..."
                   value={form.description}
                   onChange={(e) => set('description', e.target.value)}
-                  className="rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -352,7 +352,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="What is included in this proposal..."
                   value={form.scopeOfWork}
                   onChange={(e) => set('scopeOfWork', e.target.value)}
-                  className="rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -362,7 +362,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="List specific deliverables..."
                   value={form.deliverables}
                   onChange={(e) => set('deliverables', e.target.value)}
-                  className="rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -372,7 +372,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="Terms and conditions..."
                   value={form.termsAndConditions}
                   onChange={(e) => set('termsAndConditions', e.target.value)}
-                  className="rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -382,7 +382,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
                   placeholder="Internal or client notes..."
                   value={form.notes}
                   onChange={(e) => set('notes', e.target.value)}
-                  className="rounded-xl border-border bg-background p-3.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                  className="rounded-xl bg-secondary/75 p-3.5 text-sm focus:ring-2 focus:ring-primary/20 "
                 />
               </Field>
 
@@ -393,10 +393,10 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
           </div>
 
           {/* Pinned Sticky Bottom Action Footer */}
-          <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-background px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
             <span className="text-xs text-muted-foreground/80 hidden sm:inline-flex items-center gap-1.5">
               <span>Press</span>
-              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-mono font-medium text-foreground">
+              <kbd className="px-1.5 py-0.5 rounded-md bg-secondary text-[10px] font-mono font-medium text-foreground">
                 ESC
               </kbd>
               <span>to close</span>
@@ -415,7 +415,7 @@ export const AddProposalModal = ({ open, onOpenChange, proposal = null }) => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/95 text-sm font-bold text-primary-foreground cursor-pointer transition-all"
               >
                 {isLoading ? 'Saving...' : isEditing ? 'Update Proposal' : 'Create Proposal'}
               </Button>

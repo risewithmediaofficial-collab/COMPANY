@@ -9,7 +9,7 @@ import { SMMDrawer } from '../../components/smm/SMMDrawer';
 import { SMMSubNav } from '../../components/smm/SMMSubNav';
 import { useDateFilter } from '../../context/DateFilterContext';
 import { format } from 'date-fns';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function Ads() {
   const location = useLocation();
@@ -288,7 +288,7 @@ export default function Ads() {
           <div className="flex flex-wrap items-center gap-2 mt-0.5">
             <span className="text-[11px] text-muted-foreground">{row.adSet?.name || 'No Ad Set'} · {row.creativeType}</span>
             {row.sourceContentId && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-foreground font-semibold text-[10px] border border-border">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-foreground font-semibold text-[10px] ">
                 <Video size={10} className="shrink-0" />
                 Linked Video
               </span>
@@ -339,7 +339,7 @@ export default function Ads() {
           <StatusBadgeSmm status={row.status} />
           <button
             onClick={() => handleToggleStatus(row)}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-secondary text-foreground border border-border hover:bg-secondary/80 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
           >
             {row.status === 'Active' ? <Pause size={10} className="shrink-0" /> : <Play size={10} className="shrink-0" />}
             <span>{row.status === 'Active' ? 'Running' : 'Resume'}</span>
@@ -355,10 +355,10 @@ export default function Ads() {
           <StatusBadgeSmm status={row.approvalStatus} />
           {row.approvalStatus === 'Pending' && (
             <div className="flex gap-1">
-              <button onClick={() => handleApproval(row._id, 'Approved')} className="p-1 rounded bg-secondary border border-border text-foreground hover:bg-secondary/80" title="Approve">
+              <button onClick={() => handleApproval(row._id, 'Approved')} className="p-1 rounded bg-secondary text-foreground hover:bg-secondary/80" title="Approve">
                 <Check size={14} />
               </button>
-              <button onClick={() => handleApproval(row._id, 'Rejected')} className="p-1 rounded bg-secondary border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/80" title="Reject">
+              <button onClick={() => handleApproval(row._id, 'Rejected')} className="p-1 rounded bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80" title="Reject">
                 <X size={14} />
               </button>
             </div>
@@ -372,7 +372,7 @@ export default function Ads() {
       render: (row) => (
         <button
           onClick={() => openLogMetrics(row)}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-foreground hover:bg-secondary/80 rounded-lg text-xs font-semibold border border-border transition-colors"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-foreground hover:bg-secondary/80 rounded-lg text-xs font-semibold transition-colors"
         >
           <Target size={13} className="shrink-0" />
           <span>Log Leads &amp; Spend</span>
@@ -384,10 +384,9 @@ export default function Ads() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Ads Manager & Creative Performance"
-        subtitle="Create ads linked directly to your central Video Database, track headlines, copy, CTAs, and log ROAS"
+        title="Ads Manager"
         actions={
-          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 shadow-xs hover:bg-primary/90 transition-colors">
+          <button onClick={openAdd} className="bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-xl text-sm inline-flex items-center gap-2 hover:bg-primary/90 transition-colors">
             <Plus size={18} className="shrink-0" />
             <span>Create Ad</span>
           </button>
@@ -396,7 +395,7 @@ export default function Ads() {
 
       <SMMSubNav />
 
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl border border-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 bg-card p-3 sm:p-4 rounded-2xl ">
         <div className="flex-1 w-full">
           <SearchField value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search Ads by name, video, or headline..." />
         </div>
@@ -421,7 +420,7 @@ export default function Ads() {
           fetchData();
         }}
         emptyTitle="No Ads found"
-        emptyDescription="Create your first Ad within an Ad Set."
+        emptyDescription=""
       />
 
       {/* Log Leads & Performance Drawer */}
@@ -430,46 +429,45 @@ export default function Ads() {
         onClose={() => setIsLogDrawerOpen(false)}
         title={`Log Leads & Spend — ${selectedAdForLog?.name}`}
       >
-        <form onSubmit={handleSaveAdPerformance} className="space-y-4 text-xs">
-          <div className="p-4 bg-secondary/50 border border-border rounded-2xl space-y-1">
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Direct Lead &amp; Spend Log</h4>
-            <p className="text-xs text-muted-foreground">Record daily leads, spend, and conversions for this specific video ad</p>
+        <form onSubmit={handleSaveAdPerformance} className="space-y-5 text-left">
+          <div className="p-4 bg-secondary/50 rounded-2xl">
+            <h4 className="text-sm font-bold text-foreground">Direct Lead &amp; Spend Log</h4>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Leads Generated *</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Leads Generated *</label>
               <input
                 type="number"
                 required
                 value={adMetrics.leads}
                 onChange={e => setAdMetrics({...adMetrics, leads: Number(e.target.value)})}
-                className="app-input font-bold text-foreground text-base tabular-nums"
+                className="app-input tabular-nums"
                 placeholder="e.g. 25"
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Ad Spend Amount (₹)</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Ad Spend Amount (₹)</label>
               <input
                 type="number"
                 value={adMetrics.spend}
                 onChange={e => setAdMetrics({...adMetrics, spend: Number(e.target.value)})}
-                className="app-input font-semibold tabular-nums"
+                className="app-input tabular-nums"
                 placeholder="e.g. 2500"
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Revenue Generated (₹)</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Revenue Generated (₹)</label>
               <input
                 type="number"
                 value={adMetrics.revenue}
                 onChange={e => setAdMetrics({...adMetrics, revenue: Number(e.target.value)})}
-                className="app-input font-semibold tabular-nums"
+                className="app-input tabular-nums"
                 placeholder="e.g. 15000"
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Conversions / Sales</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Conversions / Sales</label>
               <input
                 type="number"
                 value={adMetrics.conversions}
@@ -479,7 +477,7 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Clicks Count</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Clicks Count</label>
               <input
                 type="number"
                 value={adMetrics.clicks}
@@ -489,7 +487,7 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Impressions Count</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Impressions Count</label>
               <input
                 type="number"
                 value={adMetrics.impressions}
@@ -500,9 +498,9 @@ export default function Ads() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-border flex justify-end gap-3">
-            <button type="button" onClick={() => setIsLogDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="bg-primary text-primary-foreground font-semibold px-4 py-2 rounded-xl text-sm hover:bg-primary/90 transition-colors">Save Ad Results</button>
+          <div className="pt-4 flex justify-end gap-2.5">
+            <button type="button" onClick={() => setIsLogDrawerOpen(false)} className="h-11 px-5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors cursor-pointer">Cancel</button>
+            <button type="submit" className="h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 transition-colors cursor-pointer">Save Ad Results</button>
           </div>
         </form>
       </SMMDrawer>
@@ -513,9 +511,9 @@ export default function Ads() {
         onClose={() => setIsDrawerOpen(false)}
         title={editingAd ? 'Edit Ad' : 'Create & Launch Ad (Step 3 of 3)'}
       >
-        <form onSubmit={handleSave} className="space-y-4 text-xs">
+        <form onSubmit={handleSave} className="space-y-5 text-left">
           <div>
-            <label className="font-semibold text-foreground mb-1 block">Select Ad Set *</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block">Select Ad Set *</label>
             <select
               required
               value={formData.adSet}
@@ -543,15 +541,15 @@ export default function Ads() {
           </div>
 
           {/* Select Video from Campaign / Database */}
-          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border space-y-2">
+          <div className="p-4 rounded-2xl bg-secondary/50 space-y-2.5">
             <div className="flex items-center justify-between gap-2">
-              <label className="font-semibold text-foreground inline-flex items-center gap-1.5">
+              <label className="text-sm font-semibold text-foreground inline-flex items-center gap-1.5">
                 <Sparkles size={14} className="shrink-0" />
                 <span>Select Video from Campaign to Run</span>
               </label>
               {formData.sourceContentId && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary-foreground bg-primary px-2 py-0.5 rounded-full shrink-0">
-                  <Check size={10} className="shrink-0" />
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-foreground bg-primary px-2.5 py-0.5 rounded-full shrink-0">
+                  <Check size={11} className="shrink-0" />
                   Video Selected
                 </span>
               )}
@@ -559,7 +557,7 @@ export default function Ads() {
             <select
               value={formData.sourceContentId}
               onChange={e => handleSelectExistingVideo(e.target.value)}
-              className="app-select text-xs bg-background"
+              className="app-select bg-background"
             >
               <option value="">-- Choose Campaign Video / Reel to Run Ad --</option>
               {campaignVideos.map(v => (
@@ -571,7 +569,7 @@ export default function Ads() {
           </div>
 
           <div>
-            <label className="font-semibold text-foreground mb-1 block">Ad Name *</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block">Ad Name *</label>
             <input
               type="text"
               required
@@ -582,13 +580,13 @@ export default function Ads() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Delivery Status</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Delivery Status</label>
               <select
                 value={formData.status}
                 onChange={e => setFormData({...formData, status: e.target.value})}
-                className="app-select font-semibold"
+                className="app-select"
               >
                 <option value="Active">Active &amp; Running</option>
                 <option value="Draft">Draft</option>
@@ -596,7 +594,7 @@ export default function Ads() {
               </select>
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">CTA Button</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">CTA Button</label>
               <select
                 value={formData.cta}
                 onChange={e => setFormData({...formData, cta: e.target.value})}
@@ -614,7 +612,7 @@ export default function Ads() {
           </div>
 
           <div>
-            <label className="font-semibold text-foreground mb-1 block">Headline</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block">Headline</label>
             <input
               type="text"
               value={formData.headline}
@@ -625,19 +623,19 @@ export default function Ads() {
           </div>
 
           <div>
-            <label className="font-semibold text-foreground mb-1 block">Primary Text / Ad Copy</label>
+            <label className="text-sm font-semibold text-foreground mb-1.5 block">Primary Text / Ad Copy</label>
             <textarea
               rows={3}
               value={formData.primaryText}
               onChange={e => setFormData({...formData, primaryText: e.target.value})}
-              className="app-textarea"
+              className="w-full min-h-[96px] px-4 py-3 rounded-xl bg-secondary/75 text-sm font-normal text-foreground outline-none focus:bg-background focus:ring-2 focus:ring-primary/20"
               placeholder="Hook, value proposition, and call to action..."
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="font-semibold text-foreground mb-1 block">Destination URL</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">Destination URL</label>
               <input
                 type="url"
                 value={formData.destinationUrl}
@@ -647,7 +645,7 @@ export default function Ads() {
               />
             </div>
             <div>
-              <label className="font-semibold text-foreground mb-1 block">WhatsApp Number (Optional)</label>
+              <label className="text-sm font-semibold text-foreground mb-1.5 block">WhatsApp Number (Optional)</label>
               <input
                 type="text"
                 value={formData.whatsappNumber}
@@ -658,9 +656,9 @@ export default function Ads() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-border flex justify-end gap-3">
-            <button type="button" onClick={() => setIsDrawerOpen(false)} className="app-button-secondary">Cancel</button>
-            <button type="submit" className="app-button-primary">Save & Launch Ad</button>
+          <div className="pt-4 flex justify-end gap-2.5">
+            <button type="button" onClick={() => setIsDrawerOpen(false)} className="h-11 px-5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors cursor-pointer">Cancel</button>
+            <button type="submit" className="h-11 px-6 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/95 transition-colors cursor-pointer">Save &amp; Launch Ad</button>
           </div>
         </form>
       </SMMDrawer>

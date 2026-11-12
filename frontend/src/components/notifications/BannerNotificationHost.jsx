@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   BellRing,
@@ -84,27 +83,25 @@ export const BannerNotificationHost = () => {
       id="banner-notifications-container"
       className="fixed top-3 left-1/2 -translate-x-1/2 z-[99999] w-[94%] sm:w-[540px] max-w-full pointer-events-none flex flex-col items-center gap-2"
     >
-      <AnimatePresence mode="popLayout">
-        {banners.map((banner) => (
-          <BannerItem
-            key={banner.id}
-            banner={banner}
-            isMuted={isMuted}
-            onToggleSound={toggleSound}
-            onDismiss={() => removeBanner(banner.id)}
-            onNavigate={(path) => {
-              removeBanner(banner.id);
-              if (path && path !== '#') {
-                if (path.startsWith('http')) {
-                  window.location.href = path;
-                } else {
-                  navigate(path);
-                }
+      {banners.map((banner) => (
+        <BannerItem
+          key={banner.id}
+          banner={banner}
+          isMuted={isMuted}
+          onToggleSound={toggleSound}
+          onDismiss={() => removeBanner(banner.id)}
+          onNavigate={(path) => {
+            removeBanner(banner.id);
+            if (path && path !== '#') {
+              if (path.startsWith('http')) {
+                window.location.href = path;
+              } else {
+                navigate(path);
               }
-            }}
-          />
-        ))}
-      </AnimatePresence>
+            }
+          }}
+        />
+      ))}
     </div>
   );
 };
@@ -141,31 +138,31 @@ const BannerItem = ({ banner, isMuted, onToggleSound, onDismiss, onNavigate }) =
 
   const typeConfig = {
     success: {
-      borderColor: 'border-border',
+      borderColor: '',
       badgeBg: 'bg-secondary text-foreground',
       barColor: 'bg-zinc-800 dark:bg-zinc-200',
       icon: <CheckCircle2 size={18} className="text-foreground" />,
     },
     warning: {
-      borderColor: 'border-border',
+      borderColor: '',
       badgeBg: 'bg-secondary text-foreground',
       barColor: 'bg-zinc-600 dark:bg-zinc-400',
       icon: <AlertTriangle size={18} className="text-foreground" />,
     },
     task: {
-      borderColor: 'border-border',
+      borderColor: '',
       badgeBg: 'bg-secondary text-foreground',
       barColor: 'bg-zinc-800 dark:bg-zinc-200',
       icon: <BellRing size={18} className="text-foreground" />,
     },
     lead: {
-      borderColor: 'border-border',
+      borderColor: '',
       badgeBg: 'bg-secondary text-foreground',
       barColor: 'bg-zinc-700 dark:bg-zinc-300',
       icon: <BellRing size={18} className="text-foreground" />,
     },
     system: {
-      borderColor: 'border-border',
+      borderColor: '',
       badgeBg: 'bg-secondary text-foreground',
       barColor: 'bg-primary',
       icon: <BellRing size={18} className="text-foreground" />,
@@ -175,19 +172,14 @@ const BannerItem = ({ banner, isMuted, onToggleSound, onDismiss, onNavigate }) =
   const style = typeConfig[banner.type] || typeConfig.system;
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: -25, scale: 0.94 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+    <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className={`pointer-events-auto w-full relative overflow-hidden rounded-2xl border ${style.borderColor} bg-card shadow-xl transition-all`}
+      className={`pointer-events-auto w-full relative overflow-hidden rounded-2xl ${style.borderColor} bg-card shadow-xl transition-all animate-in fade-in slide-in-from-top-2 duration-200`}
     >
       <div className="relative p-3.5 sm:p-4 flex items-start gap-3">
         {/* Icon Avatar */}
-        <div className={`relative shrink-0 p-2.5 rounded-xl ${style.badgeBg} border border-border`}>
+        <div className={`relative shrink-0 p-2.5 rounded-xl ${style.badgeBg} `}>
           {style.icon}
           <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-foreground" />
@@ -244,7 +236,7 @@ const BannerItem = ({ banner, isMuted, onToggleSound, onDismiss, onNavigate }) =
               <button
                 type="button"
                 onClick={() => onNavigate(banner.link)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-95"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition-all cursor-pointer active:scale-95"
               >
                 <span>View Details</span>
                 <ExternalLink size={12} />
@@ -253,7 +245,7 @@ const BannerItem = ({ banner, isMuted, onToggleSound, onDismiss, onNavigate }) =
             <button
               type="button"
               onClick={onDismiss}
-              className="px-2.5 py-1 rounded-lg border border-border/80 hover:bg-secondary/80 text-foreground text-xs font-medium transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded-lg hover:bg-secondary/80 text-foreground text-xs font-medium transition-colors cursor-pointer"
             >
               Dismiss
             </button>
@@ -263,13 +255,12 @@ const BannerItem = ({ banner, isMuted, onToggleSound, onDismiss, onNavigate }) =
 
       {/* Auto-dismiss progress countdown bar */}
       <div className="h-1 w-full bg-secondary/50 overflow-hidden">
-        <motion.div
-          className={`h-full ${style.barColor}`}
+        <div
+          className={`h-full transition-[width] duration-75 ease-linear ${style.barColor}`}
           style={{ width: `${progress}%` }}
-          transition={{ duration: 0.05, ease: 'linear' }}
         />
       </div>
-    </motion.div>
+    </div>
   );
 };
 

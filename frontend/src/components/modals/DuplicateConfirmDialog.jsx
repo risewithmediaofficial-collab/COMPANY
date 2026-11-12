@@ -31,10 +31,10 @@ export default function DuplicateConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md p-6 bg-card border border-border shadow-2xl rounded-2xl">
+      <AlertDialogContent className="max-w-md p-6 bg-card rounded-2xl">
         <AlertDialogHeader className="space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground border border-border shadow-xs">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-secondary text-foreground ">
               <AlertTriangle className="h-6 w-6 shrink-0" />
             </div>
             <div>
@@ -52,7 +52,7 @@ export default function DuplicateConfirmDialog({
           </AlertDialogDescription>
 
           {existingRecord && (
-            <div className="rounded-xl border border-border bg-secondary/40 p-3 text-xs space-y-1">
+            <div className="rounded-xl bg-secondary/40 p-3 text-xs space-y-1">
               <div className="font-bold text-foreground">
                 Existing Match:
               </div>
@@ -94,14 +94,14 @@ export default function DuplicateConfirmDialog({
           <button
             type="button"
             onClick={handleCancel}
-            className="rounded-xl border border-border bg-background px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary transition-colors cursor-pointer"
+            className="rounded-xl bg-background px-4 py-2 text-xs font-bold text-foreground hover:bg-secondary transition-colors cursor-pointer"
           >
             {cancelLabel}
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:bg-primary/90 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer"
           >
             <span>{confirmLabel}</span>
             <ArrowRight size={13} className="shrink-0" />

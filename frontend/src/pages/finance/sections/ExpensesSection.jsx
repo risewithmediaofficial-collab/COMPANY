@@ -770,7 +770,7 @@ export default function ExpensesSection({ onQuickAdd }) {
     <div className="space-y-6">
       {/* Top Banner KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+        <div className="bg-card p-4 rounded-xl ">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold mb-1">
             <span>TOTAL POSTED EXPENSES</span>
             <ArrowUpRight className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -779,7 +779,7 @@ export default function ExpensesSection({ onQuickAdd }) {
           <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">{filteredExpenses.length} total recorded bills</div>
         </div>
 
-        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+        <div className="bg-card p-4 rounded-xl ">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold mb-1">
             <span>TOTAL CLEARED / PAID</span>
             <CheckCircle2 className="h-4 w-4 text-foreground shrink-0" />
@@ -788,7 +788,7 @@ export default function ExpensesSection({ onQuickAdd }) {
           <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">{paidBillsCount} settled bills</div>
         </div>
 
-        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+        <div className="bg-card p-4 rounded-xl ">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold mb-1">
             <span>UNPAID VENDOR BILLS</span>
             <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -797,7 +797,7 @@ export default function ExpensesSection({ onQuickAdd }) {
           <div className="text-[11px] text-muted-foreground mt-1 tabular-nums">{unpaidBillsCount} vendor bills pending payment</div>
         </div>
 
-        <div className="bg-card p-4 rounded-xl border border-border shadow-2xs">
+        <div className="bg-card p-4 rounded-xl ">
           <div className="flex justify-between items-center text-muted-foreground text-xs font-semibold mb-1">
             <span>RECURRING SUBSCRIPTIONS</span>
             <CalendarCheck className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -808,13 +808,13 @@ export default function ExpensesSection({ onQuickAdd }) {
       </div>
 
       {/* Sub Tabs: Expenses / Payees / Subscriptions / Payment Reminders */}
-      <div className="flex border-b border-border gap-2 sm:gap-4 text-xs font-semibold overflow-x-auto pb-px no-scrollbar">
+      <div className="inline-flex max-w-full bg-secondary/75 p-1 rounded-xl gap-1 text-xs font-semibold overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('expenses')}
-          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center gap-1.5 tabular-nums ${
+          className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 tabular-nums ${
             activeTab === 'expenses'
-              ? 'border-foreground text-foreground font-bold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-background text-foreground font-bold shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Receipt className="h-3.5 w-3.5 shrink-0" />
@@ -822,10 +822,10 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('payees')}
-          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center gap-1.5 tabular-nums ${
+          className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 tabular-nums ${
             activeTab === 'payees'
-              ? 'border-foreground text-foreground font-bold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-background text-foreground font-bold shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Users className="h-3.5 w-3.5 shrink-0" />
@@ -833,10 +833,10 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('subscriptions')}
-          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center gap-1.5 tabular-nums ${
+          className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 tabular-nums ${
             activeTab === 'subscriptions'
-              ? 'border-foreground text-foreground font-bold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-background text-foreground font-bold shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <CalendarCheck className="h-3.5 w-3.5 shrink-0" />
@@ -844,10 +844,10 @@ export default function ExpensesSection({ onQuickAdd }) {
         </button>
         <button
           onClick={() => setActiveTab('payment_reminders')}
-          className={`pb-2.5 px-1 sm:px-0 transition-all border-b-2 whitespace-nowrap cursor-pointer shrink-0 min-h-[38px] flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5 ${
             activeTab === 'payment_reminders'
-              ? 'border-foreground text-foreground font-bold'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
+              ? 'bg-background text-foreground font-bold shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <BellRing className="h-3.5 w-3.5 shrink-0" />
@@ -858,7 +858,7 @@ export default function ExpensesSection({ onQuickAdd }) {
       {activeTab === 'expenses' && (
         <>
           {/* Filters & Action Bar */}
-          <div className="bg-card p-3.5 sm:p-4 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="bg-card p-3.5 sm:p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto flex-1">
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
@@ -867,14 +867,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                   placeholder="Search title, vendor, category..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 sm:py-1.5 rounded-lg border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary bg-background min-h-[36px]"
+                  className="w-full pl-8 pr-3 py-2 sm:py-1.5 rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary bg-background min-h-[36px]"
                 />
               </div>
 
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full sm:w-auto rounded-lg border border-border px-3 py-2 sm:py-1.5 text-xs bg-background text-foreground min-h-[36px]"
+                className="w-full sm:w-auto rounded-lg px-3 py-2 sm:py-1.5 text-xs bg-background text-foreground min-h-[36px]"
               >
                 <option value="all">All Categories</option>
                 <option value="production_shoot">Production / Shoot</option>
@@ -892,7 +892,7 @@ export default function ExpensesSection({ onQuickAdd }) {
               <select
                 value={paymentStatusFilter}
                 onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                className="w-full sm:w-auto rounded-lg border border-border px-3 py-2 sm:py-1.5 text-xs bg-background text-foreground min-h-[36px]"
+                className="w-full sm:w-auto rounded-lg px-3 py-2 sm:py-1.5 text-xs bg-background text-foreground min-h-[36px]"
               >
                 <option value="all">All Payment Statuses</option>
                 <option value="paid">Fully Paid Expenses</option>
@@ -907,14 +907,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <button
                   type="button"
                   onClick={() => setShowExportMenu((prev) => !prev)}
-                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-background text-foreground font-semibold hover:bg-muted shadow-2xs transition-colors cursor-pointer min-h-[36px]"
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-background text-foreground font-semibold hover:bg-muted transition-colors cursor-pointer min-h-[36px]"
                 >
                   <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span>Export Report</span>
                   <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
                 </button>
                 {showExportMenu && (
-                  <div className="absolute right-0 mt-1.5 w-52 bg-card border border-border rounded-xl shadow-lg p-1.5 z-30 space-y-1">
+                  <div className="absolute right-0 mt-1.5 w-52 bg-popover rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-1.5 z-30 space-y-1">
                     <button
                       type="button"
                       onClick={() => handleExportCSV()}
@@ -937,7 +937,7 @@ export default function ExpensesSection({ onQuickAdd }) {
 
               <button
                 onClick={() => onQuickAdd('expense')}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 shadow-2xs cursor-pointer min-h-[36px]"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 cursor-pointer min-h-[36px]"
               >
                 <Plus className="h-3.5 w-3.5 shrink-0" />
                 <span>Record Expense / Bill</span>
@@ -948,7 +948,7 @@ export default function ExpensesSection({ onQuickAdd }) {
           {/* Mobile Cards List (block md:hidden) */}
           <div className="block md:hidden space-y-3">
             {sortedExpenses.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground bg-card rounded-xl border border-border">
+              <div className="p-8 text-center text-muted-foreground bg-card rounded-xl ">
                 No expenses or vendor bills found matching your criteria.
               </div>
             ) : (
@@ -958,7 +958,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   <div
                     key={exp._id}
                     onClick={() => setSelectedExpenseForSidebar(exp)}
-                    className="p-4 rounded-xl bg-card border border-border shadow-2xs space-y-3 active:bg-muted/50 transition-colors cursor-pointer"
+                    className="p-4 rounded-xl bg-card space-y-3 active:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
@@ -966,7 +966,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           <span className="text-muted-foreground font-medium tabular-nums">{formatDateIST(exp.date)}</span>
                           <span className="text-muted-foreground/50">•</span>
                           <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-foreground border border-border ${
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-foreground ${
                               ['rj', 'vj'].includes(exp.category?.toLowerCase()) ? 'font-bold uppercase' : 'capitalize'
                             }`}
                           >
@@ -975,7 +975,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           <span
                             className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
                               exp.costType === 'client_project'
-                                ? 'bg-secondary text-foreground border border-border'
+                                ? 'bg-secondary text-foreground '
                                 : 'bg-muted text-muted-foreground'
                             }`}
                           >
@@ -991,8 +991,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                             fin.status === 'paid'
                               ? 'bg-primary text-primary-foreground'
                               : fin.status === 'partially_paid'
-                              ? 'bg-secondary text-foreground border border-border'
-                              : 'bg-muted text-muted-foreground border border-border'
+                              ? 'bg-secondary text-foreground '
+                              : 'bg-muted text-muted-foreground '
                           }`}
                         >
                           {fin.status === 'paid' ? 'Paid' : fin.status === 'partially_paid' ? 'Partial' : 'Unpaid'}
@@ -1000,7 +1000,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-border text-xs">
+                    <div className="flex items-center justify-between pt-2 text-xs">
                       <div>
                         {exp.vendor ? (
                           <button
@@ -1009,7 +1009,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                               e.stopPropagation();
                               setSelectedPayeeForLedger(exp.vendor);
                             }}
-                            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary hover:bg-muted text-foreground font-bold text-xs cursor-pointer"
                           >
                             <User className="h-3 w-3 text-muted-foreground shrink-0" />
                             <span>{exp.vendor}</span>
@@ -1021,7 +1021,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                               e.stopPropagation();
                               handleStartEditExpense(exp);
                             }}
-                            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-1.5 py-0.5 rounded border border-dashed border-border cursor-pointer"
+                            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-1.5 py-0.5 rounded cursor-pointer"
                           >
                             <Plus className="h-2.5 w-2.5 shrink-0" /> Assign Payee
                           </button>
@@ -1035,7 +1035,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-2 pt-2 " onClick={(e) => e.stopPropagation()}>
                       {fin.balance > 0 && (
                         <button
                           type="button"
@@ -1043,7 +1043,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                             setSelectedExpenseForSidebar(exp);
                             handleOpenAddPayment(exp);
                           }}
-                          className="flex-1 min-h-[36px] flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs shadow-2xs cursor-pointer"
+                          className="flex-1 min-h-[36px] flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs cursor-pointer"
                         >
                           <Plus className="h-3 w-3 shrink-0" />
                           <span>Pay / Add</span>
@@ -1052,7 +1052,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => handleStartEditExpense(exp)}
-                        className="min-h-[36px] px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                        className="min-h-[36px] px-3 py-1.5 rounded-lg text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
                         title="Edit Expense"
                       >
                         <Edit2 className="h-3.5 w-3.5 shrink-0" />
@@ -1062,7 +1062,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         type="button"
                         onClick={() => handleDeleteExpense(exp)}
                         disabled={deleteExpense.isPending}
-                        className="min-h-[36px] px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                        className="min-h-[36px] px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
                         title="Delete Expense"
                       >
                         <Trash2 className="h-3.5 w-3.5 shrink-0" />
@@ -1075,10 +1075,10 @@ export default function ExpensesSection({ onQuickAdd }) {
           </div>
 
           {/* Expenses Table (Desktop hidden md:flex) */}
-          <div className="hidden md:flex bg-card rounded-xl border border-border shadow-2xs overflow-hidden flex-col">
+          <div className="hidden md:flex bg-card rounded-xl overflow-hidden flex-col">
             <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
               <table className="w-full min-w-[750px] text-left">
-                <thead className="bg-muted sticky top-0 z-10 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
+                <thead className="bg-muted sticky top-0 z-10 text-muted-foreground font-semibold uppercase tracking-wider text-[10px] ">
                   <tr>
                     <th
                       onClick={() => setDateSort((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
@@ -1100,7 +1100,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <th className="p-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-foreground/[0.05]">
                   {sortedExpenses.length === 0 ? (
                     <tr>
                       <td colSpan="8" className="p-8 text-center text-muted-foreground">
@@ -1132,7 +1132,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                 e.stopPropagation();
                                 setSelectedPayeeForLedger(exp.vendor);
                               }}
-                              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs transition-colors cursor-pointer group/v"
+                              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-secondary hover:bg-muted text-foreground font-bold text-xs transition-colors cursor-pointer group/v"
                               title={`Open ${exp.vendor}'s payment history & pending balance ledger in sidebar`}
                             >
                               <User className="h-3 w-3 text-muted-foreground shrink-0" />
@@ -1145,7 +1145,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                 e.stopPropagation();
                                 handleStartEditExpense(exp);
                               }}
-                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-1.5 py-0.5 rounded border border-dashed border-border transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted px-1.5 py-0.5 rounded transition-colors cursor-pointer"
                               title="Click to assign payee/vendor name (e.g. VJ, Videographer)"
                             >
                               <Plus className="h-2.5 w-2.5 shrink-0" /> Assign Payee
@@ -1154,7 +1154,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </td>
                         <td className="p-3">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-medium bg-secondary text-foreground border border-border ${
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium bg-secondary text-foreground ${
                               ['rj', 'vj'].includes(exp.category?.toLowerCase()) ? 'font-bold uppercase' : 'capitalize'
                             }`}
                           >
@@ -1165,7 +1165,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                               exp.costType === 'client_project'
-                                ? 'bg-secondary text-foreground border border-border'
+                                ? 'bg-secondary text-foreground '
                                 : 'bg-muted text-muted-foreground'
                             }`}
                           >
@@ -1178,8 +1178,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                               fin.status === 'paid'
                                 ? 'bg-primary text-primary-foreground'
                                 : fin.status === 'partially_paid'
-                                ? 'bg-secondary text-foreground border border-border'
-                                : 'bg-muted text-muted-foreground border border-border'
+                                ? 'bg-secondary text-foreground '
+                                : 'bg-muted text-muted-foreground '
                             }`}
                           >
                             {fin.status === 'paid'
@@ -1211,14 +1211,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                                   setSelectedExpenseForSidebar(exp);
                                   handleOpenAddPayment(exp);
                                 }}
-                                className="px-2.5 py-1 rounded bg-primary text-primary-foreground font-semibold text-[11px] hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1 shadow-2xs"
+                                className="px-2.5 py-1 rounded bg-primary text-primary-foreground font-semibold text-[11px] hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-1 "
                                 title="Add payment or pay bill"
                               >
                                 <Plus className="h-3 w-3 shrink-0" />
                                 Pay / Add
                               </button>
                             ) : (
-                              <span className="text-foreground font-semibold text-[10px] px-2 py-0.5 rounded bg-secondary border border-border">
+                              <span className="text-foreground font-semibold text-[10px] px-2 py-0.5 rounded bg-secondary ">
                                 Paid
                               </span>
                             )}
@@ -1254,7 +1254,7 @@ export default function ExpensesSection({ onQuickAdd }) {
       {/* 2. PAYEES & VENDOR LEDGERS TAB */}
       {activeTab === 'payees' && (
         <div className="space-y-4">
-          <div className="bg-card p-3.5 sm:p-4 rounded-xl border border-border shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="bg-card p-3.5 sm:p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
               <input
@@ -1262,7 +1262,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 placeholder="Search payee name, videographer, editor..."
                 value={payeeSearch}
                 onChange={(e) => setPayeeSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 sm:py-1.5 rounded-lg border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary bg-background min-h-[36px]"
+                className="w-full pl-8 pr-3 py-2 sm:py-1.5 rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary bg-background min-h-[36px]"
               />
             </div>
 
@@ -1272,7 +1272,7 @@ export default function ExpensesSection({ onQuickAdd }) {
               </span>
               <button
                 onClick={() => onQuickAdd('expense')}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 shadow-2xs min-h-[36px] cursor-pointer"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-xs hover:bg-primary/90 min-h-[36px] cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5 shrink-0" />
                 <span>Record Expense / Bill</span>
@@ -1283,7 +1283,7 @@ export default function ExpensesSection({ onQuickAdd }) {
           {/* Payees Mobile Cards (block md:hidden) */}
           <div className="block md:hidden space-y-3">
             {filteredPayees.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground bg-card rounded-xl border border-border">
+              <div className="p-8 text-center text-muted-foreground bg-card rounded-xl ">
                 No payees or vendor records found matching your search.
               </div>
             ) : (
@@ -1291,11 +1291,11 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <div
                   key={p.name}
                   onClick={() => setSelectedPayeeForLedger(p.name)}
-                  className="p-4 rounded-xl bg-card border border-border shadow-2xs space-y-3 active:bg-muted/50 transition-colors cursor-pointer"
+                  className="p-4 rounded-xl bg-card space-y-3 active:bg-muted/50 transition-colors cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="h-9 w-9 rounded-full bg-secondary text-foreground font-bold flex items-center justify-center text-sm shrink-0 border border-border">
+                      <div className="h-9 w-9 rounded-full bg-secondary text-foreground font-bold flex items-center justify-center text-sm shrink-0 ">
                         {p.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -1306,7 +1306,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </div>
                     </div>
                     {p.pendingAmount > 0 ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground border border-border shrink-0">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground shrink-0">
                         Payment Due
                       </span>
                     ) : (
@@ -1316,7 +1316,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-muted/40 border border-border text-center text-xs tabular-nums">
+                  <div className="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-muted/40 text-center text-xs tabular-nums">
                     <div>
                       <span className="text-[10px] text-muted-foreground font-medium block">Total</span>
                       <span className="font-bold text-foreground mt-0.5 block">{formatINR(p.totalAmount)}</span>
@@ -1337,7 +1337,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <span>{p.totalCount} bills ({p.paidCount} paid, {p.pendingCount} unpaid)</span>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2 pt-2 " onClick={(e) => e.stopPropagation()}>
                     {p.pendingAmount > 0 && (
                       <button
                         type="button"
@@ -1345,7 +1345,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           setSelectedPayeeForLedger(p.name);
                           handleOpenOverallPay(p);
                         }}
-                        className="flex-1 min-h-[36px] inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-2xs cursor-pointer"
+                        className="flex-1 min-h-[36px] inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer"
                       >
                         <Wallet className="h-3.5 w-3.5 shrink-0" />
                         <span>Overall Pay</span>
@@ -1354,7 +1354,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <button
                       type="button"
                       onClick={() => setSelectedPayeeForLedger(p.name)}
-                      className="flex-1 min-h-[36px] inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs cursor-pointer"
+                      className="flex-1 min-h-[36px] inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-muted text-foreground font-bold text-xs cursor-pointer"
                     >
                       <span>Open Ledger</span>
                       <ArrowRight className="h-3.5 w-3.5 shrink-0" />
@@ -1366,10 +1366,10 @@ export default function ExpensesSection({ onQuickAdd }) {
           </div>
 
           {/* Payees Directory Table (Desktop hidden md:flex) */}
-          <div className="hidden md:flex bg-card rounded-xl border border-border shadow-2xs overflow-hidden flex-col">
+          <div className="hidden md:flex bg-card rounded-xl overflow-hidden flex-col">
             <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
               <table className="w-full min-w-[650px] text-left">
-                <thead className="bg-muted sticky top-0 z-10 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
+                <thead className="bg-muted sticky top-0 z-10 text-muted-foreground font-semibold uppercase tracking-wider text-[10px] ">
                   <tr>
                     <th className="p-3">Payee / Person / Vendor</th>
                     <th className="p-3 text-center">Bills & Payments Count</th>
@@ -1380,7 +1380,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <th className="p-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-foreground/[0.05]">
                   {filteredPayees.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="p-8 text-center text-muted-foreground">
@@ -1397,7 +1397,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       >
                         <td className="p-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="h-7 w-7 rounded-full bg-secondary text-foreground font-bold flex items-center justify-center text-xs shrink-0 border border-border group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="h-7 w-7 rounded-full bg-secondary text-foreground font-bold flex items-center justify-center text-xs shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                               {p.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
@@ -1432,7 +1432,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         </td>
                         <td className="p-3 text-center">
                           {p.pendingAmount > 0 ? (
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground border border-border">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground ">
                               Payment Due
                             </span>
                           ) : (
@@ -1451,7 +1451,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                   setSelectedPayeeForLedger(p.name);
                                   handleOpenOverallPay(p);
                                 }}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs transition-colors cursor-pointer"
                                 title={`Overall Pay ${formatINR(p.pendingAmount)} for ${p.name}`}
                               >
                                 <Wallet className="h-3 w-3 shrink-0" />
@@ -1464,7 +1464,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                 e.stopPropagation();
                                 setSelectedPayeeForLedger(p.name);
                               }}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-muted text-foreground font-bold text-xs transition-colors cursor-pointer"
                             >
                               <span>Open Ledger</span>
                               <ArrowRight className="h-3 w-3 shrink-0" />
@@ -1484,7 +1484,7 @@ export default function ExpensesSection({ onQuickAdd }) {
       {/* 3. RECURRING SUBSCRIPTIONS TAB */}
       {activeTab === 'subscriptions' && (
         <div className="space-y-4">
-          <div className="bg-card p-3.5 sm:p-4 rounded-xl border border-border shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-card p-3.5 sm:p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-foreground">Software & Agency Subscriptions</h3>
             </div>
@@ -1500,16 +1500,16 @@ export default function ExpensesSection({ onQuickAdd }) {
           {/* Subscriptions Mobile Cards (block md:hidden) */}
           <div className="block md:hidden space-y-3">
             {subscriptions.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground bg-card rounded-xl border border-border">
+              <div className="p-8 text-center text-muted-foreground bg-card rounded-xl ">
                 No recurring subscriptions scheduled.
               </div>
             ) : (
               subscriptions.map((sub) => (
-                <div key={sub._id} className="p-4 rounded-xl bg-card border border-border shadow-2xs space-y-3">
+                <div key={sub._id} className="p-4 rounded-xl bg-card space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap text-[10px] mb-1">
-                        <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border font-bold capitalize">
+                        <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground font-bold capitalize">
                           {sub.costClassification}
                         </span>
                         <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-semibold capitalize">
@@ -1527,7 +1527,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 pt-2 ">
                     <button
                       onClick={() => postRenewal.mutate({ id: sub._id, actualAmount: sub.expectedAmount })}
                       disabled={postRenewal.isPending}
@@ -1537,7 +1537,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     </button>
                     <button
                       onClick={() => handleStartEditSubscription(sub)}
-                      className="min-h-[36px] px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                      className="min-h-[36px] px-3 py-1.5 rounded-lg text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
                       title="Edit Subscription"
                     >
                       <Edit2 className="h-3.5 w-3.5 shrink-0" />
@@ -1546,7 +1546,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <button
                       onClick={() => handleDeleteSubscription(sub)}
                       disabled={deleteSubscription.isPending}
-                      className="min-h-[36px] px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
+                      className="min-h-[36px] px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted font-semibold text-xs flex items-center gap-1 cursor-pointer"
                       title="Delete Subscription"
                     >
                       <Trash2 className="h-3.5 w-3.5 shrink-0" />
@@ -1558,10 +1558,10 @@ export default function ExpensesSection({ onQuickAdd }) {
           </div>
 
           {/* Subscriptions Desktop Table (hidden md:flex) */}
-          <div className="hidden md:flex bg-card rounded-xl border border-border shadow-2xs overflow-hidden flex-col">
+          <div className="hidden md:flex bg-card rounded-xl overflow-hidden flex-col">
             <div className="responsive-table-container overflow-y-auto max-h-[600px] text-xs">
               <table className="w-full min-w-[700px] text-left">
-                <thead className="bg-muted sticky top-0 z-10 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px] shadow-2xs">
+                <thead className="bg-muted sticky top-0 z-10 text-muted-foreground font-semibold uppercase tracking-wider text-[10px] ">
                   <tr>
                     <th className="p-3">Tool / Service</th>
                     <th className="p-3">Vendor</th>
@@ -1572,7 +1572,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <th className="p-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-foreground/[0.05]">
                   {subscriptions.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="p-8 text-center text-muted-foreground">
@@ -1639,18 +1639,18 @@ export default function ExpensesSection({ onQuickAdd }) {
       {/* EDIT SUBSCRIPTION SLIDE-OVER DRAWER */}
       <Dialog open={Boolean(editingSubscription)} onOpenChange={(open) => !open && setEditingSubscription(null)}>
         {editingSubscription && (
-          <DialogContent variant="side" size="lg" className="flex flex-col h-full bg-card text-foreground border-l border-border shadow-2xl p-0">
-            <DialogHeader className="p-6 border-b border-border bg-muted/30 pr-16 select-none">
+          <DialogContent variant="side" size="lg" className="flex flex-col h-full bg-card text-foreground p-0">
+            <DialogHeader className="p-6 bg-muted/30 pr-16 select-none">
               <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground shadow-xs shrink-0">
+                <div className="h-11 w-11 rounded-xl bg-secondary flex items-center justify-center text-foreground shrink-0">
                   <CalendarCheck className="h-5 w-5 shrink-0" />
                 </div>
                 <div>
                   <DialogTitle className="text-lg font-bold text-foreground">
-                    Edit Subscription
+                    Edit Subscription — {editingSubscription.serviceName}
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                    Update recurring commitment for {editingSubscription.serviceName}
+                  <DialogDescription className="sr-only">
+                    Edit subscription
                   </DialogDescription>
                 </div>
               </div>
@@ -1664,7 +1664,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   required
                   value={subscriptionForm.serviceName}
                   onChange={(e) => setSubscriptionForm({ ...subscriptionForm, serviceName: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1675,7 +1675,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   value={subscriptionForm.vendor}
                   onChange={(e) => setSubscriptionForm({ ...subscriptionForm, vendor: e.target.value })}
                   placeholder="e.g. Adobe, AWS, Figma..."
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1683,7 +1683,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-sm font-semibold text-foreground">Expected Amount (₹) *</label>
                   {Number(subscriptionForm.expectedAmount) > 0 && (
-                    <span className="text-xs font-bold text-foreground bg-secondary px-2 py-0.5 rounded-lg border border-border tabular-nums">
+                    <span className="text-xs font-bold text-foreground bg-secondary px-2 py-0.5 rounded-lg tabular-nums">
                       {formatINR(Number(subscriptionForm.expectedAmount))}
                     </span>
                   )}
@@ -1694,7 +1694,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   required
                   value={subscriptionForm.expectedAmount}
                   onChange={(e) => setSubscriptionForm({ ...subscriptionForm, expectedAmount: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 "
                 />
               </div>
 
@@ -1703,7 +1703,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <select
                   value={subscriptionForm.frequency}
                   onChange={(e) => setSubscriptionForm({ ...subscriptionForm, frequency: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="annual">Annual</option>
@@ -1719,7 +1719,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   value={subscriptionForm.nextRenewalDate}
                   onChange={(e) => setSubscriptionForm({ ...subscriptionForm, nextRenewalDate: e.target.value })}
                   onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 />
               </div>
 
@@ -1728,7 +1728,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <select
                   value={subscriptionForm.costClassification}
                   onChange={(e) => setSubscriptionForm({ ...subscriptionForm, costClassification: e.target.value })}
-                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                  className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                 >
                   <option value="software">Software / SaaS</option>
                   <option value="tools">Tools & Utilities</option>
@@ -1738,13 +1738,13 @@ export default function ExpensesSection({ onQuickAdd }) {
               </div>
             </form>
 
-            <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+            <div className="shrink-0 p-4 sm:p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
               <span className="text-xs text-muted-foreground font-medium text-center sm:text-left">Auto-renewing ledger commitment</span>
               <div className="flex items-center gap-2.5 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setEditingSubscription(null)}
-                  className="flex-1 sm:flex-initial h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
+                  className="flex-1 sm:flex-initial h-11 px-5 rounded-xl bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1752,7 +1752,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   type="submit"
                   form="edit-subscription-form"
                   disabled={updateSubscription.isPending}
-                  className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                  className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all disabled:opacity-50 cursor-pointer"
                 >
                   {updateSubscription.isPending ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -1774,39 +1774,39 @@ export default function ExpensesSection({ onQuickAdd }) {
           }
         }}
       >
-        <DialogContent variant="side" size="xl" className="flex flex-col h-full bg-card text-foreground text-xs border-l border-border shadow-2xl p-0">
+        <DialogContent variant="side" size="xl" className="flex flex-col h-full bg-card text-foreground text-xs p-0">
           {/* CASE 1: INDIVIDUAL EXPENSE DETAILS SIDEBAR */}
           {selectedExpenseForSidebar && currentSelectedExpense && (
             isEditingExpenseInSidebar ? (
               <>
                 {/* ── EDIT EXPENSE SLIDE-OVER DRAWER FORM ── */}
-                <DialogHeader className="p-5 border-b border-border bg-muted/30 pr-12">
+                <DialogHeader className="p-5 bg-muted/30 pr-12">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-sm shrink-0">
+                      <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
                         <Edit2 className="h-5 w-5 shrink-0" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground border border-border">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-secondary text-foreground ">
                             Edit Mode
                           </span>
                           <span className="text-[11px] text-muted-foreground font-medium tabular-nums">
                             {formatDateIST(currentSelectedExpense.date)}
                           </span>
                         </div>
-                        <DialogTitle className="text-base font-bold text-foreground truncate">
-                          Edit Expense / Vendor Bill
+                        <DialogTitle className="text-lg sm:text-xl font-bold text-foreground truncate">
+                          Edit Expense
                         </DialogTitle>
-                        <DialogDescription className="text-xs text-muted-foreground truncate">
-                          Update billing details, vendor allocation, and settlement status
+                        <DialogDescription className="sr-only">
+                          Edit expense
                         </DialogDescription>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsEditingExpenseInSidebar(false)}
-                      className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer mr-6 shadow-2xs"
+                      className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background hover:bg-muted text-foreground font-semibold text-xs transition-colors cursor-pointer mr-6 "
                       title="Switch back to view mode"
                     >
                       <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
@@ -1831,7 +1831,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       value={expenseForm.title}
                       onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })}
                       placeholder="e.g. Saran bro - vshoot payment, Office Fiber Broadband..."
-                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                     />
                   </div>
 
@@ -1842,7 +1842,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         Total Bill Amount (₹) <span className="text-foreground">*</span>
                       </label>
                       {Number(expenseForm.amount) > 0 && (
-                        <span className="text-xs font-bold text-foreground bg-secondary px-2 py-0.5 rounded-lg border border-border tabular-nums">
+                        <span className="text-xs font-bold text-foreground bg-secondary px-2 py-0.5 rounded-lg tabular-nums">
                           {formatINR(Number(expenseForm.amount))}
                         </span>
                       )}
@@ -1858,7 +1858,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         value={expenseForm.amount}
                         onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
                         placeholder="0.00"
-                        className="h-11 w-full pl-8 pr-4 rounded-xl border border-border bg-background text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        className="h-11 w-full pl-8 pr-4 rounded-xl bg-background text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 "
                       />
                     </div>
                   </div>
@@ -1883,7 +1883,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       value={expenseForm.date}
                       onChange={(e) => setExpenseForm({ ...expenseForm, date: e.target.value })}
                       onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer shadow-2xs"
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer "
                     />
                   </div>
 
@@ -1910,7 +1910,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         placeholder="e.g. Saran, VJ, Office Landlord, Videographer..."
                         value={expenseForm.vendor}
                         onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })}
-                        className="h-11 w-full pl-10 pr-4 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        className="h-11 w-full pl-10 pr-4 rounded-xl bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                       />
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
@@ -1920,10 +1920,10 @@ export default function ExpensesSection({ onQuickAdd }) {
                           key={sug}
                           type="button"
                           onClick={() => setExpenseForm((prev) => ({ ...prev, vendor: sug }))}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                             expenseForm.vendor === sug
-                              ? 'bg-primary text-primary-foreground border-primary font-bold shadow-2xs'
-                              : 'bg-secondary/60 hover:bg-secondary text-secondary-foreground border-border'
+                              ? 'bg-primary text-primary-foreground font-bold '
+                              : 'bg-secondary/60 hover:bg-secondary text-secondary-foreground '
                           }`}
                         >
                           + {sug}
@@ -1940,7 +1940,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <select
                       value={expenseForm.category}
                       onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
-                      className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                      className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                     >
                       <option value="production_shoot">Production / Shoot</option>
                       <option value="rj">RJ (Radio Jockey / Voice Talent)</option>
@@ -1961,13 +1961,13 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <label className="block text-sm font-semibold text-foreground mb-1.5">
                       Cost Allocation Type
                     </label>
-                    <div className="grid grid-cols-2 gap-2 p-1 bg-muted/40 rounded-xl border border-border">
+                    <div className="grid grid-cols-2 gap-2 p-1 bg-muted/40 rounded-xl ">
                       <button
                         type="button"
                         onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'agency_overhead' }))}
                         className={`h-9 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
                           expenseForm.costType === 'agency_overhead'
-                            ? 'bg-card text-foreground shadow-2xs'
+                            ? 'bg-card text-foreground '
                             : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >
@@ -1978,7 +1978,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         onClick={() => setExpenseForm((prev) => ({ ...prev, costType: 'client_project' }))}
                         className={`h-9 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
                           expenseForm.costType === 'client_project'
-                            ? 'bg-primary text-primary-foreground shadow-2xs'
+                            ? 'bg-primary text-primary-foreground '
                             : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >
@@ -1996,10 +1996,10 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'paid' }))}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                        className={`p-3 rounded-xl text-left transition-all cursor-pointer relative ${
                           expenseForm.paymentStatus === 'paid'
-                            ? 'bg-secondary border-foreground ring-2 ring-primary/20 shadow-2xs'
-                            : 'bg-card border-border hover:bg-muted/50'
+                            ? 'bg-secondary ring-2 ring-primary/20 '
+                            : 'bg-card hover:bg-muted/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -2015,10 +2015,10 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'partially_paid' }))}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                        className={`p-3 rounded-xl text-left transition-all cursor-pointer relative ${
                           expenseForm.paymentStatus === 'partially_paid'
-                            ? 'bg-secondary border-foreground ring-2 ring-primary/20 shadow-2xs'
-                            : 'bg-card border-border hover:bg-muted/50'
+                            ? 'bg-secondary ring-2 ring-primary/20 '
+                            : 'bg-card hover:bg-muted/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -2034,10 +2034,10 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => setExpenseForm((prev) => ({ ...prev, paymentStatus: 'unpaid' }))}
-                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative ${
+                        className={`p-3 rounded-xl text-left transition-all cursor-pointer relative ${
                           expenseForm.paymentStatus === 'unpaid'
-                            ? 'bg-secondary border-foreground ring-2 ring-primary/20 shadow-2xs'
-                            : 'bg-card border-border hover:bg-muted/50'
+                            ? 'bg-secondary ring-2 ring-primary/20 '
+                            : 'bg-card hover:bg-muted/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
@@ -2062,18 +2062,18 @@ export default function ExpensesSection({ onQuickAdd }) {
                       value={expenseForm.notes}
                       onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })}
                       placeholder="Optional notes, invoice reference, approval notes, or vendor payment arrangements..."
-                      className="w-full p-3.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs resize-none"
+                      className="w-full p-3.5 rounded-xl bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                     />
                   </div>
                 </form>
 
                 {/* Sticky Action Footer */}
-                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
+                <div className="shrink-0 p-4 sm:p-5 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
                   <div className="flex items-center gap-2.5 w-full sm:w-auto ml-auto">
                     <button
                       type="button"
                       onClick={() => setIsEditingExpenseInSidebar(false)}
-                      className="flex-1 sm:flex-initial h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer text-center"
+                      className="flex-1 sm:flex-initial h-11 px-5 rounded-xl bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer text-center"
                     >
                       Cancel
                     </button>
@@ -2081,7 +2081,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       type="submit"
                       form="edit-expense-sidebar-form"
                       disabled={updateExpense.isPending}
-                      className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                      className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     >
                       <Check className="h-4 w-4 shrink-0" />
                       <span>{updateExpense.isPending ? 'Saving Changes...' : 'Save Changes'}</span>
@@ -2091,7 +2091,7 @@ export default function ExpensesSection({ onQuickAdd }) {
               </>
             ) : (
               <>
-                <DialogHeader className="p-5 border-b border-border bg-muted/30 pr-12">
+                <DialogHeader className="p-5 bg-muted/30 pr-12">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -2099,8 +2099,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                         currentSelectedExpense.paymentStatus === 'paid'
                           ? 'bg-primary text-primary-foreground'
                           : currentSelectedExpense.paymentStatus === 'partially_paid'
-                          ? 'bg-secondary text-foreground border border-border'
-                          : 'bg-muted text-muted-foreground border border-border'
+                          ? 'bg-secondary text-foreground '
+                          : 'bg-muted text-muted-foreground '
                       }`}>
                         {currentSelectedExpense.paymentStatus === 'paid'
                           ? 'Paid / Cleared'
@@ -2115,8 +2115,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <DialogTitle className="text-base font-bold text-foreground">
                       {currentSelectedExpense.title}
                     </DialogTitle>
-                    <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                      {currentSelectedExpense.vendor ? `Payee: ${currentSelectedExpense.vendor}` : 'No payee assigned yet'} · {currentSelectedExpense.costType === 'client_project' ? 'Client Direct' : 'Agency Overhead'}
+                    <DialogDescription className="sr-only">
+                      Expense details
                     </DialogDescription>
                   </div>
                 </div>
@@ -2124,13 +2124,13 @@ export default function ExpensesSection({ onQuickAdd }) {
 
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 {/* Action Buttons Toolbar */}
-                <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-muted/40 border border-border">
+                <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-muted/40 ">
                   {currentExpBalance > 0 && (
                     <>
                       <button
                         type="button"
                         onClick={() => handleOpenAddPayment(currentSelectedExpense)}
-                        className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                        className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Plus className="h-3.5 w-3.5 shrink-0" />
                         <span>Add Payment</span>
@@ -2139,7 +2139,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         type="button"
                         onClick={() => payVendorBill.mutate({ id: currentSelectedExpense._id })}
                         disabled={payVendorBill.isPending}
-                        className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer disabled:opacity-50 tabular-nums"
+                        className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-secondary hover:bg-muted text-foreground font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 tabular-nums"
                         title={`Pay remaining balance of ${formatINR(currentExpBalance)}`}
                       >
                         <Check className="h-3.5 w-3.5 shrink-0" />
@@ -2151,7 +2151,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <button
                       type="button"
                       onClick={() => handleOpenAddPayment(currentSelectedExpense)}
-                      className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                      className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-card hover:bg-muted text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       title="Add an additional payment adjustment"
                     >
                       <Plus className="h-3.5 w-3.5 shrink-0" />
@@ -2161,7 +2161,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                   <button
                     type="button"
                     onClick={() => handleStartEditExpense(currentSelectedExpense)}
-                    className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                    className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-card hover:bg-muted text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Edit2 className="h-3.5 w-3.5 shrink-0" />
                     <span>Edit Details</span>
@@ -2174,7 +2174,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       await handleDeleteExpense(exp);
                     }}
                     disabled={deleteExpense.isPending}
-                    className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer sm:ml-auto"
+                    className="flex-1 sm:flex-initial min-h-[36px] px-3 py-1.5 rounded-lg bg-card hover:bg-muted text-muted-foreground hover:text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer sm:ml-auto"
                   >
                     <Trash2 className="h-3.5 w-3.5 shrink-0" />
                     <span>Delete</span>
@@ -2183,25 +2183,25 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                 {/* Primary Financial Overview Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                  <div className="p-3 rounded-xl bg-muted/40 ">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Billed</span>
                     <div className="text-base font-extrabold text-foreground mt-0.5 tabular-nums">
                       {formatINR(currentExpTotal)}
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                  <div className="p-3 rounded-xl bg-muted/40 ">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Cleared</span>
                     <div className="text-base font-extrabold text-foreground mt-0.5 tabular-nums">
                       {formatINR(currentExpPaid)}
                     </div>
                   </div>
-                  <div className={`p-3 rounded-xl border ${currentExpBalance > 0 ? 'bg-secondary border-foreground/30' : 'bg-muted/40 border-border'}`}>
+                  <div className={`p-3 rounded-xl ${currentExpBalance > 0 ? 'bg-secondary ' : 'bg-muted/40 '}`}>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pending Balance</span>
                     <div className={`text-base font-extrabold mt-0.5 tabular-nums ${currentExpBalance > 0 ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {formatINR(currentExpBalance)}
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                  <div className="p-3 rounded-xl bg-muted/40 ">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Category / Type</span>
                     <div className="text-xs font-bold text-foreground mt-1 truncate">
                       {formatExpenseCategory(currentSelectedExpense.category)}
@@ -2213,7 +2213,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* Settlement Progress Bar Strip */}
-                <div className="p-3.5 rounded-xl bg-muted/40 border border-border space-y-2">
+                <div className="p-3.5 rounded-xl bg-muted/40 space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-foreground flex items-center gap-1.5">
                       <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -2242,12 +2242,12 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* PAYMENTS & INSTALLMENTS LIST & INLINE ADD FORM */}
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="rounded-xl bg-card p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="font-bold text-foreground text-xs">Payments & Installments</span>
-                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground border border-border tabular-nums">
+                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-secondary text-foreground tabular-nums">
                         {displayedPayments.length}
                       </span>
                     </div>
@@ -2260,7 +2260,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           handleOpenAddPayment(currentSelectedExpense);
                         }
                       }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary hover:bg-muted text-foreground border border-border font-bold text-[11px] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary hover:bg-muted text-foreground font-bold text-[11px] transition-colors cursor-pointer"
                     >
                       <Plus className="h-3 w-3 shrink-0" />
                       {showAddPaymentForm ? 'Cancel' : 'Add Payment'}
@@ -2269,7 +2269,7 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                   {/* INLINE ADD PAYMENT FORM */}
                   {showAddPaymentForm && (
-                    <form onSubmit={handleAddPaymentSubmit} className="p-5 rounded-2xl bg-muted/40 border border-border space-y-5">
+                    <form onSubmit={handleAddPaymentSubmit} className="p-5 rounded-2xl bg-muted/40 space-y-5">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <span className="font-bold text-foreground text-sm flex items-center gap-1.5">
                           <Plus className="h-4 w-4 text-foreground shrink-0" />
@@ -2308,7 +2308,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           placeholder="e.g. 1500"
                           value={paymentFormData.amount}
                           onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: e.target.value })}
-                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 "
                         />
                       </div>
 
@@ -2322,7 +2322,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           value={paymentFormData.paymentDate}
                           onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentDate: e.target.value })}
                           onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 "
                         />
                       </div>
 
@@ -2333,7 +2333,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <select
                           value={paymentFormData.paymentMode}
                           onChange={(e) => setPaymentFormData({ ...paymentFormData, paymentMode: e.target.value })}
-                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                         >
                           <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
                           <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
@@ -2351,7 +2351,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <select
                           value={paymentFormData.fundingAccount}
                           onChange={(e) => setPaymentFormData({ ...paymentFormData, fundingAccount: e.target.value })}
-                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                         >
                           <option value="">Default / Not specified</option>
                           {accounts.map((acc) => (
@@ -2371,7 +2371,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           placeholder="e.g. UPI Ref / Cheque #"
                           value={paymentFormData.reference}
                           onChange={(e) => setPaymentFormData({ ...paymentFormData, reference: e.target.value })}
-                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                         />
                       </div>
 
@@ -2384,22 +2384,22 @@ export default function ExpensesSection({ onQuickAdd }) {
                           placeholder="e.g. 50% advance for shoot, balance payment..."
                           value={paymentFormData.notes}
                           onChange={(e) => setPaymentFormData({ ...paymentFormData, notes: e.target.value })}
-                          className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                          className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                         />
                       </div>
 
-                      <div className="flex items-center justify-end gap-3 pt-2">
+                      <div className="flex items-center justify-end gap-2.5 pt-2">
                         <button
                           type="button"
                           onClick={() => setShowAddPaymentForm(false)}
-                          className="h-10 px-4 rounded-xl border border-border bg-background hover:bg-muted text-foreground font-semibold text-xs cursor-pointer"
+                          className="h-11 px-5 rounded-xl bg-background hover:bg-muted text-foreground font-semibold text-sm cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
                           disabled={addExpensePayment.isPending}
-                          className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-2xs disabled:opacity-50 cursor-pointer"
+                          className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm disabled:opacity-50 cursor-pointer"
                         >
                           {addExpensePayment.isPending ? 'Recording...' : 'Save Payment'}
                         </button>
@@ -2409,7 +2409,7 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                   {/* TABLE / LIST OF PAYMENTS */}
                   {displayedPayments.length === 0 ? (
-                    <div className="p-4 rounded-xl border border-dashed border-border text-center bg-muted/30 space-y-1.5">
+                    <div className="p-4 rounded-xl text-center bg-muted/30 space-y-1.5">
                       <Clock className="h-6 w-6 text-muted-foreground mx-auto" />
                       <p className="text-xs font-semibold text-foreground">No payments recorded yet</p>
                       <p className="text-[11px] text-muted-foreground">
@@ -2418,16 +2418,16 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => handleOpenAddPayment(currentSelectedExpense)}
-                        className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer "
                       >
                         <Plus className="h-3 w-3 shrink-0" />
                         Record First Payment
                       </button>
                     </div>
                   ) : (
-                    <div className="responsive-table-container rounded-xl border border-border">
+                    <div className="responsive-table-container rounded-xl ">
                       <table className="w-full min-w-[450px] text-left text-xs">
-                        <thead className="bg-muted border-b border-border text-muted-foreground font-semibold text-[10px] uppercase">
+                        <thead className="bg-muted text-muted-foreground font-semibold text-[10px] uppercase">
                           <tr>
                             <th className="p-2.5">Date</th>
                             <th className="p-2.5">Mode</th>
@@ -2436,7 +2436,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                             <th className="p-2.5 text-right">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-border">
+                        <tbody className="divide-y divide-foreground/[0.05]">
                           {displayedPayments.map((pmt, idx) => (
                             <tr key={pmt._id || idx} className="hover:bg-muted/40 transition-colors">
                               <td className="p-2.5 font-medium text-muted-foreground whitespace-nowrap tabular-nums">
@@ -2444,7 +2444,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                               </td>
                               <td className="p-2.5">
                                 <div className="flex flex-col">
-                                  <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border text-[10px] font-semibold w-fit">
+                                  <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground text-[10px] font-semibold w-fit">
                                     {pmt.paymentMode || 'Bank'}
                                   </span>
                                   {(pmt.fundingAccount?.accountName || accounts.find((a) => String(a._id) === String(pmt.fundingAccount))?.accountName) && (
@@ -2483,7 +2483,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* Payee / Vendor Section */}
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="rounded-xl bg-card p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-foreground text-xs flex items-center gap-1.5">
                       <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -2506,7 +2506,7 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                   {currentSelectedExpense.vendor ? (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border">
+                      <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 ">
                         <div className="flex items-center gap-2">
                           <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground font-bold flex items-center justify-center text-xs shrink-0">
                             {currentSelectedExpense.vendor.charAt(0).toUpperCase()}
@@ -2519,7 +2519,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => handleStartEditExpense(currentSelectedExpense)}
-                          className="px-2 py-1 rounded bg-background text-foreground font-semibold text-[11px] border border-border hover:bg-muted cursor-pointer"
+                          className="px-2 py-1 rounded bg-background text-foreground font-semibold text-[11px] hover:bg-muted cursor-pointer"
                         >
                           Change Payee
                         </button>
@@ -2529,27 +2529,27 @@ export default function ExpensesSection({ onQuickAdd }) {
                       {relatedPayeeDetailsForExpense && (
                         <div>
                           <div className="grid grid-cols-3 gap-2 text-center mb-3 tabular-nums">
-                            <div className="p-2 rounded-lg bg-muted/40 border border-border">
+                            <div className="p-2 rounded-lg bg-muted/40 ">
                               <span className="text-[9px] uppercase font-bold text-muted-foreground block">Total Billed</span>
                               <span className="font-bold text-foreground text-xs mt-0.5 block">{formatINR(relatedPayeeDetailsForExpense.totalAmount)}</span>
                             </div>
-                            <div className="p-2 rounded-lg bg-muted/40 border border-border">
+                            <div className="p-2 rounded-lg bg-muted/40 ">
                               <span className="text-[9px] uppercase font-bold text-muted-foreground block">Cleared</span>
                               <span className="font-bold text-foreground text-xs mt-0.5 block">{formatINR(relatedPayeeDetailsForExpense.paidAmount)}</span>
                             </div>
-                            <div className="p-2 rounded-lg bg-secondary border border-border">
+                            <div className="p-2 rounded-lg bg-secondary ">
                               <span className="text-[9px] uppercase font-bold text-muted-foreground block">Pending</span>
                               <span className="font-bold text-foreground text-xs mt-0.5 block">{formatINR(relatedPayeeDetailsForExpense.pendingAmount)}</span>
                             </div>
                           </div>
 
-                          <div className="rounded-lg border border-border overflow-hidden">
-                            <div className="p-2 bg-muted/50 border-b border-border flex items-center justify-between">
+                          <div className="rounded-lg overflow-hidden">
+                            <div className="p-2 bg-muted/50 flex items-center justify-between">
                               <span className="font-bold text-foreground text-[10px] uppercase">
                                 Other Payments & Bills for {currentSelectedExpense.vendor} ({relatedPayeeDetailsForExpense.items.length})
                               </span>
                             </div>
-                            <div className="max-h-40 overflow-y-auto divide-y divide-border text-[11px]">
+                            <div className="max-h-40 overflow-y-auto divide-y divide-foreground/[0.05] text-[11px]">
                               {relatedPayeeDetailsForExpense.items.map((item) => (
                                 <div
                                   key={item._id}
@@ -2582,7 +2582,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       )}
                     </div>
                   ) : (
-                    <div className="p-3 rounded-lg bg-muted/40 border border-border space-y-2">
+                    <div className="p-3 rounded-lg bg-muted/40 space-y-2">
                       <div className="text-[11px] text-foreground font-semibold flex items-center gap-1.5">
                         <AlertCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span>No vendor/payee assigned to this expense</span>
@@ -2601,7 +2601,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                 });
                               } catch (_) {}
                             }}
-                            className="px-2 py-0.5 rounded-md bg-background border border-border hover:bg-muted text-foreground font-semibold text-[10px] shadow-2xs transition-colors cursor-pointer"
+                            className="px-2 py-0.5 rounded-md bg-background hover:bg-muted text-foreground font-semibold text-[10px] transition-colors cursor-pointer"
                           >
                             + {sug}
                           </button>
@@ -2613,7 +2613,7 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                 {/* Notes Block */}
                 {currentSelectedExpense.notes && (
-                  <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                  <div className="p-3 rounded-xl bg-muted/40 ">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                       Internal Remarks & Notes
                     </span>
@@ -2623,13 +2623,13 @@ export default function ExpensesSection({ onQuickAdd }) {
               </div>
 
               {/* Sticky Footer */}
-              <div className="p-4 border-t border-border bg-card flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="p-4 bg-card flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                   {currentExpBalance > 0 && (
                     <button
                       type="button"
                       onClick={() => handleOpenAddPayment(currentSelectedExpense)}
-                      className="flex-1 sm:flex-initial min-h-[36px] px-3.5 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                      className="flex-1 sm:flex-initial min-h-[36px] px-3.5 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5 shrink-0" />
                       <span>Add Payment</span>
@@ -2651,7 +2651,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <button
                   type="button"
                   onClick={() => setSelectedExpenseForSidebar(null)}
-                  className="w-full sm:w-auto min-h-[36px] px-4 py-2 rounded-lg border border-border text-foreground font-semibold text-xs hover:bg-muted cursor-pointer text-center"
+                  className="w-full sm:w-auto min-h-[36px] px-4 py-2 rounded-lg text-foreground font-semibold text-xs hover:bg-muted cursor-pointer text-center"
                 >
                   Close
                 </button>
@@ -2665,24 +2665,24 @@ export default function ExpensesSection({ onQuickAdd }) {
             isOverallPaying ? (
               <>
                 {/* ── OVERALL SETTLEMENT PAY FORM ── */}
-                <DialogHeader className="p-5 border-b border-border bg-muted/30 pr-12">
+                <DialogHeader className="p-5 bg-muted/30 pr-12">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={() => setIsOverallPaying(false)}
-                        className="p-1.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                         title="Back to Ledger"
                       >
                         <ArrowLeft className="h-4 w-4 shrink-0" />
                       </button>
                       <div>
-                        <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                        <DialogTitle className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
                           <Wallet className="h-4 w-4 text-foreground shrink-0" />
                           <span>Overall Pay: {activePayeeDetails.name}</span>
                         </DialogTitle>
-                        <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                          Record a lump-sum payment to settle outstanding bills (FIFO: oldest bills cleared first)
+                        <DialogDescription className="sr-only">
+                          Record lump-sum payment
                         </DialogDescription>
                       </div>
                     </div>
@@ -2692,14 +2692,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                 <div className="flex-1 overflow-y-auto p-5 space-y-4">
                   {/* Overview Balance Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 tabular-nums">
-                    <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                    <div className="p-3.5 rounded-xl bg-muted/40 ">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Pending Balance</span>
                       <div className="text-xl font-extrabold text-foreground mt-0.5">{formatINR(activePayeeDetails.pendingAmount)}</div>
                       <div className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                         {unpaidBillsForActivePayee.length} unpaid / partially paid bills pending
                       </div>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-secondary border border-border flex flex-col justify-between">
+                    <div className="p-3.5 rounded-xl bg-secondary flex flex-col justify-between">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Settlement Allocation</span>
                       <div className="text-xl font-extrabold text-foreground mt-0.5">
                         {Number(overallPayFormData.amount) > 0 ? formatINR(Number(overallPayFormData.amount)) : '₹0.00'}
@@ -2753,7 +2753,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                           placeholder="0.00"
                           value={overallPayFormData.amount}
                           onChange={(e) => setOverallPayFormData({ ...overallPayFormData, amount: e.target.value })}
-                          className="h-11 w-full pl-8 pr-4 rounded-xl border border-border bg-background text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                          className="h-11 w-full pl-8 pr-4 rounded-xl bg-background text-sm font-bold text-foreground tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/20 "
                         />
                       </div>
                     </div>
@@ -2769,7 +2769,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         value={overallPayFormData.paymentDate}
                         onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentDate: e.target.value })}
                         onClick={(e) => { try { e.target.showPicker(); } catch (_) {} }}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground tabular-nums cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 "
                       />
                     </div>
 
@@ -2781,7 +2781,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <select
                         value={overallPayFormData.paymentMode}
                         onChange={(e) => setOverallPayFormData({ ...overallPayFormData, paymentMode: e.target.value })}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                        className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                       >
                         <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
                         <option value="Bank">Bank Transfer (NEFT/IMPS/RTGS)</option>
@@ -2800,7 +2800,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <select
                         value={overallPayFormData.fundingAccount}
                         onChange={(e) => setOverallPayFormData({ ...overallPayFormData, fundingAccount: e.target.value })}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs cursor-pointer"
+                        className="h-11 w-full rounded-xl bg-background px-4 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                       >
                         <option value="">Default / Not specified</option>
                         {accounts.map((acc) => (
@@ -2821,7 +2821,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         placeholder="e.g. UPI Ref / Cheque # / NEFT UTR"
                         value={overallPayFormData.reference}
                         onChange={(e) => setOverallPayFormData({ ...overallPayFormData, reference: e.target.value })}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                       />
                     </div>
 
@@ -2835,13 +2835,13 @@ export default function ExpensesSection({ onQuickAdd }) {
                         placeholder="e.g. Lump-sum shoot settlement, clearance notes..."
                         value={overallPayFormData.notes}
                         onChange={(e) => setOverallPayFormData({ ...overallPayFormData, notes: e.target.value })}
-                        className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-2xs"
+                        className="h-11 w-full rounded-xl bg-background px-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 "
                       />
                     </div>
 
                     {/* Card 3: FIFO Settlement Breakdown & Bill Clearance Preview */}
-                    <div className="rounded-xl border border-border overflow-hidden bg-card shadow-2xs">
-                      <div className="p-3 bg-muted/50 border-b border-border flex items-center justify-between">
+                    <div className="rounded-xl overflow-hidden bg-card ">
+                      <div className="p-3 bg-muted/50 flex items-center justify-between">
                         <span className="font-bold text-foreground text-[11px] uppercase tracking-wider flex items-center gap-1.5">
                           <History className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                           FIFO Bill Clearance Preview ({simulatedSettlement.length} pending bills)
@@ -2850,7 +2850,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       </div>
                       <div className="responsive-table-container max-h-[300px] overflow-y-auto text-xs">
                         <table className="w-full min-w-[600px] text-left">
-                          <thead className="bg-muted border-b border-border text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
+                          <thead className="bg-muted text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
                             <tr>
                               <th className="p-2.5">Priority</th>
                               <th className="p-2.5">Date</th>
@@ -2860,11 +2860,11 @@ export default function ExpensesSection({ onQuickAdd }) {
                               <th className="p-2.5 text-center">Status After Pay</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-border">
+                          <tbody className="divide-y divide-foreground/[0.05]">
                             {simulatedSettlement.map((item) => (
                               <tr key={item._id} className={item.allocated > 0 ? 'bg-muted/30' : ''}>
                                 <td className="p-2.5 tabular-nums">
-                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary text-foreground border border-border">
+                                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary text-foreground ">
                                     #{item.fifoIndex}
                                   </span>
                                 </td>
@@ -2881,7 +2881,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                     item.willBeStatus === 'paid'
                                       ? 'bg-primary text-primary-foreground font-bold'
                                       : item.willBeStatus === 'partially_paid'
-                                      ? 'bg-secondary text-foreground border border-border'
+                                      ? 'bg-secondary text-foreground '
                                       : 'bg-muted text-muted-foreground'
                                   }`}>
                                     {item.willBeStatus === 'paid' ? 'Paid' : item.willBeStatus === 'partially_paid' ? 'Partial' : 'Unpaid'}
@@ -2897,11 +2897,11 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* OVERALL PAY FOOTER */}
-                <div className="shrink-0 p-4 sm:p-5 border-t border-border bg-card flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 select-none">
+                <div className="shrink-0 p-4 sm:p-5 bg-card flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 select-none">
                   <button
                     type="button"
                     onClick={() => setIsOverallPaying(false)}
-                    className="w-full sm:w-auto h-11 px-5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer text-center"
+                    className="w-full sm:w-auto h-11 px-5 rounded-xl bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer text-center"
                   >
                     Back to Statement
                   </button>
@@ -2909,7 +2909,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     type="submit"
                     form="overall-pay-form"
                     disabled={payeeOverallPay.isPending || !Number(overallPayFormData.amount)}
-                    className="w-full sm:w-auto h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 tabular-nums"
+                    className="w-full sm:w-auto h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 tabular-nums"
                   >
                     <Wallet className="h-4 w-4 shrink-0" />
                     <span>
@@ -2922,15 +2922,15 @@ export default function ExpensesSection({ onQuickAdd }) {
               </>
             ) : (
               <>
-                <DialogHeader className="p-5 border-b border-border bg-muted/30 pr-12">
+                <DialogHeader className="p-5 bg-muted/30 pr-12">
                   <div className="flex items-center justify-between">
                     <div>
                       <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span>Payee Statement & Ledger: {activePayeeDetails.name}</span>
+                        <span>Payee Statement: {activePayeeDetails.name}</span>
                       </DialogTitle>
-                      <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                        Detailed payment ledger, clearance history, and pending balances
+                      <DialogDescription className="sr-only">
+                        Payee statement ledger
                       </DialogDescription>
                     </div>
                   </div>
@@ -2938,10 +2938,10 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                 <div className="flex-1 overflow-y-auto p-5 space-y-4">
                   {/* Active Date Scope & Export Statement Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 bg-muted/40 rounded-xl border border-border">
+                  <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 bg-muted/40 rounded-xl ">
                     <div className="flex items-center gap-2 text-xs">
                       <span className="font-semibold text-muted-foreground">Period:</span>
-                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground border border-border tabular-nums">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-secondary text-foreground tabular-nums">
                         {globalPeriod === 'this_month'
                           ? `This Month (${formatDateIST(fromDate)} – ${formatDateIST(toDate)})`
                           : globalPeriod === 'previous_month'
@@ -2959,14 +2959,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => setShowPayeeExportMenu((prev) => !prev)}
-                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg bg-background border border-border text-foreground font-bold text-xs hover:bg-muted shadow-2xs transition-colors cursor-pointer min-h-[36px]"
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg bg-background text-foreground font-bold text-xs hover:bg-muted transition-colors cursor-pointer min-h-[36px]"
                       >
                         <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span>Export Statement</span>
                         <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
                       </button>
                       {showPayeeExportMenu && (
-                        <div className="absolute right-0 mt-1 w-52 bg-card border border-border rounded-xl shadow-lg p-1.5 z-40 space-y-1">
+                        <div className="absolute right-0 mt-1 w-52 bg-popover rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-1.5 z-40 space-y-1">
                           <button
                             type="button"
                             onClick={() => {
@@ -3021,17 +3021,17 @@ export default function ExpensesSection({ onQuickAdd }) {
 
                   {/* KPI Cards Strip */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 tabular-nums">
-                    <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                    <div className="p-3 rounded-xl bg-muted/40 ">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Billed / Tasks</span>
                       <div className="text-lg font-bold text-foreground mt-0.5">{formatINR(payeeFilteredTotal)}</div>
                       <div className="text-[10px] text-muted-foreground mt-0.5">{displayedPayeeItems.length} entries in range</div>
                     </div>
-                    <div className="p-3 rounded-xl bg-muted/40 border border-border">
+                    <div className="p-3 rounded-xl bg-muted/40 ">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total Cleared / Paid</span>
                       <div className="text-lg font-bold text-foreground mt-0.5">{formatINR(payeeFilteredPaid)}</div>
                       <div className="text-[10px] text-muted-foreground mt-0.5">{payeeFilteredPaidCount} cleared</div>
                     </div>
-                    <div className={`p-3 rounded-xl border flex flex-col justify-between ${payeeFilteredPending > 0 ? 'bg-secondary border-foreground/30' : 'bg-muted/40 border-border'}`}>
+                    <div className={`p-3 rounded-xl flex flex-col justify-between ${payeeFilteredPending > 0 ? 'bg-secondary ' : 'bg-muted/40 '}`}>
                       <div>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pending to Pay</span>
@@ -3052,7 +3052,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => handleOpenOverallPay(activePayeeDetails, payeeFilteredPending)}
-                          className="mt-2.5 w-full py-1.5 px-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95"
+                          className="mt-2.5 w-full py-1.5 px-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
                           title={`Pay overall balance of ${formatINR(payeeFilteredPending)}`}
                         >
                           <Wallet className="h-3.5 w-3.5 shrink-0" />
@@ -3063,8 +3063,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                   </div>
 
                   {/* List of Transactions */}
-                  <div className="rounded-xl border border-border overflow-hidden bg-card">
-                    <div className="p-2.5 bg-muted/50 border-b border-border flex items-center justify-between">
+                  <div className="rounded-xl overflow-hidden bg-card">
+                    <div className="p-2.5 bg-muted/50 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-foreground text-[11px] uppercase tracking-wider">Payment Transactions</span>
                         <span className="text-[10px] text-muted-foreground tabular-nums">{displayedPayeeItems.length} records</span>
@@ -3073,7 +3073,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                         <button
                           type="button"
                           onClick={() => handleOpenOverallPay(activePayeeDetails, payeeFilteredPending)}
-                          className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] shadow-2xs transition-all flex items-center gap-1 cursor-pointer active:scale-95 tabular-nums"
+                          className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] transition-all flex items-center gap-1 cursor-pointer active:scale-95 tabular-nums"
                           title={`Settle ${formatINR(payeeFilteredPending)} across unpaid bills in range`}
                         >
                           <Wallet className="h-3 w-3 shrink-0" />
@@ -3088,14 +3088,14 @@ export default function ExpensesSection({ onQuickAdd }) {
                           <button
                             type="button"
                             onClick={resetDateFilter}
-                            className="px-3 py-1 text-xs font-semibold rounded-lg bg-secondary text-foreground hover:bg-muted border border-border cursor-pointer"
+                            className="px-3 py-1 text-xs font-semibold rounded-lg bg-secondary text-foreground hover:bg-muted cursor-pointer"
                           >
                             Reset Date Filter
                           </button>
                         </div>
                       ) : (
                         <table className="w-full min-w-[650px] text-left">
-                          <thead className="bg-muted border-b border-border text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
+                          <thead className="bg-muted text-muted-foreground font-semibold text-[10px] uppercase sticky top-0">
                             <tr>
                               <th className="p-2.5">Date</th>
                               <th className="p-2.5">Item / Description</th>
@@ -3105,7 +3105,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                               <th className="p-2.5 text-right">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-border">
+                          <tbody className="divide-y divide-foreground/[0.05]">
                             {displayedPayeeItems.map((item) => (
                               <tr
                                 key={item._id}
@@ -3125,7 +3125,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                 </td>
                                 <td className="p-2.5">
                                   <span
-                                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-foreground border border-border ${
+                                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium bg-secondary text-foreground ${
                                       ['rj', 'vj'].includes(item.category?.toLowerCase()) ? 'font-bold uppercase' : 'capitalize'
                                     }`}
                                   >
@@ -3137,8 +3137,8 @@ export default function ExpensesSection({ onQuickAdd }) {
                                     (item.calculatedStatus || item.paymentStatus) === 'paid'
                                       ? 'bg-primary text-primary-foreground'
                                       : (item.calculatedStatus || item.paymentStatus) === 'partially_paid'
-                                      ? 'bg-secondary text-foreground border border-border'
-                                      : 'bg-muted text-muted-foreground border border-border'
+                                      ? 'bg-secondary text-foreground '
+                                      : 'bg-muted text-muted-foreground '
                                   }`}>
                                     {(item.calculatedStatus || item.paymentStatus) === 'paid' ? 'Paid' : (item.calculatedStatus || item.paymentStatus) === 'partially_paid' ? 'Partial' : 'Unpaid'}
                                   </span>
@@ -3166,7 +3166,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                                           setSelectedExpenseForSidebar(item);
                                           handleOpenAddPayment(item);
                                         }}
-                                        className="px-2 py-0.5 rounded bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+                                        className="px-2 py-0.5 rounded bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-[10px] transition-colors cursor-pointer flex items-center gap-1"
                                         title="Add payment or pay this bill"
                                       >
                                         <Plus className="h-2.5 w-2.5 shrink-0" /> Pay / Add
@@ -3195,7 +3195,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                 </div>
 
                 {/* Sticky Footer */}
-                <div className="p-4 border-t border-border bg-card flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="p-4 bg-card flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5">
                   <button
                     type="button"
                     onClick={() => {
@@ -3211,7 +3211,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                       <button
                         type="button"
                         onClick={() => handleOpenOverallPay(activePayeeDetails, payeeFilteredPending)}
-                        className="flex-1 sm:flex-initial px-3.5 py-2 sm:py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 min-h-[36px] tabular-nums"
+                        className="flex-1 sm:flex-initial px-3.5 py-2 sm:py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 min-h-[36px] tabular-nums"
                       >
                         <Wallet className="h-3.5 w-3.5 shrink-0" />
                         <span>Overall Pay ({formatINR(payeeFilteredPending)})</span>
@@ -3220,7 +3220,7 @@ export default function ExpensesSection({ onQuickAdd }) {
                     <button
                       type="button"
                       onClick={() => setSelectedPayeeForLedger(null)}
-                      className="flex-1 sm:flex-initial px-4 py-2 sm:py-1.5 rounded-lg border border-border text-foreground font-semibold text-xs hover:bg-muted cursor-pointer min-h-[36px]"
+                      className="flex-1 sm:flex-initial px-4 py-2 sm:py-1.5 rounded-lg text-foreground font-semibold text-xs hover:bg-muted cursor-pointer min-h-[36px]"
                     >
                       Close
                     </button>

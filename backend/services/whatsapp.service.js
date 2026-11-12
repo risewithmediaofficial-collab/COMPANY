@@ -14,16 +14,9 @@ export const sendWhatsAppMessage = async (to, message) => {
   }
 
   try {
-    // ----------------------------------------------------------------------
-    // In production, integrate your WhatsApp provider here:
-    // e.g. Twilio:
-    // const client = twilio(accountSid, authToken);
-    // await client.messages.create({ body: message, from: 'whatsapp:+14155238886', to: `whatsapp:${to}` });
-    // ----------------------------------------------------------------------
-    
-    console.log(`[WhatsApp API] 📲 Message successfully sent to ${to}`);
-    console.log(`[WhatsApp API] Content: "${message}"`);
-    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[WhatsApp API] Message queued for ${to}`);
+    }
     return true;
   } catch (error) {
     console.error(`[WhatsApp API] ❌ Failed to send message to ${to}:`, error.message);

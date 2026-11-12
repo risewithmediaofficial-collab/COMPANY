@@ -49,8 +49,8 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
   }, [filters.client]);
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 shadow-xs mb-4 sm:mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/50 pb-2.5 sm:pb-3 mb-2.5 sm:mb-3">
+    <div className="bg-card rounded-2xl p-3.5 sm:p-4 mb-4 sm:mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2.5 sm:pb-3 mb-2.5 sm:mb-3">
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-primary sm:w-[18px] sm:h-[18px]" />
           <h3 className="font-semibold text-xs sm:text-sm text-foreground">Marketing Filters</h3>
@@ -63,14 +63,14 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="sm:hidden flex items-center gap-1 text-[11px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg border border-border"
+            className="sm:hidden flex items-center gap-1 text-[11px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg"
           >
             <span>{mobileOpen ? 'Hide' : 'Show'} Filters</span>
             {mobileOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
           <button
             onClick={onReset}
-            className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors font-medium px-2 sm:px-2.5 py-1 rounded-lg border border-border hover:bg-secondary"
+            className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors font-medium px-2 sm:px-2.5 py-1 rounded-lg bg-secondary/70 hover:bg-secondary cursor-pointer"
           >
             <RefreshCw size={12} />
             <span>Reset</span>
@@ -90,7 +90,7 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
               onFilterChange('client', e.target.value);
               onFilterChange('project', '');
             }}
-            className="w-full h-9 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all"
+            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
           >
             <option value="">All Clients (Agency View)</option>
             {clients.map((c) => (
@@ -110,7 +110,7 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
             value={filters.project || ''}
             onChange={(e) => onFilterChange('project', e.target.value)}
             disabled={loadingProjects}
-            className="w-full h-9 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all disabled:opacity-50"
+            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors disabled:opacity-50 cursor-pointer"
           >
             <option value="">All Projects</option>
             {projects.map((p) => (
@@ -129,7 +129,7 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
           <select
             value={filters.platform || ''}
             onChange={(e) => onFilterChange('platform', e.target.value)}
-            className="w-full h-9 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all"
+            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
           >
             <option value="">All Platforms</option>
             <option value="Instagram">Instagram</option>
@@ -148,7 +148,7 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
           <select
             value={filters.contentType || ''}
             onChange={(e) => onFilterChange('contentType', e.target.value)}
-            className="w-full h-9 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all"
+            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
           >
             <option value="">All Content</option>
             <option value="Reel">Reel</option>
@@ -166,7 +166,7 @@ export const SMMFilterBar = ({ filters, onFilterChange, onReset }) => {
           <select
             value={filters.campaignStatus || ''}
             onChange={(e) => onFilterChange('campaignStatus', e.target.value)}
-            className="w-full h-9 px-3 text-xs bg-background border border-input rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-hidden transition-all"
+            className="w-full h-9 px-3 text-xs bg-background rounded-xl focus:ring-2 focus:ring-brand/40 outline-none transition-colors cursor-pointer"
           >
             <option value="">All Statuses</option>
             <option value="Draft">Draft</option>

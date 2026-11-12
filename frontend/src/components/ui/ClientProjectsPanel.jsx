@@ -1,39 +1,41 @@
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, IndianRupee, Plus, TrendingUp } from '@/components/ui/muiIcons';
+import { FolderOpen, Plus, Calendar, ListChecks, ArrowRight } from '@/components/ui/muiIcons';
 import { useProjects } from '../../hooks/useProjects';
-import { formatINR } from '../../utils/currency';
+import { getProjectCategoryMeta } from '../../utils/projectCategories';
 import { Button } from './button';
 import { Badge } from './badge';
 
 /**
- * ClientProjectsPanel - Display all projects for a client with quick actions
+ * ClientProjectsPanel - Display all projects & task delivery status for a client (no revenue/budget clutter)
  */
 const ClientProjectsPanel = ({ clientId, clientName, onAddProject }) => {
   const navigate = useNavigate();
   const { data: projects = [], isLoading } = useProjects({ client: clientId, limit: 50 });
 
   const statusColor = {
-    planning: 'bg-secondary text-foreground border border-border',
+    planning: 'bg-secondary text-foreground',
+    Planning: 'bg-secondary text-foreground',
     active: 'bg-primary text-primary-foreground',
-    on_hold: 'bg-muted text-foreground border border-border',
-    completed: 'bg-secondary/70 text-muted-foreground border border-border',
-    cancelled: 'bg-muted text-muted-foreground border border-border line-through',
+    'In Progress': 'bg-primary text-primary-foreground',
+    on_hold: 'bg-muted text-foreground',
+    'On Hold': 'bg-muted text-foreground',
+    completed: 'bg-secondary/80 text-foreground',
+    Completed: 'bg-secondary/80 text-foreground',
+    cancelled: 'bg-muted text-muted-foreground line-through',
+    Cancelled: 'bg-muted text-muted-foreground line-through',
   };
 
-  const priorityColor = {
-    low: 'text-muted-foreground',
-    medium: 'text-foreground/80',
-    high: 'text-foreground',
-    urgent: 'text-foreground font-bold',
-  };
-
-  const activeProjects = projects.filter((p) => p.status === 'active' || p.status === 'In Progress');
-  const completedProjects = projects.filter((p) => p.status === 'completed');
-  const totalBudget = projects.reduce((sum, p) => sum + (p.budget || 0), 0);
+  const totalTasks = projects.reduce((sum, p) => sum + (p.totalTasks || 0), 0);
+  const ongoingTasks = projects.reduce((sum, p) => sum + (p.ongoingTasks || 0), 0);
+  const completedTasks = projects.reduce((sum, p) => sum + (p.completedTasks ?? p.doneTasks ?? 0), 0);
+  const pendingTasks = projects.reduce(
+    (sum, p) => sum + (p.pendingTasks ?? Math.max(0, (p.totalTasks || 0) - (p.ongoingTasks || 0) - (p.completedTasks ?? p.doneTasks ?? 0))),
+    0
+  );
 
   if (isLoading) {
     return (
-      <div className="bg-card rounded-3xl border border-border shadow-sm p-6">
+      <div className="bg-card rounded-3xl p-6">
         <div className="flex items-center justify-center h-48">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -42,37 +44,43 @@ const ClientProjectsPanel = ({ clientId, clientName, onAddProject }) => {
   }
 
   return (
-    <div className="bg-card rounded-3xl border border-border shadow-sm p-6 space-y-6">
+    <div className="bg-card rounded-3xl p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-secondary border border-border">
+          <div className="p-2.5 rounded-xl bg-background">
             <FolderOpen size={20} className="text-foreground shrink-0" />
           </div>
           <div>
-            <h3 className="font-bold text-lg">Projects</h3>
-            <p className="text-sm text-muted-foreground tabular-nums">{projects.length} projects for {clientName}</p>
+            <h3 className="font-bold text-lg">Projects & Task Overview</h3>
+            <p className="text-sm text-muted-foreground tabular-nums">
+              {projects.length} {projects.length === 1 ? 'project' : 'projects'} for {clientName}
+            </p>
           </div>
         </div>
-        <Button onClick={onAddProject} size="sm" className="gap-2">
+        <Button onClick={onAddProject} size="sm" className="gap-2 cursor-pointer">
           <Plus size={16} className="shrink-0" />
           New Project
         </Button>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-          <div className="text-xs text-muted-foreground mb-1">Active</div>
-          <div className="text-2xl font-bold text-foreground tabular-nums">{activeProjects.length}</div>
+      {/* Task Pipeline Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 tabular-nums">
+        <div className="p-3.5 rounded-2xl bg-background">
+          <div className="text-xs font-medium text-muted-foreground mb-1">Tasks Available</div>
+          <div className="text-2xl font-bold text-foreground">{totalTasks}</div>
         </div>
-        <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-          <div className="text-xs text-muted-foreground mb-1">Completed</div>
-          <div className="text-2xl font-bold text-foreground tabular-nums">{completedProjects.length}</div>
+        <div className="p-3.5 rounded-2xl bg-background">
+          <div className="text-xs font-medium text-muted-foreground mb-1">Ongoing</div>
+          <div className="text-2xl font-bold text-foreground">{ongoingTasks}</div>
         </div>
-        <div className="p-3 rounded-lg bg-secondary/50 border border-border">
-          <div className="text-xs text-muted-foreground mb-1">Total Budget</div>
-          <div className="text-lg font-bold truncate text-foreground tabular-nums">{formatINR(totalBudget)}</div>
+        <div className="p-3.5 rounded-2xl bg-background">
+          <div className="text-xs font-medium text-muted-foreground mb-1">Pending</div>
+          <div className="text-2xl font-bold text-foreground">{pendingTasks}</div>
+        </div>
+        <div className="p-3.5 rounded-2xl bg-background">
+          <div className="text-xs font-medium text-muted-foreground mb-1">Completed</div>
+          <div className="text-2xl font-bold text-foreground">{completedTasks}</div>
         </div>
       </div>
 
@@ -86,44 +94,74 @@ const ClientProjectsPanel = ({ clientId, clientName, onAddProject }) => {
           </Button>
         </div>
       ) : (
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {projects.map((project) => (
-            <button
-              key={project._id}
-              onClick={() => navigate(`/projects/${project._id}`)}
-              className="w-full p-4 rounded-lg border border-border hover:bg-secondary/50 transition-colors text-left space-y-2"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold truncate">{project.name}</h4>
-                  <p className="text-xs text-muted-foreground truncate">{project.description}</p>
-                </div>
-                <Badge className={statusColor[project.status]}>
-                  {project.status.replace('_', ' ')}
-                </Badge>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {projects.map((project) => {
+            const catMeta = getProjectCategoryMeta(project.category);
+            const CatIcon = catMeta.icon;
+            const pTotal = project.totalTasks || 0;
+            const pOngoing = project.ongoingTasks || 0;
+            const pCompleted = project.completedTasks ?? project.doneTasks ?? 0;
+            const pPending = project.pendingTasks ?? Math.max(0, pTotal - pOngoing - pCompleted);
+            const pProgress = project.progress || 0;
+            const endDateVal = project.endDate || project.dueDate;
 
-              <div className="flex items-center justify-between text-sm pt-2 border-t border-border/50">
-                <div className="flex items-center gap-3">
-                  {project.budget > 0 && (
-                    <div className="flex items-center gap-1 text-muted-foreground tabular-nums">
-                      <IndianRupee size={14} className="shrink-0" />
-                      <span>{formatINR(project.budget)}</span>
+            return (
+              <button
+                key={project._id}
+                type="button"
+                onClick={() => navigate(`/projects/${project._id}`)}
+                className="w-full p-4 rounded-2xl bg-background hover:bg-secondary/70 transition-colors text-left space-y-3 cursor-pointer group"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-secondary text-foreground">
+                        <CatIcon size={11} className="shrink-0" />
+                        <span>{catMeta.shortLabel || catMeta.label}</span>
+                      </span>
+                      <Badge className={statusColor[project.status] || 'bg-secondary text-foreground'}>
+                        {String(project.status || 'Planning').replace('_', ' ')}
+                      </Badge>
                     </div>
-                  )}
-                  {project.progress > 0 && (
-                    <div className="flex items-center gap-1 text-muted-foreground tabular-nums">
-                      <TrendingUp size={14} className="shrink-0" />
-                      <span>{project.progress}%</span>
-                    </div>
-                  )}
+                    <h4 className="font-bold text-sm text-foreground truncate pt-0.5">{project.name}</h4>
+                  </div>
+                  <ArrowRight size={15} className="text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
                 </div>
-                <span className={`text-xs font-semibold capitalize ${priorityColor[project.priority]}`}>
-                  {project.priority}
-                </span>
-              </div>
-            </button>
-          ))}
+
+                {/* Dates */}
+                <div className="flex items-center gap-4 text-[11px] text-muted-foreground tabular-nums flex-wrap">
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar size={11} className="shrink-0" />
+                    <span>
+                      Start: <strong className="text-foreground font-semibold">{project.startDate ? new Date(project.startDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</strong>
+                    </span>
+                  </span>
+                  <span>
+                    End: <strong className="text-foreground font-semibold">{endDateVal ? new Date(endDateVal).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Ongoing'}</strong>
+                  </span>
+                </div>
+
+                {/* Task Completion & Breakdown */}
+                <div className="space-y-1.5 pt-0.5 tabular-nums">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="inline-flex items-center gap-1 font-semibold text-foreground">
+                      <ListChecks size={12} className="text-muted-foreground shrink-0" />
+                      <span>{pTotal} {pTotal === 1 ? 'task' : 'tasks'}</span>
+                    </span>
+                    <span className="text-muted-foreground font-medium">
+                      {pOngoing} ongoing · {pPending} pending · {pCompleted} done ({pProgress}%)
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-foreground transition-all duration-300"
+                      style={{ width: `${Math.min(pProgress, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

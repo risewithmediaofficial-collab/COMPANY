@@ -40,11 +40,11 @@ export function WorkspacePage({
   className = '',
 }) {
   const toneClasses = {
-    neutral: 'bg-secondary/70 text-foreground border-border',
-    success: 'bg-secondary/70 text-foreground border-border',
-    warning: 'bg-secondary/70 text-foreground border-border',
-    danger: 'bg-zinc-900 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900 border-border',
-    info: 'bg-secondary/70 text-foreground border-border',
+    neutral: 'bg-background text-foreground',
+    success: 'bg-background text-foreground',
+    warning: 'bg-background text-foreground',
+    danger: 'bg-zinc-900 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900',
+    info: 'bg-background text-foreground',
   };
 
   const isIconComponent =
@@ -52,12 +52,12 @@ export function WorkspacePage({
     (typeof icon === 'object' && icon !== null && ('render' in icon || '$$typeof' in icon));
 
   return (
-    <div className={`space-y-5 animate-in fade-in duration-300 ${className}`}>
+    <div className={`space-y-6 animate-in fade-in duration-300 ${className}`}>
       {/* Workspace Header Block */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-border">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-1">
+        <div className="flex items-center gap-3.5 min-w-0">
           {isIconComponent ? (
-            <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shadow-xs">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-card text-foreground">
               {renderIconHelper(icon, { size: 22 })}
             </div>
           ) : icon ? (
@@ -69,7 +69,7 @@ export function WorkspacePage({
           ) : null}
 
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground break-words">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground break-words">
               {title}
             </h1>
           </div>
@@ -81,7 +81,7 @@ export function WorkspacePage({
 
       {/* Notion-Style Properties & Metrics Banner */}
       {properties && (
-        <div className="flex flex-wrap items-center gap-2 p-2.5 bg-secondary/20 rounded-2xl border border-border/60 text-xs">
+        <div className="flex flex-wrap items-center gap-2 p-2.5 bg-card rounded-2xl text-xs">
           {Array.isArray(properties) ? (
             properties.map((prop, idx) => {
               if (!prop) return null;
@@ -89,7 +89,7 @@ export function WorkspacePage({
               return (
                 <div
                   key={prop.label || idx}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs ${
                     toneClasses[tone] || toneClasses.neutral
                   }`}
                 >

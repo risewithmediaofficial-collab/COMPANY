@@ -41,13 +41,13 @@ export const InfluencerDetailModal = ({
         size="lg"
         noPadding
         hideCloseButton
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl max-w-2xl max-h-[90vh]"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-card max-w-2xl max-h-[90vh]"
       >
         {/* Pinned Sticky Header */}
-        <DialogHeader className="px-6 py-5 border-b border-border bg-card shrink-0 select-none">
+        <DialogHeader className="px-6 py-5 bg-card shrink-0 select-none">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-secondary text-foreground shrink-0">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0">
                 <Sparkles size={20} className="shrink-0" />
               </div>
               <div>
@@ -63,7 +63,7 @@ export const InfluencerDetailModal = ({
               <StatusBadge tone="neutral">
                 {influencer.influencerType}
               </StatusBadge>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted border border-border rounded-md">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded-md">
                 ESC
               </span>
               <DialogClose className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
@@ -77,19 +77,19 @@ export const InfluencerDetailModal = ({
         <div className="space-y-6 p-6 sm:p-7 overflow-y-auto flex-1 min-h-0 custom-scrollbar overscroll-contain">
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-3 gap-3 text-center text-xs">
-            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/40">
+            <div className="p-3.5 rounded-2xl bg-muted/40 ">
               <span className="text-[10px] text-muted-foreground block font-semibold uppercase tracking-wider">Category</span>
               <span className="font-bold text-foreground text-sm mt-0.5 block">{influencer.category || 'Niche'}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/40">
+            <div className="p-3.5 rounded-2xl bg-muted/40 ">
               <span className="text-[10px] text-muted-foreground block font-semibold uppercase tracking-wider">Followers</span>
               <span className="font-bold text-foreground text-sm mt-0.5 block tabular-nums">
                 {(influencer.followersCount || 0).toLocaleString('en-IN')}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/40">
+            <div className="p-3.5 rounded-2xl bg-muted/40 ">
               <span className="text-[10px] text-muted-foreground block font-semibold uppercase tracking-wider">Engagement</span>
               <span className="font-bold text-foreground text-sm mt-0.5 block tabular-nums">
                 {influencer.engagementRate || 0}%
@@ -98,7 +98,7 @@ export const InfluencerDetailModal = ({
           </div>
 
           {/* Location & Rating */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border/60 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-card text-xs">
             <div className="flex items-center gap-2.5">
               <MapPin className="h-4 w-4 text-foreground shrink-0" />
               <div>
@@ -107,34 +107,34 @@ export const InfluencerDetailModal = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 bg-secondary px-3.5 py-1.5 rounded-xl border border-border">
+            <div className="flex items-center gap-1.5 bg-secondary px-3.5 py-1.5 rounded-xl ">
               <Star className="h-4 w-4 fill-foreground text-foreground shrink-0" />
               <span className="font-bold text-foreground text-sm tabular-nums">{influencer.rating || 5}.0 Stars</span>
             </div>
           </div>
 
           {/* Commercial Rate Card */}
-          <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-3">
+          <div className="rounded-2xl bg-card p-5 space-y-3">
             <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
               <IndianRupee className="h-4 w-4 text-foreground shrink-0" /> Commercial Rate Card
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
-              <div className="p-3 rounded-xl bg-background border border-border/40">
+              <div className="p-3 rounded-xl bg-background ">
                 <span className="text-[10px] text-muted-foreground block">Reel Cost</span>
                 <span className="font-bold text-foreground text-sm mt-0.5 block tabular-nums">₹{(influencer.pricing?.reelCost || 0).toLocaleString('en-IN')}</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-background border border-border/40">
+              <div className="p-3 rounded-xl bg-background ">
                 <span className="text-[10px] text-muted-foreground block">Story Cost</span>
                 <span className="font-bold text-foreground text-sm mt-0.5 block tabular-nums">₹{(influencer.pricing?.storyCost || 0).toLocaleString('en-IN')}</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-background border border-border/40">
+              <div className="p-3 rounded-xl bg-background ">
                 <span className="text-[10px] text-muted-foreground block">Post Cost</span>
                 <span className="font-bold text-foreground text-sm mt-0.5 block tabular-nums">₹{(influencer.pricing?.postCost || 0).toLocaleString('en-IN')}</span>
               </div>
 
-              <div className="p-3 rounded-xl bg-background border border-border/40">
+              <div className="p-3 rounded-xl bg-background ">
                 <span className="text-[10px] text-muted-foreground block">Event Appearance</span>
                 <span className="font-bold text-foreground text-sm mt-0.5 block tabular-nums">₹{(influencer.pricing?.eventCost || 0).toLocaleString('en-IN')}</span>
               </div>
@@ -142,7 +142,7 @@ export const InfluencerDetailModal = ({
           </div>
 
           {/* Contact Details & Links */}
-          <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-3.5 text-xs">
+          <div className="rounded-2xl bg-card p-5 space-y-3.5 text-xs">
             <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
               <Phone className="h-4 w-4 text-foreground shrink-0" /> Contact &amp; Links
             </h4>
@@ -161,13 +161,13 @@ export const InfluencerDetailModal = ({
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2.5 pt-2 border-t border-border/40">
+            <div className="flex flex-wrap gap-2.5 pt-2 ">
               {influencer.profileUrl ? (
                 <a
                   href={influencer.profileUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary border border-border text-foreground text-xs font-bold hover:underline"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary text-foreground text-xs font-bold hover:underline"
                 >
                   <ExternalLink className="h-3.5 w-3.5 shrink-0" /> Social Profile Link
                 </a>
@@ -178,7 +178,7 @@ export const InfluencerDetailModal = ({
                   href={influencer.mediaKitUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary border border-border text-foreground text-xs font-bold hover:underline"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary text-foreground text-xs font-bold hover:underline"
                 >
                   <FileText className="h-3.5 w-3.5 shrink-0" /> Media Kit Drive Link
                 </a>
@@ -188,7 +188,7 @@ export const InfluencerDetailModal = ({
 
           {/* Notes */}
           {influencer.notes ? (
-            <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-1.5 text-xs">
+            <div className="rounded-2xl bg-card p-5 space-y-1.5 text-xs">
               <h4 className="text-xs font-bold text-foreground">Internal Notes &amp; History</h4>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{influencer.notes}</p>
             </div>
@@ -196,12 +196,12 @@ export const InfluencerDetailModal = ({
         </div>
 
         {/* Pinned Sticky Footer */}
-        <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+        <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
           <div className="flex items-center gap-2.5">
             <Button size="sm" variant="outline" className="h-11 px-4 rounded-xl font-semibold text-sm" onClick={() => { onOpenChange(false); onEdit(influencer); }}>
               <Pencil className="h-4 w-4 mr-1.5 shrink-0" /> Edit Profile
             </Button>
-            <Button size="sm" variant="outline" className="h-11 px-4 rounded-xl font-semibold text-sm text-foreground border-border hover:bg-secondary" onClick={() => { onOpenChange(false); onDelete(influencer); }}>
+            <Button size="sm" variant="outline" className="h-11 px-4 rounded-xl font-semibold text-sm text-foreground hover:bg-secondary" onClick={() => { onOpenChange(false); onDelete(influencer); }}>
               <Trash2 className="h-4 w-4 mr-1.5 shrink-0" /> Delete
             </Button>
           </div>

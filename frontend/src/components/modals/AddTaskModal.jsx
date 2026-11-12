@@ -675,11 +675,11 @@ export const AddTaskModal = ({
         {/* ========================================================
             CARD HEADER & TITLE (Minimalist & Focused Kanban Style)
            ======================================================== */}
-        <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs space-y-3.5 transition-all">
+        <div className="rounded-2xl bg-card p-4 sm:p-5 space-y-3.5 transition-all">
           {/* Top meta pill row: Status & Priority */}
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary border border-border text-foreground text-xs font-bold">
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary text-foreground text-xs font-bold">
                 <FileText size={13} className="shrink-0" />
               </span>
               <span className="text-xs font-bold text-foreground uppercase tracking-wider">
@@ -694,7 +694,7 @@ export const AddTaskModal = ({
                 name="status"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="h-8 rounded-full px-3 text-xs font-bold bg-secondary/60 border-border hover:bg-secondary transition-colors">
+                    <SelectTrigger className="h-8 rounded-full px-3 text-xs font-bold bg-secondary/60 hover:bg-secondary transition-colors">
                       <span className="inline-block w-2 h-2 rounded-full bg-foreground mr-1.5 shrink-0" />
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
@@ -716,13 +716,13 @@ export const AddTaskModal = ({
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger
-                      className={`h-8 rounded-full px-3 text-xs font-bold border transition-colors ${field.value === 'Urgent'
-                          ? 'bg-primary text-primary-foreground border-primary'
+                      className={`h-8 rounded-full px-3 text-xs font-bold transition-colors ${field.value === 'Urgent'
+                          ? 'bg-primary text-primary-foreground '
                           : field.value === 'High'
-                            ? 'bg-secondary text-foreground border-foreground/40'
+                            ? 'bg-secondary text-foreground '
                             : field.value === 'Medium'
-                              ? 'bg-secondary/70 text-foreground border-border'
-                              : 'bg-muted text-muted-foreground border-border'
+                              ? 'bg-secondary/70 text-foreground '
+                              : 'bg-muted text-muted-foreground '
                         }`}
                     >
                       <SelectValue placeholder="Priority" />
@@ -749,7 +749,7 @@ export const AddTaskModal = ({
                 <FormControl>
                   <Input
                     placeholder="What needs to be done? Enter task title..."
-                    className="h-11 sm:h-12 text-base sm:text-lg font-bold rounded-xl bg-background border-border/80 px-3.5 focus-visible:ring-2 focus-visible:ring-primary/20 placeholder:text-muted-foreground/45 transition-all"
+                    className="h-11 sm:h-12 text-base sm:text-lg font-bold rounded-xl bg-background px-3.5 focus-visible:ring-2 focus-visible:ring-primary/20 placeholder:text-muted-foreground/45 transition-all"
                     {...field}
                     autoFocus={!pageMode}
                   />
@@ -763,7 +763,7 @@ export const AddTaskModal = ({
         {/* ========================================================
             CORE PROPERTIES GRID (Clean, Minimalist, In Natural Order)
            ======================================================== */}
-        <div className="rounded-2xl border border-border/70 bg-card p-4 sm:p-5 shadow-xs space-y-4">
+        <div className="rounded-2xl bg-card p-4 sm:p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {/* 1. Main Lead Assignee */}
             <FormField
@@ -771,7 +771,7 @@ export const AddTaskModal = ({
               name="assignedTo"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-xs font-bold text-foreground/90 flex items-center gap-1.5">
+                  <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                     <Users size={13} className="text-primary" /> Assignee
                   </FormLabel>
                   <Select
@@ -779,7 +779,7 @@ export const AddTaskModal = ({
                     value={field.value || '_none'}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-9 rounded-xl text-xs bg-background border-border">
+                      <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                         <SelectValue placeholder="Assign team member" />
                       </SelectTrigger>
                     </FormControl>
@@ -788,7 +788,7 @@ export const AddTaskModal = ({
                         — Unassigned —
                       </SelectItem>
                       {assignableUsers.map((user) => (
-                        <SelectItem key={user._id} value={user._id} className="text-xs">
+                        <SelectItem key={user._id} value={user._id} className="text-sm">
                           {user.name} ({user.role})
                         </SelectItem>
                       ))}
@@ -805,13 +805,13 @@ export const AddTaskModal = ({
               name="dueDate"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-xs font-bold text-foreground/90 flex items-center gap-1.5">
+                  <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                     <Calendar size={13} className="text-foreground shrink-0" /> Due Date
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
-                      className="h-9 rounded-xl text-xs tabular-nums bg-background border-border"
+                      className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background"
                       {...field}
                     />
                   </FormControl>
@@ -821,24 +821,24 @@ export const AddTaskModal = ({
             />
 
             {/* 2b. Task Completion Timer & Due Time */}
-            <div className="col-span-full rounded-2xl border border-border bg-secondary/40 p-3.5 space-y-2.5">
+            <div className="col-span-full rounded-2xl bg-secondary/40 p-3.5 space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                  <Clock size={13} className="text-foreground shrink-0" /> Completion Timer &amp; Duration
+                <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  <Clock size={14} className="text-foreground shrink-0" /> Completion Timer &amp; Duration
                 </span>
-                <span className="text-[10px] text-muted-foreground font-semibold">
+                <span className="text-[11px] text-muted-foreground font-medium">
                   Timer begins when employee accepts the task
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {/* Allocated Hours */}
                 <FormField
                   control={form.control}
                   name="allocatedHours"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-[11px] font-semibold text-muted-foreground">
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-sm font-semibold text-foreground">
                         Timer Hours
                       </FormLabel>
                       <FormControl>
@@ -848,11 +848,11 @@ export const AddTaskModal = ({
                             min={0}
                             max={99}
                             placeholder="0"
-                            className="h-8 rounded-xl text-xs tabular-nums bg-background border-border pr-8"
+                            className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background pr-10"
                             {...field}
                             onChange={(e) => field.onChange(Math.max(0, parseInt(e.target.value, 10) || 0))}
                           />
-                          <span className="absolute right-2.5 top-2 text-[10px] text-muted-foreground font-bold pointer-events-none">hrs</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">hrs</span>
                         </div>
                       </FormControl>
                     </FormItem>
@@ -864,8 +864,8 @@ export const AddTaskModal = ({
                   control={form.control}
                   name="allocatedMinutes"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-[11px] font-semibold text-muted-foreground">
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-sm font-semibold text-foreground">
                         Timer Minutes
                       </FormLabel>
                       <FormControl>
@@ -875,11 +875,11 @@ export const AddTaskModal = ({
                             min={0}
                             max={59}
                             placeholder="0"
-                            className="h-8 rounded-xl text-xs tabular-nums bg-background border-border pr-9"
+                            className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background pr-12"
                             {...field}
                             onChange={(e) => field.onChange(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
                           />
-                          <span className="absolute right-2.5 top-2 text-[10px] text-muted-foreground font-bold pointer-events-none">mins</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-semibold pointer-events-none">mins</span>
                         </div>
                       </FormControl>
                     </FormItem>
@@ -891,14 +891,14 @@ export const AddTaskModal = ({
                   control={form.control}
                   name="dueTime"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-[11px] font-semibold text-muted-foreground">
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-sm font-semibold text-foreground">
                         Exact Due Time (Optional)
                       </FormLabel>
                       <FormControl>
                         <Input
                           type="time"
-                          className="h-8 rounded-xl text-xs tabular-nums bg-background border-border"
+                          className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background"
                           {...field}
                         />
                       </FormControl>
@@ -909,7 +909,7 @@ export const AddTaskModal = ({
 
               {/* Quick Duration Preset Chips */}
               <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase mr-1">Quick:</span>
+                <span className="text-[11px] font-semibold text-muted-foreground mr-1">Quick:</span>
                 {[
                   { label: '30m', h: 0, m: 30 },
                   { label: '1h', h: 1, m: 0 },
@@ -926,7 +926,7 @@ export const AddTaskModal = ({
                       form.setValue('allocatedHours', preset.h);
                       form.setValue('allocatedMinutes', preset.m);
                     }}
-                    className="px-2 py-0.5 rounded-lg border border-border/80 bg-background hover:bg-secondary text-[11px] font-semibold text-foreground transition-all active:scale-95 cursor-pointer"
+                    className="px-2 py-0.5 rounded-lg bg-background hover:bg-secondary text-[11px] font-semibold text-foreground transition-all active:scale-95 cursor-pointer"
                   >
                     {preset.label}
                   </button>
@@ -940,11 +940,9 @@ export const AddTaskModal = ({
               name="client"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-xs font-bold text-foreground/90 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Building2 size={13} className="text-foreground shrink-0" /> Client
-                    </span>
-                    <span className="text-[10px] font-normal text-muted-foreground">(Optional)</span>
+                  <FormLabel className="text-sm font-semibold text-foreground flex items-center justify-start gap-1.5">
+                    <Building2 size={13} className="text-foreground shrink-0" /> Client
+                    <span className="text-xs font-normal text-muted-foreground">(Optional)</span>
                   </FormLabel>
                   <Select
                     onValueChange={(val) => {
@@ -954,7 +952,7 @@ export const AddTaskModal = ({
                     value={field.value || '_none'}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-9 rounded-xl text-xs bg-background border-border truncate">
+                      <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background truncate">
                         <SelectValue placeholder="No Client (General)" />
                       </SelectTrigger>
                     </FormControl>
@@ -970,7 +968,7 @@ export const AddTaskModal = ({
                         SaaS &amp; Internal Agency (No Client)
                       </SelectItem>
                       {clients.map((c) => (
-                        <SelectItem key={c._id} value={c._id} className="text-xs">
+                        <SelectItem key={c._id} value={c._id} className="text-sm">
                           {c.name} {c.company ? `— ${c.company}` : ''}
                         </SelectItem>
                       ))}
@@ -987,18 +985,16 @@ export const AddTaskModal = ({
               name="project"
               render={({ field }) => (
                 <FormItem className="space-y-1.5">
-                  <FormLabel className="text-xs font-bold text-foreground/90 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <FolderKanban size={13} className="text-foreground shrink-0" /> Project
-                    </span>
-                    <span className="text-[10px] font-normal text-muted-foreground">(Optional)</span>
+                  <FormLabel className="text-sm font-semibold text-foreground flex items-center justify-start gap-1.5">
+                    <FolderKanban size={13} className="text-foreground shrink-0" /> Project
+                    <span className="text-xs font-normal text-muted-foreground">(Optional)</span>
                   </FormLabel>
                   <Select
                     onValueChange={(val) => field.onChange(val === '_none' ? '' : val)}
                     value={field.value || '_none'}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-9 rounded-xl text-xs bg-background border-border truncate">
+                      <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background truncate">
                         <SelectValue placeholder="No Project (General)" />
                       </SelectTrigger>
                     </FormControl>
@@ -1007,7 +1003,7 @@ export const AddTaskModal = ({
                         — No Project (General Task) —
                       </SelectItem>
                       {filteredProjects.map((p) => (
-                        <SelectItem key={p._id} value={p._id} className="text-xs">
+                        <SelectItem key={p._id} value={p._id} className="text-sm">
                           {p.name}
                         </SelectItem>
                       ))}
@@ -1020,19 +1016,19 @@ export const AddTaskModal = ({
           </div>
 
           {/* Department & Assigned Manager (Optional secondary row) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1 border-t border-border/40">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
             <FormField
               control={form.control}
               name="department"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="text-xs font-semibold text-muted-foreground">Department</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-sm font-semibold text-foreground">Department</FormLabel>
                   <Select
                     onValueChange={(val) => field.onChange(val === '_none' ? '' : val)}
                     value={field.value || '_none'}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-8 rounded-xl text-xs bg-background border-border">
+                      <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
                     </FormControl>
@@ -1053,16 +1049,16 @@ export const AddTaskModal = ({
                 control={form.control}
                 name="assignedManager"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                      <Shield size={12} /> Assigned Manager
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                      <Shield size={13} /> Assigned Manager
                     </FormLabel>
                     <Select
                       onValueChange={(val) => field.onChange(val === '_unassigned' ? '' : val)}
                       value={field.value || '_unassigned'}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-8 rounded-xl text-xs bg-background border-border">
+                        <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                           <SelectValue placeholder="Manager" />
                         </SelectTrigger>
                       </FormControl>
@@ -1085,8 +1081,8 @@ export const AddTaskModal = ({
                 control={form.control}
                 name="duplicateCount"
                 render={({ field }) => (
-                  <FormItem className="space-y-1">
-                    <FormLabel className="text-xs font-semibold text-muted-foreground">
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-sm font-semibold text-foreground">
                       Batch Copies (Repeat Task)
                     </FormLabel>
                     <FormControl>
@@ -1094,7 +1090,7 @@ export const AddTaskModal = ({
                         type="number"
                         min={1}
                         max={50}
-                        className="h-8 rounded-xl text-xs bg-background border-border"
+                        className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                         placeholder="1"
                         {...field}
                       />
@@ -1109,15 +1105,15 @@ export const AddTaskModal = ({
         {/* ========================================================
             CATEGORY & DELIVERABLE FORMAT SWITCHER
            ======================================================== */}
-        <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs space-y-4">
+        <div className="rounded-2xl bg-card p-4 sm:p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Minimalist Segmented Tabs: Content vs Non-Content */}
-            <div className="inline-flex rounded-xl bg-secondary/80 p-1 border border-border/60">
+            <div className="inline-flex rounded-xl bg-secondary/80 p-1 ">
               <button
                 type="button"
                 onClick={() => handleCategorySwitch('content')}
                 className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${taskCategory === 'content'
-                    ? 'bg-card text-foreground shadow-xs'
+                    ? 'bg-card text-foreground '
                     : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
@@ -1128,7 +1124,7 @@ export const AddTaskModal = ({
                 type="button"
                 onClick={() => handleCategorySwitch('non_content')}
                 className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${taskCategory === 'non_content'
-                    ? 'bg-card text-foreground shadow-xs'
+                    ? 'bg-card text-foreground '
                     : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
@@ -1151,7 +1147,7 @@ export const AddTaskModal = ({
                     }}
                     value={field.value}
                   >
-                    <SelectTrigger className="h-8 rounded-xl text-xs font-bold bg-background border-border min-w-[140px]">
+                    <SelectTrigger className="h-8 rounded-xl text-xs font-bold bg-background min-w-[140px]">
                       <SelectValue placeholder="Select Format" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1174,7 +1170,7 @@ export const AddTaskModal = ({
                   name="videoType"
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="h-8 rounded-xl text-xs font-semibold bg-background border-border">
+                      <SelectTrigger className="h-8 rounded-xl text-xs font-semibold bg-background ">
                         <SelectValue placeholder="Video Type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1194,9 +1190,9 @@ export const AddTaskModal = ({
           {/* Deliverables quota target badge if project is chosen */}
           {matchedDeliverableTarget && (
             <div
-              className={`rounded-xl border p-2.5 text-xs font-medium flex items-center justify-between gap-3 ${matchedDeliverableTarget.currentCount >= matchedDeliverableTarget.targetQuantity
-                  ? 'border-foreground/30 bg-secondary text-foreground'
-                  : 'border-border bg-secondary/50 text-foreground'
+              className={`rounded-xl p-2.5 text-xs font-medium flex items-center justify-between gap-3 ${matchedDeliverableTarget.currentCount >= matchedDeliverableTarget.targetQuantity
+                  ? ' bg-secondary text-foreground'
+                  : ' bg-secondary/50 text-foreground'
                 }`}
             >
               <div className="flex items-center gap-2 tabular-nums">
@@ -1217,7 +1213,7 @@ export const AddTaskModal = ({
         {/* ========================================================
             ACCORDION 1: BRIEF & INSTRUCTIONS (Clean, Simple, Ordered)
            ======================================================== */}
-        <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs">
+        <div className="rounded-2xl bg-card overflow-hidden ">
           <button
             type="button"
             onClick={() => setShowBriefSection((prev) => !prev)}
@@ -1242,7 +1238,7 @@ export const AddTaskModal = ({
           </button>
 
           {showBriefSection && (
-            <div className="p-4 sm:p-5 space-y-4 border-t border-border/60">
+            <div className="p-4 sm:p-5 space-y-4 ">
               {taskCategory === 'content' ? (
                 /* Content Brief Fields */
                 <div className="space-y-3.5">
@@ -1251,14 +1247,14 @@ export const AddTaskModal = ({
                       control={form.control}
                       name="referenceLink"
                       render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel className="text-xs font-semibold text-foreground/90">
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">
                             Reference / Inspiration Link
                           </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Figma / Canva / Drive / Instagram link..."
-                              className="h-9 rounded-xl text-xs bg-background"
+                              className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                               {...field}
                             />
                           </FormControl>
@@ -1270,14 +1266,14 @@ export const AddTaskModal = ({
                       control={form.control}
                       name="hashtags"
                       render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel className="text-xs font-semibold text-foreground/90">
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">
                             Target Hashtags
                           </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="#marketing #branding #trending"
-                              className="h-9 rounded-xl text-xs bg-background"
+                              className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                               {...field}
                             />
                           </FormControl>
@@ -1290,14 +1286,14 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="caption"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Caption / Post Copy
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Write the post caption or marketing text here..."
-                            className="min-h-[75px] rounded-xl text-xs bg-background resize-y"
+                            className="min-h-[96px] rounded-xl px-4 py-3 text-sm font-normal bg-background resize-y"
                             {...field}
                           />
                         </FormControl>
@@ -1309,14 +1305,14 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="contentIdea"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Content Idea / Hook Angle
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Core concept, hook, angle, or design brief..."
-                            className="min-h-[60px] rounded-xl text-xs bg-background resize-y"
+                            className="min-h-[84px] rounded-xl px-4 py-3 text-sm font-normal bg-background resize-y"
                             {...field}
                           />
                         </FormControl>
@@ -1332,15 +1328,15 @@ export const AddTaskModal = ({
                       control={form.control}
                       name="websiteType"
                       render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel className="text-xs font-semibold text-foreground/90">Website Type</FormLabel>
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">Website Type</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                            <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                               <SelectValue placeholder="Select website type" />
                             </SelectTrigger>
                             <SelectContent>
                               {WEBSITE_TYPE_OPTIONS.map((opt) => (
-                                <SelectItem key={opt} value={opt} className="text-xs">
+                                <SelectItem key={opt} value={opt} className="text-sm">
                                   {opt}
                                 </SelectItem>
                               ))}
@@ -1354,12 +1350,12 @@ export const AddTaskModal = ({
                       control={form.control}
                       name="referenceLink"
                       render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel className="text-xs font-semibold text-foreground/90">Reference Design</FormLabel>
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">Reference Design</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Figma / Website reference URL..."
-                              className="h-9 rounded-xl text-xs bg-background"
+                              className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                               {...field}
                             />
                           </FormControl>
@@ -1372,14 +1368,14 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="websiteRequirements"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Website Requirements & Features
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Describe layout, responsive design, integrations, forms..."
-                            className="min-h-[80px] rounded-xl text-xs bg-background resize-y"
+                            className="min-h-[96px] rounded-xl px-4 py-3 text-sm font-normal bg-background resize-y"
                             {...field}
                           />
                         </FormControl>
@@ -1389,7 +1385,7 @@ export const AddTaskModal = ({
 
                   {/* Pages Needed checkboxes */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground/90 block">Pages Needed</label>
+                    <label className="text-sm font-semibold text-foreground block mb-1.5">Pages Needed</label>
                     <div className="flex flex-wrap gap-2">
                       {PAGE_OPTIONS.map((page) => {
                         const checked = (form.watch('pagesNeeded') || []).includes(page);
@@ -1398,9 +1394,9 @@ export const AddTaskModal = ({
                             key={page}
                             type="button"
                             onClick={() => togglePageNeeded(page)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${checked
-                                ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                                : 'bg-background text-muted-foreground border-border hover:bg-secondary'
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${checked
+                                ? 'bg-primary text-primary-foreground '
+                                : 'bg-background text-muted-foreground hover:bg-secondary'
                               }`}
                           >
                             {page}
@@ -1417,14 +1413,14 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="description"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Description & Requirements
                         </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Specify task deliverables, bug report, or instructions..."
-                            className="min-h-[85px] rounded-xl text-xs bg-background resize-y"
+                            className="min-h-[96px] rounded-xl px-4 py-3 text-sm font-normal bg-background resize-y"
                             {...field}
                           />
                         </FormControl>
@@ -1436,12 +1432,12 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="referenceLink"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">Reference URL</FormLabel>
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">Reference URL</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Link to document, ticket, or reference..."
-                            className="h-9 rounded-xl text-xs bg-background"
+                            className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                             {...field}
                           />
                         </FormControl>
@@ -1458,14 +1454,14 @@ export const AddTaskModal = ({
             ACCORDION 2: MULTI-ROLE PIPELINE (Content Tasks)
            ======================================================== */}
         {taskCategory === 'content' && (
-          <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs">
+          <div className="rounded-2xl bg-card overflow-hidden ">
             <button
               type="button"
               onClick={() => setShowPipelineSection((prev) => !prev)}
               className="w-full flex items-center justify-between p-4 bg-secondary/15 hover:bg-secondary/30 transition-colors text-left"
             >
               <div className="flex items-center gap-2.5">
-                <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary border border-border text-foreground text-xs font-bold">
+                <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary text-foreground text-xs font-bold">
                   <Share2 size={13} className="shrink-0" />
                 </span>
                 <div>
@@ -1481,7 +1477,7 @@ export const AddTaskModal = ({
             </button>
 
             {showPipelineSection && (
-              <div className="p-4 sm:p-5 space-y-4 border-t border-border/60">
+              <div className="p-4 sm:p-5 space-y-4 ">
                 {/* 5 Workflow Roles in a responsive grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
                   {/* Script Writer */}
@@ -1489,8 +1485,8 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="scriptWriterAssigned"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Script Writer
                         </FormLabel>
                         <Select
@@ -1498,14 +1494,14 @@ export const AddTaskModal = ({
                           value={field.value || '_none'}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                            <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                               <SelectValue placeholder="Script Writer" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="_none">Unassigned</SelectItem>
                             {assignableUsers.map((u) => (
-                              <SelectItem key={u._id} value={u._id} className="text-xs">
+                              <SelectItem key={u._id} value={u._id} className="text-sm">
                                 {u.name}
                               </SelectItem>
                             ))}
@@ -1520,8 +1516,8 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="voiceArtistAssigned"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           RJ / Voice Artist
                         </FormLabel>
                         <Select
@@ -1529,14 +1525,14 @@ export const AddTaskModal = ({
                           value={field.value || '_none'}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                            <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                               <SelectValue placeholder="Voice Artist" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="_none">Unassigned</SelectItem>
                             {assignableUsers.map((u) => (
-                              <SelectItem key={u._id} value={u._id} className="text-xs">
+                              <SelectItem key={u._id} value={u._id} className="text-sm">
                                 {u.name}
                               </SelectItem>
                             ))}
@@ -1551,8 +1547,8 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="videographerAssigned"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Videographer
                         </FormLabel>
                         <Select
@@ -1560,14 +1556,14 @@ export const AddTaskModal = ({
                           value={field.value || '_none'}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                            <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                               <SelectValue placeholder="Videographer" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="_none">Unassigned</SelectItem>
                             {assignableUsers.map((u) => (
-                              <SelectItem key={u._id} value={u._id} className="text-xs">
+                              <SelectItem key={u._id} value={u._id} className="text-sm">
                                 {u.name}
                               </SelectItem>
                             ))}
@@ -1582,8 +1578,8 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="editorAssigned"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Video / Graphic Editor
                         </FormLabel>
                         <Select
@@ -1591,14 +1587,14 @@ export const AddTaskModal = ({
                           value={field.value || '_none'}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                            <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                               <SelectValue placeholder="Editor" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="_none">Unassigned</SelectItem>
                             {assignableUsers.map((u) => (
-                              <SelectItem key={u._id} value={u._id} className="text-xs">
+                              <SelectItem key={u._id} value={u._id} className="text-sm">
                                 {u.name}
                               </SelectItem>
                             ))}
@@ -1613,8 +1609,8 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="publisherAssigned"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Publisher / Poster
                         </FormLabel>
                         <Select
@@ -1622,14 +1618,14 @@ export const AddTaskModal = ({
                           value={field.value || '_none'}
                         >
                           <FormControl>
-                            <SelectTrigger className="h-9 rounded-xl text-xs bg-background">
+                            <SelectTrigger className="h-11 rounded-xl px-4 text-sm font-normal bg-background">
                               <SelectValue placeholder="Publisher" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="_none">Unassigned</SelectItem>
                             {assignableUsers.map((u) => (
-                              <SelectItem key={u._id} value={u._id} className="text-xs">
+                              <SelectItem key={u._id} value={u._id} className="text-sm">
                                 {u.name}
                               </SelectItem>
                             ))}
@@ -1644,14 +1640,14 @@ export const AddTaskModal = ({
                     control={form.control}
                     name="postingScheduleDate"
                     render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-foreground/90">
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-semibold text-foreground">
                           Publishing Schedule
                         </FormLabel>
                         <FormControl>
                           <Input
                             type="datetime-local"
-                            className="h-9 rounded-xl text-xs tabular-nums bg-background"
+                            className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background"
                             {...field}
                           />
                         </FormControl>
@@ -1661,8 +1657,8 @@ export const AddTaskModal = ({
                 </div>
 
                 {/* Social Posting Platforms */}
-                <div className="space-y-1.5 pt-2 border-t border-border/40">
-                  <label className="text-xs font-semibold text-foreground/90 block">
+                <div className="space-y-1.5 pt-2 ">
+                  <label className="text-sm font-semibold text-foreground block mb-1.5">
                     Target Social Platforms
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -1673,9 +1669,9 @@ export const AddTaskModal = ({
                           key={plat.value}
                           type="button"
                           onClick={() => togglePlatform(plat.value)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${isSelected
-                              ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                              : 'bg-background text-muted-foreground border-border hover:bg-secondary'
+                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${isSelected
+                              ? 'bg-primary text-primary-foreground '
+                              : 'bg-background text-muted-foreground hover:bg-secondary'
                             }`}
                         >
                           {plat.label}
@@ -1687,17 +1683,17 @@ export const AddTaskModal = ({
 
                 {/* Shoot & Footage Details (if Video) */}
                 {isVideoReel && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/40">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 ">
                     <FormField
                       control={form.control}
                       name="shootDate"
                       render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel className="text-xs font-semibold text-muted-foreground">
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">
                             Shoot Date
                           </FormLabel>
                           <FormControl>
-                            <Input type="date" className="h-8 rounded-xl text-xs tabular-nums bg-background" {...field} />
+                            <Input type="date" className="h-11 rounded-xl px-4 text-sm font-normal tabular-nums bg-background" {...field} />
                           </FormControl>
                         </FormItem>
                       )}
@@ -1706,14 +1702,14 @@ export const AddTaskModal = ({
                       control={form.control}
                       name="shootLocation"
                       render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel className="text-xs font-semibold text-muted-foreground">
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">
                             Shoot Location
                           </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Studio / Client premises..."
-                              className="h-8 rounded-xl text-xs bg-background"
+                              className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                               {...field}
                             />
                           </FormControl>
@@ -1724,14 +1720,14 @@ export const AddTaskModal = ({
                       control={form.control}
                       name="rawFootageLink"
                       render={({ field }) => (
-                        <FormItem className="space-y-1">
-                          <FormLabel className="text-xs font-semibold text-muted-foreground">
+                        <FormItem className="space-y-1.5">
+                          <FormLabel className="text-sm font-semibold text-foreground">
                             Raw Footage Link
                           </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Google Drive link..."
-                              className="h-8 rounded-xl text-xs bg-background"
+                              className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                               {...field}
                             />
                           </FormControl>
@@ -1748,14 +1744,14 @@ export const AddTaskModal = ({
         {/* ========================================================
             ACCORDION 3: NOTES, PERMISSIONS & ATTACHMENTS
            ======================================================== */}
-        <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-xs">
+        <div className="rounded-2xl bg-card overflow-hidden ">
           <button
             type="button"
             onClick={() => setShowNotesSection((prev) => !prev)}
             className="w-full flex items-center justify-between p-4 bg-secondary/15 hover:bg-secondary/30 transition-colors text-left"
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary border border-border text-foreground text-xs font-bold">
+              <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary text-foreground text-xs font-bold">
                 <Paperclip size={13} className="shrink-0" />
               </span>
               <div>
@@ -1771,21 +1767,21 @@ export const AddTaskModal = ({
           </button>
 
           {showNotesSection && (
-            <div className="p-4 sm:p-5 space-y-4 border-t border-border/60">
+            <div className="p-4 sm:p-5 space-y-4 ">
               {/* Internal & Client Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <FormField
                   control={form.control}
                   name="internalNotes"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-foreground/90">
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-sm font-semibold text-foreground">
                         Internal Team Notes (Private)
                       </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Private admin/team instructions..."
-                          className="min-h-[70px] rounded-xl text-xs bg-background resize-y"
+                          className="min-h-[84px] rounded-xl px-4 py-3 text-sm font-normal bg-background resize-y"
                           {...field}
                         />
                       </FormControl>
@@ -1797,14 +1793,14 @@ export const AddTaskModal = ({
                   control={form.control}
                   name="clientVisibleNotes"
                   render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-foreground/90">
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-sm font-semibold text-foreground">
                         Client Portal Notes (Public)
                       </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Brief visible to client on their portal..."
-                          className="min-h-[70px] rounded-xl text-xs bg-background resize-y"
+                          className="min-h-[84px] rounded-xl px-4 py-3 text-sm font-normal bg-background resize-y"
                           {...field}
                         />
                       </FormControl>
@@ -1819,7 +1815,7 @@ export const AddTaskModal = ({
                   control={form.control}
                   name="isClientVisible"
                   render={({ field }) => (
-                    <label className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background cursor-pointer select-none">
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-background cursor-pointer select-none">
                       <input
                         type="checkbox"
                         className="rounded text-primary focus:ring-primary/20"
@@ -1842,7 +1838,7 @@ export const AddTaskModal = ({
                   control={form.control}
                   name="approvalRequired"
                   render={({ field }) => (
-                    <label className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background cursor-pointer select-none">
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-background cursor-pointer select-none">
                       <input
                         type="checkbox"
                         className="rounded text-primary focus:ring-primary/20"
@@ -1863,18 +1859,18 @@ export const AddTaskModal = ({
               </div>
 
               {/* Attachments */}
-              <div className="space-y-2 pt-2 border-t border-border/40">
-                <FormLabel className="text-xs font-semibold text-foreground/90">Attachments</FormLabel>
+              <div className="space-y-2 pt-2 ">
+                <FormLabel className="text-sm font-semibold text-foreground">Attachments</FormLabel>
                 <Input
                   type="file"
                   multiple
                   accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
-                  className="rounded-xl text-xs bg-background"
+                  className="h-11 rounded-xl px-4 text-sm font-normal bg-background"
                   onChange={(e) => setAttachmentFiles(Array.from(e.target.files || []))}
                 />
 
                 {(existingAttachments.length > 0 || attachmentFiles.length > 0) && (
-                  <div className="rounded-xl border border-border bg-background p-3 text-xs space-y-2">
+                  <div className="rounded-xl bg-background p-3 text-xs space-y-2">
                     {existingAttachments.length > 0 && (
                       <div>
                         <span className="font-bold text-foreground block mb-1">Existing files:</span>
@@ -1927,7 +1923,7 @@ export const AddTaskModal = ({
                 {batchTasks.map((bItem, bIdx) => (
                   <div
                     key={bIdx}
-                    className="rounded-xl border border-border bg-card p-3.5 space-y-2.5 shadow-xs"
+                    className="rounded-xl bg-card p-3.5 space-y-2.5 "
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-foreground">
@@ -1977,7 +1973,7 @@ export const AddTaskModal = ({
               <button
                 type="button"
                 onClick={handleAddBatchTask}
-                className="w-full py-2.5 rounded-xl border border-dashed border-border/80 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors flex items-center justify-center gap-1.5"
               >
                 <Plus size={14} /> Add Another Deliverable to Batch
               </button>
@@ -1991,9 +1987,9 @@ export const AddTaskModal = ({
             {additionalTasks.map((item, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3 shadow-xs"
+                className="rounded-2xl bg-primary/5 p-4 space-y-3 "
               >
-                <div className="flex items-center justify-between pb-2 border-b border-primary/15">
+                <div className="flex items-center justify-between pb-2 ">
                   <span className="text-xs font-bold text-primary uppercase tracking-wider">
                     Additional Task #{idx + 2}
                   </span>
@@ -2055,13 +2051,12 @@ export const AddTaskModal = ({
         {/* ========================================================
             STICKY BOTTOM ACTION BAR (Ultra Clean & Mobile Accessible)
            ======================================================== */}
-        <div className="sticky bottom-0 z-20 -mx-4 -mb-4 sm:-mx-6 sm:-mb-5 px-4 py-3 sm:px-6 sm:py-3.5 bg-card border-t border-border flex flex-wrap items-center justify-between gap-2 sm:gap-3 shadow-sm select-none">
+        <div className="sticky bottom-0 z-20 -mx-4 -mb-4 sm:-mx-6 sm:-mb-5 px-4 py-3 sm:px-6 sm:py-4 bg-card flex flex-wrap items-center justify-between gap-3 select-none">
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="outline"
-              size="sm"
-              className="rounded-xl text-xs h-9 px-3.5"
+              variant="secondary"
+              className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
@@ -2071,30 +2066,28 @@ export const AddTaskModal = ({
               <button
                 type="button"
                 onClick={handleClearDraft}
-                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors underline"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
               >
                 Clear Draft
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {task && (
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="secondary"
                 onClick={handleAddAdditionalTask}
-                className="rounded-xl text-xs h-9 border-primary/30 text-primary hover:bg-primary/10 gap-1 hidden sm:inline-flex"
+                className="h-11 px-4 rounded-xl text-sm font-semibold text-primary hover:bg-primary/10 gap-1.5 hidden sm:inline-flex"
                 disabled={isLoading}
               >
-                <Plus size={13} /> Add Task
+                <Plus size={14} /> Add Task
               </Button>
             )}
             <Button
               type="submit"
-              size="sm"
-              className="rounded-xl text-xs h-9 px-5 font-bold shadow-md bg-primary text-primary-foreground hover:bg-primary/95 transition-all"
+              className="h-11 px-6 rounded-xl text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/95 transition-all"
               disabled={isLoading}
             >
               {isLoading
@@ -2121,21 +2114,21 @@ export const AddTaskModal = ({
         variant="side"
         size="lg"
         noPadding
-        className="flex flex-col min-h-0 p-0 overflow-hidden bg-background border-l border-border shadow-2xl"
+        className="flex flex-col min-h-0 p-0 overflow-hidden bg-background "
       >
         {/* Modal Top Header */}
-        <DialogHeader className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-border bg-card shrink-0 pr-20 select-none">
+        <DialogHeader className="px-5 py-3.5 sm:px-6 sm:py-4 bg-background shrink-0 pr-20 select-none">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-secondary text-foreground border border-border text-xs font-bold">
+              <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-secondary text-foreground text-xs font-bold">
                 {task ? <FileText size={14} className="shrink-0" /> : <Sparkles size={14} className="shrink-0" />}
               </span>
-              <DialogTitle className="text-sm sm:text-base font-bold text-foreground">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight">
                 {task ? 'Edit Task Deliverable' : 'Create Task'}
               </DialogTitle>
             </div>
             {hasDraft && !task && (
-              <span className="px-2 py-0.5 rounded-full bg-secondary text-foreground border border-border font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0">
+              <span className="px-2 py-0.5 rounded-full bg-secondary text-foreground font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0">
                 <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
                 Draft Saved
               </span>

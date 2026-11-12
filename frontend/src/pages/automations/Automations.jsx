@@ -59,7 +59,7 @@ const Automations = () => {
       label: 'Automation Workflow',
       render: (row) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-secondary text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             <Zap size={14} />
           </div>
           <div>
@@ -73,7 +73,7 @@ const Automations = () => {
       key: 'trigger',
       label: 'When Triggered',
       render: (row) => (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-secondary border border-border text-foreground text-xs font-semibold">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-secondary text-foreground text-xs font-semibold">
           <Zap size={11} className="shrink-0" />
           <span>{row.trigger}</span>
         </span>
@@ -95,10 +95,10 @@ const Automations = () => {
       render: (row) => (
         <button
           onClick={() => toggleAutomation.mutate({ id: row._id, enabled: !row.enabled })}
-          className={`px-2.5 py-0.5 rounded-full text-xs font-bold border transition-all ${
+          className={`px-2.5 py-0.5 rounded-full text-xs font-bold transition-all ${
             row.enabled
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-secondary text-muted-foreground border-border'
+              ? 'bg-primary text-primary-foreground '
+              : 'bg-secondary text-muted-foreground '
           }`}
         >
           {row.enabled ? 'Active' : 'Paused'}
@@ -145,15 +145,15 @@ const Automations = () => {
   const renderCard = (row) => (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border text-foreground uppercase tracking-wider">
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary text-foreground uppercase tracking-wider">
           Workflow
         </span>
         <button
           onClick={() => toggleAutomation.mutate({ id: row._id, enabled: !row.enabled })}
-          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
             row.enabled
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-secondary text-muted-foreground border-border'
+              ? 'bg-primary text-primary-foreground '
+              : 'bg-secondary text-muted-foreground '
           }`}
         >
           {row.enabled ? 'Active' : 'Paused'}
@@ -162,10 +162,12 @@ const Automations = () => {
 
       <div>
         <h4 className="font-bold text-sm text-foreground">{row.name}</h4>
-        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{row.description || 'Custom trigger rule'}</p>
+        {row.description && (
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{row.description}</p>
+        )}
       </div>
 
-      <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1.5 text-xs">
+      <div className="p-2.5 rounded-xl bg-secondary/40 space-y-1.5 text-xs">
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <span className="font-semibold text-foreground">Trigger:</span>
           <span>{row.trigger}</span>
@@ -176,7 +178,7 @@ const Automations = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-1 border-t border-border/40 text-xs">
+      <div className="flex items-center justify-between pt-1 text-xs">
         <span className="text-muted-foreground tabular-nums">{Number(row.runCount || 0).toLocaleString()} runs</span>
         <div className="flex items-center gap-1">
           <button
@@ -216,7 +218,7 @@ const Automations = () => {
             setSelectedAutomation(null);
             setShowModal(true);
           }}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+          className="inline-flex items-center justify-center gap-1.5 h-10 px-4 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 cursor-pointer"
         >
           <Plus size={14} className="stroke-[2.5]" />
           <span>New Workflow</span>
@@ -241,10 +243,10 @@ const Automations = () => {
       />
 
       <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent className="bg-card border border-border">
+        <AlertDialogContent className="bg-card ">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold">Delete Automation Workflow?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogDescription className="sr-only">
               This workflow will no longer trigger automatic actions in your agency operating system.
             </AlertDialogDescription>
           </AlertDialogHeader>

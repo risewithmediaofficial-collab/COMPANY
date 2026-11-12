@@ -15,7 +15,7 @@ const AuthLayout = () => {
         <button
           type="button"
           onClick={() => dispatch(toggleDarkMode())}
-          className="min-h-[40px] px-3 py-2 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shadow-xs flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+          className="min-h-[40px] px-3 py-2 rounded-xl bg-card text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
           title={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           aria-label="Toggle dark mode"
         >
@@ -25,9 +25,9 @@ const AuthLayout = () => {
       </div>
 
       {/* Auth Card Container */}
-      <div className="w-full max-w-md p-5 sm:p-8 rounded-3xl border border-border bg-card shadow-sm relative z-10 transition-colors">
+      <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-card relative z-10 transition-colors">
         <div className="flex flex-col items-center mb-8">
-          <div className="mb-4 flex h-16 sm:h-20 w-16 sm:w-20 items-center justify-center rounded-2xl bg-background border border-border p-2.5 shadow-xs transition-colors">
+          <div className="mb-4 flex h-16 sm:h-20 w-16 sm:w-20 items-center justify-center rounded-2xl bg-brand/10 ring-1 ring-brand/25 shadow-[0_8px_24px_-8px_hsl(var(--brand)/0.45)] p-2.5 transition-colors">
             <img
               src="/branding/rise-with-media-logo.png"
               alt="RISE WITH MEDIA logo"

@@ -427,6 +427,38 @@ export const getProjects = async (req, res) => {
               ],
             },
           },
+          ongoingTasks: {
+            $sum: {
+              $cond: [
+                {
+                  $in: [
+                    '$status',
+                    [
+                      'in_progress',
+                      'on_process',
+                      'review',
+                      'client_approval',
+                      'smm_team',
+                      'drive_uploaded',
+                      'rework',
+                      'rework_completed',
+                      'review_required',
+                      'waiting_for_client',
+                      'In Progress',
+                      'On Process',
+                      'In Review',
+                      'Rework',
+                      'Rework Completed',
+                      'Review Required',
+                      'Waiting for Client',
+                    ],
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
         },
       },
     ]);
@@ -439,11 +471,16 @@ export const getProjects = async (req, res) => {
     const serializedProjects = projects.map((project) => {
       const pObj = project.toObject ? project.toObject() : project;
       const stat = taskStatsMap[project._id.toString()];
+      const totalTasks = stat?.totalTasks || 0;
+      const doneTasks = stat?.doneTasks || 0;
+      const ongoingTasks = stat?.ongoingTasks || 0;
+      const pendingTasks = Math.max(0, totalTasks - doneTasks - ongoingTasks);
+
       let progress = 0;
       if (pObj.status === 'completed' || pObj.status === 'Completed') {
         progress = 100;
-      } else if (stat && stat.totalTasks > 0) {
-        progress = Math.round((stat.doneTasks / stat.totalTasks) * 100);
+      } else if (totalTasks > 0) {
+        progress = Math.round((doneTasks / totalTasks) * 100);
       } else if (pObj.progress) {
         progress = Number(pObj.progress);
       }
@@ -451,8 +488,11 @@ export const getProjects = async (req, res) => {
       return serializeProject({
         ...pObj,
         progress,
-        totalTasks: stat?.totalTasks || 0,
-        doneTasks: stat?.doneTasks || 0,
+        totalTasks,
+        doneTasks,
+        completedTasks: doneTasks,
+        ongoingTasks,
+        pendingTasks,
       });
     });
 

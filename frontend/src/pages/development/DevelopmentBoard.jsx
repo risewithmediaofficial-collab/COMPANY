@@ -39,28 +39,28 @@ import {
   Zap,
   X,
 } from '@/components/ui/muiIcons';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 const PIPELINE_COLUMNS = [
-  { id: 'backlog', title: 'Backlog', color: 'border-border bg-secondary/20' },
-  { id: 'analysis', title: 'Analysis', color: 'border-border bg-secondary/30' },
-  { id: 'ready_for_dev', title: 'Ready for Dev', color: 'border-border bg-secondary/35' },
-  { id: 'in_development', title: 'In Development', color: 'border-foreground/30 bg-secondary/50' },
-  { id: 'code_review', title: 'Code Review', color: 'border-border bg-secondary/40' },
-  { id: 'qa_testing', title: 'QA / Testing', color: 'border-border bg-secondary/40' },
-  { id: 'client_uat', title: 'Client / UAT', color: 'border-border bg-secondary/35' },
-  { id: 'approved', title: 'Approved', color: 'border-foreground/30 bg-secondary/45' },
-  { id: 'deployment', title: 'Deployment', color: 'border-border bg-secondary/35' },
-  { id: 'live', title: 'Live', color: 'border-foreground/40 bg-secondary/50' },
-  { id: 'closed', title: 'Closed', color: 'border-border bg-muted/40' },
+  { id: 'backlog', title: 'Backlog', color: ' bg-secondary/20' },
+  { id: 'analysis', title: 'Analysis', color: ' bg-secondary/30' },
+  { id: 'ready_for_dev', title: 'Ready for Dev', color: ' bg-secondary/35' },
+  { id: 'in_development', title: 'In Development', color: ' bg-secondary/50' },
+  { id: 'code_review', title: 'Code Review', color: ' bg-secondary/40' },
+  { id: 'qa_testing', title: 'QA / Testing', color: ' bg-secondary/40' },
+  { id: 'client_uat', title: 'Client / UAT', color: ' bg-secondary/35' },
+  { id: 'approved', title: 'Approved', color: ' bg-secondary/45' },
+  { id: 'deployment', title: 'Deployment', color: ' bg-secondary/35' },
+  { id: 'live', title: 'Live', color: ' bg-secondary/50' },
+  { id: 'closed', title: 'Closed', color: ' bg-muted/40' },
 ];
 
 const PRIORITY_BADGES = {
-  urgent: 'bg-primary text-primary-foreground border-primary',
-  high: 'bg-zinc-800 text-zinc-100 border-zinc-700 dark:bg-zinc-200 dark:text-zinc-900 dark:border-zinc-300',
-  medium: 'bg-secondary text-foreground border-border',
-  low: 'bg-muted text-muted-foreground border-border',
+  urgent: 'bg-primary text-primary-foreground ',
+  high: 'bg-zinc-800 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-900 ',
+  medium: 'bg-secondary text-foreground ',
+  low: 'bg-muted text-muted-foreground ',
 };
 
 export default function DevelopmentBoard() {
@@ -366,13 +366,12 @@ export default function DevelopmentBoard() {
     <div className="space-y-6">
       <PageHeader
         title="Development Board"
-        subtitle="Track and transition existing CRM tasks across all stages of the development pipeline"
         actions={
           <div className="flex items-center gap-2">
             <button
               onClick={fetchData}
               disabled={loading}
-              className="flex items-center gap-2 px-3 py-2 bg-secondary border border-border text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all shadow-xs"
+              className="flex items-center gap-2 h-10 px-3.5 bg-secondary text-foreground font-semibold rounded-xl text-xs hover:bg-secondary/80 transition-all cursor-pointer"
             >
               <RefreshCcw size={14} className={loading ? 'animate-spin' : ''} />
               Refresh
@@ -381,7 +380,7 @@ export default function DevelopmentBoard() {
             <button
               id="dev-create-task-btn"
               onClick={() => setShowAddTaskModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-bold rounded-xl text-xs shadow-md shadow-primary/25 hover:opacity-95 transition-all"
+              className="flex items-center gap-2 h-10 px-4 bg-primary text-primary-foreground font-bold rounded-xl text-xs hover:opacity-90 transition-colors cursor-pointer"
             >
               <PlusCircle size={14} />
               Add Task
@@ -393,7 +392,7 @@ export default function DevelopmentBoard() {
       <DevelopmentSubNav />
 
       {/* ── Filter Bar ───────────────────────────────────────────────── */}
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-xs space-y-3">
+      <div className="bg-card rounded-2xl p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5 items-center">
           {/* Search */}
           <div className="relative">
@@ -403,7 +402,7 @@ export default function DevelopmentBoard() {
               placeholder="Search title, branch, PR..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="app-input w-full pl-8 pr-3 text-xs h-9 py-1.5"
+              className="app-input w-full pl-8 pr-3 text-xs h-10"
             />
           </div>
 
@@ -413,7 +412,7 @@ export default function DevelopmentBoard() {
             <select
               value={filterProject}
               onChange={(e) => setFilterProject(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-9 py-1.5 font-medium truncate"
+              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
               title="Filter by Project"
             >
               <option value="">All Projects ({allProjects.length})</option>
@@ -431,7 +430,7 @@ export default function DevelopmentBoard() {
             <select
               value={filterDeveloper}
               onChange={(e) => setFilterDeveloper(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-9 py-1.5 font-medium truncate"
+              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
               title="Filter by Developer"
             >
               <option value="">All Developers ({allDevelopers.length})</option>
@@ -449,7 +448,7 @@ export default function DevelopmentBoard() {
             <select
               value={filterSprint}
               onChange={(e) => setFilterSprint(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-9 py-1.5 font-medium truncate"
+              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
               title="Filter by Sprint"
             >
               <option value="">
@@ -469,7 +468,7 @@ export default function DevelopmentBoard() {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="app-select w-full pl-8 pr-8 text-xs h-9 py-1.5 font-medium truncate"
+              className="app-select w-full pl-8 pr-8 text-xs h-10 font-medium truncate"
               title="Filter by Priority"
             >
               <option value="">All Priorities</option>
@@ -484,10 +483,10 @@ export default function DevelopmentBoard() {
           <div className="flex items-center gap-1.5">
             {/* Blocked Only Toggle */}
             <label
-              className={`flex-1 flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold select-none h-9 px-2 rounded-xl border transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold select-none h-10 px-2 rounded-xl transition-all ${
                 filterBlockedOnly
-                  ? 'bg-primary border-primary text-primary-foreground shadow-xs'
-                  : 'bg-secondary/40 border-border text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary/40 text-muted-foreground hover:text-foreground'
               }`}
               title="Show only blocked tasks"
             >
@@ -503,10 +502,10 @@ export default function DevelopmentBoard() {
 
             {/* Bug Only Toggle */}
             <label
-              className={`flex-1 flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold select-none h-9 px-2 rounded-xl border transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 cursor-pointer text-xs font-bold select-none h-10 px-2 rounded-xl transition-all ${
                 filterBugOnly
-                  ? 'bg-primary border-primary text-primary-foreground shadow-xs'
-                  : 'bg-secondary/40 border-border text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-secondary/40 text-muted-foreground hover:text-foreground'
               }`}
               title="Show only bug tasks"
             >
@@ -525,7 +524,7 @@ export default function DevelopmentBoard() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="flex items-center justify-center gap-1 h-9 px-2.5 text-[11px] font-bold text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors border border-border shrink-0 cursor-pointer"
+                className="flex items-center justify-center gap-1 h-10 px-2.5 text-[11px] font-bold text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors shrink-0 cursor-pointer"
                 title="Reset all filters"
               >
                 <X size={12} />
@@ -574,19 +573,19 @@ export default function DevelopmentBoard() {
                   setDraggingTaskId(null);
                   setDragOverColId(null);
                 }}
-                className={`w-[260px] rounded-2xl border p-3 flex flex-col shrink-0 h-[calc(100vh-270px)] min-h-[480px] max-h-[750px] transition-all duration-150 ${
+                className={`w-[260px] rounded-2xl p-3 flex flex-col shrink-0 h-[calc(100vh-270px)] min-h-[480px] max-h-[750px] transition-all duration-150 ${
                   isColumnDraggedOver
-                    ? 'ring-2 ring-primary ring-offset-2 bg-primary/10 border-primary shadow-lg scale-[1.01]'
+                    ? 'ring-2 ring-primary ring-offset-2 bg-primary/10 shadow-lg scale-[1.01]'
                     : column.color
                 }`}
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-border shrink-0">
+                <div className="flex items-center justify-between pb-2.5 mb-2.5 shrink-0">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-foreground text-xs uppercase tracking-wider">
                       {column.title}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-card border border-border text-foreground font-mono">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-card text-foreground font-mono">
                       {colTasks.length}
                     </span>
                   </div>
@@ -612,10 +611,10 @@ export default function DevelopmentBoard() {
                   }}
                 >
                   {colTasks.length === 0 ? (
-                    <div className={`flex-1 flex items-center justify-center py-8 text-center text-[11px] italic border-2 border-dashed rounded-xl m-1 transition-all ${
+                    <div className={`flex-1 flex items-center justify-center py-8 text-center text-[11px] italic rounded-xl m-1 transition-all ${
                       isColumnDraggedOver
-                        ? 'border-primary/60 bg-primary/5 text-primary font-semibold'
-                        : 'border-border/40 text-muted-foreground/50'
+                        ? ' bg-primary/5 text-primary font-semibold'
+                        : ' text-muted-foreground/50'
                     }`}>
                       {isColumnDraggedOver ? 'Drop here to move' : 'No tasks in this stage'}
                     </div>
@@ -643,12 +642,12 @@ export default function DevelopmentBoard() {
                             setDraggingTaskId(null);
                             setDragOverColId(null);
                           }}
-                          className={`p-3 bg-card border rounded-xl shadow-xs space-y-2 hover:shadow-md transition-all group relative cursor-grab active:cursor-grabbing select-none ${
+                          className={`p-3 bg-card rounded-xl space-y-2 transition-all group relative cursor-grab active:cursor-grabbing select-none ${
                             isCardBeingDragged
-                              ? 'opacity-40 scale-95 border-dashed border-foreground ring-2 ring-ring/40'
+                              ? 'opacity-40 scale-95 ring-2 ring-ring/40'
                               : isBlocked
-                              ? 'border-foreground bg-secondary/50'
-                              : 'border-border hover:border-foreground/40'
+                              ? ' bg-secondary/50'
+                              : ' '
                           }`}
                           onClick={() => {
                             if (isDraggingRef.current) return;
@@ -675,12 +674,12 @@ export default function DevelopmentBoard() {
                             </span>
                             <div className="flex items-center gap-1">
                               {dev.isBug && (
-                                <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground border border-border text-[10px] font-bold flex items-center gap-0.5">
+                                <span className="px-1.5 py-0.5 rounded bg-secondary text-foreground text-[10px] font-bold flex items-center gap-0.5">
                                   <Bug size={9} /> Bug
                                 </span>
                               )}
                               <span
-                                className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                                   PRIORITY_BADGES[task.priority?.toLowerCase()] || PRIORITY_BADGES.medium
                                 }`}
                               >
@@ -704,7 +703,7 @@ export default function DevelopmentBoard() {
                                 </span>
                               )}
                               {(dev.pullRequestNumber || dev.pullRequestUrl) && (
-                                <span className="text-[9px] font-mono px-1.5 py-0.5 bg-secondary text-foreground border border-border rounded flex items-center gap-0.5">
+                                <span className="text-[9px] font-mono px-1.5 py-0.5 bg-secondary text-foreground rounded flex items-center gap-0.5">
                                   <GitPullRequest size={9} /> #{dev.pullRequestNumber || 'PR'}
                                 </span>
                               )}
@@ -713,7 +712,7 @@ export default function DevelopmentBoard() {
 
                           {/* Card Footer: Assignee & Stage Move Dropdown */}
                           <div
-                            className="flex items-center justify-between gap-1 pt-1.5 border-t border-border text-[10px]"
+                            className="flex items-center justify-between gap-1 pt-1.5 text-[10px]"
                             onClick={(e) => e.stopPropagation()}
                             onMouseDown={(e) => e.stopPropagation()}
                           >
@@ -732,7 +731,7 @@ export default function DevelopmentBoard() {
                               <select
                                 value={dev.stage || column.id}
                                 onChange={(e) => handleStageChange(task._id, e.target.value)}
-                                className="w-full appearance-none bg-secondary/80 hover:bg-secondary border border-border text-foreground rounded-lg text-[10px] font-bold py-1 pl-2 pr-5 outline-none cursor-pointer transition-colors truncate focus:border-primary focus:ring-1 focus:ring-primary/20"
+                                className="w-full appearance-none bg-secondary/80 hover:bg-secondary text-foreground rounded-lg text-[10px] font-bold py-1 pl-2 pr-5 outline-none cursor-pointer transition-colors truncate focus:ring-1 focus:ring-primary/20"
                                 title="Move task to stage"
                               >
                                 {PIPELINE_COLUMNS.map((c) => (
@@ -762,25 +761,25 @@ export default function DevelopmentBoard() {
           size="sm"
           noPadding
           hideCloseButton
-          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-l border-border shadow-2xl"
+          className="flex flex-col min-h-0 p-0 overflow-hidden bg-card "
         >
-          <DialogHeader className="px-5 py-4 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
+          <DialogHeader className="px-5 py-4 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 m-0 space-y-0">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary border border-border text-foreground">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-foreground">
                 <ShieldAlert size={18} />
               </div>
               <div className="min-w-0">
                 <DialogTitle className="text-base font-bold text-foreground truncate">
                   Mark Task as Blocked
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground truncate">
+                <DialogDescription className="sr-only">
                   Document why this task cannot progress
                 </DialogDescription>
               </div>
             </div>
             <DialogClose
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all cursor-pointer shrink-0"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer shrink-0"
             >
               <X size={16} />
               <span className="sr-only">Close</span>
@@ -788,9 +787,9 @@ export default function DevelopmentBoard() {
           </DialogHeader>
 
           <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-4 custom-scrollbar">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Provide a reason why <strong className="text-foreground">"{blockingTask?.title}"</strong> is blocked (e.g. Waiting on third-party API keys, design review).
-            </p>
+            {blockingTask?.title && (
+              <p className="text-sm font-semibold text-foreground">{blockingTask.title}</p>
+            )}
             <div>
               <label className="text-xs font-semibold text-foreground block mb-1.5">Blocked Reason</label>
               <textarea
@@ -798,12 +797,12 @@ export default function DevelopmentBoard() {
                 placeholder="Enter blocked reason..."
                 value={blockedReasonInput}
                 onChange={(e) => setBlockedReasonInput(e.target.value)}
-                className="w-full p-3 bg-background border border-border rounded-xl text-xs text-foreground outline-none focus:border-foreground"
+                className="w-full p-3 bg-background rounded-xl text-xs text-foreground outline-none focus:ring-2 focus:ring-brand/40 "
               />
             </div>
           </div>
 
-          <div className="shrink-0 border-t border-border bg-card px-5 py-4 flex items-center justify-end gap-2">
+          <div className="shrink-0 bg-card px-5 py-4 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => setBlockingTask(null)}
@@ -814,7 +813,7 @@ export default function DevelopmentBoard() {
             <button
               type="button"
               onClick={confirmBlock}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/90 shadow-xs min-h-[38px] cursor-pointer"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary/90 min-h-[38px] cursor-pointer"
             >
               Confirm Block
             </button>

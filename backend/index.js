@@ -40,11 +40,9 @@ import referralRoutes from './routes/referral.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 import reportRoutes from './routes/report.routes.js';
 import automationRoutes from './routes/automation.routes.js';
-import ticketRoutes from './routes/ticket.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import communicationRoutes from './routes/communication.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
-import aiRoutes from './routes/ai.routes.js';
 import portalRoutes from './routes/portal.routes.js';
 import brandRoutes from './routes/brand.routes.js';
 import accessRequestRoutes from './routes/accessRequest.routes.js';
@@ -82,8 +80,6 @@ import { errorHandler, notFound } from './middleware/error.middleware.js';
 loadEnv();
 const env = getEnv();
 
-await connectDB();
-
 const ensureDefaultAdmin = async () => {
   // Never automatically create default admin with hardcoded password in production
   if (env.isProduction) return;
@@ -110,17 +106,34 @@ const ensureDefaultAdmin = async () => {
   console.log(`[Dev Bootstrap] Default super admin created: ${email}`);
 };
 
-try {
-  await ensureDefaultAdmin();
-} catch (err) {
-  console.error('[Dev Bootstrap Error]', err.message);
+let startupTasksExecuted = false;
+const runDatabaseStartupTasks = async () => {
+  if (startupTasksExecuted || mongoose.connection.readyState !== 1) return;
+  startupTasksExecuted = true;
+
+  try {
+    await ensureDefaultAdmin();
+  } catch (err) {
+    console.error('[Dev Bootstrap Error]', err.message);
+  }
+
+  // Background sync client portal user accounts without delaying HTTP server readiness
+  syncAllClientUsers().catch((err) => console.error('[Sync Error]', err.message));
+
+  // Background migration to strictly separate dev tasks from tasks collection
+  migrateDevTasksFromTasksCollection().catch((err) => console.error('[DevTask Migration Error]', err.message));
+};
+
+mongoose.connection.on('connected', () => {
+  runDatabaseStartupTasks();
+});
+
+const dbConn = await connectDB();
+if (dbConn) {
+  await runDatabaseStartupTasks();
+} else {
+  console.warn('[Startup] Database offline — deferring dev bootstrap & client sync until MongoDB connects.');
 }
-
-// Background sync client portal user accounts without delaying HTTP server readiness
-syncAllClientUsers().catch((err) => console.error('[Sync Error]', err.message));
-
-// Background migration to strictly separate dev tasks from tasks collection
-migrateDevTasksFromTasksCollection().catch((err) => console.error('[DevTask Migration Error]', err.message));
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -244,11 +257,9 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/automations', automationRoutes);
-app.use('/api/tickets', ticketRoutes);
 app.use('/api/communications', communicationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadLimiter, uploadRoutes);
-app.use('/api/ai', aiRoutes);
 app.use('/api/portal', portalRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/access-requests', accessRequestRoutes);

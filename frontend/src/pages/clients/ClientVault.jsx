@@ -142,11 +142,11 @@ const SocialAccountRow = ({
     onChange(index, 'pages', (account.pages || []).filter((_, i) => i !== pi));
 
   return (
-    <div className="border border-border/80 rounded-2xl overflow-hidden bg-secondary/15 shadow-2xs transition-all">
+    <div className="rounded-2xl overflow-hidden bg-secondary/15 transition-all">
       {/* Row header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-secondary/25">
+      <div className="flex items-center justify-between px-4 py-3 bg-secondary/25">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-secondary border border-border text-[11px] font-bold text-foreground leading-none shadow-2xs shrink-0">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-secondary text-[11px] font-bold text-foreground leading-none shrink-0">
             {platform.code}
           </span>
           <div className="w-48 sm:w-56 shrink-0">
@@ -162,7 +162,7 @@ const SocialAccountRow = ({
               allowCustom={false}
               allowDeselect={false}
               className="w-full"
-              buttonClassName="h-10 px-3 rounded-xl border border-border bg-background text-sm font-semibold shadow-2xs justify-between"
+              buttonClassName="h-10 px-3 rounded-xl bg-background text-sm font-semibold justify-between"
             />
           </div>
           {account.platform === 'other' && (
@@ -191,7 +191,7 @@ const SocialAccountRow = ({
             value={account.accountHandle}
             onChange={(e) => onChange(index, 'accountHandle', e.target.value)}
             placeholder="@handle or username"
-            className="h-11 text-sm rounded-xl font-mono px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+            className="h-11 text-sm rounded-xl font-mono px-3.5 focus:ring-2 focus:ring-primary/20 "
           />
         </FormField>
 
@@ -205,7 +205,7 @@ const SocialAccountRow = ({
                   onChange(index, 'email', masterEmail);
                   toast.success(`Copied master email to ${platform.label}!`);
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground hover:text-foreground bg-secondary/80 hover:bg-secondary border border-border px-2 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground hover:text-foreground bg-secondary/80 hover:bg-secondary px-2 py-0.5 rounded-lg transition-all cursor-pointer "
                 title="Use email from Primary / Master Credential"
               >
                 <Copy size={11} /> Same as Master Email
@@ -217,7 +217,7 @@ const SocialAccountRow = ({
             value={account.email}
             onChange={(e) => onChange(index, 'email', e.target.value)}
             placeholder="login@email.com"
-            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 "
           />
         </div>
 
@@ -226,7 +226,7 @@ const SocialAccountRow = ({
             value={account.mobileNumber}
             onChange={(e) => onChange(index, 'mobileNumber', e.target.value)}
             placeholder="+91 98765 43210"
-            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 "
           />
         </FormField>
 
@@ -245,7 +245,7 @@ const SocialAccountRow = ({
                 onChange(index, 'password', masterPassword);
                 toast.success(`Copied master password to ${platform.label}!`);
               }}
-              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-foreground bg-secondary hover:bg-muted border border-border px-2.5 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 text-[11px] font-bold text-foreground bg-secondary hover:bg-muted px-2.5 py-0.5 rounded-lg transition-all cursor-pointer "
               title="Use password from Primary / Master Credential"
             >
               <Copy size={11} /> Same as Master / Email Password
@@ -257,7 +257,7 @@ const SocialAccountRow = ({
               value={account.password}
               onChange={(e) => onChange(index, 'password', e.target.value)}
               placeholder={isEditing ? 'Leave blank to keep' : 'Enter password'}
-              className="h-11 text-sm rounded-xl font-mono px-3.5 pr-11 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+              className="h-11 text-sm rounded-xl font-mono px-3.5 pr-11 focus:ring-2 focus:ring-primary/20 "
             />
             <button
               type="button"
@@ -276,7 +276,7 @@ const SocialAccountRow = ({
             value={account.recoveryEmail}
             onChange={(e) => onChange(index, 'recoveryEmail', e.target.value)}
             placeholder="recovery@email.com"
-            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 "
           />
         </FormField>
 
@@ -285,23 +285,23 @@ const SocialAccountRow = ({
             value={account.notes}
             onChange={(e) => onChange(index, 'notes', e.target.value)}
             placeholder="2FA via app / SMS to +91..."
-            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+            className="h-11 text-sm rounded-xl px-3.5 focus:ring-2 focus:ring-primary/20 "
           />
         </FormField>
       </div>
       {/* ── Pages sub-section (Facebook & Instagram only) ── */}
       {supportsPages && (
-        <div className="border-t border-border/60 px-3 pb-3 pt-2.5 space-y-2">
+        <div className="px-3 pb-3 pt-2.5 space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
-              <span className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[9px] font-bold">{platform.code}</span>
+              <span className="px-1.5 py-0.5 rounded bg-secondary text-[9px] font-bold">{platform.code}</span>
               <span>{account.platform === 'facebook' ? 'Facebook Pages' : 'Instagram Profiles / Pages'}</span>
               <span className="text-muted-foreground font-normal tabular-nums">({(account.pages || []).length})</span>
             </p>
             <button
               type="button"
               onClick={addPage}
-              className="flex items-center gap-1 text-[11px] font-semibold text-foreground px-2 py-1 rounded-lg border border-border hover:bg-secondary transition-all cursor-pointer"
+              className="flex items-center gap-1 text-[11px] font-semibold text-foreground px-2 py-1 rounded-lg hover:bg-secondary transition-all cursor-pointer"
             >
               <PlusCircle size={11} />
               Add Page
@@ -309,7 +309,7 @@ const SocialAccountRow = ({
           </div>
 
           {(account.pages || []).length === 0 && (
-            <div className="rounded-lg border border-dashed border-border py-3 text-center text-[11px] text-muted-foreground">
+            <div className="rounded-lg py-3 text-center text-[11px] text-muted-foreground">
               No pages added.{' '}
               <button type="button" onClick={addPage} className="text-foreground font-semibold hover:underline cursor-pointer">
                 Add a {account.platform === 'facebook' ? 'Facebook Page' : 'Profile/Page'}
@@ -318,7 +318,7 @@ const SocialAccountRow = ({
           )}
 
           {(account.pages || []).map((page, pi) => (
-            <div key={pi} className="rounded-lg border border-border bg-background/70 p-2.5 space-y-2">
+            <div key={pi} className="rounded-lg bg-background/70 p-2.5 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
                   <FileText size={13} className="text-muted-foreground shrink-0" />
@@ -387,9 +387,9 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
   const platform = getPlatform(account.platform);
 
   return (
-    <div className="rounded-lg border border-border bg-background/60 p-2.5 space-y-2 text-xs">
+    <div className="rounded-lg bg-background/60 p-2.5 space-y-2 text-xs">
       <div className="flex items-center gap-1.5 font-bold text-foreground">
-        <span className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[9px] font-bold">{platform.code}</span>
+        <span className="px-1.5 py-0.5 rounded bg-secondary text-[9px] font-bold">{platform.code}</span>
         <span>{account.platformLabel || platform.label}</span>
         {account.pages && account.pages.length > 0 && (
           <span className="ml-auto text-[10px] font-normal text-muted-foreground tabular-nums">
@@ -467,7 +467,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
 
       {/* Pages list */}
       {account.pages && account.pages.length > 0 && (
-        <div className="mt-2 space-y-1.5 pt-2 border-t border-border/40">
+        <div className="mt-2 space-y-1.5 pt-2 ">
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
             {platform.label === 'Facebook' ? 'Facebook Pages' : 'Pages / Profiles'}
           </p>
@@ -476,7 +476,7 @@ const RevealedAccountRow = ({ account, copiedId, onCopy }) => {
               <div className="space-y-0.5 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-foreground truncate">{page.pageName || '—'}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary border border-border text-foreground font-medium shrink-0">{page.role}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-secondary text-foreground font-medium shrink-0">{page.role}</span>
                 </div>
                 {page.pageId && <p className="text-muted-foreground font-mono">ID: {page.pageId}</p>}
               </div>
@@ -576,27 +576,27 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" noPadding hideCloseButton className="w-[calc(100vw-24px)] max-w-2xl bg-card border border-border p-0 overflow-hidden flex flex-col max-h-[90dvh] shadow-2xl">
-        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 sm:gap-4 m-0 pr-4 sm:pr-6 space-y-0">
+      <DialogContent size="lg" noPadding hideCloseButton className="w-[calc(100vw-24px)] max-w-2xl bg-card p-0 overflow-hidden flex flex-col max-h-[90dvh] ">
+        <DialogHeader className="px-4 sm:px-6 py-4 sm:py-5 bg-card shrink-0 select-none flex flex-row items-center justify-between gap-3 sm:gap-4 m-0 pr-4 sm:pr-6 space-y-0">
           <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-secondary text-foreground border border-border shrink-0 shadow-2xs">
+            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-secondary text-foreground shrink-0 ">
               <LockKeyhole size={20} />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-base sm:text-xl font-bold text-foreground leading-tight truncate">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">
                 {isEditing ? 'Edit Client Credential' : 'Add Secure Credential'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-normal line-clamp-1">
+              <DialogDescription className="sr-only">
                 Credentials are encrypted with agency-grade AES security before storage.
               </DialogDescription>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 border border-border text-[10px] font-mono font-medium text-muted-foreground shadow-xs select-none">
+            <kbd className="hidden sm:inline-flex items-center justify-center h-6 px-2 rounded-md bg-secondary/80 text-[10px] font-mono font-medium text-muted-foreground select-none">
               ESC
             </kbd>
-            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/70 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <DialogClose className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/70 text-muted-foreground hover:text-foreground hover:bg-secondary transition-all hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20">
               <X size={16} className="stroke-[2.5]" />
               <span className="sr-only">Close</span>
             </DialogClose>
@@ -621,7 +621,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                   searchPlaceholder="Search client by company, name, or email..."
                   allowDeselect={false}
                   allowCustom={false}
-                  buttonClassName="h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium shadow-2xs justify-between"
+                  buttonClassName="h-11 px-3.5 rounded-xl bg-background text-sm font-medium justify-between"
                 />
               </FormField>
 
@@ -637,7 +637,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                   searchPlaceholder="Search category..."
                   allowDeselect={false}
                   allowCustom={false}
-                  buttonClassName="h-11 px-3.5 rounded-xl border border-border bg-background text-sm font-medium shadow-2xs justify-between"
+                  buttonClassName="h-11 px-3.5 rounded-xl bg-background text-sm font-medium justify-between"
                 />
               </FormField>
 
@@ -647,13 +647,13 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                   onChange={(e) => updateField('credentialName', e.target.value)}
                   placeholder="e.g. Client Brand Social Accounts, Meta Business Manager"
                   required
-                  className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                  className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                 />
               </FormField>
             </div>
 
             {/* ── Primary Credential Card (Linear Flow) ── */}
-            <div className="rounded-2xl border border-border/80 bg-secondary/15 p-5 sm:p-6 space-y-5 shadow-2xs">
+            <div className="rounded-2xl bg-secondary/15 p-5 sm:p-6 space-y-5 ">
               <p className="text-sm font-bold text-foreground flex items-center gap-2">
                 <LockKeyhole size={16} className="text-foreground shrink-0" /> Primary / Master Credential
               </p>
@@ -663,7 +663,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                     value={form.username}
                     onChange={(e) => updateField('username', e.target.value)}
                     placeholder="login@brand.com or @handle"
-                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                   />
                 </FormField>
 
@@ -674,7 +674,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                       value={form.password}
                       onChange={(e) => updateField('password', e.target.value)}
                       placeholder={isEditing ? 'Leave blank to keep existing' : 'Enter password'}
-                      className="h-11 text-sm rounded-xl px-4 pr-11 font-mono focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                      className="h-11 text-sm rounded-xl px-4 pr-11 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                     />
                     <button
                       type="button"
@@ -693,7 +693,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                     value={form.email}
                     onChange={(e) => updateField('email', e.target.value)}
                     placeholder="primary@email.com"
-                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                   />
                 </FormField>
 
@@ -702,7 +702,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                     value={form.mobileNumber}
                     onChange={(e) => updateField('mobileNumber', e.target.value)}
                     placeholder="+91 98765 43210"
-                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                   />
                 </FormField>
 
@@ -711,7 +711,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                     value={form.url}
                     onChange={(e) => updateField('url', e.target.value)}
                     placeholder="https://business.facebook.com"
-                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                   />
                 </FormField>
 
@@ -720,7 +720,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                     type="date"
                     value={form.expiryDate}
                     onChange={(e) => updateField('expiryDate', e.target.value)}
-                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 "
                   />
                 </FormField>
 
@@ -729,7 +729,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                     value={form.tags}
                     onChange={(e) => updateField('tags', e.target.value)}
                     placeholder="social, instagram, meta, ads"
-                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                    className="h-11 text-sm rounded-xl px-4 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                   />
                 </FormField>
 
@@ -738,7 +738,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                     value={form.notes}
                     onChange={(e) => updateField('notes', e.target.value)}
                     placeholder="e.g. 2FA sent to client phone number (+91 98765 43210)"
-                    className="min-h-[90px] text-sm rounded-xl p-3.5 focus:ring-2 focus:ring-primary/20 shadow-2xs placeholder:text-muted-foreground/60"
+                    className="min-h-[90px] text-sm rounded-xl p-3.5 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
                   />
                 </FormField>
               </div>
@@ -767,7 +767,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                         }));
                         toast.success('Applied master password to all platform accounts!');
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground bg-secondary hover:bg-muted border border-border transition-all px-3 py-1.5 rounded-xl cursor-pointer shadow-2xs"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground bg-secondary hover:bg-muted transition-all px-3 py-1.5 rounded-xl cursor-pointer "
                       title="Fill all platform accounts with the master password entered above"
                     >
                       <Copy size={13} />
@@ -777,7 +777,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
                   <button
                     type="button"
                     onClick={addAccount}
-                    className="flex items-center gap-1.5 text-xs font-bold text-foreground hover:bg-secondary transition-all px-3 py-1.5 rounded-xl border border-border cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1.5 text-xs font-bold text-foreground hover:bg-secondary transition-all px-3 py-1.5 rounded-xl cursor-pointer "
                   >
                     <PlusCircle size={14} />
                     Add Platform
@@ -786,7 +786,7 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
               </div>
 
               {form.socialAccounts.length === 0 && (
-                <div className="rounded-2xl border border-dashed border-border py-6 text-center text-xs text-muted-foreground bg-secondary/10">
+                <div className="rounded-2xl py-6 text-center text-xs text-muted-foreground bg-secondary/10">
                   No platform accounts added yet.{' '}
                   <button type="button" onClick={addAccount} className="text-foreground font-bold hover:underline cursor-pointer">
                     Add one
@@ -811,19 +811,19 @@ const CredentialFormDialog = ({ open, onOpenChange, credential, clients, onSave,
           </div>
 
           {/* Modern Pinned Sticky Bottom Action Bar */}
-          <div className="shrink-0 border-t border-border bg-card px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-end gap-2.5 z-10 shadow-xs select-none">
+          <div className="shrink-0 bg-card px-4 sm:px-6 py-3.5 sm:py-4 flex flex-wrap items-center justify-end gap-2.5 z-10 select-none">
             <Button
               type="button"
               variant="secondary"
               onClick={() => onOpenChange(false)}
-              className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-sm font-semibold cursor-pointer flex-1 sm:flex-initial"
+              className="h-11 px-5 rounded-xl text-sm font-semibold cursor-pointer flex-1 sm:flex-initial"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={saving}
-              className="h-10 sm:h-11 px-5 sm:px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground shadow-sm cursor-pointer transition-all flex-1 sm:flex-initial"
+              className="h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-primary-foreground cursor-pointer transition-all flex-1 sm:flex-initial"
             >
               {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Store Securely'}
             </Button>
@@ -907,7 +907,7 @@ export default function ClientVault() {
       label: 'Account / Title',
       render: (item) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-secondary border border-border text-foreground flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="h-7 w-7 rounded-lg bg-secondary text-foreground flex items-center justify-center font-bold text-xs shrink-0">
             <LockKeyhole size={14} />
           </div>
           <div>
@@ -924,7 +924,7 @@ export default function ClientVault() {
       key: 'credentialType',
       label: 'Category',
       render: (item) => (
-        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary border border-border text-foreground capitalize">
+        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-secondary text-foreground capitalize">
           {typeLabels[item.credentialType] || item.credentialType}
         </span>
       ),
@@ -940,7 +940,7 @@ export default function ClientVault() {
             {accounts.slice(0, 5).map((acc, i) => (
               <span
                 key={i}
-                className="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px] font-bold text-foreground"
+                className="px-1.5 py-0.5 rounded bg-secondary text-[10px] font-bold text-foreground"
                 title={getPlatform(acc.platform).label}
               >
                 {getPlatform(acc.platform).code}
@@ -1088,7 +1088,7 @@ export default function ClientVault() {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary border border-border uppercase tracking-wider">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-secondary uppercase tracking-wider">
             {typeLabels[item.credentialType] || item.credentialType}
           </span>
           {!isClientUser && (
@@ -1123,7 +1123,7 @@ export default function ClientVault() {
         </div>
 
         {/* Primary credential */}
-        <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1.5 text-xs">
+        <div className="p-2.5 rounded-xl bg-secondary/40 space-y-1.5 text-xs">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">User:</span>
             <div className="flex items-center gap-1.5">
@@ -1184,7 +1184,7 @@ export default function ClientVault() {
                 setActivePasswordId(item._id);
                 toggleCard(item._id);
               }}
-              className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-2.5 py-2 rounded-lg border border-border hover:bg-secondary transition-all cursor-pointer"
+              className="w-full flex items-center justify-between text-xs font-semibold text-foreground px-2.5 py-2 rounded-lg hover:bg-secondary transition-all cursor-pointer"
             >
               <span className="flex items-center gap-1.5">
                 <AtSign size={12} />
@@ -1217,7 +1217,7 @@ export default function ClientVault() {
             href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-between p-2 rounded-lg bg-card border border-border text-xs text-foreground hover:bg-secondary transition-all font-semibold"
+            className="flex items-center justify-between p-2 rounded-lg bg-card text-xs text-foreground hover:bg-secondary transition-all font-semibold"
           >
             <span>Open Login Portal</span>
             <ExternalLink size={12} />
@@ -1235,11 +1235,6 @@ export default function ClientVault() {
           : ['RiseWithMedia', 'Client Lifecycle', 'Client Vault']
       }
       title={isClientUser ? 'My Secure Credentials & Vault' : 'Client Vault & Credentials'}
-      subtitle={
-        isClientUser
-          ? "Encrypted credential repository for your brand's social media accounts, CMS, domain hosting, and ad managers."
-          : 'Encrypted credential repository for client social media accounts, CMS, domain hosting, ad managers, and brand assets.'
-      }
       icon={LockKeyhole}
       properties={[
         { label: 'Total Vault Items', value: total, icon: LockKeyhole },
@@ -1255,7 +1250,7 @@ export default function ClientVault() {
               setSelectedCredential(null);
               setOpenDialog(true);
             }}
-            className="rounded-xl text-xs font-bold gap-1.5 shadow-sm"
+            className="h-10 px-4 rounded-xl text-xs font-bold gap-1.5 cursor-pointer"
           >
             <Plus size={14} className="stroke-[2.5]" />
             <span>Add Credential</span>
@@ -1271,8 +1266,8 @@ export default function ClientVault() {
               key={type}
               onClick={() => setTypeFilter(type)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap shrink-0 min-h-[36px] ${typeFilter === type
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  ? 'bg-primary text-primary-foreground '
+                  : 'bg-card text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
             >
               {type === 'all' ? 'All Categories' : typeLabels[type] || type.replace(/_/g, ' ')}
@@ -1296,7 +1291,7 @@ export default function ClientVault() {
               searchPlaceholder="Search client..."
               allowDeselect={false}
               allowCustom={false}
-              buttonClassName="h-9 px-3 rounded-xl border border-border bg-card text-xs font-semibold shadow-2xs justify-between"
+              buttonClassName="h-9 px-3 rounded-xl bg-card text-xs font-semibold justify-between"
             />
           </div>
         )}
@@ -1323,10 +1318,10 @@ export default function ClientVault() {
       />
 
       <AlertDialog open={Boolean(deleteId)} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent className="bg-card border border-border">
+        <AlertDialogContent className="bg-card ">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-base font-bold">Delete Credential?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogDescription className="sr-only">
               This will permanently delete this credential from the secure vault. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/muiIcons';
 import api from '../../api';
 import { formatINR } from '../../utils/currency';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import { Button } from '../../components/ui/button';
 import {
@@ -34,11 +34,11 @@ import DatabaseView from '../../components/ui/DatabaseView';
 import { useDateFilter } from '../../context/DateFilterContext';
 
 const statusTone = {
-  submitted: 'bg-secondary text-muted-foreground border-border',
-  contacted: 'bg-secondary text-foreground border-border',
-  qualified: 'bg-muted text-foreground border-border',
-  closed_won: 'bg-primary text-primary-foreground border-primary',
-  closed_lost: 'bg-secondary text-muted-foreground border-border line-through',
+  submitted: 'bg-secondary text-muted-foreground ',
+  contacted: 'bg-secondary text-foreground ',
+  qualified: 'bg-muted text-foreground ',
+  closed_won: 'bg-primary text-primary-foreground ',
+  closed_lost: 'bg-secondary text-muted-foreground line-through',
 };
 
 const ReferralDashboard = () => {
@@ -168,7 +168,7 @@ const ReferralDashboard = () => {
       key: 'status',
       label: 'Status',
       render: (r) => (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border capitalize ${statusTone[r.status] || statusTone.submitted}`}>
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold capitalize ${statusTone[r.status] || statusTone.submitted}`}>
           {(r.status || 'submitted').replace(/_/g, ' ')}
         </span>
       ),
@@ -179,7 +179,7 @@ const ReferralDashboard = () => {
   const renderCard = (r) => (
     <div className="space-y-3 tabular-nums">
       <div className="flex items-center justify-between">
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border capitalize ${statusTone[r.status] || statusTone.submitted}`}>
+        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${statusTone[r.status] || statusTone.submitted}`}>
           {(r.status || 'submitted').replace(/_/g, ' ')}
         </span>
         <span className="text-xs font-bold text-foreground">
@@ -195,7 +195,7 @@ const ReferralDashboard = () => {
         </p>
       </div>
 
-      <div className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1 text-xs">
+      <div className="p-2.5 rounded-xl bg-secondary/40 space-y-1 text-xs">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Phone:</span>
           <span className="font-mono text-foreground">{r.leadPhone || '—'}</span>
@@ -228,7 +228,7 @@ const ReferralDashboard = () => {
               size="sm"
               variant="outline"
               onClick={handleCopyLink}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold shadow-xs min-h-[38px] cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold min-h-[38px] cursor-pointer"
             >
               {copiedLink ? <Check size={13} className="text-foreground" /> : <Copy size={13} />}
               <span>{copiedLink ? 'Copied Link' : 'Copy Partner Link'}</span>
@@ -237,7 +237,7 @@ const ReferralDashboard = () => {
           <Button
             size="sm"
             onClick={() => setShowLeadForm(true)}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl shadow-xs transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl transition-all hover:bg-primary/90 min-h-[38px] cursor-pointer"
           >
             <Plus size={14} className="stroke-[2.5]" />
             <span>Refer New Client</span>
@@ -258,31 +258,31 @@ const ReferralDashboard = () => {
 
       {/* Refer Lead Modal */}
       <Dialog open={showLeadForm} onOpenChange={setShowLeadForm}>
-        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card border-border shadow-2xl w-[calc(100vw-24px)] max-w-xl max-h-[90dvh]">
+        <DialogContent size="lg" noPadding hideCloseButton className="flex flex-col min-h-0 p-0 overflow-hidden bg-card w-[calc(100vw-24px)] max-w-xl max-h-[90dvh]">
           <form onSubmit={handleLeadSubmit} className="flex flex-col min-h-0 h-full">
             {/* Pinned Header */}
-            <div className="shrink-0 border-b border-border bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
+            <div className="shrink-0 bg-card px-6 py-5 flex items-center justify-between gap-4 z-10">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="h-11 w-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-primary">
                   <Building2 className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
                   <DialogTitle className="text-lg sm:text-xl font-bold tracking-tight text-foreground truncate">
                     Refer a Business Client
                   </DialogTitle>
-                  <DialogDescription className="text-xs sm:text-sm text-muted-foreground truncate">
-                    Submit client details to earn 10% commission on deal close
+                  <DialogDescription className="sr-only">
+                    Refer a Business Client
                   </DialogDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 border border-border/60 px-2 py-0.5 rounded-md">
+                <span className="hidden sm:inline-flex items-center text-[11px] font-medium text-muted-foreground/70 bg-muted/50 px-2 py-0.5 rounded-md">
                   ESC
                 </span>
                 <DialogClose asChild>
                   <button
                     type="button"
-                    className="h-9 w-9 rounded-xl border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
+                    className="h-9 w-9 rounded-xl bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -299,7 +299,7 @@ const ReferralDashboard = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Rahul Sharma"
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
                 />
               </div>
 
@@ -309,7 +309,7 @@ const ReferralDashboard = () => {
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   placeholder="Apex Fitness / Modern Cafe"
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
                 />
               </div>
 
@@ -320,7 +320,7 @@ const ReferralDashboard = () => {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+91 98765 43210"
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
                 />
               </div>
 
@@ -331,7 +331,7 @@ const ReferralDashboard = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="client@brand.com"
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
                 />
               </div>
 
@@ -342,7 +342,7 @@ const ReferralDashboard = () => {
                   value={formData.dealValue}
                   onChange={(e) => setFormData({ ...formData, dealValue: e.target.value })}
                   placeholder="e.g. 50000"
-                  className="w-full h-11 rounded-xl text-sm border-border bg-background px-4 text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs font-mono transition-all outline-hidden"
+                  className="w-full h-11 rounded-xl text-sm font-normal bg-background px-4 text-foreground tabular-nums focus:ring-2 focus:ring-primary/20 transition-all outline-hidden"
                 />
               </div>
 
@@ -353,27 +353,27 @@ const ReferralDashboard = () => {
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Needs Instagram management and reels production..."
                   rows={3}
-                  className="w-full rounded-xl border border-border bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 shadow-2xs transition-all outline-hidden resize-none"
+                  className="w-full rounded-xl bg-background p-3.5 text-sm text-foreground focus:ring-2 focus:ring-primary/20 transition-all outline-hidden resize-none"
                 />
               </div>
             </div>
 
             {/* Pinned Sticky Footer */}
-            <div className="shrink-0 border-t border-border bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 shadow-xs select-none">
+            <div className="shrink-0 bg-card px-6 py-4 flex items-center justify-between gap-3 z-10 select-none">
               <span className="text-xs text-muted-foreground hidden sm:inline">Press Esc to exit</span>
               <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowLeadForm(false)}
-                  className="h-11 px-5 rounded-xl border-border hover:bg-muted text-sm font-medium w-full sm:w-auto"
+                  className="h-11 px-5 rounded-xl hover:bg-muted text-sm font-medium w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm shadow-md transition-all w-full sm:w-auto"
+                  className="h-11 px-6 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm transition-all w-full sm:w-auto"
                 >
                   {submitting ? 'Submitting...' : 'Submit Lead'}
                 </Button>

@@ -87,7 +87,7 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent variant="center" size="lg" noPadding className="max-w-2xl p-0 gap-0">
-        <div className="border-b border-border p-3.5 sm:p-4 pr-14 sm:pr-24">
+        <div className="p-3.5 sm:p-4 pr-14 sm:pr-24">
           <div className="flex items-center gap-3">
             <Search size={18} className="text-muted-foreground" />
             <Input
@@ -125,9 +125,9 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
               <button
                 key={`${result.type}-${result.id}`}
                 onClick={() => handleSelect(result.path)}
-                className="w-full px-4 py-3 hover:bg-secondary/80 flex items-center gap-3 transition-colors text-left border-b border-border/50 last:border-0"
+                className="w-full px-4 py-3 hover:bg-secondary/80 flex items-center gap-3 transition-colors text-left last:border-0"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary border border-border text-foreground">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
                   <ResultIcon size={16} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -139,7 +139,7 @@ const GlobalSearchModal = ({ open, onOpenChange }) => {
           })}
         </div>
 
-        <div className="border-t border-border bg-secondary/20 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground tabular-nums">
+        <div className="bg-secondary/20 px-4 py-2 flex items-center justify-between text-xs text-muted-foreground tabular-nums">
           <span>Press ESC to close</span>
           <span>{results.length} results</span>
         </div>
